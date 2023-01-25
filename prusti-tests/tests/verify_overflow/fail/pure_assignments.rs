@@ -1,3 +1,5 @@
+//! Assignments to non local variables in pure code are currently not supported,
+//! but can be in the future.
 use prusti_contracts::*;
 
 #[pure]
