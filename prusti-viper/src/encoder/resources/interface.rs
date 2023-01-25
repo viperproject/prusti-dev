@@ -37,7 +37,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ResourcesEncoderInterface
                     amount.into(),
                     scope_id,
                 ),
-                pos.clone(),
+                pos,
             )
         }));
         stmts.extend(scope_ids.iter().map(|&scope_id| {
