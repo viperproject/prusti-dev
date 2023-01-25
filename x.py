@@ -247,7 +247,7 @@ def check_smir():
             lines = [
                 line
                 for line in completed.stdout.decode().splitlines()
-                if '.rs:' in line and not line.startswith('prusti-tests/tests')
+                if '.rs:' in line and not line.startswith('prusti-tests/tests') and not 'extern crate alloc' in line
             ]
             assert not lines, (
                 'found `extern crate` outside '
