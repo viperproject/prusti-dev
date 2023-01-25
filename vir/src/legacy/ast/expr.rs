@@ -196,7 +196,7 @@ impl fmt::Display for Expr {
                 write!(f, "acc({pred_name}({arg}), {perm})")
             }
             Expr::ResourceAccessPredicate(resouce_name, amount, scope_id, _) => {
-                write!(f, "acc({}({}), {}/1)", resouce_name, scope_id, amount)
+                write!(f, "acc({resouce_name}({scope_id}), {amount}/1)")
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
                 write!(f, "acc({expr}, {perm})")
