@@ -1283,27 +1283,47 @@
 <a href="#1283" id="1283">1283</a>
 <a href="#1284" id="1284">1284</a>
 <a href="#1285" id="1285">1285</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
-    high::{
-        builtin_functions::HighBuiltinFunctionEncoderInterface,
-        generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
-    },
-    mir::{
-        pure::{
-            interpreter::{state_poly::ExprBackwardInterpreterState, BackwardMirInterpreter},
-            pure_functions::PureFunctionEncoderInterface,
-            specifications::SpecificationEncoderInterface,
-            PureEncodingContext,
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    encoder::{
+        builtin_encoder::BuiltinFunctionKind,
+        errors::{
+            EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan,
         },
-        sequences::MirSequencesEncoderInterface,
-        specifications::SpecificationsInterface,
-        types::MirTypeEncoderInterface,
+        high::{
+            builtin_functions::HighBuiltinFunctionEncoderInterface,
+            generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
+        },
+        mir::{
+            pure::{
+                interpreter::{state_poly::ExprBackwardInterpreterState, BackwardMirInterpreter},
+                pure_functions::PureFunctionEncoderInterface,
+                specifications::SpecificationEncoderInterface,
+                PureEncodingContext,
+            },
+            sequences::MirSequencesEncoderInterface,
+            specifications::SpecificationsInterface,
+            types::MirTypeEncoderInterface,
+        },
+        mir_encoder::{
+            MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL,
+        },
+        snapshot::interface::SnapshotEncoderInterface,
+        Encoder,
     },
-    mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    snapshot::interface::SnapshotEncoderInterface,
-    Encoder,
+    error_unsupported,
 };
 <span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>prusti_common::vir_local;
@@ -2109,6 +2129,12 @@
             </span>}
 
             mir::StatementKind::Assign(<span class="kw">box </span>(lhs, <span class="kw-2">ref </span>rhs)) =&gt; {
+                <span class="kw">if </span>!lhs.projection.is_empty() {
+                    <span class="macro">error_unsupported!</span>(span =&gt;
+                        <span class="string">&quot;only assignments to local variables are supported in pure code&quot;
+                    </span>);
+                }
+
                 <span class="kw">let </span>(encoded_lhs, ty, <span class="kw">_</span>) = <span class="self">self</span>.encode_place(lhs).with_span(span)<span class="question-mark">?</span>;
                 <span class="macro">trace!</span>(<span class="string">&quot;Encoding assignment to LHS {:?}&quot;</span>, encoded_lhs);
 
