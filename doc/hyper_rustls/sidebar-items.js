@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["MaybeHttpsStream","A stream that might be protected with TLS."]],"mod":[["builderstates","The various states of the [`HttpsConnectorBuilder`]"]],"struct":[["HttpsConnector","A Connector for the `https` scheme."],["HttpsConnectorBuilder","A builder for an [`HttpsConnector`]"]],"trait":[["ConfigBuilderExt","Methods for configuring roots"]]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.1/src/write/encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.21.0/src/write/encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -379,11 +379,36 @@
 <a href="#379" id="379">379</a>
 <a href="#380" id="380">380</a>
 <a href="#381" id="381">381</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encode::encode_to_slice;
-<span class="kw">use crate</span>::{encode_config_slice, Config};
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::engine::Engine;
 <span class="kw">use </span>std::{
-    cmp, fmt,
-    io::{ErrorKind, <span class="prelude-ty">Result</span>, Write},
+    cmp, fmt, io,
+    io::{ErrorKind, <span class="prelude-ty">Result</span>},
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUF_SIZE: usize = <span class="number">1024</span>;
@@ -404,9 +429,10 @@
 ///
 /// ```
 /// use std::io::Write;
+/// use base64::engine::general_purpose;
 ///
 /// // use a vec as the simplest possible `Write` -- in real code this is probably a file, etc.
-/// let mut enc = base64::write::EncoderWriter::new(Vec::new(), base64::STANDARD);
+/// let mut enc = base64::write::EncoderWriter::new(Vec::new(), &amp;general_purpose::STANDARD);
 ///
 /// // handle errors as you normally would
 /// enc.write_all(b&quot;asdf&quot;).unwrap();
@@ -434,8 +460,15 @@
 ///
 /// It has some minor performance loss compared to encoding slices (a couple percent).
 /// It does not do any heap allocation.
-</span><span class="kw">pub struct </span>EncoderWriter&lt;W: Write&gt; {
-    config: Config,
+///
+/// # Limitations
+///
+/// Owing to the specification of the `write` and `flush` methods on the `Write` trait and their
+/// implications for a buffering implementation, these methods may not behave as expected. In
+/// particular, calling `write_all` on this interface may fail with `io::ErrorKind::WriteZero`.
+/// See the documentation of the `Write` trait implementation for further details.
+</span><span class="kw">pub struct </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; {
+    engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E,
     <span class="doccomment">/// Where encoded data is written to. It&#39;s an Option as it&#39;s None immediately before Drop is
     /// called so that finish() can return the underlying writer. None implies that finish() has
     /// been called successfully.
@@ -454,7 +487,7 @@
     </span>panicked: bool,
 }
 
-<span class="kw">impl</span>&lt;W: Write&gt; fmt::Debug <span class="kw">for </span>EncoderWriter&lt;W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; fmt::Debug <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             f,
@@ -467,12 +500,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;W: Write&gt; EncoderWriter&lt;W&gt; {
-    <span class="doccomment">/// Create a new encoder that will write to the provided delegate writer `w`.
-    </span><span class="kw">pub fn </span>new(w: W, config: Config) -&gt; EncoderWriter&lt;W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
+    <span class="doccomment">/// Create a new encoder that will write to the provided delegate writer.
+    </span><span class="kw">pub fn </span>new(delegate: W, engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E) -&gt; EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
         EncoderWriter {
-            config,
-            delegate: <span class="prelude-val">Some</span>(w),
+            engine,
+            delegate: <span class="prelude-val">Some</span>(delegate),
             extra_input: [<span class="number">0u8</span>; MIN_ENCODE_CHUNK_SIZE],
             extra_input_occupied_len: <span class="number">0</span>,
             output: [<span class="number">0u8</span>; BUF_SIZE],
@@ -501,7 +534,7 @@
         <span class="comment">// If we could consume self in finish(), we wouldn&#39;t have to worry about this case, but
         // finish() is retryable in the face of I/O errors, so we can&#39;t consume here.
         </span><span class="kw">if </span><span class="self">self</span>.delegate.is_none() {
-            <span class="macro">panic!</span>(<span class="string">&quot;Encoder has already had finish() called&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Encoder has already had finish() called&quot;</span>);
         };
 
         <span class="self">self</span>.write_final_leftovers()<span class="question-mark">?</span>;
@@ -522,11 +555,13 @@
         <span class="self">self</span>.write_all_encoded_output()<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.extra_input_occupied_len &gt; <span class="number">0 </span>{
-            <span class="kw">let </span>encoded_len = encode_config_slice(
-                <span class="kw-2">&amp;</span><span class="self">self</span>.extra_input[..<span class="self">self</span>.extra_input_occupied_len],
-                <span class="self">self</span>.config,
-                <span class="kw-2">&amp;mut </span><span class="self">self</span>.output[..],
-            );
+            <span class="kw">let </span>encoded_len = <span class="self">self
+                </span>.engine
+                .encode_slice(
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.extra_input[..<span class="self">self</span>.extra_input_occupied_len],
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.output[..],
+                )
+                .expect(<span class="string">&quot;buffer is large enough&quot;</span>);
 
             <span class="self">self</span>.output_occupied_len = encoded_len;
 
@@ -563,7 +598,7 @@
                 <span class="self">self</span>.output_occupied_len = current_output_len.checked_sub(consumed).unwrap();
                 <span class="comment">// If we&#39;re blocking on I/O, the minor inefficiency of copying bytes to the
                 // start of the buffer is the least of our concerns...
-                // Rotate moves more than we need to, but copy_within isn&#39;t stabilized yet.
+                // TODO Rotate moves more than we need to; copy_within now stable.
                 </span><span class="self">self</span>.output.rotate_left(consumed);
             } <span class="kw">else </span>{
                 <span class="self">self</span>.output_occupied_len = <span class="number">0</span>;
@@ -596,9 +631,28 @@
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, <span class="self">self</span>.output_occupied_len);
         <span class="prelude-val">Ok</span>(())
     }
+
+    <span class="doccomment">/// Unwraps this `EncoderWriter`, returning the base writer it writes base64 encoded output
+    /// to.
+    ///
+    /// Normally this method should not be needed, since `finish()` returns the inner writer if
+    /// it completes successfully. That will also ensure all data has been flushed, which the
+    /// `into_inner()` function does *not* do.
+    ///
+    /// Calling this method after `finish()` has completed successfully will panic, since the
+    /// writer has already been returned.
+    ///
+    /// This method may be useful if the writer implements additional APIs beyond the `Write`
+    /// trait. Note that the inner writer might be in an error state or have an incomplete
+    /// base64 string written to it.
+    </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; W {
+        <span class="self">self</span>.delegate
+            .take()
+            .expect(<span class="string">&quot;Encoder has already had finish() called&quot;</span>)
+    }
 }
 
-<span class="kw">impl</span>&lt;W: Write&gt; Write <span class="kw">for </span>EncoderWriter&lt;W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; io::Write <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
     <span class="doccomment">/// Encode input and then write to the delegate writer.
     ///
     /// Under non-error circumstances, this returns `Ok` with the value being the number of bytes
@@ -667,10 +721,9 @@
                 </span><span class="self">self</span>.extra_input[<span class="self">self</span>.extra_input_occupied_len..MIN_ENCODE_CHUNK_SIZE]
                     .copy_from_slice(<span class="kw-2">&amp;</span>input[<span class="number">0</span>..extra_input_read_len]);
 
-                <span class="kw">let </span>len = encode_to_slice(
+                <span class="kw">let </span>len = <span class="self">self</span>.engine.internal_encode(
                     <span class="kw-2">&amp;</span><span class="self">self</span>.extra_input[<span class="number">0</span>..MIN_ENCODE_CHUNK_SIZE],
                     <span class="kw-2">&amp;mut </span><span class="self">self</span>.output[..],
-                    <span class="self">self</span>.config.char_set.encode_table(),
                 );
                 <span class="macro">debug_assert_eq!</span>(<span class="number">4</span>, len);
 
@@ -716,10 +769,9 @@
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, max_input_len % MIN_ENCODE_CHUNK_SIZE);
         <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, input_chunks_to_encode_len % MIN_ENCODE_CHUNK_SIZE);
 
-        encoded_size += encode_to_slice(
+        encoded_size += <span class="self">self</span>.engine.internal_encode(
             <span class="kw-2">&amp;</span>input[..(input_chunks_to_encode_len)],
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.output[encoded_size..],
-            <span class="self">self</span>.config.char_set.encode_table(),
         );
 
         <span class="comment">// not updating `self.output_occupied_len` here because if the below write fails, it should
@@ -752,7 +804,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;W: Write&gt; Drop <span class="kw">for </span>EncoderWriter&lt;W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; Drop <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.panicked {
             <span class="comment">// like `BufWriter`, ignore errors during drop

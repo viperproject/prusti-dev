@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ClientSessionValue",""]],"struct":[["ClientSessionCommon",""],["ClientSessionKey","Keys for session resumption and tickets. Matching value is a `ClientSessionValue`."],["Retrieved",""],["ServerSessionValue",""],["Tls12ClientSessionValue",""],["Tls13ClientSessionValue",""]],"type":[["ServerSessionKey",""]]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.1/src/write/encoder_string_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder_string_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.21.0/src/write/encoder_string_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder_string_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -174,13 +174,15 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::encoder::EncoderWriter;
-<span class="kw">use </span><span class="kw">crate</span>::Config;
+<span class="kw">use </span><span class="kw">crate</span>::engine::Engine;
 <span class="kw">use </span>std::io;
-<span class="kw">use </span>std::io::Write;
 
 <span class="doccomment">/// A `Write` implementation that base64-encodes data using the provided config and accumulates the
-/// resulting base64 in memory, which is then exposed as a String via `into_inner()`.
+/// resulting base64 utf8 `&amp;str` in a [StrConsumer] implementation (typically `String`), which is
+/// then exposed via `into_inner()`.
 ///
 /// # Examples
 ///
@@ -188,8 +190,9 @@
 ///
 /// ```
 /// use std::io::Write;
+/// use base64::engine::general_purpose;
 ///
-/// let mut enc = base64::write::EncoderStringWriter::new(base64::STANDARD);
+/// let mut enc = base64::write::EncoderStringWriter::new(&amp;general_purpose::STANDARD);
 ///
 /// enc.write_all(b&quot;asdf&quot;).unwrap();
 ///
@@ -199,14 +202,17 @@
 /// assert_eq!(&quot;YXNkZg==&quot;, &amp;b64_string);
 /// ```
 ///
-/// Or, append to an existing String:
+/// Or, append to an existing `String`, which implements `StrConsumer`:
 ///
 /// ```
 /// use std::io::Write;
+/// use base64::engine::general_purpose;
 ///
 /// let mut buf = String::from(&quot;base64: &quot;);
 ///
-/// let mut enc = base64::write::EncoderStringWriter::from(&amp;mut buf, base64::STANDARD);
+/// let mut enc = base64::write::EncoderStringWriter::from_consumer(
+///     &amp;mut buf,
+///     &amp;general_purpose::STANDARD);
 ///
 /// enc.write_all(b&quot;asdf&quot;).unwrap();
 ///
@@ -225,40 +231,38 @@
 ///
 /// Because it has to validate that the base64 is UTF-8, it is about 80% as fast as writing plain
 /// bytes to a `io::Write`.
-</span><span class="kw">pub struct </span>EncoderStringWriter&lt;S: StrConsumer&gt; {
-    encoder: EncoderWriter&lt;Utf8SingleCodeUnitWriter&lt;S&gt;&gt;,
+</span><span class="kw">pub struct </span>EncoderStringWriter&lt;<span class="lifetime">&#39;e</span>, E: Engine, S: StrConsumer&gt; {
+    encoder: EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, Utf8SingleCodeUnitWriter&lt;S&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;S: StrConsumer&gt; EncoderStringWriter&lt;S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, S: StrConsumer&gt; EncoderStringWriter&lt;<span class="lifetime">&#39;e</span>, E, S&gt; {
     <span class="doccomment">/// Create a EncoderStringWriter that will append to the provided `StrConsumer`.
-    </span><span class="kw">pub fn </span>from(str_consumer: S, config: Config) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_consumer(str_consumer: S, engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E) -&gt; <span class="self">Self </span>{
         EncoderStringWriter {
-            encoder: EncoderWriter::new(Utf8SingleCodeUnitWriter { str_consumer }, config),
+            encoder: EncoderWriter::new(Utf8SingleCodeUnitWriter { str_consumer }, engine),
         }
     }
 
     <span class="doccomment">/// Encode all remaining buffered data, including any trailing incomplete input triples and
     /// associated padding.
     ///
-    /// Once this succeeds, no further writes or calls to this method are allowed.
-    ///
     /// Returns the base64-encoded form of the accumulated written data.
     </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; S {
         <span class="self">self</span>.encoder
             .finish()
-            .expect(<span class="string">&quot;Writing to a Vec&lt;u8&gt; should never fail&quot;</span>)
+            .expect(<span class="string">&quot;Writing to a consumer should never fail&quot;</span>)
             .str_consumer
     }
 }
 
-<span class="kw">impl </span>EncoderStringWriter&lt;String&gt; {
-    <span class="doccomment">/// Create a EncoderStringWriter that will encode into a new String with the provided config.
-    </span><span class="kw">pub fn </span>new(config: Config) -&gt; <span class="self">Self </span>{
-        EncoderStringWriter::from(String::new(), config)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine&gt; EncoderStringWriter&lt;<span class="lifetime">&#39;e</span>, E, String&gt; {
+    <span class="doccomment">/// Create a EncoderStringWriter that will encode into a new `String` with the provided config.
+    </span><span class="kw">pub fn </span>new(engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E) -&gt; <span class="self">Self </span>{
+        EncoderStringWriter::from_consumer(String::new(), engine)
     }
 }
 
-<span class="kw">impl</span>&lt;S: StrConsumer&gt; Write <span class="kw">for </span>EncoderStringWriter&lt;S&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, S: StrConsumer&gt; io::Write <span class="kw">for </span>EncoderStringWriter&lt;<span class="lifetime">&#39;e</span>, E, S&gt; {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.encoder.write(buf)
     }
@@ -277,14 +281,14 @@
 <span class="doccomment">/// As for io::Write, `StrConsumer` is implemented automatically for `&amp;mut S`.
 </span><span class="kw">impl</span>&lt;S: StrConsumer + <span class="question-mark">?</span>Sized&gt; StrConsumer <span class="kw">for </span><span class="kw-2">&amp;mut </span>S {
     <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>str) {
-        (<span class="kw-2">**</span><span class="self">self</span>).consume(buf)
+        (<span class="kw-2">**</span><span class="self">self</span>).consume(buf);
     }
 }
 
 <span class="doccomment">/// Pushes the str onto the end of the String
 </span><span class="kw">impl </span>StrConsumer <span class="kw">for </span>String {
     <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.push_str(buf)
+        <span class="self">self</span>.push_str(buf);
     }
 }
 
@@ -314,9 +318,9 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">crate</span>::encode_config_buf;
-    <span class="kw">use </span><span class="kw">crate</span>::tests::random_config;
-    <span class="kw">use </span><span class="kw">crate</span>::write::encoder_string_writer::EncoderStringWriter;
+    <span class="kw">use crate</span>::{
+        engine::Engine, tests::random_engine, write::encoder_string_writer::EncoderStringWriter,
+    };
     <span class="kw">use </span>rand::Rng;
     <span class="kw">use </span>std::io::Write;
 
@@ -336,10 +340,10 @@
                 orig_data.push(rng.gen());
             }
 
-            <span class="kw">let </span>config = random_config(<span class="kw-2">&amp;mut </span>rng);
-            encode_config_buf(<span class="kw-2">&amp;</span>orig_data, config, <span class="kw-2">&amp;mut </span>normal_encoded);
+            <span class="kw">let </span>engine = random_engine(<span class="kw-2">&amp;mut </span>rng);
+            engine.encode_string(<span class="kw-2">&amp;</span>orig_data, <span class="kw-2">&amp;mut </span>normal_encoded);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>stream_encoder = EncoderStringWriter::new(config);
+            <span class="kw">let </span><span class="kw-2">mut </span>stream_encoder = EncoderStringWriter::new(<span class="kw-2">&amp;</span>engine);
             <span class="comment">// Write the first i bytes, then the rest
             </span>stream_encoder.write_all(<span class="kw-2">&amp;</span>orig_data[<span class="number">0</span>..i]).unwrap();
             stream_encoder.write_all(<span class="kw-2">&amp;</span>orig_data[i..]).unwrap();

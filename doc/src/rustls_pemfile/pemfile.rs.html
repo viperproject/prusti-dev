@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-pemfile-0.2.1/src/pemfile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pemfile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustls_pemfile/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-pemfile-1.0.2/src/pemfile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pemfile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustls_pemfile/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -94,11 +94,61 @@
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
-</pre><pre class="rust"><code><span class="kw">use </span>base64;
-<span class="kw">use </span>std::io::{<span class="self">self</span>, ErrorKind};
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::io::{<span class="self">self</span>, ErrorKind};
 
 <span class="doccomment">/// The contents of a single recognised block in a PEM file.
-</span><span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="attr">#[non_exhaustive]
+#[derive(Debug, PartialEq)]
 </span><span class="kw">pub enum </span>Item {
     <span class="doccomment">/// A DER-encoded x509 certificate.
     </span>X509Certificate(Vec&lt;u8&gt;),
@@ -108,14 +158,18 @@
 
     <span class="doccomment">/// A DER-encoded plaintext private key; as specified in PKCS#8/RFC5958
     </span>PKCS8Key(Vec&lt;u8&gt;),
+
+    <span class="doccomment">/// A Sec1-encoded plaintext private key; as specified in RFC5915
+    </span>ECKey(Vec&lt;u8&gt;),
 }
 
 <span class="kw">impl </span>Item {
-    <span class="kw">fn </span>from_start_line(start_line: <span class="kw-2">&amp;</span>str, der: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Item&gt; {
+    <span class="kw">fn </span>from_start_line(start_line: <span class="kw-2">&amp;</span>[u8], der: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Item&gt; {
         <span class="kw">match </span>start_line {
-            <span class="string">&quot;CERTIFICATE&quot; </span>=&gt; <span class="prelude-val">Some</span>(Item::X509Certificate(der)),
-            <span class="string">&quot;RSA PRIVATE KEY&quot; </span>=&gt; <span class="prelude-val">Some</span>(Item::RSAKey(der)),
-            <span class="string">&quot;PRIVATE KEY&quot; </span>=&gt; <span class="prelude-val">Some</span>(Item::PKCS8Key(der)),
+            <span class="string">b&quot;CERTIFICATE&quot; </span>=&gt; <span class="prelude-val">Some</span>(Item::X509Certificate(der)),
+            <span class="string">b&quot;RSA PRIVATE KEY&quot; </span>=&gt; <span class="prelude-val">Some</span>(Item::RSAKey(der)),
+            <span class="string">b&quot;PRIVATE KEY&quot; </span>=&gt; <span class="prelude-val">Some</span>(Item::PKCS8Key(der)),
+            <span class="string">b&quot;EC PRIVATE KEY&quot; </span>=&gt; <span class="prelude-val">Some</span>(Item::ECKey(der)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -130,51 +184,84 @@
 /// You can use this function to build an iterator, for example:
 /// `for item in iter::from_fn(|| read_one(rd).transpose()) { ... }`
 </span><span class="kw">pub fn </span>read_one(rd: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::BufRead) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Item&gt;, io::Error&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>b64buf = String::with_capacity(<span class="number">1024</span>);
-    <span class="kw">let </span><span class="kw-2">mut </span>section_type = <span class="prelude-val">None</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>end_marker = <span class="prelude-val">None</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>line = String::with_capacity(<span class="number">80</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>b64buf = Vec::with_capacity(<span class="number">1024</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>section = <span class="prelude-val">None</span>::&lt;(Vec&lt;<span class="kw">_</span>&gt;, Vec&lt;<span class="kw">_</span>&gt;)&gt;;
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::with_capacity(<span class="number">80</span>);
 
     <span class="kw">loop </span>{
         line.clear();
-        <span class="kw">let </span>len = rd.read_line(<span class="kw-2">&amp;mut </span>line)<span class="question-mark">?</span>;
+        <span class="kw">let </span>len = rd.read_until(<span class="string">b&#39;\n&#39;</span>, <span class="kw-2">&amp;mut </span>line)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>len == <span class="number">0 </span>{
             <span class="comment">// EOF
-            </span><span class="kw">if </span>end_marker.is_some() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(ErrorKind::InvalidData, <span class="macro">format!</span>(<span class="string">&quot;section end {:?} missing&quot;</span>, end_marker.unwrap())));
-            }
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            </span><span class="kw">return match </span>section {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, end_marker)) =&gt; <span class="prelude-val">Err</span>(io::Error::new(
+                    ErrorKind::InvalidData,
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;section end {:?} missing&quot;</span>,
+                        String::from_utf8_lossy(<span class="kw-2">&amp;</span>end_marker)
+                    ),
+                )),
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            };
         }
 
-        <span class="kw">if </span>line.starts_with(<span class="string">&quot;-----BEGIN &quot;</span>) {
-            <span class="kw">let </span>trailer = line[<span class="number">11</span>..].find(<span class="string">&quot;-----&quot;</span>)
-                .ok_or_else(|| io::Error::new(ErrorKind::InvalidData, <span class="macro">format!</span>(<span class="string">&quot;illegal section start: {:?}&quot;</span>, line)))<span class="question-mark">?</span>;
+        <span class="kw">if </span>line.starts_with(<span class="string">b&quot;-----BEGIN &quot;</span>) {
+            <span class="kw">let </span>(<span class="kw-2">mut </span>trailer, <span class="kw-2">mut </span>pos) = (<span class="number">0</span>, line.len());
+            <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>line.iter().enumerate().rev() {
+                <span class="kw">match </span>b {
+                    <span class="string">b&#39;-&#39; </span>=&gt; {
+                        trailer += <span class="number">1</span>;
+                        pos = i;
+                    }
+                    <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39; &#39; </span>=&gt; <span class="kw">continue</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
+                }
+            }
 
-            <span class="kw">let </span>ty = <span class="kw-2">&amp;</span>line[<span class="number">11</span>..<span class="number">11</span>+trailer];
+            <span class="kw">if </span>trailer != <span class="number">5 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                    ErrorKind::InvalidData,
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;illegal section start: {:?}&quot;</span>,
+                        String::from_utf8_lossy(<span class="kw-2">&amp;</span>line)
+                    ),
+                ));
+            }
 
-            section_type = <span class="prelude-val">Some</span>(ty.to_string());
-            end_marker = <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;-----END {}-----&quot;</span>, ty).to_string());
+            <span class="kw">let </span>ty = <span class="kw-2">&amp;</span>line[<span class="number">11</span>..pos];
+            <span class="kw">let </span><span class="kw-2">mut </span>end = Vec::with_capacity(<span class="number">10 </span>+ <span class="number">4 </span>+ ty.len());
+            end.extend_from_slice(<span class="string">b&quot;-----END &quot;</span>);
+            end.extend_from_slice(ty);
+            end.extend_from_slice(<span class="string">b&quot;-----&quot;</span>);
+            section = <span class="prelude-val">Some</span>((ty.to_owned(), end));
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">if </span>end_marker.is_some() &amp;&amp; line.starts_with(end_marker.as_ref().unwrap()) {
-            <span class="kw">let </span>der = base64::decode(<span class="kw-2">&amp;</span>b64buf)
-                .map_err(|err| io::Error::new(ErrorKind::InvalidData, err))<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((section_type, end_marker)) = section.as_ref() {
+            <span class="kw">if </span>line.starts_with(end_marker) {
+                <span class="kw">let </span>der = base64::ENGINE
+                    .decode(<span class="kw-2">&amp;</span>b64buf)
+                    .map_err(|err| io::Error::new(ErrorKind::InvalidData, err))<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>item = Item::from_start_line(<span class="kw-2">&amp;</span>section_type.unwrap(), der);
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = item {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(item));
-            } <span class="kw">else </span>{
-                section_type = <span class="prelude-val">None</span>;
-                end_marker = <span class="prelude-val">None</span>;
-                b64buf.clear();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = Item::from_start_line(<span class="kw-2">&amp;</span>section_type, der) {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(item));
+                } <span class="kw">else </span>{
+                    section = <span class="prelude-val">None</span>;
+                    b64buf.clear();
+                }
             }
         }
 
-        <span class="kw">if </span>section_type.is_some() {
-            b64buf.push_str(line.trim());
+        <span class="kw">if </span>section.is_some() {
+            <span class="kw">let </span><span class="kw-2">mut </span>trim = <span class="number">0</span>;
+            <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>line.iter().rev() {
+                <span class="kw">match </span>b {
+                    <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39; &#39; </span>=&gt; trim += <span class="number">1</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
+                }
+            }
+            b64buf.extend(<span class="kw-2">&amp;</span>line[..line.len() - trim]);
         }
     }
 }
@@ -190,5 +277,18 @@
         }
     }
 }
+
+<span class="kw">mod </span>base64 {
+    <span class="kw">use </span>base64::alphabet::STANDARD;
+    <span class="kw">use </span>base64::engine::general_purpose::{GeneralPurpose, GeneralPurposeConfig};
+    <span class="kw">use </span>base64::engine::DecodePaddingMode;
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>base64::engine::Engine;
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>ENGINE: GeneralPurpose = GeneralPurpose::new(
+        <span class="kw-2">&amp;</span>STANDARD,
+        GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent),
+    );
+}
+<span class="kw">use </span><span class="self">self</span>::base64::Engine;
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustls_pemfile" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (afaf3e07a 2023-01-14)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>
