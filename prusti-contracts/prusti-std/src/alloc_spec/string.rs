@@ -45,6 +45,12 @@ impl str {
 // FUTURE(#1221): these specs make their methods crash due to issue #1221, so they are disabled for now.
 /*
 #[extern_spec]
+impl Deref for String {
+    #[ensures(result === self.as_str()]
+    fn deref(&self) -> &str;
+}
+
+#[extern_spec]
 impl ToOwned for str {
     #[ensures(result.as_str() === self)]
     fn to_owned(&self) -> String;
