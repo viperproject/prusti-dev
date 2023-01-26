@@ -279,7 +279,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             });
 
             if let Err(err) = build_status {
-                warn!("Error: {:?}", err);
+                warn!("Error: {}", err);
                 warn!("Output:\n{}", storage);
 
                 // Report the failure
@@ -344,7 +344,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             });
 
             if let Err(err) = verification_status {
-                error!("Error: {:?}", err);
+                error!("Error: {}", err);
                 error!("Output:\n{}", storage);
 
                 // Report the failure
