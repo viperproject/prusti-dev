@@ -124,7 +124,6 @@ fn run_no_verification(group_name: &str, filter: &Option<String>) {
 fn run_verification_base(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
-        TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
     );
 
