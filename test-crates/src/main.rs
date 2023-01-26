@@ -323,6 +323,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
                         .env("PRUSTI_CHECK_PANICS", "false")
                         .env("PRUSTI_CHECK_OVERFLOWS", "false")
+                        .env("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINTS", "false")
                         // Do not report errors for unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true");
                     match test_kind {
