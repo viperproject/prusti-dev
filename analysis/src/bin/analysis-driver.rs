@@ -3,7 +3,6 @@
 // Sources:
 // https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
 // https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
-
 use analysis::{
     abstract_interpretation::FixpointEngine,
     domains::{
