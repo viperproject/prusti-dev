@@ -1,5 +1,3 @@
-// compile-flags: -Pcheck_overflows=false
-
 #![allow(unused_comparisons)]
 use prusti_contracts::*;
 

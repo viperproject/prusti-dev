@@ -1,5 +1,3 @@
-// compile-flags: -Pcheck_overflows=false
-
 use prusti_contracts::*;
 
 fn main() {}
