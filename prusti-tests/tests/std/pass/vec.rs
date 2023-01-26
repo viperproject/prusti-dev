@@ -1,4 +1,5 @@
 use prusti_contracts::*;
+use prusti_std;
 
 fn main() {
     let mut v = Vec::new();

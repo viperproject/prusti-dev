@@ -199,7 +199,7 @@ fn test_runner(_tests: &[&()]) {
     save_verification_cache();
 
     // Test the functionality of built-in specs.
-    println!("[prusti_std]");
+    println!("[std]");
     run_verification_no_overflow("std", &filter);
     save_verification_cache();
 
