@@ -1,21 +1,6 @@
-use prusti_contracts::*;
+#![feature(allocator_api)] // to specify Vec
 
-#[extern_spec]
-impl<K, V, S> ::std::collections::hash_map::HashMap<K, V, S>
-where
-    K: Eq + ::core::hash::Hash,
-    S: ::std::hash::BuildHasher,
-{
-    #[pure]
-    #[ensures(result.is_some() == self.contains_key(k))]
-    pub fn get<Q: ?Sized>(&self, k: &Q) -> Option<&V>
-    where
-        K: core::borrow::Borrow<Q> + std::cmp::Eq + std::hash::Hash,
-        Q: core::hash::Hash + Eq;
+extern crate alloc;
 
-    #[pure]
-    fn contains_key<Q: ?Sized>(&self, k: &Q) -> bool
-    where
-        K: core::borrow::Borrow<Q> + Eq + std::hash::Hash,
-        Q: core::hash::Hash + Eq;
-}
+pub mod alloc_spec;
+pub mod collections;

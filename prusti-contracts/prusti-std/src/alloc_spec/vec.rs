@@ -1,4 +1,4 @@
-use crate::*;
+use prusti_contracts::*;
 
 use alloc::{alloc::Allocator, vec::Vec};
 
@@ -45,3 +45,10 @@ impl<T, A: Allocator, I: SliceIndex<[T]>> Index<I> for Vec<T, A> {
     fn index(&self, index: I) -> &Self::Output;
 }
 */
+
+#[extern_spec]
+impl<T> Default for Vec<T> {
+    #[refine_spec(where Self: Copy, [pure])]
+    #[ensures(result.is_empty())]
+    fn default() -> Self;
+}

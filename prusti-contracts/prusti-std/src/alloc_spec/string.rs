@@ -1,4 +1,4 @@
-use crate::*;
+use prusti_contracts::*;
 
 use alloc::string::String;
 
@@ -62,3 +62,9 @@ impl From<&str> for String {
     fn from(other: &str) -> Self;
 }
 */
+
+#[extern_spec]
+impl Default for String {
+    #[ensures(result.is_empty())]
+    fn default() -> Self;
+}
