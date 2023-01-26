@@ -9,16 +9,19 @@
 
 use log::trace;
 use prusti_rustc_interface::{
+    borrowck::{consumers::RichLocation, BodyWithBorrowckFacts},
     data_structures::fx::FxHashSet,
     infer::infer::TyCtxtInferExt,
     middle::{
         mir,
-        mir::TerminatorKind,
+        mir::{BorrowKind, Location, Operand, Rvalue, StatementKind, TerminatorKind},
         ty::{self, TyCtxt},
     },
     trait_selection::infer::InferCtxtExt,
 };
 use std::mem;
+
+use crate::{abstract_interpretation::AnalysisResult, AnalysisError};
 
 #[repr(transparent)]
 #[derive(Clone, Copy, Eq, PartialEq, derive_more::From, Hash)]
@@ -480,5 +483,88 @@ pub fn happy_path_successors(terminator: &TerminatorKind) -> Vec<mir::BasicBlock
             fn_span: _,
         } => vec![(*t).clone()],
         _ => vec![],
+    }
+}
+
+/// Wrapper for MIR pattern matching kinds
+pub(crate) enum StatementKinds<'mir, 'tcx: 'mir> {
+    Stmt(&'mir StatementKind<'tcx>),
+    Term(&'mir TerminatorKind<'tcx>),
+}
+
+// Panics when a location is not a start location
+pub(crate) fn expect_mid_location(location: RichLocation) -> mir::Location {
+    match location {
+        RichLocation::Start(_) => panic!("expected a start location"),
+        RichLocation::Mid(l) => return l,
+    };
+}
+
+/// Collect the MIR statement at a location, panic if not a valid location
+pub(crate) fn mir_kind_at<'mir, 'tcx: 'mir>(
+    mir: &'mir BodyWithBorrowckFacts<'tcx>,
+    location: Location,
+) -> StatementKinds<'mir, 'tcx> {
+    let stmt = mir.body.stmt_at(location);
+    // fixme: can't pattern match on stmt because the Either used by rustc is private?
+    if stmt.is_left() {
+        return StatementKinds::Stmt(&stmt.left().unwrap().kind as &StatementKind<'tcx>);
+    } else {
+        return StatementKinds::Term(&stmt.right().unwrap().kind as &TerminatorKind<'tcx>);
+    }
+}
+
+// Get the borrowed-from place in all cases where we currently support borrow creation
+pub(crate) fn get_borrowed_from_place<'a, 'mir, 'tcx: 'mir>(
+    stmt: &'a StatementKinds<'mir, 'tcx>,
+    loc: Location,
+) -> AnalysisResult<Place<'tcx>> {
+    match stmt {
+        StatementKinds::Stmt(StatementKind::Assign(box (
+            _,
+            Rvalue::Ref(
+                _,
+                BorrowKind::Mut {
+                    allow_two_phase_borrow: false,
+                },
+                p,
+            ),
+        ))) => Ok((*p).into()),
+        _ => Err(AnalysisError::UnsupportedStatement(loc)),
+    }
+}
+
+// Get the assigned-to place in all cases where we currently support borrow assignment
+pub(crate) fn get_assigned_to_place<'a, 'mir, 'tcx: 'mir>(
+    stmt: &'a StatementKinds<'mir, 'tcx>,
+    loc: Location,
+) -> AnalysisResult<Place<'tcx>> {
+    match stmt {
+        StatementKinds::Stmt(StatementKind::Assign(box (p, _))) => Ok(p.clone().into()),
+        _ => Err(AnalysisError::UnsupportedStatement(loc)),
+    }
+}
+
+// Get the assigned-to place in all cases where we currently support borrow assignment
+pub(crate) fn get_storage_dead<'a, 'mir, 'tcx: 'mir>(
+    stmt: &'a StatementKinds<'mir, 'tcx>,
+    loc: Location,
+) -> Option<Place<'tcx>> {
+    match stmt {
+        StatementKinds::Stmt(StatementKind::StorageDead(p)) => Some(p.clone().into()),
+        _ => None,
+    }
+}
+
+// Get the assigned-to place in all cases where we currently support borrow assignment
+pub(crate) fn get_moved_from_place<'a, 'mir, 'tcx: 'mir>(
+    stmt: &'a StatementKinds<'mir, 'tcx>,
+    loc: Location,
+) -> AnalysisResult<Place<'tcx>> {
+    match stmt {
+        StatementKinds::Stmt(StatementKind::Assign(box (_, Rvalue::Use(Operand::Move(p))))) => {
+            Ok((*p).clone().into())
+        }
+        _ => Err(AnalysisError::UnsupportedStatement(loc)),
     }
 }

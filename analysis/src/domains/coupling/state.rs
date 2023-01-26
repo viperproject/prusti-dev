@@ -7,8 +7,8 @@
 // use log::info;
 
 use crate::{
-    abstract_interpretation::{AbstractState, AnalysisResult, OriginLHS},
-    mir_utils::{self, expand_struct_place, is_prefix, Place, PlaceImpl},
+    abstract_interpretation::{AbstractState, AnalysisResult},
+    mir_utils::{self, expand_struct_place, is_prefix, Place},
 };
 use prusti_rustc_interface::{
     borrowck::{consumers::RustcFacts, BodyWithBorrowckFacts},
@@ -20,17 +20,16 @@ use serde::{
     Serialize, Serializer,
 };
 use std::{
-    cmp::Ordering,
     collections::{BTreeMap, BTreeSet},
-    f32::consts::E,
     fmt,
-    iter::zip,
-    mem,
 };
 
-use super::FactTable;
+use super::{
+    btree_replace,
+    facts::{FactTable, OriginLHS},
+};
 
-// These types are stolen from prusti interface
+// These types are stolen from Prusti interface
 pub type Region = <RustcFacts as FactTypes>::Origin;
 pub type Loan = <RustcFacts as FactTypes>::Loan;
 pub type PointIndex = <RustcFacts as FactTypes>::Point;
@@ -56,21 +55,48 @@ impl<Data, Tag> Tagged<Data, Tag> {
     }
 }
 
+/// A CDGNode represents a permission (a node in the coupling graph)
+/// A CDGNode is one of
+///     - A Place: a mir_utils::Place, tagged by a point
+///     - A Borrow: a Loan, tagged by a point
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CDGNode<'tcx> {
+    Place(Tagged<Place<'tcx>, PointIndex>),
+    Borrow(Tagged<Loan, PointIndex>),
+}
+
+impl<'tcx> CDGNode<'tcx> {
+    /// Tags a node at a point, if it isn't already untagged
+    pub fn kill(mut self, l: &PointIndex) -> Self {
+        match &mut self {
+            CDGNode::Place(p) => p.tag(*l),
+            CDGNode::Borrow(b) => b.tag(*l),
+        }
+        self
+    }
+
+    /// Determine if a kill should tag the current place:
+    ///     - A borrow should be tagged only if it is untagged, and equal to to_kill
+    ///     - A place should be tagged only if it is untagged, and to_kill is its prefix
+    fn should_tag(&self, to_kill: &CDGNode<'tcx>) -> bool {
+        match (self, to_kill) {
+            (CDGNode::Place(p_self), CDGNode::Place(p_kill)) => {
+                p_self.tag.is_none() && p_kill.tag.is_none() && is_prefix(p_self.data, p_kill.data)
+            }
+            (l0 @ CDGNode::Borrow(_), l1 @ CDGNode::Borrow(_)) => l0 == l1,
+            _ => false,
+        }
+    }
+}
+
 impl<'tcx> Into<CDGNode<'tcx>> for OriginLHS<'tcx> {
-    // Turn an OriginLHS into a CDGNode by creating a new untagged node
+    /// Turn an OriginLHS into a CDGNode by creating a new untagged node
     fn into(self) -> CDGNode<'tcx> {
         match self {
             OriginLHS::Place(p) => CDGNode::Place(Tagged::untagged(p)),
             OriginLHS::Loan(l) => CDGNode::Borrow(Tagged::untagged(l)),
         }
     }
-}
-
-/// Nodes for the coupling digraph
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub enum CDGNode<'tcx> {
-    Place(Tagged<Place<'tcx>, PointIndex>),
-    Borrow(Tagged<Loan, PointIndex>),
 }
 
 impl<'tcx> fmt::Debug for CDGNode<'tcx> {
@@ -94,27 +120,7 @@ impl<'tcx> fmt::Debug for CDGNode<'tcx> {
     }
 }
 
-impl<'tcx> CDGNode<'tcx> {
-    // Kills a node, if it isn't already unkilled
-    pub fn kill(mut self, l: &PointIndex) -> Self {
-        match &mut self {
-            CDGNode::Place(p) => p.tag(*l),
-            CDGNode::Borrow(b) => b.tag(*l),
-        }
-        self
-    }
-
-    // Should a given node be killed if we are trying to kill another node?
-    fn should_tag(&self, to_kill: &CDGNode<'tcx>) -> bool {
-        match (self, to_kill) {
-            (CDGNode::Place(p_self), CDGNode::Place(p_kill)) => {
-                p_self.tag.is_none() && p_kill.tag.is_none() && is_prefix(p_self.data, p_kill.data)
-            }
-            (l0 @ CDGNode::Borrow(_), l1 @ CDGNode::Borrow(_)) => l0 == l1,
-            _ => false,
-        }
-    }
-}
+pub type CouplingIndex = usize;
 
 /// Corresponds to the annotations we store in the CDG
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -123,9 +129,11 @@ pub enum CDGEdgeKind {
     Reborrow,
     Move,
     Unpack,
+    Coupled(CouplingIndex),
 }
 
-// Coupling graph hyper-edges
+/// Edges in the coupling graph
+/// Each edge consists of a signature (lhs --* rhs) and a kind
 #[derive(Clone, PartialEq, PartialOrd, Eq, Ord, Debug)]
 pub struct CDGEdge<'tcx> {
     pub lhs: BTreeSet<CDGNode<'tcx>>,
@@ -134,14 +142,16 @@ pub struct CDGEdge<'tcx> {
 }
 
 impl<'tcx> CDGEdge<'tcx> {
+    /// Construct an edge corresponding to a loan
     pub fn loan_edge(loan: Loan, place: Place<'tcx>) -> Self {
         Self {
-            lhs: BTreeSet::from_iter([CDGNode::Borrow(Tagged::untagged(loan))].into_iter()),
-            rhs: BTreeSet::from_iter([CDGNode::Place(Tagged::untagged(place.into()))].into_iter()),
+            lhs: [CDGNode::Borrow(Tagged::untagged(loan))].into(),
+            rhs: [CDGNode::Place(Tagged::untagged(place.into()))].into(),
             edge: CDGEdgeKind::Borrow,
         }
     }
 
+    /// Construct an edge corresponding to a move
     pub fn move_edge(
         assignee_cannonical_lhs: BTreeSet<CDGNode<'tcx>>,
         assign_from_real_lhs: BTreeSet<CDGNode<'tcx>>,
@@ -153,6 +163,7 @@ impl<'tcx> CDGEdge<'tcx> {
         }
     }
 
+    /// Construct an edge corresponding to an unpack operation
     pub fn unpack_edge(unpacked: BTreeSet<CDGNode<'tcx>>, packed: BTreeSet<CDGNode<'tcx>>) -> Self {
         Self {
             lhs: unpacked,
@@ -162,9 +173,8 @@ impl<'tcx> CDGEdge<'tcx> {
     }
 }
 
-/// The CDG graph fragments associated with an origin
-/// INVARIANT: Can be (roughly) interpreted as the Hoare triple
-///     {leaves} edges {roots}
+/// The fragment of a coupling graph associated with an origin
+/// Each coupling graph has a signature (leaves --* roots) computed by the annotations in its edges
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDGOrigin<'tcx> {
     edges: BTreeSet<CDGEdge<'tcx>>,
@@ -172,38 +182,20 @@ pub struct CDGOrigin<'tcx> {
     roots: BTreeSet<CDGNode<'tcx>>,
 }
 
-impl<'tcx> fmt::Debug for CDGOrigin<'tcx> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{:?} --* {:?}: ",
-            self.leaves.iter().collect::<Vec<_>>(),
-            self.roots.iter().collect::<Vec<_>>()
-        )?;
-        for e in self.edges.iter() {
-            write!(
-                f,
-                "{:?} -{:?}-> {:?}; ",
-                e.lhs.iter().collect::<Vec<_>>(),
-                e.edge,
-                e.rhs.iter().collect::<Vec<_>>()
-            )?;
-        }
-        Ok(())
-    }
-}
-
 impl<'tcx> CDGOrigin<'tcx> {
+    /// A CDG fragment is empty when it contains no edges (so has a trivial signature)
     pub fn is_empty(&self) -> bool {
         self.edges.is_empty() && self.leaves.is_empty() && self.leaves.is_empty()
     }
 
+    /// Insert an edge into a CDG fragment and recompute its signature
+    /// fixme: this doesn't prevent cyclic graphs, which would have trivial signature.
     pub fn insert_edge(&mut self, edge: CDGEdge<'tcx>) {
-        // fixme: stop outselves from making bad graphs (cyclic)
         self.edges.insert(edge);
         self.recompute_signature();
     }
 
+    /// Determine the signautre of a CDG fragment from its edges
     fn recompute_signature(&mut self) {
         // fixme: Collections interface doesn't like chaining unions
         //  maybe  a map/fold does better here?
@@ -217,8 +209,8 @@ impl<'tcx> CDGOrigin<'tcx> {
         self.roots = all_rhs.difference(&all_lhs).cloned().collect();
     }
 
-    /// Adds an edge if it does not already exist
-    ///  Returns true if a new edge was added
+    /// Ensures that the CDG fragment contains an edge
+    ///     returns True if the edge was not already in the graph
     pub fn enforce_edge(&mut self, edge: &CDGEdge<'tcx>) -> bool {
         if !self.edges.contains(edge) {
             self.insert_edge((*edge).clone());
@@ -227,15 +219,7 @@ impl<'tcx> CDGOrigin<'tcx> {
         return false;
     }
 
-    /// Replace a node in a BTreeSet
-    fn btree_replace<T: Ord>(btree: &mut BTreeSet<T>, from: &T, to: T) {
-        if btree.remove(from) {
-            btree.insert(to);
-        }
-    }
-
     /// Tags all untagged places which have to_tag as a prefix in a set of nodes
-    ///
     fn tag_in_set(
         set: &mut BTreeSet<CDGNode<'tcx>>,
         location: &PointIndex,
@@ -248,7 +232,7 @@ impl<'tcx> CDGOrigin<'tcx> {
             }
         }
         for node in to_replace.iter() {
-            Self::btree_replace(set, node, node.clone().kill(location));
+            btree_replace(set, node, node.clone().kill(location));
         }
     }
 
@@ -275,11 +259,166 @@ impl<'tcx> CDGOrigin<'tcx> {
     }
 }
 
+impl<'tcx> fmt::Debug for CDGOrigin<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:?} --* {:?}: ",
+            self.leaves.iter().collect::<Vec<_>>(),
+            self.roots.iter().collect::<Vec<_>>()
+        )?;
+        for e in self.edges.iter() {
+            write!(
+                f,
+                "{:?} -{:?}-> {:?}; ",
+                e.lhs.iter().collect::<Vec<_>>(),
+                e.edge,
+                e.rhs.iter().collect::<Vec<_>>()
+            )?;
+        }
+        Ok(())
+    }
+}
+
+/// CouplingOrigins represents many copies of graphs to be analyzed at each program point
+/// Each graph is represented as a map from origins to fragments of the graph
+#[derive(Default, Eq, Clone)]
+pub struct CouplingOrigins<'tcx> {
+    pub origins: Vec<BTreeMap<Region, CDGOrigin<'tcx>>>,
+}
+
+impl<'tcx> CouplingOrigins<'tcx> {
+    /// New CouplingOrigins which contains one empty graph
+    pub fn new_empty() -> Self {
+        Self {
+            origins: vec![Default::default()],
+        }
+    }
+
+    /// Ensure that all origins from origin "sub" are contained in "sup"
+    /// Return true if there is a change to the graph
+    pub fn enforce_subset(&mut self, sub: &Region, sup: &Region) -> bool {
+        let mut result = false;
+        for origin_map in self.origins.iter_mut() {
+            let sub_edges: Vec<_> = origin_map.get(sub).unwrap().edges.iter().cloned().collect();
+            for sub_edge in sub_edges.iter() {
+                let changed = origin_map.get_mut(sup).unwrap().enforce_edge(&sub_edge);
+                result = result || changed;
+            }
+        }
+        return result;
+    }
+
+    /// Kill a node in all graphs at a location
+    fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
+        for cdg_origin_map in self.origins.iter_mut() {
+            for cdg_origin in cdg_origin_map.values_mut() {
+                cdg_origin.tag(location, node);
+            }
+        }
+        Ok(())
+    }
+
+    /// Join two collections of graphs
+    fn join(&mut self, other: &CouplingOrigins<'tcx>) {
+        // Join the two by appending the origins together
+        self.origins.append(&mut other.origins.clone());
+
+        // Now we must ensure the two sets of origin mappings cohere, that is they
+        //  have the same LHS for each non-empty origin.
+        // fixme: right now we just panic if they are incoherent, but in reality we should
+        // probably fix them by repacking.
+
+        // naive hack solution: iterate over all tuples
+        for origin_map in self.origins.iter() {
+            for (origin, cdgo) in origin_map.iter() {
+                for other_origin_map in self.origins.iter() {
+                    if let Some(other_cdgo) = other_origin_map.get(origin) {
+                        assert_eq!(cdgo.leaves, other_cdgo.leaves);
+                    }
+                }
+            }
+        }
+
+        // The two are now coherent. perform the join by constructing magic wands
+        todo!("wand inference here");
+    }
+
+    /// Get all leaves of an origin (in all branches).
+    /// The leaf sets for an origin should be identical, including repackings, in all graphs.
+    fn get_leaves(&self, origin: &Region) -> BTreeSet<CDGNode<'tcx>> {
+        let mut lhs: Option<&BTreeSet<CDGNode<'tcx>>> = None;
+        for leaf_set in self
+            .origins
+            .iter()
+            .map(|origin_map| &origin_map.get(origin).unwrap().leaves)
+        {
+            if lhs.is_none() {
+                lhs = Some(leaf_set)
+            } else {
+                assert_eq!(lhs, Some(leaf_set));
+            }
+        }
+        return lhs.and_then(|s| Some((*s).clone())).unwrap();
+    }
+
+    /// Kill all leaves that are the LHS of a region
+    pub fn kill_leaves(&mut self, origin: &Region, location: &PointIndex) -> AnalysisResult<()> {
+        for leaf in self.get_leaves(origin) {
+            self.kill_node(location, &leaf)?;
+        }
+        Ok(())
+    }
+}
+
+impl<'tcx> PartialEq for CouplingOrigins<'tcx> {
+    fn eq(&self, other: &Self) -> bool {
+        self.origins
+            .iter()
+            .all(|origins_map| other.origins.contains(origins_map))
+            && other
+                .origins
+                .iter()
+                .all(|origins_map| self.origins.contains(origins_map))
+    }
+}
+
+impl<'tcx> fmt::Debug for CouplingOrigins<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for origins_map in self.origins.iter() {
+            write!(f, "[[{:?}]]", origins_map)?;
+        }
+        Ok(())
+    }
+}
+
 // A coupling graph
+//  A coupling grpah a CDGOrigins (the map from origins to fragments of the graph)
+//  and some metadata
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDG<'tcx> {
     pub origins: CouplingOrigins<'tcx>,
     pub origin_contains_loan_at_invariant: bool,
+}
+
+impl<'tcx> CDG<'tcx> {
+    pub fn new_empty() -> Self {
+        Self {
+            origins: CouplingOrigins::new_empty(),
+            origin_contains_loan_at_invariant: false,
+        }
+    }
+
+    // Ensure all edges from origin "sub" are contained in "sup"
+    // Return true if there is a change
+    // pub fn enforce_subset(&mut self, sub: &Region, sup: &Region) -> bool {
+    //     self.origins.enforce_subset(sub, sup)
+    // }
+
+    // Kill an OriginLHS in all origins
+    // fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
+    //     self.origins.kill_node(location, node)
+    // }
 }
 
 impl<'tcx> fmt::Debug for CDG<'tcx> {
@@ -306,143 +445,7 @@ impl<'tcx> fmt::Debug for CDG<'tcx> {
     }
 }
 
-#[derive(Default, Eq, Clone)]
-pub struct CouplingOrigins<'tcx> {
-    pub origins: Vec<BTreeMap<Region, CDGOrigin<'tcx>>>,
-}
-
-impl<'tcx> PartialEq for CouplingOrigins<'tcx> {
-    fn eq(&self, other: &Self) -> bool {
-        self.origins
-            .iter()
-            .all(|origins_map| other.origins.contains(origins_map))
-            && other
-                .origins
-                .iter()
-                .all(|origins_map| self.origins.contains(origins_map))
-    }
-}
-
-impl<'tcx> fmt::Debug for CouplingOrigins<'tcx> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for origins_map in self.origins.iter() {
-            write!(f, "[[{:?}]]", origins_map)?;
-        }
-        Ok(())
-    }
-}
-
-impl<'tcx> CouplingOrigins<'tcx> {
-    /// Construct a CouplingOrigins that contains a single origin with no facts
-    pub fn new_empty() -> Self {
-        Self {
-            origins: vec![Default::default()],
-        }
-    }
-
-    /// Ensure that all origins from origin "sub" are contained in "sup:"
-    /// Return true if there is a change
-    pub fn enforce_subset(&mut self, sub: &Region, sup: &Region) -> bool {
-        let mut result = false;
-        for origin_map in self.origins.iter_mut() {
-            let sub_edges: Vec<_> = origin_map.get(sub).unwrap().edges.iter().cloned().collect();
-            for sub_edge in sub_edges.iter() {
-                let changed = origin_map.get_mut(sup).unwrap().enforce_edge(&sub_edge);
-                result = result || changed;
-            }
-        }
-        return result;
-    }
-
-    fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
-        // fixme: get the maximum tag for node@location across all origins here.
-        for cdg_origin_map in self.origins.iter_mut() {
-            for cdg_origin in cdg_origin_map.values_mut() {
-                cdg_origin.tag(location, node);
-            }
-        }
-        Ok(())
-    }
-
-    fn join(&mut self, other: &CouplingOrigins<'tcx>) {
-        // Join the two by appending the origins together
-        self.origins.append(&mut other.origins.clone());
-
-        // Now we must ensure the two sets of origin mappings cohere, that is they
-        //  have the same LHS for each non-empty origin.
-        // fixme: right now we just panic if they are incoherent, but in reality we should
-        // probably fix them by repacking.
-
-        // naive hack solution: iterate over all tuples
-        for origin_map in self.origins.iter() {
-            for (origin, cdgo) in origin_map.iter() {
-                for other_origin_map in self.origins.iter() {
-                    if let Some(other_cdgo) = other_origin_map.get(origin) {
-                        assert_eq!(cdgo.leaves, other_cdgo.leaves);
-                    }
-                }
-            }
-        }
-
-        // The two are now coherent. perform the join by constructing magic wands
-        todo!("wand inference here");
-    }
-
-    // Get all leaves of an origin (in all branches). These should be equal.
-    fn get_leaves(&self, origin: &Region) -> BTreeSet<CDGNode<'tcx>> {
-        let mut lhs: Option<&BTreeSet<CDGNode<'tcx>>> = None;
-        for leaf_set in self
-            .origins
-            .iter()
-            .map(|origin_map| &origin_map.get(origin).unwrap().leaves)
-        {
-            if lhs.is_none() {
-                lhs = Some(leaf_set)
-            } else {
-                assert_eq!(lhs, Some(leaf_set));
-            }
-        }
-        return lhs.and_then(|s| Some((*s).clone())).unwrap();
-    }
-
-    // Kill all leaves that are the LHS of a region
-    pub fn kill_leaves(&mut self, origin: &Region, location: &PointIndex) -> AnalysisResult<()> {
-        for leaf in self.get_leaves(origin) {
-            self.kill_node(location, &leaf)?;
-        }
-        Ok(())
-    }
-}
-
-impl<'tcx> CDG<'tcx> {
-    pub fn new_empty() -> Self {
-        Self {
-            origins: CouplingOrigins::new_empty(),
-            origin_contains_loan_at_invariant: false,
-        }
-    }
-
-    // Ensure all edges from origin "sub" are contained in "sup"
-    // Return true if there is a change
-    // pub fn enforce_subset(&mut self, sub: &Region, sup: &Region) -> bool {
-    //     self.origins.enforce_subset(sub, sup)
-    // }
-
-    // Kill an OriginLHS in all origins
-    // fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
-    //     self.origins.kill_node(location, node)
-    // }
-}
-
-#[derive(Clone)]
-pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
-    pub coupling_graph: CDG<'tcx>,
-    pub to_kill: ToKill<'tcx>,
-    // Also include: invariant checks, loan kill marks
-    mir: &'mir BodyWithBorrowckFacts<'tcx>,
-    fact_table: &'facts FactTable<'tcx>,
-}
-
+/// ToKill is a helper data structure for tracking places to tag.
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct ToKill<'tcx> {
     pub loans: BTreeSet<(Loan, PointIndex)>,
@@ -478,6 +481,19 @@ impl<'tcx> ToKill<'tcx> {
         self.places = Default::default();
         Ok(())
     }
+}
+
+/// CouplingState consists of
+///     - A CouplingGraph, representing the current
+///     - Some nodes to kill between this statement and the next
+///     - References to the context mir and fact_table
+#[derive(Clone)]
+pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
+    pub coupling_graph: CDG<'tcx>,
+    pub to_kill: ToKill<'tcx>,
+    // Also include: invariant checks, loan kill marks
+    mir: &'mir BodyWithBorrowckFacts<'tcx>,
+    fact_table: &'facts FactTable<'tcx>,
 }
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
