@@ -120,8 +120,6 @@ impl<'tcx> fmt::Debug for CDGNode<'tcx> {
     }
 }
 
-pub type CouplingIndex = usize;
-
 /// Corresponds to the annotations we store in the CDG
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum CDGEdgeKind {
@@ -129,7 +127,7 @@ pub enum CDGEdgeKind {
     Reborrow,
     Move,
     Unpack,
-    Coupled(CouplingIndex),
+    Coupled(BTreeSet<Loan>),
 }
 
 /// Edges in the coupling graph
@@ -193,6 +191,23 @@ impl<'tcx> CDGOrigin<'tcx> {
     pub fn insert_edge(&mut self, edge: CDGEdge<'tcx>) {
         self.edges.insert(edge);
         self.recompute_signature();
+    }
+
+    pub fn new_coupling(
+        lhs: BTreeSet<CDGNode<'tcx>>,
+        rhs: BTreeSet<CDGNode<'tcx>>,
+        loans: BTreeSet<Loan>,
+    ) -> Self {
+        Self {
+            edges: [CDGEdge {
+                lhs: lhs.clone(),
+                rhs: rhs.clone(),
+                edge: CDGEdgeKind::Coupled(loans),
+            }]
+            .into(),
+            leaves: lhs,
+            roots: rhs,
+        }
     }
 
     /// Determine the signautre of a CDG fragment from its edges
@@ -319,10 +334,9 @@ impl<'tcx> CouplingOrigins<'tcx> {
         Ok(())
     }
 
-    /// Join two collections of graphs
-    fn join(&mut self, other: &CouplingOrigins<'tcx>) {
+    /// Check that two CouplingOrigins have the same LHS's for each origin they both have
+    fn cohere_lhs(&mut self, other: &CouplingOrigins<'tcx>) {
         // Join the two by appending the origins together
-        self.origins.append(&mut other.origins.clone());
 
         // Now we must ensure the two sets of origin mappings cohere, that is they
         //  have the same LHS for each non-empty origin.
@@ -339,9 +353,6 @@ impl<'tcx> CouplingOrigins<'tcx> {
                 }
             }
         }
-
-        // The two are now coherent. perform the join by constructing magic wands
-        todo!("wand inference here");
     }
 
     /// Get all leaves of an origin (in all branches).
@@ -530,7 +541,6 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         new_state.apply_cdg_inference(location)?;
         let terminator = self.mir.body[location.block].terminator();
         Ok(terminator
-            // todo: this can be replaced with happy_path_successors provided that the other parts of the analysis crate stop complaining
             .successors()
             .into_iter()
             .map(|bb| (bb, new_state.clone()))
@@ -898,9 +908,142 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> AbstractState for CouplingState<'facts, '
         if !self.to_kill.is_empty() || !other.to_kill.is_empty() {
             unreachable!("(fixable) model assumes terminators do not kill places on exit");
         }
+        println!("[join 1] {:?}", self.coupling_graph);
+        println!("[join 2] {:?}", other.coupling_graph);
+
         self.coupling_graph
             .origins
-            .join(&other.coupling_graph.origins);
+            .cohere_lhs(&other.coupling_graph.origins);
+
+        println!("[join coherent 1] {:?}", self.coupling_graph);
+        println!("[join coherent 2] {:?}", other.coupling_graph);
+
+        if self.coupling_graph != other.coupling_graph {
+            if other.coupling_graph.origins.origins.is_empty() {
+                // Nothing to do
+            } else if self.coupling_graph.origins.origins.is_empty() {
+                self.coupling_graph
+                    .origins
+                    .origins
+                    .append(&mut other.coupling_graph.origins.origins.clone());
+            } else {
+                // fixme: this assumes no nested coupling (yet).
+                // fixme: this assumes only coupling (no old predicates).
+                // fixme: this assume the RHS are not in different packing states?
+
+                // Couple origins which are possibly aliases
+                //  Note that the origins are coherent so their LHS are equal
+                //  - Partition origins by their RHS, in both sides.
+                //  - If a RHS has only one origin, check that they are equal (or panic)
+                //  - If a RHS has more than one origin, couple the LHS/RHS's of all the origins together.
+
+                let mut couples: BTreeMap<BTreeSet<CDGNode<'tcx>>, BTreeSet<Region>> =
+                    Default::default();
+
+                for group in self.coupling_graph.origins.origins.iter() {
+                    for (region, cdgo) in group.iter() {
+                        (couples.entry(cdgo.roots.clone()).or_default()).insert(*region);
+                    }
+                }
+                for group in other.coupling_graph.origins.origins.iter() {
+                    for (region, cdgo) in group.iter() {
+                        (couples.entry(cdgo.roots.clone()).or_default()).insert(*region);
+                    }
+                }
+
+                println!("[coupling map I] {:?}", couples);
+
+                let mut coupled_edges: BTreeMap<BTreeSet<Region>, BTreeSet<CDGNode>> =
+                    Default::default();
+                for (nodes, regions) in couples.into_iter() {
+                    if let Some(node_set) = coupled_edges.get_mut(&regions) {
+                        // Insert all nodes into node_set
+                        for node in nodes.into_iter() {
+                            node_set.insert(node);
+                        }
+                    } else {
+                        coupled_edges.insert(regions, nodes);
+                    }
+                }
+
+                println!("[coupling map II] {:?}", coupled_edges);
+
+                let mut new_coupling_edges: BTreeMap<Region, CDGEdge<'tcx>> = Default::default();
+
+                // Remove all singly coupled data and construct new coupling edges
+                for (regions, rhs) in coupled_edges.into_iter() {
+                    if regions.len() == 1 {
+                        continue;
+                    }
+
+                    // Set of loans contained in any region of regions in any graph of self or other
+                    let mut region_contains_loans: BTreeSet<Loan> = Default::default();
+
+                    // fixme: do this in a less stupid way
+
+                    for r in regions.iter() {
+                        // For each region r in the set of coupled regions...
+                        for group in self
+                            .coupling_graph
+                            .origins
+                            .origins
+                            .iter()
+                            .chain(other.coupling_graph.origins.origins.iter())
+                        {
+                            // ... for each group in the two branches...
+                            for e in group.get(r).unwrap().edges.iter() {
+                                // ... for each loan in the LHS of an edge in the graph for r in the group...
+                                for loan in e
+                                    .lhs
+                                    .iter()
+                                    .filter_map(|n| match n {
+                                        CDGNode::Place(_) => None,
+                                        CDGNode::Borrow(l) => {
+                                            if l.tag.is_none() {
+                                                Some(l.data.clone())
+                                            } else {
+                                                None
+                                            }
+                                        }
+                                    })
+                                    .collect::<Vec<_>>()
+                                {
+                                    // ... add that loan to the set.
+                                    region_contains_loans.insert(loan);
+                                }
+                            }
+                        }
+                    }
+
+                    // LHS of the edge is the union of all coupled edges
+                    let mut lhs: BTreeSet<CDGNode<'tcx>> = Default::default();
+                    for r in regions.iter() {
+                        for n in self.coupling_graph.origins.origins[0]
+                            .get(r)
+                            .unwrap()
+                            .leaves
+                            .iter()
+                        {
+                            lhs.insert((*n).clone());
+                        }
+                    }
+
+                    // For each group in Self,
+                    for r in regions.iter() {
+                        for group in self.coupling_graph.origins.origins.iter_mut() {
+                            group.insert(
+                                *r,
+                                CDGOrigin::new_coupling(
+                                    lhs.clone(),
+                                    rhs.clone(),
+                                    region_contains_loans.clone(),
+                                ),
+                            );
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fn widen(&mut self, _: &Self) {
