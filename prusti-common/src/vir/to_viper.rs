@@ -338,7 +338,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            Stmt::Declassify(e) => ast.declassify(e),
+            Stmt::Declassify(e) => ast.declassify(e.to_viper(context, ast)),
         }
     }
 }
@@ -752,7 +752,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
             },
             Expr::Low(expr, position) => {
-                ast.low(expr.to_viper(context, ast), position.to_viper(context, ast))
+                ast.low_with_pos(expr.to_viper(context, ast), position.to_viper(context, ast))
             }
         };
         if config::simplify_encoding() {

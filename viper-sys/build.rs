@@ -699,6 +699,51 @@ fn main() {
             java_class!("viper.silver.ast.WildcardPerm", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.sif.SIFReturnStmt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFBreakStmt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFContinueStmt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFRaiseStmt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFExceptionHandler", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFTryCatchStmt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFDeclassifyStmt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFInlinedCallStmt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFAssertNoException", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFLowExp", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFLowEventExp", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFLowExitExp", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFTerminatesExp", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFInfo", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.sif.SIFDynCheckInfo", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.verifier.AbortedExceptionally", vec![
                 constructor!(),
                 method!("cause"),

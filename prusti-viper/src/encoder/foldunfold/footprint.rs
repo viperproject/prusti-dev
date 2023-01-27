@@ -176,6 +176,7 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::SnapApp(vir::SnapApp { ref base, .. }) => base.get_footprint(predicates),
 
             vir::Expr::Cast(vir::Cast { ref base, .. }) => base.get_footprint(predicates),
+            vir::Expr::Low(vir::Low { ref base, .. }) => base.get_footprint(predicates),
         }
     }
 }

@@ -7,7 +7,7 @@ use crate::ast_factory::{
     AstFactory,
 };
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::ast;
+use viper_sys::wrappers::viper::silver::{ast, sif};
 
 // Floating-Point Operations
 #[derive(Debug, Clone, Copy)]
@@ -1490,12 +1490,14 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
-    pub fn low(&self, expr: Expr, pos: Position) -> Expr<'a> {
+    pub fn low_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
-            ast::SIFLowExpr,
+            sif::SIFLowExp,
             expr.to_jobject(),
+            self.jni.new_option(None),
+            self.jni.new_map(&[]),
             pos.to_jobject()
         )
     }
