@@ -816,7 +816,7 @@ fn main() {
             ]),
             // SIF
             java_class!("viper.silver.sif.SIFExtendedTransformer$", vec![
-                object_getter!(),                
+                object_getter!(),
                 method!("transform"),
             ]),
             java_class!("viper.silver.sif.SIFReturnStmt", vec![
