@@ -5,7 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    ast_factory::*, ast_utils::*, verification_backend::VerificationBackend, verifier::Verifier,
+    ast_factory::*, ast_utils::*, sif_transformer::SIFTransformer,
+    verification_backend::VerificationBackend, verifier::Verifier,
 };
 use jni::AttachGuard;
 use log::{debug, info};
@@ -98,5 +99,9 @@ impl<'a> VerificationContext<'a> {
         Verifier::new(&self.env, backend, report_path, smt_manager)
             .parse_command_line(&verifier_args)
             .start()
+    }
+
+    pub fn new_sif_transformer(&self) -> SIFTransformer {
+        SIFTransformer::new(&self.env)
     }
 }

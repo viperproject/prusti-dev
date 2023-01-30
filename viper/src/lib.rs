@@ -21,6 +21,7 @@ mod verification_backend;
 mod verification_context;
 mod verification_result;
 mod verifier;
+pub mod sif_transformer;
 mod viper;
 
 pub use crate::{

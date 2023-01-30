@@ -21,7 +21,14 @@ impl<'a> Backend<'a> {
 
                 ast_utils.with_local_frame(16, || {
                     let ast_factory = context.new_ast_factory();
-                    let viper_program = program.to_viper(LoweringContext::default(), &ast_factory);
+                    let mut viper_program =
+                        program.to_viper(LoweringContext::default(), &ast_factory);
+
+                        if config::sif() {
+                        let sif_transformer = context.new_sif_transformer();
+                        stopwatch.start_next("sif translation");
+                        viper_program = sif_transformer.sif_transformation(viper_program);
+                    }
 
                     if config::dump_viper_program() {
                         stopwatch.start_next("dumping viper program");
