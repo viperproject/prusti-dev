@@ -6,6 +6,10 @@ use alloc::{alloc::Allocator, vec::Vec};
 impl<T> Vec<T> {
     #[ensures(result.is_empty())]
     fn new() -> Self;
+
+    // capacity is not relevant to functional behavior
+    #[ensures(result.is_empty())]
+    fn with_capacity(capacity: usize) -> Self;
 }
 
 // FUTURE(#1221): Vec should forward its specs to as_slice where possible, to avoid writing each spec twice.

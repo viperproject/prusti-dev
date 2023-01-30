@@ -1,5 +1,6 @@
 use crate::*;
 
+#[allow(unused_imports)]
 use core::{ops::Index, slice::SliceIndex};
 
 #[extern_spec]

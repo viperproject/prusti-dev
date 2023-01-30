@@ -70,6 +70,12 @@ impl From<&str> for String {
 */
 
 #[extern_spec]
+impl ToString for String {
+    #[ensures(result === self)]
+    fn to_string(&self) -> String;
+}
+
+#[extern_spec]
 impl Default for String {
     #[ensures(result.is_empty())]
     fn default() -> Self;

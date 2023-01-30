@@ -1,5 +1,6 @@
 use crate::*;
 
+#[allow(unused_imports)]
 use core::ops::Index;
 
 // FUTURE(#1221): This spec is currently not usable due to issue #1221.
