@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    errors::{SpannedEncodingResult, WithSpan},
+    errors::{EncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         places::PlacesEncoderInterface,
         pure::{
@@ -27,6 +27,7 @@ use crate::encoder::{
     mir_encoder::{MirEncoder, PlaceEncoder, PRECONDITION_LABEL},
     snapshot::interface::SnapshotEncoderInterface,
 };
+use prusti_common::config;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{mir, ty::subst::SubstsRef},
@@ -255,6 +256,16 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 vir_poly::Expr::snap_app(encoded_args[0].clone()),
                 vir_poly::Expr::snap_app(encoded_args[1].clone()),
             )),
+            "prusti_contracts::low" => {
+                if config::sif() {
+                    Ok(vir_poly::Expr::low(encoded_args[0].clone()))
+                } else {
+                    Err(EncodingError::incorrect(
+                        "Found low specification when sif option is disabled!",
+                    ))
+                    .with_span(span)
+                }
+            }
             _ => unimplemented!(),
         }
     }

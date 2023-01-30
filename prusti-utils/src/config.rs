@@ -115,6 +115,7 @@ lazy_static::lazy_static! {
         settings.set_default("optimizations", "all").unwrap();
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
+        settings.set_default("sif", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
@@ -868,6 +869,11 @@ pub fn log_smt_wrapper_interaction() -> bool {
 /// **Note:** This option is currently very incomplete.
 pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
+}
+
+/// When enabled, checks the program for secure information flow
+pub fn sif() -> bool {
+    read_setting("sif")
 }
 
 /// Whether the core proof (memory safety) should be verified.
