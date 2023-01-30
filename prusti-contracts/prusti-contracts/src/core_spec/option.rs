@@ -206,5 +206,24 @@ impl<T> Option<T> {
     })]
     fn zip<U>(self, other: Option<U>) -> Option<(T, U)>;
 
-    // TODO: specific methods depending on trait bounds? flatten especially might be useful
+    // TODO: specific methods depending on trait bounds
+}
+
+#[extern_spec]
+impl<T> Option<Option<T>> {
+    #[ensures(match old(self) {
+        Some(Some(x)) => result === Some(x),
+        _ => result.is_none(),
+    })]
+    pub fn flatten(self) -> Option<T>;
+}
+
+#[extern_spec]
+impl<T, E> Option<Result<T, E>> {
+    #[ensures(match old(self) {
+        Some(Ok(x)) => result === Ok(Some(x)),
+        Some(Err(e)) => result === Err(e),
+        None => matches!(result, Ok(None)),
+    })]
+    pub fn transpose(self) -> Result<Option<T>, E>;
 }

@@ -178,3 +178,13 @@ impl<T, E> Result<T, E> {
 
     // TODO: specific methods depending on trait bounds
 }
+
+#[extern_spec]
+impl<T, E> Result<Option<T>, E> {
+    #[ensures(match old(self) {
+        Ok(Some(x)) => result === Some(Ok(x)),
+        Ok(None) => result.is_none(),
+        Err(e) => result === Some(Err(e)),
+    })]
+    pub fn transpose(self) -> Option<Result<T, E>>;
+}

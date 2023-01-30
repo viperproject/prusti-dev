@@ -91,3 +91,13 @@ fn test_5() {
         assert!(err.unwrap_err_unchecked() == false);
     }
 }
+
+fn test_transpose() {
+    #[derive(Debug, Eq, PartialEq)]
+    struct SomeErr;
+
+    let x: Result<Option<i32>, SomeErr> = Ok(Some(5));
+    let y: Option<Result<i32, SomeErr>> = Some(Ok(5));
+    let x = x.transpose();
+    prusti_assert!(x === y);
+}

@@ -152,3 +152,28 @@ fn test_6() {
     assert!(none.zip(some).is_none());
     assert!(none.zip(none).is_none());
 }
+
+fn test_flatten() {
+    let x: Option<Option<u32>> = Some(Some(6));
+    assert!(x.flatten().unwrap() == 6);
+
+    let x: Option<Option<u32>> = Some(None);
+    assert!(x.flatten().is_none());
+
+    let x: Option<Option<u32>> = None;
+    assert!(x.flatten().is_none());
+
+    let x: Option<Option<Option<u32>>> = Some(Some(Some(6)));
+    assert!(x.flatten().unwrap().unwrap() == 6);
+    assert!(x.flatten().flatten().unwrap() == 6);
+}
+
+fn test_transpose() {
+    #[derive(Debug, Eq, PartialEq)]
+    struct SomeErr;
+
+    let x: Result<Option<i32>, SomeErr> = Ok(Some(5));
+    let y: Option<Result<i32, SomeErr>> = Some(Ok(5));
+    let y = y.transpose();
+    prusti_assert!(x === y);
+}
