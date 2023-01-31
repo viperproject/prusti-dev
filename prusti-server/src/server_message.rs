@@ -6,7 +6,7 @@
 
 use viper::VerificationResult;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum ServerMessage {
     Termination(VerificationResult),
     QuantifierInstantiation { q_name: String, insts: u64, norm_pos_id: u64 },

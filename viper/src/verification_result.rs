@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
-use std::collections::HashMap;
 
 /// The result of a verification request on a Viper program.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
