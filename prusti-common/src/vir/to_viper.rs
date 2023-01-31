@@ -338,7 +338,6 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            Stmt::Declassify(e) => ast.declassify(e.to_viper(context, ast)),
         }
     }
 }

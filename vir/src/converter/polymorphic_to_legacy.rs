@@ -693,9 +693,6 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
             polymorphic::Stmt::Downcast(downcast) => {
                 legacy::Stmt::Downcast(downcast.base.into(), downcast.field.into())
             }
-            polymorphic::Stmt::Declassify(declassify) => {
-                legacy::Stmt::Declassify(declassify.expr.into())
-            }
         }
     }
 }

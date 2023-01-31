@@ -322,6 +322,14 @@ mod private {
             panic!()
         }
     }
+
+    /// Declassify the given expression, making it low
+    #[macro_export]
+    macro_rules! declassify {
+        ($base:expr) => {
+            $crate::prusti_assume!($crate::low($base))
+        };
+    }
 }
 
 /// This function is used to evaluate an expression in the context just
@@ -369,9 +377,5 @@ pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
 pub fn low<T>(_t: T) -> bool {
     true
 }
-
-/// Declassify the given expression, making it low
-#[ensures(low(t))]
-pub fn declassify<T>(t: T) {}
 
 pub use private::*;

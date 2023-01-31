@@ -63,8 +63,6 @@ pub enum Stmt {
     /// * place to the enumeration instance
     /// * field that encodes the variant
     Downcast(Downcast),
-    /// Declassify the given expression
-    Declassify(Declassify),
 }
 
 impl fmt::Display for Stmt {
@@ -88,7 +86,6 @@ impl fmt::Display for Stmt {
             Stmt::ExpireBorrows(expire_borrows) => expire_borrows.fmt(f),
             Stmt::If(if_stmt) => if_stmt.fmt(f),
             Stmt::Downcast(downcast) => downcast.fmt(f),
-            Stmt::Declassify(declassify) => declassify.fmt(f),
         }
     }
 }
@@ -439,17 +436,6 @@ impl fmt::Display for Downcast {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct Declassify {
-    pub expr: Expr,
-}
-
-impl fmt::Display for Declassify {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "declassify {}", self.expr)
-    }
-}
-
 impl Stmt {
     pub fn is_comment(&self) -> bool {
         matches!(self, Stmt::Comment(_))
@@ -473,10 +459,6 @@ impl Stmt {
 
     pub fn exhale(expr: Expr, position: Position) -> Self {
         Stmt::Exhale(Exhale { expr, position })
-    }
-
-    pub fn declassify(expr: Expr) -> Self {
-        Stmt::Declassify(Declassify { expr })
     }
 
     pub fn package_magic_wand(
@@ -579,7 +561,6 @@ pub trait StmtFolder {
             Stmt::ExpireBorrows(expire_borrows) => self.fold_expire_borrows(expire_borrows),
             Stmt::If(if_stmt) => self.fold_if(if_stmt),
             Stmt::Downcast(downcast) => self.fold_downcast(downcast),
-            Stmt::Declassify(declassify) => self.fold_declassify(declassify),
         }
     }
 
@@ -758,13 +739,6 @@ pub trait StmtFolder {
             field,
         })
     }
-
-    fn fold_declassify(&mut self, statement: Declassify) -> Stmt {
-        let Declassify { expr } = statement;
-        Stmt::Declassify(Declassify {
-            expr: self.fold_expr(expr),
-        })
-    }
 }
 
 pub trait FallibleStmtFolder {
@@ -796,7 +770,6 @@ pub trait FallibleStmtFolder {
             }
             Stmt::If(if_stmt) => self.fallible_fold_if(if_stmt),
             Stmt::Downcast(downcast) => self.fallible_fold_downcast(downcast),
-            Stmt::Declassify(declassify) => self.fallible_fold_declassify(declassify),
         }
     }
 
@@ -1005,13 +978,6 @@ pub trait FallibleStmtFolder {
             field,
         }))
     }
-
-    fn fallible_fold_declassify(&mut self, statement: Declassify) -> Result<Stmt, Self::Error> {
-        let Declassify { expr } = statement;
-        Ok(Stmt::Declassify(Declassify {
-            expr: self.fallible_fold_expr(expr)?,
-        }))
-    }
 }
 
 pub trait StmtWalker {
@@ -1037,7 +1003,6 @@ pub trait StmtWalker {
             Stmt::ExpireBorrows(expire_borrows) => self.walk_expire_borrows(expire_borrows),
             Stmt::If(if_stmt) => self.walk_if(if_stmt),
             Stmt::Downcast(downcast) => self.walk_downcast(downcast),
-            Stmt::Declassify(declassify) => self.walk_declassify(declassify),
         }
     }
 
@@ -1161,11 +1126,6 @@ pub trait StmtWalker {
         let Downcast { base, .. } = statement;
         self.walk_expr(base);
     }
-
-    fn walk_declassify(&mut self, statement: &Declassify) {
-        let Declassify { expr } = statement;
-        self.walk_expr(expr);
-    }
 }
 
 pub trait FallibleStmtWalker {
@@ -1197,7 +1157,6 @@ pub trait FallibleStmtWalker {
             }
             Stmt::If(if_stmt) => self.fallible_walk_if(if_stmt),
             Stmt::Downcast(downcast) => self.fallible_walk_downcast(downcast),
-            Stmt::Declassify(declassify) => self.fallible_walk_declassify(declassify),
         }
     }
 
@@ -1364,12 +1323,6 @@ pub trait FallibleStmtWalker {
     fn fallible_walk_downcast(&mut self, statement: &Downcast) -> Result<(), Self::Error> {
         let Downcast { base, .. } = statement;
         self.fallible_walk_expr(base)?;
-        Ok(())
-    }
-
-    fn fallible_walk_declassify(&mut self, statement: &Declassify) -> Result<(), Self::Error> {
-        let Declassify { expr } = statement;
-        self.fallible_walk_expr(expr)?;
         Ok(())
     }
 }

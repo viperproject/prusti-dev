@@ -7,7 +7,7 @@ use crate::ast_factory::{
     AstFactory,
 };
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::{ast, sif};
+use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
     pub fn new_stmt(&self, lhs: Expr, fields: &[Field]) -> Stmt<'a> {
@@ -247,9 +247,5 @@ impl<'a> AstFactory<'a> {
 
     pub fn goto(&self, target: &str) -> Stmt<'a> {
         build_ast_node!(self, Stmt, ast::Goto, self.jni.new_string(target))
-    }
-
-    pub fn declassify(&self, expr: Expr) -> Stmt<'a> {
-        build_ast_node!(self, Stmt, sif::SIFDeclassifyStmt, expr.to_jobject())
     }
 }

@@ -549,7 +549,6 @@ impl Generic for Stmt {
             }
             Stmt::If(if_stmt) => Stmt::If(if_stmt.substitute(map)),
             Stmt::Downcast(downcast) => Stmt::Downcast(downcast.substitute(map)),
-            Stmt::Declassify(declassify) => Stmt::Declassify(declassify.substitute(map)),
         }
     }
 }
@@ -746,14 +745,6 @@ impl Generic for Downcast {
         downcast.base = downcast.base.substitute(map);
         downcast.field = downcast.field.substitute(map);
         downcast
-    }
-}
-
-impl Generic for Declassify {
-    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
-        let mut declassify = self;
-        declassify.expr = declassify.expr.substitute(map);
-        declassify
     }
 }
 
