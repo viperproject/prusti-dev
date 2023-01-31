@@ -7,6 +7,7 @@ use crate::{
     PrustiError,
 };
 use log::debug;
+use prusti_common::config::opt_in_verification;
 use prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
@@ -364,7 +365,8 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     );
 
     let pure = has_prusti_attr(attrs, "pure");
-    let trusted = has_prusti_attr(attrs, "trusted");
+    let trusted = has_prusti_attr(attrs, "trusted")
+        || (opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
 
     if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {

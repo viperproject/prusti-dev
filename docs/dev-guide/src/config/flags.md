@@ -46,6 +46,7 @@
 | [`MIN_PRUSTI_VERSION`](#min_prusti_version) | `Option<String>` | `None` | A |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` | A |
 | [`NO_VERIFY_DEPS`](#no_verify_deps) | `bool` | `false` | B |
+| [`OPT_IN_VERIFICATION`](#opt_in_verification) | `bool` | `false` | A |
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" | A |
 | [`PRESERVE_SMT_TRACE_FILES`](#preserve_smt_trace_files) | `bool` | `false` | A |
 | [`PRINT_COLLECTED_VERIFICATION_ITEMS`](#print_collected_verification_items) | `bool` | `false` | A |
@@ -292,6 +293,9 @@ When enabled, verification is skipped altogether, though specs are still exporte
 When enabled, verification is skipped for dependencies. Equivalent to enabling `NO_VERIFY` for all dependencies. Remote dependencies from e.g. git/crates.io are already automatically `NO_VERIFY`.
 
 > **Note:** applied to all dependency crates when running with `cargo prusti`.
+
+## `OPT_IN_VERIFICATION`
+When enabled, verification is only applied to functions that have the `#[verified]` attribute applied and all functions that do not have the `#[verified]` attribute are assumed to be `#[trusted]`, by default.
 
 ## `ONLY_MEMORY_SAFETY`
 

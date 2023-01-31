@@ -107,6 +107,7 @@ lazy_static::lazy_static! {
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
+        settings.set_default("opt_in_verification", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations", "all").unwrap();
@@ -979,6 +980,12 @@ pub fn set_no_verify(value: bool) {
 /// When enabled, verification is skipped for dependencies.
 pub fn no_verify_deps() -> bool {
     read_setting("no_verify_deps")
+}
+
+/// When enabled, verification is skipped for functions
+/// that do not have the `#[verified]` attribute.
+pub fn opt_in_verification() -> bool {
+    read_setting("opt_in_verification")
 }
 
 /// When enabled, compilation will continue and a binary will be generated
