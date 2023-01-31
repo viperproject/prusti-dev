@@ -28,19 +28,33 @@ impl<'a> SIFTransformer<'a> {
 
     #[must_use]
     pub fn sif_transformation(self, program: Program<'a>) -> Program<'a> {
-         self.ast_utils.with_local_frame(16, || {
-            debug!("Program before transformation:\n{}", self.ast_utils.pretty_print(program));
+        debug!(
+            "Program before transformation:\n{}",
+            self.ast_utils.pretty_print(program)
+        );
 
-            let sif_transformer = silver::sif::SIFExtendedTransformer_object::with(self.env);
+        let sif_transformer = silver::sif::SIFExtendedTransformer_object::with(self.env);
 
-            run_timed!("SIF transformation", debug, 
-                let tranformed_program = Program::new(self.jni.unwrap_result(
-                    sif_transformer
-                        .call_transform(self.jni.unwrap_result(sif_transformer.singleton()), program.to_jobject(), false),
-                ));
+        run_timed!("SIF transformation", debug,
+            let transformed_program = self.jni.unwrap_result(
+                sif_transformer
+                    .call_transform(self.jni.unwrap_result(sif_transformer.singleton()), program.to_jobject(), false),
             );
-            debug!("Program after transformation:\n{}", self.ast_utils.pretty_print(tranformed_program));
-            tranformed_program
-        })
+        );
+
+        debug_assert!(self
+            .env
+            .is_instance_of(
+                transformed_program,
+                self.env.find_class("viper/silver/ast/Program").unwrap(),
+            )
+            .unwrap());
+
+        let transformed_program = Program::new(transformed_program);
+        debug!(
+            "Program after transformation:\n{}",
+            self.ast_utils.pretty_print(transformed_program)
+        );
+        transformed_program
     }
 }
