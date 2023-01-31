@@ -59,6 +59,7 @@
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` | A |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` | A |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` | A |
+| [`SIF`](#sif) | `bool` | `false`| A |
 | [`SIMPLIFY_ENCODING`](#simplify_encoding) | `bool` | `true` | A |
 | [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features) | `bool` | `false` | A |
 | [`SMT_QI_BOUND_GLOBAL`](#smt_qi_bound_global) | `Option<u64>` | `None` | A |
@@ -372,6 +373,10 @@ Maximum amount of verification requests the server will work on concurrently. If
 Maximum amount of instantiated Viper verifiers the server will keep around for reuse. If not set, defaults to `SERVER_MAX_CONCURRENT_VERIFICATION_OPERATIONS`. It also doesn't make much sense to set this option to less than that, since then the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.
 
 > **Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
+
+## `SIF`
+
+When enabled, check the program for secure information flow.
 
 ## `SIMPLIFY_ENCODING`
 
