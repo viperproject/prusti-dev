@@ -113,8 +113,19 @@ impl<'tcx> Place<'tcx> {
                 if typ.is_adt() && ("std::boxed::Box" == format!("{:?}", typ.ty_adt_def().unwrap()))
                 {
                     [(*self).clone()].into()
+                } else if typ.is_adt() && typ.ty_adt_def().unwrap().variants().len() == 1 {
+                    [(*self).clone()].into()
                 } else {
-                    unimplemented!(
+                    println!("[debug]   field is adt? {:?}", typ.is_adt());
+                    println!(
+                        "[debug]   variants {:?}",
+                        typ.ty_adt_def().map(|def| def
+                            .variants()
+                            .iter()
+                            .map(|v| v.name)
+                            .collect::<Vec<_>>())
+                    );
+                    panic!(
                 "non-box field couldn't compute siblings for {:?}, outermost projection is {:?}",
                 self,
                 p
