@@ -8,7 +8,7 @@
 
 use crate::{
     abstract_interpretation::{AbstractState, AnalysisResult},
-    mir_utils::{self, expand_struct_place, is_prefix, Place},
+    mir_utils::{self, expand, expand_struct_place, is_prefix, Place},
 };
 use prusti_rustc_interface::{
     borrowck::{consumers::RustcFacts, BodyWithBorrowckFacts},
@@ -645,8 +645,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
 
                         while !leaf_set.contains(target_place) {
                             // 3. Unpack it
-                            let closest_expansion =
-                                expand_struct_place(*closest_leaf, mir, tcx, None);
+                            let closest_expansion = closest_leaf.expand(target_place, mir, tcx);
 
                             // 4. Replace the closest leaf with the unpacked version in the leaf_set
                             leaf_set.remove(&closest_leaf);
