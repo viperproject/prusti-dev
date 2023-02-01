@@ -6,10 +6,12 @@
 use analysis::{
     abstract_interpretation::FixpointEngine,
     domains::{
-        CouplingAnalysis, DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis, FactTable,
-        FramingAnalysis, MaybeBorrowedAnalysis, ReachingDefsAnalysis,
+        run_coupling_tests, CouplingAnalysis, DefinitelyAccessibleAnalysis,
+        DefinitelyInitializedAnalysis, FactTable, FramingAnalysis, MaybeBorrowedAnalysis,
+        ReachingDefsAnalysis,
     },
 };
+use prusti_common::config;
 use prusti_rustc_interface::{
     ast::ast,
     borrowck::BodyWithBorrowckFacts,
@@ -265,6 +267,11 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                         }
                     }
                     "CouplingAnalysis" => {
+                        if config::coupling_analysis_test() {
+                            run_coupling_tests(tcx);
+                            return;
+                        }
+
                         println!("[driver]    Starting coupling analysis");
                         let fact_table = FactTable::new(&body_with_facts, tcx).unwrap();
                         let result = CouplingAnalysis::new(

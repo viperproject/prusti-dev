@@ -7,9 +7,10 @@
 use super::facts::FactTable;
 use crate::{
     abstract_interpretation::{AnalysisResult, FixpointEngine},
-    domains::CouplingState,
     PointwiseState,
 };
+
+use crate::domains::coupling::CouplingState;
 use prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
     middle::{mir, ty::TyCtxt},

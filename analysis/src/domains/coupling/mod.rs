@@ -8,6 +8,7 @@ mod analysis;
 mod state;
 mod graphviz;
 mod facts;
+mod test;
 
 use std::collections::BTreeSet;
 
@@ -15,6 +16,7 @@ pub use self::analysis::*;
 pub use facts::*;
 pub use graphviz::*;
 pub use state::*;
+pub use test::run_coupling_tests;
 
 pub type FactResult<T> = std::result::Result<T, FactError>;
 

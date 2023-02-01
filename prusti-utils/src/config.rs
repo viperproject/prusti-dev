@@ -128,6 +128,7 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
         settings.set_default("dump_operational_pcs", false).unwrap();
         settings.set_default("vis_pcs_facts", false).unwrap();
+        settings.set_default("coupling_analysis_test", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -1035,4 +1036,9 @@ pub fn dump_operational_pcs() -> bool {
 /// When enabled, output a visualization of PCS input facts instead of verifying
 pub fn vis_pcs_facts() -> bool {
     read_setting("vis_pcs_facts")
+}
+
+/// When enabled, run the coupling analysis tests instead of verifying
+pub fn coupling_analysis_test() -> bool {
+    read_setting("coupling_analysis_test")
 }

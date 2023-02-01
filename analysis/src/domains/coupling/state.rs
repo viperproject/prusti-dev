@@ -870,7 +870,7 @@ impl<'tcx> Serialize for CDG<'tcx> {
             "origins invariant?",
             &self.origin_contains_loan_at_invariant,
         )?;
-        todo!("do this right");
+        todo!("serializer not implemented");
         // for origin_map in self.origins.origins.iter() {
         //     for (o, cdg) in origin_map.iter() {
         //         map.serialize_entry(&format!("{:?}", o), &format!("{:?}", cdg))?;
