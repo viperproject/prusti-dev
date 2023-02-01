@@ -14,12 +14,15 @@ use prusti_rustc_interface::{
     infer::infer::TyCtxtInferExt,
     middle::{
         mir,
-        mir::{BorrowKind, Location, Operand, Rvalue, StatementKind, TerminatorKind},
+        mir::{
+            BorrowKind, Location, Operand, PlaceElem, ProjectionElem, Rvalue, StatementKind,
+            TerminatorKind,
+        },
         ty::{self, TyCtxt},
     },
     trait_selection::infer::InferCtxtExt,
 };
-use std::mem;
+use std::{collections::BTreeSet, mem};
 
 use crate::{abstract_interpretation::AnalysisResult, AnalysisError};
 
@@ -86,16 +89,64 @@ impl<'tcx> PlaceImpl<'tcx> for mir::Place<'tcx> {
     }
 }
 
-/// Convert a `location` to a string representing the statement or terminator at that `location`
-pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
-    let bb_mir = &mir[location.block];
-    if location.statement_index < bb_mir.statements.len() {
-        let stmt = &bb_mir.statements[location.statement_index];
-        format!("{:?}", stmt)
-    } else {
-        // location = terminator
-        let terminator = bb_mir.terminator();
-        format!("{:?}", terminator.kind)
+/// Helper functions for places
+impl<'tcx> Place<'tcx> {
+    pub(crate) fn outermost_projection(&self) -> Option<PlaceElem<'tcx>> {
+        if !self.0.projection.is_empty() {
+            Some(self.0.projection[self.0.projection.len() - 1])
+        } else {
+            None
+        }
+    }
+
+    pub(crate) fn is_deref(&self) -> bool {
+        self.outermost_projection() == Some(ProjectionElem::Deref)
+    }
+
+    /// The siblings of a place is the set of places which the place requires to pack up to the next level
+    pub(crate) fn siblings(&self) -> Option<BTreeSet<Self>> {
+        self.outermost_projection().map(|p| match p {
+            ProjectionElem::Deref | ProjectionElem::Downcast(_, _) => [(*self).clone()].into(),
+            ProjectionElem::Field(field, typ) => {
+                // Workaround: boxes have a special allocator field which we don't care about for the example
+                // fixme (should be obvious that this is awful)
+                if typ.is_adt() && ("std::boxed::Box" == format!("{:?}", typ.ty_adt_def().unwrap()))
+                {
+                    [(*self).clone()].into()
+                } else {
+                    unimplemented!(
+                "non-box field couldn't compute siblings for {:?}, outermost projection is {:?}",
+                self,
+                p
+            )
+                }
+            }
+            _ => unimplemented!(
+                "couldn't compute siblings for {:?}, outermost projection is {:?}",
+                self,
+                p
+            ),
+        })
+    }
+
+    /// Removes the outermost projection from a place, if the following is allowed:
+    ///     { self } pack(self) { strip(self) }
+    pub(crate) fn strip(&self, tcx: TyCtxt<'tcx>) -> Option<Self> {
+        self.siblings().and_then(|siblings| {
+            if siblings.len() == 1 && siblings.contains(self) {
+                let mut projection = self.projection.to_vec();
+                projection.pop()?;
+                Some(
+                    mir::Place {
+                        local: self.local,
+                        projection: tcx.intern_place_elems(&projection),
+                    }
+                    .into(),
+                )
+            } else {
+                None
+            }
+        })
     }
 }
 
@@ -196,39 +247,6 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
     places
 }
 
-/// Remove one projection level from the place, if possible
-pub fn strip_place<'tcx>(tcx: TyCtxt<'tcx>, place: &Place<'tcx>) -> Option<Place<'tcx>> {
-    let mut projection = place.projection.to_vec();
-    projection.pop()?;
-    Some(
-        mir::Place {
-            local: place.local,
-            projection: tcx.intern_place_elems(&projection),
-        }
-        .into(),
-    )
-}
-
-/// Check if place is local
-pub fn is_local<'tcx>(place: &Place<'tcx>) -> bool {
-    place.0.projection.len() == 0
-}
-
-/// Returns the set of places which
-/// If `place` is a local, return the local
-/// If `place` is not a local, strip one level and unpack it
-pub fn place_siblings<'tcx>(
-    mir: &mir::Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    place: Place<'tcx>,
-) -> Vec<Place<'tcx>> {
-    if let Some(parent) = strip_place(tcx, &place) {
-        expand_struct_place(parent, mir, tcx, None)
-    } else {
-        vec![place]
-    }
-}
-
 /// Returns the maximally packed version of a single place
 pub fn maximally_pack<'tcx>(
     mir: &mir::Body<'tcx>,
@@ -236,15 +254,8 @@ pub fn maximally_pack<'tcx>(
     mut place: Place<'tcx>,
 ) -> Place<'tcx> {
     loop {
-        // fixme: refactor/simplify this
-        if place.0.has_deref() {
-            place = strip_place(tcx, &place).unwrap();
-        } else if let Some(parent) = strip_place(tcx, &place) {
-            if vec![place] == place_siblings(mir, tcx, place) {
-                place = parent;
-            } else {
-                return place;
-            }
+        if let Some(stripped) = place.strip(tcx) {
+            place = stripped
         } else {
             return place;
         }
@@ -566,5 +577,17 @@ pub(crate) fn get_moved_from_place<'a, 'mir, 'tcx: 'mir>(
             Ok((*p).clone().into())
         }
         _ => Err(AnalysisError::UnsupportedStatement(loc)),
+    }
+}
+/// Convert a `location` to a string representing the statement or terminator at that `location`
+pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
+    let bb_mir = &mir[location.block];
+    if location.statement_index < bb_mir.statements.len() {
+        let stmt = &bb_mir.statements[location.statement_index];
+        format!("{:?}", stmt)
+    } else {
+        // location = terminator
+        let terminator = bb_mir.terminator();
+        format!("{:?}", terminator.kind)
     }
 }

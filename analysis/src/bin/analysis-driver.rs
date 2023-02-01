@@ -268,7 +268,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                     }
                     "CouplingAnalysis" => {
                         if config::coupling_analysis_test() {
-                            run_coupling_tests(tcx);
+                            run_coupling_tests(&body_with_facts.body, tcx);
                             return;
                         }
 

@@ -8,7 +8,8 @@ mod analysis;
 mod state;
 mod graphviz;
 mod facts;
-mod test;
+
+pub mod test;
 
 use std::collections::BTreeSet;
 
