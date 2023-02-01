@@ -1090,6 +1090,27 @@
 <a href="#1090" id="1090">1090</a>
 <a href="#1091" id="1091">1091</a>
 <a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(unused_must_use)]
 #![feature(drain_filter)]
 #![feature(box_patterns)]
@@ -1178,7 +1199,8 @@
                     </span>SpecAttributeKind::Pure
                     | SpecAttributeKind::Terminates
                     | SpecAttributeKind::Trusted
-                    | SpecAttributeKind::Predicate =&gt; {
+                    | SpecAttributeKind::Predicate
+                    | SpecAttributeKind::Verified =&gt; {
                         <span class="macro">assert!</span>(attr.tokens.is_empty(), <span class="string">&quot;Unexpected shape of an attribute.&quot;</span>);
                         attr.tokens
                     }
@@ -1257,6 +1279,7 @@
             SpecAttributeKind::AfterExpiry =&gt; generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AssertOnExpiry =&gt; generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure =&gt; generate_for_pure(attr_tokens, item),
+            SpecAttributeKind::Verified =&gt; generate_for_verified(attr_tokens, item),
             SpecAttributeKind::Terminates =&gt; generate_for_terminates(attr_tokens, item),
             SpecAttributeKind::Trusted =&gt; generate_for_trusted(attr_tokens, item),
             <span class="comment">// Predicates are handled separately below; the entry in the SpecAttributeKind enum
@@ -1383,6 +1406,23 @@
         <span class="macro">vec!</span>[],
         <span class="macro">vec!</span>[<span class="macro">parse_quote_spanned! </span>{item.span()=&gt;
             <span class="attr">#[prusti::pure]
+        </span>}],
+    ))
+}
+
+<span class="doccomment">/// Generate spec items and attributes to typecheck and later retrieve &quot;verified&quot; annotations.
+</span><span class="kw">fn </span>generate_for_verified(attr: TokenStream, item: <span class="kw-2">&amp;</span>untyped::AnyFnItem) -&gt; GeneratedResult {
+    <span class="kw">if </span>!attr.is_empty() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(
+            attr.span(),
+            <span class="string">&quot;the `#[verified]` attribute does not take parameters&quot;</span>,
+        ));
+    }
+
+    <span class="prelude-val">Ok</span>((
+        <span class="macro">vec!</span>[],
+        <span class="macro">vec!</span>[<span class="macro">parse_quote_spanned! </span>{item.span()=&gt;
+            <span class="attr">#[prusti::verified]
         </span>}],
     ))
 }
@@ -1922,6 +1962,7 @@
                     SpecAttributeKind::AssertOnExpiry =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;assert_on_expiry on type&quot;</span>),
                     SpecAttributeKind::RefineSpec =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;refine_spec on type&quot;</span>),
                     SpecAttributeKind::Pure =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;pure on type&quot;</span>),
+                    SpecAttributeKind::Verified =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;verified on type&quot;</span>),
                     SpecAttributeKind::Invariant =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;invariant on type&quot;</span>),
                     SpecAttributeKind::Predicate =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;predicate on type&quot;</span>),
                     SpecAttributeKind::Terminates =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;terminates on type&quot;</span>),
@@ -1965,6 +2006,7 @@
             SpecAttributeKind::AfterExpiry =&gt; <span class="macro">unreachable!</span>(),
             SpecAttributeKind::AssertOnExpiry =&gt; <span class="macro">unreachable!</span>(),
             SpecAttributeKind::Pure =&gt; <span class="macro">unreachable!</span>(),
+            SpecAttributeKind::Verified =&gt; <span class="macro">unreachable!</span>(),
             SpecAttributeKind::Predicate =&gt; <span class="macro">unreachable!</span>(),
             SpecAttributeKind::Invariant =&gt; <span class="macro">unreachable!</span>(),
             SpecAttributeKind::RefineSpec =&gt; <span class="macro">unreachable!</span>(),

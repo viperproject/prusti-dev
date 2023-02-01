@@ -573,6 +573,8 @@
 <a href="#573" id="573">573</a>
 <a href="#574" id="574">574</a>
 <a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environment::Environment,
     utils::{
@@ -582,6 +584,7 @@
     PrustiError,
 };
 <span class="kw">use </span>log::debug;
+<span class="kw">use </span>prusti_common::config;
 <span class="kw">use </span>prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
@@ -939,7 +942,8 @@
     );
 
     <span class="kw">let </span>pure = has_prusti_attr(attrs, <span class="string">&quot;pure&quot;</span>);
-    <span class="kw">let </span>trusted = has_prusti_attr(attrs, <span class="string">&quot;trusted&quot;</span>);
+    <span class="kw">let </span>trusted = has_prusti_attr(attrs, <span class="string">&quot;trusted&quot;</span>)
+        || (config::opt_in_verification() &amp;&amp; !has_prusti_attr(attrs, <span class="string">&quot;verified&quot;</span>));
     <span class="kw">let </span>abstract_predicate = has_abstract_predicate_attr(attrs);
 
     <span class="kw">if </span>abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
