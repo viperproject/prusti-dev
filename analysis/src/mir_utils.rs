@@ -159,6 +159,36 @@ impl<'tcx> Place<'tcx> {
             }
         })
     }
+
+    /// Expand a struct
+    /// Since struct expansions are ambiguous, we require a target place to expand towards
+    pub(crate) fn expand(
+        &self,
+        towards: &Place<'tcx>,
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+    ) -> BTreeSet<Place<'tcx>> {
+        let typ = self.to_mir_place().ty(mir, tcx);
+        let next_projection = towards
+            .to_mir_place()
+            .projection
+            .iter()
+            .take(self.to_mir_place().projection.len() + 1)
+            .collect::<Vec<_>>();
+        let next_expansion: Place = mir::Place {
+            local: self.local,
+            projection: tcx.intern_place_elems(&next_projection),
+        }
+        .into();
+        let next_siblings = next_expansion.siblings().unwrap();
+        if next_siblings.len() == 1 {
+            return next_siblings;
+        }
+        println!("[debug] attempting to expand {:?}", self);
+        println!("[debug] towards {:?}", towards);
+        println!("[debug] next siblings are {:?}", next_siblings);
+        unimplemented!("incompleteness in expansion helper");
+    }
 }
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
