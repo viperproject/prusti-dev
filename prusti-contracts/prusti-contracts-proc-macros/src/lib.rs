@@ -47,6 +47,12 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 #[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn verified(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[cfg(not(feature = "prusti"))]
 #[proc_macro]
 pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
@@ -163,6 +169,12 @@ pub fn pure(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::trusted(attr.into(), tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn verified(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(SpecAttributeKind::Verified, attr.into(), tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]
