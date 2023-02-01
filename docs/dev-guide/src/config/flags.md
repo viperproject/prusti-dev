@@ -295,7 +295,7 @@ When enabled, verification is skipped for dependencies. Equivalent to enabling `
 > **Note:** applied to all dependency crates when running with `cargo prusti`.
 
 ## `OPT_IN_VERIFICATION`
-When enabled, verification is only applied to functions that have the `#[verified]` attribute applied and all functions that do not have the `#[verified]` attribute are assumed to be `#[trusted]`, by default.
+When enabled, Prusti will only try to verify the functions annotated with `#[verified]`. All other functions are assumed to be `#[trusted]`, by default. Functions annotated with both `#[trusted]` and `#[verified]` will not be verified.
 
 ## `ONLY_MEMORY_SAFETY`
 
