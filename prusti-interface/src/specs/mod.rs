@@ -7,7 +7,7 @@ use crate::{
     PrustiError,
 };
 use log::debug;
-use prusti_common::config::opt_in_verification;
+use prusti_common::config;
 use prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
