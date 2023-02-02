@@ -14,7 +14,7 @@ predicate! {
     }
 }
 
-pub test() {
+fn test() {
     let x = [1, 2, 3];
     prusti_assert!(increasing(&x));
 }
