@@ -1,9 +1,10 @@
 //! Common code for spec-rewriting
 
+use fxhash::FxHashMap;
 use proc_macro2::Ident;
 pub(crate) use receiver_rewriter::*;
 pub(crate) use self_type_rewriter::*;
-use std::{borrow::BorrowMut, collections::HashMap};
+use std::borrow::BorrowMut;
 use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned, GenericParam, TypeParam};
 pub(crate) use syn_extensions::*;
 use uuid::Uuid;
@@ -390,7 +391,7 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
     let generics_source = source.generics();
 
     // Merge all type params
-    let mut existing_target_type_params: HashMap<Ident, &mut TypeParam> = HashMap::new();
+    let mut existing_target_type_params: FxHashMap<Ident, &mut TypeParam> = FxHashMap::default();
     let mut new_generic_params: Vec<GenericParam> = Vec::new();
     for param_target in generics_target.params.iter_mut() {
         if let GenericParam::Type(type_param_target) = param_target {
