@@ -169,7 +169,7 @@ impl<'tcx> FactTable<'tcx> {
                 .map(|(o, p)| (*o, *p).clone())
             {
                 // 1.1. There should be at EXACTLY ONE subset upstream of the issuing origin
-                if let &[assigning_subset @ (_, assigning_origin)] = &set
+                if let &[assigning_subset @ (assigning_from_origin, assigning_origin)] = &set
                     .iter()
                     .filter(|(o, _)| *o == issuing_origin)
                     .collect::<Vec<_>>()[..]
@@ -186,6 +186,7 @@ impl<'tcx> FactTable<'tcx> {
                     //         .get_origin(OriginLHS::Place(issuing_borrowed_from_place)),
                     //     Some(*assigned_from_origin)
                     // );
+
                     Self::insert_structural_edge(
                         working_table,
                         point,
@@ -193,7 +194,13 @@ impl<'tcx> FactTable<'tcx> {
                         *assigning_origin,
                         SubsetBaseKind::LoanIssue,
                     );
-                    // fixme: Self::insert_origin_lhs_constraint(working_table, mir, origin, packing.clone());
+                    Self::check_or_construct_origin(
+                        working_table,
+                        &mir.body,
+                        OriginLHS::Place(assigned_to_place.into()),
+                        *assigning_origin,
+                    )?;
+
                     Self::insert_packing_constraint(
                         working_table,
                         point,
@@ -232,6 +239,7 @@ impl<'tcx> FactTable<'tcx> {
                         *reborrowing_origin,
                         borrowed_from_place,
                     );
+
                     Self::insert_structural_edge(
                         working_table,
                         point,
@@ -483,17 +491,9 @@ impl<'tcx> OriginPlaces<'tcx> {
         match c {
             OriginLHS::Place(p) => {
                 let p1 = maximally_pack(mir, self.tcx, p);
-                println!(
-                    "[debug] normalizing {:?} into {:?}",
-                    c,
-                    OriginLHS::Place(p1)
-                );
                 OriginLHS::Place(p1)
             }
-            OriginLHS::Loan(_) => {
-                println!("[debug] normalizing {:?} into {:?}", c, c);
-                c
-            }
+            OriginLHS::Loan(_) => c,
         }
     }
 
