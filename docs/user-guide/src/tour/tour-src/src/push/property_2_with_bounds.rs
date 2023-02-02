@@ -1,4 +1,3 @@
-// extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub struct List {
@@ -15,27 +14,23 @@ struct Node {
     next: Link,
 }
 
-#[extern_spec]
-mod std {
-    mod mem {
-        //extern crate prusti_contracts;
-        use prusti_contracts::*;
+#[extern_spec(std::mem)]
+#[ensures(snap(dest) === src)]
+#[ensures(result === old(snap(dest)))]
+fn replace<T>(dest: &mut T, src: T) -> T;
 
-        #[ensures(snap(dest) === src)]
-        #[ensures(result === old(snap(dest)))]
-        fn replace<T>(dest: &mut T, src: T) -> T;
-    }
-}
-
+//// ANCHOR: bounds
 impl List {
     #[pure]
     #[requires(index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
+        // ...
+        //// ANCHOR_END: bounds
         self.head.lookup(index)
     }
 
-    #[ensures(self.lookup(0) == elem)]
-    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(self.len() == old(self.len()) + 1)] // 1. Property
+    #[ensures(self.lookup(0) == elem)] // 2. Property
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
@@ -52,9 +47,8 @@ impl List {
 
     #[ensures(result.len() == 0)]
     pub fn new() -> Self {
-        List {
-            head: Link::Empty,
-        }
+        List { head: Link::Empty }
+        //// ANCHOR: bounds
     }
 }
 
@@ -62,6 +56,8 @@ impl Link {
     #[pure]
     #[requires(index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
+        // ...
+        //// ANCHOR_END: bounds
         match self {
             Link::More(node) => {
                 if index == 0 {
@@ -69,11 +65,11 @@ impl Link {
                 } else {
                     node.next.lookup(index - 1)
                 }
-            },
-            Link::Empty => unreachable!(),  
+            }
+            Link::Empty => unreachable!(),
         }
     }
-    
+
     #[pure]
     fn len(&self) -> usize {
         match self {
@@ -85,5 +81,7 @@ impl Link {
     #[pure]
     fn is_empty(&self) -> bool {
         matches!(self, Link::Empty)
+        //// ANCHOR: bounds
     }
 }
+//// ANCHOR_END: bounds

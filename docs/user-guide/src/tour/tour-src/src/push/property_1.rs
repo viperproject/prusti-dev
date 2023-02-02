@@ -1,6 +1,7 @@
-// extern crate prusti_contracts;
+//// ANCHOR: extern_spec
 use prusti_contracts::*;
 
+//// ANCHOR_END: extern_spec
 pub struct List {
     head: Link,
 }
@@ -15,20 +16,16 @@ struct Node {
     next: Link,
 }
 
-#[extern_spec]
-mod std {
-    mod mem {
-        //extern crate prusti_contracts;
-        use prusti_contracts::*;
-
-        #[ensures(snap(dest) === src)]
-        #[ensures(result === old(snap(dest)))]
-        fn replace<T>(dest: &mut T, src: T) -> T;
-    }
-}
+//// ANCHOR: extern_spec
+//// ANCHOR: property_1
+#[extern_spec(std::mem)]
+#[ensures(snap(dest) === src)]
+#[ensures(result === old(snap(dest)))]
+fn replace<T>(dest: &mut T, src: T) -> T;
+//// ANCHOR_END: extern_spec
 
 impl List {
-    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(self.len() == old(self.len()) + 1)] // 1. Property
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
@@ -37,6 +34,7 @@ impl List {
 
         self.head = Link::More(new_node);
     }
+    //// ANCHOR_END: property_1
 
     #[pure]
     pub fn len(&self) -> usize {
@@ -45,11 +43,11 @@ impl List {
 
     #[ensures(result.len() == 0)]
     pub fn new() -> Self {
-        List {
-            head: Link::Empty,
-        }
+        List { head: Link::Empty }
     }
+    //// ANCHOR: property_1
 }
+//// ANCHOR_END: property_1
 
 impl Link {
     #[pure]
