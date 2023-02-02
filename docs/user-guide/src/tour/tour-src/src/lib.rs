@@ -3,4 +3,7 @@
 mod getting_started;
 mod new;
 // mod push; // TOOD: fix extern_spec (new syntax)
-mod pop;
+// mod pop;
+// mod testing;
+mod option;
+// mod generic;

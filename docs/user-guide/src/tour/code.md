@@ -70,54 +70,54 @@ $ prusti-rustc --edition=2018 path/to/file.rs
 ```
 
 ```rust,noplaypen
-{{#include tour-src/01-chapter-2-1.rs:1:}}
+{{#include tour-src/src/01-chapter-2-1.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/02-chapter-2-1.rs:1:}}
+{{#include tour-src/src/02-chapter-2-1.rs:1:}}
+```
+
+<!-- ```rust,noplaypen
+{{ #include tour-src/src/03-chapter-2-1.rs:1:}}
+``` -->
+
+```rust,noplaypen
+{{#include tour-src/src/04-chapter-2-2.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/03-chapter-2-1.rs:1:}}
+{{#include tour-src/src/05-chapter-2-3.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/04-chapter-2-2.rs:1:}}
+{{#include tour-src/src/06-chapter-2-4.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/05-chapter-2-3.rs:1:}}
+{{#include tour-src/src/07-chapter-2-4.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/06-chapter-2-4.rs:1:}}
+{{#include tour-src/src/08-chapter-2-4.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/07-chapter-2-4.rs:1:}}
+{{#include tour-src/src/09-chapter-2-4.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/08-chapter-2-4.rs:1:}}
+{{#include tour-src/src/10-chapter-2-5.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/09-chapter-2-4.rs:1:}}
+{{#include tour-src/src/11-chapter-2-5.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/10-chapter-2-5.rs:1:}}
+{{#include tour-src/src/12-chapter-2-6.rs:1:}}
 ```
 
 ```rust,noplaypen
-{{#include tour-src/11-chapter-2-5.rs:1:}}
-```
-
-```rust,noplaypen
-{{#include tour-src/12-chapter-2-6.rs:1:}}
-```
-
-```rust,noplaypen
-{{#include tour-src/13-too-many-lists-final.rs:1:}}
+{{#include tour-src/src/13-too-many-lists-final.rs:1:}}
 ```
 

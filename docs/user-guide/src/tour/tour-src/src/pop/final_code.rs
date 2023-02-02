@@ -1,3 +1,5 @@
+//// ANCHOR: none
+//// ANCHOR_END: none
 use prusti_contracts::*;
 
 pub struct List {
@@ -27,7 +29,7 @@ impl<T> std::option::Option<T> {
     #[requires(self.is_some())]
     #[ensures(old(self) === Some(result))]
     pub fn unwrap(self) -> T;
-    
+
     #[pure]
     #[ensures(result == matches!(self, None))]
     pub const fn is_none(&self) -> bool;
@@ -37,14 +39,17 @@ impl<T> std::option::Option<T> {
     pub const fn is_some(&self) -> bool;
 }
 
-
 //// ANCHOR: two_state_predicate
 //// ANCHOR: predicate_use
 //// ANCHOR: try_pop_empty
+//// ANCHOR: pop_result_correct
+//// ANCHOR: try_pop_result_correct
 impl List {
     //// ANCHOR_END: two_state_predicate
     //// ANCHOR_END: predicate_use
     //// ANCHOR_END: try_pop_empty
+    //// ANCHOR_END: pop_result_correct
+    //// ANCHOR_END: try_pop_result_correct
     #[pure]
     pub fn len(&self) -> usize {
         self.head.len()
@@ -72,7 +77,7 @@ impl List {
                  old(self.lookup(i - 1)) == self.lookup(i)))]
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
-            elem: elem,
+            elem,
             next: std::mem::replace(&mut self.head, Link::Empty),
         });
 
@@ -91,45 +96,29 @@ impl List {
     }
     //// ANCHOR_END: two_state_predicate
 
-    //// TEST: WITH ONE LESS LEVEL OF REFERENCE
-    predicate! {
-        fn pop_correct(&self, prev: &Self, return_value: Option<i32>) -> bool {
-            self.head_removed(prev) &&
-            return_value === Some(prev.lookup(0))
-        }
-    }
-
-    #[ensures(old(self.is_empty()) ==>
-        result.is_none() &&
-        old(self.is_empty()) ==> self.is_empty()
-    )]
-    #[ensures(!old(self.is_empty()) ==>
-        self.pop_correct(&old(snap(self)), snap(&result)))]
-    pub fn try_pop_2(&mut self) -> Option<i32> {
-        match std::mem::replace(&mut self.head, Link::Empty) {
-            Link::Empty => None,
-            Link::More(node) => {
-                self.head = node.next;
-                Some(node.elem)
-            }
-        }
-    }
-    //// TEST: WITH ONE LESS LEVEL OF REFERENCE
-
     //// ANCHOR: try_pop_empty
     #[ensures(old(self.is_empty()) ==>
         result.is_none() &&
-        old(self.is_empty()) ==> self.is_empty()
+        self.is_empty()
     )]
     //// ANCHOR_END: try_pop_empty
+    //// ANCHOR: predicate_use
+    //// ANCHOR: try_pop_result_correct
     #[ensures(!old(self.is_empty()) ==>
+        //// ANCHOR_END: try_pop_result_correct
         self.head_removed(&old(snap(self)))
-        && result === Some(old(snap(self)).lookup(0))
+        //// ANCHOR_END: predicate_use
+        &&
+        //// ANCHOR: try_pop_result_correct
+        result === Some(old(snap(self)).lookup(0))
+        //// ANCHOR: predicate_use
     )]
     //// ANCHOR: try_pop_empty
     pub fn try_pop(&mut self) -> Option<i32> {
         // ...
         //// ANCHOR_END: try_pop_empty
+        //// ANCHOR_END: predicate_use
+        //// ANCHOR_END: try_pop_result_correct
         match std::mem::replace(&mut self.head, Link::Empty) {
             Link::Empty => None,
             Link::More(node) => {
@@ -137,21 +126,32 @@ impl List {
                 Some(node.elem)
             }
         }
+        //// ANCHOR: predicate_use
     }
 
+    //// ANCHOR_END: predicate_use
     #[requires(!self.is_empty())]
-    //// ANCHOR: predicate_use
     #[ensures(self.head_removed(&old(snap(self))))]
+    //// ANCHOR: predicate_use
+    //// ANCHOR: pop_result_correct
     #[ensures(result === old(snap(self)).lookup(0))]
     pub fn pop(&mut self) -> i32 {
+        // ...
+        //// ANCHOR_END: predicate_use
+        //// ANCHOR_END: pop_result_correct
         self.try_pop().unwrap()
         //// ANCHOR: try_pop_empty
+        //// ANCHOR: pop_result_correct
+        //// ANCHOR: try_pop_result_correct
+        //// ANCHOR: predicate_use
     }
     //// ANCHOR: two_state_predicate
 }
 //// ANCHOR_END: two_state_predicate
 //// ANCHOR_END: predicate_use
 //// ANCHOR_END: try_pop_empty
+//// ANCHOR_END: pop_result_correct
+//// ANCHOR_END: try_pop_result_correct
 
 impl Link {
     #[pure]

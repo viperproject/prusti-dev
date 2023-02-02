@@ -1,5 +1,6 @@
 # Summary
 
+- [TODO: Remove this after writing The guided tour](tour/code.md)
 - [Introduction](intro.md)
 - [Installation](install.md)
 - [Basic Usage](basic.md)
@@ -10,7 +11,6 @@
   - [Push](tour/push.md)
   - [Pop](tour/pop.md)
   - [Testing](tour/testing.md)
-  - [A Bad Stack](tour/bad-stack.md)
   - [Options](tour/options.md)
   - [Generics](tour/generics.md)
   - [Peek](tour/peek.md)

@@ -32,7 +32,7 @@ impl List {
         // ...
         //// ANCHOR_END: lookup
         let new_node = Box::new(Node {
-            elem: elem,
+            elem,
             next: std::mem::replace(&mut self.head, Link::Empty),
         });
 

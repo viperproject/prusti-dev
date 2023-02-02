@@ -38,7 +38,7 @@ impl List {
         // ...
         //// ANCHOR_END: shifted_back
         let new_node = Box::new(Node {
-            elem: elem,
+            elem,
             next: std::mem::replace(&mut self.head, Link::Empty),
         });
 

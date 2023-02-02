@@ -38,7 +38,7 @@ devices.
 As a quick reference, the main steps of this tour and the involved Prusti features
 are as follows:
 
-0. [Setup](setup.md) How to add Prusti to a project
+0. [Setup](setup.md) How to add Prusti to a Rust project
 1. [Getting Started](getting-started.md): Simple runtime errors caught by Prusti
 2. [New](new.md): Postconditions, pure functions
 3. [Push](push.md): Preconditions, trusted functions, old expressions, quantifiers

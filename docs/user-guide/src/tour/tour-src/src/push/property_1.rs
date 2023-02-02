@@ -28,7 +28,7 @@ impl List {
     #[ensures(self.len() == old(self.len()) + 1)] // 1. Property
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
-            elem: elem,
+            elem,
             next: std::mem::replace(&mut self.head, Link::Empty),
         });
 

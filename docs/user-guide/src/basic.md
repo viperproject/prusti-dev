@@ -19,6 +19,12 @@ To run Prusti on a file using the command-line setup:
 prusti-rustc --edition=2018 path/to/file.rs
 ```
 
+To run Prusti on a Rust crate:
+
+```sh
+cargo-prusti
+```
+
 ## Introductory example
 
 Let us verify that the function `max` below, which takes two integers and returns the greater one, is implemented correctly.

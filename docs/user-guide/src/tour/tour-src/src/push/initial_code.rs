@@ -18,7 +18,7 @@ struct Node {
 impl List {
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
-            elem: elem,
+            elem, // we can use `elem` instead of `elem: elem,` here, since the variable has the same name as the field
             next: std::mem::replace(&mut self.head, Link::Empty),
         });
 
