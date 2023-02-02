@@ -1,4 +1,3 @@
-#![feature(box_patterns)]
 use prusti_contracts::*;
 
 pub struct List {
@@ -15,33 +14,22 @@ struct Node {
     next: Link,
 }
 
+//// ANCHOR: pure_annotation
 impl List {
     #[pure]
     pub fn len(&self) -> usize {
         self.head.len()
     }
+//// ANCHOR_END: pure_annotation
 
     #[ensures(result.len() == 0)]
     pub fn new() -> Self {
-        List {
-            head: Link::Empty,
-        }
+        List { head: Link::Empty }
     }
 }
 
 impl Link {
-    #[pure]
     fn len(&self) -> usize {
-        match self {
-            Link::Empty => 0,
-            Link::More(node) => 1 + node.next.len(),
-        }
-    }
-
-    #[pure]
-    fn is_empty(&self) -> bool {
-        matches!(self, Link::Empty)
+        0
     }
 }
-
-fn main() {} // in case Prusti is used via command line

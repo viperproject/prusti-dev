@@ -1,4 +1,3 @@
-// extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub struct List {
@@ -15,19 +14,32 @@ struct Node {
     next: Link,
 }
 
-#[extern_spec]
-mod std {
-    mod mem {
-        //extern crate prusti_contracts;
-        use prusti_contracts::*;
-
-        #[ensures(snap(dest) === src)]
-        #[ensures(result === old(snap(dest)))]
-        fn replace<T>(dest: &mut T, src: T) -> T;
-    }
-}
-
+//// ANCHOR: is_empty
+//// ANCHOR: initial
+//// ANCHOR: pop_precondition
 impl List {
+    //// ANCHOR_END: initial
+    //// ANCHOR_END: is_empty
+    //// ANCHOR_END: pop_precondition
+    #[pure]
+    pub fn len(&self) -> usize {
+        self.head.len()
+    }
+    
+    //// ANCHOR: is_empty
+    #[pure]
+    fn is_empty(&self) -> bool {
+        self.head.is_empty()
+    }
+    //// ANCHOR_END: is_empty
+
+    #[ensures(result.len() == 0)]
+    pub fn new() -> Self {
+        List {
+            head: Link::Empty,
+        }
+    }
+
     #[pure]
     #[requires(index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
@@ -47,18 +59,27 @@ impl List {
         self.head = Link::More(new_node);
     }
 
-    #[pure]
-    pub fn len(&self) -> usize {
-        self.head.len()
-    }
-
-    #[ensures(result.len() == 0)]
-    pub fn new() -> Self {
-        List {
-            head: Link::Empty,
+    //// ANCHOR: initial
+    pub fn try_pop(&mut self) -> Option<i32> {
+        match std::mem::replace(&mut self.head, Link::Empty) {
+            Link::Empty => None,
+            Link::More(node) => {
+                self.head = node.next;
+                Some(node.elem)
+            },
         }
     }
+
+    //// ANCHOR: pop_precondition
+    #[requires(!self.is_empty())]
+    pub fn pop(&mut self) -> i32 {
+        self.try_pop().unwrap()
+    }
+    //// ANCHOR: is_empty
 }
+//// ANCHOR_END: is_empty
+//// ANCHOR_END: initial
+//// ANCHOR_END: pop_precondition
 
 impl Link {
     #[pure]
