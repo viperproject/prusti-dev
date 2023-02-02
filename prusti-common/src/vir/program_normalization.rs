@@ -30,7 +30,7 @@ impl NormalizationInfo {
                     position_ids.insert(p.id());
                 });
                 let mut original_position_ids: Vec<u64> = position_ids.into_iter().collect();
-                original_position_ids.sort();
+                original_position_ids.sort_unstable();
 
                 // Remap positions ids to be consecutive starting from zero.
                 // TODO: line and columns are not modified; we could remove them from the Position struct.

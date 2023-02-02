@@ -447,7 +447,7 @@ impl State {
             .iter()
             .map(|(quantifier_id, counter)| (*counter, *quantifier_id))
             .collect();
-        counts.sort();
+        counts.sort_unstable();
         counts
     }
 
@@ -477,7 +477,7 @@ impl State {
                 .iter()
                 .map(|(quantifier_id, counter)| (*counter, *quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Trigger Count"])
                 .unwrap();
@@ -501,7 +501,7 @@ impl State {
                 .iter()
                 .map(|(quantifier_id, terms)| (terms.len(), *quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Unique trigger Count"])
                 .unwrap();
@@ -549,7 +549,7 @@ impl State {
                 .iter()
                 .map(|(quantifier_id, terms)| (terms.len(), *quantifier_id))
                 .collect();
-            multi_term_instantiation_counts.sort();
+            multi_term_instantiation_counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Trigger Count"])
                 .unwrap();
@@ -598,7 +598,7 @@ impl State {
                 .iter()
                 .map(|(theory, counter)| (counter, *theory))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Theory", "Discoveries", "Total Discoveries"])
                 .unwrap();
@@ -629,7 +629,7 @@ impl State {
                 .iter()
                 .map(|(quantifier_id, counter)| (*counter, *quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Matches Removed"])
                 .unwrap();

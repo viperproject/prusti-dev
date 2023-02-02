@@ -108,7 +108,7 @@ impl vir::ExprFolder for Optimizer {
         });
 
         if *replacer.counter > old_counter {
-            for (expr, variable) in replacer.map.into_iter().sorted() {
+            for (expr, variable) in replacer.map.into_iter().sorted_unstable() {
                 forall = vir::Expr::LetExpr(vir::LetExpr {
                     variable,
                     def: box expr,

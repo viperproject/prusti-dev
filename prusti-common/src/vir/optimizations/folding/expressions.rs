@@ -116,7 +116,7 @@ fn restore_unfoldings_boxed(unfolding_map: UnfoldingMap, expr: Box<ast::Expr>) -
 /// Restore unfoldings on a given expression.
 fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::Expr {
     let mut unfoldings: Vec<_> = unfolding_map.into_iter().collect();
-    unfoldings.sort_by(|(k1, _), (k2, _)| {
+    unfoldings.sort_unstable_by(|(k1, _), (k2, _)| {
         if k1 == k2 {
             Ordering::Equal
         } else {
