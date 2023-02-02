@@ -7,6 +7,7 @@
 use analysis::domains::DefinitelyAccessibleAnalysis;
 use prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
+    data_structures::fx::FxHashMap,
     driver::Compilation,
     hir,
     hir::def_id::LocalDefId,
@@ -19,7 +20,7 @@ use prusti_rustc_interface::{
     session::Session,
     span::FileName,
 };
-use std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc};
+use std::{cell::RefCell, path::PathBuf, rc::Rc};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -36,8 +37,8 @@ mod mir_storage {
     // because we cast it back to `'tcx` before using.
     thread_local! {
         static MIR_BODIES:
-            RefCell<HashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
-            RefCell::new(HashMap::new());
+            RefCell<FxHashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
+            RefCell::new(FxHashMap::default());
     }
 
     pub unsafe fn store_mir_body<'tcx>(

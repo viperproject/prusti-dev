@@ -51,20 +51,23 @@ impl<'tcx> DefinitelyAccessibleState<'tcx> {
 impl<'tcx> Serialize for DefinitelyAccessibleState<'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_map(Some(2))?;
+
         let mut definitely_accessible_set: Vec<_> = self.definitely_accessible.iter().collect();
-        definitely_accessible_set.sort();
-        let mut definitely_accessible_strings = vec![];
-        for &place in definitely_accessible_set {
-            definitely_accessible_strings.push(format!("{place:?}"));
-        }
+        definitely_accessible_set.sort_unstable();
+        let definitely_accessible_strings: Vec<_> = definitely_accessible_set
+            .into_iter()
+            .map(|place| format!("{:?}", place))
+            .collect();
         seq.serialize_entry("accessible", &definitely_accessible_strings)?;
+
         let mut definitely_owned_set: Vec<_> = self.definitely_owned.iter().collect();
-        definitely_owned_set.sort();
-        let mut definitely_owned_strings = vec![];
-        for &place in definitely_owned_set {
-            definitely_owned_strings.push(format!("{place:?}"));
-        }
+        definitely_owned_set.sort_unstable();
+        let definitely_owned_strings: Vec<_> = definitely_owned_set
+            .iter()
+            .map(|place| format!("{:?}", place))
+            .collect();
         seq.serialize_entry("owned", &definitely_owned_strings)?;
+
         seq.end()
     }
 }
@@ -133,7 +136,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
             }
         }
         let mut line_locations: Vec<_> = first_location_on_line.iter().collect();
-        line_locations.sort_by(|left, right| right.0.cmp(left.0)); // From last to first
+        line_locations.sort_unstable_by(|left, right| right.0.cmp(left.0)); // From last to first
         for (&line_num, &location) in line_locations {
             info!(
                 "The first single-line statement on line {} is {:?}",

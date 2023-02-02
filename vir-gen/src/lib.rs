@@ -55,7 +55,7 @@ pub fn generate_vir(defs_dir: &std::path::Path, out_dir: &std::path::Path) {
         }
         mem::swap(ir, &mut tmp_item);
     }
-    let mut resolved_irs = Vec::new();
+    let mut resolved_irs = Vec::with_capacity(declarations.irs.len());
     for ir in declarations.irs {
         let (new_item, errors) = resolver::expand(ir, &declarations.components, &resolved_irs);
         for error in errors {

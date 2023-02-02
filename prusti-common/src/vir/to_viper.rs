@@ -25,19 +25,21 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
         domains.extend(self.backend_types.to_viper(context, ast));
         let fields = self.fields.to_viper(context, ast);
 
-        let mut viper_methods: Vec<_> = self
-            .methods
-            .iter()
-            .map(|m| m.to_viper(context, ast))
-            .collect();
-        viper_methods.extend(
-            self.builtin_methods
+        let viper_methods = if config::verify_only_preamble() {
+            Vec::new()
+        } else {
+            let mut tmp: Vec<_> = self
+                .methods
                 .iter()
-                .map(|m| m.to_viper(context, ast)),
-        );
-        if config::verify_only_preamble() {
-            viper_methods = Vec::new();
-        }
+                .map(|m| m.to_viper(context, ast))
+                .collect();
+            tmp.extend(
+                self.builtin_methods
+                    .iter()
+                    .map(|m| m.to_viper(context, ast)),
+            );
+            tmp
+        };
 
         let mut viper_functions: Vec<_> = self
             .functions

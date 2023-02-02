@@ -65,19 +65,22 @@ impl<'tcx> FramingState<'tcx> {
 impl<'tcx> Serialize for FramingState<'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_map(Some(2))?;
+
         let mut definitely_accessible_set: Vec<_> = self.framed_accessible.iter().collect();
-        definitely_accessible_set.sort();
-        let mut definitely_accessible_strings = vec![];
-        for &place in definitely_accessible_set {
-            definitely_accessible_strings.push(format!("{place:?}"));
-        }
+        definitely_accessible_set.sort_unstable();
+        let definitely_accessible_strings: Vec<_> = definitely_accessible_set
+            .into_iter()
+            .map(|place| format!("{place:?}"))
+            .collect();
         seq.serialize_entry("frame_accessible", &definitely_accessible_strings)?;
+
         let mut definitely_owned_set: Vec<_> = self.framed_owned.iter().collect();
-        definitely_owned_set.sort();
-        let mut definitely_owned_strings = vec![];
-        for &place in definitely_owned_set {
-            definitely_owned_strings.push(format!("{place:?}"));
-        }
+        definitely_owned_set.sort_unstable();
+        let definitely_owned_strings: Vec<_> = definitely_owned_set
+            .into_iter()
+            .map(|place| format!("{place:?}"))
+            .collect();
+            
         seq.serialize_entry("frame_owned", &definitely_owned_strings)?;
         seq.end()
     }
