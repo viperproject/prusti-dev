@@ -13,7 +13,7 @@ use crate::{
     config,
     vir::polymorphic_vir::{ast, cfg},
 };
-use fxhash::{FxHashMap, FxHashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{self, mem};
 
 /// Purify vars.

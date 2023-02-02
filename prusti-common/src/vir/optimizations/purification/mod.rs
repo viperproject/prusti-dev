@@ -1,7 +1,7 @@
 use crate::vir::polymorphic_vir::{
     ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
-use fxhash::FxHashSet;
+use rustc_hash::FxHashSet;
 use log::debug;
 use std::collections::BTreeSet;
 

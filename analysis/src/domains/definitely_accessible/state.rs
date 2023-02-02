@@ -63,7 +63,7 @@ impl<'tcx> Serialize for DefinitelyAccessibleState<'tcx> {
         let mut definitely_owned_set: Vec<_> = self.definitely_owned.iter().collect();
         definitely_owned_set.sort_unstable();
         let definitely_owned_strings: Vec<_> = definitely_owned_set
-            .iter()
+            .into_iter()
             .map(|place| format!("{place:?}"))
             .collect();
         seq.serialize_entry("owned", &definitely_owned_strings)?;

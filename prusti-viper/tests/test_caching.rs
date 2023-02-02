@@ -5,11 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::{
-    collections::HashMap,
     fs,
     path::{PathBuf, Path},
     process::Command,
 };
+use rustc_hash::FxHashMap;
 
 fn find_executable_path(base_name: &str) -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
@@ -57,7 +57,7 @@ fn run_on_files<F: FnMut(&Path)>(dir: &Path, run: &mut F) {
 fn test_prusti_rustc_caching_hash() {
     let prusti_rustc = find_executable_path("prusti-rustc");
 
-    let mut hashes: HashMap<String, u64> = HashMap::new();
+    let mut hashes: FxHashMap<String, u64> = FxHashMap::default();
     let mut run = |program: &Path| {
         println!("Running {prusti_rustc:?} on {program:?}...");
         let out = Command::new(&prusti_rustc)

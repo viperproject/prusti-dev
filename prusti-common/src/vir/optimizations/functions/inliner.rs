@@ -7,7 +7,7 @@
 //! Inliner of pure functions.
 
 use crate::vir::polymorphic_vir::{ast, cfg};
-use fxhash::FxHashMap;
+use rustc_hash::FxHashMap;
 use log::trace;
 use std::mem;
 

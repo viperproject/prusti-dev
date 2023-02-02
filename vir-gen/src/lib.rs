@@ -7,6 +7,7 @@
 #![feature(exit_status_error)]
 // This Clippy check seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
+#![warn(clippy::disallowed_types)]
 
 use crate::generator::ToModulesTree;
 use quote::ToTokens;

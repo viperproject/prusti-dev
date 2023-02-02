@@ -1,5 +1,5 @@
 use crate::vir::polymorphic_vir as vir;
-use fxhash::FxHasher;
+use rustc_hash::FxHasher;
 use log::debug;
 use std::{
     hash::{Hash, Hasher},

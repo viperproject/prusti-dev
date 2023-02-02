@@ -1,6 +1,6 @@
 //! Common code for spec-rewriting
 
-use fxhash::FxHashMap;
+use rustc_hash::FxHashMap;
 use proc_macro2::Ident;
 pub(crate) use receiver_rewriter::*;
 pub(crate) use self_type_rewriter::*;

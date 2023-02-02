@@ -17,7 +17,7 @@
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
 use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
-use fxhash::{FxHashMap, FxHashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
 use std::{cmp::Ordering, mem};
 
