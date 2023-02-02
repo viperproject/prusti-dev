@@ -175,7 +175,7 @@ impl<'tcx> CDGEdge<'tcx> {
 /// Each coupling graph has a signature (leaves --* roots) computed by the annotations in its edges
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDGOrigin<'tcx> {
-    edges: BTreeSet<CDGEdge<'tcx>>,
+    pub(crate) edges: BTreeSet<CDGEdge<'tcx>>,
     leaves: BTreeSet<CDGNode<'tcx>>,
     roots: BTreeSet<CDGNode<'tcx>>,
 }
@@ -229,6 +229,19 @@ impl<'tcx> CDGOrigin<'tcx> {
     pub fn enforce_edge(&mut self, edge: &CDGEdge<'tcx>) -> bool {
         if !self.edges.contains(edge) {
             self.insert_edge((*edge).clone());
+            return true;
+        }
+        return false;
+    }
+
+    /// If Other is a subset of self, remove the edges from self.
+    /// Return True if self was changed
+    pub fn remove_if_subset(&mut self, other: &Self) -> bool {
+        if other.edges.is_subset(&self.edges) {
+            for e in other.edges.iter() {
+                self.edges.remove(e);
+            }
+            self.recompute_signature();
             return true;
         }
         return false;
@@ -601,6 +614,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                         .and_then(|o| Some(o.leaves.clone()))
                         .unwrap();
                     if current_leaves.is_empty() {
+                        println!("[debug]   getting cannonical roots for {:?}", origin);
                         let cannonical_roots = self.fact_table.origins.map.get(origin).unwrap();
                         assert_eq!(place, cannonical_roots);
                     } else {
@@ -927,7 +941,82 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> AbstractState for CouplingState<'facts, '
                     .append(&mut other.coupling_graph.origins.origins.clone());
             } else {
                 // fixme: this assumes no nested coupling (yet).
-                // fixme: this assumes only coupling (no old predicates).
+
+                // Look for (and couple) no-equal origins which have the same signature
+                // good god... you need a origin lookup API at the coupling graph level
+                let mut reborrows: BTreeSet<Region> = Default::default();
+                for group in self.coupling_graph.origins.origins.iter() {
+                    for (region, cdgo) in group.iter() {
+                        for group1 in other.coupling_graph.origins.origins.iter() {
+                            for (region1, cdgo1) in group1.iter() {
+                                if (region == region1)
+                                    && (cdgo.leaves == cdgo1.leaves)
+                                    && (cdgo.roots == cdgo1.roots)
+                                    && (cdgo != cdgo1)
+                                {
+                                    reborrows.insert(*region);
+                                }
+                            }
+                        }
+                    }
+                }
+                // fixme: ambiguous decision when groups differ
+                for region in reborrows.into_iter() {
+                    // fixme: this should do a root-first traversal for common structure
+                    // fixme: it should also refer to the subsets at the point to decide which to simplify first. For example,
+                    //      #1 : _3 -> _2 -> _1
+                    //      #2 : _2 -> _1
+                    //      #1 : _3 -> ... -> _3@p -> _2 -> _1
+                    //      #2 : _2 -> _1
+                    //  should not simplify #1 all together like
+                    //      #1 : _3 --* _1
+                    //  instead, since their downstream graphs are equal, we should get
+                    //      #1 : _3 --* _2 -> _1
+                    //      #2 : _2 -> _1
+
+                    // Also, in the process of simplifying a edge of the form _3 -> ... -> _3@?
+                    // we know that the last killed _3 is old(3). Can we unpick equality assertions from this?
+                    if (self.coupling_graph.origins.origins.len() != 1)
+                        || (other.coupling_graph.origins.origins.len() != 1)
+                    {
+                        unimplemented!("deferred joins of reborrows");
+                    }
+
+                    let other_cdgo = self.coupling_graph.origins.origins[0]
+                        .get_mut(&region)
+                        .unwrap()
+                        .to_owned();
+                    let self_cdgo = self.coupling_graph.origins.origins[0]
+                        .get_mut(&region)
+                        .unwrap();
+
+                    if self_cdgo.remove_if_subset(&other_cdgo) {
+                        // if self_cdgo can be decomposed as [current_self_cdgo] --> [other_cdgo]
+                        // set the borrow to be the other_cdgo
+                        // use difference to infer other aspects of the invariant
+
+                        // get the loans contained in other_cdgo
+                        let mut loans: BTreeSet<Loan> = Default::default();
+                        for e in other_cdgo.edges.iter() {
+                            for l in e.lhs.iter() {
+                                if let CDGNode::Borrow(bw) = l {
+                                    if bw.tag == None {
+                                        loans.insert(bw.data);
+                                    }
+                                }
+                            }
+                        }
+
+                        *self_cdgo = CDGOrigin::new_coupling(
+                            other_cdgo.leaves.clone(),
+                            other_cdgo.roots.clone(),
+                            loans,
+                        );
+                    } else {
+                        unimplemented!("reborrow that isn't structural subset");
+                    }
+                }
+
                 // fixme: this assume the RHS are not in different packing states?
 
                 // Couple origins which are possibly aliases
@@ -1041,6 +1130,8 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> AbstractState for CouplingState<'facts, '
                         }
                     }
                 }
+
+                println!("[coupling complete] {:?}", self.coupling_graph);
             }
         }
     }
