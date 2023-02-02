@@ -18,7 +18,7 @@ cargo add prusti-contracts
 For older versions of Rust, you can manually add the dependency in your Cargo.toml file:
 ```toml
 [dependencies]
-prusti-contracts = "0.1.2"
+prusti-contracts = "0.1.3"
 ```
 
 

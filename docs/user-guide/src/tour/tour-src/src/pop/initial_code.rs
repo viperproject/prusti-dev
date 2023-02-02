@@ -52,7 +52,7 @@ impl List {
                  old(self.lookup(i - 1)) == self.lookup(i)))] 
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
-            elem: elem,
+            elem,
             next: std::mem::replace(&mut self.head, Link::Empty),
         });
 
