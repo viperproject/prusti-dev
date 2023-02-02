@@ -575,6 +575,7 @@
 <a href="#575" id="575">575</a>
 <a href="#576" id="576">576</a>
 <a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environment::Environment,
     utils::{
@@ -936,6 +937,7 @@
         read_prusti_attr(<span class="string">&quot;pred_spec_id_ref&quot;</span>, attrs)
             .map(|raw_spec_id| SpecIdRef::Predicate(parse_spec_id(raw_spec_id, def_id))),
     );
+    <span class="kw">let </span>is_predicate = <span class="macro">matches!</span>(spec_id_refs.last(), <span class="prelude-val">Some</span>(SpecIdRef::Predicate(..)));
     <span class="macro">debug!</span>(
         <span class="string">&quot;Function {:?} has specification ids {:?}&quot;</span>,
         def_id, spec_id_refs
@@ -943,7 +945,7 @@
 
     <span class="kw">let </span>pure = has_prusti_attr(attrs, <span class="string">&quot;pure&quot;</span>);
     <span class="kw">let </span>trusted = has_prusti_attr(attrs, <span class="string">&quot;trusted&quot;</span>)
-        || (config::opt_in_verification() &amp;&amp; !has_prusti_attr(attrs, <span class="string">&quot;verified&quot;</span>));
+        || (!is_predicate &amp;&amp; config::opt_in_verification() &amp;&amp; !has_prusti_attr(attrs, <span class="string">&quot;verified&quot;</span>));
     <span class="kw">let </span>abstract_predicate = has_abstract_predicate_attr(attrs);
 
     <span class="kw">if </span>abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
