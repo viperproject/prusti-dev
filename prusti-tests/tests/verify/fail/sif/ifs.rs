@@ -1,4 +1,6 @@
-// compile-flags: -Psif=true
+// compile-flags: -Psif=true -Pserver_address=MOCK
+// The sif flag is used in the server which, during the compiletest is only spawned with the default config.
+// So we need to start a new server with this test config to make it work.
 
 use prusti_contracts::*;
 
