@@ -73,3 +73,16 @@ known_size_spec!(isize, 4);
 known_size_spec!(usize, 8);
 #[cfg(target_pointer_width = "64")]
 known_size_spec!(isize, 8);
+
+#[refine_trait_spec]
+impl<T: KnownSize, const N: usize> KnownSize for [T; N] {
+    #[pure]
+    fn size() -> usize {
+        T::size() * N
+    }
+
+    #[pure]
+    fn align() -> usize {
+        T::align()
+    }
+}

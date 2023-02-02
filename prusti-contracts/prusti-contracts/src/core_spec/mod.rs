@@ -13,3 +13,4 @@ pub mod slice;
 pub use clone::SnapshotEqualClone;
 pub use convert::PureFrom;
 pub use default::PureDefault;
+pub use mem::KnownSize;
