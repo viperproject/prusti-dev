@@ -145,7 +145,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::AggregateKind::Generator(_def_id, _subst, _) => {
                 return Err(SpannedEncodingError::unsupported(
-                    format!("Unsupported aggregate type: {:?}", aggregate),
+                    format!("Unsupported aggregate type: {aggregate:?}"),
                     span,
                 ))
             }
@@ -216,8 +216,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let check_field = vir_high::FieldDecl::new("tuple_1".to_string(), 1usize, check_ty);
                 let lhs_value =
                     vir_high::Expression::field_no_pos(encoded_lhs.clone(), value_field);
-                let lhs_check =
-                    vir_high::Expression::field_no_pos(encoded_lhs.clone(), check_field);
+                let lhs_check = vir_high::Expression::field_no_pos(encoded_lhs, check_field);
 
                 // Substitute a place of a value with an expression
                 state.substitute_value(&lhs_value, encoded_value);
@@ -245,7 +244,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     mir::BorrowKind::Unique | mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared
                 ) {
                     return Err(SpannedEncodingError::unsupported(
-                        format!("unsupported kind of reference: {:?}", kind),
+                        format!("unsupported kind of reference: {kind:?}"),
                         span,
                     ));
                 }
@@ -293,14 +292,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     state.substitute_value(&encoded_lhs, expr);
                 } else {
                     return Err(SpannedEncodingError::unsupported(
-                        format!("unsizing a {} into a {} is not supported", rhs_ty, cast_ty),
+                        format!("unsizing a {rhs_ty} into a {cast_ty} is not supported"),
                         span,
                     ));
                 }
             }
             mir::Rvalue::Cast(kind, _, _) => {
                 return Err(SpannedEncodingError::unsupported(
-                    format!("unsupported kind of cast: {:?}", kind),
+                    format!("unsupported kind of cast: {kind:?}"),
                     span,
                 ));
             }
@@ -328,7 +327,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             | mir::Rvalue::ShallowInitBox(..)
             | mir::Rvalue::NullaryOp(..) => {
                 return Err(SpannedEncodingError::unsupported(
-                    format!("unsupported rvalue: {:?}", rhs),
+                    format!("unsupported rvalue: {rhs:?}"),
                     span,
                 ));
             }
@@ -477,8 +476,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 } else {
                     return Err(SpannedEncodingError::incorrect(
                         format!(
-                            "use of impure function {:?} in pure code is not allowed",
-                            func_proc_name
+                            "use of impure function {func_proc_name:?} in pure code is not allowed"
                         ),
                         span,
                     ));
@@ -939,11 +937,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ))
             }
 
-            TerminatorKind::SwitchInt {
-                switch_ty,
-                discr,
-                targets,
-            } => self.apply_switch_int_terminator(*switch_ty, discr, targets, states, span)?,
+            TerminatorKind::SwitchInt { discr, targets } => {
+                let switch_ty = self.mir_encoder.get_operand_ty(discr);
+                self.apply_switch_int_terminator(switch_ty, discr, targets, states, span)?
+            }
 
             TerminatorKind::DropAndReplace { .. } => unimplemented!(),
 

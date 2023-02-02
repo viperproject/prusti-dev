@@ -39,9 +39,7 @@ impl<'tcx> FramingState<'tcx> {
                 self.framed_accessible
                     .iter()
                     .any(|&place| place == owned_place || is_prefix(owned_place, place)),
-                "In the state before {:?} the framed place {:?} is owned but not accessible",
-                location,
-                owned_place
+                "In the state before {location:?} the framed place {owned_place:?} is owned but not accessible"
             );
         }
         for &owned_place in self.framed_accessible.iter() {
@@ -49,9 +47,7 @@ impl<'tcx> FramingState<'tcx> {
                 accessibility.get_definitely_accessible()
                     .iter()
                     .any(|&place| place == owned_place || is_prefix(owned_place, place)),
-                "In the state before {:?} the place {:?} is not accessible, but it is framed as accessible",
-                location,
-                owned_place
+                "In the state before {location:?} the place {owned_place:?} is not accessible, but it is framed as accessible"
             );
         }
         for &owned_place in self.framed_owned.iter() {
@@ -60,9 +56,7 @@ impl<'tcx> FramingState<'tcx> {
                     .get_definitely_owned()
                     .iter()
                     .any(|&place| place == owned_place || is_prefix(owned_place, place)),
-                "In the state before {:?} the place {:?} is not owned, but it is framed as owned",
-                location,
-                owned_place
+                "In the state before {location:?} the place {owned_place:?} is not owned, but it is framed as owned"
             );
         }
     }
@@ -76,7 +70,7 @@ impl<'tcx> Serialize for FramingState<'tcx> {
         definitely_accessible_set.sort_unstable();
         let definitely_accessible_strings: Vec<_> = definitely_accessible_set
             .into_iter()
-            .map(|place| format!("{:?}", place))
+            .map(|place| format!("{place:?}"))
             .collect();
         seq.serialize_entry("frame_accessible", &definitely_accessible_strings)?;
 
@@ -84,9 +78,9 @@ impl<'tcx> Serialize for FramingState<'tcx> {
         definitely_owned_set.sort_unstable();
         let definitely_owned_strings: Vec<_> = definitely_owned_set
             .into_iter()
-            .map(|place| format!("{:?}", place))
+            .map(|place| format!("{place:?}"))
             .collect();
-
+            
         seq.serialize_entry("frame_owned", &definitely_owned_strings)?;
         seq.end()
     }

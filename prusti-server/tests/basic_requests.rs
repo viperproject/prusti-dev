@@ -22,10 +22,7 @@ fn consistency_error() {
 
     match result {
         VerificationResult::ConsistencyErrors(errors) => assert_eq!(errors.len(), 1),
-        other => panic!(
-            "consistency errors not identified, instead found {:?}",
-            other
-        ),
+        other => panic!("consistency errors not identified, instead found {other:?}"),
     }
 }
 
@@ -35,10 +32,7 @@ fn empty_program() {
 
     match result {
         VerificationResult::Success => {}
-        other => panic!(
-            "empty program not verified successfully, instead found {:?}",
-            other
-        ),
+        other => panic!("empty program not verified successfully, instead found {other:?}"),
     }
 }
 
@@ -50,6 +44,7 @@ where
 
     let mut program = Program {
         name: "dummy".to_string(),
+        backend_types: vec![],
         domains: vec![],
         fields: vec![],
         builtin_methods: vec![],

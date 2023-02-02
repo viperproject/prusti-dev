@@ -106,7 +106,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
 
         assert!(self.args.iter().any(|a| a == "--generate-test-program"));
 
-        queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+        queries.global_ctxt().unwrap().enter(|tcx| {
             // Retrieve the MIR body of all user-written functions and run Polonius.
             let mut def_ids_with_body: Vec<_> = tcx
                 .mir_keys(())

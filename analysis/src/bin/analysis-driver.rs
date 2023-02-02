@@ -60,7 +60,7 @@ fn get_attribute<'tcx>(
                             segments,
                             tokens: _,
                         },
-                    args: ast::MacArgs::Empty,
+                    args: ast::AttrArgs::Empty,
                     tokens: _,
                 } => {
                     segments.len() == 2
@@ -165,7 +165,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
             abstract_domain
         );
 
-        queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+        queries.global_ctxt().unwrap().enter(|tcx| {
             // collect all functions with attribute #[analyzer::run]
             let mut local_def_ids: Vec<_> = tcx
                 .mir_keys(())
@@ -266,7 +266,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
                     }
-                    _ => panic!("Unknown domain argument: {}", abstract_domain),
+                    _ => panic!("Unknown domain argument: {abstract_domain}"),
                 }
             }
         });

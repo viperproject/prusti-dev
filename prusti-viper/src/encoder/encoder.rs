@@ -131,7 +131,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             RefCell::new(
                 log::build_writer(
                     "vir_program_before_foldunfold",
-                    format!("{}.vir", source_filename),
+                    format!("{source_filename}.vir"),
                 )
                 .ok()
                 .unwrap(),
@@ -141,7 +141,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             RefCell::new(
                 log::build_writer(
                     "vir_program_before_viper",
-                    format!("{}.vir", source_filename),
+                    format!("{source_filename}.vir"),
                 )
                     .ok()
                     .unwrap(),
@@ -274,7 +274,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub(super) fn insert_function(&self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
-        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none(), "{:?} is not unique", identifier);
+        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none(), "{identifier:?} is not unique");
         identifier
     }
 
@@ -331,7 +331,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             mir::ConstantKind::Val(val, _) => val.try_to_scalar(),
             mir::ConstantKind::Unevaluated(ct, _) => self.uneval_eval_intlike(ct),
         };
-        opt_scalar_value.ok_or_else(|| EncodingError::unsupported(format!("unsupported constant value: {:?}", value)))
+        opt_scalar_value.ok_or_else(|| EncodingError::unsupported(format!("unsupported constant value: {value:?}")))
     }
 
     /// Encodes a value in a field if the base expression is a reference or
@@ -474,7 +474,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         -> EncodingResult<String>
     {
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
-        let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
+        let function_name = format!("builtin$cast${src_ty}${dst_ty}");
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
             let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty)?} };
             let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty)?} };
@@ -551,8 +551,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
             !self.is_trusted(def_id, None),
-            "procedure is marked as trusted: {:?}",
-            def_id
+            "procedure is marked as trusted: {def_id:?}"
         );
         if !self.procedures.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
@@ -701,7 +700,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn process_encoding_queue(&mut self) {
         if let Err(error) = self.initialize() {
-            panic!("The initialization of the encoder failed with the error: {:?}", error);
+            panic!("The initialization of the encoder failed with the error: {error:?}");
         }
         while let Some(task) = {
             let mut queue = self.encoding_queue.borrow_mut();

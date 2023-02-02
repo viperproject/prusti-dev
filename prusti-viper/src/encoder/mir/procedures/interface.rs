@@ -34,8 +34,7 @@ impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::E
                 .encoded_procedure_def_ids
                 .insert(procedure.name.clone(), (proc_def_id, check_mode))
                 .is_none(),
-            "The procedure was encoed twice: {:?}",
-            proc_def_id
+            "The procedure was encoed twice: {proc_def_id:?}"
         );
         Ok(procedure)
     }

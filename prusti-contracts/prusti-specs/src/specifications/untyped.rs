@@ -1,10 +1,12 @@
-use proc_macro2::{TokenStream};
+use crate::common::HasSignature;
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::Signature;
-use crate::common::HasSignature;
 
-pub use super::common::{SpecType, SpecificationId};
-pub use super::preparser::Arg;
+pub use super::{
+    common::{SpecType, SpecificationId},
+    preparser::Arg,
+};
 
 /// An abstraction over all kinds of function items.
 #[derive(Debug, PartialEq, Eq)]
@@ -24,7 +26,7 @@ impl syn::parse::Parse for AnyFnItem {
                 // We have an item Fn.
                 input.advance_to(&fork);
                 Ok(AnyFnItem::Fn(res))
-            },
+            }
             Err(_) => {
                 // It is not a valid ItemFn.
                 let item_method = input.parse()?;
@@ -62,7 +64,7 @@ impl AnyFnItem {
     pub fn expect_impl_item(self) -> syn::ImplItemMethod {
         match self {
             AnyFnItem::ImplMethod(i) => i,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }

@@ -45,7 +45,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn get_local_span(&self, local: mir::Local) -> Span;
 
     fn encode_local_var_name(&self, local: mir::Local) -> String {
-        format!("{:?}", local)
+        format!("{local:?}")
     }
 
     fn encode_local_high(&self, local: mir::Local) -> SpannedEncodingResult<vir_crate::high::VariableDecl> {
@@ -753,9 +753,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             _ => {
                 return Err(SpannedEncodingError::unsupported(
                     format!(
-                        "unsupported cast from type '{:?}' to type '{:?}'",
-                        src_ty,
-                        dst_ty
+                        "unsupported cast from type '{src_ty:?}' to type '{dst_ty:?}'"
                     ),
                     span
                 ));

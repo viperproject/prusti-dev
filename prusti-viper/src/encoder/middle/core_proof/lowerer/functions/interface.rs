@@ -39,7 +39,7 @@ trait Private {
 
 impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     fn caller_function_name(&mut self, function_name: &str) -> String {
-        format!("caller_for${}", function_name)
+        format!("caller_for${function_name}")
     }
     fn ensure_pure_function_lowered(&mut self, function_name: String) -> SpannedEncodingResult<()> {
         if !self.functions_state.functions.contains_key(&function_name) {
@@ -140,7 +140,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 );
                 let axiom = vir_low::DomainAxiomDecl {
                     comment: None,
-                    name: format!("{}$definitional_axiom", function_name),
+                    name: format!("{function_name}$definitional_axiom"),
                     body: axiom_body,
                 };
                 self.declare_axiom("Functions", axiom)?;

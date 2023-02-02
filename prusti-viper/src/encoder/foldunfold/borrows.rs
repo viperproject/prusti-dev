@@ -39,10 +39,10 @@ impl<'a> CFG<'a> {
 
 impl<'a> CFG<'a> {
     fn block_label(&self, index: usize) -> String {
-        format!("block_{}", index)
+        format!("block_{index}")
     }
     fn edge_label(&self, from: usize, to: usize) -> String {
-        format!("edge_{}_{}", from, to)
+        format!("edge_{from}_{to}")
     }
     fn write_to_graphviz(
         &self,

@@ -36,9 +36,10 @@ impl<'mir, 'tcx: 'mir> Eq for DefinitelyAllocatedState<'mir, 'tcx> {}
 impl<'mir, 'tcx: 'mir> Serialize for DefinitelyAllocatedState<'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_seq(Some(self.def_allocated_locals.len()))?;
+
         let ordered_set: BTreeSet<_> = self.def_allocated_locals.iter().collect();
         for local in ordered_set {
-            seq.serialize_element(&format!("{:?}", local))?;
+            seq.serialize_element(&format!("{local:?}"))?;
         }
         seq.end()
     }

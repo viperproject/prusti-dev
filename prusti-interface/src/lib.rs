@@ -13,6 +13,8 @@
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
 #![feature(min_specialization)]
+// We may want to remove this in the future.
+#![allow(clippy::needless_lifetimes)]
 
 extern crate rustc_middle;
 extern crate rustc_serialize;

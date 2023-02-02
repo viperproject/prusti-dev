@@ -18,7 +18,7 @@ fn find_executable_path(base_name: &str) -> PathBuf {
         "release"
     };
     let executable_name = if cfg!(windows) {
-        format!("{}.exe", base_name)
+        format!("{base_name}.exe")
     } else {
         base_name.to_string()
     };
@@ -35,9 +35,8 @@ fn find_executable_path(base_name: &str) -> PathBuf {
         return workspace_prusti_rustc_path;
     }
     panic!(
-        "Could not find the {:?} prusti-rustc binary to be used in tests. \
-        It might be that Prusti has not been compiled correctly.",
-        target_directory
+        "Could not find the {target_directory:?} prusti-rustc binary to be used in tests. \
+        It might be that Prusti has not been compiled correctly."
     );
 }
 
@@ -48,14 +47,14 @@ fn run_on_test_files<F: Fn(&PathBuf) -> Command>(run: F) {
         let path = entry.unwrap();
         num_pass_tests += 1;
         let mut cmd = run(&path);
-        println!("Running {:?}", cmd);
+        println!("Running {cmd:?}");
         let output = cmd
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .output()
-            .unwrap_or_else(|err| panic!("Failed to execute process: {:?}", err));
+            .unwrap_or_else(|err| panic!("Failed to execute process: {err:?}"));
         if !output.status.success() {
-            println!("Test case {:?} unexpectedly failed.", path);
+            println!("Test case {path:?} unexpectedly failed.");
             println!("Exit status: {:?}", output.status);
             println!("┌─── Begin of stdout ───┐");
             println!("{}", String::from_utf8_lossy(&output.stdout));
@@ -74,14 +73,14 @@ fn run_on_test_files<F: Fn(&PathBuf) -> Command>(run: F) {
         let path = entry.unwrap();
         num_fail_tests += 1;
         let mut cmd = run(&path);
-        println!("Running {:?}", cmd);
+        println!("Running {cmd:?}");
         let output = cmd
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .output()
-            .unwrap_or_else(|err| panic!("Failed to execute process: {:?}", err));
+            .unwrap_or_else(|err| panic!("Failed to execute process: {err:?}"));
         if output.status.success() {
-            println!("Test case {:?} unexpectedly succeeded.", path);
+            println!("Test case {path:?} unexpectedly succeeded.");
             println!("Exit status: {:?}", output.status);
             println!("┌─── Begin of stdout ───┐");
             println!("{}", String::from_utf8_lossy(&output.stdout));
@@ -101,7 +100,7 @@ struct ChildGuard(Child);
 impl Drop for ChildGuard {
     fn drop(&mut self) {
         if let Err(e) = self.0.kill() {
-            panic!("Could not kill child process: {}", e);
+            panic!("Could not kill child process: {e}");
         }
     }
 }
@@ -184,7 +183,7 @@ fn test_prusti_rustc_with_server() {
 
         for result in stdout_lines {
             match result {
-                Err(why) => panic!("could not read from prusti-server's stdout: {}", why),
+                Err(why) => panic!("could not read from prusti-server's stdout: {why}"),
                 Ok(line) => {
                     if let Some(port) = line.strip_prefix("port: ") {
                         opt_server_port = Some(port.to_string());
@@ -204,10 +203,7 @@ fn test_prusti_rustc_with_server() {
             .arg(program)
             .env("PRUSTI_LOG", "info")
             .env("RUST_BACKTRACE", "1")
-            .env(
-                "PRUSTI_SERVER_ADDRESS",
-                format!("localhost:{}", server_port),
-            );
+            .env("PRUSTI_SERVER_ADDRESS", format!("localhost:{server_port}"));
         cmd
     });
 }

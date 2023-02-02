@@ -23,6 +23,7 @@ use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphi
 /// to account for different monomorphisations resulting from the function
 /// being called from callers (with different parameter environments). Each
 /// variant of a pure function will be encoded as a separate Viper function.
+/// Lifetimes/regions are erased.
 type Key<'tcx> = (ProcedureDefId, SubstsRef<'tcx>, ty::PolyFnSig<'tcx>);
 
 /// Compute the key for the given call.
@@ -32,9 +33,10 @@ fn compute_key<'v, 'tcx: 'v>(
     caller_def_id: ProcedureDefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Key<'tcx>> {
+    let tcx = encoder.env().tcx();
     Ok((
         proc_def_id,
-        substs,
+        tcx.erase_regions(substs),
         encoder
             .env()
             .query
@@ -281,8 +283,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
+            "procedure is not marked as pure: {proc_def_id:?}"
         );
 
         let mir_span = self.env().query.get_def_span(proc_def_id);
@@ -428,8 +429,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
+            "procedure is not marked as pure: {proc_def_id:?}"
         );
 
         let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
@@ -488,8 +488,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     ) -> SpannedEncodingResult<(String, vir_high::Type)> {
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
+            "procedure is not marked as pure: {proc_def_id:?}"
         );
 
         let key = compute_key(self, proc_def_id, parent_def_id, substs)?;

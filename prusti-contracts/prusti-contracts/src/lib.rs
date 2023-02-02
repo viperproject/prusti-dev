@@ -18,6 +18,9 @@ pub use prusti_contracts_proc_macros::pure;
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 
+/// A macro for marking a function as opted into verification.
+pub use prusti_contracts_proc_macros::verified;
+
 /// A macro for type invariants.
 pub use prusti_contracts_proc_macros::invariant;
 
@@ -45,7 +48,7 @@ pub use prusti_contracts_proc_macros::model;
 
 /// A macro to add trait bounds on a generic type parameter and specifications
 /// which are active only when these bounds are satisfied for a call.
-pub use prusti_contracts_proc_macros::ghost_constraint;
+pub use prusti_contracts_proc_macros::refine_spec;
 
 /// A macro for defining ghost blocks which will be left in for verification
 /// but omitted during compilation.

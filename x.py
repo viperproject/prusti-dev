@@ -41,7 +41,7 @@ RUSTFMT_CRATES = [
     'prusti-common',
     'prusti-contracts/prusti-contracts',
     'prusti-contracts/prusti-contracts-proc-macros',
-    #'prusti-contracts/prusti-specs',
+    'prusti-contracts/prusti-specs',
     'prusti-contracts/prusti-std',
     'prusti-contracts-build',
     'prusti-interface',

@@ -21,7 +21,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         // 4. Mark where the crash happened.
         prusti_common::report::log::report_with_writer(
             namespace,
-            format!("{}.{}.dot", source_filename, procedure_name),
+            format!("{source_filename}.{procedure_name}.dot"),
             |writer| graph.write(writer).unwrap(),
         );
     }

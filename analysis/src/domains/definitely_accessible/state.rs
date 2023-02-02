@@ -42,9 +42,7 @@ impl<'tcx> DefinitelyAccessibleState<'tcx> {
                 self.definitely_accessible
                     .iter()
                     .any(|&place| place == owned_place || is_prefix(owned_place, place)),
-                "In the state before {:?} the place {:?} is owned but not accessible",
-                location,
-                owned_place
+                "In the state before {location:?} the place {owned_place:?} is owned but not accessible"
             );
         }
     }
@@ -150,7 +148,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
             let mut check_stmts = vec![];
             for &place in state.definitely_accessible.iter() {
                 if let Some(place_expr) = pretty_print_place(tcx, self.mir, place) {
-                    check_stmts.push(format!("{}let _ = & {};{}", before, place_expr, after));
+                    check_stmts.push(format!("{before}let _ = & {place_expr};{after}"));
                 }
             }
             for &place in state.definitely_owned.iter() {
@@ -158,8 +156,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
                     let local_decl = &self.mir.local_decls[place.local];
                     // &mut cannot be used on locals that are not marked as mut
                     if local_decl.mutability != mir::Mutability::Not {
-                        check_stmts
-                            .push(format!("{}let _ = &mut {};{}", before, place_expr, after));
+                        check_stmts.push(format!("{before}let _ = &mut {place_expr};{after}"));
                     }
                 }
             }
@@ -205,7 +202,7 @@ fn pretty_print_place<'tcx>(
         })
         .map(|var_debug_info| var_debug_info.name);
     if let Some(name) = local_name {
-        pieces.push(format!("{}", name));
+        pieces.push(format!("{name}"));
     } else {
         return None;
     }
@@ -224,7 +221,7 @@ fn pretty_print_place<'tcx>(
             }
             mir::ProjectionElem::Field(field, field_ty) => {
                 let field_name = describe_field_from_ty(tcx, prev_ty, field, variant)?;
-                pieces.push(format!(".{})", field_name));
+                pieces.push(format!(".{field_name})"));
                 prev_ty = field_ty;
                 variant = None;
             }

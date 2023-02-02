@@ -32,7 +32,7 @@ impl<'tcx> Serialize for MaybeBorrowedState<'tcx> {
         maybe_shared_borrowed_set.sort_unstable();
         let maybe_shared_borrowed_strings: Vec<_> = maybe_shared_borrowed_set
             .into_iter()
-            .map(|place| format!("{:?}", place))
+            .map(|place| format!("{place:?}"))
             .collect();
         seq.serialize_entry("frozen", &maybe_shared_borrowed_strings)?;
 
@@ -40,7 +40,7 @@ impl<'tcx> Serialize for MaybeBorrowedState<'tcx> {
         maybe_mut_borrowed_set.sort_unstable();
         let maybe_mut_borrowed_strings: Vec<_> = maybe_mut_borrowed_set
             .into_iter()
-            .map(|place| format!("{:?}", place))
+            .map(|place| format!("{place:?}"))
             .collect();
         seq.serialize_entry("blocked", &maybe_mut_borrowed_strings)?;
 
