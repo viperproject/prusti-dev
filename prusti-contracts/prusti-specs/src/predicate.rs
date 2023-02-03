@@ -5,7 +5,7 @@ use crate::{
     rewriter, SpecificationId, SPECS_VERSION,
 };
 use proc_macro2::{Span, TokenStream};
-use quote::ToTokens;
+use quote::{ToTokens, quote_spanned};
 use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
 
 #[derive(Debug)]
@@ -177,8 +177,9 @@ impl syn::parse::Parse for PredicateFnInput {
         } else {
             let brace_content;
             let _brace_token = syn::braced!(brace_content in input);
-            let parsed_body = brace_content.parse()?;
-            Some(parsed_body)
+            let parsed_body: TokenStream = brace_content.parse()?;
+            // add the braces back to allow function-like syntax
+            Some(quote_spanned!(parsed_body.span()=> { #parsed_body }))
         };
 
         Ok(PredicateFnInput {
