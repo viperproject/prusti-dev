@@ -84,9 +84,18 @@ fn parse_predicate_internal(
     let input: PredicateFnInput = syn::parse2(tokens).map_err(|e| {
         syn::Error::new(
             e.span(),
-            "`predicate!` can only be used on function definitions. it supports no attributes.",
+            "`predicate!` can only be used on function definitions; it supports no attributes",
         )
     })?;
+    let return_type = match &input.fn_sig.output {
+        syn::ReturnType::Default => {
+            return Err(syn::Error::new(
+                input.fn_sig.span(),
+                "`predicate!` must specify an output type"
+            ));
+        },
+        syn::ReturnType::Type(_, box typ) => typ.to_token_stream(),
+    };
 
     if input.body.is_some() {
         let mut rewriter = rewriter::AstRewriter::new();
@@ -96,7 +105,7 @@ fn parse_predicate_internal(
             let patched_function: syn::ImplItemMethod =
                 patch_predicate_macro_body(&input, span, spec_id);
             let spec_function =
-                generate_spec_function(input.body.unwrap(), spec_id, &patched_function)?;
+                generate_spec_function(input.body.unwrap(), return_type, spec_id, &patched_function)?;
 
             Ok(ParsedPredicate::Impl(PredicateWithBody {
                 spec_function,
@@ -105,7 +114,7 @@ fn parse_predicate_internal(
         } else {
             let patched_function: syn::ItemFn = patch_predicate_macro_body(&input, span, spec_id);
             let spec_function =
-                generate_spec_function(input.body.unwrap(), spec_id, &patched_function)?;
+                generate_spec_function(input.body.unwrap(), return_type, spec_id, &patched_function)?;
 
             Ok(ParsedPredicate::FreeStanding(PredicateWithBody {
                 spec_function,
@@ -147,12 +156,13 @@ fn patch_predicate_macro_body<R: Parse>(
 
 fn generate_spec_function<T: HasSignature + Spanned>(
     body: TokenStream,
+    return_type: TokenStream,
     spec_id: SpecificationId,
     patched_function: &T,
 ) -> syn::Result<syn::Item> {
     let mut rewriter = rewriter::AstRewriter::new();
     rewriter.process_assertion(
-        rewriter::SpecItemType::Predicate,
+        rewriter::SpecItemType::Predicate(return_type),
         spec_id,
         body,
         patched_function,

@@ -749,9 +749,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         // We are encoding a trigger, so all panic branches must be stripped.
                         states[target].clone()
                     }
-                    PureEncodingContext::Assertion => {
+                    PureEncodingContext::Assertion if matches!(self.mir.return_ty().kind(), ty::TyKind::Bool) => {
                         // We are encoding an assertion, so all failures should be equivalent to false.
-                        debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
+                        // Predicates are also encoded as assertions, but non-Boolean predicates should
+                        // use the other arm.
                         ExprBackwardInterpreterState::new(states[target].expr().map(
                             |target_expr| {
                                 vir::Expr::ite(
@@ -762,7 +763,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             },
                         ))
                     }
-                    PureEncodingContext::Code => {
+                    PureEncodingContext::Assertion | PureEncodingContext::Code => {
                         // We are encoding a pure function, so all failures should be unreachable.
                         let failure_encoding =
                             unreachable_expr(pos).with_span(term.source_info.span)?;
