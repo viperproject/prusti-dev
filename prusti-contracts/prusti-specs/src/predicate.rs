@@ -5,7 +5,7 @@ use crate::{
     rewriter, SpecificationId, SPECS_VERSION,
 };
 use proc_macro2::{Span, TokenStream};
-use quote::{ToTokens, quote_spanned};
+use quote::{quote_spanned, ToTokens};
 use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
 
 #[derive(Debug)]
@@ -91,9 +91,9 @@ fn parse_predicate_internal(
         syn::ReturnType::Default => {
             return Err(syn::Error::new(
                 input.fn_sig.span(),
-                "`predicate!` must specify an output type"
+                "`predicate!` must specify an output type",
             ));
-        },
+        }
         syn::ReturnType::Type(_, box typ) => typ.to_token_stream(),
     };
 
@@ -104,8 +104,12 @@ fn parse_predicate_internal(
         if in_spec_refinement {
             let patched_function: syn::ImplItemMethod =
                 patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function =
-                generate_spec_function(input.body.unwrap(), return_type, spec_id, &patched_function)?;
+            let spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                &patched_function,
+            )?;
 
             Ok(ParsedPredicate::Impl(PredicateWithBody {
                 spec_function,
@@ -113,8 +117,12 @@ fn parse_predicate_internal(
             }))
         } else {
             let patched_function: syn::ItemFn = patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function =
-                generate_spec_function(input.body.unwrap(), return_type, spec_id, &patched_function)?;
+            let spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                &patched_function,
+            )?;
 
             Ok(ParsedPredicate::FreeStanding(PredicateWithBody {
                 spec_function,

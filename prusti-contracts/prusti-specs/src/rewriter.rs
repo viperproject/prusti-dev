@@ -117,10 +117,7 @@ impl AstRewriter {
                 quote_spanned! {item_span => Int},
                 quote_spanned! {item_span => Int::new(0) + },
             ),
-            SpecItemType::Predicate(return_type) => (
-                return_type.clone(),
-                TokenStream::new(),
-            ),
+            SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
             _ => (
                 quote_spanned! {item_span => bool},
                 quote_spanned! {item_span => !!},
