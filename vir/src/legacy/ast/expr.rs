@@ -7,13 +7,13 @@
 use super::super::borrows::Borrow;
 use crate::legacy::ast::*;
 use log::debug;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{
     fmt,
     hash::{Hash, Hasher},
     mem,
     mem::discriminant,
 };
-use rustc_hash::{FxHashMap, FxHashSet};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum Expr {

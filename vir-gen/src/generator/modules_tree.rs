@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::ast::Declarations;
-use rustc_hash::FxHashMap;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use rustc_hash::FxHashMap;
 use std::io::Write;
 
 /// A tree of modules.

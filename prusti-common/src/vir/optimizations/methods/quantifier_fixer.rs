@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::vir::polymorphic_vir as vir;
-use rustc_hash::FxHashMap;
 use itertools::Itertools;
 use log::debug;
+use rustc_hash::FxHashMap;
 use std::mem;
 
 /// Optimizations currently done:

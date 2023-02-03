@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::common::identifier::WithIdentifier;
+use rustc_hash::FxHashMap;
 use std::{
     cmp::Ordering,
     fmt,
@@ -12,7 +13,6 @@ use std::{
     mem::discriminant,
     ops,
 };
-use rustc_hash::FxHashMap;
 
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, serde::Serialize, serde::Deserialize)]

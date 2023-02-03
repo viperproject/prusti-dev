@@ -80,7 +80,7 @@ impl<'tcx> Serialize for FramingState<'tcx> {
             .into_iter()
             .map(|place| format!("{place:?}"))
             .collect();
-            
+
         seq.serialize_entry("frame_owned", &definitely_owned_strings)?;
         seq.end()
     }

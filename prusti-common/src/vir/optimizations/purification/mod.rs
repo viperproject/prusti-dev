@@ -1,8 +1,8 @@
 use crate::vir::polymorphic_vir::{
     ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
-use rustc_hash::FxHashSet;
 use log::debug;
+use rustc_hash::FxHashSet;
 use std::collections::BTreeSet;
 
 /// This purifies local variables in a method body

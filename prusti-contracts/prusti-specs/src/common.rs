@@ -1,8 +1,8 @@
 //! Common code for spec-rewriting
 
-use rustc_hash::FxHashMap;
 use proc_macro2::Ident;
 pub(crate) use receiver_rewriter::*;
+use rustc_hash::FxHashMap;
 pub(crate) use self_type_rewriter::*;
 use std::borrow::BorrowMut;
 use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned, GenericParam, TypeParam};

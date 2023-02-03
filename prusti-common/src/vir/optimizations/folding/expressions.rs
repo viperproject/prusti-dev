@@ -17,8 +17,8 @@
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
 use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
-use rustc_hash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{cmp::Ordering, mem};
 
 pub trait FoldingOptimizer {

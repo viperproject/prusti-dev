@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::vir::{program::Program, Position};
-use rustc_hash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
+use rustc_hash::{FxHashMap, FxHashSet};
 use viper::VerificationResult;
 
 pub enum NormalizationInfo {

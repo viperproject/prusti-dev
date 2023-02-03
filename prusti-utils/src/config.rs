@@ -11,9 +11,9 @@ use self::commandline::CommandLine;
 use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
+use rustc_hash::FxHashSet;
 use serde::Deserialize;
 use std::{env, path::PathBuf, sync::RwLock};
-use rustc_hash::FxHashSet;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
