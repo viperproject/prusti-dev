@@ -5,10 +5,8 @@ use crate::{
     parser::TheoryKind,
     types::{Level, QuantifierId, TermId, BUILTIN_QUANTIFIER_ID},
 };
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Write,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::fmt::Write;
 
 pub(crate) struct Quantifier {
     name: String,
@@ -75,7 +73,7 @@ struct LargestPop {
     /// How many active scopes were popped with that pop operation?
     active_scopes_popped: Level,
     /// How many instances of each quantifier were removed in that pop?
-    removed_quantifiers: HashMap<QuantifierId, usize>,
+    removed_quantifiers: FxHashMap<QuantifierId, usize>,
     /// Popped labels.
     labels: Vec<BasicBlockVisitedEvent>,
     /// Labels leading to the popped labels.
@@ -84,26 +82,26 @@ struct LargestPop {
 
 #[derive(Default)]
 pub(crate) struct State {
-    quantifiers: HashMap<QuantifierId, Quantifier>,
-    terms: HashMap<TermId, Term>,
+    quantifiers: FxHashMap<QuantifierId, Quantifier>,
+    terms: FxHashMap<TermId, Term>,
     /// The currently matched quantifiers (via [new-match]) at a given level.
-    quantifiers_matched_events: HashMap<QuantifierId, Vec<QuantifierMatchedEvent>>,
+    quantifiers_matched_events: FxHashMap<QuantifierId, Vec<QuantifierMatchedEvent>>,
     /// The currently discovered quantifiers (via [inst-discovered]) at a given level.
-    quantifiers_inst_disovered_events: HashMap<TheoryKind, Vec<QuantifierMatchedEvent>>,
+    quantifiers_inst_disovered_events: FxHashMap<TheoryKind, Vec<QuantifierMatchedEvent>>,
     /// How many times each quantifier was matched (ignoring push/pop).
-    total_quantifiers_matched_counters: HashMap<QuantifierId, usize>,
+    total_quantifiers_matched_counters: FxHashMap<QuantifierId, usize>,
     /// How many times each quantifier was discovered (ignoring push/pop).
-    total_quantifiers_inst_disovered_counters: HashMap<TheoryKind, usize>,
+    total_quantifiers_inst_disovered_counters: FxHashMap<TheoryKind, usize>,
     /// How many instantiations we had of each quantifier.
-    max_quantifier_matched_event_counters: HashMap<QuantifierId, usize>,
+    max_quantifier_matched_event_counters: FxHashMap<QuantifierId, usize>,
     /// How many instantiations we had of each theory.
-    max_quantifier_inst_discovered_event_counters: HashMap<TheoryKind, usize>,
-    unique_quantifier_triggers: HashMap<QuantifierId, HashSet<TermId>>,
-    term_used_in_trigger_events: HashMap<QuantifierId, Vec<TermUsedInTriggerEvent>>,
-    max_term_used_in_trigger_event_counters: HashMap<QuantifierId, usize>,
+    max_quantifier_inst_discovered_event_counters: FxHashMap<TheoryKind, usize>,
+    unique_quantifier_triggers: FxHashMap<QuantifierId, FxHashSet<TermId>>,
+    term_used_in_trigger_events: FxHashMap<QuantifierId, Vec<TermUsedInTriggerEvent>>,
+    max_term_used_in_trigger_event_counters: FxHashMap<QuantifierId, usize>,
     /// Quantifiers that the triggered by exactly the same term multiple times.
     /// (Push/pop is taken into account.)
-    multi_term_quantifiers: HashMap<QuantifierId, Vec<TermId>>,
+    multi_term_quantifiers: FxHashMap<QuantifierId, Vec<TermId>>,
     /// A total number of times the quantifiers were instantiated via [instance]
     /// (ignoring push/pop).
     total_quantifiers_instance_counters: usize,
@@ -137,7 +135,7 @@ impl State {
         self.max_quantifier_matched_event_counters
             .insert(quantifier_id, 0);
         self.unique_quantifier_triggers
-            .insert(quantifier_id, HashSet::new());
+            .insert(quantifier_id, FxHashSet::default());
         self.term_used_in_trigger_events
             .insert(quantifier_id, Vec::new());
         self.max_term_used_in_trigger_event_counters
@@ -371,7 +369,7 @@ impl State {
             }
         }
 
-        let mut removed_quantifiers = HashMap::new();
+        let mut removed_quantifiers = FxHashMap::default();
         let mut total_quantifier_matches_removed = 0;
         for (quantifier_id, events) in &mut self.quantifiers_matched_events {
             let max = self
@@ -616,8 +614,7 @@ impl State {
 
         {
             println!(
-                "The largest number of quantifier matches removed in a single \
-                “pop {}” operation: {}",
+                "The largest number of quantifier matches removed in a single pop {}” operation: {}",
                 self.largest_pop.active_scopes_popped, self.largest_pop.quantifier_matches_removed
             );
             // The number of quantifier matches poped in the largest match.
