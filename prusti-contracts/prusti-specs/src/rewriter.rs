@@ -14,12 +14,12 @@ pub(crate) struct AstRewriter {
     spec_id_generator: SpecificationIdGenerator,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum SpecItemType {
     Precondition,
     Postcondition,
     Pledge,
-    Predicate,
+    Predicate(TokenStream),
     Termination,
 }
 
@@ -29,7 +29,7 @@ impl std::fmt::Display for SpecItemType {
             SpecItemType::Precondition => write!(f, "pre"),
             SpecItemType::Postcondition => write!(f, "post"),
             SpecItemType::Pledge => write!(f, "pledge"),
-            SpecItemType::Predicate => write!(f, "pred"),
+            SpecItemType::Predicate(_) => write!(f, "pred"),
             SpecItemType::Termination => write!(f, "term"),
         }
     }
@@ -112,16 +112,19 @@ impl AstRewriter {
         //   of a single identifier; without the double negation, the `Return`
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
-        let (return_type, return_modifier) = if spec_type == SpecItemType::Termination {
-            (
+        let (return_type, return_modifier) = match &spec_type {
+            SpecItemType::Termination => (
                 quote_spanned! {item_span => Int},
                 quote_spanned! {item_span => Int::new(0) + },
-            )
-        } else {
-            (
+            ),
+            SpecItemType::Predicate(return_type) => (
+                return_type.clone(),
+                TokenStream::new(),
+            ),
+            _ => (
                 quote_spanned! {item_span => bool},
                 quote_spanned! {item_span => !!},
-            )
+            ),
         };
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
