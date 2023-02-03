@@ -211,19 +211,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| self.encode_local((*local).into()).map(|l| l.into()))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let predicate_body_encoded = self.encoder.encode_assertion(
-            predicate_body,
-            None,
-            &encoded_args,
-            None,
-            true,
-            self.parent_def_id,
-            self.substs,
-        )?;
-        self.encoder.error_manager().set_error(
-            predicate_body_encoded.pos(),
-            ErrorCtxt::PureFunctionDefinition,
-        );
+        let predicate_body_encoded = self
+            .encoder
+            .encode_assertion(
+                predicate_body,
+                None,
+                &encoded_args,
+                None,
+                true,
+                self.parent_def_id,
+                self.substs,
+            )?
+            .set_default_pos(self.encoder.error_manager().register_error(
+                self.span,
+                ErrorCtxt::PureFunctionDefinition,
+                *predicate_body,
+            ));
 
         self.encode_function_given_body(Some(predicate_body_encoded))
     }

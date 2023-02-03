@@ -884,7 +884,10 @@ impl PrustiToken {
     }
 
     fn parse_op4(p1: &Punct, p2: &Punct, p3: &Punct, p4: &Punct) -> Option<Self> {
-        let span = join_spans(join_spans(join_spans(p1.span(), p2.span()), p3.span()), p4.span());
+        let span = join_spans(
+            join_spans(join_spans(p1.span(), p2.span()), p3.span()),
+            p4.span(),
+        );
         Some(Self::BinOp(
             span,
             if operator4("<==>", p1, p2, p3, p4) {
@@ -945,7 +948,7 @@ impl PrustiBinaryOp {
             Self::Iff => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
                 quote_spanned! { joined_span => #lhs == #rhs }
-            },
+            }
             // implication is desugared into this form to avoid evaluation
             // order issues: `f(a, b)` makes Rust evaluate both `a` and `b`
             // before the `f` call

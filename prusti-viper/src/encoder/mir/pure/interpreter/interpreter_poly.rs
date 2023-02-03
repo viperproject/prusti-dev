@@ -749,7 +749,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         // We are encoding a trigger, so all panic branches must be stripped.
                         states[target].clone()
                     }
-                    PureEncodingContext::Assertion if matches!(self.mir.return_ty().kind(), ty::TyKind::Bool) => {
+                    PureEncodingContext::Assertion
+                        if matches!(self.mir.return_ty().kind(), ty::TyKind::Bool) =>
+                    {
                         // We are encoding an assertion, so all failures should be equivalent to false.
                         // Predicates are also encoded as assertions, but non-Boolean predicates should
                         // use the other arm.
