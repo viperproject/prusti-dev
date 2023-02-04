@@ -1,6 +1,6 @@
 use prusti_contracts::*;
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 
 // FUTURE(#1221): String should forward its specs to as_str where possible, to avoid writing each spec twice.
 // That doesn't currently work though, due to issue #1221
