@@ -45,12 +45,13 @@ fn run_on_files<F: FnMut(&Path)>(dir: &Path, run: &mut F) {
     let mut has_files = false;
     for entry in fs::read_dir(dir).unwrap_or_else(|_| panic!("Did not find dir: {dir:?}")) {
         let path = entry.unwrap().path();
-        std::fs::copy(path, &test_file).unwrap();
+        println!("Running on file: {path:?}");
+        std::fs::copy(path, &test_file).expect("File copy failed!");
         run(&test_file);
-        std::fs::remove_file(&test_file).unwrap();
+        std::fs::remove_file(&test_file).expect("File removal failed!");
         has_files = true;
     }
-    assert!(has_files, "Dir \"{dir:?}\" did not constain any files!");
+    assert!(has_files, "Dir \"{dir:?}\" did not contain any files!");
 }
 
 #[test]
@@ -70,7 +71,7 @@ fn test_prusti_rustc_caching_hash() {
             .env("PRUSTI_PRINT_HASH", "true")
             .output()
             .expect("failed to execute prusti-rustc");
-        assert!(out.status.success(), "Failed to compile: {:?}\n{}", program, String::from_utf8(out.stderr).unwrap());
+        assert!(out.status.success(), "Failed to compile: {program:?}\n{}", String::from_utf8(out.stderr).unwrap());
         let stdout = String::from_utf8(out.stdout).unwrap();
         let mut hash_lines = stdout.lines()
             .skip_while(|line| !line.starts_with("Received verification request for: "));
@@ -86,7 +87,7 @@ fn test_prusti_rustc_caching_hash() {
             std::fs::rename(
                 format!("log/viper_program/{full_name}"),
                 format!("log/viper_program/{hash}.vpr")
-            ).unwrap();
+            ).expect("File rename failed!");
             hashes.entry(fn_name.to_string())
                 .and_modify(|other|
                     if hash != *other {
