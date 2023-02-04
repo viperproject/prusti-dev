@@ -17,7 +17,7 @@ macro_rules! default_spec {
         #[extern_spec]
         impl Default for $t {
             #[pure]
-            #[ensures(result == $v)]
+            #[ensures(snapshot_equality(result, $v))]
             fn default() -> Self;
         }
     };
