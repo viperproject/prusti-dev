@@ -236,8 +236,10 @@ def fmt_check_all():
 
 def check_smir():
     """Check that `extern crate` is used only in `prusti_rustc_interface` (TODO: `prusti_interface` is also ignored for now)."""
+    # also ignore prusti-contracts because the prusti-std needs std but is no_std to make it conditional (https://doc.rust-lang.org/edition-guide/rust-2018/path-changes.html)
+    blacklist = set(['prusti-rustc-interface', 'prusti-interface', 'prusti-contracts'])
     for folder in os.listdir('.'):
-        if folder == 'prusti-rustc-interface' or folder == 'prusti-interface':
+        if folder in blacklist:
             continue
         if os.path.exists(os.path.join(folder, 'Cargo.toml')):
             completed = subprocess.run(
@@ -247,7 +249,7 @@ def check_smir():
             lines = [
                 line
                 for line in completed.stdout.decode().splitlines()
-                if '.rs:' in line and not line.startswith('prusti-tests/tests') and not 'extern crate alloc' in line
+                if '.rs:' in line and not line.startswith('prusti-tests/tests')
             ]
             assert not lines, (
                 'found `extern crate` outside '
