@@ -1,11 +1,10 @@
+use super::{call_finder, query_signature};
 use prusti_interface::environment::Environment;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     span::{source_map::SourceMap, Span},
 };
-use super::call_finder;
-use super::query_signature;
-use serde::{Serialize, ser::SerializeStruct};
+use serde::{ser::SerializeStruct, Serialize};
 
 // create some struct storing all the information the IDE will ever need.
 // needs to be transformable into json!
@@ -18,7 +17,6 @@ pub struct IdeInfo {
     // additionally this will contain:
     // function_calls:
     // ... we'll see
-
 }
 
 impl IdeInfo {
@@ -35,7 +33,7 @@ impl IdeInfo {
             .collect();
 
         // For declaring external specifications:
-        let queried_source = query_signature::collect_queried_signatures(env, &fncalls);
+        let queried_source = query_signature::collect_queried_signature(env.tcx(), &fncalls);
         Self {
             procedure_defs: procs,
             function_calls: fncalls,
@@ -53,8 +51,9 @@ pub struct ProcDef {
 // defid is not needed for VSCode and not serializable as of now..
 impl Serialize for ProcDef {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer {
+    where
+        S: serde::Serializer,
+    {
         let mut state = serializer.serialize_struct("ProcDef", 2)?;
         state.serialize_field("name", &self.name)?;
         state.serialize_field("span", &self.span)?;
@@ -100,7 +99,7 @@ fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, DefId, Span)> {
 
     let mut fnvisitor = call_finder::CallSpanFinder::new(env);
 
-    // let mut adjusted_visitor = 
+    // let mut adjusted_visitor =
     // fnvisitor.visit_body(hir_body);
     env.tcx()
         .hir()
