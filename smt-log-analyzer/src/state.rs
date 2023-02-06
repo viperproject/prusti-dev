@@ -614,7 +614,7 @@ impl State {
 
         {
             println!(
-                "The largest number of quantifier matches removed in a single pop {}” operation: {}",
+                "The largest number of quantifier matches removed in a single “pop {}” operation: {}",
                 self.largest_pop.active_scopes_popped, self.largest_pop.quantifier_matches_removed
             );
             // The number of quantifier matches poped in the largest match.
