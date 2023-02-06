@@ -7,6 +7,7 @@
 #![feature(assert_matches)]
 // This Clippy chcek seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
+#![warn(clippy::disallowed_types)]
 
 #[macro_use]
 mod common;

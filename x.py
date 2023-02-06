@@ -84,8 +84,10 @@ def shell(command, term_on_nzec=True):
     logging.debug(f"Running a shell command: {command}")
     if not dry_run:
         completed = subprocess.run(command.split())
-        if completed.returncode != 0 and term_on_nzec:
-            sys.exit(completed.returncode)
+        if completed.returncode != 0:
+            logging.warn(f"Shell command \"{command}\" failed with return code {completed.returncode}")
+            if term_on_nzec:
+                sys.exit(completed.returncode)
         return completed.returncode
 
 
@@ -161,7 +163,7 @@ def setup_win():
 
 def setup_rustup():
     # Update rustup
-    shell('rustup self update', term_on_nzec=False)
+    # shell('rustup self update', term_on_nzec=False)
     # Install toolchain
     shell('rustup show', term_on_nzec=False)
 

@@ -316,7 +316,7 @@ impl State {
             .iter()
             .map(|(p, f)| format!("  {p}: {f}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
@@ -326,7 +326,7 @@ impl State {
             .iter()
             .map(|(p, f)| format!("  {p}: {f}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
@@ -336,7 +336,7 @@ impl State {
             .iter()
             .map(|x| format!("  {x}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 

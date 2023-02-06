@@ -10,6 +10,7 @@ use log::debug;
 use prusti_common::config;
 use prusti_rustc_interface::{
     ast::ast,
+    data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
         def_id::{DefId, LocalDefId},
@@ -18,7 +19,7 @@ use prusti_rustc_interface::{
     middle::{hir::map::Map, ty},
     span::Span,
 };
-use std::{collections::HashMap, convert::TryInto, fmt::Debug};
+use std::{convert::TryInto, fmt::Debug};
 
 pub mod checker;
 pub mod cross_crate;
@@ -72,13 +73,13 @@ pub struct SpecCollector<'a, 'tcx> {
     extern_resolver: ExternSpecResolver<'tcx>,
 
     /// Map from specification IDs to their typed expressions.
-    spec_functions: HashMap<SpecificationId, LocalDefId>,
+    spec_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
-    procedure_specs: HashMap<LocalDefId, ProcedureSpecRefs>,
+    procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
-    type_specs: HashMap<LocalDefId, TypeSpecRefs>,
+    type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
     prusti_assertions: Vec<LocalDefId>,
     prusti_assumptions: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
@@ -90,11 +91,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         Self {
             extern_resolver: ExternSpecResolver::new(env),
             env,
-            spec_functions: HashMap::new(),
-            procedure_specs: HashMap::new(),
+            spec_functions: FxHashMap::default(),
+            procedure_specs: FxHashMap::default(),
             loop_specs: vec![],
             loop_variants: vec![],
-            type_specs: HashMap::new(),
+            type_specs: FxHashMap::default(),
             prusti_assertions: vec![],
             prusti_assumptions: vec![],
             ghost_begin: vec![],

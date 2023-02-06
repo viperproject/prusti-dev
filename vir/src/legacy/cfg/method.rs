@@ -10,11 +10,8 @@ use crate::{
 };
 use derivative::Derivative;
 use log::{debug, trace};
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    fmt,
-    iter::FromIterator,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::{collections::VecDeque, fmt, iter::FromIterator};
 use uuid::Uuid;
 
 pub const RETURN_LABEL: &str = "end_of_method";
@@ -28,7 +25,7 @@ pub struct CfgMethod {
     pub formal_returns: Vec<LocalVar>,
     pub local_vars: Vec<LocalVar>,
     #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    pub labels: HashSet<String>,
+    pub labels: FxHashSet<String>,
     pub basic_blocks: Vec<CfgBlock>,
     pub basic_blocks_labels: Vec<String>,
 }
@@ -97,7 +94,7 @@ impl CfgMethod {
             method_name,
             formal_returns,
             local_vars,
-            labels: HashSet::new(),
+            labels: FxHashSet::default(),
             basic_blocks: vec![],
             basic_blocks_labels: vec![],
         }
@@ -107,7 +104,7 @@ impl CfgMethod {
         self.method_name.clone()
     }
 
-    pub fn labels(&self) -> &HashSet<String> {
+    pub fn labels(&self) -> &FxHashSet<String> {
         &self.labels
     }
 
@@ -213,8 +210,8 @@ impl CfgMethod {
     }
 
     #[allow(dead_code)]
-    pub fn predecessors(&self) -> HashMap<usize, Vec<usize>> {
-        let mut result = HashMap::new();
+    pub fn predecessors(&self) -> FxHashMap<usize, Vec<usize>> {
+        let mut result = FxHashMap::default();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
                 let entry = result.entry(successor.block_index).or_insert_with(Vec::new);

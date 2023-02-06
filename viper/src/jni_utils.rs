@@ -13,7 +13,7 @@ use jni::{
     JNIEnv,
 };
 use log::error;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use viper_sys::wrappers::*;
 
 #[derive(Clone, Copy)]
@@ -154,7 +154,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Scala Map (using strings! JObjects are not hashable) to a Rust HashMap
-    pub fn stringmap_to_hashmap(&self, map: JObject<'a>) -> HashMap<String, JObject<'a>> {
+    pub fn stringmap_to_hashmap(&self, map: JObject<'a>) -> FxHashMap<String, JObject<'a>> {
         let iter_wrapper = scala::collection::Iterable::with(self.env);
         let product_wrapper = scala::Product::with(self.env);
         let seq = self.unwrap_result(iter_wrapper.call_toSeq(map));
@@ -165,7 +165,7 @@ impl<'a> JniUtils<'a> {
                 let item2 = self.unwrap_result(product_wrapper.call_productElement(item, 1));
                 (self.to_string(item1), item2)
             })
-            .collect::<HashMap<_, _>>()
+            .collect::<FxHashMap<_, _>>()
     }
 
     /// Converts a Scala Map to a Vec of its keys. The order of keys is

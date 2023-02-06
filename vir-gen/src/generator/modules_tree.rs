@@ -7,13 +7,14 @@
 use crate::ast::Declarations;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use std::{collections::HashMap, io::Write};
+use rustc_hash::FxHashMap;
+use std::io::Write;
 
 /// A tree of modules.
 /// The tokens of each module correspond to a `mod.rs` file, and the submodules to subfolders.
 pub struct ModulesTree {
     pub tokens: TokenStream,
-    pub submodules: HashMap<String, ModulesTree>,
+    pub submodules: FxHashMap<String, ModulesTree>,
 }
 
 pub trait ToModulesTree {
@@ -52,7 +53,7 @@ impl ToModulesTree for Declarations {
 impl ToModulesTree for syn::ItemMod {
     fn to_modules_tree(&self) -> ModulesTree {
         let mut tokens = quote! {};
-        let mut submodules = HashMap::new();
+        let mut submodules = FxHashMap::default();
         if let Some((_, items)) = &self.content {
             for attr in &self.attrs {
                 if matches!(attr.style, syn::AttrStyle::Inner(_)) {

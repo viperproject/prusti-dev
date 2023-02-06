@@ -7,8 +7,8 @@
 use super::super::borrows::Borrow;
 use crate::legacy::ast::*;
 use log::debug;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{
-    collections::{HashMap, HashSet},
     fmt,
     hash::{Hash, Hasher},
     mem,
@@ -1768,9 +1768,9 @@ impl Expr {
 
     /// Replace all generic types with their instantiations by using substitution.
     #[must_use]
-    pub fn patch_types(self, substs: &HashMap<String, String>) -> Self {
+    pub fn patch_types(self, substs: &FxHashMap<String, String>) -> Self {
         struct TypePatcher<'a> {
-            substs: &'a HashMap<String, String>,
+            substs: &'a FxHashMap<String, String>,
         }
         impl<'a> ExprFolder for TypePatcher<'a> {
             fn fold_predicate_access_predicate(

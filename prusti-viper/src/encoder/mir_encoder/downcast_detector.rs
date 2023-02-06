@@ -11,7 +11,7 @@ pub fn detect_downcasts<'tcx>(body: &mir::Body<'tcx>, location: mir::Location)
     collector.visit_location(body, location);
     let mut downcasts: Vec<_> = collector.downcasts.into_iter().collect();
     // Order downcasts starting from the base
-    downcasts.sort_by_key(|(place, _)| (place.local.index(), place.projection.len()));
+    downcasts.sort_unstable_by_key(|(place, _)| (place.local.index(), place.projection.len()));
     downcasts
 }
 

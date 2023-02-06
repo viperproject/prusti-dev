@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::legacy::{self, ast::*, CfgBlock, CfgBlockIndex, CfgMethod};
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 pub fn collect_assigned_vars(
     method: &CfgMethod,
@@ -15,8 +15,8 @@ pub fn collect_assigned_vars(
     let predecessors = method.predecessors();
     let start = start_block.block_index;
     let end = end_block.block_index;
-    let mut variables = HashSet::new();
-    let mut marked = HashSet::new();
+    let mut variables = FxHashSet::default();
+    let mut marked = FxHashSet::default();
     marked.insert(end);
     marked.insert(start);
     let mut to_visit = vec![start];
@@ -32,11 +32,11 @@ pub fn collect_assigned_vars(
         check_block(&mut variables, &method.basic_blocks[current]);
     }
     let mut result: Vec<_> = variables.into_iter().collect();
-    result.sort_by(|a, b| a.name.cmp(&b.name));
+    result.sort_unstable_by(|a, b| a.name.cmp(&b.name));
     result
 }
 
-fn check_block(vars: &mut HashSet<LocalVar>, block: &CfgBlock) {
+fn check_block(vars: &mut FxHashSet<LocalVar>, block: &CfgBlock) {
     for stmt in &block.stmts {
         match stmt {
             Stmt::MethodCall(_, _, targets) => {

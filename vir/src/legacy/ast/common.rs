@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::common::identifier::WithIdentifier;
+use rustc_hash::FxHashMap;
 use std::{
     cmp::Ordering,
-    collections::HashMap,
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
@@ -270,7 +270,7 @@ impl Type {
     /// Replace all generic types with their instantiations by using string substitution.
     /// FIXME: this is a hack to support generics. See issue #187.
     #[must_use]
-    pub fn patch(self, substs: &HashMap<String, String>) -> Self {
+    pub fn patch(self, substs: &FxHashMap<String, String>) -> Self {
         match self {
             Type::TypedRef(mut predicate_name) => {
                 for (typ, subst) in substs {

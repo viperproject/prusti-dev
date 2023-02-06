@@ -7,7 +7,7 @@
 //! Fix ghost variables.
 
 use super::super::polymorphic_vir::{ast, cfg};
-use fxhash::FxHashSet;
+use rustc_hash::FxHashSet;
 use std::mem;
 
 /// Viper has a consistency check that only variables declared inside

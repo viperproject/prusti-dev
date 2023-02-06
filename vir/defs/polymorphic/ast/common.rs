@@ -7,10 +7,9 @@
 use crate::{
     common::identifier::WithIdentifier, converter::type_substitution::Generic, polymorphic::ast::*,
 };
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHasher};
 use std::{
     cmp::Ordering,
-    collections::hash_map::DefaultHasher,
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
@@ -496,7 +495,7 @@ impl Type {
     }
 
     fn hash_arguments(args: &[Type]) -> u64 {
-        let mut s = DefaultHasher::new();
+        let mut s = FxHasher::default();
         args.hash(&mut s);
         s.finish()
     }

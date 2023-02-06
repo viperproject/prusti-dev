@@ -108,9 +108,6 @@ pub fn generate_method(
         )?
         .z()?;
 
-    let mut parameter_names: Vec<String> = vec![];
-    let mut parameter_signatures: Vec<String> = vec![];
-
     let parameters = env
         .call_method(
             method,
@@ -120,6 +117,9 @@ pub fn generate_method(
         )?
         .l()?;
     let num_parameters = env.get_array_length(*parameters)?;
+
+    let mut parameter_names: Vec<String> = Vec::with_capacity(num_parameters as usize);
+    let mut parameter_signatures: Vec<String> = Vec::with_capacity(num_parameters as usize);
 
     for parameter_index in 0..num_parameters {
         let parameter = env.get_object_array_element(*parameters, parameter_index)?;
