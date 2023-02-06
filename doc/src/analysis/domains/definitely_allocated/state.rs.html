@@ -116,6 +116,7 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -154,8 +155,9 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; Serialize <span class="kw">for </span>DefinitelyAllocatedState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>serialize&lt;Se: Serializer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_seq(<span class="prelude-val">Some</span>(<span class="self">self</span>.def_allocated_locals.len()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>oredered_set: BTreeSet&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.def_allocated_locals.iter().collect();
-        <span class="kw">for </span>local <span class="kw">in </span>oredered_set {
+
+        <span class="kw">let </span>ordered_set: BTreeSet&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.def_allocated_locals.iter().collect();
+        <span class="kw">for </span>local <span class="kw">in </span>ordered_set {
             seq.serialize_element(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{local:?}&quot;</span>))<span class="question-mark">?</span>;
         }
         seq.end()
@@ -210,11 +212,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         location: mir::Location,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(mir::BasicBlock, <span class="self">Self</span>)&gt;, AnalysisError&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>res_vec = Vec::new();
-        <span class="kw">let </span>terminator = <span class="self">self</span>.mir[location.block].terminator();
-        <span class="kw">for </span>bb <span class="kw">in </span>terminator.successors() {
-            res_vec.push((bb, <span class="self">self</span>.clone()));
-        }
+        <span class="kw">let </span>res_vec = <span class="self">self</span>.mir[location.block]
+            .terminator()
+            .successors()
+            .map(|bb| (bb, <span class="self">self</span>.clone()))
+            .collect();
         <span class="prelude-val">Ok</span>(res_vec)
     }
 }

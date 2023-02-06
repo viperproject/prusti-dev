@@ -576,6 +576,7 @@
 <a href="#576" id="576">576</a>
 <a href="#577" id="577">577</a>
 <a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environment::Environment,
     utils::{
@@ -588,6 +589,7 @@
 <span class="kw">use </span>prusti_common::config;
 <span class="kw">use </span>prusti_rustc_interface::{
     ast::ast,
+    data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
         def_id::{DefId, LocalDefId},
@@ -596,7 +598,7 @@
     middle::{hir::map::Map, ty},
     span::Span,
 };
-<span class="kw">use </span>std::{collections::HashMap, convert::TryInto, fmt::Debug};
+<span class="kw">use </span>std::{convert::TryInto, fmt::Debug};
 
 <span class="kw">pub mod </span>checker;
 <span class="kw">pub mod </span>cross_crate;
@@ -650,13 +652,13 @@
     extern_resolver: ExternSpecResolver&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 
     <span class="doccomment">/// Map from specification IDs to their typed expressions.
-    </span>spec_functions: HashMap&lt;SpecificationId, LocalDefId&gt;,
+    </span>spec_functions: FxHashMap&lt;SpecificationId, LocalDefId&gt;,
 
     <span class="doccomment">/// Map from functions/loops/types to their specifications.
-    </span>procedure_specs: HashMap&lt;LocalDefId, ProcedureSpecRefs&gt;,
+    </span>procedure_specs: FxHashMap&lt;LocalDefId, ProcedureSpecRefs&gt;,
     loop_specs: Vec&lt;LocalDefId&gt;,
     loop_variants: Vec&lt;LocalDefId&gt;,
-    type_specs: HashMap&lt;LocalDefId, TypeSpecRefs&gt;,
+    type_specs: FxHashMap&lt;LocalDefId, TypeSpecRefs&gt;,
     prusti_assertions: Vec&lt;LocalDefId&gt;,
     prusti_assumptions: Vec&lt;LocalDefId&gt;,
     ghost_begin: Vec&lt;LocalDefId&gt;,
@@ -668,11 +670,11 @@
         <span class="self">Self </span>{
             extern_resolver: ExternSpecResolver::new(env),
             env,
-            spec_functions: HashMap::new(),
-            procedure_specs: HashMap::new(),
+            spec_functions: FxHashMap::default(),
+            procedure_specs: FxHashMap::default(),
             loop_specs: <span class="macro">vec!</span>[],
             loop_variants: <span class="macro">vec!</span>[],
-            type_specs: HashMap::new(),
+            type_specs: FxHashMap::default(),
             prusti_assertions: <span class="macro">vec!</span>[],
             prusti_assumptions: <span class="macro">vec!</span>[],
             ghost_begin: <span class="macro">vec!</span>[],

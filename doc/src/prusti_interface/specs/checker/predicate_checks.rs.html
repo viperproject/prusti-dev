@@ -196,12 +196,12 @@
 };
 <span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
     hir::{<span class="self">self </span><span class="kw">as </span>hir, def_id::DefId, intravisit},
     middle::{hir::map::Map, ty::TyCtxt},
     span::Span,
 };
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
 
 <span class="doccomment">/// Checks for illegal predicate usages
 </span><span class="kw">pub struct </span>IllegalPredicateUsagesChecker;
@@ -245,8 +245,8 @@
     ) -&gt; CollectPredicatesVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>collect = CollectPredicatesVisitor {
             env_query,
-            predicates: HashMap::new(),
-            abstract_predicate_with_bodies: HashSet::new(),
+            predicates: FxHashMap::default(),
+            abstract_predicate_with_bodies: FxHashSet::default(),
         };
         env_query.hir().walk_toplevel_module(<span class="kw-2">&amp;mut </span>collect);
         env_query.hir().walk_attributes(<span class="kw-2">&amp;mut </span>collect);
@@ -257,7 +257,7 @@
     <span class="doccomment">/// Span of use and definition of predicates used outside of specifications, collected in the second pass.
     </span><span class="kw">fn </span>collect_illegal_predicate_usages(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        predicates: HashMap&lt;DefId, Span&gt;,
+        predicates: FxHashMap&lt;DefId, Span&gt;,
         env_query: EnvQuery,
     ) -&gt; Vec&lt;(Span, Span)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>visit = CheckPredicatesVisitor {
@@ -278,8 +278,8 @@
 /// from predicates
 </span><span class="kw">struct </span>CollectPredicatesVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     env_query: EnvQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    predicates: HashMap&lt;DefId, Span&gt;,
-    abstract_predicate_with_bodies: HashSet&lt;DefId&gt;,
+    predicates: FxHashMap&lt;DefId, Span&gt;,
+    abstract_predicate_with_bodies: FxHashSet&lt;DefId&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; intravisit::Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>CollectPredicatesVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
@@ -330,7 +330,7 @@
 </span><span class="kw">struct </span>CheckPredicatesVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     env_query: EnvQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 
-    predicates: HashMap&lt;DefId, Span&gt;,
+    predicates: FxHashMap&lt;DefId, Span&gt;,
     pred_usages: Vec&lt;(Span, Span)&gt;,
 }
 

@@ -130,6 +130,7 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -139,13 +140,14 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::Declarations;
 <span class="kw">use </span>proc_macro2::TokenStream;
 <span class="kw">use </span>quote::{quote, ToTokens};
-<span class="kw">use </span>std::{collections::HashMap, io::Write};
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::io::Write;
 
 <span class="doccomment">/// A tree of modules.
 /// The tokens of each module correspond to a `mod.rs` file, and the submodules to subfolders.
 </span><span class="kw">pub struct </span>ModulesTree {
     <span class="kw">pub </span>tokens: TokenStream,
-    <span class="kw">pub </span>submodules: HashMap&lt;String, ModulesTree&gt;,
+    <span class="kw">pub </span>submodules: FxHashMap&lt;String, ModulesTree&gt;,
 }
 
 <span class="kw">pub trait </span>ToModulesTree {
@@ -184,7 +186,7 @@
 <span class="kw">impl </span>ToModulesTree <span class="kw">for </span>syn::ItemMod {
     <span class="kw">fn </span>to_modules_tree(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ModulesTree {
         <span class="kw">let </span><span class="kw-2">mut </span>tokens = <span class="macro">quote! </span>{};
-        <span class="kw">let </span><span class="kw-2">mut </span>submodules = HashMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>submodules = FxHashMap::default();
         <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, items)) = <span class="kw-2">&amp;</span><span class="self">self</span>.content {
             <span class="kw">for </span>attr <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.attrs {
                 <span class="kw">if </span><span class="macro">matches!</span>(attr.style, syn::AttrStyle::Inner(<span class="kw">_</span>)) {

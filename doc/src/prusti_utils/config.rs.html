@@ -1016,6 +1016,7 @@
 <a href="#1016" id="1016">1016</a>
 <a href="#1017" id="1017">1017</a>
 <a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -1029,8 +1030,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::launch::{find_viper_home, get_current_executable_dir};
 <span class="kw">use </span>::config::{Config, Environment, File};
 <span class="kw">use </span>log::warn;
+<span class="kw">use </span>rustc_hash::FxHashSet;
 <span class="kw">use </span>serde::Deserialize;
-<span class="kw">use </span>std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
+<span class="kw">use </span>std::{env, path::PathBuf, sync::RwLock};
 
 <span class="attr">#[derive(Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Optimizations {
@@ -1240,7 +1242,7 @@
     });
 }
 
-<span class="kw">fn </span>get_keys(settings: <span class="kw-2">&amp;</span>Config) -&gt; HashSet&lt;String&gt; {
+<span class="kw">fn </span>get_keys(settings: <span class="kw-2">&amp;</span>Config) -&gt; FxHashSet&lt;String&gt; {
     settings
         .cache
         .clone()
@@ -1250,7 +1252,7 @@
         .collect()
 }
 
-<span class="kw">fn </span>check_keys(settings: <span class="kw-2">&amp;</span>Config, allowed_keys: <span class="kw-2">&amp;</span>HashSet&lt;String&gt;, source: <span class="kw-2">&amp;</span>str) {
+<span class="kw">fn </span>check_keys(settings: <span class="kw-2">&amp;</span>Config, allowed_keys: <span class="kw-2">&amp;</span>FxHashSet&lt;String&gt;, source: <span class="kw-2">&amp;</span>str) {
     <span class="kw">for </span>key <span class="kw">in </span>settings.cache.clone().into_table().unwrap().keys() {
         <span class="macro">assert!</span>(
             allowed_keys.contains(key),

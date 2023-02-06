@@ -692,12 +692,14 @@
 <a href="#692" id="692">692</a>
 <a href="#693" id="693">693</a>
 <a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Common code for spec-rewriting
 
 </span><span class="kw">use </span>proc_macro2::Ident;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>receiver_rewriter::<span class="kw-2">*</span>;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>self_type_rewriter::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::{borrow::BorrowMut, collections::HashMap};
+<span class="kw">use </span>std::borrow::BorrowMut;
 <span class="kw">use </span>syn::{parse_quote, punctuated::Punctuated, spanned::Spanned, GenericParam, TypeParam};
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>syn_extensions::<span class="kw-2">*</span>;
 <span class="kw">use </span>uuid::Uuid;
@@ -1084,7 +1086,7 @@
     <span class="kw">let </span>generics_source = source.generics();
 
     <span class="comment">// Merge all type params
-    </span><span class="kw">let </span><span class="kw-2">mut </span>existing_target_type_params: HashMap&lt;Ident, <span class="kw-2">&amp;mut </span>TypeParam&gt; = HashMap::new();
+    </span><span class="kw">let </span><span class="kw-2">mut </span>existing_target_type_params: FxHashMap&lt;Ident, <span class="kw-2">&amp;mut </span>TypeParam&gt; = FxHashMap::default();
     <span class="kw">let </span><span class="kw-2">mut </span>new_generic_params: Vec&lt;GenericParam&gt; = Vec::new();
     <span class="kw">for </span>param_target <span class="kw">in </span>generics_target.params.iter_mut() {
         <span class="kw">if let </span>GenericParam::Type(type_param_target) = param_target {

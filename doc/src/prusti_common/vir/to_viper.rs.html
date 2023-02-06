@@ -1301,6 +1301,8 @@
 <a href="#1301" id="1301">1301</a>
 <a href="#1302" id="1302">1302</a>
 <a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -1317,8 +1319,8 @@
         Program,
     },
 };
-<span class="kw">use </span>fxhash::FxHashMap;
 <span class="kw">use </span>log::{info, trace};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>viper::{<span class="self">self</span>, AstFactory};
 <span class="kw">use </span>vir::common::identifier::WithIdentifier;
 
@@ -1328,19 +1330,21 @@
         domains.extend(<span class="self">self</span>.backend_types.to_viper(context, ast));
         <span class="kw">let </span>fields = <span class="self">self</span>.fields.to_viper(context, ast);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>viper_methods: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
-            </span>.methods
-            .iter()
-            .map(|m| m.to_viper(context, ast))
-            .collect();
-        viper_methods.extend(
-            <span class="self">self</span>.builtin_methods
+        <span class="kw">let </span>viper_methods = <span class="kw">if </span>config::verify_only_preamble() {
+            Vec::new()
+        } <span class="kw">else </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>tmp: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+                </span>.methods
                 .iter()
-                .map(|m| m.to_viper(context, ast)),
-        );
-        <span class="kw">if </span>config::verify_only_preamble() {
-            viper_methods = Vec::new();
-        }
+                .map(|m| m.to_viper(context, ast))
+                .collect();
+            tmp.extend(
+                <span class="self">self</span>.builtin_methods
+                    .iter()
+                    .map(|m| m.to_viper(context, ast)),
+            );
+            tmp
+        };
 
         <span class="kw">let </span><span class="kw-2">mut </span>viper_functions: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
             </span>.functions

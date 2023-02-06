@@ -229,6 +229,7 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(rustc_private)]
 
 </span><span class="comment">// Sources:
@@ -238,6 +239,7 @@
 </span><span class="kw">use </span>analysis::domains::DefinitelyAccessibleAnalysis;
 <span class="kw">use </span>prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
+    data_structures::fx::FxHashMap,
     driver::Compilation,
     hir,
     hir::def_id::LocalDefId,
@@ -250,7 +252,7 @@
     session::Session,
     span::FileName,
 };
-<span class="kw">use </span>std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc};
+<span class="kw">use </span>std::{cell::RefCell, path::PathBuf, rc::Rc};
 
 <span class="kw">struct </span>OurCompilerCalls {
     args: Vec&lt;String&gt;,
@@ -267,8 +269,8 @@
     // because we cast it back to `&#39;tcx` before using.
     </span><span class="macro">thread_local! </span>{
         <span class="kw">static </span>MIR_BODIES:
-            RefCell&lt;HashMap&lt;LocalDefId, BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt; =
-            RefCell::new(HashMap::new());
+            RefCell&lt;FxHashMap&lt;LocalDefId, BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt; =
+            RefCell::new(FxHashMap::default());
     }
 
     <span class="kw">pub unsafe fn </span>store_mir_body&lt;<span class="lifetime">&#39;tcx</span>&gt;(

@@ -154,8 +154,8 @@
 </span><span class="kw">use </span>log::{error, info, warn};
 
 <span class="kw">use </span><span class="kw">crate</span>::verification_result::VerificationResult;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::{
-    collections::HashMap,
     fs, io,
     ops::DerefMut,
     path::{Path, PathBuf},
@@ -171,14 +171,14 @@
 </span><span class="kw">pub struct </span>PersistentCache {
     updated: bool,
     load_loc: PathBuf,
-    data: HashMap&lt;u64, VerificationResult&gt;,
+    data: FxHashMap&lt;u64, VerificationResult&gt;,
 }
 
 <span class="kw">const </span>RESULT_CACHE_VERSION: u64 = <span class="number">3</span>;
 
 <span class="attr">#[derive(Debug, serde::Serialize, serde::Deserialize)]
 </span><span class="kw">struct </span>ResultCache {
-    data: HashMap&lt;u64, VerificationResult&gt;,
+    data: FxHashMap&lt;u64, VerificationResult&gt;,
     version: u64,
 }
 
@@ -233,7 +233,7 @@
             data_res.unwrap_or_else(|| {
                 <span class="macro">info!</span>(<span class="string">&quot;Cache file doesn&#39;t exist or is invalid. Using fresh cache.&quot;</span>);
                 ResultCache {
-                    data: HashMap::new(),
+                    data: FxHashMap::default(),
                     version: RESULT_CACHE_VERSION,
                 }
             }),

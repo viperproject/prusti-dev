@@ -363,9 +363,6 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -378,11 +375,8 @@
 };
 <span class="kw">use </span>derivative::Derivative;
 <span class="kw">use </span>log::{debug, trace};
-<span class="kw">use </span>std::{
-    collections::{HashMap, HashSet, VecDeque},
-    fmt,
-    iter::FromIterator,
-};
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>std::{collections::VecDeque, fmt, iter::FromIterator};
 <span class="kw">use </span>uuid::Uuid;
 
 <span class="kw">pub const </span>RETURN_LABEL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;end_of_method&quot;</span>;
@@ -396,7 +390,7 @@
     <span class="kw">pub </span>formal_returns: Vec&lt;LocalVar&gt;,
     <span class="kw">pub </span>local_vars: Vec&lt;LocalVar&gt;,
     <span class="attr">#[derivative(Hash = <span class="string">&quot;ignore&quot;</span>, PartialEq = <span class="string">&quot;ignore&quot;</span>)]
-    </span><span class="kw">pub </span>labels: HashSet&lt;String&gt;,
+    </span><span class="kw">pub </span>labels: FxHashSet&lt;String&gt;,
     <span class="kw">pub </span>basic_blocks: Vec&lt;CfgBlock&gt;,
     <span class="kw">pub </span>basic_blocks_labels: Vec&lt;String&gt;,
 }
@@ -465,7 +459,7 @@
             method_name,
             formal_returns,
             local_vars,
-            labels: HashSet::new(),
+            labels: FxHashSet::default(),
             basic_blocks: <span class="macro">vec!</span>[],
             basic_blocks_labels: <span class="macro">vec!</span>[],
         }
@@ -475,7 +469,7 @@
         <span class="self">self</span>.method_name.clone()
     }
 
-    <span class="kw">pub fn </span>labels(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashSet&lt;String&gt; {
+    <span class="kw">pub fn </span>labels(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;String&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.labels
     }
 
@@ -581,8 +575,8 @@
     }
 
     <span class="attr">#[allow(dead_code)]
-    </span><span class="kw">pub fn </span>predecessors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;usize, Vec&lt;usize&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>result = HashMap::new();
+    </span><span class="kw">pub fn </span>predecessors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashMap&lt;usize, Vec&lt;usize&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = FxHashMap::default();
         <span class="kw">for </span>(index, block) <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter().enumerate() {
             <span class="kw">for </span>successor <span class="kw">in </span>block.successor.get_following() {
                 <span class="kw">let </span>entry = result.entry(successor.block_index).or_insert_with(Vec::new);

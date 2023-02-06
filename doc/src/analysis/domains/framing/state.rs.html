@@ -88,6 +88,9 @@
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -155,19 +158,22 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Serialize <span class="kw">for </span>FramingState&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>serialize&lt;Se: Serializer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>seq = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">2</span>))<span class="question-mark">?</span>;
+
         <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_set: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.framed_accessible.iter().collect();
-        definitely_accessible_set.sort();
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_accessible_strings = <span class="macro">vec!</span>[];
-        <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_accessible_set {
-            definitely_accessible_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{place:?}&quot;</span>));
-        }
+        definitely_accessible_set.sort_unstable();
+        <span class="kw">let </span>definitely_accessible_strings: Vec&lt;<span class="kw">_</span>&gt; = definitely_accessible_set
+            .into_iter()
+            .map(|place| <span class="macro">format!</span>(<span class="string">&quot;{place:?}&quot;</span>))
+            .collect();
         seq.serialize_entry(<span class="string">&quot;frame_accessible&quot;</span>, <span class="kw-2">&amp;</span>definitely_accessible_strings)<span class="question-mark">?</span>;
+
         <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_set: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.framed_owned.iter().collect();
-        definitely_owned_set.sort();
-        <span class="kw">let </span><span class="kw-2">mut </span>definitely_owned_strings = <span class="macro">vec!</span>[];
-        <span class="kw">for </span><span class="kw-2">&amp;</span>place <span class="kw">in </span>definitely_owned_set {
-            definitely_owned_strings.push(<span class="macro">format!</span>(<span class="string">&quot;{place:?}&quot;</span>));
-        }
+        definitely_owned_set.sort_unstable();
+        <span class="kw">let </span>definitely_owned_strings: Vec&lt;<span class="kw">_</span>&gt; = definitely_owned_set
+            .into_iter()
+            .map(|place| <span class="macro">format!</span>(<span class="string">&quot;{place:?}&quot;</span>))
+            .collect();
+
         seq.serialize_entry(<span class="string">&quot;frame_owned&quot;</span>, <span class="kw-2">&amp;</span>definitely_owned_strings)<span class="question-mark">?</span>;
         seq.end()
     }

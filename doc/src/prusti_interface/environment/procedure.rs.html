@@ -440,6 +440,7 @@
 };
 <span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxHashSet},
     hir::def_id,
     middle::{
         mir::{<span class="self">self</span>, AggregateKind, BasicBlock, BasicBlockData, Body, Rvalue, StatementKind},
@@ -447,7 +448,6 @@
     },
     span::Span,
 };
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
 
 <span class="doccomment">/// Index of a Basic Block
 </span><span class="kw">pub type </span>BasicBlockIndex = mir::BasicBlock;
@@ -460,15 +460,15 @@
     mir: MirBody&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     real_edges: RealEdges,
     loop_info: loops::ProcedureLoops,
-    reachable_basic_blocks: HashSet&lt;BasicBlock&gt;,
-    nonspec_basic_blocks: HashSet&lt;BasicBlock&gt;,
+    reachable_basic_blocks: FxHashSet&lt;BasicBlock&gt;,
+    nonspec_basic_blocks: FxHashSet&lt;BasicBlock&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Procedure&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="doccomment">/// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
     </span><span class="kw">pub fn </span>new(env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;, proc_def_id: ProcedureDefId) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;Encoding procedure {:?}&quot;</span>, proc_def_id);
+        <span class="macro">trace!</span>(<span class="string">&quot;Encoding procedure {proc_def_id:?}&quot;</span>);
         <span class="kw">let </span>mir = env
             .body
             .get_impure_fn_body_identity(proc_def_id.expect_local());
@@ -495,7 +495,7 @@
 
     <span class="doccomment">/// Returns all the types used in the procedure, and any types reachable from them
     </span><span class="kw">pub fn </span>get_declared_types(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="kw">let </span>_types: HashSet&lt;Ty&gt; = HashSet::new();
+        <span class="kw">let </span>_types: FxHashSet&lt;Ty&gt; = FxHashSet::default();
         <span class="comment">// for var in &amp;self.mir.local_decls {
         //     for ty in var.ty.walk() {
         //         let declared_ty = ty;
@@ -629,9 +629,9 @@
 }
 
 <span class="doccomment">/// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-</span><span class="kw">fn </span>build_reachable_basic_blocks(mir: <span class="kw-2">&amp;</span>Body, real_edges: <span class="kw-2">&amp;</span>RealEdges) -&gt; HashSet&lt;BasicBlock&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>reachable_basic_blocks: HashSet&lt;BasicBlock&gt; = HashSet::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>visited: HashSet&lt;BasicBlock&gt; = HashSet::new();
+</span><span class="kw">fn </span>build_reachable_basic_blocks(mir: <span class="kw-2">&amp;</span>Body, real_edges: <span class="kw-2">&amp;</span>RealEdges) -&gt; FxHashSet&lt;BasicBlock&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>reachable_basic_blocks: FxHashSet&lt;BasicBlock&gt; = FxHashSet::default();
+    <span class="kw">let </span><span class="kw-2">mut </span>visited: FxHashSet&lt;BasicBlock&gt; = FxHashSet::default();
     <span class="kw">let </span><span class="kw-2">mut </span>to_visit: Vec&lt;BasicBlock&gt; = <span class="macro">vec!</span>[mir.basic_blocks.indices().next().unwrap()];
 
     <span class="kw">while </span>!to_visit.is_empty() {
@@ -734,19 +734,19 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>BasicBlockNode {
-    successors: HashSet&lt;BasicBlock&gt;,
-    predecessors: HashSet&lt;BasicBlock&gt;,
+    successors: FxHashSet&lt;BasicBlock&gt;,
+    predecessors: FxHashSet&lt;BasicBlock&gt;,
 }
 
 <span class="kw">fn </span>_blocks_definitely_leading_to&lt;<span class="lifetime">&#39;a</span>&gt;(
-    bb_graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashMap&lt;BasicBlock, BasicBlockNode&gt;,
+    bb_graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;BasicBlock, BasicBlockNode&gt;,
     target: BasicBlock,
-    blocks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>HashSet&lt;BasicBlock&gt;,
-) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>HashSet&lt;BasicBlock&gt; {
+    blocks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FxHashSet&lt;BasicBlock&gt;,
+) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FxHashSet&lt;BasicBlock&gt; {
     <span class="kw">for </span>pred <span class="kw">in </span>bb_graph[<span class="kw-2">&amp;</span>target].predecessors.iter() {
-        <span class="macro">debug!</span>(<span class="string">&quot;target: {:#?}, pred: {:#?}&quot;</span>, target, pred);
+        <span class="macro">debug!</span>(<span class="string">&quot;target: {target:#?}, pred: {pred:#?}&quot;</span>);
         <span class="kw">if </span>bb_graph[pred].successors.len() == <span class="number">1 </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;pred {:#?} has 1 successor&quot;</span>, pred);
+            <span class="macro">debug!</span>(<span class="string">&quot;pred {pred:#?} has 1 successor&quot;</span>);
             blocks.insert(<span class="kw-2">*</span>pred);
             _blocks_definitely_leading_to(bb_graph, <span class="kw-2">*</span>pred, blocks);
         }
@@ -755,17 +755,17 @@
 }
 
 <span class="kw">fn </span>blocks_definitely_leading_to(
-    bb_graph: <span class="kw-2">&amp;</span>HashMap&lt;BasicBlock, BasicBlockNode&gt;,
+    bb_graph: <span class="kw-2">&amp;</span>FxHashMap&lt;BasicBlock, BasicBlockNode&gt;,
     target: BasicBlock,
-) -&gt; HashSet&lt;BasicBlock&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>blocks = HashSet::new();
+) -&gt; FxHashSet&lt;BasicBlock&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>blocks = FxHashSet::default();
     _blocks_definitely_leading_to(bb_graph, target, <span class="kw-2">&amp;mut </span>blocks);
     blocks
 }
 
-<span class="kw">fn </span>blocks_dominated_by(mir: <span class="kw-2">&amp;</span>Body, dominator: BasicBlock) -&gt; HashSet&lt;BasicBlock&gt; {
+<span class="kw">fn </span>blocks_dominated_by(mir: <span class="kw-2">&amp;</span>Body, dominator: BasicBlock) -&gt; FxHashSet&lt;BasicBlock&gt; {
     <span class="kw">let </span>dominators = mir.basic_blocks.dominators();
-    <span class="kw">let </span><span class="kw-2">mut </span>blocks = HashSet::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>blocks = FxHashSet::default();
     <span class="kw">for </span>bb <span class="kw">in </span>mir.basic_blocks.indices() {
         <span class="kw">if </span>dominators.is_dominated_by(bb, dominator) {
             blocks.insert(bb);
@@ -776,10 +776,10 @@
 
 <span class="kw">fn </span>get_nonspec_basic_blocks(
     env_query: EnvQuery,
-    bb_graph: HashMap&lt;BasicBlock, BasicBlockNode&gt;,
+    bb_graph: FxHashMap&lt;BasicBlock, BasicBlockNode&gt;,
     mir: <span class="kw-2">&amp;</span>Body,
-) -&gt; HashSet&lt;BasicBlock&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>spec_basic_blocks: HashSet&lt;BasicBlock&gt; = HashSet::new();
+) -&gt; FxHashSet&lt;BasicBlock&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>spec_basic_blocks: FxHashSet&lt;BasicBlock&gt; = FxHashSet::default();
     <span class="kw">for </span>(bb, <span class="kw">_</span>) <span class="kw">in </span>bb_graph.iter() {
         <span class="kw">if </span>is_marked_specification_block(env_query, <span class="kw-2">&amp;</span>mir[<span class="kw-2">*</span>bb]) {
             spec_basic_blocks.insert(<span class="kw-2">*</span>bb);
@@ -787,9 +787,9 @@
             spec_basic_blocks.extend(blocks_dominated_by(mir, <span class="kw-2">*</span>bb).into_iter());
         }
     }
-    <span class="macro">debug!</span>(<span class="string">&quot;spec basic blocks: {:#?}&quot;</span>, spec_basic_blocks);
+    <span class="macro">debug!</span>(<span class="string">&quot;spec basic blocks: {spec_basic_blocks:#?}&quot;</span>);
 
-    <span class="kw">let </span>all_basic_blocks: HashSet&lt;BasicBlock&gt; = bb_graph.keys().cloned().collect();
+    <span class="kw">let </span>all_basic_blocks: FxHashSet&lt;BasicBlock&gt; = bb_graph.keys().cloned().collect();
     all_basic_blocks
         .difference(<span class="kw-2">&amp;</span>spec_basic_blocks)
         .cloned()
@@ -801,9 +801,9 @@
     env_query: EnvQuery,
     mir: <span class="kw-2">&amp;</span>Body,
     real_edges: <span class="kw-2">&amp;</span>RealEdges,
-) -&gt; HashSet&lt;BasicBlock&gt; {
+) -&gt; FxHashSet&lt;BasicBlock&gt; {
     <span class="kw">let </span>dominators = mir.basic_blocks.dominators();
-    <span class="kw">let </span><span class="kw-2">mut </span>loop_heads: HashSet&lt;BasicBlock&gt; = HashSet::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>loop_heads: FxHashSet&lt;BasicBlock&gt; = FxHashSet::default();
 
     <span class="kw">for </span>source <span class="kw">in </span>mir.basic_blocks.indices() {
         <span class="kw">for </span><span class="kw-2">&amp;</span>target <span class="kw">in </span>real_edges.successors(source) {
@@ -813,10 +813,10 @@
         }
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>visited: HashSet&lt;BasicBlock&gt; = HashSet::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>visited: FxHashSet&lt;BasicBlock&gt; = FxHashSet::default();
     <span class="kw">let </span><span class="kw-2">mut </span>to_visit: Vec&lt;BasicBlock&gt; = <span class="macro">vec!</span>[mir.basic_blocks.indices().next().unwrap()];
 
-    <span class="kw">let </span><span class="kw-2">mut </span>bb_graph: HashMap&lt;BasicBlock, BasicBlockNode&gt; = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>bb_graph: FxHashMap&lt;BasicBlock, BasicBlockNode&gt; = FxHashMap::default();
 
     <span class="kw">while </span>!to_visit.is_empty() {
         <span class="kw">let </span>source = to_visit.pop().unwrap();
@@ -826,15 +826,15 @@
         }
 
         bb_graph.entry(source).or_insert_with(|| BasicBlockNode {
-            successors: HashSet::new(),
-            predecessors: HashSet::new(),
+            successors: FxHashSet::default(),
+            predecessors: FxHashSet::default(),
         });
 
         visited.insert(source);
 
         <span class="kw">let </span>is_loop_head = loop_heads.contains(<span class="kw-2">&amp;</span>source);
         <span class="kw">if </span>is_loop_head {
-            <span class="macro">trace!</span>(<span class="string">&quot;MIR block {:?} is a loop head&quot;</span>, source);
+            <span class="macro">trace!</span>(<span class="string">&quot;MIR block {source:?} is a loop head&quot;</span>);
         }
         <span class="kw">for </span><span class="kw-2">&amp;</span>target <span class="kw">in </span>real_edges.successors(source) {
             <span class="kw">if </span>!visited.contains(<span class="kw-2">&amp;</span>target) {
@@ -842,8 +842,8 @@
             }
 
             bb_graph.entry(target).or_insert_with(|| BasicBlockNode {
-                successors: HashSet::new(),
-                predecessors: HashSet::new(),
+                successors: FxHashSet::default(),
+                predecessors: FxHashSet::default(),
             });
             bb_graph
                 .get_mut(<span class="kw-2">&amp;</span>target)

@@ -230,7 +230,7 @@
     JNIEnv,
 };
 <span class="kw">use </span>log::error;
-<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>viper_sys::wrappers::<span class="kw-2">*</span>;
 
 <span class="attr">#[derive(Clone, Copy)]
@@ -371,7 +371,7 @@
     }
 
     <span class="doccomment">/// Converts a Scala Map (using strings! JObjects are not hashable) to a Rust HashMap
-    </span><span class="kw">pub fn </span>stringmap_to_hashmap(<span class="kw-2">&amp;</span><span class="self">self</span>, map: JObject&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; HashMap&lt;String, JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>stringmap_to_hashmap(<span class="kw-2">&amp;</span><span class="self">self</span>, map: JObject&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; FxHashMap&lt;String, JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
         <span class="kw">let </span>iter_wrapper = scala::collection::Iterable::with(<span class="self">self</span>.env);
         <span class="kw">let </span>product_wrapper = scala::Product::with(<span class="self">self</span>.env);
         <span class="kw">let </span>seq = <span class="self">self</span>.unwrap_result(iter_wrapper.call_toSeq(map));
@@ -382,7 +382,7 @@
                 <span class="kw">let </span>item2 = <span class="self">self</span>.unwrap_result(product_wrapper.call_productElement(item, <span class="number">1</span>));
                 (<span class="self">self</span>.to_string(item1), item2)
             })
-            .collect::&lt;HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()
+            .collect::&lt;FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()
     }
 
     <span class="doccomment">/// Converts a Scala Map to a Vec of its keys. The order of keys is

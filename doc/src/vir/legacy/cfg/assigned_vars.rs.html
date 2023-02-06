@@ -56,7 +56,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::legacy::{<span class="self">self</span>, ast::<span class="kw-2">*</span>, CfgBlock, CfgBlockIndex, CfgMethod};
-<span class="kw">use </span>std::collections::HashSet;
+<span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">pub fn </span>collect_assigned_vars(
     method: <span class="kw-2">&amp;</span>CfgMethod,
@@ -66,8 +66,8 @@
     <span class="kw">let </span>predecessors = method.predecessors();
     <span class="kw">let </span>start = start_block.block_index;
     <span class="kw">let </span>end = end_block.block_index;
-    <span class="kw">let </span><span class="kw-2">mut </span>variables = HashSet::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>marked = HashSet::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>variables = FxHashSet::default();
+    <span class="kw">let </span><span class="kw-2">mut </span>marked = FxHashSet::default();
     marked.insert(end);
     marked.insert(start);
     <span class="kw">let </span><span class="kw-2">mut </span>to_visit = <span class="macro">vec!</span>[start];
@@ -83,11 +83,11 @@
         check_block(<span class="kw-2">&amp;mut </span>variables, <span class="kw-2">&amp;</span>method.basic_blocks[current]);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>result: Vec&lt;<span class="kw">_</span>&gt; = variables.into_iter().collect();
-    result.sort_by(|a, b| a.name.cmp(<span class="kw-2">&amp;</span>b.name));
+    result.sort_unstable_by(|a, b| a.name.cmp(<span class="kw-2">&amp;</span>b.name));
     result
 }
 
-<span class="kw">fn </span>check_block(vars: <span class="kw-2">&amp;mut </span>HashSet&lt;LocalVar&gt;, block: <span class="kw-2">&amp;</span>CfgBlock) {
+<span class="kw">fn </span>check_block(vars: <span class="kw-2">&amp;mut </span>FxHashSet&lt;LocalVar&gt;, block: <span class="kw-2">&amp;</span>CfgBlock) {
     <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;</span>block.stmts {
         <span class="kw">match </span>stmt {
             Stmt::MethodCall(<span class="kw">_</span>, <span class="kw">_</span>, targets) =&gt; {

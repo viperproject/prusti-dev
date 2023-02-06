@@ -324,9 +324,6 @@
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
     errors::MultiSpan,
     hir::{
@@ -341,12 +338,9 @@
     environment::{EnvDiagnostic, EnvName, EnvQuery, Environment},
     PrustiError,
 };
-<span class="kw">use </span>prusti_rustc_interface::middle::ty::subst::SubstsRef;
+<span class="kw">use </span>prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::ty::subst::SubstsRef};
 <span class="kw">use </span>prusti_specs::ExternSpecKind;
-<span class="kw">use </span>std::{
-    cmp::{Eq, PartialEq},
-    collections::HashMap,
-};
+<span class="kw">use </span>std::cmp::{Eq, PartialEq};
 
 <span class="kw">pub enum </span>ExternSpecResolverError {
     <span class="doccomment">/// Occurs when the user declares an extern spec in an impl block but the
@@ -428,11 +422,11 @@
     env_query: EnvQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 
     <span class="doccomment">/// Maps real functions to Prusti-generated fake functions with specifications.
-    </span><span class="kw">pub </span>extern_fn_map: HashMap&lt;ExternSpecDeclaration, DefId&gt;,
+    </span><span class="kw">pub </span>extern_fn_map: FxHashMap&lt;ExternSpecDeclaration, DefId&gt;,
 
     <span class="doccomment">/// Duplicate specifications detected, keyed by the `DefId` of the function
     /// to be specified.
-    </span>spec_duplicates: HashMap&lt;DefId, Vec&lt;(DefId, Span)&gt;&gt;,
+    </span>spec_duplicates: FxHashMap&lt;DefId, Vec&lt;(DefId, Span)&gt;&gt;,
 
     <span class="doccomment">/// Encountered errors while resolving external specs.
     </span>errors: Vec&lt;ExternSpecResolverError&gt;,
@@ -443,8 +437,8 @@
         <span class="self">Self </span>{
             env_name: env.name,
             env_query: env.query,
-            extern_fn_map: HashMap::new(),
-            spec_duplicates: HashMap::new(),
+            extern_fn_map: FxHashMap::default(),
+            spec_duplicates: FxHashMap::default(),
             errors: <span class="macro">vec!</span>[],
         }
     }

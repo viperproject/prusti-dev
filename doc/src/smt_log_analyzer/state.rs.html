@@ -778,9 +778,6 @@
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
 </pre><pre class="rust"><code><span class="kw">use </span>csv::Writer;
 
 <span class="kw">use crate</span>::{
@@ -788,10 +785,8 @@
     parser::TheoryKind,
     types::{Level, QuantifierId, TermId, BUILTIN_QUANTIFIER_ID},
 };
-<span class="kw">use </span>std::{
-    collections::{HashMap, HashSet},
-    fmt::Write,
-};
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Quantifier {
     name: String,
@@ -858,7 +853,7 @@
     <span class="doccomment">/// How many active scopes were popped with that pop operation?
     </span>active_scopes_popped: Level,
     <span class="doccomment">/// How many instances of each quantifier were removed in that pop?
-    </span>removed_quantifiers: HashMap&lt;QuantifierId, usize&gt;,
+    </span>removed_quantifiers: FxHashMap&lt;QuantifierId, usize&gt;,
     <span class="doccomment">/// Popped labels.
     </span>labels: Vec&lt;BasicBlockVisitedEvent&gt;,
     <span class="doccomment">/// Labels leading to the popped labels.
@@ -867,26 +862,26 @@
 
 <span class="attr">#[derive(Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>State {
-    quantifiers: HashMap&lt;QuantifierId, Quantifier&gt;,
-    terms: HashMap&lt;TermId, Term&gt;,
+    quantifiers: FxHashMap&lt;QuantifierId, Quantifier&gt;,
+    terms: FxHashMap&lt;TermId, Term&gt;,
     <span class="doccomment">/// The currently matched quantifiers (via [new-match]) at a given level.
-    </span>quantifiers_matched_events: HashMap&lt;QuantifierId, Vec&lt;QuantifierMatchedEvent&gt;&gt;,
+    </span>quantifiers_matched_events: FxHashMap&lt;QuantifierId, Vec&lt;QuantifierMatchedEvent&gt;&gt;,
     <span class="doccomment">/// The currently discovered quantifiers (via [inst-discovered]) at a given level.
-    </span>quantifiers_inst_disovered_events: HashMap&lt;TheoryKind, Vec&lt;QuantifierMatchedEvent&gt;&gt;,
+    </span>quantifiers_inst_disovered_events: FxHashMap&lt;TheoryKind, Vec&lt;QuantifierMatchedEvent&gt;&gt;,
     <span class="doccomment">/// How many times each quantifier was matched (ignoring push/pop).
-    </span>total_quantifiers_matched_counters: HashMap&lt;QuantifierId, usize&gt;,
+    </span>total_quantifiers_matched_counters: FxHashMap&lt;QuantifierId, usize&gt;,
     <span class="doccomment">/// How many times each quantifier was discovered (ignoring push/pop).
-    </span>total_quantifiers_inst_disovered_counters: HashMap&lt;TheoryKind, usize&gt;,
+    </span>total_quantifiers_inst_disovered_counters: FxHashMap&lt;TheoryKind, usize&gt;,
     <span class="doccomment">/// How many instantiations we had of each quantifier.
-    </span>max_quantifier_matched_event_counters: HashMap&lt;QuantifierId, usize&gt;,
+    </span>max_quantifier_matched_event_counters: FxHashMap&lt;QuantifierId, usize&gt;,
     <span class="doccomment">/// How many instantiations we had of each theory.
-    </span>max_quantifier_inst_discovered_event_counters: HashMap&lt;TheoryKind, usize&gt;,
-    unique_quantifier_triggers: HashMap&lt;QuantifierId, HashSet&lt;TermId&gt;&gt;,
-    term_used_in_trigger_events: HashMap&lt;QuantifierId, Vec&lt;TermUsedInTriggerEvent&gt;&gt;,
-    max_term_used_in_trigger_event_counters: HashMap&lt;QuantifierId, usize&gt;,
+    </span>max_quantifier_inst_discovered_event_counters: FxHashMap&lt;TheoryKind, usize&gt;,
+    unique_quantifier_triggers: FxHashMap&lt;QuantifierId, FxHashSet&lt;TermId&gt;&gt;,
+    term_used_in_trigger_events: FxHashMap&lt;QuantifierId, Vec&lt;TermUsedInTriggerEvent&gt;&gt;,
+    max_term_used_in_trigger_event_counters: FxHashMap&lt;QuantifierId, usize&gt;,
     <span class="doccomment">/// Quantifiers that the triggered by exactly the same term multiple times.
     /// (Push/pop is taken into account.)
-    </span>multi_term_quantifiers: HashMap&lt;QuantifierId, Vec&lt;TermId&gt;&gt;,
+    </span>multi_term_quantifiers: FxHashMap&lt;QuantifierId, Vec&lt;TermId&gt;&gt;,
     <span class="doccomment">/// A total number of times the quantifiers were instantiated via [instance]
     /// (ignoring push/pop).
     </span>total_quantifiers_instance_counters: usize,
@@ -920,7 +915,7 @@
         <span class="self">self</span>.max_quantifier_matched_event_counters
             .insert(quantifier_id, <span class="number">0</span>);
         <span class="self">self</span>.unique_quantifier_triggers
-            .insert(quantifier_id, HashSet::new());
+            .insert(quantifier_id, FxHashSet::default());
         <span class="self">self</span>.term_used_in_trigger_events
             .insert(quantifier_id, Vec::new());
         <span class="self">self</span>.max_term_used_in_trigger_event_counters
@@ -1154,7 +1149,7 @@
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>removed_quantifiers = HashMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>removed_quantifiers = FxHashMap::default();
         <span class="kw">let </span><span class="kw-2">mut </span>total_quantifier_matches_removed = <span class="number">0</span>;
         <span class="kw">for </span>(quantifier_id, events) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.quantifiers_matched_events {
             <span class="kw">let </span>max = <span class="self">self
@@ -1230,7 +1225,7 @@
             .iter()
             .map(|(quantifier_id, counter)| (<span class="kw-2">*</span>counter, <span class="kw-2">*</span>quantifier_id))
             .collect();
-        counts.sort();
+        counts.sort_unstable();
         counts
     }
 
@@ -1260,7 +1255,7 @@
                 .iter()
                 .map(|(quantifier_id, counter)| (<span class="kw-2">*</span>counter, <span class="kw-2">*</span>quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record([<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Trigger Count&quot;</span>])
                 .unwrap();
@@ -1284,7 +1279,7 @@
                 .iter()
                 .map(|(quantifier_id, terms)| (terms.len(), <span class="kw-2">*</span>quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record([<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Unique trigger Count&quot;</span>])
                 .unwrap();
@@ -1332,7 +1327,7 @@
                 .iter()
                 .map(|(quantifier_id, terms)| (terms.len(), <span class="kw-2">*</span>quantifier_id))
                 .collect();
-            multi_term_instantiation_counts.sort();
+            multi_term_instantiation_counts.sort_unstable();
             writer
                 .write_record([<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Trigger Count&quot;</span>])
                 .unwrap();
@@ -1381,7 +1376,7 @@
                 .iter()
                 .map(|(theory, counter)| (counter, <span class="kw-2">*</span>theory))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record([<span class="string">&quot;Theory&quot;</span>, <span class="string">&quot;Discoveries&quot;</span>, <span class="string">&quot;Total Discoveries&quot;</span>])
                 .unwrap();
@@ -1399,8 +1394,7 @@
 
         {
             <span class="macro">println!</span>(
-                <span class="string">&quot;The largest number of quantifier matches removed in a single \
-                “pop {}” operation: {}&quot;</span>,
+                <span class="string">&quot;The largest number of quantifier matches removed in a single “pop {}” operation: {}&quot;</span>,
                 <span class="self">self</span>.largest_pop.active_scopes_popped, <span class="self">self</span>.largest_pop.quantifier_matches_removed
             );
             <span class="comment">// The number of quantifier matches poped in the largest match.
@@ -1412,7 +1406,7 @@
                 .iter()
                 .map(|(quantifier_id, counter)| (<span class="kw-2">*</span>counter, <span class="kw-2">*</span>quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record([<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Matches Removed&quot;</span>])
                 .unwrap();

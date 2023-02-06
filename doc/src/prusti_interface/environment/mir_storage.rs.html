@@ -49,6 +49,7 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module allows storing mir bodies with borrowck facts in a thread-local
 //! storage. Unfortunately, thread local storage requires all data stored in it
 //! to have a `&#39;static` lifetime. Therefore, we transmute the lifetime `&#39;tcx`
@@ -58,14 +59,15 @@
 //! `&#39;tcx`.
 
 </span><span class="kw">use </span>prusti_rustc_interface::{
-    borrowck::BodyWithBorrowckFacts, hir::def_id::LocalDefId, middle::ty::TyCtxt,
+    borrowck::BodyWithBorrowckFacts, data_structures::fx::FxHashMap, hir::def_id::LocalDefId,
+    middle::ty::TyCtxt,
 };
-<span class="kw">use </span>std::{cell::RefCell, collections::HashMap, thread_local};
+<span class="kw">use </span>std::{cell::RefCell, thread_local};
 
 <span class="macro">thread_local! </span>{
     <span class="kw">pub static </span>SHARED_STATE:
-        RefCell&lt;HashMap&lt;LocalDefId, BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt; =
-        RefCell::new(HashMap::new());
+        RefCell&lt;FxHashMap&lt;LocalDefId, BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt; =
+        RefCell::new(FxHashMap::default());
 }
 
 <span class="doccomment">/// # Safety
