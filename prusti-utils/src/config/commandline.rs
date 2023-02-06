@@ -1,5 +1,6 @@
 use ::config::{ConfigError, Source, Value};
 use itertools::Itertools;
+// Cannot use rustc_hash::FxHashMap here, due to type requirement in config::Source
 use std::{collections::HashMap, env};
 
 #[derive(Clone, Debug)]

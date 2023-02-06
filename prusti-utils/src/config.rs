@@ -11,8 +11,9 @@ use self::commandline::CommandLine;
 use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
+use rustc_hash::FxHashSet;
 use serde::Deserialize;
-use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
+use std::{env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -222,7 +223,7 @@ lazy_static::lazy_static! {
     });
 }
 
-fn get_keys(settings: &Config) -> HashSet<String> {
+fn get_keys(settings: &Config) -> FxHashSet<String> {
     settings
         .cache
         .clone()
@@ -232,7 +233,7 @@ fn get_keys(settings: &Config) -> HashSet<String> {
         .collect()
 }
 
-fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
+fn check_keys(settings: &Config, allowed_keys: &FxHashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
         assert!(
             allowed_keys.contains(key),
