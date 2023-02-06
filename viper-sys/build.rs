@@ -198,6 +198,9 @@ fn main() {
             java_class!("viper.silver.ast.Assert", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.plugin.standard.refute.Refute", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.ast.Bool$", vec![
                 object_getter!(),
             ]),

@@ -8,6 +8,7 @@ use crate::ast_factory::{
 };
 use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
+use viper_sys::wrappers::viper::silver::plugin::standard::refute;
 
 impl<'a> AstFactory<'a> {
     pub fn new_stmt(&self, lhs: Expr, fields: &[Field]) -> Stmt<'a> {
@@ -133,8 +134,28 @@ impl<'a> AstFactory<'a> {
         Stmt::new(obj)
     }
 
+    pub fn refute(&self, expr: Expr, pos: Position) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(refute::Refute::with(self.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
+    }
+
     pub fn assert_with_comment(&self, expr: Expr, pos: Position, comment: &str) -> Stmt<'a> {
         let obj = self.jni.unwrap_result(ast::Assert::with(self.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            self.simple_info(&[comment, ""]),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
+    }
+
+    pub fn refute_with_comment(&self, expr: Expr, pos: Position, comment: &str) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(refute::Refute::with(self.env).new(
             expr.to_jobject(),
             pos.to_jobject(),
             self.simple_info(&[comment, ""]),

@@ -24,6 +24,8 @@ pub enum PanicCause {
     Panic,
     /// Caused by an assert!()
     Assert,
+    /// Caused by an refute!()
+    Refute,
     /// Caused by an debug_assert!()
     DebugAssert,
     /// Caused by an unreachable!()
