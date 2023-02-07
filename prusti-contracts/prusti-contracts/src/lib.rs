@@ -18,6 +18,9 @@ pub use prusti_contracts_proc_macros::pure;
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 
+/// A macro for marking a function as opted into verification.
+pub use prusti_contracts_proc_macros::verified;
+
 /// A macro for type invariants.
 pub use prusti_contracts_proc_macros::invariant;
 

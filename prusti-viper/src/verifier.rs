@@ -143,7 +143,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     viper::VerificationResult::ConsistencyErrors(errors) => {
                         for error in errors {
                             PrustiError::internal(
-                                format!("consistency error in {program_name.clone()}: {error}"), DUMMY_SP.into()
+                                format!("consistency error in {program_name}: {error}"), DUMMY_SP.into()
                             ).emit(&self.env.diagnostic);
                         }
                         overall_result = VerificationResult::Failure;
@@ -204,7 +204,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     viper::VerificationResult::JavaException(exception) => {
                         error!("Java exception: {}", exception.get_stack_trace());
                         PrustiError::internal(
-                            format!("in {program_name.clone()}: {exception}"), DUMMY_SP.into()
+                            format!("in {program_name}: {exception}"), DUMMY_SP.into()
                         ).emit(&self.env.diagnostic);
                         overall_result = VerificationResult::Failure;
                     }

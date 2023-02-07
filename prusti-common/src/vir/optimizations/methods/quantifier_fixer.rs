@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::vir::polymorphic_vir as vir;
-use fxhash::FxHashMap;
 use itertools::Itertools;
 use log::debug;
+use rustc_hash::FxHashMap;
 use std::mem;
 
 /// Optimizations currently done:
@@ -108,7 +108,7 @@ impl vir::ExprFolder for Optimizer {
         });
 
         if *replacer.counter > old_counter {
-            for (expr, variable) in replacer.map.into_iter().sorted() {
+            for (expr, variable) in replacer.map.into_iter().sorted_unstable() {
                 forall = vir::Expr::LetExpr(vir::LetExpr {
                     variable,
                     def: box expr,

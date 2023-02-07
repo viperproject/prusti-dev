@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::vir::{program::Program, Position};
-use fxhash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
+use rustc_hash::{FxHashMap, FxHashSet};
 use viper::VerificationResult;
 
 #[derive(Clone)]
@@ -31,7 +31,7 @@ impl NormalizationInfo {
                     position_ids.insert(p.id());
                 });
                 let mut original_position_ids: Vec<u64> = position_ids.into_iter().collect();
-                original_position_ids.sort();
+                original_position_ids.sort_unstable();
 
                 // Remap positions ids to be consecutive starting from zero.
                 // TODO: line and columns are not modified; we could remove them from the Position struct.
