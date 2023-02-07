@@ -1058,9 +1058,11 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
             // self.convert_basic_block_path(path, ast, &mut blocks_ast, &mut declarations);
         } else {
             // Sort blocks by label, except for the first block
-            let mut blocks: Vec<_> = self.basic_blocks.iter().enumerate().skip(1).collect();
-            blocks.sort_by_key(|(index, _)| index_to_label(self.basic_blocks_labels(), *index));
-            blocks.insert(0, (0, &self.basic_blocks[0]));
+            // let mut blocks: Vec<_> = self.basic_blocks.iter().enumerate().skip(1).collect();
+            // blocks.sort_by_key(|(index, _)| index_to_label(self.basic_blocks_labels(), *index));
+            // blocks.insert(0, (0, &self.basic_blocks[0]));
+
+            let blocks = topologicaly_sort_blocks(&self.basic_blocks);
 
             for (index, block) in blocks.into_iter() {
                 blocks_ast.push(block_to_viper(
@@ -1095,6 +1097,55 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
             method_body,
         )
     }
+}
+
+fn topologicaly_sort_blocks(blocks: &[CfgBlock]) -> Vec<(usize, &CfgBlock)> {
+    let mut added_blocks: Vec<bool> = (0..blocks.len()).map(|_| false).collect();
+    let mut traversed_blocks: Vec<bool> = (0..blocks.len()).map(|_| false).collect();
+    let mut res = Vec::new();
+
+    topo_rec(
+        blocks,
+        0,
+        &mut res,
+        &mut added_blocks,
+        &mut traversed_blocks,
+    );
+
+    res.into_iter()
+        .rev()
+        .map(|idx| (idx, &blocks[idx]))
+        .collect()
+}
+
+fn topo_rec(
+    blocks: &[CfgBlock],
+    curr: usize,
+    res: &mut Vec<usize>,
+    added_blocks: &mut [bool],
+    traversed_blocks: &mut [bool],
+) {
+    debug_assert!(!traversed_blocks[curr], "Found a back edge!");
+    if added_blocks[curr] {
+        return;
+    }
+
+    traversed_blocks[curr] = true;
+    match &blocks[curr].successor {
+        Successor::Undefined => unreachable!("Undefined edge!"),
+        Successor::Return => (),
+        Successor::Goto(to) => topo_rec(blocks, to.index(), res, added_blocks, traversed_blocks),
+        Successor::GotoSwitch(tos, default) => {
+            for (_, to) in tos.iter() {
+                topo_rec(blocks, to.index(), res, added_blocks, traversed_blocks);
+            }
+            topo_rec(blocks, default.index(), res, added_blocks, traversed_blocks);
+        }
+    }
+    traversed_blocks[curr] = false;
+
+    res.push(curr);
+    added_blocks[curr] = true;
 }
 
 fn cfg_method_convert_basic_block_path<'v>(

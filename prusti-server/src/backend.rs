@@ -24,7 +24,15 @@ impl<'a> Backend<'a> {
                     let mut viper_program =
                         program.to_viper(LoweringContext::default(), &ast_factory);
 
-                        if config::sif() {
+                    if config::sif() {
+                        if config::dump_viper_program() {
+                            stopwatch.start_next("dumping viper program before sif transformation");
+                            dump_viper_program(
+                                &ast_utils,
+                                viper_program,
+                                &format!("{}_before_sif", program.get_name_with_check_mode()),
+                            );
+                        }
                         let sif_transformer = context.new_sif_transformer();
                         stopwatch.start_next("sif translation");
                         viper_program = sif_transformer.sif_transformation(viper_program);
