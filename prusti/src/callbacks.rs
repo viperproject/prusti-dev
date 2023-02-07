@@ -1,5 +1,5 @@
 use crate::{
-    ide_helper::{fake_error::fake_error, ide_info},
+    ide_helper::{fake_error::fake_error, compiler_info},
     verifier::verify,
 };
 use prusti_common::config;
@@ -123,8 +123,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             // part of verification_task
 
             if config::show_ide_info() && !config::no_verify() {
-                let ideinf = ide_info::IdeInfo::collect(&env, &annotated_procedures);
-                let out = serde_json::to_string(&ideinf).unwrap();
+                let compiler_info = compiler_info::IdeInfo::collect(&env, &annotated_procedures);
+                let out = serde_json::to_string(&compiler_info).unwrap();
                 // probably should make this part of compilers output..
                 // actually not sure which way is better...
                 println!("{}", out);

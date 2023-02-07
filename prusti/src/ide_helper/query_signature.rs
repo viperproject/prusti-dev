@@ -1,7 +1,7 @@
 use prusti_common::config;
 use std::{collections::HashMap, fmt};
 
-use super::ide_info::ProcDef;
+use super::compiler_info::ProcDef;
 use prusti_rustc_interface::{
     hir::{def::DefKind, def_id::DefId},
     middle::ty::{self, Clause, DefIdTree, ImplSubject, PredicateKind, Ty, TyCtxt},

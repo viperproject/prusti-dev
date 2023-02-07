@@ -55,13 +55,14 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
         match expr.kind {
             ExprKind::Call(e1, _e2) => {
                 println!("found a call: resolving!");
+
                 if let ExprKind::Path(ref qself) = e1.kind {
                     let tyck_res = self.tcx.typeck(e1.hir_id.owner.def_id);
                     let res = tyck_res.qpath_res(qself, e1.hir_id);
                     if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
-                        let defpath = self.tcx.def_path_debug_str(def_id);
+                        let defpath = self.tcx.def_path_str(def_id);
                         println!("Call DefPath: {}", defpath);
-                        self.called_functions.push((defpath, def_id, expr.span))
+                        self.called_functions.push((defpath, def_id, expr.span));
                     } else {
                         println!("Resolving a call failed!\n\n\n");
                     }
@@ -74,8 +75,8 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                 match resolve_res {
                     Ok((method_def_id, resolved_def_id)) => {
                         let _is_local = method_def_id.as_local().is_some();
-                        let defpath_unresolved = self.tcx.def_path_debug_str(method_def_id);
-                        let defpath_resolved = self.tcx.def_path_debug_str(resolved_def_id);
+                        let defpath_unresolved = self.tcx.def_path_str(method_def_id);
+                        let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
 
                         if true {
                             // TODO: replace with is_local once we are not debugging anymore
@@ -98,8 +99,8 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                 match resolve_res {
                     Ok((method_def_id, resolved_def_id)) => {
                         let _is_local = method_def_id.as_local().is_some();
-                        let defpath_unresolved = self.tcx.def_path_debug_str(method_def_id);
-                        let defpath_resolved = self.tcx.def_path_debug_str(resolved_def_id);
+                        let defpath_unresolved = self.tcx.def_path_str(method_def_id);
+                        let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
 
                         if true {
                             // TODO: replace with is_local once we are not debugging anymore
