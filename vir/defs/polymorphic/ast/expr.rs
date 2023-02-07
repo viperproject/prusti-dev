@@ -352,6 +352,20 @@ impl Expr {
         })
     }
 
+    pub fn forall_with_pos(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr, pos: Position) -> Self {
+        assert!(
+            !vars.is_empty(),
+            "A quantifier must have at least one variable."
+        );
+        Expr::ForAll(ForAll {
+            variables: vars,
+            triggers,
+            body: Box::new(body),
+            position: pos,
+        })
+    }
+
+
     pub fn exists(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
         assert!(
             !vars.is_empty(),

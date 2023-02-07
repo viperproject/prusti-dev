@@ -4,58 +4,61 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::VerificationRequest;
+use crate::{VerificationRequest, ServerMessage};
 use prusti_common::config;
-use reqwest::Client;
-use url::{ParseError, Url};
-use viper::VerificationResult;
+use url::Url;
+use tokio_tungstenite::{connect_async,
+                        tungstenite::{Message, error::Error}};
+use futures_util::{stream::{Stream, StreamExt}, sink::SinkExt};
 
-pub struct PrustiClient {
-    client: Client,
-    server_url: Url,
-}
+pub struct PrustiClient;
 
 impl PrustiClient {
-    pub fn new<S: ToString>(server_address: S) -> Result<Self, ParseError> {
-        let mut address = server_address.to_string();
-        if !address.starts_with("http") {
-            address = format!("http://{address}");
-        }
-        Ok(Self {
-            client: Client::new(),
-            server_url: Url::parse(address.as_str())?,
-        })
-    }
-
-    pub async fn verify(
-        &self,
+    pub async fn verify<S: ToString>(
+        server_address: S,
         request: VerificationRequest,
-    ) -> reqwest::Result<VerificationResult> {
+    ) -> impl Stream<Item = ServerMessage> {
+        // TODO: do proper error handling
+        let mut address = server_address.to_string();
+        if !address.starts_with("ws") {
+            address = format!("ws://{address}");
+        }
+
+        let server_url = Url::parse(address.as_str()).unwrap();
+
         let use_json = config::json_communication();
-        let base = self.client.post(
-            self.server_url
+
+        let uri = server_url
                 .join(if use_json { "json/" } else { "bincode/" })
                 .unwrap()
                 .join("verify/")
-                .unwrap(),
-        );
-        let response = if use_json {
-            base.json(&request)
-                .send()
-                .await?
-                .error_for_status()?
-                .json()
-                .await?
-        } else {
-            let bytes = base
-                .body(bincode::serialize(&request).expect("error encoding verification request"))
-                .send()
-                .await?
-                .error_for_status()?
-                .bytes()
-                .await?;
-            bincode::deserialize(&bytes).expect("error decoding verification result")
+                .unwrap();
+        let (mut socket, _) = connect_async(uri).await.unwrap();
+        let msg = if use_json { Message::text(serde_json::to_string(&request).expect("error encoding verification request in json")) }
+                  else { Message::binary(bincode::serialize(&request).expect("error encoding verification request as binary")) };
+        socket.send(msg).await.unwrap();
+        let json_map = |ws_msg| {
+            if let Message::Text(json) = ws_msg {
+                serde_json::from_str(&json).expect("error decoding verification result from json")
+            } else {
+                panic!("Invalid response from the server.");
+            }
         };
-        Ok(response)
+        let bin_map = |ws_msg| {
+            if let Message::Binary(bytes) = ws_msg {
+                bincode::deserialize(&bytes).expect("error decoding verification result")
+            } else {
+                panic!("Invalid response from the server.");
+            }
+        };
+        let filter_close = |msg_result: Result<Message, Error>| async {
+            let msg = msg_result.unwrap();
+            match msg {
+                Message::Close(_) => None,
+                _ => Some(msg),
+            }
+        };
+        let s = socket.filter_map(filter_close).map(if use_json { json_map } else { bin_map });
+        s
     }
 }

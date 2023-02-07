@@ -11,7 +11,7 @@ use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
 pub enum VerificationResult {
     /// The program verified.
     Success,
-    /// The program did not verify.
+    /// The program did not verify. Again with quantifier statistics.
     Failure(Vec<VerificationError>),
     /// The program has consistency errors.
     ConsistencyErrors(Vec<String>),

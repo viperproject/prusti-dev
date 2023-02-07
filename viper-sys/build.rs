@@ -143,6 +143,28 @@ fn main() {
             java_class!("viper.silver.reporter.NoopReporter$", vec![
                 object_getter!(),
             ]),
+            java_class!("viper.silver.reporter.PollingReporter", vec![
+                constructor!("(Ljava/lang/String;Lviper/silver/reporter/Reporter;)V"),
+                method!("hasNewMessage"),
+                method!("getNewMessage"),
+            ]),
+            java_class!("viper.silver.reporter.EntitySuccessMessage", vec![
+                method!("verificationTime"),
+                method!("cached"),
+                method!("concerning"),
+            ]),
+            java_class!("viper.silver.reporter.EntityFailureMessage", vec![
+                method!("verificationTime"),
+                method!("cached"),
+                method!("concerning"),
+            ]),
+            java_class!("viper.silver.reporter.QuantifierInstantiationsMessage", vec![
+                method!("quantifier"),
+                method!("instantiations"),
+            ]),
+            java_class!("viper.silver.ast.Member", vec![
+                method!("name"),
+            ]),
             java_class!("viper.silver.verifier.Verifier", vec![
                 method!("name"),
                 method!("buildVersion"),
@@ -150,6 +172,7 @@ fn main() {
                 method!("start"),
                 method!("stop"),
                 method!("verify"),
+                method!("reporter"),
             ]),
             java_class!("viper.silver.ast.pretty.FastPrettyPrinter$", vec![
                 object_getter!(),

@@ -40,6 +40,7 @@ pub enum PrustiErrorKind {
     Warning,
     /// A warning which is only shown if at least one error is emitted.
     WarningOnError,
+    Message,
 }
 
 impl PartialOrd for PrustiError {
@@ -146,6 +147,14 @@ impl PrustiError {
         error
     }
 
+    /// Report a message
+    pub fn message<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
+        let mut msg = PrustiError::new(message.to_string(), span);
+        msg.kind = PrustiErrorKind::Message;
+        msg
+    }
+
     /// Set that this Prusti error should be reported as a warning to the user
     pub fn set_warning(&mut self) {
         self.kind = PrustiErrorKind::Warning;
@@ -202,6 +211,10 @@ impl PrustiError {
                 &self.message,
                 &self.help,
                 &self.notes,
+            ),
+            PrustiErrorKind::Message => env_diagnostic.span_note(
+                *self.span,
+                &self.message,
             ),
         };
     }
