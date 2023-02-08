@@ -14,7 +14,7 @@ use prusti_common::{
 };
 use std::{fs::create_dir_all, path::PathBuf, thread, sync::{mpsc, Arc, self}};
 use viper::{
-    smt_manager::SmtManager, PersistentCache, Cache, VerificationBackend, VerificationResult, Viper, VerificationContext
+    smt_manager::SmtManager, PersistentCache, Cache, VerificationBackend, VerificationResult, VerificationResultType, Viper, VerificationContext
 };
 use viper_sys::wrappers::viper::*;
 use std::time;
@@ -141,7 +141,7 @@ pub fn process_verification_request(
                 let _ = build_or_dump_viper_program();
             });
         }
-        sender.send(ServerMessage::Termination(viper::VerificationResult::Success)).unwrap();
+        sender.send(ServerMessage::Termination(VerificationResult::dummy_success())).unwrap();
         return;
     }
 
@@ -158,7 +158,8 @@ pub fn process_verification_request(
                     let _ = build_or_dump_viper_program();
                 });
             }
-            normalization_info.denormalize_result(&mut result);
+            result.cached = true;
+            normalization_info.denormalize_result(&mut result.result_type);
             sender.send(ServerMessage::Termination(result)).unwrap();
             return;
         }
@@ -174,7 +175,12 @@ pub fn process_verification_request(
         let mut verifier =
             new_viper_verifier(program_name, &verification_context, request.backend_config);
 
-        let mut result = VerificationResult::Success;
+        let mut result = VerificationResult{
+            item_name : program_name.to_string(), 
+            result_type: VerificationResultType::Success,
+            cached: false,
+            time_ms: 0
+        };
         let normalization_info_clone = normalization_info.clone();
         let sender_clone = sender.clone();
 
@@ -234,7 +240,8 @@ pub fn process_verification_request(
                 }
             });
             stopwatch.start_next("verification");
-            result = verifier.verify(viper_program);
+            result.result_type = verifier.verify(viper_program);
+            result.time_ms = stopwatch.finish().as_millis();
             // send termination signal to polling thread
             main_tx.send(()).unwrap();
             // FIXME: here the global ref is dropped from a detached thread
@@ -242,7 +249,7 @@ pub fn process_verification_request(
         });
 
         // Don't cache Java exceptions, which might be due to misconfigured paths.
-        if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
+        if config::enable_cache() && !matches!(result.result_type, VerificationResultType::JavaException(_)) {
             info!(
                 "Storing new cached result {:?} for program {}",
                 &result,
@@ -251,7 +258,7 @@ pub fn process_verification_request(
             cache.insert(hash, result.clone());
         }
 
-        normalization_info.denormalize_result(&mut result);
+        normalization_info.denormalize_result(&mut result.result_type);
         sender.send(ServerMessage::Termination(result)).unwrap();
     })
 }

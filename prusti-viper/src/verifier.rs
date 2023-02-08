@@ -12,6 +12,7 @@ use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::Encoder;
 use crate::encoder::counterexamples::counterexample_translation;
 use crate::encoder::counterexamples::counterexample_translation_refactored;
+use crate::ide;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
@@ -132,35 +133,55 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         // different q_names for the same ID and each program reports independent results
         // key: (norm_pos_id, program_name), key to result: q_name result: num_instantiations
         let mut quantifier_instantiations: HashMap::<(u64, String), HashMap::<String, u64>> = HashMap::new();
-
+        let mut verification_summary = ide::verification_summary::VerificationSummary::new();
         pin_mut!(verification_messages);
+        
 
         while let Some((program_name, server_msg)) = verification_messages.next().await {
             match server_msg {
-                ServerMessage::Termination(result) => match result {
-                    // nothing to do
-                    viper::VerificationResult::Success => (),
-                    viper::VerificationResult::ConsistencyErrors(errors) => {
-                        for error in errors {
-                            PrustiError::internal(
-                                format!("consistency error in {program_name}: {error}"), DUMMY_SP.into()
-                            ).emit(&self.env.diagnostic);
+                ServerMessage::Termination(result) => {
+                    verification_summary.add(&result); 
+                    match result.result_type {
+                        // nothing to do
+                        viper::VerificationResultType::Success => (),
+                        viper::VerificationResultType::ConsistencyErrors(errors) => {
+                            for error in errors {
+                                PrustiError::internal(
+                                    format!("consistency error in {program_name}: {error}"), DUMMY_SP.into()
+                                ).emit(&self.env.diagnostic);
+                            }
+                            overall_result = VerificationResult::Failure;
                         }
-                        overall_result = VerificationResult::Failure;
-                    }
-                    viper::VerificationResult::Failure(errors) => {
-                        for verification_error in errors {
-                            debug!("Verification error in {}: {:?}", program_name.clone(), verification_error);
-                            let mut prusti_error = error_manager.translate_verification_error(&verification_error);
+                        viper::VerificationResultType::Failure(errors) => {
+                            for verification_error in errors {
+                                debug!("Verification error in {}: {:?}", program_name.clone(), verification_error);
+                                let mut prusti_error = error_manager.translate_verification_error(&verification_error);
 
-                            // annotate with counterexample, if requested
-                            if config::counterexample() {
-                                if config::unsafe_core_proof(){
-                                    if let Some(silicon_counterexample) = &verification_error.counterexample {
+                                // annotate with counterexample, if requested
+                                if config::counterexample() {
+                                    if config::unsafe_core_proof(){
+                                        if let Some(silicon_counterexample) = &verification_error.counterexample {
+                                            if let Some(def_id) = error_manager.get_def_id(&verification_error) {
+                                                let counterexample = counterexample_translation_refactored::backtranslate(
+                                                    &self.encoder,
+                                                    error_manager.position_manager(),
+                                                    def_id,
+                                                    silicon_counterexample,
+                                                );
+                                                prusti_error = counterexample.annotate_error(prusti_error);
+                                            } else {
+                                                prusti_error = prusti_error.add_note(
+                                                    format!(
+                                                        "the verifier produced a counterexample for {program_name}, but it could not be mapped to source code"
+                                                    ),
+                                                    None,
+                                                );
+                                            }
+                                        }
+                                    } else if let Some(silicon_counterexample) = &verification_error.counterexample {
                                         if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                                            let counterexample = counterexample_translation_refactored::backtranslate(
+                                            let counterexample = counterexample_translation::backtranslate(
                                                 &self.encoder,
-                                                error_manager.position_manager(),
                                                 def_id,
                                                 silicon_counterexample,
                                             );
@@ -174,39 +195,23 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                             );
                                         }
                                     }
-                                } else if let Some(silicon_counterexample) = &verification_error.counterexample {
-                                    if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                                        let counterexample = counterexample_translation::backtranslate(
-                                            &self.encoder,
-                                            def_id,
-                                            silicon_counterexample,
-                                        );
-                                        prusti_error = counterexample.annotate_error(prusti_error);
-                                    } else {
-                                        prusti_error = prusti_error.add_note(
-                                            format!(
-                                                "the verifier produced a counterexample for {program_name}, but it could not be mapped to source code"
-                                            ),
-                                            None,
-                                        );
-                                    }
+                                }
+                                debug!("Prusti error: {:?}", prusti_error);
+                                if prusti_error.is_disabled() {
+                                    prusti_error.cancel();
+                                } else {
+                                    prusti_error.emit(&self.env.diagnostic);
                                 }
                             }
-                            debug!("Prusti error: {:?}", prusti_error);
-                            if prusti_error.is_disabled() {
-                                prusti_error.cancel();
-                            } else {
-                                prusti_error.emit(&self.env.diagnostic);
-                            }
+                            overall_result = VerificationResult::Failure;
                         }
-                        overall_result = VerificationResult::Failure;
-                    }
-                    viper::VerificationResult::JavaException(exception) => {
-                        error!("Java exception: {}", exception.get_stack_trace());
-                        PrustiError::internal(
-                            format!("in {program_name}: {exception}"), DUMMY_SP.into()
-                        ).emit(&self.env.diagnostic);
-                        overall_result = VerificationResult::Failure;
+                        viper::VerificationResultType::JavaException(exception) => {
+                            error!("Java exception: {}", exception.get_stack_trace());
+                            PrustiError::internal(
+                                format!("in {program_name}: {exception}"), DUMMY_SP.into()
+                            ).emit(&self.env.diagnostic);
+                            overall_result = VerificationResult::Failure;
+                        }
                     }
                 }
                 ServerMessage::QuantifierInstantiation{q_name, insts, norm_pos_id} => {
@@ -235,6 +240,10 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     }
                 }
             }
+        }
+
+        if config::show_ide_info() {
+            println!("VerificationSummary: {}", verification_summary.to_json_string());
         }
 
         if encoding_errors_count != 0 {
