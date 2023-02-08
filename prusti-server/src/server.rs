@@ -79,15 +79,14 @@ where
                 ws_send.close().await.unwrap();
             })
         });
-    /*
     let save_cache = warp::post()
         .and(warp::path("save"))
         .and(warp::path::end())
         .map(move || {
-            cache.lock().unwrap().save();
+            VERIFICATION_REQUEST_PROCESSING.save_cache();
             warp::reply::html("Saved")
         });
-*/
+
     let endpoints = json_verify.or(bincode_verify);
     // Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and

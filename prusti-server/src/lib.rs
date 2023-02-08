@@ -11,8 +11,6 @@ mod process_verification;
 mod server;
 mod server_message;
 mod verification_request;
-mod jni_utils;
-mod java_exception;
 
 pub use client::*;
 pub use process_verification::*;

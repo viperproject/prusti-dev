@@ -133,6 +133,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         // key: (norm_pos_id, program_name), key to result: q_name result: num_instantiations
         let mut quantifier_instantiations: HashMap::<(u64, String), HashMap::<String, u64>> = HashMap::new();
 
+        // if we are not running in an ide, we want the errors to be reported sortedly
+        let prusti_errors: Vec<_> = vec![];
+
         pin_mut!(verification_messages);
 
         while let Some((program_name, server_msg)) = verification_messages.next().await {
@@ -196,7 +199,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                             if prusti_error.is_disabled() {
                                 prusti_error.cancel();
                             } else {
-                                prusti_error.emit(&self.env.diagnostic);
+                                if config::show_ide_info() {
+                                    prusti_error.emit(&self.env.diagnostic);
+                                } else {
+                                    prusti_errors.push_back(prusti_error);
+                                }
                             }
                         }
                         overall_result = VerificationResult::Failure;
@@ -230,10 +237,21 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     ), span.clone()
                                 ).emit(&self.env.diagnostic);
                             },
-                            None => info!("#{} quantifier instantiations of {} for unknown position id {} in verification of {}", insts, q_name, norm_pos_id, program_name),
+                            None => info!("#{insts} quantifier instantiations of {q_name} for unknown position id {norm_pos_id} in verification of {program_name}"),
                         }
                     }
                 }
+            }
+        }
+
+        // if we are in an ide, we already emit the errors asynchronously, otherwise we wait for
+        // all of them in order to sort them
+        if !config::show_ide_info() {
+            prusti_errors.sort();
+
+            for prusti_error in prusti_errors {
+                debug!("Prusti error: {:?}", prusti_error);
+                prusti_error.emit(&self.env.diagnostic);
             }
         }
 
