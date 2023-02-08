@@ -243,7 +243,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
 
         if config::show_ide_info() {
-            println!("VerificationSummary: {}", verification_summary.to_json_string());
+            println!("\n\n\n\nVerificationSummary: {}", verification_summary.to_json_string());
         }
 
         if encoding_errors_count != 0 {

@@ -127,7 +127,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 let out = serde_json::to_string(&compiler_info).unwrap();
                 // probably should make this part of compilers output..
                 // actually not sure which way is better...
-                println!("IdeInfo {}", out);
+                println!("{}", out);
             }
 
             // collect and output Information used by IDE:

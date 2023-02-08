@@ -11,7 +11,7 @@ use crate::{
     silicon_counterexample::SiliconCounterexample,
     smt_manager::SmtManager,
     verification_backend::VerificationBackend,
-    verification_result::{VerificationError, VerificationResult, VerificationResultType},
+    verification_result::{VerificationError, VerificationResultType},
 };
 use jni::{objects::JObject, JNIEnv};
 use log::{debug, error, info};
