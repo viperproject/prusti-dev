@@ -35,7 +35,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                     ),
                 )) = statement.kind
                 {
-                    let specification = self.encoder.get_loop_specs(cl_def_id.to_def_id()).unwrap();
+                    let specification = self.encoder.get_loop_specs(cl_def_id).unwrap();
                     let (spec, encoding_vec, err_ctxt) = match specification {
                         LoopSpecification::Invariant(inv) => {
                             (inv, &mut encoded_invariant_specs, ErrorCtxt::LoopInvariant)
@@ -65,7 +65,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             let dominators = self.mir.basic_blocks.dominators();
             predecessors[loop_head]
                 .iter()
-                .filter(|predecessor| dominators.is_dominated_by(**predecessor, loop_head))
+                .filter(|predecessor| dominators.dominates(loop_head, **predecessor))
                 .map(|back_edge| self.encode_basic_block_label(*back_edge))
                 .collect()
         };

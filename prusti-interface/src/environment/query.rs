@@ -140,7 +140,10 @@ impl<'tcx> EnvQuery<'tcx> {
 
     /// Returns true iff `def_id` is an unsafe function.
     pub fn is_unsafe_function(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
-        self.tcx.fn_sig(def_id.into_param()).unsafety()
+        self.tcx
+            .fn_sig(def_id.into_param())
+            .subst_identity()
+            .unsafety()
             == prusti_rustc_interface::hir::Unsafety::Unsafe
     }
 
@@ -152,11 +155,11 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         let sig = if self.tcx.is_closure(def_id) {
-            substs.as_closure().sig()
+            ty::EarlyBinder(substs.as_closure().sig())
         } else {
             self.tcx.fn_sig(def_id)
         };
-        ty::EarlyBinder(sig).subst(self.tcx, substs)
+        sig.subst(self.tcx, substs)
     }
 
     /// Computes the signature of the function with subst applied and associated types resolved.
@@ -531,8 +534,8 @@ mod sealed {
     }
     impl<'tcx> IntoParamTcx<'tcx, LocalDefId> for HirId {
         #[inline(always)]
-        fn into_param(self, tcx: TyCtxt<'tcx>) -> LocalDefId {
-            tcx.hir().local_def_id(self)
+        fn into_param(self, _tcx: TyCtxt<'tcx>) -> LocalDefId {
+            self.owner.def_id
         }
     }
     impl<'tcx> IntoParamTcx<'tcx, ParamEnv<'tcx>> for DefId {

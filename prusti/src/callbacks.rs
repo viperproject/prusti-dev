@@ -43,16 +43,16 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
     original_mir_borrowck(tcx, def_id)
 }
 
-fn override_queries(_session: &Session, local: &mut Providers, _external: &mut ExternProviders) {
-    local.mir_borrowck = mir_borrowck;
-}
-
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn config(&mut self, config: &mut Config) {
         // *Don't take MIR bodies with borrowck info if we won't need them*
         if !config::no_verify() {
             assert!(config.override_queries.is_none());
-            config.override_queries = Some(override_queries);
+            config.override_queries = Some(
+                |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
+                    providers.mir_borrowck = mir_borrowck;
+                },
+            );
         }
     }
     fn after_expansion<'tcx>(
@@ -60,29 +60,45 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
-        if compiler.session().rust_2015() {
+        if compiler.session().is_rust_2015() {
             compiler
                 .session()
                 .struct_warn(
                     "Prusti specifications are supported only from 2018 edition. Please \
-                 specify the edition with adding a command line argument `--edition=2018` or \
-                 `--edition=2021`.",
+                    specify the edition with adding a command line argument `--edition=2018` or \
+                    `--edition=2021`.",
                 )
                 .emit();
         }
         compiler.session().abort_if_errors();
-        let mut expansion_result = queries.expansion().unwrap();
-        let (krate, _resolver, _lint_store) = expansion_result.get_mut();
         if config::print_desugared_specs() {
-            prusti_rustc_interface::driver::pretty::print_after_parsing(
-                compiler.session(),
-                compiler.input(),
-                krate,
-                prusti_rustc_interface::session::config::PpMode::Source(
-                    prusti_rustc_interface::session::config::PpSourceMode::Normal,
-                ),
-                None,
-            );
+            // based on the implementation of rustc_driver::pretty::print_after_parsing
+            queries.global_ctxt().unwrap().enter(|tcx| {
+                let sess = compiler.session();
+                let krate = &tcx.resolver_for_lowering(()).borrow().1;
+                let src_name = sess.io.input.source_name();
+                let src = sess
+                    .source_map()
+                    .get_source_file(&src_name)
+                    .expect("get_source_file")
+                    .src
+                    .as_ref()
+                    .expect("src")
+                    .to_string();
+                print!(
+                    "{}",
+                    prusti_rustc_interface::ast_pretty::pprust::print_crate(
+                        sess.source_map(),
+                        krate,
+                        src_name,
+                        src,
+                        &prusti_rustc_interface::ast_pretty::pprust::state::NoAnn,
+                        false,
+                        sess.edition(),
+                        &sess.parse_sess.attr_id_generator,
+                    )
+                );
+            });
         }
         Compilation::Continue
     }

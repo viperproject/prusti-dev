@@ -236,7 +236,7 @@ pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockDa
             Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
         )) = &stmt.kind
         {
-            if is_spec_closure(env_query, def_id.to_def_id()) {
+            if is_spec_closure(env_query, *def_id) {
                 return true;
             }
         }
@@ -257,13 +257,13 @@ pub fn get_loop_invariant<'tcx>(
             Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _),
         )) = &stmt.kind
         {
-            if is_spec_closure(env_query, def_id.to_def_id())
+            if is_spec_closure(env_query, *def_id)
                 && crate::utils::has_prusti_attr(
-                    env_query.get_attributes(def_id.to_def_id()),
+                    env_query.get_attributes(def_id),
                     "loop_body_invariant_spec",
                 )
             {
-                return Some((def_id.to_def_id(), substs));
+                return Some((*def_id, substs));
             }
         }
     }
@@ -293,8 +293,8 @@ fn is_spec_block_kind(env_query: EnvQuery, bb_data: &BasicBlockData, kind: &str)
             Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
         )) = &stmt.kind
         {
-            if is_spec_closure(env_query, def_id.to_def_id())
-                && crate::utils::has_prusti_attr(env_query.get_attributes(def_id.to_def_id()), kind)
+            if is_spec_closure(env_query, *def_id)
+                && crate::utils::has_prusti_attr(env_query.get_attributes(def_id), kind)
             {
                 return true;
             }
@@ -338,7 +338,7 @@ fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> FxHashSet<BasicBloc
     let dominators = mir.basic_blocks.dominators();
     let mut blocks = FxHashSet::default();
     for bb in mir.basic_blocks.indices() {
-        if dominators.is_dominated_by(bb, dominator) {
+        if dominators.dominates(dominator, bb) {
             blocks.insert(bb);
         }
     }
@@ -378,7 +378,7 @@ fn build_nonspec_basic_blocks(
 
     for source in mir.basic_blocks.indices() {
         for &target in real_edges.successors(source) {
-            if dominators.is_dominated_by(source, target) {
+            if dominators.dominates(target, source) {
                 loop_heads.insert(target);
             }
         }
