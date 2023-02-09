@@ -1,7 +1,7 @@
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::{
-        def_id::DefId,
+        def_id::{DefId, LocalDefId},
         intravisit::{self, Visitor},
     },
     middle::hir::map::Map,
@@ -130,15 +130,15 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         fn_decl: &'tcx prusti_rustc_interface::hir::FnDecl,
         body_id: prusti_rustc_interface::hir::BodyId,
         span: Span,
-        id: prusti_rustc_interface::hir::hir_id::HirId,
+        local_id: LocalDefId,
         extern_spec_kind: ExternSpecKind,
     ) {
         let mut visitor = ExternSpecVisitor {
             env_query: self.env_query,
             spec_found: None,
         };
-        visitor.visit_fn(fn_kind, fn_decl, body_id, span, id);
-        let current_def_id = self.env_query.as_local_def_id(id).to_def_id();
+        visitor.visit_fn(fn_kind, fn_decl, body_id, span, local_id);
+        let current_def_id = local_id.to_def_id();
         if let Some((target_def_id, substs, span)) = visitor.spec_found {
             let extern_spec_decl =
                 ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env_query);

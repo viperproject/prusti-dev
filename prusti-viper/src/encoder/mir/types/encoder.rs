@@ -266,6 +266,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::FnPtr(_)
             | ty::TyKind::Dynamic(..)
             | ty::TyKind::GeneratorWitness(..)
+            | ty::TyKind::GeneratorWitnessMIR(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Alias(ty::AliasKind::Projection, _)
