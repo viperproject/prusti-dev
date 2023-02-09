@@ -923,7 +923,7 @@ impl PrustiBinaryOp {
     /// will bind to expr first, as 4 > 3.
     ///
     /// Associativity is likewise defined by making sure that each side of the
-    /// binding power is different. (4, 3) is left associative, (3, 4) is right
+    /// binding power is different. (4, 3) is right associative, (3, 4) is left
     /// associative.
     fn binding_power(&self) -> (u8, u8) {
         // TODO: should <== and ==> have the same binding power? === and !==?

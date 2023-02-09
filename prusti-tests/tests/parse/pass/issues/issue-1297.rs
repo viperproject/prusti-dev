@@ -6,3 +6,5 @@ predicate! {
         y > x
     }
 }
+
+fn main() {}
