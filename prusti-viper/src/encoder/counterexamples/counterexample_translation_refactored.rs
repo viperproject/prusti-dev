@@ -193,7 +193,13 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         let typ = self
             .encoder
             .get_proc_def_id(pure_fn.name.trim_start_matches("caller_for$").to_string())
-            .map(|fn_proc_id| self.tcx.fn_sig(fn_proc_id).skip_binder().output());
+            .map(|fn_proc_id| {
+                self.tcx
+                    .fn_sig(fn_proc_id)
+                    .subst_identity()
+                    .skip_binder()
+                    .output()
+            });
         let sil_arguments = pure_fn
             .args
             .iter()

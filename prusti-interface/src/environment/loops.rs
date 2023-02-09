@@ -259,7 +259,7 @@ impl ProcedureLoops {
         let mut back_edges: FxHashSet<(_, _)> = FxHashSet::default();
         for bb in mir.basic_blocks.indices() {
             for successor in real_edges.successors(bb) {
-                if dominators.is_dominated_by(bb, *successor) {
+                if dominators.dominates(*successor, bb) {
                     back_edges.insert((bb, *successor));
                     debug!("Loop head: {:?}", successor);
                 }
@@ -475,7 +475,7 @@ impl ProcedureLoops {
 
     /// Check if ``block`` is inside a given loop.
     pub fn is_block_in_loop(&self, loop_head: BasicBlockIndex, block: BasicBlockIndex) -> bool {
-        self.dominators.is_dominated_by(block, loop_head)
+        self.dominators.dominates(loop_head, block)
     }
 
     /// Compute what paths that are accessed inside the loop.
