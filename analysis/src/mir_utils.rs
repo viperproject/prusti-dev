@@ -554,10 +554,10 @@ pub(crate) fn expect_mid_location(location: RichLocation) -> mir::Location {
 
 /// Collect the MIR statement at a location, panic if not a valid location
 pub(crate) fn mir_kind_at<'mir, 'tcx: 'mir>(
-    mir: &'mir BodyWithBorrowckFacts<'tcx>,
+    mir: &'mir mir::Body<'tcx>,
     location: Location,
 ) -> StatementKinds<'mir, 'tcx> {
-    let stmt = mir.body.stmt_at(location);
+    let stmt = mir.stmt_at(location);
     // fixme: can't pattern match on stmt because the Either used by rustc is private?
     if stmt.is_left() {
         return StatementKinds::Stmt(&stmt.left().unwrap().kind as &StatementKind<'tcx>);

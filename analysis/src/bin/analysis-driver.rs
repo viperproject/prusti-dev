@@ -25,6 +25,7 @@ use prusti_rustc_interface::{
     polonius_engine::{Algorithm, Output},
     session::{Attribute, Session},
 };
+use prusti_utils::report::log::report_with_writer;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 struct OurCompilerCalls {
@@ -287,7 +288,18 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                                 println!("[driver]    {:#?}", state);
                                 println!("[polonius] {:#?}", body_with_facts.input_facts);
                                 println!("[polonius] {:#?}", body_with_facts.output_facts);
-                                todo!("log the state into appropriate graphviz files");
+                                report_with_writer(
+                                    "coupling_trace",
+                                    format!(
+                                        "{}.graph.dot",
+                                        "latest" // fixme: extract function names
+                                    ),
+                                    |writer| {
+                                        state.to_graphviz(writer).unwrap();
+                                    },
+                                );
+
+                                // todo!("log the state into appropriate graphviz files");
                             }
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }

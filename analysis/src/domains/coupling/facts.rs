@@ -114,7 +114,7 @@ impl<'tcx> FactTable<'tcx> {
         for (issuing_origin, loan, point) in mir.input_facts.loan_issued_at.iter() {
             // Insert facts for the new borrow temporary
             let location = expect_mid_location(mir.location_table.to_location(*point));
-            let statement = mir_kind_at(mir, location);
+            let statement = mir_kind_at(&mir.body, location);
             let borrowed_from_place: mir_utils::Place<'tcx> =
                 (*get_borrowed_from_place(&statement, location)?).into();
 
@@ -176,7 +176,7 @@ impl<'tcx> FactTable<'tcx> {
                 {
                     // Issuing borrow assignment: the new borrow is assigned into assigning_subset.1
                     let location = expect_mid_location(mir.location_table.to_location(point));
-                    let statement = mir_kind_at(mir, location);
+                    let statement = mir_kind_at(&mir.body, location);
                     let assigned_to_place = *get_assigned_to_place(&statement, location)?;
 
                     // fixme: get something like this to work
@@ -219,7 +219,7 @@ impl<'tcx> FactTable<'tcx> {
                     .collect::<Vec<_>>()[..]
                 {
                     let location = expect_mid_location(mir.location_table.to_location(point));
-                    let statement = mir_kind_at(mir, location);
+                    let statement = mir_kind_at(&mir.body, location);
                     let borrowed_from_place: OriginLHS<'tcx> =
                         OriginLHS::Place((*get_borrowed_from_place(&statement, location)?).into());
 
@@ -259,7 +259,7 @@ impl<'tcx> FactTable<'tcx> {
                 // Also add kills due to assignments here
 
                 let location = expect_mid_location(mir.location_table.to_location(point));
-                let statement = mir_kind_at(mir, location);
+                let statement = mir_kind_at(&mir.body, location);
                 let t_to: AnalysisResult<mir_utils::Place> =
                     get_assigned_to_place(&statement, location);
                 let t_from: AnalysisResult<mir_utils::Place> =
@@ -393,7 +393,7 @@ impl<'tcx> FactTable<'tcx> {
     {
         let rich_location = mir.location_table.to_location(location);
         match rich_location {
-            RichLocation::Start(loc) => get_storage_dead(&mir_kind_at(mir, loc), loc),
+            RichLocation::Start(loc) => get_storage_dead(&mir_kind_at(&mir.body, loc), loc),
             RichLocation::Mid(_) => None,
         }
     }
