@@ -285,6 +285,14 @@ impl<'tcx> CDGOrigin<'tcx> {
         Self::tag_in_set(&mut self.leaves, location, to_tag);
         Self::tag_in_edge_set(&mut self.edges, location, to_tag);
     }
+
+    pub(crate) fn roots(&self) -> &BTreeSet<CDGNode<'tcx>> {
+        &self.roots
+    }
+
+    pub(crate) fn leaves(&self) -> &BTreeSet<CDGNode<'tcx>> {
+        &self.leaves
+    }
 }
 
 impl<'tcx> fmt::Debug for CDGOrigin<'tcx> {
@@ -308,11 +316,13 @@ impl<'tcx> fmt::Debug for CDGOrigin<'tcx> {
     }
 }
 
+pub type OriginMap<'tcx> = BTreeMap<Region, CDGOrigin<'tcx>>;
+
 /// CouplingOrigins represents many copies of graphs to be analyzed at each program point
 /// Each graph is represented as a map from origins to fragments of the graph
 #[derive(Default, Eq, Clone)]
 pub struct CouplingOrigins<'tcx> {
-    pub origins: Vec<BTreeMap<Region, CDGOrigin<'tcx>>>,
+    pub origins: Vec<OriginMap<'tcx>>,
 }
 
 impl<'tcx> CouplingOrigins<'tcx> {
@@ -516,8 +526,8 @@ pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
     pub coupling_graph: CDG<'tcx>,
     pub to_kill: ToKill<'tcx>,
     // Also include: invariant checks, loan kill marks
-    mir: &'mir BodyWithBorrowckFacts<'tcx>,
-    fact_table: &'facts FactTable<'tcx>,
+    pub(crate) mir: &'mir BodyWithBorrowckFacts<'tcx>,
+    pub(crate) fact_table: &'facts FactTable<'tcx>,
 }
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
@@ -878,17 +888,8 @@ impl<'tcx> Serialize for CDG<'tcx> {
     where
         S: Serializer,
     {
-        let mut map = serializer.serialize_map(None)?;
-        map.serialize_entry(
-            "origins invariant?",
-            &self.origin_contains_loan_at_invariant,
-        )?;
-        todo!("serializer not implemented");
-        // for origin_map in self.origins.origins.iter() {
-        //     for (o, cdg) in origin_map.iter() {
-        //         map.serialize_entry(&format!("{:?}", o), &format!("{:?}", cdg))?;
-        //     }
-        // }
+        let map = serializer.serialize_map(None)?;
+        // fixme: stub
         map.end()
     }
 }

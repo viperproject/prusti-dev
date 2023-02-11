@@ -72,7 +72,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> FixpointEngine<'mir, 'tcx>
     ///     product_{predecessor parent loop heads H} InDegree(H)
     /// seems reasonable. Taking a maximum over all points gets the needs_to_widen bound.
     fn need_to_widen(counter: u32) -> bool {
-        assert!(counter <= 5);
+        assert!(counter <= 3);
         false
     }
 
