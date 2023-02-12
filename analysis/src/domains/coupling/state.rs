@@ -1104,22 +1104,23 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> AbstractState for CouplingState<'facts, '
                         }
                     }
 
-                    // LHS of the edge is the union of all coupled edges
-                    let mut lhs: BTreeSet<CDGNode<'tcx>> = Default::default();
-                    for r in regions.iter() {
-                        for n in self.coupling_graph.origins.origins[0]
-                            .get(r)
-                            .unwrap()
-                            .leaves
-                            .iter()
-                        {
-                            lhs.insert((*n).clone());
-                        }
-                    }
+                    // // LHS of the edge is the union of all coupled edges
+                    // let mut lhs: BTreeSet<CDGNode<'tcx>> = Default::default();
+                    // for r in regions.iter() {
+                    //     for n in self.coupling_graph.origins.origins[0]
+                    //         .get(r)
+                    //         .unwrap()
+                    //         .leaves
+                    //         .iter()
+                    //     {
+                    //         lhs.insert((*n).clone());
+                    //     }
+                    // }
 
                     // For each group in Self,
                     for r in regions.iter() {
                         for group in self.coupling_graph.origins.origins.iter_mut() {
+                            let lhs: BTreeSet<CDGNode<'tcx>> = group.get(r).unwrap().leaves.clone();
                             group.insert(
                                 *r,
                                 CDGOrigin::new_coupling(
