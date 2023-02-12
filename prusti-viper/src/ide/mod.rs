@@ -1,1 +1,1 @@
-pub mod verification_summary;
+pub mod verification_info;

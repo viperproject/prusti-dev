@@ -133,14 +133,14 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         // different q_names for the same ID and each program reports independent results
         // key: (norm_pos_id, program_name), key to result: q_name result: num_instantiations
         let mut quantifier_instantiations: HashMap::<(u64, String), HashMap::<String, u64>> = HashMap::new();
-        let mut verification_summary = ide::verification_summary::VerificationSummary::new();
+        let mut verification_info = ide::verification_info::VerificationInfo::new();
         pin_mut!(verification_messages);
         
 
         while let Some((program_name, server_msg)) = verification_messages.next().await {
             match server_msg {
                 ServerMessage::Termination(result) => {
-                    verification_summary.add(&result); 
+                    verification_info.add(&result); 
                     match result.result_type {
                         // nothing to do
                         viper::VerificationResultType::Success => (),
@@ -243,7 +243,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
 
         if config::show_ide_info() {
-            println!("\n\n\n\nVerificationSummary: {}", verification_summary.to_json_string());
+            println!("VerificationInfo {}", verification_info.to_json_string());
         }
 
         if encoding_errors_count != 0 {

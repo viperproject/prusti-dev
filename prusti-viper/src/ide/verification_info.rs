@@ -2,11 +2,11 @@ use viper::VerificationResult;
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub struct VerificationSummary {
+pub struct VerificationInfo {
     result_list: Vec<IdeVerificationResult>
 }
 
-impl VerificationSummary {
+impl VerificationInfo {
     pub fn new() -> Self {
         Self {
             result_list: vec![],
