@@ -7,7 +7,7 @@
 use crate::vir::{program::Program, Position};
 use log::{debug, trace};
 use rustc_hash::{FxHashMap, FxHashSet};
-use viper::VerificationResult;
+use viper::VerificationResultType;
 
 #[derive(Clone)]
 pub enum NormalizationInfo {
@@ -102,8 +102,8 @@ impl NormalizationInfo {
     }
 
     /// Denormalize a verification result.
-    pub fn denormalize_result(&self, result: &mut VerificationResult) {
-        if let VerificationResult::Failure(ref mut ver_errors) = result {
+    pub fn denormalize_result(&self, result: &mut VerificationResultType) {
+        if let VerificationResultType::Failure(ref mut ver_errors) = result {
             ver_errors.iter_mut().for_each(|ver_error| {
                 if let Some(pos) = ver_error.pos_id.as_mut() {
                     self.denormalize_position_string(pos);

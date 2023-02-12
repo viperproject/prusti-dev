@@ -6,9 +6,30 @@
 
 use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
 
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct VerificationResult {
+    pub item_name: String,
+    pub result_type: VerificationResultType,
+    pub cached: bool,
+    pub time_ms: u128,
+}
+
+impl VerificationResult {
+    pub fn is_success(&self) -> bool {
+        matches!(self.result_type, VerificationResultType::Success)
+    }
+    pub fn dummy_success() -> Self {
+        VerificationResult {
+            item_name: "".to_string(),
+            result_type: VerificationResultType::Success,
+            cached: false,
+            time_ms: 0,
+        }
+    }
+}
 /// The result of a verification request on a Viper program.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum VerificationResult {
+pub enum VerificationResultType{
     /// The program verified.
     Success,
     /// The program did not verify. Again with quantifier statistics.
@@ -19,7 +40,8 @@ pub enum VerificationResult {
     JavaException(JavaException),
 }
 
-impl VerificationResult {
+
+impl VerificationResultType {
     pub fn is_success(&self) -> bool {
         matches!(self, Self::Success)
     }

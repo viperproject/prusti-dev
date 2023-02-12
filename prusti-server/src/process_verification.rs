@@ -14,7 +14,7 @@ use prusti_common::{
 };
 use std::{fs::create_dir_all, path::PathBuf, thread, sync::{mpsc, Arc, self}};
 use viper::{
-    smt_manager::SmtManager, PersistentCache, Cache, VerificationBackend, VerificationResult, Viper, VerificationContext, jni_utils::JniUtils
+    smt_manager::SmtManager, PersistentCache, Cache, VerificationBackend, VerificationResult, VerificationResultType, Viper, VerificationContext, jni_utils::JniUtils
 };
 use viper_sys::wrappers::viper::*;
 use std::time;
@@ -161,9 +161,16 @@ pub fn process_verification_request(
                 let _ = build_or_dump_viper_program();
             });
         }
-        sender.send(ServerMessage::Termination(viper::VerificationResult::Success)).unwrap();
+        sender.send(ServerMessage::Termination(VerificationResult::dummy_success())).unwrap();
         return;
     }
+
+    let mut result = VerificationResult{
+        item_name : request.program.get_name().to_string(),
+        result_type: VerificationResultType::Success,
+        cached: false,
+        time_ms: 0
+    };
 
     // Early return in case of cache hit
     if config::enable_cache() {
@@ -178,7 +185,8 @@ pub fn process_verification_request(
                     let _ = build_or_dump_viper_program();
                 });
             }
-            normalization_info.denormalize_result(&mut result);
+            result.cached = true;
+            normalization_info.denormalize_result(&mut result.result_type);
             sender.send(ServerMessage::Termination(result)).unwrap();
             return;
         }
@@ -195,14 +203,15 @@ pub fn process_verification_request(
             new_viper_verifier(program_name, &verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
-        let mut result = if config::report_qi_profile() {
+        result.result_type = if config::report_qi_profile() {
             verify_and_poll_qi(verification_context, verifier, viper_program, viper_arc, sender.clone())
         } else {
             verifier.verify(viper_program)
         };
+        result.time_ms = stopwatch.finish().as_millis();
 
         // Don't cache Java exceptions, which might be due to misconfigured paths.
-        if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
+        if config::enable_cache() && !matches!(result.result_type, VerificationResultType::JavaException(_)) {
             info!(
                 "Storing new cached result {:?} for program {}",
                 &result,
@@ -211,7 +220,7 @@ pub fn process_verification_request(
             cache.insert(hash, result.clone());
         }
 
-        normalization_info.denormalize_result(&mut result);
+        normalization_info.denormalize_result(&mut result.result_type);
         sender.send(ServerMessage::Termination(result)).unwrap();
     })
 }
@@ -221,8 +230,8 @@ fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
                       viper_program: viper::Program,
                       viper_arc: &Arc<Viper>,
                       sender: mpsc::Sender<ServerMessage>)
-    -> VerificationResult {
-    let mut result = VerificationResult::Success;
+    -> VerificationResultType {
+    let mut result_type = VerificationResultType::Success;
     // start thread for polling messages
     thread::scope(|scope| {
         // get the reporter
@@ -234,13 +243,13 @@ fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
 
         let (main_tx, thread_rx) = mpsc::channel();
         let polling_thread = scope.spawn(|| polling_function(viper_arc, rep_glob_ref, sender, thread_rx));
-        result = verifier.verify(viper_program);
+        result_type = verifier.verify(viper_program);
         // send termination signal to polling thread
         main_tx.send(()).unwrap();
         // FIXME: here the global ref is dropped from a detached thread
         polling_thread.join().unwrap();
     });
-    result
+    result_type
 }
 
 fn polling_function(viper_arc: &Arc<Viper>,
