@@ -87,7 +87,7 @@ where
             warp::reply::html("Saved")
         });
 
-    let endpoints = json_verify.or(bincode_verify);
+    let endpoints = json_verify.or(bincode_verify).or(save_cache);
     // Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and
     // 2. By default Silicon already uses as many cores as possible.

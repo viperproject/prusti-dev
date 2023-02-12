@@ -9,7 +9,7 @@ use log::info;
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
-    vir::{program_normalization::NormalizationInfo, ToViper, program::Program},
+    vir::{program_normalization::NormalizationInfo, ToViper},
     Stopwatch,
 };
 use std::{fs::create_dir_all, path::PathBuf, thread, sync::{mpsc, Arc, self}};
@@ -20,10 +20,14 @@ use viper_sys::wrappers::viper::*;
 use std::time;
 use futures::{stream::Stream, lock};
 
+enum ServerRequest {
+    Verification(VerificationRequest),
+    SaveCache,
+}
+
 pub struct VerificationRequestProcessing {
     mtx_rx_servermsg: lock::Mutex<mpsc::Receiver<ServerMessage>>,
-    mtx_tx_verreq: sync::Mutex<mpsc::Sender<VerificationRequest>>,
-    cache: sync::Mutex<PersistentCache>,
+    mtx_tx_verreq: sync::Mutex<mpsc::Sender<ServerRequest>>,
 }
 
 // one structure that lives for all the requests and has a single thread working on all the
@@ -39,22 +43,26 @@ impl VerificationRequestProcessing {
 
         let ret = Self {mtx_rx_servermsg: mtx_rx_servermsg,
                         mtx_tx_verreq: mtx_tx_verreq,
-                        cache: sync::Mutex::new(PersistentCache::load_cache(config::cache_path())),
                        };
         thread::spawn(|| { Self::verification_thread(rx_verreq, tx_servermsg) });
         ret
     }
 
-    fn verification_thread(rx_verreq: mpsc::Receiver<VerificationRequest>, tx_servermsg: mpsc::Sender<ServerMessage>) {
+    fn verification_thread(rx_verreq: mpsc::Receiver<ServerRequest>, tx_servermsg: mpsc::Sender<ServerMessage>) {
         let mut stopwatch = Stopwatch::start("verification_request_processing", "JVM startup");
         let viper = Arc::new(Viper::new_with_args(&config::viper_home(), config::extra_jvm_args()));
+        let mut cache = PersistentCache::load_cache(config::cache_path());
         stopwatch.start_next("attach thread to JVM");
         let verification_context = viper.attach_current_thread();
         stopwatch.finish();
         loop {
             match rx_verreq.recv() {
                 Ok(request) => {
-                    process_verification_request(&viper, &mut self.cache.lock().unwrap(), &verification_context, &tx_servermsg, request);
+                    match request {
+                        ServerRequest::Verification(verification_request) =>
+                            process_verification_request(&viper, &mut cache, &verification_context, &tx_servermsg, verification_request),
+                        ServerRequest::SaveCache => cache.save(),
+                    }
                 }
                 Err(_) => break,
             }
@@ -65,7 +73,7 @@ impl VerificationRequestProcessing {
         self.mtx_tx_verreq
             .lock()
             .unwrap()
-            .send(request)
+            .send(ServerRequest::Verification(request))
             .unwrap();
         futures::stream::unfold(false, move |done: bool| async move {
             if done {
@@ -84,8 +92,12 @@ impl VerificationRequestProcessing {
         })
     }
 
-    pub fn save_cache() {
-        self.cache.lock().unwrap().save();
+    pub fn save_cache(&self) {
+        self.mtx_tx_verreq
+            .lock()
+            .unwrap()
+            .send(ServerRequest::SaveCache)
+            .unwrap();
     }
 }
 pub fn process_verification_request(
@@ -182,15 +194,12 @@ pub fn process_verification_request(
         let mut verifier =
             new_viper_verifier(program_name, &verification_context, request.backend_config);
 
-        let normalization_info_clone = normalization_info.clone();
-        let sender_clone = sender.clone();
-
         stopwatch.start_next("verification");
         let mut result = if config::report_qi_profile() {
-            verify_and_poll_qi(verification_context, verifier, viper_program)
+            verify_and_poll_qi(verification_context, verifier, viper_program, viper_arc, sender.clone())
         } else {
             verifier.verify(viper_program)
-        }
+        };
 
         // Don't cache Java exceptions, which might be due to misconfigured paths.
         if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
@@ -208,13 +217,12 @@ pub fn process_verification_request(
 }
 
 fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
-                      verifier: &viper::Verifier,
-                      viper_program: &Program,
+                      mut verifier: viper::Verifier,
+                      viper_program: viper::Program,
                       viper_arc: &Arc<Viper>,
-                      sender: mpsc::Sender<ServerMessage>,
-                      normalization_info: NormalizationInfo)
+                      sender: mpsc::Sender<ServerMessage>)
     -> VerificationResult {
-    let mut result = VerificationResult::Success; 
+    let mut result = VerificationResult::Success;
     // start thread for polling messages
     thread::scope(|scope| {
         // get the reporter
@@ -225,7 +233,7 @@ fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
         let rep_glob_ref = env.new_global_ref(reporter).unwrap();
 
         let (main_tx, thread_rx) = mpsc::channel();
-        let polling_thread = scope.spawn(polling_function(viper_arc, rep_glob_ref, sender, normalization_info));
+        let polling_thread = scope.spawn(|| polling_function(viper_arc, rep_glob_ref, sender, thread_rx));
         result = verifier.verify(viper_program);
         // send termination signal to polling thread
         main_tx.send(()).unwrap();
@@ -238,7 +246,7 @@ fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
 fn polling_function(viper_arc: &Arc<Viper>,
                     rep_glob_ref: jni::objects::GlobalRef,
                     sender: mpsc::Sender<ServerMessage>,
-                    normalization_info: NormalizationInfo) {
+                    thread_rx: mpsc::Receiver<()>) {
     let verification_context = viper_arc.attach_current_thread();
     let env = verification_context.env();
     let jni = JniUtils::new(env);
@@ -257,18 +265,18 @@ fn polling_function(viper_arc: &Arc<Viper>,
                     // quantifiers
                     info!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
                     // also matches the "-aux" quantifiers generated
-                    // some positions have just the id 0 and cannot be denormalized...
-                    if q_name.starts_with("quant_with_posID") {
-                        let no_pref = q_name.strip_prefix("quant_with_posID").unwrap();
+                    // we encoded the position id in the line number since this is not used by
+                    // prusti either way
+                    if q_name.starts_with("prog.l") {
+                        let no_pref = q_name.strip_prefix("prog.l").unwrap();
                         let stripped = no_pref.strip_suffix("-aux").or(Some(no_pref)).unwrap();
                         let parsed = stripped.parse::<u64>();
                         match parsed {
                             Ok(pos_id) => {
-                                let norm_pos_id = normalization_info_clone.denormalize_position_id(pos_id);
                                 sender.send(ServerMessage::QuantifierInstantiation{q_name: q_name,
-                                                                                         insts: u64::try_from(q_inst).unwrap(),
-                                                                                         norm_pos_id: norm_pos_id}
-                                                 ).unwrap();
+                                                                                   insts: u64::try_from(q_inst).unwrap(),
+                                                                                   pos_id: pos_id}
+                                           ).unwrap();
                             }
                             _ => info!("Unexpected quantifier name {}", q_name)
                         }

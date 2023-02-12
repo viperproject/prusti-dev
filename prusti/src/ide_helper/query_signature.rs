@@ -4,7 +4,7 @@ use std::{collections::HashMap, fmt};
 use super::compiler_info::ProcDef;
 use prusti_rustc_interface::{
     hir::{def::DefKind, def_id::DefId},
-    middle::ty::{self, Clause, DefIdTree, ImplSubject, PredicateKind, Ty, TyCtxt},
+    middle::ty::{self, Clause, DefIdTree, ImplSubject, PredicateKind, TyCtxt},
 };
 
 // data structure to represent what we want to generate

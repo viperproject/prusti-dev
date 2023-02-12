@@ -130,11 +130,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let error_manager = self.encoder.error_manager();
         // we want quantifier_pos_ID + program_name + q_name as identifier because there are
         // different q_names for the same ID and each program reports independent results
-        // key: (norm_pos_id, program_name), key to result: q_name result: num_instantiations
+        // key: (pos_id, program_name), key to result: q_name result: num_instantiations
         let mut quantifier_instantiations: HashMap::<(u64, String), HashMap::<String, u64>> = HashMap::new();
 
         // if we are not running in an ide, we want the errors to be reported sortedly
-        let prusti_errors: Vec<_> = vec![];
+        let mut prusti_errors: Vec<_> = vec![];
 
         pin_mut!(verification_messages);
 
@@ -202,7 +202,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                 if config::show_ide_info() {
                                     prusti_error.emit(&self.env.diagnostic);
                                 } else {
-                                    prusti_errors.push_back(prusti_error);
+                                    prusti_errors.push(prusti_error);
                                 }
                             }
                         }
@@ -216,11 +216,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         overall_result = VerificationResult::Failure;
                     }
                 }
-                ServerMessage::QuantifierInstantiation{q_name, insts, norm_pos_id} => {
+                ServerMessage::QuantifierInstantiation{q_name, insts, pos_id} => {
                     if config::report_qi_profile() {
-                        match error_manager.position_manager().get_span_from_id(norm_pos_id) {
+                        match error_manager.position_manager().get_span_from_id(pos_id) {
                             Some(span) => {
-                                let key = (norm_pos_id, program_name.clone());
+                                let key = (pos_id, program_name.clone());
                                 if !quantifier_instantiations.contains_key(&key) {
                                     quantifier_instantiations.insert(key.clone(), HashMap::new());
                                 }
@@ -237,7 +237,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     ), span.clone()
                                 ).emit(&self.env.diagnostic);
                             },
-                            None => info!("#{insts} quantifier instantiations of {q_name} for unknown position id {norm_pos_id} in verification of {program_name}"),
+                            None => info!("#{insts} quantifier instantiations of {q_name} for unknown position id {pos_id} in verification of {program_name}"),
                         }
                     }
                 }

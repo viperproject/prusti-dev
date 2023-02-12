@@ -10,7 +10,7 @@ use prusti_interface::{
 use prusti_viper::verifier::Verifier;
 
 pub fn verify<'tcx>(
-    env: Environment<'tcx>, 
+    env: Environment<'tcx>,
     def_spec: typed::DefSpecificationMap,
     verification_task: VerificationTask<'tcx>,
 ) {
@@ -43,7 +43,7 @@ pub fn verify<'tcx>(
                 );
             }
         }
-        
+
 
         let verification_result =
             if verification_task.procedures.is_empty() && verification_task.types.is_empty() {

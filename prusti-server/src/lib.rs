@@ -17,8 +17,6 @@ pub use process_verification::*;
 pub use server::*;
 pub use server_message::*;
 pub use verification_request::*;
-pub use jni_utils::*;
-pub use java_exception::*;
 
 // Futures returned by `Client` need to be executed in a compatible tokio runtime.
 pub use tokio;
