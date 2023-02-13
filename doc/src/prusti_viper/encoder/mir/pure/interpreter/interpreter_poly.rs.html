@@ -1296,6 +1296,9 @@
 <a href="#1296" id="1296">1296</a>
 <a href="#1297" id="1297">1297</a>
 <a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     encoder::{
         builtin_encoder::BuiltinFunctionKind,
@@ -2047,10 +2050,13 @@
                         <span class="comment">// We are encoding a trigger, so all panic branches must be stripped.
                         </span>states[target].clone()
                     }
-                    PureEncodingContext::Assertion =&gt; {
+                    PureEncodingContext::Assertion
+                        <span class="kw">if </span><span class="macro">matches!</span>(<span class="self">self</span>.mir.return_ty().kind(), ty::TyKind::Bool) =&gt;
+                    {
                         <span class="comment">// We are encoding an assertion, so all failures should be equivalent to false.
-                        </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(<span class="self">self</span>.mir.return_ty().kind(), ty::TyKind::Bool));
-                        ExprBackwardInterpreterState::new(states[target].expr().map(
+                        // Predicates are also encoded as assertions, but non-Boolean predicates should
+                        // use the other arm.
+                        </span>ExprBackwardInterpreterState::new(states[target].expr().map(
                             |target_expr| {
                                 vir::Expr::ite(
                                     viper_guard.clone(),
@@ -2060,7 +2066,7 @@
                             },
                         ))
                     }
-                    PureEncodingContext::Code =&gt; {
+                    PureEncodingContext::Assertion | PureEncodingContext::Code =&gt; {
                         <span class="comment">// We are encoding a pure function, so all failures should be unreachable.
                         </span><span class="kw">let </span>failure_encoding =
                             unreachable_expr(pos).with_span(term.source_info.span)<span class="question-mark">?</span>;

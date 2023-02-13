@@ -359,12 +359,12 @@
     spec_id_generator: SpecificationIdGenerator,
 }
 
-<span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+<span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>SpecItemType {
     Precondition,
     Postcondition,
     Pledge,
-    Predicate,
+    Predicate(TokenStream),
     Termination,
 }
 
@@ -374,7 +374,7 @@
             SpecItemType::Precondition =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;pre&quot;</span>),
             SpecItemType::Postcondition =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;post&quot;</span>),
             SpecItemType::Pledge =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;pledge&quot;</span>),
-            SpecItemType::Predicate =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;pred&quot;</span>),
+            SpecItemType::Predicate(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;pred&quot;</span>),
             SpecItemType::Termination =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;term&quot;</span>),
         }
     }
@@ -457,16 +457,16 @@
         //   of a single identifier; without the double negation, the `Return`
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
-        </span><span class="kw">let </span>(return_type, return_modifier) = <span class="kw">if </span>spec_type == SpecItemType::Termination {
-            (
+        </span><span class="kw">let </span>(return_type, return_modifier) = <span class="kw">match </span><span class="kw-2">&amp;</span>spec_type {
+            SpecItemType::Termination =&gt; (
                 <span class="macro">quote_spanned! </span>{item_span =&gt; Int},
                 <span class="macro">quote_spanned! </span>{item_span =&gt; Int::new(<span class="number">0</span>) + },
-            )
-        } <span class="kw">else </span>{
-            (
+            ),
+            SpecItemType::Predicate(return_type) =&gt; (return_type.clone(), TokenStream::new()),
+            <span class="kw">_ </span>=&gt; (
                 <span class="macro">quote_spanned! </span>{item_span =&gt; bool},
                 <span class="macro">quote_spanned! </span>{item_span =&gt; !!},
-            )
+            ),
         };
         <span class="kw">let </span><span class="kw-2">mut </span>spec_item: syn::ItemFn = <span class="macro">parse_quote_spanned! </span>{item_span=&gt;
             <span class="attr">#[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]

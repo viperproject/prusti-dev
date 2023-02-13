@@ -188,6 +188,25 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Predicate parsing
 
 </span><span class="kw">use crate</span>::{
@@ -195,7 +214,7 @@
     rewriter, SpecificationId, SPECS_VERSION,
 };
 <span class="kw">use </span>proc_macro2::{Span, TokenStream};
-<span class="kw">use </span>quote::ToTokens;
+<span class="kw">use </span>quote::{quote_spanned, ToTokens};
 <span class="kw">use </span>syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
 
 <span class="attr">#[derive(Debug)]
@@ -274,9 +293,18 @@
     <span class="kw">let </span>input: PredicateFnInput = syn::parse2(tokens).map_err(|e| {
         syn::Error::new(
             e.span(),
-            <span class="string">&quot;`predicate!` can only be used on function definitions. it supports no attributes.&quot;</span>,
+            <span class="string">&quot;`predicate!` can only be used on function definitions; it supports no attributes&quot;</span>,
         )
     })<span class="question-mark">?</span>;
+    <span class="kw">let </span>return_type = <span class="kw">match </span><span class="kw-2">&amp;</span>input.fn_sig.output {
+        syn::ReturnType::Default =&gt; {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(
+                input.fn_sig.span(),
+                <span class="string">&quot;`predicate!` must specify an output type&quot;</span>,
+            ));
+        }
+        syn::ReturnType::Type(<span class="kw">_</span>, <span class="kw">box </span>typ) =&gt; typ.to_token_stream(),
+    };
 
     <span class="kw">if </span>input.body.is_some() {
         <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
@@ -285,8 +313,12 @@
         <span class="kw">if </span>in_spec_refinement {
             <span class="kw">let </span>patched_function: syn::ImplItemMethod =
                 patch_predicate_macro_body(<span class="kw-2">&amp;</span>input, span, spec_id);
-            <span class="kw">let </span>spec_function =
-                generate_spec_function(input.body.unwrap(), spec_id, <span class="kw-2">&amp;</span>patched_function)<span class="question-mark">?</span>;
+            <span class="kw">let </span>spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                <span class="kw-2">&amp;</span>patched_function,
+            )<span class="question-mark">?</span>;
 
             <span class="prelude-val">Ok</span>(ParsedPredicate::Impl(PredicateWithBody {
                 spec_function,
@@ -294,8 +326,12 @@
             }))
         } <span class="kw">else </span>{
             <span class="kw">let </span>patched_function: syn::ItemFn = patch_predicate_macro_body(<span class="kw-2">&amp;</span>input, span, spec_id);
-            <span class="kw">let </span>spec_function =
-                generate_spec_function(input.body.unwrap(), spec_id, <span class="kw-2">&amp;</span>patched_function)<span class="question-mark">?</span>;
+            <span class="kw">let </span>spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                <span class="kw-2">&amp;</span>patched_function,
+            )<span class="question-mark">?</span>;
 
             <span class="prelude-val">Ok</span>(ParsedPredicate::FreeStanding(PredicateWithBody {
                 spec_function,
@@ -337,12 +373,13 @@
 
 <span class="kw">fn </span>generate_spec_function&lt;T: HasSignature + Spanned&gt;(
     body: TokenStream,
+    return_type: TokenStream,
     spec_id: SpecificationId,
     patched_function: <span class="kw-2">&amp;</span>T,
 ) -&gt; syn::Result&lt;syn::Item&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
     rewriter.process_assertion(
-        rewriter::SpecItemType::Predicate,
+        rewriter::SpecItemType::Predicate(return_type),
         spec_id,
         body,
         patched_function,
@@ -367,8 +404,9 @@
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span>brace_content;
             <span class="kw">let </span>_brace_token = <span class="macro">syn::braced!</span>(brace_content <span class="kw">in </span>input);
-            <span class="kw">let </span>parsed_body = brace_content.parse()<span class="question-mark">?</span>;
-            <span class="prelude-val">Some</span>(parsed_body)
+            <span class="kw">let </span>parsed_body: TokenStream = brace_content.parse()<span class="question-mark">?</span>;
+            <span class="comment">// add the braces back to allow function-like syntax
+            </span><span class="prelude-val">Some</span>(<span class="macro">quote_spanned!</span>(parsed_body.span()=&gt; { #parsed_body }))
         };
 
         <span class="prelude-val">Ok</span>(PredicateFnInput {
