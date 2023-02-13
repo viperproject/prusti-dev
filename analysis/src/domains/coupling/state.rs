@@ -664,7 +664,14 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                             .collect::<Vec<_>>()[..]
                         {
                             [closest_leaf] => closest_leaf,
-                            _ => panic!("internal error, no closest leaf for unpacker"),
+                            _ => {
+                                // fixme: try to pack up by removing unpack edges in this case
+                                unimplemented!(
+                                    "internal error, no closest leaf to {:?} for unpacker in {:?}",
+                                    target_place,
+                                    leaf_set
+                                )
+                            }
                         };
 
                         while !leaf_set.contains(target_place) {
