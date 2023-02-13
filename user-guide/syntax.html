@@ -32,6 +32,7 @@
 
     </head>
     <body>
+    <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
@@ -146,7 +147,10 @@
 <div class="table-wrapper"><table><thead><tr><th>Syntax</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><a href="#old-expressions"><code>old(...)</code></a></td><td>Value of expression in a previous state</td></tr>
 <tr><td><a href="#implications"><code>... ==&gt; ...</code></a></td><td>Implication</td></tr>
+<tr><td><a href="#implications"><code>... &lt;== ...</code></a></td><td>Implication</td></tr>
+<tr><td><a href="#implications"><code>... &lt;==&gt; ...</code></a></td><td>Biconditional</td></tr>
 <tr><td><a href="#snapshot-equality"><code>... === ...</code></a></td><td>Snapshot equality</td></tr>
+<tr><td><a href="#snapshot-equality"><code>... !== ...</code></a></td><td>Snapshot inequality</td></tr>
 <tr><td><a href="#quantifiers"><code>forall(...)</code></a></td><td>Universal quantifier</td></tr>
 <tr><td><a href="#quantifiers"><code>exists(...)</code></a></td><td>Existential quantifier</td></tr>
 <tr><td><a href="#specification-entailments"><code>... |= ...</code></a></td><td>Specification entailment</td></tr>
@@ -166,10 +170,16 @@ pub fn inc(x: &amp;mut u32) {
 #[ensures(result ==&gt; self.len() == 0)]
 #[ensures(!result ==&gt; self.len() &gt; 0)]
 pub fn is_empty(&amp;self) -&gt; bool;</code></pre>
-<p>There is no syntax for logical equivalences (&quot;if and only if&quot;), because this coincides with <code>==</code>:</p>
+<p>There is syntax for a right-to-left implication:</p>
 <pre><code class="language-rust noplaypen">#[pure]
-#[ensures(result == (self.len() == 0))]
+#[ensures(self.len() == 0 &lt;== result)]
+#[ensures(self.len() &gt; 0 &lt;== !result)]
 pub fn is_empty(&amp;self) -&gt; bool;</code></pre>
+<p>As well as a biconditional (&quot;if and only if&quot;):</p>
+<pre><code class="language-rust noplaypen">#[pure]
+#[ensures(self.len() == 0 &lt;==&gt; result)]
+pub fn is_empty(&amp;self) -&gt; bool;</code></pre>
+<p>Semantically, a biconditional is equivalent to a Boolean <code>==</code>. However, it has lower precedence than the <code>==</code> operator.</p>
 <h2 id="snapshot-equality"><a class="header" href="#snapshot-equality">Snapshot Equality</a></h2>
 <p>Snapshot equality (<code>===</code>) compares the
 <a href="https://viperproject.github.io/prusti-dev/dev-guide/encoding/types-snap.html">snapshots</a>
@@ -189,6 +199,7 @@ struct X { a: i32 }
 fn main() {
     foo(X { a: 1 }, X { a: 1 });
 }</code></pre>
+<p>Snapshot <em>in</em>equality is expressed using the <code>!==</code> operator.</p>
 <h2 id="quantifiers"><a class="header" href="#quantifiers">Quantifiers</a></h2>
 <p>Quantifiers are typically used for describing how a method call changes a container such as a vector:</p>
 <pre><code class="language-rust noplaypen">#[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
@@ -257,5 +268,6 @@ pub fn store(&amp;mut self, index: usize, value: i32) {
         <!-- Custom JS scripts -->
 
 
+    </div>
     </body>
 </html>
