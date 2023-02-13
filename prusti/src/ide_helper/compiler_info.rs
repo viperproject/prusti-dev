@@ -79,7 +79,7 @@ fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec<Pro
     let sourcemap: &SourceMap = env.tcx().sess.source_map();
     let mut procs = Vec::new();
     for procedure in procedures {
-        let defpath = env.name.get_item_def_path(*procedure);
+        let defpath = env.name.get_unique_item_name(*procedure);
         let span = env.query.get_def_span(procedure);
         println!("found procedure: {}, span: {:?}", defpath, span);
         let vscspan = VscSpan::from_span(span, sourcemap).unwrap();

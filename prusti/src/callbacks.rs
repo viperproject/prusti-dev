@@ -148,7 +148,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                     );
                     let procedures = annotated_procedures
                         .into_iter()
-                        .filter(|x| env.name.get_item_def_path(*x) == target_def_path)
+                        .filter(|x| env.name.get_unique_item_name(*x) == target_def_path)
                         .collect();
                     let selective_task = VerificationTask { procedures, types };
                     verify(env, def_spec, selective_task);
