@@ -41,7 +41,7 @@ RUSTFMT_CRATES = [
     'prusti-common',
     'prusti-contracts/prusti-contracts',
     'prusti-contracts/prusti-contracts-proc-macros',
-    #'prusti-contracts/prusti-specs',
+    'prusti-contracts/prusti-specs',
     'prusti-contracts/prusti-std',
     'prusti-contracts-build',
     'prusti-interface',
@@ -99,13 +99,14 @@ def viper_version():
         return file.read().strip()
 
 
-def setup_ubuntu():
+def setup_ubuntu(install_deps: bool):
     """Install the dependencies on Ubuntu."""
     # Install dependencies.
-    shell('sudo apt-get update')
-    shell('sudo apt-get install -y '
-          'build-essential pkg-config '
-          'curl gcc libssl-dev')
+    if install_deps:
+        shell('sudo apt-get update')
+        shell('sudo apt-get install -y '
+            'build-essential pkg-config '
+            'curl gcc libssl-dev unzip')
     # Download Viper.
     shell(
         'curl https://github.com/viperproject/viper-ide/releases/'
@@ -167,26 +168,25 @@ def setup_rustup():
 
 def setup(args):
     """Install the dependencies."""
-    rustup_only = False
+    install_deps = True
     if len(args) == 1 and args[0] == '--dry-run':
         global dry_run
         dry_run = True
-    elif len(args) == 1 and args[0] == '--rustup-only':
-        rustup_only = True
+    elif len(args) == 1 and args[0] == '--no-deps':
+        install_deps = False
     elif args:
         error("unexpected arguments: {}", args)
-    if not rustup_only:
-        if sys.platform in ("linux", "linux2"):
-            if 'Ubuntu' in platform.version():
-                setup_ubuntu()
-            else:
-                setup_linux()
-        elif sys.platform == "darwin":
-            setup_mac()
-        elif sys.platform == "win32":
-            setup_win()
+    if sys.platform in ("linux", "linux2"):
+        if 'Ubuntu' in platform.version():
+            setup_ubuntu(install_deps)
         else:
-            error("unsupported platform: {}", sys.platform)
+            setup_linux()
+    elif sys.platform == "darwin":
+        setup_mac()
+    elif sys.platform == "win32":
+        setup_win()
+    else:
+        error("unsupported platform: {}", sys.platform)
     setup_rustup()
 
 

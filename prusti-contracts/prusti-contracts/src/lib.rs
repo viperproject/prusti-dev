@@ -48,7 +48,7 @@ pub use prusti_contracts_proc_macros::model;
 
 /// A macro to add trait bounds on a generic type parameter and specifications
 /// which are active only when these bounds are satisfied for a call.
-pub use prusti_contracts_proc_macros::ghost_constraint;
+pub use prusti_contracts_proc_macros::refine_spec;
 
 /// A macro for defining ghost blocks which will be left in for verification
 /// but omitted during compilation.

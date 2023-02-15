@@ -138,7 +138,6 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<String>>("dump_fold_unfold_state_of_blocks", None).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
-        settings.set_default("enable_ghost_constraints", false).unwrap();
 
         settings.set_default("cargo_path", "cargo").unwrap();
         settings.set_default("cargo_command", "check").unwrap();
@@ -254,7 +253,7 @@ pub fn dump() -> String {
     let map = config::Source::collect(&*settings).unwrap();
     let mut pairs: Vec<_> = map
         .iter()
-        .map(|(key, value)| format!("{}={:#?}", key, value))
+        .map(|(key, value)| format!("{key}={value:#?}"))
         .collect();
     pairs.sort();
     pairs.join("\n\n")
@@ -275,7 +274,7 @@ where
         .read()
         .unwrap()
         .get(name)
-        .unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
+        .unwrap_or_else(|e| panic!("Failed to read setting {name} due to {e}"))
 }
 
 fn write_setting<T: Into<config::Value>>(key: &'static str, value: T) {
@@ -283,7 +282,7 @@ fn write_setting<T: Into<config::Value>>(key: &'static str, value: T) {
         .write()
         .unwrap()
         .set(key, value)
-        .unwrap_or_else(|e| panic!("Failed to write setting {} due to {}", key, e));
+        .unwrap_or_else(|e| panic!("Failed to write setting {key} due to {e}"));
 }
 
 // The following methods are all convenience wrappers for the actual call to
@@ -759,8 +758,7 @@ fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool {
     if value {
         assert!(
             use_smt_wrapper(),
-            "use_smt_wrapper must be true to use {}",
-            name
+            "use_smt_wrapper must be true to use {name}"
         );
     }
     value
@@ -771,8 +769,7 @@ fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64> {
     if value.is_some() {
         assert!(
             use_smt_wrapper(),
-            "use_smt_wrapper must be true to use {}",
-            name
+            "use_smt_wrapper must be true to use {name}"
         );
     }
     value
@@ -993,18 +990,6 @@ pub fn full_compilation() -> bool {
 /// When enabled, Viper identifiers are interned to shorten them when possible.
 pub fn intern_names() -> bool {
     read_setting("intern_names")
-}
-
-/// When enabled, ghost constraints can be used in Prusti specifications.
-///
-/// Ghost constraints allow for specifications which are only active if a
-/// certain "constraint" (i.e. a trait bound on a generic type parameter) is
-/// satisfied.
-///
-/// **This is an experimental feature**, because it is currently possible to
-/// introduce unsound verification behavior.
-pub fn enable_ghost_constraints() -> bool {
-    read_setting("enable_ghost_constraints")
 }
 
 /// Determines which cargo `cargo-prusti` should run (e.g. if "cargo" isn't in

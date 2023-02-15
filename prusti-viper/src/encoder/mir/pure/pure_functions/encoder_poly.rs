@@ -79,7 +79,7 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     debug!("Encode body of pure function {}", function_name);
 
     let state = run_backward_interpretation(&mir, &interpreter)?
-        .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", proc_def_id));
+        .unwrap_or_else(|| panic!("Procedure {proc_def_id:?} contains a loop"));
     let body_expr = state.into_expr().unwrap();
     debug!(
         "Pure function body {} has been encoded with expr: {}",
@@ -312,8 +312,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         debug_assert!(
             !postcondition.iter().any(|p| p.pos().is_default()),
-            "Some postcondition has no position: {:?}",
-            postcondition
+            "Some postcondition has no position: {postcondition:?}"
         );
 
         let type_arguments = self.encode_type_arguments()?;
@@ -489,7 +488,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     /// Encodes a VIR local with a snapshot type.
     fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
-        let var_name = format!("{:?}", local);
+        let var_name = format!("{local:?}");
         let var_span = self.get_local_span(local);
         let var_type = self
             .encoder
@@ -500,7 +499,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     /// Encodes a VIR local with the original MIR type.
     fn encode_mir_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
-        let var_name = format!("{:?}", local);
+        let var_name = format!("{local:?}");
         let var_span = self.get_local_span(local);
         let var_type = self
             .encoder
@@ -564,7 +563,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         for local_idx in 0..self.sig.skip_binder().inputs().len() {
             let local_ty = self.sig.input(local_idx);
             let local = prusti_rustc_interface::middle::mir::Local::from_usize(local_idx + 1);
-            let var_name = format!("{:?}", local);
+            let var_name = format!("{local:?}");
             let var_span = self.get_local_span(local);
 
             if !self

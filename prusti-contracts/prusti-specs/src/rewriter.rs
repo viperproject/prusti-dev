@@ -113,12 +113,18 @@ impl AstRewriter {
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
         let (return_type, return_modifier) = if spec_type == SpecItemType::Termination {
-            (quote_spanned! {item_span => Int}, quote_spanned! {item_span => Int::new(0) + })
+            (
+                quote_spanned! {item_span => Int},
+                quote_spanned! {item_span => Int::new(0) + },
+            )
         } else {
-            (quote_spanned! {item_span => bool}, quote_spanned! {item_span => !!})
+            (
+                quote_spanned! {item_span => bool},
+                quote_spanned! {item_span => !!},
+            )
         };
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-            #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
             fn #item_name() -> #return_type {
@@ -162,6 +168,30 @@ impl AstRewriter {
             parse_prusti_pledge(tokens)?,
             item,
         )
+    }
+
+    pub fn process_pure_refinement(
+        &mut self,
+        spec_id: SpecificationId,
+        item: &untyped::AnyFnItem,
+    ) -> syn::Result<syn::Item> {
+        let item_span = item.span();
+        let item_name = syn::Ident::new(
+            &format!("prusti_pure_ghost_item_{}", item.sig().ident),
+            item_span,
+        );
+
+        let spec_id_str = spec_id.to_string();
+        let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+            #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+            #[prusti::spec_only]
+            #[prusti::spec_id = #spec_id_str]
+            fn #item_name() {} // we only need this for attaching constraints to (to evaluate when the function is pure)
+        };
+
+        spec_item.sig.generics = item.sig().generics.clone();
+        spec_item.sig.inputs = item.sig().inputs.clone();
+        Ok(syn::Item::Fn(spec_item))
     }
 
     /// Parse a pledge with lhs into a Rust expression

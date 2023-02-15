@@ -6,13 +6,13 @@
 
 use ::log::{info, debug, trace};
 use prusti_common::utils::identifiers::encode_identifier;
-use rustc_hash::FxHashSet;
 use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
 use crate::encoder::foldunfold;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
+use crate::error_unsupported;
 use prusti_common::{vir_expr, vir_local};
 use prusti_common::config;
 use prusti_common::report::log;
@@ -26,7 +26,7 @@ use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::middle::ty;
 use std::cell::{Cell, RefCell, RefMut, Ref};
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashSet, FxHashMap};
 use std::io::Write;
 use std::rc::Rc;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
@@ -38,6 +38,7 @@ use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
+use super::builtin_encoder::BuiltinDomainKind;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
 use super::mir::{
@@ -68,6 +69,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     error_manager: RefCell<ErrorManager<'tcx>>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
+    builtin_domains: RefCell<FxHashMap<BuiltinDomainKind, vir::Domain>>,
+    builtin_domains_in_progress: RefCell<FxHashSet<BuiltinDomainKind>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
@@ -109,7 +112,7 @@ pub enum EncodingTask<'tcx> {
     },
     Type {
         ty: ty::Ty<'tcx>,
-    }
+    },
 }
 
 // If the field name is an identifier, removing the leading prefix r#
@@ -128,7 +131,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             RefCell::new(
                 log::build_writer(
                     "vir_program_before_foldunfold",
-                    format!("{}.vir", source_filename),
+                    format!("{source_filename}.vir"),
                 )
                 .ok()
                 .unwrap(),
@@ -138,7 +141,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             RefCell::new(
                 log::build_writer(
                     "vir_program_before_viper",
-                    format!("{}.vir", source_filename),
+                    format!("{source_filename}.vir"),
                 )
                     .ok()
                     .unwrap(),
@@ -149,6 +152,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             env,
             error_manager: RefCell::new(ErrorManager::new(env.query.codemap())),
             functions: RefCell::new(FxHashMap::default()),
+            builtin_domains: RefCell::new(FxHashMap::default()),
+            builtin_domains_in_progress: RefCell::new(FxHashSet::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
@@ -209,11 +214,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    fn initialize(&mut self) {
+    fn initialize(&mut self) -> EncodingResult<()> {
         // These are used in optimization passes
-        self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
-        self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
-        self.encode_builtin_method_def(BuiltinMethodKind::HavocRef);
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocBool)?;
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocInt)?;
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocRef)?;
+        Ok(())
     }
 
     pub fn env(&self) -> &'v Environment<'tcx> {
@@ -262,9 +268,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.mirror_encoder.borrow().get_domain().cloned()
     }
 
+    pub(super) fn get_encoded_builtin_domains(&self) -> Vec<vir::Domain> {
+        self.builtin_domains.borrow().values().cloned().collect()
+    }
+
     pub(super) fn insert_function(&self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
-        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none(), "{:?} is not unique", identifier);
+        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none(), "{identifier:?} is not unique");
         identifier
     }
 
@@ -316,12 +326,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     let mir_ct = mir::UnevaluatedConst::new(ct.def, ct.substs);
                     self.uneval_eval_intlike(mir_ct)
                 },
-                _ => return Err(EncodingError::unsupported(format!("unsupported const kind: {:?}", value))),
+                _ => error_unsupported!("unsupported const kind: {:?}", value),
             }
             mir::ConstantKind::Val(val, _) => val.try_to_scalar(),
             mir::ConstantKind::Unevaluated(ct, _) => self.uneval_eval_intlike(ct),
         };
-        opt_scalar_value.ok_or_else(|| EncodingError::unsupported(format!("unsupported constant value: {:?}", value)))
+        opt_scalar_value.ok_or_else(|| EncodingError::unsupported(format!("unsupported constant value: {value:?}")))
     }
 
     /// Encodes a value in a field if the base expression is a reference or
@@ -412,32 +422,59 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }))
     }
 
-    pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
+    pub fn encode_builtin_domain(&self, domain_kind: BuiltinDomainKind) -> EncodingResult<vir::Domain> {
+        trace!("encode_builtin_domain({:?})", domain_kind);
+        if !self.builtin_domains.borrow().contains_key(&domain_kind) {
+            let builtin_encoder = BuiltinEncoder::new(self);
+            let domain = builtin_encoder.encode_builtin_domain(domain_kind)?;
+            self.builtin_domains
+                .borrow_mut()
+                .insert(domain_kind, domain);
+        }
+        Ok(self.builtin_domains.borrow()[&domain_kind].clone())
+    }
+
+    pub fn encode_builtin_domain_type(&self, domain_kind: BuiltinDomainKind) -> EncodingResult<vir::Type> {
+        trace!("encode_builtin_domain_type({:?})", domain_kind);
+        // Also encode the definition, if it's not already under construction.
+        let mut domains_in_progress = self.builtin_domains_in_progress.borrow_mut();
+        if !domains_in_progress.contains(&domain_kind) {
+            domains_in_progress.insert(domain_kind);
+            drop(domains_in_progress);
+            self.encode_builtin_domain(domain_kind)?;
+            domains_in_progress = self.builtin_domains_in_progress.borrow_mut();
+            domains_in_progress.remove(&domain_kind);
+        }
+        let builtin_encoder = BuiltinEncoder::new(self);
+        builtin_encoder.encode_builtin_domain_type(domain_kind)
+    }
+
+    pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> EncodingResult<vir::BodylessMethod> {
         trace!("encode_builtin_method_def({:?})", method_kind);
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
-            let method = builtin_encoder.encode_builtin_method_def(method_kind);
+            let method = builtin_encoder.encode_builtin_method_def(method_kind)?;
             self.log_vir_program_before_viper(method.to_string());
             self.builtin_methods
                 .borrow_mut()
                 .insert(method_kind, method);
         }
-        self.builtin_methods.borrow()[&method_kind].clone()
+        Ok(self.builtin_methods.borrow()[&method_kind].clone())
     }
 
-    pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
+    pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> EncodingResult<String> {
         trace!("encode_builtin_method_use({:?})", method_kind);
         // Trigger encoding of definition
-        self.encode_builtin_method_def(method_kind);
+        self.encode_builtin_method_def(method_kind)?;
         let builtin_encoder = BuiltinEncoder::new(self);
-        builtin_encoder.encode_builtin_method_name(method_kind)
+        Ok(builtin_encoder.encode_builtin_method_name(method_kind))
     }
 
     pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
-        let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
+        let function_name = format!("builtin$cast${src_ty}${dst_ty}");
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
             let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty)?} };
             let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty)?} };
@@ -514,8 +551,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
             !self.is_trusted(def_id, None),
-            "procedure is marked as trusted: {:?}",
-            def_id
+            "procedure is marked as trusted: {def_id:?}"
         );
         if !self.procedures.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
@@ -607,9 +643,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 })
             }
             _ => {
-                return Err(EncodingError::unsupported(
-                    format!("unsupported constant type {:?}", ty.kind())
-                ));
+                error_unsupported!("unsupported constant type {:?}", ty.kind());
             }
         };
         debug!("encode_const_expr {:?} --> {:?}", value, expr);
@@ -665,7 +699,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn process_encoding_queue(&mut self) {
-        self.initialize();
+        if let Err(error) = self.initialize() {
+            panic!("The initialization of the encoder failed with the error: {error:?}");
+        }
         while let Some(task) = {
             let mut queue = self.encoding_queue.borrow_mut();
             queue.pop()

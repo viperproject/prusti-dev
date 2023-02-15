@@ -46,22 +46,22 @@ impl Fold for Expander {
 
 fn load_file(mut current_path: PathBuf, ident: &syn::Ident) -> syn::Result<(PathBuf, syn::File)> {
     current_path.pop();
-    current_path.push(format!("{}.rs", ident));
+    current_path.push(format!("{ident}.rs"));
     if !current_path.exists() {
         current_path.pop();
-        current_path.push(format!("{}/mod.rs", ident));
+        current_path.push(format!("{ident}/mod.rs"));
     }
     let mut file = File::open(&current_path).map_err(|err| {
         syn::Error::new(
             ident.span(),
-            format!("could not open {:?}: {}", current_path, err),
+            format!("could not open {current_path:?}: {err}"),
         )
     })?;
     let mut content = String::new();
     file.read_to_string(&mut content).map_err(|err| {
         syn::Error::new(
             ident.span(),
-            format!("could not read {:?}: {}", current_path, err),
+            format!("could not read {current_path:?}: {err}"),
         )
     })?;
 

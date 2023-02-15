@@ -10,6 +10,7 @@ use crate::ast_factory::{
     AstFactory,
 };
 use jni::objects::JObject;
+use std::collections::BTreeMap;
 use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
@@ -141,7 +142,8 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string(name),
             self.jni.new_seq(&map_to_jobjects!(functions)),
             self.jni.new_seq(&map_to_jobjects!(axioms)),
-            self.jni.new_seq(&map_to_jobjects!(type_vars))
+            self.jni.new_seq(&map_to_jobjects!(type_vars)),
+            self.jni.new_option(None)
         )
     }
 
@@ -158,6 +160,7 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(&map_to_jobjects!(formal_args)),
             typ.to_jobject(),
             unique,
+            self.jni.new_option(None),
             self.no_position().to_jobject(),
             self.no_info(),
             self.jni.new_string(domain_name),
@@ -183,5 +186,72 @@ impl<'a> AstFactory<'a> {
                 self.no_trafos(),
             ));
         NamedDomainAxiom::new(obj)
+    }
+
+    pub fn named_domain_axiom_with_comment(
+        &self,
+        name: &str,
+        expr: Expr,
+        domain_name: &str,
+        comment: &str,
+    ) -> NamedDomainAxiom<'a> {
+        let obj = self
+            .jni
+            .unwrap_result(ast::NamedDomainAxiom::with(self.env).new(
+                self.jni.new_string(name),
+                expr.to_jobject(),
+                self.no_position().to_jobject(),
+                self.simple_info(&[comment]),
+                self.jni.new_string(domain_name),
+                self.no_trafos(),
+            ));
+        NamedDomainAxiom::new(obj)
+    }
+
+    pub fn backend_type(
+        &self,
+        name: &str,
+        functions: &[DomainFunc],
+        interpretations: &BTreeMap<String, String>,
+    ) -> Domain<'a> {
+        let map_elements: Vec<_> = interpretations
+            .iter()
+            .map(|(key, value)| (self.jni.new_string(key), self.jni.new_string(value)))
+            .collect();
+        build_ast_node!(
+            self,
+            Domain,
+            ast::Domain,
+            self.jni.new_string(name),
+            self.jni.new_seq(&map_to_jobjects!(functions)),
+            self.jni.new_seq(&[]),
+            self.jni.new_seq(&[]),
+            self.jni.new_option(Some(self.jni.new_map(&map_elements)))
+        )
+    }
+
+    pub fn backend_func(
+        &self,
+        name: &str,
+        formal_args: &[LocalVarDecl],
+        typ: Type,
+        domain_name: &str,
+        interpretation: &str,
+    ) -> DomainFunc<'a> {
+        let obj = self.jni.unwrap_result(
+            ast::DomainFunc::with(self.env).new(
+                self.jni.new_string(name),
+                self.jni.new_seq(&map_to_jobjects!(formal_args)),
+                typ.to_jobject(),
+                false,
+                self.jni
+                    .new_option(Some(self.jni.new_string(interpretation))),
+                self.no_position().to_jobject(),
+                self.no_info(),
+                self.jni.new_string(domain_name),
+                self.no_trafos(),
+            ),
+        );
+        DomainFunc::new(obj)
     }
 }

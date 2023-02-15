@@ -125,7 +125,7 @@ impl PartialOrd for PermAmount {
 impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
         self.partial_cmp(other)
-            .unwrap_or_else(|| panic!("Undefined comparison between {:?} and {:?}", self, other))
+            .unwrap_or_else(|| panic!("Undefined comparison between {self:?} and {other:?}"))
     }
 }
 
@@ -171,8 +171,8 @@ pub enum BitVector {
 impl fmt::Display for BitVector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Signed(value) => write!(f, "S{}", value),
-            Self::Unsigned(value) => write!(f, "U{}", value),
+            Self::Signed(value) => write!(f, "S{value}"),
+            Self::Unsigned(value) => write!(f, "U{value}"),
         }
     }
 }
@@ -216,12 +216,12 @@ impl fmt::Display for Type {
             Type::Ref => write!(f, "Ref"),
             Type::Float(Float::F32) => write!(f, "F32"),
             Type::Float(Float::F64) => write!(f, "F64"),
-            Type::BitVector(value) => write!(f, "{}", value),
-            Type::TypedRef(ref name) => write!(f, "Ref({})", name),
-            Type::Domain(ref name) => write!(f, "Domain({})", name),
-            Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
-            Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
-            Type::Map(ref key_type, ref val_type) => write!(f, "Map[{}, {}]", key_type, val_type),
+            Type::BitVector(value) => write!(f, "{value}"),
+            Type::TypedRef(ref name) => write!(f, "Ref({name})"),
+            Type::Domain(ref name) => write!(f, "Domain({name})"),
+            Type::Snapshot(ref name) => write!(f, "Snapshot({name})"),
+            Type::Seq(ref elem_ty) => write!(f, "Seq[{elem_ty}]"),
+            Type::Map(ref key_type, ref val_type) => write!(f, "Map[{key_type}, {val_type}]"),
         }
     }
 }

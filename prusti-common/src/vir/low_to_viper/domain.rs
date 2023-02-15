@@ -49,6 +49,15 @@ impl<'a, 'v> ToViper<'v, Vec<viper::NamedDomainAxiom<'v>>>
 impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for (&'a String, &'a DomainAxiomDecl) {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
         let (domain_name, axiom) = self;
-        ast.named_domain_axiom(&axiom.name, axiom.body.to_viper(context, ast), domain_name)
+        if let Some(comment) = &axiom.comment {
+            ast.named_domain_axiom_with_comment(
+                &axiom.name,
+                axiom.body.to_viper(context, ast),
+                domain_name,
+                comment,
+            )
+        } else {
+            ast.named_domain_axiom(&axiom.name, axiom.body.to_viper(context, ast), domain_name)
+        }
     }
 }

@@ -19,7 +19,7 @@ impl PrustiClient {
     pub fn new<S: ToString>(server_address: S) -> Result<Self, ParseError> {
         let mut address = server_address.to_string();
         if !address.starts_with("http") {
-            address = format!("http://{}", address);
+            address = format!("http://{address}");
         }
         Ok(Self {
             client: Client::new(),

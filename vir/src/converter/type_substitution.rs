@@ -2923,6 +2923,7 @@ mod tests {
         let position = Position::new(1, 2, 3);
 
         let source = DomainAxiom {
+            comment: None,
             name: String::from("da"),
             expr: Expr::Local(Local {
                 variable: LocalVar {
@@ -2935,6 +2936,7 @@ mod tests {
         };
 
         let expected = DomainAxiom {
+            comment: None,
             name: String::from("da"),
             expr: Expr::Local(Local {
                 variable: LocalVar {
@@ -2994,6 +2996,7 @@ mod tests {
             ],
             axioms: vec![
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da1"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -3005,6 +3008,7 @@ mod tests {
                     domain_name: String::from("dn3"),
                 },
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da2"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -3059,6 +3063,7 @@ mod tests {
             ],
             axioms: vec![
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da1"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -3070,6 +3075,7 @@ mod tests {
                     domain_name: String::from("dn3"),
                 },
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da2"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {

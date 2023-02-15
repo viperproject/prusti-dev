@@ -178,8 +178,14 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     // TODO: there is more that we could check, e.g. that trait
                     // constraints are the same (otherwise specs might not make sense)
                     let (resolved_gens, current_gens) = (
-                        self.env_query.identity_substs(resolved_def_id).len(),
-                        self.env_query.identity_substs(current_def_id).len(),
+                        self.env_query
+                            .identity_substs(resolved_def_id)
+                            .non_erasable_generics()
+                            .count(),
+                        self.env_query
+                            .identity_substs(current_def_id)
+                            .non_erasable_generics()
+                            .count(),
                     );
                     if resolved_gens != current_gens {
                         let diff = resolved_gens as isize - current_gens as isize;
@@ -238,7 +244,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                 // TODO: branches look very similar
                 ExternSpecResolverError::InvalidExternSpecForTraitImpl(def_id, span) => {
                     let function_name = self.env_name.get_item_name(*def_id);
-                    let err_note = format!("Defined an external spec for trait method '{}'. Use '#[extern_spec] impl TheTrait for TheStruct {{ ... }}' syntax instead.", function_name);
+                    let err_note = format!("Defined an external spec for trait method '{function_name}'. Use '#[extern_spec] impl TheTrait for TheStruct {{ ... }}' syntax instead.");
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
@@ -248,7 +254,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                 }
                 ExternSpecResolverError::InvalidGenerics(diff, def_id, span) => {
                     let function_name = self.env_name.get_item_name(*def_id);
-                    let err_note = format!("Invalid type parameters for method '{}'. The number of type parameters must match the target method; change by {} to get rid of this error.", function_name, diff);
+                    let err_note = format!("Invalid type parameters for method '{function_name}'. The number of type parameters must match the target method; change by {diff} to get rid of this error.");
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
@@ -258,7 +264,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                 }
                 ExternSpecResolverError::ResolvedToDefault(def_id, span) => {
                     let function_name = self.env_name.get_item_name(*def_id);
-                    let err_note = format!("Specified method ('{}') resolved to the trait's implementation. Add specification to the trait instead.", function_name);
+                    let err_note = format!("Specified method ('{function_name}') resolved to the trait's implementation. Add specification to the trait instead.");
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
@@ -276,7 +282,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         for (&def_id, specs) in self.spec_duplicates.iter() {
             let function_name = self.env_name.get_item_name(def_id);
             PrustiError::incorrect(
-                format!("duplicate specification for {}", function_name),
+                format!("duplicate specification for {function_name}"),
                 MultiSpan::from_spans(specs.iter().map(|s| s.1).collect()),
             )
             .emit(env_diagnostic);

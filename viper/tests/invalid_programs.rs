@@ -100,9 +100,6 @@ where
     let verification_result = verifier.verify(program);
     match verification_result {
         VerificationResult::ConsistencyErrors(_) => (),
-        other => panic!(
-            "consistency errors not identified, instead found {:?}",
-            other
-        ),
+        other => panic!("consistency errors not identified, instead found {other:?}"),
     }
 }

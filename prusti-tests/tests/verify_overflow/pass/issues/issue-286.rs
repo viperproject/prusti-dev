@@ -6,7 +6,7 @@ struct A {
 }
 
 #[extern_spec]
-trait PartialOrd<#[generic] Rhs> {
+trait PartialOrd<Rhs> {
     #[pure]
     fn lt(&self, other: &Rhs) -> bool;
 }

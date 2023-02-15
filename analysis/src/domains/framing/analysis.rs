@@ -55,7 +55,7 @@ impl<'mir, 'tcx: 'mir> FramingAnalysis<'mir, 'tcx> {
                     statement_index,
                 };
                 let acc_before = accessibility.lookup_before(location).unwrap_or_else(|| {
-                    panic!("No 'accessibility' state before location {:?}", location)
+                    panic!("No 'accessibility' state before location {location:?}")
                 });
                 let mut compute_framing = ComputeFramingState::initial(body, self.tcx, acc_before);
                 if let Some(stmt) = body.stmt_at(location).left() {

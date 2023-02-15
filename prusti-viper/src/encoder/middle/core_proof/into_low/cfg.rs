@@ -926,7 +926,7 @@ impl IntoLow for vir_mid::Statement {
                     reference_value.clone(),
                     statement.position,
                 )?;
-                assert!(ty.is_reference(), "{:?}", ty);
+                assert!(ty.is_reference(), "{ty:?}");
                 let reference = ty.clone().unwrap_reference();
                 let final_snapshot = if reference.uniqueness.is_unique() {
                     Some(lowerer.reference_target_final_snapshot(
