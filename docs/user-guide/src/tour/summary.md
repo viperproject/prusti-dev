@@ -29,7 +29,7 @@ Throughout this tour, we will cover the following Prusti concepts:
 - Writing function-modular specifications 
 - Using *pure* functions in specifications
 - Writing loop invariants 
-- Using *trusted wrappers* to deal with library code
+- Using *extern_spec* to deal with library code
 - Basic troubleshooting
 
 
@@ -38,13 +38,15 @@ devices.
 As a quick reference, the main steps of this tour and the involved Prusti features
 are as follows:
 
+# TODO: Update <======
+
 0. [Setup](setup.md) How to add Prusti to a Rust project
 1. [Getting Started](getting-started.md): Simple runtime errors caught by Prusti
 2. [New](new.md): Postconditions, pure functions
 3. [Push](push.md): Preconditions, trusted functions, old expressions, quantifiers
 4. [Pop](pop.md): Exercise with similar concepts as for push
 5. [Testing](testing.md): More runtime errors caught by Prusti
-6. [A Bad Stack](bad-stack.md): Wrap-up of the second chapter of
+6. --> [A Bad Stack](bad-stack.md): Wrap-up of the second chapter of
    [Learn Rust with Entirely Too Many Linked Lists](https://rust-unofficial.github.io/too-many-lists/).
 7. [Options](options.md): Verification with option types
 7. [Generics](generics.md): Prusti and generics

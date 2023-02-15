@@ -62,7 +62,7 @@ Let's start our specification with the precondition of `pop`. Since the `unwrap`
 ### `try_pop` postcondition for empty lists
 
 Now we will implement the two conditions that hold for `try_pop` if you pass an empty list to it.
-To ensures that these are only checked for empty lists, we use the implication operator `==>` again:
+To ensures that these are only checked for empty lists, we use the implication operator `==>`:
 
 ```rust,noplaypen
 {{#rustdoc_include tour-src/src/pop/final_code.rs:try_pop_empty}}
@@ -80,7 +80,7 @@ We can check this condition for snapshot equality with `result`. This will alway
 {{#rustdoc_include tour-src/src/pop/final_code.rs:pop_result_correct}}
 ```
 
-For `try_pop`, condition only holds if the list was not empty before the call. In addition, the `result` is an `Option::Some`, so we will have to include this in our postcondition:
+For `try_pop`, the condition only holds if the list was *not* empty before the call. In addition, the `result` is an `Option::Some`, so we will have to include this in our postcondition:
 
 ```rust,noplaypen
 {{#rustdoc_include tour-src/src/pop/final_code.rs:try_pop_result_correct}}
@@ -89,25 +89,26 @@ For `try_pop`, condition only holds if the list was not empty before the call. I
 
 ### Using `predicate!` to reduce code duplication
 
-You may have noticed that the last two conditions for `pop` are the same as the last two of `try_pop`. We could just write the same conditions twice, but we can also place them in a Prusti [`predicate`](../verify/predicate.md) and then use that `predicate` in both specifications.
+You may have noticed that the last two conditions for `pop` are the same as the last two of `try_pop`. We could just write the same conditions twice, but we can also place them in a Prusti [`predicate`](../verify/predicate.md), and then use that `predicate` in both specifications.
 
 A `predicate` is basically just a [`pure`](../verify/pure.md) function that returns a `bool`, but it can use all the additional syntax available in Prusti specifications. Lets look at an example:
 
 ```rust,noplaypen
+# use prusti_contracts::*;
+# 
 predicate! {
-    fn larger_than_5(x: i32) -> bool {
+    fn larger_than_five(x: i32) -> bool {
         x > 5
     }
 }
 
-#[requires(larger_than_5(input))]
-#[ensures(larger_than_5(result))]
-fn add_one(input: i32) -> i32 {
-    input + 1
+#[ensures(larger_than_five(result))]
+fn ten() -> i32 {
+    10
 }
 ```
 
-In our specific case, we want to have a predicate to compare the state of the list before the call to the state afterwards. The `old` function cannot be used inside a predicate, we have to pass the two states as separate arguments. For this we write a `predicate` takes 2 arguments, which represent the state after and before the function. Such a predicate is also called a `two-state predicate`.
+In our specific case, we want to have a predicate to compare the state of the list before the call to the state afterwards. The `old` function cannot be used inside a predicate, so we have to pass the two states as separate arguments. For this we write a `predicate` with 2 parameters, which represent the state before and after the function. Such a predicate is also called a `two-state predicate`.
 Note that we take both arguments by (immutable) reference, since we don't need the predicate to take ownership over the arguments:
 
 ```rust,noplaypen,ignore
@@ -115,6 +116,7 @@ Note that we take both arguments by (immutable) reference, since we don't need t
 # 
 impl List {
     predicate! {
+        // two-state predicate to check if the head of a list was correctly removed
         fn head_removed(&self, prev: &Self) -> bool {
             // ...
         }
