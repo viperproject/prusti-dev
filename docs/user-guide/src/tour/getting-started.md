@@ -26,11 +26,11 @@ the head of the list, an enum `Link` representing either an empty list or a heap
 Node storing the payload—an integer—and the link to the next node:
 
 ```rust,noplaypen
-{{#include tour-src/03-chapter-2-1.rs:1:13}}
+{{#include tour-src/src/getting_started/working.rs:1:13}}
 // Prusti: VERIFIES
 ```
 
-This design avoid making both `Link` and `Node` public.
+As explained in the chapter [2.1: Basic Data Layout](https://rust-unofficial.github.io/too-many-lists/first-layout.html), this design avoids making both `Link` and `Node` public.
 Moreover, it benefits from the Rust compiler's [null-pointer optimization](https://rust-lang.github.io/unsafe-code-guidelines/layout/enums.html#discriminant-elision-on-option-like-enums)
 and makes sure that all list elements are uniformly allocated on the heap.
 
@@ -40,29 +40,16 @@ Prusti automatically checks that no statement or macro that causes
 an explicit runtime error, such as
 [`panic`](https://doc.rust-lang.org/std/macro.panic.html),
 [`unreachable`](https://doc.rust-lang.org/std/macro.unreachable.html),
-[`unimplemented`](https://doc.rust-lang.org/std/macro.unimplemented.html), or
+[`unimplemented`](https://doc.rust-lang.org/std/macro.unimplemented.html),
+[`todo`](https://doc.rust-lang.org/std/macro.todo.html), or
 possibly a failing [assertion](https://doc.rust-lang.org/std/macro.assert.html),
-is reachable.
+is reachable. [Prusti assertions](../syntax.md#prusti-assertions) are also checked. These are like the normal `assert` statements, but they can use the full Prusti specification syntax and will not result in any runtime checks when compiled normally.
 
 For example, the following test function creates a node with no successor and panics
 if the node's payload is greater than 23:
 
 ```rust,noplaypen
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-{{#include tour-src/03-chapter-2-1.rs:15:24}}
+{{#rustdoc_include tour-src/src/getting_started/working.rs:15:24}}
 // Prusti: VERIFIES
 ```
 Prusti successfully verifies the above function 
@@ -72,23 +59,7 @@ whenever execution reaches the `if` statement.
 This is not the case for the following function in which the test node is initialized
 with an arbitrary integer:
 ```rust,noplaypen
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-#fn main() {}
-#
-{{#include tour-src/03-fail.rs:26:35}}
+{{#rustdoc_include tour-src/src/getting_started/failing.rs:26:35}}
 // Prusti: FAILS
 ```
 
@@ -96,9 +67,9 @@ Prusti reports errors in the same fashion as the Rust compiler (although with th
 `Prusti: verification error`). For example, the error produced for the above function
 is:
 
-```
+```plain
 error: [Prusti: verification error] panic!(..) statement might be reachable
-  --> 03-fail.rs:33:9
+  --> getting_started_failing.rs:33:9
    |
 33 |         panic!()
    |         ^^^^^^^^

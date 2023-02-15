@@ -12,11 +12,10 @@ struct Node {
     next: Link,
 }
 
+//// ANCHOR: impl_new
 impl List {
-    // Self is an alias for the type that we are currently implementing
     pub fn new() -> Self {
-        List {
-            head: Link::Empty,
-        }
+        List { head: Link::Empty }
     }
 }
+//// ANCHOR_END: impl_new

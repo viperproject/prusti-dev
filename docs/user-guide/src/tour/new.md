@@ -13,21 +13,7 @@
 We first provide a static function to create empty lists:
 
 ```rust,noplaypen
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-{{#include tour-src/04-chapter-2-2.rs:15:22}}
+{{#rustdoc_include tour-src/src/new/impl_new.rs:impl_new}}
 // Prusti: VERIFIES
 ```
 
@@ -42,38 +28,7 @@ For simplicity, we will not actually compute the length of a `Link` yet.
 Rather, we will just always return 0.
 
 ```rust,noplaypen
-#![feature(box_patterns)] // convenience notation for boxes
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-impl List {
-    pub fn len(&self) -> usize {
-        self.head.len()
-    }
-#
-#    pub fn new() -> Self {
-#        List {
-#            head: Link::Empty,
-#        }
-#    }
-}
-
-impl Link {
-    fn len(&self) -> usize {
-        0
-    }
-}
+{{#rustdoc_include tour-src/src/new/spec_failing_1.rs:first_spec_1}}
 // Prusti: VERIFIES
 ```
 
@@ -81,48 +36,16 @@ Now that we have implemented a method for computing the length of a list, we can
 write our first specification for `new()`: the returned list should always have length
 zero.
 That is, we attach the [postcondition](../verify/prepost.md)
-`result.len() == 0` to the function `new()`:
+`result.len() == 0` to the function `new()`. The special variable [`result`](../syntax.md#result-variable) is used in Prusti specifications to refer to the value that is returned by a function:
 
 ```rust,noplaypen
-#//uncomment: #![feature(box_patterns)]
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-#impl List {
-#    pub fn len(&self) -> usize {
-#        self.head.len()
-#    }
-#
-    #[ensures(result.len() == 0)]
-    pub fn new() -> Self {
-        List {
-            head: Link::Empty
-        }
-    }
-#}
-#
-#impl Link {
-#    fn len(&self) -> usize {
-#        0
-#    }
-#}
+{{#rustdoc_include tour-src/src/new/spec_failing_1.rs:first_spec_2}}
 ```
 
 Unfortunately, Prusti—or rather: the Rust compiler—will complain about
 the postcondition:
 
-```
+```plain
 error: cannot find attribute `ensures` in this scope
   --> list.rs:39:7
    |
@@ -132,52 +55,18 @@ error: cannot find attribute `ensures` in this scope
 
 Prusti's specifications consist of Rust
 [macros and attributes](https://doc.rust-lang.org/reference/procedural-macros.html)
-that are defined in a separate crate called `prusti_contracts`.
+that are defined in a separate crate called `prusti_contracts`. To see how to add this crate to your project, check out [Setup](setup.md).
 Before we can use these specifications, we need to make the path to these
 macros and attributes visible:
 
 ```rust,noplaypen
-#//uncomment: #![feature(box_patterns)]
-use prusti_contracts::*; 
-
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-impl List {
-#    pub fn len(&self) -> usize {
-#        self.head.len()
-#    }
-#
-    #[ensures(result.len() == 0)]
-    pub fn new() -> Self {
-        List {
-            head: Link::Empty
-        }
-    }
-}
-#
-#impl Link {
-#    fn len(&self) -> usize {
-#        0
-#    }
-#}
+{{#rustdoc_include tour-src/src/new/spec_failing_2.rs:import_prusti}}
 ```
 
 Declaring that we use the `prusti_contracts` crate removes the compiler error but
 leads to a new error. This time it is an error raised by Prusti:
 
-```
+```markdown
 error: [Prusti: invalid specification] use of impure function "List::len" in pure code is not allowed
   --> list.rs:34:15
    |
@@ -197,48 +86,13 @@ After adding the `#[pure]` attribute to our `List::len()` method, it is allowed 
 appear in Prusti specifications:
 
 ```rust,noplaypen
-#//uncomment: #![feature(box_patterns)]
-#use prusti_contracts::*; 
-#
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-impl List {
-    #[pure]
-    pub fn len(&self) -> usize {
-        self.head.len()
-    }
-#
-#    #[ensures(result.len() == 0)]
-#    pub fn new() -> Self {
-#        List {
-#            head: Link::Empty,
-#        }
-#    }
-}
-#
-#impl Link {
-#    fn len(&self) -> usize {
-#        0
-#    }
-#}
+{{#rustdoc_include tour-src/src/new/spec_failing_3.rs:pure_annotation}}
 ```
 
 However, Prusti still won't verify! It produces the same error but now it refers
 to the *body* of `len()`:
 
-```
+```markdown
 error: [Prusti: invalid specification] use of impure function "Link::len" in pure code is not allowed
   --> list.rs:30:9
    |
@@ -255,59 +109,45 @@ namely `Link::len()`, within the body of the pure function `List::len()`.
 To fix this issue, it suffices to mark `Link::len()` as pure as well.
 
 ```rust,noplaypen
-#//uncomment: #![feature(box_patterns)]
-#use prusti_contracts::*; 
-#
-#pub struct List {
-#    head: Link,
-#}
-#
-#enum Link {
-#    Empty,
-#    More(Box<Node>),
-#}
-#
-#struct Node {
-#    elem: i32,
-#    next: Link,
-#}
-#
-#impl List {
-#    #[pure]
-#    pub fn len(&self) -> usize {
-#        self.head.len()
-#    }
-#
-#    #[ensures(result.len() == 0)]
-#    pub fn new() -> Self {
-#        List {
-#            head: Link::Empty,
-#        }
-#    }
-#}
-#
-impl Link {
-    #[pure]
-    fn len(&self) -> usize {
-        0
-    }
-}
-#
-# fn main() {} // in case Prusti is used via command line
-#
+{{#rustdoc_include tour-src/src/new/spec_fixed.rs:pure_annotation}}
 // Prusti: VERIFIES
 ```
 
-```
-$ prusti-rustc list.rs
+```markdown
+$ cargo-prusti
 // ...
 Successful verification of 4 items
 ```
 
 Prusti now manages to verify that `new()` always returns
 a list for which the method `len()` returns 0. (notice
-this is hardly surprising since `len()` ultimately always returns 0 but we will change
-this soon.)
+this is hardly surprising since `len()` ultimately always returns 0.)
+
+## Proper implementation of `len`
+
+We will now properly implement `len()`, and while we're at it, `is_empty()` for `Link`. Both of them are pure functions, so we will add the `#[pure]` annotation. Both functions can be called without any restrictions, so they have the default postcondition `#[requires(true)]`, which we don't have to add manually. We also don't need to add any additional postconditions, since pure functions will be inlined wherever they are used during verification.
+
+```rust,noplaypen
+{{#rustdoc_include tour-src/src/new/full_code.rs:31:44}}
+```
+
+We can now check if the specification is working, by writing a function that panics if the specification is wrong:
+```rust,noplaypen
+{{#rustdoc_include tour-src/src/new/full_code.rs:46:50}}
+```
+
+The last line asserts, that the `is_empty` function only returns `true`, if the `len` function returns `0`.
+And Prusti can verify it! Now we know that this assert statement can never fail, no matter what `Link` is passed to the test function.
+
+### Overflow checks
+
+Here you can also see why we disabled overflow checking for this tutorial. If you remove the `check_overflows = false` setting in the `Prusti.toml` file, and then try to verify the crate again, you will get an error:
+```plain
+[Prusti: verification error] assertion might fail with "attempt to add with overflow"
+    Link::More(node) => 1 + node.next.len(),
+                        ^^^^^^^^^^^^^^^^^^^
+```
+This overflow could happen, if you call `len` on a list with more than `usize::MAX` elements. To prevent this verification error, we would have to constrain the maximum size of a `List`, which is beyond this tutorial. 
 
 ## Full code listing
 
@@ -316,45 +156,5 @@ It should successfully verify with Prusti and we will further extend it througho
 the next four chapters.
 
 ```rust,noplaypen
-#![feature(box_patterns)]
-use prusti_contracts::*;
-
-pub struct List {
-    head: Link,
-}
-
-enum Link {
-    Empty,
-    More(Box<Node>),
-}
-
-struct Node {
-    elem: i32,
-    next: Link,
-}
-
-impl List {
-    #[pure]
-    pub fn len(&self) -> usize {
-        self.head.len()
-    }
-
-    #[ensures(result.len() == 0)]
-    pub fn new() -> Self {
-        List {
-            head: Link::Empty,
-        }
-    }
-}
-
-impl Link {
-    #[pure]
-    fn len(&self) -> usize {
-        0
-    }
-}
-
-fn main() {} // in case Prusti is used via command line
-
-// Prusti: VERIFIES
+{{#rustdoc_include tour-src/src/new/full_code.rs}}
 ```
