@@ -24,10 +24,10 @@ impl VerificationInfo {
 // since the existing verification result
 // is not as trivially passed in json
 #[derive(Serialize)]
-struct IdeVerificationResult {
+pub struct IdeVerificationResult {
     item_name: String,
     success: bool,
-    time_ms: u128, 
+    time_ms: u128,
     cached: bool
 }
 

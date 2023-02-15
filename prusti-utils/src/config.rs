@@ -104,7 +104,7 @@ lazy_static::lazy_static! {
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("smt_qi_profile", true).unwrap();
         settings.set_default("smt_qi_profile_freq", 10000).unwrap();
-        settings.set_default("report_qi_profile", true).unwrap();
+        settings.set_default("report_viper_messages", true).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
@@ -514,9 +514,10 @@ pub fn smt_qi_profile_freq() -> u64 {
     read_setting("smt_qi_profile_freq")
 }
 
-/// Whether to report the quantifier instantiations (done as json).
-pub fn report_qi_profile() -> bool {
-    read_setting("report_qi_profile")
+/// Whether to report the messages produced by the viper backend (e.g. quantifier instantiations,
+/// quantifier triggers)
+pub fn report_viper_messages() -> bool {
+    read_setting("report_viper_messages")
 }
 
 /// Maximum time (in milliseconds) for the verifier to spend on checks.
