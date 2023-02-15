@@ -131,16 +131,20 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let error_manager = self.encoder.error_manager();
         // we want quantifier_pos_ID + program_name + q_name as identifier because there are
         // different q_names for the same ID and each program reports independent results
-        // key: (norm_pos_id, program_name), key to result: q_name result: num_instantiations
+        // key: (pos_id, program_name), key to result: q_name result: num_instantiations
         let mut quantifier_instantiations: HashMap::<(u64, String), HashMap::<String, u64>> = HashMap::new();
+
+        // if we are not running in an ide, we want the errors to be reported sortedly
+        let mut prusti_errors: Vec<_> = vec![];
+
         let mut verification_info = ide::verification_info::VerificationInfo::new();
+
         pin_mut!(verification_messages);
-        
 
         while let Some((program_name, server_msg)) = verification_messages.next().await {
             match server_msg {
                 ServerMessage::Termination(result) => {
-                    verification_info.add(&result); 
+                    verification_info.add(&result);
                     match result.result_type {
                         // nothing to do
                         viper::VerificationResultType::Success => (),
@@ -200,7 +204,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                 if prusti_error.is_disabled() {
                                     prusti_error.cancel();
                                 } else {
-                                    prusti_error.emit(&self.env.diagnostic);
+                                    if config::show_ide_info() {
+                                        prusti_error.emit(&self.env.diagnostic);
+                                    } else {
+                                        prusti_errors.push(prusti_error);
+                                    }
                                 }
                             }
                             overall_result = VerificationResult::Failure;
@@ -214,11 +222,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         }
                     }
                 }
-                ServerMessage::QuantifierInstantiation{q_name, insts, norm_pos_id} => {
+                ServerMessage::QuantifierInstantiation{q_name, insts, pos_id} => {
                     if config::report_qi_profile() {
-                        match error_manager.position_manager().get_span_from_id(norm_pos_id) {
+                        match error_manager.position_manager().get_span_from_id(pos_id) {
                             Some(span) => {
-                                let key = (norm_pos_id, program_name.clone());
+                                let key = (pos_id, program_name.clone());
                                 if !quantifier_instantiations.contains_key(&key) {
                                     quantifier_instantiations.insert(key.clone(), HashMap::new());
                                 }
@@ -235,14 +243,23 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     ), span.clone()
                                 ).emit(&self.env.diagnostic);
                             },
-                            None => info!("#{} quantifier instantiations of {} for unknown position id {} in verification of {}", insts, q_name, norm_pos_id, program_name),
+                            None => info!("#{insts} quantifier instantiations of {q_name} for unknown position id {pos_id} in verification of {program_name}"),
                         }
                     }
                 }
             }
         }
 
-        if config::show_ide_info() {
+        // if we are in an ide, we already emit the errors asynchronously, otherwise we wait for
+        // all of them in order to sort them
+        if !config::show_ide_info() {
+            prusti_errors.sort();
+
+            for prusti_error in prusti_errors {
+                debug!("Prusti error: {:?}", prusti_error);
+                prusti_error.emit(&self.env.diagnostic);
+            }
+        } else {
             println!("VerificationInfo {}", verification_info.to_json_string());
         }
 

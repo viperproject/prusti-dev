@@ -241,7 +241,6 @@ pub(super) fn encode_quantifier<'tcx>(
         body_substs,
     )?;
 
-    // FIXME: we get the wrong span here
     let pos = encoder.error_manager().register_span(parent_def_id, span);
 
     // replace qvars with a nicer name based on quantifier depth to ensure that
@@ -289,7 +288,9 @@ pub(super) fn encode_quantifier<'tcx>(
             fixed_qvars,
             encoded_trigger_sets,
             final_body,
-            pos,
+            // we encode the position ID in the line number because that is used to name the
+            // quantifiers in z3
+            vir_crate::polymorphic::Position::new(i32::try_from(pos.id()).unwrap(), i32::try_from(pos.id()).unwrap(), pos.id()),
         ))
     }
 }

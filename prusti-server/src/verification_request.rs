@@ -56,10 +56,11 @@ impl ViperBackendConfig {
                     // model.partial changes the default case of functions in counterexamples
                     // to #unspecified
                     format!(
-                        "smt.qi.eager_threshold={} model.partial={} smt.qi.profile={}",
+                        "smt.qi.eager_threshold={} model.partial={} smt.qi.profile={} smt.qi.profile_freq={}",
                         config::smt_qi_eager_threshold(),
                         config::counterexample(),
-                        config::smt_qi_profile()
+                        config::smt_qi_profile(),
+                        config::smt_qi_profile_freq()
                     ),
                     "--logLevel".to_string(),
                     "ERROR".to_string(),
