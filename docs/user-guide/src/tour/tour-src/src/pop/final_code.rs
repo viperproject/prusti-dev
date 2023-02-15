@@ -73,8 +73,8 @@ impl List {
 
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
-    #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-                 old(self.lookup(i - 1)) == self.lookup(i)))]
+    #[ensures(forall(|i: usize| (i < old(self.len())) ==>
+                 old(self.lookup(i)) == self.lookup(i + 1)))]
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem,
@@ -89,9 +89,9 @@ impl List {
         // two-state predicate to check if the head of a list was correctly removed
         fn head_removed(&self, prev: &Self) -> bool {
             self.len() == prev.len() - 1 // The length will decrease by 1
-            && forall(|i: usize|
+            && forall(|i: usize| // Every element will be shifted forwards by one
                 (1 <= i && i < prev.len())
-                    ==> prev.lookup(i) == self.lookup(i - 1)) // Every element will be shifted forwards by one
+                    ==> prev.lookup(i) == self.lookup(i - 1))
         }
     }
     //// ANCHOR_END: two_state_predicate

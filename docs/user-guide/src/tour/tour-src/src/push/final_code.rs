@@ -1,4 +1,5 @@
-//// ANCHOR: all
+//// ANCHOR: nothing
+//// ANCHOR_END: nothing
 use prusti_contracts::*;
 
 pub struct List {
@@ -32,8 +33,8 @@ impl List {
     #[ensures(self.len() == old(self.len()) + 1)] // 1. Property
     #[ensures(self.lookup(0) == elem)] // 2. Property
     //// ANCHOR: shifted_back
-    #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-        old(self.lookup(i - 1)) == self.lookup(i)))] // 3. Property
+    #[ensures(forall(|i: usize| (i < old(self.len())) ==>
+                 old(self.lookup(i)) == self.lookup(i + 1)))] // 3. Property
     pub fn push(&mut self, elem: i32) {
         // ...
         //// ANCHOR_END: shifted_back
@@ -89,4 +90,3 @@ impl Link {
     }
 }
 //// ANCHOR_END: bounds
-//// ANCHOR_END: all

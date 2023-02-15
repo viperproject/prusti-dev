@@ -221,8 +221,8 @@ This code is verified successfully by Prusti, so we know that the `lookup` funct
 
 
 ## Full code listing
-Here you can see the final code we have after this chapter:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/push/final_code.rs:all}}
+// Expand to see full code up to this chapter
+{{#rustdoc_include tour-src/src/push/final_code.rs:nothing}}
 ```

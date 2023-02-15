@@ -48,8 +48,8 @@ impl List {
 
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
-    #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-                 old(self.lookup(i - 1)) == self.lookup(i)))] 
+    #[ensures(forall(|i: usize| (i < old(self.len())) ==>
+                 old(self.lookup(i)) == self.lookup(i + 1)))]
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem,

@@ -1,3 +1,5 @@
+//// ANCHOR: nothing
+//// ANCHOR_END: nothing
 use prusti_contracts::*;
 
 pub struct List {
@@ -11,16 +13,20 @@ struct Node {
     next: Link,
 }
 
+//// ANCHOR: option_take_extern_spec
 #[extern_spec(std::mem)]
 #[ensures(snap(dest) === src)]
 #[ensures(result === old(snap(dest)))]
 fn replace<T>(dest: &mut T, src: T) -> T;
 
+//// ANCHOR_END: option_take_extern_spec
 // Specs for std::option::Option<T>::unwrap(self) (and others) can be found here (work in progress):
 // https://github.com/viperproject/prusti-dev/pull/1249/files#diff-bccda07f8a48357687e26408251041072c7470c188092fb58439de39974bdab5R47-R49
 
+//// ANCHOR: option_take_extern_spec
 #[extern_spec]
 impl<T> std::option::Option<T> {
+    //// ANCHOR_END: option_take_extern_spec
     #[requires(self.is_some())]
     #[ensures(old(self) === Some(result))]
     pub fn unwrap(self) -> T;
@@ -33,50 +39,23 @@ impl<T> std::option::Option<T> {
     #[ensures(result == matches!(self, Some(_)))]
     pub const fn is_some(&self) -> bool;
 
+    //// ANCHOR: option_take_extern_spec
     #[ensures(result === old(snap(self)))]
     #[ensures(self.is_none())]
     pub fn take(&mut self) -> Option<T>;
-
-    #[ensures(self.is_none() === result.is_none())]
-    #[ensures(self.is_some() ==> {
-        if let Some(inner) = snap(&self) {
-            result === Some(f(inner))
-        } else {
-            unreachable!()
-        }
-    })]
-    pub fn map<U, F>(self, f: F) -> Option<U>
-        where
-        F: FnOnce(T) -> U;
 }
+//// ANCHOR_END: option_take_extern_spec
 
+//// ANCHOR: try_pop_rewrite
+//// ANCHOR: rewrite_link_impl
 impl List {
+    //// ANCHOR_END: try_pop_rewrite
     #[pure]
     pub fn len(&self) -> usize {
-        Self::link_len(&self.head)
+        link_len(&self.head)
     }
 
-    
-    #[pure]
-    fn link_len(link: &Link) -> usize {
-        match link {
-            None => 0,
-            Some(node) => 1 + Self::link_len(&node.next),
-        }
-    }
-
-    // #[pure]
-    // pub fn len(&self) -> usize {
-    //     let mut curr = &self.head;
-    //     let mut i = 0;
-    //     while let Some(node) = curr {
-    //         body_invariant!(true);
-    //         i += 1;
-    //         curr = &node.next;
-    //     }
-    //     i
-    // }
-
+    //// ANCHOR_END: rewrite_link_impl
     #[pure]
     fn is_empty(&self) -> bool {
         matches!(self.head, None)
@@ -87,43 +66,18 @@ impl List {
         List { head: None }
     }
 
+    //// ANCHOR: rewrite_link_impl
     #[pure]
     #[requires(index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
-        // let mut curr = &self.head;
-        // let mut i = index;
-        // while let Some(node) = curr {
-        //     body_invariant!(true);
-        //     if i == 0 {
-        //         return node.elem;
-        //     }
-        //     i -= 1;
-        //     curr = &node.next;
-        // }
-        // unreachable!()
-
-        
-        #[pure]
-        #[requires(index < List::link_len(curr))]
-        fn lookup_rec(curr: &Link, index: usize) -> i32 {
-            match curr {
-                Some(node) => {
-                    if index == 0 {
-                        node.elem
-                    } else {
-                        lookup_rec(&node.next, index - 1)
-                    }
-                }
-                None => unreachable!(),
-            }
-        }
-        lookup_rec(&self.head, index)
+        link_lookup(&self.head, index)
     }
+    //// ANCHOR_END: rewrite_link_impl
 
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
-    #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-                 old(self.lookup(i - 1)) == self.lookup(i)))]
+    #[ensures(forall(|i: usize| (i < old(self.len())) ==>
+                 old(self.lookup(i)) == self.lookup(i + 1)))]
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem,
@@ -137,9 +91,9 @@ impl List {
         // two-state predicate to check if the head of a list was correctly removed
         fn head_removed(&self, prev: &Self) -> bool {
             self.len() == prev.len() - 1 // The length will decrease by 1
-            && forall(|i: usize|
+            && forall(|i: usize| // Every element will be shifted forwards by one
                 (1 <= i && i < prev.len())
-                    ==> prev.lookup(i) == self.lookup(i - 1)) // Every element will be shifted forwards by one
+                    ==> prev.lookup(i) == self.lookup(i - 1))
         }
     }
 
@@ -152,29 +106,67 @@ impl List {
         &&
         result === Some(old(snap(self)).lookup(0))
     )]
+    //// ANCHOR: try_pop_rewrite
     pub fn try_pop(&mut self) -> Option<i32> {
-        match self.head.take() {
+        match self.head.take() { // Replace mem::swap with the buildin Option::take
             None => None,
             Some(node) => {
                 self.head = node.next;
                 Some(node.elem)
             }
         }
-        /* // [Prusti: unsupported feature] unsuported creation of unique borrows (implicitly created in closure bindings)
-        self.head.take().map(|node| {
-            self.head = node.next;
-            node.elem
-        })
-        */
     }
+    
+    // // This will likely work in the future, but doesn't currently (even if you provide an `extern_spec` for `Option::map`):
+    // // Currently you get this error:
+    // //     [Prusti: unsupported feature] unsupported creation of unique borrows (implicitly created in closure bindings)
+    // pub fn try_pop(&mut self) -> Option<i32> {
+    //     let tmp = self.head.take();
+    //     tmp.map(move |node| {
+    //         self.head = node.next;
+    //         node.elem
+    //     })
+    // }
+    //// ANCHOR_END: try_pop_rewrite
 
     #[requires(!self.is_empty())]
     #[ensures(self.head_removed(&old(snap(self))))]
     #[ensures(result === old(snap(self)).lookup(0))]
     pub fn pop(&mut self) -> i32 {
         self.try_pop().unwrap()
+        //// ANCHOR: rewrite_len
+    }
+    //// ANCHOR: rewrite_link_impl
+    //// ANCHOR: try_pop_rewrite
+}
+//// ANCHOR_END: try_pop_rewrite
+//// ANCHOR_END: rewrite_link_impl
+//// ANCHOR_END: rewrite_len
+
+//// ANCHOR: rewrite_link_impl
+#[pure]
+#[requires(index < link_len(link))]
+fn link_lookup(link: &Link, index: usize) -> i32 {
+    match link {
+        Some(node) => {
+            if index == 0 {
+                node.elem
+            } else {
+                link_lookup(&node.next, index - 1)
+            }
+        }
+        None => unreachable!(),
     }
 }
+
+#[pure]
+fn link_len(link: &Link) -> usize {
+    match link {
+        None => 0,
+        Some(node) => 1 + link_len(&node.next),
+    }
+}
+//// ANCHOR_END: rewrite_link_impl
 
 mod prusti_tests {
     use super::*;
