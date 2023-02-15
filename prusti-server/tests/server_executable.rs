@@ -13,7 +13,7 @@ fn basic_startup() {
 
     assert_eq!(
         stdout.lines().next().expect("at least one line in stdout"),
-        &format!("port: {}", port),
+        &format!("port: {port}"),
         "port message as first stdout line"
     );
 }

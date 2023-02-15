@@ -14,6 +14,7 @@ use analysis::{
 use prusti_rustc_interface::{
     ast::ast,
     borrowck::BodyWithBorrowckFacts,
+    data_structures::fx::FxHashMap,
     driver::Compilation,
     hir::def_id::{DefId, LocalDefId},
     interface::{interface, Config, Queries},
@@ -24,7 +25,7 @@ use prusti_rustc_interface::{
     polonius_engine::{Algorithm, Output},
     session::{Attribute, Session},
 };
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -59,7 +60,7 @@ fn get_attribute<'tcx>(
                             segments,
                             tokens: _,
                         },
-                    args: ast::MacArgs::Empty,
+                    args: ast::AttrArgs::Empty,
                     tokens: _,
                 } => {
                     segments.len() == 2
@@ -83,8 +84,8 @@ mod mir_storage {
     // because we cast it back to `'tcx` before using.
     thread_local! {
         static MIR_BODIES:
-            RefCell<HashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
-            RefCell::new(HashMap::new());
+            RefCell<FxHashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
+            RefCell::new(FxHashMap::default());
     }
 
     pub unsafe fn store_mir_body<'tcx>(
@@ -164,7 +165,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
             abstract_domain
         );
 
-        queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+        queries.global_ctxt().unwrap().enter(|tcx| {
             // collect all functions with attribute #[analyzer::run]
             let mut local_def_ids: Vec<_> = tcx
                 .mir_keys(())
@@ -265,7 +266,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
                     }
-                    _ => panic!("Unknown domain argument: {}", abstract_domain),
+                    _ => panic!("Unknown domain argument: {abstract_domain}"),
                 }
             }
         });

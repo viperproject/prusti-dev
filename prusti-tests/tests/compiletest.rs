@@ -38,9 +38,8 @@ fn find_prusti_rustc_path() -> PathBuf {
         return workspace_prusti_rustc_path;
     }
     panic!(
-        "Could not find the {:?} prusti-rustc binary to be used in tests. \
-        It might be that Prusti has not been compiled correctly.",
-        target_directory
+        "Could not find the {target_directory:?} prusti-rustc binary to be used in tests. \
+        It might be that Prusti has not been compiled correctly."
     );
 }
 
@@ -125,7 +124,6 @@ fn run_no_verification(group_name: &str, filter: &Option<String>) {
 fn run_verification_base(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
-        TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
     );
 

@@ -108,9 +108,6 @@ pub fn generate_method(
         )?
         .z()?;
 
-    let mut parameter_names: Vec<String> = vec![];
-    let mut parameter_signatures: Vec<String> = vec![];
-
     let parameters = env
         .call_method(
             method,
@@ -120,6 +117,9 @@ pub fn generate_method(
         )?
         .l()?;
     let num_parameters = env.get_array_length(*parameters)?;
+
+    let mut parameter_names: Vec<String> = Vec::with_capacity(num_parameters as usize);
+    let mut parameter_signatures: Vec<String> = Vec::with_capacity(num_parameters as usize);
 
     for parameter_index in 0..num_parameters {
         let parameter = env.get_object_array_element(*parameters, parameter_index)?;
@@ -198,19 +198,15 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!(
-            "/// - `{}`: `{}` (`{}`)",
-            par_name, par_type, par_sign
-        ));
+        code.push(format!("/// - `{par_name}`: `{par_type}` (`{par_sign}`)"));
     }
 
     code.push("///".to_string());
     code.push(format!(
-        "/// Return type and Java signature: `{}` (`{}`)",
-        return_type, return_signature
+        "/// Return type and Java signature: `{return_type}` (`{return_signature}`)"
     ));
 
-    code.push(format!("pub fn {}(", rust_method_name));
+    code.push(format!("pub fn {rust_method_name}("));
     code.push("    &self,".to_string());
     code.push("    receiver: JObject<'a>,".to_string());
 
@@ -218,57 +214,65 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!("    {}: {},", par_name, par_type));
+        code.push(format!("    {par_name}: {par_type},"));
     }
 
-    code.push(format!(") -> JNIResult<{}> {{", return_type));
+    code.push(format!(") -> JNIResult<{return_type}> {{"));
+
+    code.push(format!("    let class_name = \"{}\";", class.path()));
+    code.push(format!("    let method_name = \"{method_name}\";"));
+    code.push(format!(
+        "    let method_signature = \"{method_signature}\";"
+    ));
+    code.push(format!(
+        "    let return_signature = \"{return_signature}\";"
+    ));
+    code.push("".to_string());
 
     // Generate dynamic type check for the arguments
-    if cfg!(debug_assertions) {
-        for i in 0..parameter_names.len() {
-            let par_name = &parameter_names[i];
-            let par_sign = &parameter_signatures[i];
-            if par_sign.starts_with('L') {
-                let par_class = &par_sign[1..(par_sign.len() - 1)];
-                code.push("    debug_assert!(".to_string());
-                code.push(format!(
-                    "        self.env.is_instance_of({}, self.env.find_class(\"{}\")?)?",
-                    par_name, par_class
-                ));
-                code.push("    );".to_string());
-            }
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if par_sign.starts_with('L') {
+            let par_class = &par_sign[1..(par_sign.len() - 1)];
+            code.push("    debug_assert!(".to_string());
+            code.push("        self.env.is_instance_of(".to_string());
+            code.push(format!("            {par_name},"));
+            code.push(format!(
+                "            self.env.find_class(\"{par_class}\")?,"
+            ));
+            code.push("        )?".to_string());
+            code.push("    );".to_string());
         }
     }
-
-    code.push(format!(
-        "    let class = self.env.find_class(\"{}\")?;",
-        class.path()
-    ));
+    code.push("".to_string());
 
     // Generate dynamic type check for `receiver`
-    if cfg!(debug_assertions) {
-        code.push("    debug_assert!(".to_string());
-        code.push("        self.env.is_instance_of(receiver, class)?".to_string());
-        code.push("    );".to_string());
-    }
+    code.push("    debug_assert!(".to_string());
+    code.push("        self.env.is_instance_of(".to_string());
+    code.push("            receiver,".to_string());
+    code.push("            self.env.find_class(class_name)?,".to_string());
+    code.push("        )?".to_string());
+    code.push("    );".to_string());
+    code.push("".to_string());
 
-    code.push(format!("    let method_name = \"{}\";", method_name));
-    code.push(format!(
-        "    let method_signature = \"{}\";",
-        method_signature
-    ));
-    code.push(format!(
-        "    let return_signature = \"{}\";",
-        return_signature
-    ));
+    code.push(
+        r#"    static METHOD_ID: OnceCell<JMethodID> = OnceCell::new();
+    static RETURN_TYPE: OnceCell<ReturnType> = OnceCell::new();
+    let method_id = *METHOD_ID.get_or_try_init(|| {
+        self.env.get_method_id(
+            class_name,
+            method_name,
+            method_signature
+        )
+    })?;
+    let return_type = RETURN_TYPE.get_or_try_init(|| {
+        ReturnType::from_str(return_signature)
+    })?.clone();
+"#
+        .to_string(),
+    );
 
-    code.push("    let method_id = self.env.get_method_id(".to_string());
-    code.push("        class,".to_string());
-    code.push("        method_name,".to_string());
-    code.push("        method_signature".to_string());
-    code.push("    )?;".to_string());
-
-    code.push("    let return_type = ReturnType::from_str(return_signature)?;".to_string());
     code.push("    let result = self.env.call_method_unchecked(".to_string());
     code.push("        receiver,".to_string());
     code.push("        method_id,".to_string());
@@ -279,7 +283,7 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {}.into(),", par_jvalue));
+        code.push(format!("            {par_jvalue}.into(),"));
     }
 
     code.push("        ]".to_string());
@@ -287,21 +291,24 @@ fn generate(
         "    ).and_then(|x| x.{}());",
         generate_jni_type_char(&return_signature)
     ));
+    code.push("".to_string());
 
     // Generate dynamic type check for the result
-    if cfg!(debug_assertions) && return_signature.starts_with('L') {
+    if return_signature.starts_with('L') {
         let return_class = &return_signature[1..(return_signature.len() - 1)];
         code.push("    if let Ok(result) = result {".to_string());
         code.push("        debug_assert!(".to_string());
+        code.push("            self.env.is_instance_of(".to_string());
+        code.push("                result,".to_string());
         code.push(format!(
-            "            self.env.is_instance_of(result, self.env.find_class(\"{}\")?)?",
-            return_class
+            "                self.env.find_class(\"{return_class}\")?,"
         ));
+        code.push("            )?".to_string());
         code.push("        );".to_string());
         code.push("    }".to_string());
+        code.push("".to_string());
     }
 
-    code.push("    self.env.delete_local_ref(class.into()).unwrap();".to_string());
     code.push("    result".to_string());
     code.push("}".to_string());
 
@@ -334,99 +341,111 @@ fn generate_static(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!(
-            "/// - `{}`: `{}` (`{}`)",
-            par_name, par_type, par_sign
-        ));
+        code.push(format!("/// - `{par_name}`: `{par_type}` (`{par_sign}`)"));
     }
 
     code.push("///".to_string());
     code.push(format!(
-        "/// Return type and Java signature: `{}` (`{}`)",
-        return_type, return_signature
+        "/// Return type and Java signature: `{return_type}` (`{return_signature}`)"
     ));
 
-    code.push(format!("pub fn {}(", rust_method_name));
+    code.push(format!("pub fn {rust_method_name}("));
     code.push("    &self,".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!("    {}: {},", par_name, par_type));
+        code.push(format!("    {par_name}: {par_type},"));
     }
 
-    code.push(format!(") -> JNIResult<{}> {{", return_type));
+    code.push(format!(") -> JNIResult<{return_type}> {{"));
+
+    code.push(format!("    let class_name = \"{}\";", class.path()));
+    code.push(format!("    let method_name = \"{method_name}\";"));
+    code.push(format!(
+        "    let method_signature = \"{method_signature}\";"
+    ));
+    code.push(format!(
+        "    let return_signature = \"{return_signature}\";"
+    ));
+    code.push("".to_string());
 
     // Generate dynamic type check for the arguments
-    /*for i in 0..parameter_names.len() {
+    for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        if par_sign.chars().next() == Some('L') {
-            let par_class = &par_sign[1..(par_sign.len()-1)];
+        if par_sign.starts_with('L') {
+            let par_class = &par_sign[1..(par_sign.len() - 1)];
             code.push("    debug_assert!(".to_string());
+            code.push("        self.env.is_instance_of(".to_string());
+            code.push(format!("            {par_name},"));
             code.push(format!(
-                "        self.env.is_instance_of({}, self.env.find_class(\"{}\")?)?",
-                par_name,
-                par_class
+                "            self.env.find_class(\"{par_class}\")?,"
             ));
+            code.push("        )?".to_string());
             code.push("    );".to_string());
         }
-    }*/
+    }
+    code.push("".to_string());
 
-    code.push(format!(
-        "    let class =self.env.find_class(\"{}\")?;",
-        class.path()
-    ));
+    code.push(
+        r#"    static CLASS: OnceCell<GlobalRef> = OnceCell::new();
+    static STATIC_METHOD_ID: OnceCell<JStaticMethodID> = OnceCell::new();
+    static RETURN_TYPE: OnceCell<ReturnType> = OnceCell::new();
+    let class = CLASS.get_or_try_init(|| {
+        let class = self.env.find_class(class_name)?;
+        self.env.new_global_ref(class)
+    })?;
+    let static_method_id = *STATIC_METHOD_ID.get_or_try_init(|| {
+        self.env.get_static_method_id(
+            class_name,
+            method_name,
+            method_signature
+        )
+    })?;
+    let return_type = RETURN_TYPE.get_or_try_init(|| {
+        ReturnType::from_str(return_signature)
+    })?.clone();
+"#
+        .to_string(),
+    );
+    code.push("".to_string());
 
-    code.push(format!("    let method_name = \"{}\";", method_name));
-    code.push(format!(
-        "    let method_signature = \"{}\";",
-        method_signature
-    ));
-    code.push(format!(
-        "    let return_signature = \"{}\";",
-        return_signature
-    ));
-
-    code.push("    let method_id = self.env.get_static_method_id(".to_string());
-    code.push("        class,".to_string());
-    code.push("        method_name,".to_string());
-    code.push("        method_signature".to_string());
-    code.push("    )?;".to_string());
-
-    code.push("    let return_type = ReturnType::from_str(return_signature)?;".to_string());
     code.push("    let result = self.env.call_static_method_unchecked(".to_string());
-    code.push("        class,".to_string());
-    code.push("        method_id,".to_string());
+    code.push("        JClass::from(class.as_obj()),".to_string());
+    code.push("        static_method_id,".to_string());
     code.push("        return_type,".to_string());
     code.push("        &[".to_string());
-
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {}.into(),", par_jvalue));
+        code.push(format!("            {par_jvalue}.into(),"));
     }
-
     code.push("        ]".to_string());
     code.push(format!(
         "    ).and_then(|x| x.{}());",
         generate_jni_type_char(&return_signature)
     ));
+    code.push("".to_string());
 
     // Generate dynamic type check for the result
-    /*if return_signature.chars().next() == Some('L') {
-        let return_class = &return_signature[1..(return_signature.len()-1)];
-        code.push("    debug_assert!(".to_string());
+    if return_signature.starts_with('L') {
+        let return_class = &return_signature[1..(return_signature.len() - 1)];
+        code.push("    if let Ok(result) = result {".to_string());
+        code.push("        debug_assert!(".to_string());
+        code.push("            self.env.is_instance_of(".to_string());
+        code.push("                result,".to_string());
         code.push(format!(
-            "        self.env.is_instance_of(result, self.env.find_class(\"{}\")?)?",
-            return_class
+            "                self.env.find_class(\"{return_class}\")?,"
         ));
-        code.push("    );".to_string());
-    }*/
+        code.push("            )?".to_string());
+        code.push("        );".to_string());
+        code.push("    }".to_string());
+        code.push("".to_string());
+    }
 
-    code.push("    self.env.delete_local_ref(class.into()).unwrap();".to_string());
     code.push("    result".to_string());
     code.push("}".to_string());
 

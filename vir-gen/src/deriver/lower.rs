@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 use syn::{parse_quote, spanned::Spanned};
 
@@ -118,7 +118,7 @@ fn derive_lowerer(
         queue: vec![WorkItem::RootItem {
             type_ident: source_enum.ident.clone(),
         }],
-        done_work_items: HashSet::new(),
+        done_work_items: FxHashSet::default(),
         source_path,
         source_type_module,
         target_path,
@@ -195,7 +195,7 @@ struct Deriver<'a> {
     user_trait_method_name: syn::Ident,
     prefix: String,
     queue: Vec<WorkItem>,
-    done_work_items: HashSet<WorkItem>,
+    done_work_items: FxHashSet<WorkItem>,
     source_path: syn::Path,
     source_type_module: &'a [syn::Item],
     target_path: syn::Path,

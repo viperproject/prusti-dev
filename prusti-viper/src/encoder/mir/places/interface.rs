@@ -138,7 +138,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         _mir: &mir::Body<'tcx>,
         local: mir::Local,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("{:?}", local))
+        Ok(format!("{local:?}"))
     }
 
     fn encode_local_high(
@@ -527,10 +527,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
 
             _ => {
                 return Err(SpannedEncodingError::unsupported(
-                    format!(
-                        "unsupported cast from type '{:?}' to type '{:?}'",
-                        src_ty, dst_ty
-                    ),
+                    format!("unsupported cast from type '{src_ty:?}' to type '{dst_ty:?}'"),
                     span,
                 ));
             }

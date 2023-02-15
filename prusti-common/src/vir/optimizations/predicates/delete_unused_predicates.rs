@@ -9,8 +9,8 @@ use crate::vir::polymorphic_vir::{
     cfg::CfgMethod,
     utils::{walk_functions, walk_methods},
 };
-use fxhash::{FxHashMap, FxHashSet};
 use log::debug;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 fn collect_info_from_methods_and_functions(
     methods: &[CfgMethod],

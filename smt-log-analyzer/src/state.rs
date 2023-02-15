@@ -5,10 +5,8 @@ use crate::{
     parser::TheoryKind,
     types::{Level, QuantifierId, TermId, BUILTIN_QUANTIFIER_ID},
 };
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Write,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::fmt::Write;
 
 pub(crate) struct Quantifier {
     name: String,
@@ -75,7 +73,7 @@ struct LargestPop {
     /// How many active scopes were popped with that pop operation?
     active_scopes_popped: Level,
     /// How many instances of each quantifier were removed in that pop?
-    removed_quantifiers: HashMap<QuantifierId, usize>,
+    removed_quantifiers: FxHashMap<QuantifierId, usize>,
     /// Popped labels.
     labels: Vec<BasicBlockVisitedEvent>,
     /// Labels leading to the popped labels.
@@ -84,26 +82,26 @@ struct LargestPop {
 
 #[derive(Default)]
 pub(crate) struct State {
-    quantifiers: HashMap<QuantifierId, Quantifier>,
-    terms: HashMap<TermId, Term>,
+    quantifiers: FxHashMap<QuantifierId, Quantifier>,
+    terms: FxHashMap<TermId, Term>,
     /// The currently matched quantifiers (via [new-match]) at a given level.
-    quantifiers_matched_events: HashMap<QuantifierId, Vec<QuantifierMatchedEvent>>,
+    quantifiers_matched_events: FxHashMap<QuantifierId, Vec<QuantifierMatchedEvent>>,
     /// The currently discovered quantifiers (via [inst-discovered]) at a given level.
-    quantifiers_inst_disovered_events: HashMap<TheoryKind, Vec<QuantifierMatchedEvent>>,
+    quantifiers_inst_disovered_events: FxHashMap<TheoryKind, Vec<QuantifierMatchedEvent>>,
     /// How many times each quantifier was matched (ignoring push/pop).
-    total_quantifiers_matched_counters: HashMap<QuantifierId, usize>,
+    total_quantifiers_matched_counters: FxHashMap<QuantifierId, usize>,
     /// How many times each quantifier was discovered (ignoring push/pop).
-    total_quantifiers_inst_disovered_counters: HashMap<TheoryKind, usize>,
+    total_quantifiers_inst_disovered_counters: FxHashMap<TheoryKind, usize>,
     /// How many instantiations we had of each quantifier.
-    max_quantifier_matched_event_counters: HashMap<QuantifierId, usize>,
+    max_quantifier_matched_event_counters: FxHashMap<QuantifierId, usize>,
     /// How many instantiations we had of each theory.
-    max_quantifier_inst_discovered_event_counters: HashMap<TheoryKind, usize>,
-    unique_quantifier_triggers: HashMap<QuantifierId, HashSet<TermId>>,
-    term_used_in_trigger_events: HashMap<QuantifierId, Vec<TermUsedInTriggerEvent>>,
-    max_term_used_in_trigger_event_counters: HashMap<QuantifierId, usize>,
+    max_quantifier_inst_discovered_event_counters: FxHashMap<TheoryKind, usize>,
+    unique_quantifier_triggers: FxHashMap<QuantifierId, FxHashSet<TermId>>,
+    term_used_in_trigger_events: FxHashMap<QuantifierId, Vec<TermUsedInTriggerEvent>>,
+    max_term_used_in_trigger_event_counters: FxHashMap<QuantifierId, usize>,
     /// Quantifiers that the triggered by exactly the same term multiple times.
     /// (Push/pop is taken into account.)
-    multi_term_quantifiers: HashMap<QuantifierId, Vec<TermId>>,
+    multi_term_quantifiers: FxHashMap<QuantifierId, Vec<TermId>>,
     /// A total number of times the quantifiers were instantiated via [instance]
     /// (ignoring push/pop).
     total_quantifiers_instance_counters: usize,
@@ -137,7 +135,7 @@ impl State {
         self.max_quantifier_matched_event_counters
             .insert(quantifier_id, 0);
         self.unique_quantifier_triggers
-            .insert(quantifier_id, HashSet::new());
+            .insert(quantifier_id, FxHashSet::default());
         self.term_used_in_trigger_events
             .insert(quantifier_id, Vec::new());
         self.max_term_used_in_trigger_event_counters
@@ -214,7 +212,7 @@ impl State {
         let term_used_in_trigger_events = &mut self
             .term_used_in_trigger_events
             .get_mut(&quantifier_id)
-            .unwrap_or_else(|| panic!("quantifier_id: {}", quantifier_id));
+            .unwrap_or_else(|| panic!("quantifier_id: {quantifier_id}"));
         if term_used_in_trigger_events
             .iter()
             .any(|event| event.term_id == term_id)
@@ -242,7 +240,7 @@ impl State {
                 && traced_quantifier_id == quantifier_id
             {
                 let mut buf = self.traced_quantifier_triggers.take().unwrap();
-                write!(buf, "{},", term_id).unwrap();
+                write!(buf, "{term_id},").unwrap();
                 self.render_term(term_id, &mut buf, 30).unwrap();
                 writeln!(buf).unwrap();
                 self.traced_quantifier_triggers = Some(buf);
@@ -256,7 +254,7 @@ impl State {
         self.traced_quantifier = quantifier;
         if let Some(quantifier) = quantifier {
             let mut buf = String::new();
-            writeln!(buf, "{},", quantifier).unwrap();
+            writeln!(buf, "{quantifier},").unwrap();
             self.traced_quantifier_triggers = Some(buf);
         }
     }
@@ -371,7 +369,7 @@ impl State {
             }
         }
 
-        let mut removed_quantifiers = HashMap::new();
+        let mut removed_quantifiers = FxHashMap::default();
         let mut total_quantifier_matches_removed = 0;
         for (quantifier_id, events) in &mut self.quantifiers_matched_events {
             let max = self
@@ -418,9 +416,9 @@ impl State {
             match term {
                 Term::FunctionApplication { name, args } => {
                     if args.is_empty() {
-                        write!(f, "{}", name)?;
+                        write!(f, "{name}")?;
                     } else {
-                        write!(f, "({}", name)?;
+                        write!(f, "({name}")?;
                         for arg in args {
                             write!(f, " ")?;
                             self.render_term(*arg, f, depth - 1)?;
@@ -429,10 +427,10 @@ impl State {
                     }
                 }
                 Term::Variable { index } => {
-                    write!(f, "var({})", index)?;
+                    write!(f, "var({index})")?;
                 }
                 Term::AttachMeaning { ident, value } => {
-                    write!(f, "( {} {} )", ident, value)?;
+                    write!(f, "( {ident} {value} )")?;
                 }
             }
         } else {
@@ -447,14 +445,14 @@ impl State {
             .iter()
             .map(|(quantifier_id, counter)| (*counter, *quantifier_id))
             .collect();
-        counts.sort();
+        counts.sort_unstable();
         counts
     }
 
     pub(crate) fn write_statistics(&self, input_file: &str) {
         {
             // [instance] – the number of quantifier instantiations.
-            let mut writer = Writer::from_path(format!("{}.instances.csv", input_file)).unwrap();
+            let mut writer = Writer::from_path(format!("{input_file}.instances.csv")).unwrap();
             writer
                 .write_record([
                     "Total Quantifier Instance Count",
@@ -471,13 +469,13 @@ impl State {
 
         {
             // The number of trigger matches per quantifier.
-            let mut writer = Writer::from_path(format!("{}.triggers.csv", input_file)).unwrap();
+            let mut writer = Writer::from_path(format!("{input_file}.triggers.csv")).unwrap();
             let mut counts: Vec<_> = self
                 .max_term_used_in_trigger_event_counters
                 .iter()
                 .map(|(quantifier_id, counter)| (*counter, *quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Trigger Count"])
                 .unwrap();
@@ -495,13 +493,13 @@ impl State {
         {
             // The number of unique triggers per quantifier.
             let mut writer =
-                Writer::from_path(format!("{}.unique-triggers.csv", input_file)).unwrap();
+                Writer::from_path(format!("{input_file}.unique-triggers.csv")).unwrap();
             let mut counts: Vec<_> = self
                 .unique_quantifier_triggers
                 .iter()
                 .map(|(quantifier_id, terms)| (terms.len(), *quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Unique trigger Count"])
                 .unwrap();
@@ -543,14 +541,13 @@ impl State {
         {
             // The quantifiers that were matched multiple times with the same
             // trigger.
-            let mut writer =
-                Writer::from_path(format!("{}.multi-triggers.csv", input_file)).unwrap();
+            let mut writer = Writer::from_path(format!("{input_file}.multi-triggers.csv")).unwrap();
             let mut multi_term_instantiation_counts: Vec<_> = self
                 .multi_term_quantifiers
                 .iter()
                 .map(|(quantifier_id, terms)| (terms.len(), *quantifier_id))
                 .collect();
-            multi_term_instantiation_counts.sort();
+            multi_term_instantiation_counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Trigger Count"])
                 .unwrap();
@@ -567,7 +564,7 @@ impl State {
 
         {
             // [new-match] – The number of quantifier matches.
-            let mut writer = Writer::from_path(format!("{}.matches.csv", input_file)).unwrap();
+            let mut writer = Writer::from_path(format!("{input_file}.matches.csv")).unwrap();
             let counts = self.quantifier_matches_counts();
             writer
                 .write_record([
@@ -593,13 +590,13 @@ impl State {
         {
             // [inst-discovered] – The number of quantifier instance discoveries.
             let mut writer =
-                Writer::from_path(format!("{}.inst-discoveries.csv", input_file)).unwrap();
+                Writer::from_path(format!("{input_file}.inst-discoveries.csv")).unwrap();
             let mut counts: Vec<_> = self
                 .max_quantifier_inst_discovered_event_counters
                 .iter()
                 .map(|(theory, counter)| (counter, *theory))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Theory", "Discoveries", "Total Discoveries"])
                 .unwrap();
@@ -607,7 +604,7 @@ impl State {
                 let total = self.total_quantifiers_inst_disovered_counters[&theory];
                 writer
                     .write_record([
-                        &format!("{:?}", theory),
+                        &format!("{theory:?}"),
                         &counter.to_string(),
                         &total.to_string(),
                     ])
@@ -617,20 +614,19 @@ impl State {
 
         {
             println!(
-                "The largest number of quantifier matches removed in a single \
-                “pop {}” operation: {}",
+                "The largest number of quantifier matches removed in a single “pop {}” operation: {}",
                 self.largest_pop.active_scopes_popped, self.largest_pop.quantifier_matches_removed
             );
             // The number of quantifier matches poped in the largest match.
             let mut writer =
-                Writer::from_path(format!("{}.largest_pop_matches.csv", input_file)).unwrap();
+                Writer::from_path(format!("{input_file}.largest_pop_matches.csv")).unwrap();
             let mut counts: Vec<_> = self
                 .largest_pop
                 .removed_quantifiers
                 .iter()
                 .map(|(quantifier_id, counter)| (*counter, *quantifier_id))
                 .collect();
-            counts.sort();
+            counts.sort_unstable();
             writer
                 .write_record(["Quantifier ID", "Quantifier Name", "Matches Removed"])
                 .unwrap();
@@ -645,7 +641,7 @@ impl State {
             }
 
             let mut label_writer =
-                Writer::from_path(format!("{}.largest_pop_labels.csv", input_file)).unwrap();
+                Writer::from_path(format!("{input_file}.largest_pop_labels.csv")).unwrap();
             label_writer
                 .write_record(["Basic Block Label", "Level", "Was popped?"])
                 .unwrap();
@@ -663,8 +659,7 @@ impl State {
 
         if let Some(quantifier_id) = self.traced_quantifier {
             let mut file = std::fs::File::create(format!(
-                "{}.quantifier-{}-triggers.csv",
-                input_file, quantifier_id
+                "{input_file}.quantifier-{quantifier_id}-triggers.csv"
             ))
             .unwrap();
             std::io::Write::write_all(
@@ -744,11 +739,8 @@ impl State {
         if let Some(bound) = quantifier_instantiations_bound_trace {
             assert!(
                 sum <= bound.try_into().unwrap(),
-                "the number of quantifier instantiations (in {}) on a specific \
-                trace ({}) exceeded the allowed bound ({})",
-                input_file,
-                sum,
-                bound
+                "the number of quantifier instantiations (in {input_file}) on a specific \
+                trace ({sum}) exceeded the allowed bound ({bound})"
             );
         }
         let mut total_unique_triggers_count = 0;
@@ -781,10 +773,7 @@ impl State {
         if let Some(bound) = unique_triggers_bound_total {
             assert!(
                 total_unique_triggers_count <= bound.try_into().unwrap(),
-                "the number of unique triggers ({}) exceeded the allowed bound ({}) in {}",
-                total_unique_triggers_count,
-                bound,
-                input_file
+                "the number of unique triggers ({total_unique_triggers_count}) exceeded the allowed bound ({bound}) in {input_file}"
             );
         }
     }

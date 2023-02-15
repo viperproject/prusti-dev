@@ -17,8 +17,8 @@
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
 use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
-use fxhash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{cmp::Ordering, mem};
 
 pub trait FoldingOptimizer {
@@ -116,7 +116,7 @@ fn restore_unfoldings_boxed(unfolding_map: UnfoldingMap, expr: Box<ast::Expr>) -
 /// Restore unfoldings on a given expression.
 fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::Expr {
     let mut unfoldings: Vec<_> = unfolding_map.into_iter().collect();
-    unfoldings.sort_by(|(k1, _), (k2, _)| {
+    unfoldings.sort_unstable_by(|(k1, _), (k2, _)| {
         if k1 == k2 {
             Ordering::Equal
         } else {
@@ -127,7 +127,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
             } else if base_k1 > base_k2 || k2.has_prefix(k1) {
                 Ordering::Greater
             } else {
-                format!("{}", k1).cmp(&format!("{}", k2))
+                format!("{k1}").cmp(&format!("{k2}"))
             }
         }
     });

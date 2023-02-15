@@ -54,10 +54,9 @@ impl std::convert::From<TypeCounterexampleError> for syn::Error {
             TypeCounterexampleError::InvalidName(span) => {
                 syn::Error::new(span, "Invalid argument name")
             }
-            TypeCounterexampleError::InvalidArgument(span, name, arg) => syn::Error::new(
-                span,
-                format!("`{}` does not have a field named {}", name, arg),
-            ),
+            TypeCounterexampleError::InvalidArgument(span, name, arg) => {
+                syn::Error::new(span, format!("`{name}` does not have a field named {arg}"))
+            }
             TypeCounterexampleError::WrongNumberOfArguemnts(span) => {
                 syn::Error::new(span, "Number of arguments are incorrect")
             }

@@ -26,11 +26,11 @@ impl std::fmt::Display for FoldUnfoldState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "incoming labels: ")?;
         for label in &self.incoming_labels {
-            write!(f, "{}, ", label)?;
+            write!(f, "{label}, ")?;
         }
         writeln!(f, "\nstates:")?;
         for (variable, predicate) in &self.predicates {
-            writeln!(f, "{}:\n{}", variable, predicate)?;
+            writeln!(f, "{variable}:\n{predicate}")?;
         }
         Ok(())
     }

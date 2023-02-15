@@ -39,8 +39,8 @@ fn test_jvm_builtin_classes() {
                 )?;
                 let int_array = unsafe { JObject::from_raw(int_array) };
 
-                let result =
-                    java::util::Arrays::with(&env).call_binarySearch(int_array, integer_value)?;
+                let result = java::util::Arrays::with(&env)
+                    .call_binarySearch(int_array, integer_value)?;
 
                 assert!(0 <= result && result < array_length);
 

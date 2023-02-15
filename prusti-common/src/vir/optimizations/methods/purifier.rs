@@ -13,7 +13,7 @@ use crate::{
     config,
     vir::polymorphic_vir::{ast, cfg},
 };
-use fxhash::{FxHashMap, FxHashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{self, mem};
 
 /// Purify vars.
@@ -278,7 +278,7 @@ impl VarPurifier {
         let replacement = self
             .replacements
             .get(var)
-            .unwrap_or_else(|| panic!("key: {}", var))
+            .unwrap_or_else(|| panic!("key: {var}"))
             .clone();
         ast::Expr::Local(ast::Local {
             variable: replacement,
@@ -309,11 +309,7 @@ impl VarPurifier {
 
 impl ast::ExprFolder for VarPurifier {
     fn fold_local(&mut self, ast::Local { variable, position }: ast::Local) -> ast::Expr {
-        assert!(
-            !self.pure_vars.contains(&variable),
-            "local_var: {}",
-            variable
-        );
+        assert!(!self.pure_vars.contains(&variable), "local_var: {variable}");
         ast::Expr::local_with_pos(variable, position)
     }
     fn fold_predicate_access_predicate(
@@ -474,14 +470,14 @@ impl ast::StmtFolder for VarPurifier {
             let replacement = self
                 .replacements
                 .get(target)
-                .unwrap_or_else(|| panic!("key: {}", target))
+                .unwrap_or_else(|| panic!("key: {target}"))
                 .clone();
             method_name = match replacement.typ {
                 ast::Type::Int => "builtin$havoc_int".to_string(),
                 ast::Type::Bool => "builtin$havoc_bool".to_string(),
                 ast::Type::Float(ast::Float::F32) => "builtin$havoc_f32".to_string(),
                 ast::Type::Float(ast::Float::F64) => "builtin$havoc_f64".to_string(),
-                ast::Type::BitVector(value) => format!("builtin$havoc_{}", value),
+                ast::Type::BitVector(value) => format!("builtin$havoc_{value}"),
                 ast::Type::TypedRef(_) => "builtin$havoc_ref".to_string(),
                 ast::Type::TypeVar(_) => "builtin$havoc_ref".to_string(),
                 ast::Type::Domain(_)

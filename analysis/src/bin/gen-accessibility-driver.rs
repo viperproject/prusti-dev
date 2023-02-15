@@ -7,6 +7,7 @@
 use analysis::domains::DefinitelyAccessibleAnalysis;
 use prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
+    data_structures::fx::FxHashMap,
     driver::Compilation,
     hir,
     hir::def_id::LocalDefId,
@@ -19,7 +20,7 @@ use prusti_rustc_interface::{
     session::Session,
     span::FileName,
 };
-use std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc};
+use std::{cell::RefCell, path::PathBuf, rc::Rc};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -36,8 +37,8 @@ mod mir_storage {
     // because we cast it back to `'tcx` before using.
     thread_local! {
         static MIR_BODIES:
-            RefCell<HashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
-            RefCell::new(HashMap::new());
+            RefCell<FxHashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
+            RefCell::new(FxHashMap::default());
     }
 
     pub unsafe fn store_mir_body<'tcx>(
@@ -105,7 +106,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
 
         assert!(self.args.iter().any(|a| a == "--generate-test-program"));
 
-        queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+        queries.global_ctxt().unwrap().enter(|tcx| {
             // Retrieve the MIR body of all user-written functions and run Polonius.
             let mut def_ids_with_body: Vec<_> = tcx
                 .mir_keys(())

@@ -14,29 +14,32 @@ use crate::{
         Program,
     },
 };
-use fxhash::FxHashMap;
 use log::{info, trace};
+use rustc_hash::FxHashMap;
 use viper::{self, AstFactory};
 use vir::common::identifier::WithIdentifier;
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Program<'v> {
-        let domains = self.domains.to_viper(context, ast);
+        let mut domains = self.domains.to_viper(context, ast);
+        domains.extend(self.backend_types.to_viper(context, ast));
         let fields = self.fields.to_viper(context, ast);
 
-        let mut viper_methods: Vec<_> = self
-            .methods
-            .iter()
-            .map(|m| m.to_viper(context, ast))
-            .collect();
-        viper_methods.extend(
-            self.builtin_methods
+        let viper_methods = if config::verify_only_preamble() {
+            Vec::new()
+        } else {
+            let mut tmp: Vec<_> = self
+                .methods
                 .iter()
-                .map(|m| m.to_viper(context, ast)),
-        );
-        if config::verify_only_preamble() {
-            viper_methods = Vec::new();
-        }
+                .map(|m| m.to_viper(context, ast))
+                .collect();
+            tmp.extend(
+                self.builtin_methods
+                    .iter()
+                    .map(|m| m.to_viper(context, ast)),
+            );
+            tmp
+        };
 
         let mut viper_functions: Vec<_> = self
             .functions
@@ -103,7 +106,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Bool => ast.bool_type(),
             Type::Ref | Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
-            Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
+            Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${name}"), &[], &[]),
             Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(_context, ast)),
             Type::Map(ref key_type, ref val_type) => ast.map_type(
                 key_type.to_viper(_context, ast),
@@ -171,7 +174,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             }
             Stmt::Exhale(ref expr, ref pos) => {
-                assert!(!pos.is_default(), "stmt with default pos: {}", self);
+                assert!(!pos.is_default(), "stmt with default pos: {self}");
                 ast.exhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
             Stmt::Assert(ref expr, ref pos) => {
@@ -320,7 +323,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     pos.to_viper(context, ast),
                 );
                 let position =
-                    ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
+                    ast.identifier_position(pos.line(), pos.column(), pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(context, ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
@@ -902,6 +905,28 @@ impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
     }
 }
 
+impl<'a, 'v> ToViper<'v, viper::Domain<'v>> for &'a BackendType {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Domain<'v> {
+        ast.backend_type(
+            &self.name,
+            &self.functions.to_viper(context, ast),
+            &self.interpretations,
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a BackendFuncDecl {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
+        ast.backend_func(
+            &self.get_identifier(),
+            &self.formal_args.to_viper_decl(context, ast),
+            self.return_type.to_viper(context, ast),
+            &self.domain_name,
+            &self.interpretation,
+        )
+    }
+}
+
 // Vectors
 
 impl<'v> ToViper<'v, Vec<viper::Field<'v>>> for Vec<Field> {
@@ -952,6 +977,18 @@ impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<DomainFunc> {
 
 impl<'v> ToViper<'v, Vec<viper::NamedDomainAxiom<'v>>> for Vec<DomainAxiom> {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::NamedDomainAxiom<'v>> {
+        self.iter().map(|x| x.to_viper(context, ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Domain<'v>>> for Vec<BackendType> {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::Domain<'v>> {
+        self.iter().map(|x| x.to_viper(context, ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<BackendFuncDecl> {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::DomainFunc<'v>> {
         self.iter().map(|x| x.to_viper(context, ast)).collect()
     }
 }
@@ -1096,9 +1133,7 @@ fn cfg_method_convert_basic_block_path<'v>(
             current_label = next_label;
             assert!(
                 successors.contains(&current_label),
-                "successors: {:?} next_label: {:?}",
-                successors,
-                current_label
+                "successors: {successors:?} next_label: {current_label:?}"
             );
         } else {
             break;

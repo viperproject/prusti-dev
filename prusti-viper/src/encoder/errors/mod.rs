@@ -11,6 +11,7 @@ pub use self::encoding_error::*;
 pub use self::encoding_error_kind::*;
 pub use self::with_span::*;
 pub use self::position_manager::*;
+pub use self::macros::*;
 pub use prusti_rustc_interface::errors::MultiSpan;
 
 mod conversions;
@@ -20,3 +21,4 @@ mod encoding_error;
 mod encoding_error_kind;
 mod with_span;
 mod position_manager;
+mod macros;

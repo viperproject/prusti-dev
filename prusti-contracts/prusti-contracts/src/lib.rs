@@ -18,6 +18,9 @@ pub use prusti_contracts_proc_macros::pure;
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 
+/// A macro for marking a function as opted into verification.
+pub use prusti_contracts_proc_macros::verified;
+
 /// A macro for type invariants.
 pub use prusti_contracts_proc_macros::invariant;
 
@@ -45,7 +48,7 @@ pub use prusti_contracts_proc_macros::model;
 
 /// A macro to add trait bounds on a generic type parameter and specifications
 /// which are active only when these bounds are satisfied for a call.
-pub use prusti_contracts_proc_macros::ghost_constraint;
+pub use prusti_contracts_proc_macros::refine_spec;
 
 /// A macro for defining ghost blocks which will be left in for verification
 /// but omitted during compilation.
@@ -77,6 +80,16 @@ mod private {
         ($($tail:tt)*) => {
             $($tail)*
         };
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_eq {
+        ($left:expr, $right:expr $(,)?) => {};
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_ne {
+        ($left:expr, $right:expr $(,)?) => {};
     }
 
     /// A sequence type
@@ -151,6 +164,20 @@ mod private {
     }
 
     __int_dummy_trait_impls__!(Add add, Sub sub, Mul mul, Div div, Rem rem);
+
+    #[macro_export]
+    macro_rules! prusti_assert_eq {
+        ($left:expr, $right:expr $(,)?) => {
+            $crate::prusti_assert!($crate::snapshot_equality($left, $right))
+        };
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_ne {
+        ($left:expr, $right:expr $(,)?) => {
+            $crate::prusti_assert!(!$crate::snapshot_equality($left, $right))
+        };
+    }
 
     impl Neg for Int {
         type Output = Self;

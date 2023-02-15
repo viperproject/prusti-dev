@@ -5,7 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{common::identifier::WithIdentifier, enum_predicate, legacy::ast::*};
-use std::{collections::HashSet, fmt};
+use rustc_hash::FxHashSet;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Predicate {
@@ -17,9 +18,9 @@ pub enum Predicate {
 impl fmt::Display for Predicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Predicate::Struct(p) => write!(f, "{}", p),
-            Predicate::Enum(p) => write!(f, "{}", p),
-            Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
+            Predicate::Struct(p) => write!(f, "{p}"),
+            Predicate::Enum(p) => write!(f, "{p}"),
+            Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
         }
     }
 }
@@ -86,7 +87,7 @@ impl Predicate {
             variants
                 .iter()
                 .map(|(_, name, _)| name.to_string())
-                .collect::<HashSet<_>>()
+                .collect::<FxHashSet<_>>()
                 .len()
                 == variants.len()
         );
@@ -171,7 +172,7 @@ impl fmt::Display for StructPredicate {
             None => writeln!(f, ");"),
             Some(ref body) => {
                 writeln!(f, "){{")?;
-                writeln!(f, "  {}", body)?;
+                writeln!(f, "  {body}")?;
                 writeln!(f, "}}")
             }
         }
@@ -275,7 +276,7 @@ impl fmt::Display for EnumPredicate {
         writeln!(f, "enum_predicate {}({}){{", self.name, self.this)?;
         writeln!(f, "  discriminant_field={}", self.discriminant_field)?;
         for (guard, name, variant) in self.variants.iter() {
-            writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
+            writeln!(f, "  {name}: {guard} ==> {variant}\n")?;
         }
         writeln!(f, "}}")
     }

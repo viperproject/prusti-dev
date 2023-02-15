@@ -1,7 +1,7 @@
+use crate::common::HasGenerics;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{spanned::Spanned, TypeParam};
-use crate::common::HasGenerics;
 
 #[derive(Debug)]
 pub(crate) enum UserAnnotatedTypeParam {

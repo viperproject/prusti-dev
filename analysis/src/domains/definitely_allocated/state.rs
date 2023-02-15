@@ -36,9 +36,10 @@ impl<'mir, 'tcx: 'mir> Eq for DefinitelyAllocatedState<'mir, 'tcx> {}
 impl<'mir, 'tcx: 'mir> Serialize for DefinitelyAllocatedState<'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_seq(Some(self.def_allocated_locals.len()))?;
-        let oredered_set: BTreeSet<_> = self.def_allocated_locals.iter().collect();
-        for local in oredered_set {
-            seq.serialize_element(&format!("{:?}", local))?;
+
+        let ordered_set: BTreeSet<_> = self.def_allocated_locals.iter().collect();
+        for local in ordered_set {
+            seq.serialize_element(&format!("{local:?}"))?;
         }
         seq.end()
     }
@@ -92,11 +93,11 @@ impl<'mir, 'tcx: 'mir> DefinitelyAllocatedState<'mir, 'tcx> {
         &self,
         location: mir::Location,
     ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
-        let mut res_vec = Vec::new();
-        let terminator = self.mir[location.block].terminator();
-        for bb in terminator.successors() {
-            res_vec.push((bb, self.clone()));
-        }
+        let res_vec = self.mir[location.block]
+            .terminator()
+            .successors()
+            .map(|bb| (bb, self.clone()))
+            .collect();
         Ok(res_vec)
     }
 }

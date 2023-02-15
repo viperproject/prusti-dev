@@ -39,7 +39,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> Serialize for PointwiseState<'mir, 'tcx, S>
 
         for bb in self.mir.basic_blocks.indices() {
             let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
-            let mut stmt_vec: Vec<_> = Vec::new();
+            let mut stmt_vec: Vec<_> = Vec::with_capacity(statements.len());
             for (statement_index, stmt) in statements.iter().enumerate() {
                 let location = mir::Location {
                     block: bb,
@@ -48,7 +48,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> Serialize for PointwiseState<'mir, 'tcx, S>
                 let state = self.lookup_before(location).unwrap();
 
                 // output statement
-                stmt_vec.push(("state:", state, format!("statement: {:?}", stmt)));
+                stmt_vec.push(("state:", state, format!("statement: {stmt:?}")));
             }
 
             let term_location = self.mir.terminator_loc(bb);
@@ -60,11 +60,11 @@ impl<'mir, 'tcx: 'mir, S: Serialize> Serialize for PointwiseState<'mir, 'tcx, S>
             let map_after = self.lookup_after_block(bb).unwrap_or(&new_map);
             let ordered_succ_map: BTreeMap<_, _> = map_after
                 .iter()
-                .map(|(bb, s)| (format!("{:?}", bb), ("state:", s)))
+                .map(|(bb, s)| (format!("{bb:?}"), ("state:", s)))
                 .collect();
 
             map.serialize_entry(
-                &format!("{:?}", bb),
+                &format!("{bb:?}"),
                 &(
                     stmt_vec,
                     "state before terminator:",

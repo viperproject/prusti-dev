@@ -7,7 +7,7 @@ use prusti_rustc_interface::span::def_id::DefId;
 use vir::common::graphviz::Graph;
 
 pub(crate) fn dump_mir_info(env: &Environment<'_>, def_id: DefId) {
-    eprintln!("def_id: {:?}", def_id);
+    eprintln!("def_id: {def_id:?}");
     let local_def_id = def_id.expect_local();
     let def_path = env.query.hir().def_path(local_def_id);
 
@@ -23,7 +23,7 @@ pub(crate) fn dump_mir_info(env: &Environment<'_>, def_id: DefId) {
 }
 
 fn populate_graph(env: &Environment<'_>, def_id: DefId) -> Option<Graph> {
-    eprintln!("populate_graph: {:?}", def_id);
+    eprintln!("populate_graph: {def_id:?}");
     let procedure = Procedure::new(env, def_id);
     let mir = procedure.get_mir();
     if let Some(facts) = env

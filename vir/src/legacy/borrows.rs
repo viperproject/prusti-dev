@@ -6,10 +6,8 @@
 
 use super::ast::{Expr, ExprIterator, Stmt};
 use log::{debug, trace};
-use std::{
-    collections::{HashMap, VecDeque},
-    fmt,
-};
+use rustc_hash::FxHashMap;
+use std::{collections::VecDeque, fmt};
 
 /// The method-unique borrow identifier.
 #[derive(
@@ -98,7 +96,7 @@ impl fmt::Debug for Node {
 pub struct DAG {
     /// Mapping from borrows to their node indices.
     #[serde(skip)]
-    pub(crate) borrow_indices: HashMap<Borrow, usize>,
+    pub(crate) borrow_indices: FxHashMap<Borrow, usize>,
     #[serde(skip)]
     pub(crate) nodes: Vec<Node>,
     #[serde(skip)]
@@ -130,10 +128,10 @@ impl DAG {
         for (i, node) in self.nodes.iter().enumerate() {
             assert!(self.borrow_indices[&node.borrow] == i);
             for borrow in &node.reborrowing_nodes {
-                assert!(self.borrow_indices.contains_key(borrow), "{:?}", borrow);
+                assert!(self.borrow_indices.contains_key(borrow), "{borrow:?}");
             }
             for borrow in &node.reborrowed_nodes {
-                assert!(self.borrow_indices.contains_key(borrow), "{:?}", borrow);
+                assert!(self.borrow_indices.contains_key(borrow), "{borrow:?}");
             }
             for place in &node.borrowed_places {
                 debug!("{:?}: {}", node.borrow, place);
