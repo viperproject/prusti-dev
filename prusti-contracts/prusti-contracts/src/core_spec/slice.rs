@@ -42,6 +42,7 @@ impl<T> [T] {
 }
 
 // FUTURE(#1221): This spec is currently not usable due to issue #1221.
+/*
 #[extern_spec]
 impl<T, I> Index<I> for [T]
 where
@@ -50,3 +51,4 @@ where
     #[pure]
     fn index(&self, index: I) -> &I::Output;
 }
+*/
