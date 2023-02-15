@@ -5,5 +5,7 @@ mod new;
 // mod push; // TOOD: fix extern_spec (new syntax)
 // mod pop;
 // mod testing;
-mod option;
+// mod option;
 // mod generic;
+// mod peek;
+mod peek_mut; // pledges

@@ -2,7 +2,6 @@
 //// ANCHOR_END: nothing
 use prusti_contracts::*;
 
-//// ANCHOR: generic_types
 pub struct List<T> {
     head: Link<T>,
 }
@@ -14,7 +13,6 @@ struct Node<T> {
     next: Link<T>,
 }
 
-//// ANCHOR_END: generic_types
 #[extern_spec(std::mem)]
 #[ensures(snap(dest) === src)]
 #[ensures(result === old(snap(dest)))]
@@ -41,14 +39,9 @@ impl<T> std::option::Option<T> {
     #[ensures(self.is_none())]
     pub fn take(&mut self) -> Option<T>;
 }
-
-//// ANCHOR: generic_types
-//// ANCHOR: lookup_reference
+//// ANCHOR: pledge
 impl<T> List<T> {
-    // ...
-
-    //// ANCHOR_END: generic_types
-    //// ANCHOR_END: lookup_reference
+    //// ANCHOR_END: pledge
     #[pure]
     pub fn len(&self) -> usize {
         link_len(&self.head)
@@ -66,22 +59,15 @@ impl<T> List<T> {
 
     #[pure]
     #[requires(index < self.len())]
-    //// ANCHOR: lookup_reference
-    pub fn lookup(&self, index: usize) -> &T { // Return type is changed from `T` to `&T`
+    pub fn lookup(&self, index: usize) -> &T {
         link_lookup(&self.head, index)
     }
-    //// ANCHOR_END: lookup_reference
 
     #[ensures(self.len() == old(self.len()) + 1)]
-    //// ANCHOR: lookup_reference
-    #[ensures(snap(self.lookup(0)) === elem)] // Here we add a `snap`
-    //// ANCHOR_END: lookup_reference
+    #[ensures(snap(self.lookup(0)) === elem)]
     #[ensures(forall(|i: usize| (i < old(self.len())) ==>
-        old(self.lookup(i)) === self.lookup(i + 1)))]
-    //// ANCHOR: lookup_reference
+                 old(self.lookup(i)) === self.lookup(i + 1)))]
     pub fn push(&mut self, elem: T) {
-        // ...
-        //// ANCHOR_END: lookup_reference
         let new_node = Box::new(Node {
             elem,
             next: self.head.take(),
@@ -109,10 +95,7 @@ impl<T> List<T> {
         &&
         result === Some(snap(old(snap(self)).lookup(0)))
     )]
-    //// ANCHOR: generic_types
     pub fn try_pop(&mut self) -> Option<T> {
-        // ...
-        //// ANCHOR_END: generic_types
         match self.head.take() { // Replace mem::swap with the buildin Option::take
             None => None,
             Some(node) => {
@@ -120,30 +103,61 @@ impl<T> List<T> {
                 Some(node.elem)
             }
         }
-        //// ANCHOR: generic_types
     }
 
-    //// ANCHOR_END: generic_types
     #[requires(!self.is_empty())]
     #[ensures(self.head_removed(&old(snap(self))))]
     #[ensures(result === old(snap(self)).lookup(0))]
-    //// ANCHOR: generic_types
     pub fn pop(&mut self) -> T {
         self.try_pop().unwrap()
-        //// ANCHOR: lookup_reference
+    }
+
+    // // Not currently possible in Prusti
+    // pub fn try_peek(&mut self) -> Option<&T> {
+    //     todo!()
+    // }
+
+    #[pure]
+    #[requires(!self.is_empty())]
+    pub fn peek(&self) -> &T {
+        self.lookup(0)
+    }
+
+    #[trusted] // required due to unsupported reference in enum
+    #[requires(!self.is_empty())]
+    #[ensures(snap(result) === old(snap(self.peek())))]
+    //// ANCHOR: pledge
+    #[after_expiry(
+        old(self.len()) === self.len() // (1.)
+        && forall(|i: usize| 1 <= i && i < self.len() // (2.)
+            ==> old(snap(self.lookup(i))) === snap(self.lookup(i)))
+        && snap(self.peek()) === before_expiry(snap(result)) // (3.)
+    )]
+    pub fn peek_mut(&mut self) -> &mut T {
+        //// ANCHOR_END: pledge
+        // This does not work in Prusti at the moment:
+        // "&mut self.head" has type "&mut Option<T>"
+        // this gets auto-dereferenced by Rust into type: "Option<&mut T>"
+        // this then gets matched to "Some(node: &mut T)"
+        // References in enums are not yet supported, so this cannot be verified by Prusti
+        if let Some(node) = &mut self.head {
+            &mut node.elem
+        } else {
+            unreachable!()
+        }
+        //// ANCHOR: pledge
+        // ...
     }
 }
-//// ANCHOR_END: lookup_reference
+//// ANCHOR_END: pledge
 
-//// ANCHOR_END: generic_types
 #[pure]
 #[requires(index < link_len(link))]
-//// ANCHOR: lookup_reference
-fn link_lookup<T>(link: &Link<T>, index: usize) -> &T { // Return type is changed from `T` to `&T`
+fn link_lookup<T>(link: &Link<T>, index: usize) -> &T {
     match link {
         Some(node) => {
             if index == 0 {
-                &node.elem // Here we return a reference to `elem` instead of the `elem` itself
+                &node.elem
             } else {
                 link_lookup(&node.next, index - 1)
             }
@@ -151,7 +165,6 @@ fn link_lookup<T>(link: &Link<T>, index: usize) -> &T { // Return type is change
         None => unreachable!(),
     }
 }
-//// ANCHOR_END: lookup_reference
 
 #[pure]
 fn link_len<T>(link: &Link<T>) -> usize {
@@ -161,12 +174,9 @@ fn link_len<T>(link: &Link<T>) -> usize {
     }
 }
 
-//// ANCHOR: generic_types
-//// ANCHOR: lookup_reference
 mod prusti_tests {
     use super::*;
 
-    //// ANCHOR_END: generic_types
     fn _test_1(){
         let mut list = List::new(); 
         prusti_assert!(list.is_empty() && list.len() == 0);
@@ -174,8 +184,6 @@ mod prusti_tests {
         list.push(5);
         prusti_assert!(!list.is_empty() && list.len() == 1);
         prusti_assert!(*list.lookup(0) == 5); // Here we can dereference the lookup, since `i32` is `Copy`
-        // ...
-        //// ANCHOR_END: lookup_reference
 
         list.push(10);
         prusti_assert!(!list.is_empty() && list.len() == 2); // length correct
@@ -203,10 +211,7 @@ mod prusti_tests {
     #[requires(!list_1.is_empty())]
     #[requires(*list_0.lookup(1) == 42)]
     #[requires(list_0.lookup(3) == list_1.lookup(0))]
-    //// ANCHOR: generic_types
     fn _test_2(list_0: &mut List<i32>, list_1: &mut List<i32>) {
-        // ...
-        //// ANCHOR_END: generic_types
         let x0 = list_0.pop();
 
         list_0.push(10);
@@ -228,9 +233,42 @@ mod prusti_tests {
         let y0 = list_1.pop();
         prusti_assert!(y0 == old(snap(list_1.lookup(0))));
         prusti_assert!(y0 == x3);
-        //// ANCHOR: generic_types
-        //// ANCHOR: lookup_reference
+    }
+
+    fn _test_3() {
+        let mut list = List::new();
+        list.push(16);
+        prusti_assert!(list.peek() === list.lookup(0));
+        prusti_assert!(*list.peek() == 16);
+        
+        list.push(5);
+        prusti_assert!(list.peek() === list.lookup(0));
+        prusti_assert!(*list.peek() == 5);
+
+        list.pop();
+        prusti_assert!(list.peek() === list.lookup(0));
+        prusti_assert!(*list.peek() == 16);
+    }
+
+    fn _test_4() {
+        let mut list = List::new();
+        list.push(8);
+        list.push(16);
+        prusti_assert!(*list.lookup(0) == 16);
+        prusti_assert!(*list.lookup(1) == 8);
+        prusti_assert!(list.len() == 2);
+
+        {
+            let first = list.peek_mut();
+            // `first` is a mutable reference to the first element of the list
+            // for as long as `first` is live, `list` cannot be accessed
+            prusti_assert!(*first == 16);
+            *first = 5;
+            prusti_assert!(*first == 5);
+            // `first` gets dropped here, `list` can be accessed again
+        }
+        prusti_assert!(list.len() == 2);
+        prusti_assert!(*list.lookup(0) == 5);
+        prusti_assert!(*list.lookup(1) == 8); 
     }
 }
-//// ANCHOR_END: generic_types
-//// ANCHOR_END: lookup_reference

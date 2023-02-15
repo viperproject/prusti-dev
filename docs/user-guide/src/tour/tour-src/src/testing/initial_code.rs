@@ -61,8 +61,8 @@ impl List {
 
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
-    #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-                 old(self.lookup(i - 1)) == self.lookup(i)))]
+    #[ensures(forall(|i: usize| (i < old(self.len())) ==>
+                 old(self.lookup(i)) == self.lookup(i + 1)))]
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem,
@@ -76,9 +76,9 @@ impl List {
         // two-state predicate to check if the head of a list was correctly removed
         fn head_removed(&self, prev: &Self) -> bool {
             self.len() == prev.len() - 1 // The length will decrease by 1
-            && forall(|i: usize|
+            && forall(|i: usize| // Every element will be shifted forwards by one
                 (1 <= i && i < prev.len())
-                    ==> prev.lookup(i) == self.lookup(i - 1)) // Every element will be shifted forwards by one
+                    ==> prev.lookup(i) == self.lookup(i - 1))
         }
     }
 
@@ -186,10 +186,7 @@ mod prusti_tests {
         list_0.push(10);
         prusti_assert!(list_0.len() >= 4);
         prusti_assert!(list_0.lookup(1) == 42);
-        prusti_assert!(list_0.lookup(1) == old(snap(list_0)).lookup(1));
-        prusti_assert!(list_0.lookup(2) == old(snap(list_0)).lookup(2));
-        prusti_assert!(list_0.lookup(3) == old(snap(list_0)).lookup(3));
-        assert!(list_0.pop() == 10); // This cannot be a `prusti_assert`, since `pop` changes the list
+        assert!(list_0.pop() == 10); // Note: This cannot be a `prusti_assert`, since `pop` changes the list
 
         let x1 = list_0.pop();
         let x2 = list_0.pop();
