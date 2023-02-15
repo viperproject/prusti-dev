@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
 
 pub fn fake_error<'tcx>(env: Environment<'tcx>) {
     let sp = MultiSpan::from_span(DUMMY_SP);
-    let message = String::from("Not actually an error");
+    let message = String::from("[Prusti: FakeError]");
     let help = None;
     let notes = [];
     
