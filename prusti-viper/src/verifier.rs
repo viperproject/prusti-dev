@@ -12,7 +12,7 @@ use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::Encoder;
 use crate::encoder::counterexamples::counterexample_translation;
 use crate::encoder::counterexamples::counterexample_translation_refactored;
-use crate::ide;
+use crate::ide_verification_result::IdeVerificationResult;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
@@ -136,14 +136,16 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         // if we are not running in an ide, we want the errors to be reported sortedly
         let mut prusti_errors: Vec<_> = vec![];
-        let mut verification_info = ide::verification_info::VerificationInfo::new();
 
         pin_mut!(verification_messages);
 
         while let Some((program_name, server_msg)) = verification_messages.next().await {
             match server_msg {
                 ServerMessage::Termination(result) => {
-                    verification_info.add(&result);
+                    PrustiError::message(
+                        serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap(),
+                        DUMMY_SP.into()
+                    ).emit(&self.env.diagnostic);
                     match result.result_type {
                         // nothing to do
                         viper::VerificationResultType::Success => (),
@@ -274,8 +276,6 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 debug!("Prusti error: {:?}", prusti_error);
                 prusti_error.emit(&self.env.diagnostic);
             }
-        } else {
-            println!("VerificationInfo {}", verification_info.to_json_string());
         }
 
         if encoding_errors_count != 0 {

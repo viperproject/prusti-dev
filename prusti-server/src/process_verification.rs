@@ -267,12 +267,13 @@ fn polling_function(viper_arc: &Arc<Viper>,
                     let q_name = jni.get_string(jni.unwrap_result(msg_wrapper.call_quantifier(msg)));
                     let q_inst = jni.unwrap_result(msg_wrapper.call_instantiations(msg));
                     info!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
-                    // also matches the "-aux" quantifiers generated
+                    // also matches the "-aux" and "_precondition" quantifiers generated
                     // we encoded the position id in the line and column number since this is not used by
                     // prusti either way
                     if q_name.starts_with("prog.l") {
                         let no_pref = q_name.strip_prefix("prog.l").unwrap();
-                        let stripped = no_pref.strip_suffix("-aux").or(Some(no_pref)).unwrap();
+                        let stripped = no_pref.strip_suffix("-aux").or(
+                                       no_pref.strip_suffix("_precondition")).unwrap_or(no_pref);
                         let parsed = stripped.parse::<u64>();
                         match parsed {
                             Ok(pos_id) => {
