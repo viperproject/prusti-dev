@@ -28,6 +28,7 @@ use std::collections::HashMap;
 use serde_json::json;
 use async_stream::stream;
 use futures_util::{Stream, StreamExt, pin_mut};
+use std::cell::RefCell;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.
@@ -94,6 +95,12 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             ).collect()
         };
         programs.extend(self.encoder.get_core_proof_programs());
+
+        if config::show_ide_info() {
+            self.emit_contract_spans();
+        }
+
+
 
         stopwatch.start_next("verifying Viper program");
 
@@ -323,6 +330,14 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             }
         };
         return verification_stream.flatten();
+    }
+
+    pub fn emit_contract_spans(&self) {
+        let encoding_info = ide::encoding_info::EncodingInfo {
+            call_contract_spans: self.encoder.spans_of_call_contracts.borrow().to_vec(),
+        };
+        println!("EncodingInfo {}", encoding_info.to_json_string());
+
     }
 }
 

@@ -26,4 +26,4 @@
 pub mod encoder;
 mod utils;
 pub mod verifier;
-mod ide;
+pub mod ide;

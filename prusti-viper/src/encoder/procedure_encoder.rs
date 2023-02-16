@@ -23,6 +23,7 @@ use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
 use crate::error_unsupported;
+use crate::ide::encoding_info::SpanOfCallContracts;
 use prusti_common::{
     config,
     utils::to_string::ToString,
@@ -3387,6 +3388,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 substs,
             ).with_span(call_site_span)?
         };
+
+        let mut contracts_spans: Vec<Span> = procedure_contract
+            .functional_precondition(self.encoder.env(), substs)
+            .iter()
+            .map(|(ts, _)| self.encoder.env().query.get_def_span(ts))
+            .collect();
+        let mut postcond =  procedure_contract
+            .functional_postcondition(self.encoder.env(), substs)
+            .iter()
+            .map(|(ts, _)| self.encoder.env().query.get_def_span(ts))
+            .collect();
+        contracts_spans.append(&mut postcond);
+        let tcx = self.encoder.env().tcx();
+        let contract_spans_opt = SpanOfCallContracts::new(
+            tcx.def_path_str(called_def_id),
+            call_site_span,
+            contracts_spans,
+            &tcx.sess.source_map(),
+        );
+        if let Some(contract_spans) = contract_spans_opt {
+            self.encoder.spans_of_call_contracts.borrow_mut().push(contract_spans);
+        }
+
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;
 
         // Store a label for the pre state
