@@ -82,6 +82,7 @@ impl PredicateStateOnPath {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub(in super::super) fn remove(
         &mut self,
         kind: PermissionKind,

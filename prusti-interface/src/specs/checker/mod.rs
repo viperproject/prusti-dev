@@ -36,6 +36,7 @@ impl<'tcx> SpecChecker<'tcx> {
     }
 
     /// Executes all checks and emits errors
+    #[tracing::instrument(name = "SpecChecker::check", level = "debug", skip(self, env))]
     pub fn check(&self, env: &Environment<'tcx>) {
         for check in self.checks.iter() {
             let errors = check.check(env);

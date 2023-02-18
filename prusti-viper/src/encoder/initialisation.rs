@@ -26,6 +26,7 @@ pub struct InitInfo {
 }
 
 /// Create a set that contains all places and their prefixes of the original set.
+#[tracing::instrument(level = "trace", skip(mir, tcx))]
 fn explode<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
@@ -55,6 +56,7 @@ fn contains_prefix(set: &FxHashSet<vir::Expr>, place: &vir::Expr) -> bool {
     }
 }
 
+#[tracing::instrument(level = "debug", skip_all)]
 fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     map: &FxHashMap<T, FxHashSet<mir::Place<'tcx>>>,
     mir_encoder: &MirEncoder<'_, '_, 'tcx>,
@@ -72,6 +74,7 @@ fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
+    #[tracing::instrument(name = "InitInfo::new", level = "debug", skip_all)]
     pub fn new(
         mir: &'p mir::Body<'tcx>,
         tcx: ty::TyCtxt<'tcx>,

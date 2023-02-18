@@ -4,7 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use log::trace;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
 use vir_crate::polymorphic::{Expr, PermAmount, Position, Type};
@@ -76,8 +75,8 @@ impl Perm {
         self.get_place().has_proper_prefix(other)
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(self = %self, new_perm = %new_perm))]
     pub fn init_perm_amount(self, new_perm: PermAmount) -> Self {
-        trace!("[enter] init_perm_amount({}, {})", self, new_perm);
         assert!(new_perm.is_valid_for_specs());
         match self {
             Perm::Acc(_expr, PermAmount::Remaining) => unreachable!(),
@@ -223,12 +222,8 @@ fn place_perm_difference(
 }
 
 /// Set difference that takes into account that removing `x.f` also removes any `x.f.g.h`
+#[tracing::instrument(level = "trace")]
 pub fn perm_difference(left: FxHashSet<Perm>, right: FxHashSet<Perm>) -> FxHashSet<Perm> {
-    trace!(
-        "[enter] perm_difference(left={:?}, right={:?})",
-        left,
-        right
-    );
     let left_acc = left.iter().filter(|x| x.is_acc()).cloned();
     let left_pred = left.iter().filter(|x| x.is_pred()).cloned();
     let right_acc = right.iter().filter(|x| x.is_acc()).cloned();

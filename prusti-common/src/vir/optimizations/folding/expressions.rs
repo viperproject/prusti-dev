@@ -16,7 +16,10 @@
 //! when unfolding are used inside a quantifiers and other cases.
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
-use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
+use crate::{
+    utils::to_string::ToString,
+    vir::polymorphic_vir::{ast, cfg, FallibleExprFolder},
+};
 use log::{debug, trace};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{cmp::Ordering, mem};
@@ -27,6 +30,7 @@ pub trait FoldingOptimizer {
 }
 
 impl FoldingOptimizer for cfg::CfgMethod {
+    #[tracing::instrument(name = "CfgMethod::optimize", level = "debug", skip_all, fields(method_name = %self.name()))]
     fn optimize(mut self) -> Self {
         let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
         let mut optimizer = StmtOptimizer {};
@@ -42,26 +46,23 @@ impl FoldingOptimizer for cfg::CfgMethod {
 }
 
 impl FoldingOptimizer for ast::Function {
+    #[tracing::instrument(name = "Function::optimize", level = "debug", skip(self), fields(function_name = %self.name))]
     fn optimize(mut self) -> Self {
-        trace!("[enter] FoldingOptimizer function_name={}", self.name);
         self.body = self.body.map(|e| e.optimize());
-        trace!("[exit] FoldingOptimizer function_name={}", self.name);
         self
     }
 }
 
 impl FoldingOptimizer for ast::Expr {
+    #[tracing::instrument(level = "debug", ret)]
     fn optimize(self) -> Self {
-        trace!("[enter] FoldingOptimizer::optimize = \n{}", self);
         let mut optimizer = ExprOptimizer {
             unfoldings: FxHashMap::default(),
             requirements: FxHashSet::default(),
         };
         let original_expr = self.clone();
         if let Ok(new_expr) = optimizer.fallible_fold(self) {
-            let r = restore_unfoldings(optimizer.get_unfoldings(), new_expr);
-            trace!("[exit] FoldingOptimizer::optimize = \n{}", r);
-            r
+            restore_unfoldings(optimizer.get_unfoldings(), new_expr)
         } else {
             // The optimizer encountered unsupported expressions
             trace!("[exit] FoldingOptimizer::optimize encountered unsupported expressions");
@@ -141,6 +142,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
 /// Check whether the requirements are conflicting.
 ///
 /// Returns a set of conflicting bases. The empty set means no conflicts.
+#[tracing::instrument(level = "trace")]
 fn check_requirements_conflict(
     reqs1: &RequirementSet,
     reqs2: &RequirementSet,
@@ -271,6 +273,12 @@ fn update_requirements(requirements: &mut RequirementSet, mut new_requirements: 
     }
 }
 
+#[tracing::instrument(level = "debug", skip_all, fields(
+    reqs = %first_requirements.iter().to_sorted_multiline_string(),
+    first_unfoldings = %first_unfoldings.keys().to_sorted_multiline_string(),
+    reqs = %second_requirements.iter().to_sorted_multiline_string(),
+    second_unfoldings = %second_unfoldings.keys().to_sorted_multiline_string()
+))]
 fn merge_requirements_and_unfoldings2(
     first: Box<ast::Expr>,
     mut first_unfoldings: UnfoldingMap,
@@ -279,25 +287,6 @@ fn merge_requirements_and_unfoldings2(
     second_unfoldings: UnfoldingMap,
     second_requirements: RequirementSet,
 ) -> (RequirementSet, UnfoldingMap, Box<ast::Expr>, Box<ast::Expr>) {
-    trace!("[enter] merge_requirements_and_unfoldings");
-    use crate::utils::to_string::ToString;
-    trace!(
-        "reqs: {}",
-        first_requirements.iter().to_sorted_multiline_string()
-    );
-    trace!(
-        "unfoldings: {}",
-        first_unfoldings.keys().to_sorted_multiline_string()
-    );
-    trace!(
-        "reqs: {}",
-        second_requirements.iter().to_sorted_multiline_string()
-    );
-    trace!(
-        "unfoldings: {}",
-        second_unfoldings.keys().to_sorted_multiline_string()
-    );
-
     let conflicts = check_requirements_conflict(&first_requirements, &second_requirements);
     trace!(
         "conflicts: {}",
@@ -443,6 +432,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         unreachable!();
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn fallible_fold_bin_op(
         &mut self,
         ast::BinOp {
@@ -452,8 +442,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             position,
         }: ast::BinOp,
     ) -> Result<ast::Expr, ()> {
-        trace!("fold_bin_op: {} {} {}", op_kind, left, right);
-
         let first_folded = self.fallible_fold_boxed(left)?;
         let first_unfoldings = self.get_unfoldings();
         let first_requirements = self.get_requirements();
@@ -518,6 +506,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn fallible_fold_cond(
         &mut self,
         ast::Cond {
@@ -527,13 +516,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             position,
         }: ast::Cond,
     ) -> Result<ast::Expr, ()> {
-        trace!(
-            "\n\nfold_cond:\ng = {}\nt = {}\ne = {}",
-            guard,
-            then_expr,
-            else_expr
-        );
-
         let guard_folded = self.fallible_fold_boxed(guard)?;
         let guard_unfoldings = self.get_unfoldings();
         let guard_requirements = self.get_requirements();

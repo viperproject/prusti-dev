@@ -6,7 +6,7 @@
 
 use super::mir_sets::PlaceSet;
 use crate::utils;
-use log::{debug, trace};
+use log::debug;
 use prusti_rustc_interface::middle::{mir, ty::TyCtxt};
 use std::fmt;
 
@@ -264,6 +264,7 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
 
     /// Add a new place by following the same rules as described in the
     /// comment for the `new`.
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn add(
         &mut self,
         place: mir::Place<'tcx>,
@@ -313,8 +314,8 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
         &self.root
     }
 
+    #[tracing::instrument(level = "trace", ret)]
     pub fn get_permissions(&self) -> Vec<(PermissionKind, mir::Place<'tcx>)> {
-        trace!("[enter] get_permissions self={:?}", self);
         let mut visited = vec![];
         let mut to_visit = vec![&self.root];
         while let Some(node) = to_visit.pop() {
@@ -344,16 +345,11 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
                 PermissionKind::ReadNode | PermissionKind::WriteNode | PermissionKind::None => {}
             }
         }
-        trace!("[exit] get_permissions visited={:?}", visited);
         visited
     }
 
+    #[tracing::instrument(level = "trace", ret)]
     pub fn get_children(&self, parent_place: mir::Place<'tcx>) -> Vec<mir::Place<'tcx>> {
-        trace!(
-            "[enter] get_children self={:?} parent_place={:?}",
-            self,
-            parent_place
-        );
         let mut current_parent_node = &self.root;
         let components = utils::VecPlace::new(self.mir, self.tcx, parent_place);
         let mut component_iter = components.iter();
@@ -376,7 +372,6 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
                 }
             }
         }
-        trace!("[exit] get_children visited={:?}", visited);
         visited
     }
 }
@@ -397,6 +392,7 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
     /// +   `mut_borrowed_paths` – paths that are roots of trees to
     ///     which we hsould have write permission.
     /// +   `read_paths` – paths to whose leaves we should have read permission.
+    #[tracing::instrument(name = "PermissionForest::new", level = "trace", skip(mir, tcx))]
     pub fn new(
         mir: &'a mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
@@ -405,31 +401,15 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
         read_paths: &[mir::Place<'tcx>],
         all_places: &PlaceSet<'tcx>,
     ) -> Self {
-        trace!(
-            "[enter] PermissionForest::new(\
-             write_paths={:?}, \
-             mut_borrowed_paths={:?}, \
-             read_paths={:?}, \
-             all_places={:?})",
-            write_paths,
-            mut_borrowed_paths,
-            read_paths,
-            all_places
-        );
-
         let mut trees: Vec<PermissionTree> = Vec::new();
 
         /// Take the intended place to add and compute the set of places
         /// to add that are definitely initialised.
+        #[tracing::instrument(level = "trace")]
         fn compute_places_to_add<'tcx>(
             place: mir::Place<'tcx>,
             all_places: &PlaceSet<'tcx>,
         ) -> Vec<(mir::Place<'tcx>, mir::Place<'tcx>)> {
-            trace!(
-                "[enter] compute_places_to_add(place={:?}, all_places={:?})",
-                place,
-                all_places
-            );
             let mut found_def_init_prefix = false;
             let mut found_target_prefix = false;
             let mut result = Vec::new();

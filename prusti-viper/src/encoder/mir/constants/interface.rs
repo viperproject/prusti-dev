@@ -1,4 +1,3 @@
-use log::debug;
 use prusti_rustc_interface::middle::{mir, ty};
 use vir_crate::high::{self as vir_high};
 
@@ -17,6 +16,7 @@ pub(crate) trait ConstantsEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_constant_high(
         &self,
         constant: &mir::Constant<'tcx>,
@@ -70,7 +70,6 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                 error_unsupported!("unsupported constant type {:?}", mir_type.kind());
             }
         };
-        debug!("encode_const_expr {:?} --> {:?}", constant.literal, expr);
         Ok(expr)
     }
 

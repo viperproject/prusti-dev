@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt::Debug;
+
 use crate::encoder::errors::{
     ErrorCtxt, PanicCause, SpannedEncodingError, EncodingError, WithSpan,
     SpannedEncodingResult, EncodingResult
@@ -70,11 +72,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     /// - `PlaceEncoding`: the result of the projection;
     /// - `ty::Ty<'tcx>`: the type of the expression;
     /// - `Option<usize>`: optionally, the variant of the enum.
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_place(
         &self,
         place: mir::Place<'tcx>,
     ) -> EncodingResult<(PlaceEncoding<'tcx>, ty::Ty<'tcx>, Option<usize>)> {
-        trace!("Encode place {:?}", place);
         self.encode_projection(place.local, place.projection)
     }
 
@@ -82,13 +84,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     /// - `PlaceEncoding`: the result of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_projection(
         &self,
         local: mir::Local,
         projection: &[mir::PlaceElem<'tcx>],
     ) -> EncodingResult<(PlaceEncoding<'tcx>, ty::Ty<'tcx>, Option<usize>)> {
-        trace!("Encode projection {:?}, {:?}", local, projection);
-
         if projection.is_empty() {
             return Ok((
                 PlaceEncoding::Expr(self.encode_local(local)?.into()),
@@ -275,13 +276,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         })
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(encoded_base = %encoded_base, base_ty = %base_ty))]
     fn encode_deref(
         &self,
         encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
-        trace!("encode_deref {} {}", encoded_base, base_ty);
-
         Ok(match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
@@ -312,8 +312,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         })
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(base_ty = %base_ty))]
     fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
-        trace!("can_be_dereferenced {}", base_ty);
         match base_ty.kind() {
             ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
 
@@ -334,12 +334,12 @@ pub struct FakeMirEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> FakeMirEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(name = "FakeMirEncoder::new", level = "trace", skip_all)]
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         arg_tys: Vec<ty::Ty<'tcx>>,
         return_ty: ty::Ty<'tcx>,
     ) -> Self {
-        trace!("FakeMirEncoder constructor");
         let mut tys: IndexVec<mir::Local, ty::Ty<'tcx>> = IndexVec::new();
         tys.push(return_ty);
         for arg_ty in arg_tys {
@@ -391,12 +391,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for MirEncoder<'p, 'v, 'tcx> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(name = "MirEncoder::new", level = "trace", skip_all)]
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
     ) -> Self {
-        trace!("MirEncoder constructor");
         MirEncoder {
             encoder,
             mir,
@@ -405,11 +405,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_operand_expr(
         &self,
         operand: &mir::Operand<'tcx>,
     ) -> EncodingResult<vir::Expr> {
-        trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             mir::Operand::Constant(expr) => self.encoder.encode_const_expr(expr.ty(), expr.literal)?,
             &mir::Operand::Copy(place) | &mir::Operand::Move(place) => {
@@ -450,8 +450,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn get_operand_ty(&self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
-        debug!("Get operand ty {:?}", operand);
         // match operand {
         //     &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
         //         let (_, ty, _) = self.encode_place(place);
@@ -463,10 +463,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>)
         -> EncodingResult<vir::Type>
     {
-        trace!("Encode operand expr {:?}", operand);
         // match operand {
         //     &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
         //         let ty = self.encoder.resolve_typaram(ty);
@@ -763,11 +763,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         Ok(encoded_val)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_operand_place(
         &self,
         operand: &mir::Operand<'tcx>,
     ) -> EncodingResult<Option<vir::Expr>> {
-        debug!("Encode operand place {:?}", operand);
         Ok(match operand {
             &mir::Operand::Move(place) | &mir::Operand::Copy(place) => {
                 let (src, _, _) = self.encode_place(place)?;
@@ -786,8 +786,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         vir::Expr::pred_permission(place, perm)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_old_expr(&self, expr: vir::Expr, label: &str) -> vir::Expr {
-        debug!("encode_old_expr {}, {}", expr, label);
         vir::Expr::labelled_old(label, expr)
     }
 
@@ -804,15 +804,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         bb_data.terminator().source_info.span
     }
 
-    pub fn register_span<T: Into<MultiSpan>>(&self, span: T) -> vir::Position {
+    pub fn register_span<T: Into<MultiSpan> + Debug>(&self, span: T) -> vir::Position {
         self.encoder.error_manager().register_span(self.def_id, span)
     }
 
-    pub fn register_error<T: Into<MultiSpan>>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
+    pub fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
         self.encoder.error_manager().register_error(span, error_ctxt, self.def_id)
     }
 
     /// Return the cause of a call to `begin_panic`
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_panic_cause(&self, span: Span) -> PanicCause {
         let macro_backtrace: Vec<_> = span.macro_backtrace().collect();
         debug!("macro_backtrace: {:?}", macro_backtrace);

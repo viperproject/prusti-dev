@@ -28,9 +28,10 @@ use datafrog;
 use log::{debug, trace};
 use prusti_common::config;
 use prusti_rustc_interface::{
+    borrowck::consumers::RustcFacts,
     index::vec::Idx,
     middle::{mir, ty},
-    polonius_engine::{Algorithm, Output},
+    polonius_engine::{Algorithm, AllFacts, Output},
     span::{def_id::DefId, Span},
 };
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -295,7 +296,8 @@ pub fn graphviz<'tcx>(
     let interner = facts::Interner::new(facts.location_table.take().unwrap());
 
     let borrowck_in_facts = facts.input_facts.take().unwrap();
-    let borrowck_out_facts = Output::compute(&borrowck_in_facts, Algorithm::Naive, true);
+    let borrowck_out_facts =
+        PoloniusInfo::output_compute(&borrowck_in_facts, Algorithm::Naive, true);
 
     use std::io::Write;
     let graph_path = config::log_dir()
@@ -403,6 +405,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
 /// - A list of incompatability sets. Every incompatability set contains loans that cannot be
 ///   reborrows of each other.
 #[allow(clippy::type_complexity)]
+#[tracing::instrument(level = "trace", skip_all)]
 fn add_fake_facts<'a, 'tcx: 'a>(
     all_facts: &mut facts::AllInputFacts,
     interner: &facts::Interner,
@@ -521,6 +524,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
 
 /// Remove back edges to make MIR uncyclic so that we can compute reborrowing dags at the end of
 /// the loop body.
+#[tracing::instrument(level = "debug", skip_all)]
 fn remove_back_edges(
     mut all_facts: facts::AllInputFacts,
     interner: &facts::Interner,
@@ -546,6 +550,7 @@ fn remove_back_edges(
 /// Returns the place that is borrowed by the assignment. We assume that
 /// all shared references are created only via assignments and ignore
 /// all other cases.
+#[tracing::instrument(level = "debug", skip_all)]
 fn get_borrowed_places<'a, 'tcx: 'a>(
     mir: &'a mir::Body<'tcx>,
     loan_position: &FxHashMap<facts::Loan, mir::Location>,
@@ -609,14 +614,13 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
     }
 }
 
+#[tracing::instrument(level = "trace", skip_all, ret)]
 fn compute_loan_conflict_sets(
     procedure: &Procedure,
     loan_position: &FxHashMap<facts::Loan, mir::Location>,
     borrowck_in_facts: &facts::AllInputFacts,
     borrowck_out_facts: &facts::AllOutputFacts,
 ) -> Result<FxHashMap<facts::Loan, FxHashSet<facts::Loan>>, PoloniusInfoError> {
-    trace!("[enter] compute_loan_conflict_sets");
-
     let mut loan_conflict_sets = FxHashMap::default();
 
     let mir = procedure.get_mir();
@@ -655,16 +659,11 @@ fn compute_loan_conflict_sets(
             }
         }
     }
-
-    trace!(
-        "[exit] compute_loan_conflict_sets = {:?}",
-        loan_conflict_sets
-    );
-
     Ok(loan_conflict_sets)
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
+    #[tracing::instrument(name = "PoloniusInfo::new", level = "debug", skip_all)]
     pub fn new(
         env: &'a Environment<'tcx>,
         procedure: &'a Procedure<'tcx>,
@@ -710,11 +709,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         Self::disconnect_universal_regions(tcx, mir, &place_regions, &mut all_facts)
             .map_err(|(err, loc)| PoloniusInfoError::PlaceRegionsError(err, loc))?;
 
-        let output = Output::compute(&all_facts, Algorithm::Naive, true);
+        let output = PoloniusInfo::output_compute(&all_facts, Algorithm::Naive, true);
         let all_facts_without_back_edges =
             remove_back_edges(all_facts.clone(), &interner, &loop_info.back_edges);
         let output_without_back_edges =
-            Output::compute(&all_facts_without_back_edges, Algorithm::Naive, true);
+            PoloniusInfo::output_compute(&all_facts_without_back_edges, Algorithm::Naive, true);
 
         let loan_position: FxHashMap<_, _> = all_facts
             .loan_issued_at
@@ -775,6 +774,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         Ok(info)
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
+    fn output_compute(
+        all_facts: &AllFacts<RustcFacts>,
+        algorithm: Algorithm,
+        dump_enabled: bool,
+    ) -> Output<RustcFacts> {
+        Output::compute(all_facts, algorithm, dump_enabled)
+    }
+
+    #[tracing::instrument(level = "trace", skip_all)]
     fn disconnect_universal_regions(
         tcx: ty::TyCtxt<'tcx>,
         mir: &mir::Body<'tcx>,
@@ -926,6 +935,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loans that are active (including those that are about to die) at the given location.
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn get_active_loans(&self, location: mir::Location, zombie: bool) -> Vec<facts::Loan> {
         let loan_live_at = self.get_borrow_live_at(zombie);
         let start_point = self.get_point(location, facts::PointType::Start);
@@ -971,28 +981,15 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     pub fn get_all_loans_dying_between(
         &self,
         initial_loc: mir::Location,
         final_loc: mir::Location,
     ) -> (Vec<facts::Loan>, Vec<facts::Loan>) {
-        trace!(
-            "[enter] get_all_loans_dying_between initial_loc={:?} final_loc={:?}",
-            initial_loc,
-            final_loc
-        );
-
         let mut loans = self.get_loans_dying_between(initial_loc, final_loc, false);
         let zombie_loans = self.get_loans_dying_between(initial_loc, final_loc, true);
         loans.extend(zombie_loans.iter().cloned());
-        trace!(
-            "[exit] get_all_loans_dying_between \
-             initial_loc={:?} final_loc={:?} all={:?} zombie={:?}",
-            initial_loc,
-            final_loc,
-            loans,
-            zombie_loans
-        );
         (loans, zombie_loans)
     }
 
@@ -1024,18 +1021,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loans that die between two consecutive locations
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     pub fn get_loans_dying_between(
         &self,
         initial_loc: mir::Location,
         final_loc: mir::Location,
         zombie: bool,
     ) -> Vec<facts::Loan> {
-        trace!(
-            "[enter] get_loans_dying_between {:?}, {:?}, {}",
-            initial_loc,
-            final_loc,
-            zombie
-        );
         debug_assert!(self.get_successors(initial_loc).contains(&final_loc));
         let mid_point = self.get_point(initial_loc, facts::PointType::Mid);
         let becoming_zombie_loans = self
@@ -1050,8 +1042,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             "loan_live_at final {:?}",
             self.borrowck_out_facts.loan_live_at.get(&final_loc_point)
         );
-        let dying_loans = self
-            .get_active_loans(initial_loc, zombie)
+        self.get_active_loans(initial_loc, zombie)
             .into_iter()
             .filter(|loan| {
                 self.get_borrow_live_at(zombie)
@@ -1059,15 +1050,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     .map_or(true, |successor_loans| !successor_loans.contains(loan))
             })
             .filter(|loan| !becoming_zombie_loans.contains(loan))
-            .collect();
-        trace!(
-            "[exit] get_loans_dying_between {:?}, {:?}, {}, dying_loans={:?}",
-            initial_loc,
-            final_loc,
-            zombie,
-            dying_loans
-        );
-        dying_loans
+            .collect()
     }
 
     //     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
@@ -1120,6 +1103,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             .unwrap_or_default()
     }
 
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     pub fn get_alive_conflicting_loans(
         &self,
         loan: facts::Loan,
@@ -1292,6 +1276,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Find minimal elements that are the tree roots.
+    #[tracing::instrument(level = "debug", skip_all)]
     fn find_loan_roots(&self, loans: &[facts::Loan]) -> Vec<facts::Loan> {
         let mut roots = Vec::new();
         for &loan in loans.iter() {
@@ -1362,6 +1347,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loops in which loans are defined (if any).
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn get_loan_loops(
         &self,
         loans: &[facts::Loan],
@@ -1396,6 +1382,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// ``loans`` – all loans, including the zombie loans.
+    #[tracing::instrument(level = "debug", skip(self, reborrows_direct))]
     pub fn construct_reborrowing_dag_custom_reborrows(
         &self,
         loans: &[facts::Loan],
@@ -1403,14 +1390,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         location: mir::Location,
         reborrows_direct: &[(facts::Loan, facts::Loan)],
     ) -> Result<ReborrowingDAG, PoloniusInfoError> {
-        trace!(
-            "[enter] construct_reborrowing_dag_custom_reborrows\
-             (loans={:?}, zombie_loans={:?}, location={:?})",
-            loans,
-            zombie_loans,
-            location
-        );
-
         let mut loans: Vec<_> = loans
             .iter()
             .filter(|loan| {
@@ -1628,6 +1607,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn construct_reborrowing_zombity(
         &self,
         loan: facts::Loan,
@@ -1647,6 +1627,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn check_incoming_zombies(
         &self,
         loan: facts::Loan,

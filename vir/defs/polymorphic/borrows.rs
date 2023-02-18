@@ -103,8 +103,8 @@ impl DAG {
     pub fn iter(&self) -> impl Iterator<Item = &Node> {
         self.nodes.iter()
     }
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn get_borrow_index(&self, borrow: Borrow) -> usize {
-        trace!("get_borrow_index(borrow={:?})", borrow);
         self.borrow_indices[&borrow]
     }
     pub fn in_borrowed_places(&self, place: &Expr) -> bool {
@@ -112,8 +112,8 @@ impl DAG {
             .iter()
             .any(|borrowed_place| place.has_prefix(borrowed_place))
     }
+    #[tracing::instrument(level = "debug")]
     pub fn check_integrity(&self) {
-        trace!("[enter] check_integrity dag=[{:?}]", self);
         if let Some(first) = self.nodes.first() {
             assert!(first.reborrowing_nodes.is_empty());
         } else if let Some(last) = self.nodes.last() {
@@ -132,7 +132,6 @@ impl DAG {
                 debug!("{:?}: {}", node.borrow, place);
             }
         }
-        trace!("[exit] check_integrity dag=[{:?}]", self);
     }
     /// Get the complete guard for the given node.
     pub fn guard(&self, expiring_borrow: Borrow) -> Expr {

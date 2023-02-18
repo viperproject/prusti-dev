@@ -84,6 +84,7 @@ impl vir::ExprFolder for Optimizer {
     fn fold_magic_wand(&mut self, magic_wand: vir::MagicWand) -> vir::Expr {
         vir::Expr::MagicWand(magic_wand)
     }
+    #[tracing::instrument(level = "debug", skip(self))]
     fn fold_forall(
         &mut self,
         vir::ForAll {
@@ -93,7 +94,6 @@ impl vir::ExprFolder for Optimizer {
             position,
         }: vir::ForAll,
     ) -> vir::Expr {
-        debug!("original body: {}", body);
         let folded_body = self.fold_boxed(body);
         debug!("Folded body: {}", folded_body);
         let old_counter = self.counter;
@@ -303,6 +303,7 @@ struct UnfoldingExtractor {
 }
 
 impl vir::ExprFolder for UnfoldingExtractor {
+    #[tracing::instrument(level = "debug", skip(self))]
     fn fold_forall(
         &mut self,
         vir::ForAll {
@@ -316,7 +317,6 @@ impl vir::ExprFolder for UnfoldingExtractor {
             self.unfoldings.is_empty(),
             "Nested quantifiers are not supported."
         );
-        debug!("original body: {}", body);
 
         self.in_quantifier = true;
         let replaced_body = self.fold_boxed(body);

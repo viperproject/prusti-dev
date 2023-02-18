@@ -17,11 +17,13 @@ use super::{decoder::DefSpecsDecoder, encoder::DefSpecsEncoder};
 pub struct CrossCrateSpecs;
 
 impl CrossCrateSpecs {
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn import_export_cross_crate(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
         Self::export_specs(env, def_spec);
         Self::import_specs(env, def_spec);
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn export_specs(env: &Environment, def_spec: &DefSpecificationMap) {
         let outputs = env.tcx().output_filenames(());
         // If we run `rustc` without the `--out-dir` flag set, then don't export specs
@@ -44,6 +46,7 @@ impl CrossCrateSpecs {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn import_specs(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
         let cstore = CStore::from_tcx(env.tcx());
         // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
@@ -92,6 +95,7 @@ impl CrossCrateSpecs {
         file.write(&encoder.into_inner())
     }
 
+    #[tracing::instrument(level = "debug", skip(env, def_spec))]
     fn import_from_file(
         env: &mut Environment,
         def_spec: &mut DefSpecificationMap,

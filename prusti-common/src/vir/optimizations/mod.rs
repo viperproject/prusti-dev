@@ -57,6 +57,7 @@ fn log_methods(
     }
 }
 
+#[tracing::instrument(level = "debug", skip(p))]
 pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
     let mut program = p;
     let optimizations = config::optimizations();

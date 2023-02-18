@@ -78,18 +78,15 @@ impl<'a> PathCtxt<'a> {
     }
 
     /// Simulate an unfold
+    #[tracing::instrument(level = "trace", skip_all, fields(
+        pred_place = %pred_place, perm_amount = %perm_amount, variant = ?variant
+    ))]
     fn unfold(
         &mut self,
         pred_place: &vir::Expr,
         perm_amount: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
     ) -> Result<Action, FoldUnfoldError> {
-        trace!(
-            "We want to unfold {} (variant {:?}) with {}",
-            pred_place,
-            variant,
-            perm_amount
-        );
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
         assert!(
             self.state.contains_pred(pred_place),
@@ -151,16 +148,13 @@ impl<'a> PathCtxt<'a> {
 
     /// left is self, right is other
     /// Note: this merges the event logs as well
+    #[tracing::instrument(level = "trace", skip_all, fields(left = %self.state, right = %other.state))]
     pub fn join(
         &mut self,
         mut other: PathCtxt,
     ) -> Result<(Vec<Action>, Vec<Action>), FoldUnfoldError> {
         let mut left_actions: Vec<Action> = vec![];
         let mut right_actions: Vec<Action> = vec![];
-
-        trace!("Join branches");
-        trace!("Left branch: {}", self.state);
-        trace!("Right branch: {}", other.state);
         self.state.check_consistency();
 
         // If they are already the same, avoid unnecessary operations
@@ -509,6 +503,7 @@ impl<'a> PathCtxt<'a> {
     }
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
+    #[tracing::instrument(level = "trace", skip_all)]
     fn obtain_all(&mut self, mut reqs: Vec<Perm>) -> Result<Vec<Action>, FoldUnfoldError> {
         reqs.sort_unstable();
         trace!("[enter] obtain_all: {{{}}}", reqs.iter().to_string());
@@ -521,9 +516,8 @@ impl<'a> PathCtxt<'a> {
     /// Obtain the required permission, changing the state inplace and returning the statements.
     ///
     /// ``in_join`` – are we currently trying to join branches?
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn obtain(&mut self, req: &Perm, in_join: bool) -> Result<ObtainResult, FoldUnfoldError> {
-        trace!("[enter] obtain(req={})", req);
-
         let mut actions: Vec<Action> = vec![];
 
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
@@ -531,12 +525,10 @@ impl<'a> PathCtxt<'a> {
 
         // 1. Check if the requirement is satisfied
         if self.state.contains_perm(req) {
-            trace!("[exit] obtain: Requirement {} is satisfied", req);
             return Ok(ObtainResult::Success(actions));
         }
         if req.is_acc() && req.is_local() {
             // access permissions on local variables are always satisfied
-            trace!("[exit] obtain: Requirement {} is satisfied", req);
             return Ok(ObtainResult::Success(actions));
         }
 
@@ -572,7 +564,6 @@ impl<'a> PathCtxt<'a> {
             // Check if we are done
             let new_actions = self.obtain(req, false)?.get_actions()?;
             actions.extend(new_actions);
-            trace!("[exit] obtain");
             return Ok(ObtainResult::Success(actions));
         }
 
@@ -681,7 +672,6 @@ impl<'a> PathCtxt<'a> {
 
                 // Done. Continue checking the remaining requirements
                 trace!("We folded {}", req);
-                trace!("[exit] obtain");
                 Ok(ObtainResult::Success(actions))
             } else {
                 debug!(
@@ -727,9 +717,8 @@ Predicates: {{
     }
 
     /// Returns some of the dropped permissions
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Result<(), FoldUnfoldError> {
-        trace!("apply_stmt: {}", stmt);
-
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
@@ -745,15 +734,11 @@ Predicates: {{
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     pub fn obtain_permissions(
         &mut self,
         permissions: Vec<Perm>,
     ) -> Result<Vec<Action>, FoldUnfoldError> {
-        trace!(
-            "[enter] obtain_permissions: {}",
-            permissions.iter().to_string()
-        );
-
         // Solve conflicting requirements
         // See issue https://github.com/viperproject/prusti-dev/issues/362
         let permissions = solve_conficts(permissions);
@@ -773,35 +758,22 @@ Predicates: {{
         trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
 
         self.state.check_consistency();
-
-        trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
         Ok(actions)
     }
 }
 
 /// Find in `variant_place` the variant index of the enum encoded by `enum_place`.
+#[tracing::instrument(level = "debug", ret)]
 fn find_variant(enum_place: &vir::Expr, variant_place: &vir::Expr) -> vir::MaybeEnumVariantIndex {
-    trace!(
-        "[enter] find_variant(enum_place={}, variant_place={})",
-        enum_place,
-        variant_place
-    );
     let parent = variant_place.get_parent_ref().unwrap();
-    let result = if enum_place == parent {
+    if enum_place == parent {
         match variant_place {
             vir::Expr::Variant(vir::Variant { variant_index, .. }) => Some(variant_index.into()),
             _ => None,
         }
     } else {
         find_variant(enum_place, parent)
-    };
-    trace!(
-        "[exit] find_variant(place={}, variant_place={}) = {:?}",
-        enum_place,
-        variant_place,
-        result
-    );
-    result
+    }
 }
 
 /// Find the variant of the place encoding an expression.
@@ -921,6 +893,7 @@ fn solve_conficts(perms: Vec<Perm>) -> Vec<Perm> {
 
 /// Result of the obtain operation. Either success and a list of actions, or failure and the
 /// permission that was missing.
+#[derive(Debug)]
 enum ObtainResult {
     Success(Vec<Action>),
     Failure(Box<Perm>),
