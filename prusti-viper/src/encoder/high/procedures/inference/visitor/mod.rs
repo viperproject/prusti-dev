@@ -184,6 +184,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip(self, state))]
     fn lower_statement(
         &mut self,
         statement: vir_typed::Statement,
@@ -271,6 +272,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip(self, actions))]
     fn process_actions(&mut self, actions: Vec<Action>) -> SpannedEncodingResult<()> {
         for action in actions {
             debug!("  action: {}", action);

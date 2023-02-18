@@ -8,14 +8,9 @@ use super::Environment;
 
 use crate::data::ProcedureDefId;
 
-use log::trace;
-
+#[tracing::instrument(level = "debug", skip(env, procedures))]
 pub fn dump_borrowck_info(env: &Environment<'_>, procedures: &[ProcedureDefId]) {
-    trace!("[dump_borrowck_info] enter");
-
     for def_id in procedures {
         crate::environment::mir_dump::dump_mir_info(env, *def_id);
     }
-
-    trace!("[dump_borrowck_info] exit");
 }

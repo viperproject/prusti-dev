@@ -30,6 +30,7 @@ pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_lifetimes_core_proof(
         &mut self,
         proc_def_id: DefId,

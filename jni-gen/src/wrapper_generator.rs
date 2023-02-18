@@ -45,9 +45,8 @@ impl WrapperGenerator {
         self
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn generate(&mut self, out_dir: &Path) -> LocalResult<()> {
-        debug!("Generate JNI wrappers in '{}'", out_dir.display());
-
         let classpath_separator = if cfg!(windows) { ";" } else { ":" };
 
         let jvm_args = InitArgsBuilder::new()

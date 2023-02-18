@@ -26,6 +26,7 @@ mod semantics;
 mod state;
 mod visitor;
 
+#[tracing::instrument(level = "debug", skip(encoder, procedure), fields(procedure = %procedure))]
 pub(super) fn infer_shape_operations<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,
     proc_def_id: DefId,

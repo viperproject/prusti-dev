@@ -114,6 +114,7 @@ impl<'tcx> MirPatch<'tcx> {
         Local::new(index)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn new_block(&mut self, data: BasicBlockData<'tcx>) -> BasicBlock {
         let block = BasicBlock::new(self.patch_map.len());
         debug!("MirPatch: new_block: {:?}: {:?}", block, data);
@@ -122,14 +123,14 @@ impl<'tcx> MirPatch<'tcx> {
         block
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn patch_terminator(&mut self, block: BasicBlock, new: TerminatorKind<'tcx>) {
         assert!(self.patch_map[block].is_none());
-        debug!("MirPatch: patch_terminator({:?}, {:?})", block, new);
         self.patch_map[block] = Some(new);
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn add_statement(&mut self, loc: Location, stmt: StatementKind<'tcx>) {
-        debug!("MirPatch: add_statement({:?}, {:?})", loc, stmt);
         self.new_statements.push((loc, stmt));
     }
 
@@ -137,6 +138,7 @@ impl<'tcx> MirPatch<'tcx> {
         self.add_statement(loc, StatementKind::Assign(Box::new((place, rv))));
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn apply(self, body: &mut Body<'tcx>) {
         debug!(
             "MirPatch: {:?} new temps, starting from index {}: {:?}",

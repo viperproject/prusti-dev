@@ -23,6 +23,7 @@ pub enum LoopAnalysisError {
 }
 
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
+#[tracing::instrument(level = "debug", skip(real_edges, body))]
 fn collect_loop_body(
     head: BasicBlockIndex,
     back_edge_source: BasicBlockIndex,
@@ -96,6 +97,7 @@ struct AccessCollector<'b, 'tcx> {
 }
 
 impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_place(
         &mut self,
         place: &mir::Place<'tcx>,
@@ -253,6 +255,7 @@ pub type ReadAndWriteLeaves<'tcx> = (
 );
 
 impl ProcedureLoops {
+    #[tracing::instrument(name = "ProcedureLoops::new", level = "trace", skip(mir, real_edges))]
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>, real_edges: &RealEdges) -> ProcedureLoops {
         let dominators = mir.basic_blocks.dominators();
 
@@ -500,6 +503,7 @@ impl ProcedureLoops {
 
     /// If `definitely_initalised_paths` is not `None`, returns only leaves that are
     /// definitely initialised.
+    #[tracing::instrument(level = "debug", skip(self, mir, definitely_initalised_paths))]
     pub fn compute_read_and_write_leaves<'a, 'tcx: 'a>(
         &self,
         loop_head: BasicBlockIndex,

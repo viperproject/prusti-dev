@@ -38,6 +38,7 @@ impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
         self.map
     }
 
+    #[tracing::instrument(level = "trace", skip(self, expr))]
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
         if let hir::ExprKind::Closure { .. } = expr.kind {
             if !has_spec_only_attr(self.env.query.get_local_attributes(expr.hir_id)) {

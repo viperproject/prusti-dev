@@ -44,12 +44,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(name = "prusti_viper::verify", level = "info", skip(self))]
     pub fn verify(&mut self, task: &VerificationTask<'tcx>) -> VerificationResult {
-        info!(
-            "Received {} functions to be verified:",
-            task.procedures.len()
-        );
-
         let mut stopwatch = Stopwatch::start("prusti-viper", "encoding to Viper");
 
         // Dump the configuration

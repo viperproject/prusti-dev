@@ -58,6 +58,7 @@ impl From<&PersistentCache> for ResultCache {
 }
 
 impl PersistentCache {
+    #[tracing::instrument(level = "debug")]
     pub fn load_cache(cache_loc: PathBuf) -> Self {
         let mut data_res: Option<ResultCache> = None;
         if !cache_loc.as_os_str().is_empty() {
@@ -92,6 +93,7 @@ impl PersistentCache {
             }),
         ))
     }
+    #[tracing::instrument(level = "debug")]
     pub fn save_cache(&self, cache_loc: &Path) {
         match fs::File::create(cache_loc) {
             Ok(f) => {
