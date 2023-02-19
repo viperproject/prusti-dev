@@ -6,7 +6,7 @@ pub enum Backend<'a> {
 }
 
 impl<'a> Backend<'a> {
-    pub fn verify(&mut self, program: &prusti_common::vir::Program) -> VerificationResult {
+    pub fn verify(&mut self, program: &prusti_common::vir::program::Program) -> VerificationResult {
         match self {
             Backend::Viper(viper) => {
                 let ast_factory = AstFactory::new(&viper.env);

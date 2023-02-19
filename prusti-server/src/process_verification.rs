@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{VerificationRequest, ViperBackendConfig};
+use crate::{Backend, VerificationRequest, ViperBackendConfig};
 use log::info;
 use prusti_common::{
     config,
@@ -98,17 +98,20 @@ pub fn process_verification_request<'v, 't: 'v>(
     };
 
     ast_utils.with_local_frame(16, || {
-        let viper_program = build_or_dump_viper_program();
         let program_name = request.program.get_name();
 
         // Create a new verifier each time.
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let mut verifier =
-            new_viper_verifier(program_name, verification_context, request.backend_config);
+
+        let mut backend = match request.backend_config.backend {
+            VerificationBackend::Carbon | VerificationBackend::Silicon => Backend::Viper(
+                new_viper_verifier(program_name, verification_context, request.backend_config),
+            ),
+        };
 
         stopwatch.start_next("verification");
-        let mut result = verifier.verify(viper_program);
+        let mut result = backend.verify(&request.program);
 
         // Don't cache Java exceptions, which might be due to misconfigured paths.
         if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
