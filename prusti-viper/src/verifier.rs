@@ -28,7 +28,6 @@ use std::collections::HashMap;
 use serde_json::json;
 use async_stream::stream;
 use futures_util::{Stream, StreamExt, pin_mut};
-use std::cell::RefCell;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.

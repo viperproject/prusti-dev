@@ -1,4 +1,3 @@
-use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::span::{source_map::SourceMap, Span};
 use serde::Serialize;
 

@@ -7,7 +7,6 @@
 use ::log::{info, debug, trace};
 use prusti_common::utils::identifiers::encode_identifier;
 use vir_crate::common::check_mode::CheckMode;
-use vir_crate::low::ast::statement::MethodCall;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
