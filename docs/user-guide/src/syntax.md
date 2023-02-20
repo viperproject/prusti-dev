@@ -6,7 +6,10 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 | --- | --- |
 | [`old(...)`](#old-expressions) | Value of expression in a previous state |
 | [`... ==> ...`](#implications) | Implication |
+| [`... <== ...`](#implications) | Implication |
+| [`... <==> ...`](#implications) | Biconditional |
 | [`... === ...`](#snapshot-equality) | Snapshot equality |
+| [`... !== ...`](#snapshot-equality) | Snapshot inequality |
 | [`forall(...)`](#quantifiers) | Universal quantifier |
 | [`exists(...)`](#quantifiers) | Existential quantifier |
 | [<code>... &#x7C;= ...</code>](#specification-entailments) | Specification entailment |
@@ -35,13 +38,24 @@ Implications express a [relationship](https://en.wikipedia.org/wiki/Material_con
 pub fn is_empty(&self) -> bool;
 ```
 
-There is no syntax for logical equivalences ("if and only if"), because this coincides with `==`:
+There is syntax for a right-to-left implication:
 
 ```rust,noplaypen
 #[pure]
-#[ensures(result == (self.len() == 0))]
+#[ensures(self.len() == 0 <== result)]
+#[ensures(self.len() > 0 <== !result)]
 pub fn is_empty(&self) -> bool;
 ```
+
+As well as a biconditional ("if and only if"):
+
+```rust,noplaypen
+#[pure]
+#[ensures(self.len() == 0 <==> result)]
+pub fn is_empty(&self) -> bool;
+```
+
+Semantically, a biconditional is equivalent to a Boolean `==`. However, it has lower precedence than the `==` operator.
 
 ## Snapshot Equality
 
@@ -66,6 +80,8 @@ fn main() {
     foo(X { a: 1 }, X { a: 1 });
 }
 ```
+
+Snapshot *in*equality is expressed using the `!==` operator.
 
 ## Quantifiers
 

@@ -411,13 +411,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         fn_decl: &'tcx prusti_rustc_interface::hir::FnDecl,
         body_id: prusti_rustc_interface::hir::BodyId,
         span: Span,
-        id: prusti_rustc_interface::hir::hir_id::HirId,
+        local_id: LocalDefId,
     ) {
-        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, id);
+        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, local_id);
 
-        let local_id = self.env.query.as_local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = self.env.query.get_local_attributes(id);
+        let attrs = self.env.query.get_local_attributes(local_id);
 
         // Collect spec functions
         if let Some(raw_spec_id) = read_prusti_attr("spec_id", attrs) {
@@ -497,7 +496,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let attr = read_prusti_attr("extern_spec", attrs).unwrap_or_default();
                 let kind = prusti_specs::ExternSpecKind::try_from(attr).unwrap();
                 self.extern_resolver
-                    .add_extern_fn(fn_kind, fn_decl, body_id, span, id, kind);
+                    .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
             }
 
             // Collect procedure specifications
