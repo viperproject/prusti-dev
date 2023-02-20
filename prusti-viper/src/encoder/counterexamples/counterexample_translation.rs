@@ -112,7 +112,7 @@ pub fn backtranslate(
 
     // sort by span so we can compare output in tests
     let mut sorted_entries = entries.into_iter().collect::<Vec<_>>();
-    sorted_entries.sort_by(|a, b| a.0 .1.cmp(&b.0 .1));
+    sorted_entries.sort_unstable_by(|a, b| a.0 .1.cmp(&b.0 .1));
 
     // add counterexample notes for arguments and locals
     for (place, entry) in sorted_entries.into_iter() {
@@ -298,7 +298,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     .translate_silicon_entry(
                         *typ,
                         map.get("val_ref"),
-                        format!("{}.val_ref", vir_name),
+                        format!("{vir_name}.val_ref"),
                         silicon_ce_entries,
                     )
                     .unwrap_or_default(),
@@ -309,13 +309,13 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 let mut fields = vec![];
                 for i in 0..len {
                     let typ = subst[i];
-                    let field_id = format!("tuple_{}", i);
+                    let field_id = format!("tuple_{i}");
                     let field_entry = map.get(&field_id);
                     fields.push(
                         self.translate_silicon_entry(
                             typ,
                             field_entry,
-                            format!("{}.{}", vir_name, field_id),
+                            format!("{vir_name}.{field_id}"),
                             silicon_ce_entries,
                         )
                         .unwrap_or_default(),
@@ -332,7 +332,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     .translate_silicon_entry(
                         new_typ,
                         map.get("val_ref"),
-                        format!("{}.val_ref", vir_name),
+                        format!("{vir_name}.val_ref"),
                         silicon_ce_entries,
                     )
                     .unwrap_or_default();
@@ -352,7 +352,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             (ty::TyKind::Adt(adt_def, subst), Some(ModelEntry::Ref(_, map)))
                 if adt_def.is_enum() =>
             {
-                let super_name = format!("{:?}", adt_def);
+                let super_name = format!("{adt_def:?}");
                 let mut variant_name = "?".to_string();
                 let mut field_entries = vec![];
 
@@ -386,7 +386,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 }
 
                 if let Some(var_def) = variant {
-                    let sil_name = format!("enum_{}", variant_name);
+                    let sil_name = format!("enum_{variant_name}");
                     let opt_enum_entry = map.get(&sil_name);
                     //at this point it should be a subroutine same for structs and enum:
                     field_entries = self.translate_vardef(
@@ -405,7 +405,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 }
             }
             (ty::TyKind::Adt(adt_def, _), _) if adt_def.is_enum() => Entry::Enum {
-                super_name: format!("{:?}", adt_def),
+                super_name: format!("{adt_def:?}"),
                 name: "?".to_string(),
                 field_entries: vec![],
             },
@@ -427,8 +427,8 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             let typ = f.ty(self.tcx, subst);
 
             // extract recursively
-            let sil_name = format!("f${}", field_name);
-            let new_vir_name = format!("{}.f${}", vir_name, field_name);
+            let sil_name = format!("f${field_name}");
+            let new_vir_name = format!("{vir_name}.f${field_name}");
             let mut field_entry = Entry::Unknown;
             if let Some(ModelEntry::Ref(_name, map)) = sil_entry {
                 let rec_entry = map.get(&sil_name);
@@ -512,7 +512,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         encoded_typ: &String,
         params: &Vec<Option<ModelEntry>>,
     ) -> &Option<ModelEntry> {
-        let function_name = format!("snap$__$TY$__{}$", encoded_typ);
+        let function_name = format!("snap$__$TY$__{encoded_typ}$");
         if let Some(hd_function) = self
             .silicon_counterexample
             .functions
@@ -618,7 +618,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     let mut fields = vec![];
                     for i in 0..len {
                         let field_typ = subst[i];
-                        let field_name = format!("tuple_{}", i);
+                        let field_name = format!("tuple_{i}");
                         let sil_fn_name =
                             format!("{}$0$field${}__$TY$__", &encoded_typ, &field_name);
                         let field_entry = self.extract_field_value(
@@ -676,7 +676,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                             if let Some(ModelEntry::LitInt(disc_value)) =
                                 disc_function.get_function_value(&sil_fn_param)
                             {
-                                let super_name = format!("{:?}", adt_def);
+                                let super_name = format!("{adt_def:?}");
                                 let disc_value_int = disc_value.parse::<u32>().unwrap();
                                 if let Some(variant) = adt_def
                                     .variants()
@@ -702,7 +702,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     }
                 }
                 Entry::Enum {
-                    super_name: format!("{:?}", adt_def),
+                    super_name: format!("{adt_def:?}"),
                     name: "?".to_string(),
                     field_entries: vec![],
                 }

@@ -1,4 +1,4 @@
-use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint, PrustiError};
+use crate::{environment::Environment, utils::has_trait_bounds_type_cond_spec, PrustiError};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_rustc_interface::{
@@ -145,7 +145,7 @@ impl DefSpecificationMap {
         let loop_specs: Vec<_> = self
             .loop_specs
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let proc_specs: Vec<_> = self
             .proc_specs
@@ -155,17 +155,17 @@ impl DefSpecificationMap {
         let type_specs: Vec<_> = self
             .type_specs
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let asserts: Vec<_> = self
             .prusti_assertions
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let assumptions: Vec<_> = self
             .prusti_assumptions
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let mut values = Vec::new();
         values.extend(loop_specs);
@@ -203,6 +203,7 @@ pub struct ProcedureSpecification {
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
     pub terminates: SpecificationItem<Option<LocalDefId>>,
+    pub purity: SpecificationItem<Option<DefId>>, // for type-conditional spec refinements
 }
 
 impl ProcedureSpecification {
@@ -217,6 +218,7 @@ impl ProcedureSpecification {
             pledges: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
+            purity: SpecificationItem::Inherent(None),
         }
     }
 }
@@ -353,7 +355,7 @@ impl<T> SpecGraph<T> {
 /// trait SomeTrait {
 ///     #[requires(x > 0)]
 ///     #[ensures(x > 0)]
-///     #[ghost_constraint(T: MarkerTrait, [
+///     #[refine_spec(where T: MarkerTrait, [
 ///         requires(x > 10),
 ///         ensures(x > 10),
 ///     ])]
@@ -365,7 +367,7 @@ impl<T> SpecGraph<T> {
 /// impl SomeTrait for SomeStruct {
 ///     #[requires(x >= 0)]
 ///     #[ensures(x > 10)]
-///     #[ghost_constraint(T: MarkerTrait, [
+///     #[refine_spec(where T: MarkerTrait, [
 ///         requires(x >= -5),
 ///         ensures(x > 20),
 ///     ])]
@@ -436,6 +438,23 @@ impl SpecGraph<ProcedureSpecification> {
         }
     }
 
+    pub fn add_purity<'tcx>(&mut self, purity: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(purity, env) {
+            None => {
+                unreachable!(
+                    "separate purity defs are only used for type-conditional spec refinements"
+                )
+            }
+            Some(constraint) => {
+                let constrained_spec = self.get_constrained_spec_mut(constraint);
+                constrained_spec.kind =
+                    SpecificationItem::Inherent(ProcedureSpecificationKind::Pure);
+                // need to store this as well, since without pres or posts we couldn't find any def id with the trait bounds
+                constrained_spec.purity.set(Some(purity.to_def_id()));
+            }
+        }
+    }
+
     /// Attaches the `pledge` to the base spec and all constrained specs.
     pub fn add_pledge(&mut self, pledge: Pledge) {
         self.base_spec.pledges.push(pledge.clone());
@@ -489,7 +508,7 @@ impl SpecGraph<ProcedureSpecification> {
         env: &Environment<'tcx>,
     ) -> Option<SpecConstraintKind> {
         let attrs = env.query.get_local_attributes(spec);
-        if has_trait_bounds_ghost_constraint(attrs) {
+        if has_trait_bounds_type_cond_spec(attrs) {
             return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
         }
         None
@@ -752,6 +771,7 @@ impl Refinable for ProcedureSpecification {
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
             terminates: self.terminates.refine(&other.terminates),
+            purity: self.purity.refine(&other.purity),
         }
     }
 }

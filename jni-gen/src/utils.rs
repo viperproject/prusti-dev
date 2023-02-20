@@ -54,15 +54,15 @@ pub fn generate_jni_type_char(signature: &str) -> String {
 
 pub fn generate_jvalue_wrapper(par: &str, signature: &str) -> String {
     match signature.chars().next().unwrap() {
-        '[' | 'L' => format!("JValue::Object({})", par),
-        'B' => format!("JValue::Byte({})", par),
-        'C' => format!("JValue::Char({})", par),
-        'S' => format!("JValue::Short({})", par),
-        'I' => format!("JValue::Int({})", par),
-        'J' => format!("JValue::Long({})", par),
-        'Z' => format!("JValue::Bool({} as jboolean)", par),
-        'F' => format!("JValue::Float({})", par),
-        'D' => format!("JValue::Double({})", par),
+        '[' | 'L' => format!("JValue::Object({par})"),
+        'B' => format!("JValue::Byte({par})"),
+        'C' => format!("JValue::Char({par})"),
+        'S' => format!("JValue::Short({par})"),
+        'I' => format!("JValue::Int({par})"),
+        'J' => format!("JValue::Long({par})"),
+        'Z' => format!("JValue::Bool({par} as jboolean)"),
+        'F' => format!("JValue::Float({par})"),
+        'D' => format!("JValue::Double({par})"),
         x => unreachable!("{}", x),
     }
 }

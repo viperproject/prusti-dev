@@ -3,8 +3,10 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
-use std::convert::TryFrom;
-use std::fmt::{Display, Debug};
+use std::{
+    convert::TryFrom,
+    fmt::{Debug, Display},
+};
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -45,7 +47,17 @@ impl<'a> TryFrom<&'a str> for SpecType {
 }
 
 #[derive(
-    Debug, Default, PartialEq, Eq, Hash, Clone, Copy, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Hash,
+    Clone,
+    Copy,
+    serde::Serialize,
+    serde::Deserialize,
+    PartialOrd,
+    Ord,
 )]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
@@ -56,6 +68,7 @@ pub struct SpecificationId(Uuid);
 pub enum SpecIdRef {
     Precondition(SpecificationId),
     Postcondition(SpecificationId),
+    Purity(SpecificationId),
     Pledge {
         lhs: Option<SpecificationId>,
         rhs: SpecificationId,
@@ -101,7 +114,7 @@ impl SpecificationIdGenerator {
 pub(crate) fn generate_struct_name(item: &syn::ItemImpl) -> String {
     let uuid = Uuid::new_v4().simple();
     let name_ty = generate_name_for_type(&item.self_ty).unwrap_or_default();
-    format!("PrustiStruct{}_{}", name_ty, uuid)
+    format!("PrustiStruct{name_ty}_{uuid}")
 }
 
 pub(crate) fn generate_struct_name_for_trait(item: &syn::ItemTrait) -> String {
@@ -109,23 +122,19 @@ pub(crate) fn generate_struct_name_for_trait(item: &syn::ItemTrait) -> String {
     format!("PrustiTrait{}_{}", item.ident, uuid)
 }
 
-pub(crate) fn generate_mod_name(ident: &syn::Ident) -> String {
-    let uuid = Uuid::new_v4().simple();
-    format!("{}_{}", ident, uuid)
-}
-
 fn generate_name_for_type(ty: &syn::Type) -> Option<String> {
     match ty {
-        syn::Type::Path(ty_path) => {
-            Some(String::from_iter(ty_path.path.segments.iter()
-                .map(|seg| seg.ident.to_string())))
-        },
+        syn::Type::Path(ty_path) => Some(String::from_iter(
+            ty_path
+                .path
+                .segments
+                .iter()
+                .map(|seg| seg.ident.to_string()),
+        )),
         syn::Type::Slice(ty_slice) => {
             let ty = &*ty_slice.elem;
             Some(format!("Slice{}", generate_name_for_type(ty)?.as_str()))
-        },
-        _ => {
-            None
         }
+        _ => None,
     }
 }

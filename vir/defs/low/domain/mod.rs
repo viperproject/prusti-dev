@@ -42,6 +42,7 @@ pub struct DomainFunctionDecl {
 
 #[display(fmt = "axiom {} {{\n  {}\n}}", name, body)]
 pub struct DomainAxiomDecl {
+    pub comment: Option<String>,
     pub name: String,
     pub body: Expression,
 }

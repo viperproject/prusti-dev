@@ -14,6 +14,10 @@ use log::{debug, trace};
 use super::PositionManager;
 use prusti_interface::data::ProcedureDefId;
 
+const ASSERTION_TIMEOUT_HELP_MESSAGE: &str = "This could be caused by too small assertion timeout. \
+Try increasing it by setting the configuration parameter \
+ASSERT_TIMEOUT to a larger value.";
+
 
 /// The cause of a panic!()
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -265,8 +269,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     Err(err) => {
                         return PrustiError::internal(
                             format!(
-                                "unexpected Viper position '{}': {}",
-                                viper_pos_id, err
+                                "unexpected Viper position '{viper_pos_id}': {err}"
                             ),
                             MultiSpan::new()
                         );
@@ -282,8 +285,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     Err(err) => {
                         return PrustiError::internal(
                             format!(
-                                "unexpected Viper reason position '{}': {}",
-                                viper_reason_pos_id, err
+                                "unexpected Viper reason position '{viper_reason_pos_id}': {err}"
                             ),
                             MultiSpan::new()
                         );
@@ -329,11 +331,7 @@ impl<'tcx> ErrorManager<'tcx> {
                             ver_error.full_id, pos_id, ver_error.message
                         ),
                         error_span
-                    ).set_help(
-                        "This could be caused by too small assertion timeout. \
-                        Try increasing it by setting the configuration parameter \
-                        ASSERT_TIMEOUT to a larger value."
-                    )
+                    ).set_help(ASSERTION_TIMEOUT_HELP_MESSAGE)
                 }
                 None => {
                     PrustiError::internal(
@@ -342,11 +340,7 @@ impl<'tcx> ErrorManager<'tcx> {
                             ver_error.full_id, ver_error.message
                         ),
                         error_span
-                    ).set_help(
-                        "This could be caused by too small assertion timeout. \
-                        Try increasing it by setting the configuration parameter \
-                        ASSERT_TIMEOUT to a larger value."
-                    )
+                    ).set_help(ASSERTION_TIMEOUT_HELP_MESSAGE)
                 }
             }
         }
@@ -387,7 +381,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => {
-                PrustiError::verification(format!("assertion might fail with \"{}\"", message), error_span)
+                PrustiError::verification(format!("assertion might fail with \"{message}\""), error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -542,7 +536,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 ErrorCtxt::PureFunctionAssertTerminator(ref message),
             ) => {
                 PrustiError::disabled_verification(
-                    format!("assertion might fail with \"{}\"", message),
+                    format!("assertion might fail with \"{message}\""),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             },
@@ -626,7 +620,7 @@ impl<'tcx> ErrorManager<'tcx> {
 
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
-                    format!("an unsupported Rust feature might be reachable: {}.", reason),
+                    format!("an unsupported Rust feature might be reachable: {reason}."),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }
@@ -708,11 +702,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     error_span,
                 ).set_failing_assertion(
                     opt_cause_span
-                ).set_help(
-                    "This could be caused by too small assertion timeout. \
-                    Try increasing it by setting the configuration parameter \
-                    ASSERT_TIMEOUT to a larger value."
-                )
+                ).set_help(ASSERTION_TIMEOUT_HELP_MESSAGE)
             },
 
             _ => {
@@ -728,11 +718,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     error_span,
                 ).set_failing_assertion(
                     opt_cause_span
-                ).set_help(
-                    "This could be caused by too small assertion timeout. \
-                    Try increasing it by setting the configuration parameter \
-                    ASSERT_TIMEOUT to a larger value."
-                )
+                ).set_help(ASSERTION_TIMEOUT_HELP_MESSAGE)
             }
         }
     }

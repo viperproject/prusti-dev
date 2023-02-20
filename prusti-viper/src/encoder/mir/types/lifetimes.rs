@@ -42,7 +42,7 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         | ty::TyKind::Never => {}
         ty::TyKind::Adt(_, substs)
         | ty::TyKind::Closure(_, substs)
-        | ty::TyKind::Opaque(_, substs)
+        | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { substs, .. })
         | ty::TyKind::FnDef(_, substs) => {
             extract_lifetimes_from_substs(type_encoder, substs, lifetimes)?
         }
@@ -79,8 +79,8 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         ty::TyKind::Param(_param_ty) => {
             // FIXME: extract lifetimes from TyKind::Param()
         }
-        ty::TyKind::Projection(projection_ty) => {
-            extract_lifetimes_from_substs(type_encoder, projection_ty.substs, lifetimes)?
+        ty::TyKind::Alias(ty::AliasKind::Projection, alias_ty) => {
+            extract_lifetimes_from_substs(type_encoder, alias_ty.substs, lifetimes)?
         }
         ty::TyKind::Bound(_, _)
         | ty::TyKind::Placeholder(_)

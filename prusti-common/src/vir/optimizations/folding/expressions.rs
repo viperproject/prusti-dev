@@ -18,11 +18,8 @@
 
 use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
 use log::{debug, trace};
-use std::{
-    cmp::Ordering,
-    collections::{HashMap, HashSet},
-    mem,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::{cmp::Ordering, mem};
 
 pub trait FoldingOptimizer {
     #[must_use]
@@ -57,8 +54,8 @@ impl FoldingOptimizer for ast::Expr {
     fn optimize(self) -> Self {
         trace!("[enter] FoldingOptimizer::optimize = \n{}", self);
         let mut optimizer = ExprOptimizer {
-            unfoldings: HashMap::new(),
-            requirements: HashSet::new(),
+            unfoldings: FxHashMap::default(),
+            requirements: FxHashSet::default(),
         };
         let original_expr = self.clone();
         if let Ok(new_expr) = optimizer.fallible_fold(self) {
@@ -93,8 +90,8 @@ impl ast::StmtFolder for StmtOptimizer {
     }
 }
 
-type UnfoldingMap = HashMap<ast::Expr, (ast::Type, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
-type RequirementSet = HashSet<ast::Expr>;
+type UnfoldingMap = FxHashMap<ast::Expr, (ast::Type, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
+type RequirementSet = FxHashSet<ast::Expr>;
 
 struct ExprOptimizer {
     /// Predicate argument → (predicate name, amount, enum index).
@@ -119,7 +116,7 @@ fn restore_unfoldings_boxed(unfolding_map: UnfoldingMap, expr: Box<ast::Expr>) -
 /// Restore unfoldings on a given expression.
 fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::Expr {
     let mut unfoldings: Vec<_> = unfolding_map.into_iter().collect();
-    unfoldings.sort_by(|(k1, _), (k2, _)| {
+    unfoldings.sort_unstable_by(|(k1, _), (k2, _)| {
         if k1 == k2 {
             Ordering::Equal
         } else {
@@ -130,7 +127,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
             } else if base_k1 > base_k2 || k2.has_prefix(k1) {
                 Ordering::Greater
             } else {
-                format!("{}", k1).cmp(&format!("{}", k2))
+                format!("{k1}").cmp(&format!("{k2}"))
             }
         }
     });
@@ -147,8 +144,8 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
 fn check_requirements_conflict(
     reqs1: &RequirementSet,
     reqs2: &RequirementSet,
-) -> HashSet<ast::Expr> {
-    let mut conflict_set = HashSet::new();
+) -> FxHashSet<ast::Expr> {
+    let mut conflict_set = FxHashSet::default();
     for place1 in reqs1 {
         //debug_assert!(reqs1.iter().all(|p| !p.has_proper_prefix(place1)));
         for place2 in reqs2 {
@@ -207,10 +204,10 @@ fn check_requirements_conflict(
 /// Split the unfoldings map into two: to restore and to keep.
 fn split_unfoldings(
     unfoldings: UnfoldingMap,
-    conflicts: &HashSet<ast::Expr>,
+    conflicts: &FxHashSet<ast::Expr>,
 ) -> (UnfoldingMap, UnfoldingMap) {
-    let mut to_restore = HashMap::new();
-    let mut to_keep = HashMap::new();
+    let mut to_restore = FxHashMap::default();
+    let mut to_keep = FxHashMap::default();
     for (place, data) in unfoldings {
         if conflicts.iter().any(|c| place.has_prefix(c)) {
             to_restore.insert(place, data);
@@ -226,8 +223,8 @@ fn find_common_unfoldings2(
     first: UnfoldingMap,
     mut second: UnfoldingMap,
 ) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap) {
-    let mut common = HashMap::new();
-    let mut new_first = HashMap::new();
+    let mut common = FxHashMap::default();
+    let mut new_first = FxHashMap::default();
     for (place, data) in first {
         if second.contains_key(&place) {
             second.remove(&place);
@@ -248,8 +245,8 @@ fn find_common_unfoldings3<'a>(
     mut third: UnfoldingMap,
     third_reqs: &'a RequirementSet,
 ) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap, UnfoldingMap) {
-    let mut common = HashMap::new();
-    let mut new_first = HashMap::new();
+    let mut common = FxHashMap::default();
+    let mut new_first = FxHashMap::default();
     for (place, data) in first {
         let second_agrees =
             second.contains_key(&place) || second_reqs.iter().all(|p| !p.has_prefix(&place));
@@ -455,8 +452,8 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             position,
         }: ast::BinOp,
     ) -> Result<ast::Expr, ()> {
-        let f = left.clone();
-        let s = right.clone();
+        trace!("fold_bin_op: {} {} {}", op_kind, left, right);
+
         let first_folded = self.fallible_fold_boxed(left)?;
         let first_unfoldings = self.get_unfoldings();
         let first_requirements = self.get_requirements();
@@ -465,7 +462,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         let second_unfoldings = self.get_unfoldings();
         let second_requirements = self.get_requirements();
 
-        trace!("fold_bin_op: {} {} {}", op_kind, f, s);
         let conflicts = check_requirements_conflict(&first_requirements, &second_requirements);
 
         if conflicts.is_empty() {
@@ -531,9 +527,12 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             position,
         }: ast::Cond,
     ) -> Result<ast::Expr, ()> {
-        let g = guard.clone();
-        let f = then_expr.clone();
-        let s = else_expr.clone();
+        trace!(
+            "\n\nfold_cond:\ng = {}\nt = {}\ne = {}",
+            guard,
+            then_expr,
+            else_expr
+        );
 
         let guard_folded = self.fallible_fold_boxed(guard)?;
         let guard_unfoldings = self.get_unfoldings();
@@ -546,8 +545,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         let else_folded = self.fallible_fold_boxed(else_expr)?;
         let else_unfoldings = self.get_unfoldings();
         let else_requirements = self.get_requirements();
-
-        trace!("\n\nfold_cond:\ng = {}\nt = {}\ne = {}", g, f, s);
 
         let mut conflicts = check_requirements_conflict(&guard_requirements, &then_requirements);
         conflicts.extend(check_requirements_conflict(

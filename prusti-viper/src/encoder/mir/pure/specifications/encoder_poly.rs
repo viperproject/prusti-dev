@@ -4,16 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::{
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
-    high::types::HighTypeEncoderInterface,
-    mir::{
-        pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
-        types::MirTypeEncoderInterface,
+use crate::{
+    encoder::{
+        errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
+        high::types::HighTypeEncoderInterface,
+        mir::{
+            pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
+            types::MirTypeEncoderInterface,
+        },
+        mir_encoder::{MirEncoder, PlaceEncoder},
+        snapshot::interface::SnapshotEncoderInterface,
+        Encoder,
     },
-    mir_encoder::{MirEncoder, PlaceEncoder},
-    snapshot::interface::SnapshotEncoderInterface,
-    Encoder,
+    error_incorrect,
 };
 use prusti_common::config;
 use prusti_rustc_interface::{
@@ -77,9 +80,15 @@ pub(super) fn inline_spec_item<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
+    // each non-lifetime parameter should be matched with a subst
     assert_eq!(
-        substs.len(),
-        encoder.env().query.identity_substs(def_id).len()
+        substs.non_erasable_generics().count(),
+        encoder
+            .env()
+            .query
+            .identity_substs(def_id)
+            .non_erasable_generics()
+            .count()
     );
 
     let mir = encoder
@@ -180,10 +189,10 @@ pub(super) fn encode_quantifier<'tcx>(
             let (trigger_def_id, trigger_substs, trigger_span, _, _) =
                 extract_closure_from_ty(encoder.env().query, ty_trigger);
             let set_field = encoder
-                .encode_raw_ref_field(format!("tuple_{}", trigger_set_idx), ty_trigger_set)
+                .encode_raw_ref_field(format!("tuple_{trigger_set_idx}"), ty_trigger_set)
                 .with_span(trigger_span)?;
             let trigger_field = encoder
-                .encode_raw_ref_field(format!("tuple_{}", trigger_idx), ty_trigger)
+                .encode_raw_ref_field(format!("tuple_{trigger_idx}"), ty_trigger)
                 .with_span(trigger_span)?;
             // note: `is_encoding_trigger` must be set back to `false` before returning early in case of errors
             encoder.is_encoding_trigger.set(true);
@@ -239,7 +248,7 @@ pub(super) fn encode_quantifier<'tcx>(
     let mut fixed_qvars = vec![];
     for (arg_idx, qvar) in encoded_qvars.iter().enumerate() {
         let qvar_rep = vir_crate::polymorphic::LocalVar::new(
-            format!("_{}_quant_{}", arg_idx, quantifier_depth),
+            format!("_{arg_idx}_quant_{quantifier_depth}"),
             qvar.typ.clone(),
         );
         qvar_replacements.push((
@@ -356,9 +365,7 @@ fn check_trigger_set(
         .any(|var| !found_bounded_vars.contains(var))
     {
         // TODO: mention (+ span) the missing qvars in the error
-        return Err(EncodingError::incorrect(
-            "a trigger set must mention all bound variables",
-        ));
+        error_incorrect!("a trigger set must mention all bound variables");
     }
     Ok(())
 }

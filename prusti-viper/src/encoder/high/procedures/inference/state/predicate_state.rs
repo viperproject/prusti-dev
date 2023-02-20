@@ -15,11 +15,11 @@ pub(in super::super) enum PredicateState {
 impl std::fmt::Display for PredicateState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PredicateState::Unconditional(state) => write!(f, "Unconditional:\n{}", state)?,
+            PredicateState::Unconditional(state) => write!(f, "Unconditional:\n{state}")?,
             PredicateState::Conditional(states) => {
                 writeln!(f, "Conditional:")?;
                 for (condition, state) in states {
-                    write!(f, "  {}:\n{}", condition, state)?;
+                    write!(f, "  {condition}:\n{state}")?;
                 }
             }
         }

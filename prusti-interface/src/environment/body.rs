@@ -58,9 +58,9 @@ impl<'tcx> PreLoadedBodies<'tcx> {
     fn expect(&self, def_id: DefId) -> MirBody<'tcx> {
         let res = self.get(def_id);
         if let Some(def_id) = def_id.as_local() {
-            res.unwrap_or_else(|| panic!("Local body of `{:?}` was not loaded!", def_id))
+            res.unwrap_or_else(|| panic!("Local body of `{def_id:?}` was not loaded!"))
         } else {
-            res.unwrap_or_else(|| panic!("External body of `{:?}` was not imported!", def_id))
+            res.unwrap_or_else(|| panic!("External body of `{def_id:?}` was not imported!"))
         }
     }
 }
@@ -170,7 +170,7 @@ impl<'tcx> EnvBody<'tcx> {
             let monomorphised = if let Some(caller_def_id) = caller_def_id {
                 let param_env = self.tcx.param_env(caller_def_id);
                 self.tcx
-                    .subst_and_normalize_erasing_regions(substs, param_env, body.0.clone())
+                    .subst_and_normalize_erasing_regions(substs, param_env, body.0)
             } else {
                 ty::EarlyBinder(body.0).subst(self.tcx, substs)
             };
@@ -292,7 +292,7 @@ impl<'tcx> EnvBody<'tcx> {
     /// prior to requesting their bodies with `get_spec_body` or exporting with `CrossCrateBodies::from`!
     pub(crate) fn load_spec_body(&mut self, def_id: LocalDefId) {
         // The same `def_id` may be referenced twice, e.g. see fn `constrained_contract_inherits_posts` in
-        // the `ghost-constraints-extend-base-attributes.rs` test case
+        // the `refinements-extend-base-attributes.rs` test case
         if self.specs.local.contains_key(&def_id) {
             return;
         }

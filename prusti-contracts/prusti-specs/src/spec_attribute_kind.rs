@@ -3,8 +3,8 @@ use std::convert::TryFrom;
 /// This type identifies one of the procedural macro attributes of Prusti
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum SpecAttributeKind {
-    /// All type specifications that alter its type must be processed before 
-    /// PrintCounterexample. Currently this only applies to Model. 
+    /// All type specifications that alter its type must be processed before
+    /// PrintCounterexample. Currently this only applies to Model.
     Model = 0,
     Requires = 1,
     Ensures = 2,
@@ -14,9 +14,10 @@ pub enum SpecAttributeKind {
     Trusted = 6,
     Predicate = 7,
     Invariant = 8,
-    GhostConstraint = 9,
+    RefineSpec = 9,
     Terminates = 10,
     PrintCounterexample = 11,
+    Verified = 12,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -32,9 +33,10 @@ impl TryFrom<String> for SpecAttributeKind {
             "trusted" => Ok(SpecAttributeKind::Trusted),
             "predicate" => Ok(SpecAttributeKind::Predicate),
             "invariant" => Ok(SpecAttributeKind::Invariant),
-            "ghost_constraint" => Ok(SpecAttributeKind::GhostConstraint),
+            "refine_spec" => Ok(SpecAttributeKind::RefineSpec),
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
+            "verified" => Ok(SpecAttributeKind::Verified),
             _ => Err(name),
         }
     }

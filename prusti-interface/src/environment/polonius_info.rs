@@ -171,7 +171,7 @@ impl fmt::Debug for ReborrowingDAGNode {
                 write!(f, "{:?}", self.loan)?;
             }
             ReborrowingKind::ArgumentMove { ref loan } => {
-                write!(f, "Move({:?})", loan)?;
+                write!(f, "Move({loan:?})")?;
             }
             ReborrowingKind::Call {
                 ref variable,
@@ -203,14 +203,14 @@ impl fmt::Debug for ReborrowingDAGNode {
         if !self.reborrowing_loans.is_empty() {
             write!(f, ",incoming=(")?;
             for loan in &self.reborrowing_loans {
-                write!(f, "{:?},", loan)?;
+                write!(f, "{loan:?},")?;
             }
             write!(f, ")")?;
         }
         if !self.reborrowed_loans.is_empty() {
             write!(f, ",outgoing=(")?;
             for loan in &self.reborrowed_loans {
-                write!(f, "{:?},", loan)?;
+                write!(f, "{loan:?},")?;
             }
             write!(f, ")")?;
         }
@@ -226,11 +226,7 @@ pub struct ReborrowingDAG {
 
 impl ToString for ReborrowingDAG {
     fn to_string(&self) -> String {
-        let nodes: Vec<_> = self
-            .nodes
-            .iter()
-            .map(|node| format!("{:?}", node))
-            .collect();
+        let nodes: Vec<_> = self.nodes.iter().map(|node| format!("{node:?}")).collect();
         nodes.join(";")
     }
 }
@@ -340,9 +336,9 @@ pub fn graphviz<'tcx>(
     )?;
     write!(graph, "</table>>];\n\n")?;
     for (block, point_indices) in blocks {
-        write!(graph, "node_{:?} [ shape=\"record\" ", block)?;
+        write!(graph, "node_{block:?} [ shape=\"record\" ")?;
         write!(graph, "label =<<table>")?;
-        writeln!(graph, "<th><td>{:?}</td></th>", block)?;
+        writeln!(graph, "<th><td>{block:?}</td></th>")?;
         write!(graph, "<tr>")?;
         write!(graph, "<td>point</td>")?;
         write!(graph, "<td>loan_live_at</td>")?;
@@ -354,11 +350,11 @@ pub fn graphviz<'tcx>(
         points.sort();
         for point in points {
             writeln!(graph, "<tr>")?;
-            writeln!(graph, "<td>{}</td>", point)?;
+            writeln!(graph, "<td>{point}</td>")?;
             write!(graph, "<td>")?;
             let point_index = interner.get_point_index(&point);
             for loan in &borrowck_out_facts.loan_live_at[&point_index] {
-                write!(graph, "{:?},", loan)?;
+                write!(graph, "{loan:?},")?;
             }
             write!(graph, "</td>")?;
             writeln!(graph, "</tr>")?;
@@ -366,7 +362,7 @@ pub fn graphviz<'tcx>(
         write!(graph, "</table>>];\n\n")?;
     }
     for (from, to) in block_edges {
-        writeln!(graph, "node_{:?} -> node_{:?};", from, to)?;
+        writeln!(graph, "node_{from:?} -> node_{to:?};")?;
     }
     writeln!(graph, "}}")?;
     Ok(())
@@ -574,7 +570,7 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
                 | &mir::Rvalue::Use(mir::Operand::Copy(ref place))
                 | &mir::Rvalue::Use(mir::Operand::Move(ref place)) => Ok(vec![place]),
                 &mir::Rvalue::Use(mir::Operand::Constant(_)) => Ok(Vec::new()),
-                &mir::Rvalue::Aggregate(_, ref operands) => Ok(operands
+                mir::Rvalue::Aggregate(_, operands) => Ok(operands
                     .iter()
                     .flat_map(|operand| match operand {
                         mir::Operand::Copy(ref place) | mir::Operand::Move(ref place) => {
@@ -1160,7 +1156,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         *self
             .loan_position
             .get(loan)
-            .unwrap_or_else(|| panic!("not found: {:?}", loan))
+            .unwrap_or_else(|| panic!("not found: {loan:?}"))
     }
 
     pub fn get_loan_at_location(&self, location: mir::Location) -> facts::Loan {
@@ -1969,7 +1965,7 @@ fn get_call_destination<'tcx>(
             ..
         } => target.map(|_| *destination),
         ref x => {
-            panic!("Expected call, got {:?} at {:?}", x, location);
+            panic!("Expected call, got {x:?} at {location:?}");
         }
     }
 }
@@ -1998,7 +1994,7 @@ fn get_call_arguments(mir: &mir::Body<'_>, location: mir::Location) -> Vec<mir::
             reference_args
         }
         ref x => {
-            panic!("Expected call, got {:?} at {:?}", x, location);
+            panic!("Expected call, got {x:?} at {location:?}");
         }
     }
 }

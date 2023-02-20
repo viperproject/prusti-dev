@@ -26,10 +26,7 @@ fn cargo_prusti_path() -> PathBuf {
         .collect();
     if local_prusti_rustc_path.exists() {
         return fs::canonicalize(&local_prusti_rustc_path).unwrap_or_else(|_| {
-            panic!(
-                "Failed to canonicalize the path {:?}",
-                local_prusti_rustc_path
-            )
+            panic!("Failed to canonicalize the path {local_prusti_rustc_path:?}")
         });
     }
     let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, executable_name]
@@ -37,16 +34,12 @@ fn cargo_prusti_path() -> PathBuf {
         .collect();
     if workspace_prusti_rustc_path.exists() {
         return fs::canonicalize(&workspace_prusti_rustc_path).unwrap_or_else(|_| {
-            panic!(
-                "Failed to canonicalize the path {:?}",
-                workspace_prusti_rustc_path
-            )
+            panic!("Failed to canonicalize the path {workspace_prusti_rustc_path:?}")
         });
     }
     panic!(
-        "Could not find the {:?} cargo-prusti binary to be used in tests. \
-        It might be that Prusti has not been compiled correctly.",
-        target_directory
+        "Could not find the {target_directory:?} cargo-prusti binary to be used in tests. \
+        It might be that Prusti has not been compiled correctly."
     );
 }
 
@@ -68,6 +61,8 @@ fn simple_assert_false() {
         .with_stderr(
             "\
 [CHECKING] foo v0.0.1 ([..])
+[WARNING] Prusti specifications are supported only from 2018 edition. Please specify the edition with adding a command line argument `--edition=2018` or `--edition=2021`.
+
 [ERROR] [Prusti: verification error] the asserted expression might not hold
  --> src/main.rs:1:13
   |
@@ -76,7 +71,8 @@ fn simple_assert_false() {
   |
   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: could not compile `foo` due to previous error
+warning: `foo` (bin \"foo\") generated 1 warning
+error: could not compile `foo` due to previous error; 1 warning emitted
 ",
         )
         .run();

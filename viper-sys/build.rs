@@ -34,14 +34,14 @@ fn main() {
     println!("cargo:rerun-if-env-changed=VIPER_HOME");
     let viper_home = env::var("VIPER_HOME").expect("failed to get VIPER_HOME");
     let mut viper_jars: Vec<String> = fs::read_dir(&viper_home)
-        .unwrap_or_else(|_| panic!("Could not open VIPER_HOME='{}'", viper_home))
+        .unwrap_or_else(|_| panic!("Could not open VIPER_HOME='{viper_home}'"))
         .map(|x| x.unwrap().path().to_str().unwrap().to_string())
         .collect();
 
     // Rebuild whenever a Viper jar changes
-    println!("cargo:rerun-if-changed={}", viper_home);
+    println!("cargo:rerun-if-changed={viper_home}");
     for viper_jar in &viper_jars {
-        println!("cargo:rerun-if-changed={}", viper_jar);
+        println!("cargo:rerun-if-changed={viper_jar}");
     }
 
     WrapperGenerator::new()
@@ -268,15 +268,15 @@ fn main() {
             java_class!("viper.silver.ast.BackendType$", vec![
                 object_getter!(),
             ]),
-            java_class!("viper.silver.ast.BackendFunc", vec![
-                constructor!(),
+            java_class!("viper.silver.ast.BackendFunc$", vec![
+                object_getter!(),
             ]),
             java_class!("viper.silver.ast.BackendFuncApp", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.BackendFuncApp$", vec![
                 object_getter!(),
-                method!("apply", "(Lviper/silver/ast/BackendFunc;Lscala/collection/immutable/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/BackendFuncApp;"),
+                method!("apply", "(Lviper/silver/ast/DomainFunc;Lscala/collection/immutable/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/BackendFuncApp;"),
             ]),
             java_class!("viper.silver.ast.CondExp", vec![
                 constructor!(),

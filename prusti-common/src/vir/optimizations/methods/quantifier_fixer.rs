@@ -7,7 +7,8 @@
 use crate::vir::polymorphic_vir as vir;
 use itertools::Itertools;
 use log::debug;
-use std::{collections::HashMap, mem};
+use rustc_hash::FxHashMap;
+use std::mem;
 
 /// Optimizations currently done:
 ///
@@ -55,7 +56,7 @@ impl Optimizer {
 
     fn replace_expr_unfolding(&mut self, expr: vir::Expr) -> vir::Expr {
         let mut unfolding_extractor = UnfoldingExtractor {
-            unfoldings: HashMap::new(),
+            unfoldings: FxHashMap::default(),
             in_quantifier: false,
         };
         use self::vir::ExprFolder;
@@ -107,7 +108,7 @@ impl vir::ExprFolder for Optimizer {
         });
 
         if *replacer.counter > old_counter {
-            for (expr, variable) in replacer.map.into_iter().sorted() {
+            for (expr, variable) in replacer.map.into_iter().sorted_unstable() {
                 forall = vir::Expr::LetExpr(vir::LetExpr {
                     variable,
                     def: box expr,
@@ -124,7 +125,7 @@ impl vir::ExprFolder for Optimizer {
 
 struct Replacer<'a> {
     counter: &'a mut u32,
-    map: HashMap<vir::Expr, vir::LocalVar>,
+    map: FxHashMap<vir::Expr, vir::LocalVar>,
     bound_vars: Vec<vir::Expr>,
 }
 
@@ -132,7 +133,7 @@ impl<'a> Replacer<'a> {
     fn new(bound_vars: &[vir::LocalVar], counter: &'a mut u32) -> Self {
         Self {
             counter,
-            map: HashMap::new(),
+            map: FxHashMap::default(),
             bound_vars: bound_vars.iter().cloned().map(|v| v.into()).collect(),
         }
     }
@@ -294,7 +295,7 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
 }
 
 struct UnfoldingExtractor {
-    unfoldings: HashMap<
+    unfoldings: FxHashMap<
         (vir::Type, Vec<vir::Expr>),
         (vir::PermAmount, vir::MaybeEnumVariantIndex, vir::Position),
     >,

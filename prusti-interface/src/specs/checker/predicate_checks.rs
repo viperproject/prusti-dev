@@ -6,12 +6,12 @@ use crate::{
 };
 use log::debug;
 use prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
     hir::{self as hir, def_id::DefId, intravisit},
     middle::{hir::map::Map, ty::TyCtxt},
     span::Span,
 };
-use std::collections::{HashMap, HashSet};
 
 /// Checks for illegal predicate usages
 pub struct IllegalPredicateUsagesChecker;
@@ -55,8 +55,8 @@ impl IllegalPredicateUsagesChecker {
     ) -> CollectPredicatesVisitor<'tcx> {
         let mut collect = CollectPredicatesVisitor {
             env_query,
-            predicates: HashMap::new(),
-            abstract_predicate_with_bodies: HashSet::new(),
+            predicates: FxHashMap::default(),
+            abstract_predicate_with_bodies: FxHashSet::default(),
         };
         env_query.hir().walk_toplevel_module(&mut collect);
         env_query.hir().walk_attributes(&mut collect);
@@ -67,7 +67,7 @@ impl IllegalPredicateUsagesChecker {
     /// Span of use and definition of predicates used outside of specifications, collected in the second pass.
     fn collect_illegal_predicate_usages(
         &self,
-        predicates: HashMap<DefId, Span>,
+        predicates: FxHashMap<DefId, Span>,
         env_query: EnvQuery,
     ) -> Vec<(Span, Span)> {
         let mut visit = CheckPredicatesVisitor {
@@ -88,8 +88,8 @@ impl IllegalPredicateUsagesChecker {
 /// from predicates
 struct CollectPredicatesVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
-    predicates: HashMap<DefId, Span>,
-    abstract_predicate_with_bodies: HashSet<DefId>,
+    predicates: FxHashMap<DefId, Span>,
+    abstract_predicate_with_bodies: FxHashSet<DefId>,
 }
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
@@ -140,7 +140,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
 struct CheckPredicatesVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
 
-    predicates: HashMap<DefId, Span>,
+    predicates: FxHashMap<DefId, Span>,
     pred_usages: Vec<(Span, Span)>,
 }
 

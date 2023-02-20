@@ -206,8 +206,7 @@ fn extract_container_element_type(
             ..
         }) => Ok(&**element_type),
         container_ty => Err(EncodingError::unsupported(format!(
-            "unsupported container: {}",
-            container_ty
+            "unsupported container: {container_ty}"
         ))),
     }
 }

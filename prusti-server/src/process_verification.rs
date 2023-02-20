@@ -69,7 +69,7 @@ pub fn process_verification_request<'v, 't: 'v>(
             "Received verification request for: {}",
             request.program.get_name()
         );
-        println!("Hash of the request is: {}", hash);
+        println!("Hash of the request is: {hash}");
         // Some tests need the dump to report a diff of the Viper programs.
         if config::dump_viper_program() {
             ast_utils.with_local_frame(16, || {
@@ -127,7 +127,7 @@ pub fn process_verification_request<'v, 't: 'v>(
 
 fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
     let namespace = "viper_program";
-    let filename = format!("{}.vpr", program_name);
+    let filename = format!("{program_name}.vpr");
     info!("Dumping Viper program to '{}/{}'", namespace, filename);
     report(namespace, filename, ast_utils.pretty_print(program));
 }
@@ -157,7 +157,7 @@ fn new_viper_verifier<'v, 't: 'v>(
             }
             VerificationBackend::Carbon => verifier_args.extend(vec![
                 "--boogieOpt".to_string(),
-                format!("/logPrefix {}", log_dir_str),
+                format!("/logPrefix {log_dir_str}"),
                 //"--print".to_string(), "./log/boogie_program/program.bpl".to_string(),
             ]),
         }

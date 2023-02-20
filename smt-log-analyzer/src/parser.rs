@@ -159,7 +159,7 @@ impl<'a> Parser<'a> {
             "datatype" => TheoryKind::Datatype,
             "user-sort" => TheoryKind::UserSort,
             _ => {
-                eprintln!("kind: {:?}", kind);
+                eprintln!("kind: {kind:?}");
                 eprintln!("self; {:?}", self.error(ErrorKind::ConsumeFailed));
                 unimplemented!("got line: {:?}", self.line)
             }
@@ -238,8 +238,8 @@ impl<'a> Parser<'a> {
         match s.parse() {
             Ok(number) => Ok(number),
             Err(error) => {
-                eprintln!("error: {}", error);
-                eprintln!("string: {}", s);
+                eprintln!("error: {error}");
+                eprintln!("string: {s}");
                 eprintln!("line: {}", self.line);
                 panic!();
             }

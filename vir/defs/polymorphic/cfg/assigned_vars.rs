@@ -32,7 +32,7 @@ pub fn collect_assigned_vars(
         check_block(&mut variables, &method.basic_blocks[current]);
     }
     let mut result: Vec<_> = variables.into_iter().collect();
-    result.sort_by(|a, b| a.name.cmp(&b.name));
+    result.sort_unstable_by(|a, b| a.name.cmp(&b.name));
     result
 }
 

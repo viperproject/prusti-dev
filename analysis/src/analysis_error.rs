@@ -23,14 +23,11 @@ impl AnalysisError {
         match self {
             AnalysisError::UnsupportedStatement(location) => {
                 let stmt = location_to_stmt_str(*location, mir);
-                format!("Unsupported statement at {:?}: {}", location, stmt)
+                format!("Unsupported statement at {location:?}: {stmt}")
             }
             AnalysisError::NoStateBeforeLocation(location) => {
                 let stmt = location_to_stmt_str(*location, mir);
-                format!(
-                    "There is no state before the statement at {:?} ({})",
-                    location, stmt
-                )
+                format!("There is no state before the statement at {location:?} ({stmt})")
             }
             AnalysisError::NoStateAfterBlock(bb) => {
                 let terminator = &mir[*bb].terminator();

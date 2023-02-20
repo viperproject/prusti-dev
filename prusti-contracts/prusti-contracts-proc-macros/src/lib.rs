@@ -47,6 +47,12 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 #[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn verified(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[cfg(not(feature = "prusti"))]
 #[proc_macro]
 pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
@@ -90,7 +96,7 @@ pub fn model(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
-pub fn ghost_constraint(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn refine_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
 
@@ -166,6 +172,12 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 #[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn verified(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(SpecAttributeKind::Verified, attr.into(), tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
 #[proc_macro]
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     prusti_specs::body_invariant(tokens.into()).into()
@@ -221,13 +233,8 @@ pub fn model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[cfg(feature = "prusti")]
 #[proc_macro_attribute]
-pub fn ghost_constraint(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    rewrite_prusti_attributes(
-        SpecAttributeKind::GhostConstraint,
-        attr.into(),
-        tokens.into(),
-    )
-    .into()
+pub fn refine_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(SpecAttributeKind::RefineSpec, attr.into(), tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

@@ -7,14 +7,15 @@
 //! `'tcx`.
 
 use prusti_rustc_interface::{
-    borrowck::BodyWithBorrowckFacts, hir::def_id::LocalDefId, middle::ty::TyCtxt,
+    borrowck::BodyWithBorrowckFacts, data_structures::fx::FxHashMap, hir::def_id::LocalDefId,
+    middle::ty::TyCtxt,
 };
-use std::{cell::RefCell, collections::HashMap, thread_local};
+use std::{cell::RefCell, thread_local};
 
 thread_local! {
     pub static SHARED_STATE:
-        RefCell<HashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
-        RefCell::new(HashMap::new());
+        RefCell<FxHashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
+        RefCell::new(FxHashMap::default());
 }
 
 /// # Safety

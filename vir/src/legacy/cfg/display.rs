@@ -15,13 +15,13 @@ impl fmt::Display for CfgMethod {
             "    returns ({})",
             self.formal_returns
                 .iter()
-                .map(|x| format!("{:?}", x))
+                .map(|x| format!("{x:?}"))
                 .collect::<Vec<String>>()
                 .join(", ")
         )?;
         writeln!(f, "{{")?;
         for local_var in self.local_vars.iter() {
-            writeln!(f, "    {:?}", local_var)?;
+            writeln!(f, "    {local_var:?}")?;
         }
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
@@ -31,11 +31,11 @@ impl fmt::Display for CfgMethod {
                 self.basic_blocks_labels[index], index
             )?;
             for stmt in &block.stmts {
-                writeln!(f, "    {}", stmt)?;
+                writeln!(f, "    {stmt}")?;
             }
             writeln!(f, "    {:?}", block.successor)?;
         }
-        writeln!(f, "  label {}", RETURN_LABEL)?;
+        writeln!(f, "  label {RETURN_LABEL}")?;
         writeln!(f, "}}")
     }
 }
@@ -45,13 +45,13 @@ impl fmt::Display for Successor {
         match self {
             Successor::Undefined => writeln!(f, "Undefined"),
             Successor::Return => writeln!(f, "Return"),
-            Successor::Goto(ref target) => writeln!(f, "Goto({})", target),
+            Successor::Goto(ref target) => writeln!(f, "Goto({target})"),
             Successor::GotoSwitch(ref guarded_targets, ref default_target) => writeln!(
                 f,
                 "GotoSwitch({}, {})",
                 guarded_targets
                     .iter()
-                    .map(|(guard, target)| format!("({}, {})", guard, target))
+                    .map(|(guard, target)| format!("({guard}, {target})"))
                     .collect::<Vec<_>>()
                     .join(", "),
                 default_target

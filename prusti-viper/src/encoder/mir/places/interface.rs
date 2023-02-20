@@ -1,10 +1,12 @@
-use crate::encoder::{
-    errors::{
-        EncodingError, EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult,
-        WithSpan,
+use crate::{
+    encoder::{
+        errors::{
+            EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan,
+        },
+        high::pure_functions::HighPureFunctionEncoderInterface,
+        mir::{constants::ConstantsEncoderInterface, types::MirTypeEncoderInterface},
     },
-    high::pure_functions::HighPureFunctionEncoderInterface,
-    mir::{constants::ConstantsEncoderInterface, types::MirTypeEncoderInterface},
+    error_internal, error_unsupported,
 };
 use log::debug;
 use prusti_common::config;
@@ -136,7 +138,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         _mir: &mir::Body<'tcx>,
         local: mir::Local,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("{:?}", local))
+        Ok(format!("{local:?}"))
     }
 
     fn encode_local_high(
@@ -306,15 +308,10 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
             mir::BinOp::BitOr if is_bool => vir_high::Expression::or(left, right),
             mir::BinOp::BitXor if is_bool => vir_high::Expression::xor(left, right),
             mir::BinOp::BitAnd | mir::BinOp::BitOr | mir::BinOp::BitXor => {
-                return Err(EncodingError::unsupported(
-                    "bitwise operations on non-boolean types are not supported",
-                ))
+                error_unsupported!("bitwise operations on non-boolean types are not supported");
             }
             unsupported_op => {
-                return Err(EncodingError::unsupported(format!(
-                    "operation '{:?}' is not supported",
-                    unsupported_op
-                )))
+                error_unsupported!("operation '{:?}' is not supported", unsupported_op);
             }
         })
     }
@@ -384,18 +381,17 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     ),
 
                     _ => {
-                        return Err(EncodingError::unsupported(format!(
+                        error_unsupported!(
                             "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
-                            op, ty,
-                        )));
+                            op,
+                            ty,
+                        );
                     }
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr => {
                     if !config::encode_bitvectors() {
-                        return Err(EncodingError::unsupported(
-                            "overflow checks on a shift operation are unsupported",
-                        ));
+                        error_unsupported!("overflow checks on a shift operation are unsupported");
                     }
                     let size: u32 = match ty {
                         vir_high::Type::Int(vir_high::ty::Int::U8) => 8,
@@ -404,9 +400,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         vir_high::Type::Int(vir_high::ty::Int::U64) => 64,
                         vir_high::Type::Int(vir_high::ty::Int::U128) => 128,
                         vir_high::Type::Int(vir_high::ty::Int::Usize) => {
-                            return Err(EncodingError::unsupported(
-                                "unknown size of usize for the overflow check",
-                            ));
+                            error_unsupported!("unknown size of usize for the overflow check");
                         }
                         vir_high::Type::Int(vir_high::ty::Int::I8) => 8,
                         vir_high::Type::Int(vir_high::ty::Int::I16) => 16,
@@ -414,15 +408,13 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         vir_high::Type::Int(vir_high::ty::Int::I64) => 64,
                         vir_high::Type::Int(vir_high::ty::Int::I128) => 128,
                         vir_high::Type::Int(vir_high::ty::Int::Isize) => {
-                            return Err(EncodingError::unsupported(
-                                "unknown size of isize for the overflow check",
-                            ));
+                            error_unsupported!("unknown size of isize for the overflow check");
                         }
                         _ => {
-                            return Err(EncodingError::unsupported(format!(
+                            error_unsupported!(
                                 "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
                                 op, ty,
-                            )));
+                            );
                         }
                     };
                     vir_high::Expression::or(
@@ -432,10 +424,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                 }
 
                 _ => {
-                    return Err(EncodingError::internal(format!(
-                        "unexpected overflow check on {:?}",
-                        op
-                    )))
+                    error_internal!("unexpected overflow check on {:?}", op);
                 }
             })
         }
@@ -538,10 +527,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
 
             _ => {
                 return Err(SpannedEncodingError::unsupported(
-                    format!(
-                        "unsupported cast from type '{:?}' to type '{:?}'",
-                        src_ty, dst_ty
-                    ),
+                    format!("unsupported cast from type '{src_ty:?}' to type '{dst_ty:?}'"),
                     span,
                 ));
             }

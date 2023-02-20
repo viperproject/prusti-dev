@@ -7,8 +7,8 @@
 use log::{error, info, warn};
 
 use crate::verification_result::VerificationResult;
+use rustc_hash::FxHashMap;
 use std::{
-    collections::HashMap,
     fs, io,
     ops::DerefMut,
     path::{Path, PathBuf},
@@ -24,14 +24,14 @@ pub trait Cache {
 pub struct PersistentCache {
     updated: bool,
     load_loc: PathBuf,
-    data: HashMap<u64, VerificationResult>,
+    data: FxHashMap<u64, VerificationResult>,
 }
 
-const RESULT_CACHE_VERSION: u64 = 2;
+const RESULT_CACHE_VERSION: u64 = 3;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct ResultCache {
-    data: HashMap<u64, VerificationResult>,
+    data: FxHashMap<u64, VerificationResult>,
     version: u64,
 }
 
@@ -86,7 +86,7 @@ impl PersistentCache {
             data_res.unwrap_or_else(|| {
                 info!("Cache file doesn't exist or is invalid. Using fresh cache.");
                 ResultCache {
-                    data: HashMap::new(),
+                    data: FxHashMap::default(),
                     version: RESULT_CACHE_VERSION,
                 }
             }),

@@ -7,6 +7,7 @@
 #![feature(exit_status_error)]
 // This Clippy check seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
+#![warn(clippy::disallowed_types)]
 
 use crate::generator::ToModulesTree;
 use quote::ToTokens;
@@ -39,7 +40,7 @@ pub fn generate_vir(defs_dir: &std::path::Path, out_dir: &std::path::Path) {
         let (expanded_components, errors) =
             parser::expand(declarations.components, defs_mod_path.to_owned());
         for error in errors {
-            eprintln!("error in parsing declarations: {}", error);
+            eprintln!("error in parsing declarations: {error}");
             error_tokens.extend(error.to_compile_error());
         }
         expanded_components
@@ -50,16 +51,16 @@ pub fn generate_vir(defs_dir: &std::path::Path, out_dir: &std::path::Path) {
         let (new_item, errors) = parser::expand(tmp_item, defs_mod_path.to_owned());
         tmp_item = new_item;
         for error in errors {
-            eprintln!("error in expanding declarations: {}", error);
+            eprintln!("error in expanding declarations: {error}");
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut tmp_item);
     }
-    let mut resolved_irs = Vec::new();
+    let mut resolved_irs = Vec::with_capacity(declarations.irs.len());
     for ir in declarations.irs {
         let (new_item, errors) = resolver::expand(ir, &declarations.components, &resolved_irs);
         for error in errors {
-            eprintln!("error in resolving declarations: {}", error);
+            eprintln!("error in resolving declarations: {error}");
             error_tokens.extend(error.to_compile_error());
         }
         resolved_irs.push(new_item);
@@ -72,7 +73,7 @@ pub fn generate_vir(defs_dir: &std::path::Path, out_dir: &std::path::Path) {
         let (new_item_with_derives, derive_errors) = deriver::expand(tmp_item, &original_irs);
         tmp_item = new_item_with_derives;
         for error in derive_errors {
-            eprintln!("error in deriving types: {}", error);
+            eprintln!("error in deriving types: {error}");
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut tmp_item);
@@ -90,7 +91,7 @@ pub fn generate_vir(defs_dir: &std::path::Path, out_dir: &std::path::Path) {
     Command::new("rustfmt")
         .arg(out_dir.join("mod.rs"))
         .status()
-        .unwrap_or_else(|err| panic!("Failed to format generated code: {}", err))
+        .unwrap_or_else(|err| panic!("Failed to format generated code: {err}"))
         .exit_ok()
-        .unwrap_or_else(|err| panic!("Formatting generated code failed with exit status {}", err));
+        .unwrap_or_else(|err| panic!("Formatting generated code failed with exit status {err}"));
 }

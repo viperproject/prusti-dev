@@ -5,7 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{common::identifier::WithIdentifier, legacy::ast::*};
-use std::{collections::HashMap, fmt};
+use rustc_hash::FxHashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Function {
@@ -25,19 +26,19 @@ impl fmt::Display for Function {
             if !first {
                 write!(f, ", ")?;
             }
-            write!(f, "{:?}", arg)?;
+            write!(f, "{arg:?}")?;
             first = false
         }
         writeln!(f, "): {}", self.return_type)?;
         for pre in &self.pres {
-            writeln!(f, "  requires {}", pre)?;
+            writeln!(f, "  requires {pre}")?;
         }
         for post in &self.posts {
-            writeln!(f, "  ensures {}", post)?;
+            writeln!(f, "  ensures {post}")?;
         }
         if let Some(ref body) = self.body {
             writeln!(f, "{{")?;
-            writeln!(f, "\t{}", body)?;
+            writeln!(f, "\t{body}")?;
             write!(f, "}}")?;
         }
         write!(f, "")
@@ -46,7 +47,7 @@ impl fmt::Display for Function {
 
 impl Function {
     pub fn inline_body(&self, args: Vec<Expr>) -> Expr {
-        let subst: HashMap<LocalVar, Expr> = self
+        let subst: FxHashMap<LocalVar, Expr> = self
             .formal_args
             .iter()
             .cloned()

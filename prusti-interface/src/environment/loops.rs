@@ -292,7 +292,7 @@ impl ProcedureLoops {
         let mut enclosing_loop_heads = FxHashMap::default();
         for (&block, loop_heads) in enclosing_loop_heads_set.iter() {
             let mut heads: Vec<BasicBlockIndex> = loop_heads.iter().cloned().collect();
-            heads.sort_by_key(|bbi| loop_head_depths[bbi]);
+            heads.sort_unstable_by_key(|bbi| loop_head_depths[bbi]);
             enclosing_loop_heads.insert(block, heads);
         }
 
@@ -316,7 +316,7 @@ impl ProcedureLoops {
         let mut ordered_loop_bodies = FxHashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             let mut ordered_body: Vec<_> = loop_body.iter().cloned().collect();
-            ordered_body.sort_by_key(|bb| block_order[bb]);
+            ordered_body.sort_unstable_by_key(|bb| block_order[bb]);
             debug_assert_eq!(loop_head, ordered_body[0]);
             ordered_loop_bodies.insert(loop_head, ordered_body);
         }

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::vir::polymorphic_vir::cfg;
 
@@ -11,8 +11,8 @@ pub fn clean_cfg(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         "The start block should be first."
     );
     let mut new_basic_blocks = Vec::new();
-    let mut basic_blocks: HashMap<_, _> = method.basic_blocks.into_iter().enumerate().collect();
-    let mut new_indices = HashMap::new();
+    let mut basic_blocks: FxHashMap<_, _> = method.basic_blocks.into_iter().enumerate().collect();
+    let mut new_indices = FxHashMap::default();
 
     for cfg::CfgBlockIndex { block_index, .. } in traversal_order {
         if let Some(mut basic_block) = basic_blocks.remove(&block_index) {

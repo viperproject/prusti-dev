@@ -447,8 +447,7 @@ impl<'a> PathCtxt<'a> {
             for acc_place in self.state.acc_places() {
                 assert!(
                     other.state.acc().contains_key(&acc_place),
-                    "acc_place = {}",
-                    acc_place
+                    "acc_place = {acc_place}"
                 );
                 let left_perm = self.state.acc()[&acc_place];
                 let right_perm = other.state.acc()[&acc_place];
@@ -585,7 +584,7 @@ impl<'a> PathCtxt<'a> {
             let predicate = self
                 .predicates
                 .get(predicate_type)
-                .unwrap_or_else(|| panic!("not found: {}", predicate_type));
+                .unwrap_or_else(|| panic!("not found: {predicate_type}"));
 
             let variant = find_unfolded_variant(&self.state, req.get_place());
 

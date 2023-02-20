@@ -155,7 +155,7 @@ impl Typed for BinaryOp {
             | BinaryOpKind::Mod => {
                 let ty1 = self.left.get_type();
                 let ty2 = self.right.get_type();
-                assert_eq!(ty1, ty2, "expr: {:?}", self);
+                assert_eq!(ty1, ty2, "expr: {self:?}");
                 ty1
             }
         }
@@ -225,7 +225,7 @@ impl Typed for Conditional {
     fn get_type(&self) -> &Type {
         let ty1 = self.then_expr.get_type();
         let ty2 = self.else_expr.get_type();
-        assert_eq!(ty1, ty2, "expr: {:?}", self);
+        assert_eq!(ty1, ty2, "expr: {self:?}");
         ty1
     }
     fn set_type(&mut self, new_type: Type) {

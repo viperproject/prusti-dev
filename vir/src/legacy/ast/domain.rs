@@ -33,17 +33,17 @@ impl fmt::Display for Domain {
                 if !first {
                     write!(f, ", ")?;
                 }
-                write!(f, "{}", type_var)?;
+                write!(f, "{type_var}")?;
                 first = false;
             }
             writeln!(f, "] {{")?;
         }
         for function in &self.functions {
-            writeln!(f, "\t{}", function)?;
+            writeln!(f, "\t{function}")?;
         }
         writeln!(f)?;
         for axiom in &self.axioms {
-            writeln!(f, "\t{}", axiom)?;
+            writeln!(f, "\t{axiom}")?;
         }
         write!(f, "}}")
     }
@@ -75,7 +75,7 @@ impl fmt::Display for DomainFunc {
             if !first {
                 write!(f, ", ")?;
             }
-            write!(f, "{:?}", arg)?;
+            write!(f, "{arg:?}")?;
             first = false
         }
         writeln!(f, "): {}", self.return_type)
@@ -91,6 +91,7 @@ impl WithIdentifier for DomainFunc {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct DomainAxiom {
+    pub comment: Option<String>,
     pub name: String,
     pub expr: Expr,
     pub domain_name: String,
@@ -98,6 +99,14 @@ pub struct DomainAxiom {
 
 impl fmt::Display for DomainAxiom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "axiom {} {{ {} }}", self.name, self.expr)
+        if let Some(comment) = &self.comment {
+            writeln!(
+                f,
+                "/* {} */ axiom {} {{ {} }}",
+                comment, self.name, self.expr
+            )
+        } else {
+            writeln!(f, "axiom {} {{ {} }}", self.name, self.expr)
+        }
     }
 }

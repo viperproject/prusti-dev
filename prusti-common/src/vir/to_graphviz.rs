@@ -4,10 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::{
+    config,
+    vir::polymorphic_vir::{
+        self as vir,
+        cfg::{CfgBlock, CfgMethod, Successor},
+    },
+};
 use ::vir::common::graphviz::escape_html;
-use crate::config;
 use std::io::Write;
-use crate::vir::polymorphic_vir::{self as vir, cfg::{CfgMethod, CfgBlock, Successor}};
 
 pub trait ToGraphViz {
     fn to_graphviz(&self, graph: &mut dyn Write);
@@ -56,8 +61,8 @@ impl ToGraphViz for CfgMethod {
 
             if config::dump_reborrowing_dag_in_debug_info() {
                 for dag in reborrowing_dags {
-                    writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
-                    writeln!(graph, "   label=\"Reborrowing DAG {}\"", label).unwrap();
+                    writeln!(graph, "subgraph cluster_{label} {{").unwrap();
+                    writeln!(graph, "   label=\"Reborrowing DAG {label}\"").unwrap();
                     for node in dag.iter() {
                         writeln!(
                             graph,
@@ -167,12 +172,15 @@ impl ToGraphViz for CfgMethod {
             }
             first_row = false;
             match stmt {
-                vir::Stmt::ExpireBorrows( vir::ExpireBorrows {ref dag} ) => {
+                vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) => {
                     reborrowing_dags.push(dag);
                 }
-                vir::Stmt::PackageMagicWand( vir::PackageMagicWand {package_stmts: ref stmts, ..} ) => {
+                vir::Stmt::PackageMagicWand(vir::PackageMagicWand {
+                    package_stmts: ref stmts,
+                    ..
+                }) => {
                     for stmt in stmts {
-                        if let vir::Stmt::ExpireBorrows( vir::ExpireBorrows {ref dag} ) = stmt {
+                        if let vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) = stmt {
                             reborrowing_dags.push(dag);
                         }
                     }
@@ -192,7 +200,7 @@ impl ToGraphViz for CfgMethod {
             }
             let stmt_html = splitted_stmt_lines.join("<br/>");
             if stmt.is_comment() {
-                lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
+                lines.push(format!("<font color=\"orange\">{stmt_html}</font>"));
             } else {
                 lines.push(stmt_html);
             }

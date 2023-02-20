@@ -6,11 +6,14 @@
 
 use crate::environment::borrowck::facts;
 use log::{debug, trace};
-use prusti_rustc_interface::middle::{mir, ty};
-use std::{collections::HashMap, io};
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashMap,
+    middle::{mir, ty},
+};
+use std::io;
 
 #[derive(Debug)]
-pub struct PlaceRegions(HashMap<(mir::Local, Vec<usize>), facts::Region>);
+pub struct PlaceRegions(FxHashMap<(mir::Local, Vec<usize>), facts::Region>);
 
 #[derive(Clone, Debug)]
 pub enum PlaceRegionsError {
@@ -19,7 +22,7 @@ pub enum PlaceRegionsError {
 
 impl PlaceRegions {
     fn new() -> Self {
-        PlaceRegions(HashMap::new())
+        PlaceRegions(FxHashMap::default())
     }
 
     fn add_local(&mut self, local: mir::Local, rvid: facts::Region) {

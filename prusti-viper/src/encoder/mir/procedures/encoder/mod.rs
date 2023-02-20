@@ -588,7 +588,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         statement: &mir::Statement<'tcx>,
     ) -> SpannedEncodingResult<()> {
-        block_builder.add_comment(format!("{:?} {:?}", location, statement));
+        block_builder.add_comment(format!("{location:?} {statement:?}"));
         match &statement.kind {
             mir::StatementKind::StorageLive(local) => {
                 self.locals_without_explicit_allocation.remove(local);
@@ -1030,9 +1030,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let encoded_source = self.encode_place(*source, Some(span))?;
                 assert!(
                     encoded_source.is_place(),
-                    "{} is not place (encoded from: {:?}",
-                    encoded_source,
-                    source
+                    "{encoded_source} is not place (encoded from: {source:?}"
                 );
 
                 let deref_base = encoded_source.get_dereference_base().cloned();
@@ -1172,7 +1170,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         terminator: &mir::TerminatorKind<'tcx>,
     ) -> SpannedEncodingResult<()> {
-        block_builder.add_comment(format!("{:?} {:?}", location, terminator));
+        block_builder.add_comment(format!("{location:?} {terminator:?}"));
         let span = self.encoder.get_span_of_location(self.mir, location);
         use prusti_rustc_interface::middle::mir::TerminatorKind;
         let successor = match &terminator {
@@ -1182,18 +1180,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.encode_basic_block_label(*target),
                 ))
             }
-            TerminatorKind::SwitchInt {
-                targets,
-                discr,
-                switch_ty,
-            } => self.encode_terminator_switch_int(
-                block_builder,
-                location,
-                span,
-                targets,
-                discr,
-                *switch_ty,
-            )?,
+            TerminatorKind::SwitchInt { targets, discr } => {
+                let switch_ty = discr.ty(self.mir, self.encoder.env().tcx());
+                self.encode_terminator_switch_int(
+                    block_builder,
+                    location,
+                    span,
+                    targets,
+                    discr,
+                    switch_ty,
+                )?
+            }
             TerminatorKind::Resume => SuccessorBuilder::exit_resume_panic(),
             // TerminatorKind::Abort => {
             //     graph.add_exit_edge(bb, "abort");
@@ -1303,8 +1300,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 {
                     let real_target = all_targets[(spec + 1) % 2];
                     let spec_target = all_targets[spec];
-                    block_builder
-                        .add_comment(format!("Specification from block: {:?}", spec_target));
+                    block_builder.add_comment(format!("Specification from block: {spec_target:?}"));
                     if let Some(statements) = self.specification_block_encoding.remove(&spec_target)
                     {
                         block_builder.add_statements(statements);
@@ -1488,11 +1484,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // The called method might be a trait method.
         // We try to resolve it to the concrete implementation
         // and type substitutions.
+        let query = self.encoder.env().query;
         let (called_def_id, call_substs) =
-            self.encoder
-                .env()
-                .query
-                .resolve_method_call(self.def_id, called_def_id, call_substs);
+            query.resolve_method_call(self.def_id, called_def_id, call_substs);
 
         // find static lifetime to exhale
         let mut lifetimes_to_exhale_inhale: Vec<String> = Vec::new();
@@ -1505,28 +1499,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         assert_eq!(lifetimes_to_exhale_inhale.len(), 1); // there must be exactly one static lifetime
 
-        // find generic argument lifetimes
-        let mut subst_lifetimes: Vec<String> = call_substs
-            .iter()
-            .filter_map(|generic| match generic.unpack() {
-                ty::subst::GenericArgKind::Lifetime(region) => Some(region.to_text()),
-                _ => None,
-            })
-            .collect();
-        if subst_lifetimes.is_empty() {
-            // If subst_lifetimes is empty, check args for a lifetime
+        // find lifetimes for function args
+        let has_erased_regions = call_substs.regions().any(|r| r.is_erased());
+        let mut subst_regions = call_substs.regions().peekable();
+        if !has_erased_regions && subst_regions.peek().is_some() {
+            // use generic argument lifetimes
+            lifetimes_to_exhale_inhale.extend(subst_regions.map(|r| r.to_text()));
+        } else {
+            // if we find any erased regions, cancel everything and fall back on resolving lifetimes from args directly
+            // this happens e.g. when working with the result of trait method resolution, which erases lifetimes
             for arg in args {
                 if let &mir::Operand::Move(place) = arg {
-                    let place_high = self.encode_place(place, None)?;
-                    let lifetimes = place_high.get_lifetimes();
-                    for lifetime in lifetimes {
-                        subst_lifetimes.push(lifetime.name.clone());
+                    let encoded_place = self.encode_place(place, None)?;
+                    let place_lifetimes = encoded_place.get_lifetimes();
+                    for lifetime in place_lifetimes {
+                        lifetimes_to_exhale_inhale.push(lifetime.name.clone());
                     }
                 }
             }
-        }
-        for lifetime in subst_lifetimes {
-            lifetimes_to_exhale_inhale.push(lifetime);
         }
 
         // construct function lifetime
@@ -1843,7 +1833,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
 
         let target_label = self.encode_basic_block_label(target);
-        block_builder.add_comment(format!("Rust assertion: {}", assert_msg));
+        block_builder.add_comment(format!("Rust assertion: {assert_msg}"));
         if self.check_panics {
             block_builder.add_statement(self.encoder.set_statement_error_ctxt(
                 vir_high::Statement::assert_no_pos(guard.clone()),
@@ -1867,7 +1857,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Also marks it as reachable.
     fn encode_basic_block_label(&mut self, bb: mir::BasicBlock) -> vir_high::BasicBlockId {
         self.reachable_blocks.insert(bb);
-        vir_high::BasicBlockId::new(format!("label_{:?}", bb))
+        vir_high::BasicBlockId::new(format!("label_{bb:?}"))
     }
 
     fn fresh_basic_block_label(&mut self) -> vir_high::BasicBlockId {

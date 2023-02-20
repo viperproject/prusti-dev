@@ -1,9 +1,6 @@
 use crate::encoder::utils::{range_extract, PlusOne};
 
-use prusti_rustc_interface::{
-    middle::{ty, ty::layout::IntegerExt},
-    target::abi::Integer,
-};
+use prusti_rustc_interface::{middle::ty, target::abi::Integer};
 
 use vir_crate::{
     high as vir_high,

@@ -245,8 +245,8 @@ pub fn has_to_model_impl_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_impl")
 }
 
-pub fn has_trait_bounds_ghost_constraint(attrs: &[ast::Attribute]) -> bool {
-    has_prusti_attr(attrs, "ghost_constraint_trait_bounds_in_where_clause")
+pub fn has_trait_bounds_type_cond_spec(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "type_cond_spec_trait_bounds_in_where_clause")
 }
 
 pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
@@ -265,7 +265,7 @@ pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]
                         segments,
                         tokens: _,
                     },
-                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit { token_lit, .. })),
+                args: ast::AttrArgs::Eq(_, ast::AttrArgsEq::Hir(token_lit)),
                 tokens: _,
             } = &normal_attr.item
             {
@@ -279,7 +279,7 @@ pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]
                 fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
                     token.symbol.as_str().replace("\\\"", "\"")
                 }
-                strings.push(extract_string(token_lit));
+                strings.push(extract_string(&token_lit.as_token_lit()));
             }
         };
     }

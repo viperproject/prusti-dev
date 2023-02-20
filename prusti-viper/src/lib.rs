@@ -17,8 +17,11 @@
 
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
-// This Clippy chcek seems to be always wrong.
+#![warn(clippy::disallowed_types)]
+// This Clippy check seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
+// We may want to remove this in the future.
+#![allow(clippy::needless_lifetimes)]
 
 pub mod encoder;
 mod utils;

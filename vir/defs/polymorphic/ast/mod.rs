@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 pub use self::{
-    bodyless_method::*, common::*, domain::*, expr::*, expr_transformers::*, function::*,
-    predicate::*, stmt::*, trigger::*,
+    backend_type::*, bodyless_method::*, common::*, domain::*, expr::*, expr_transformers::*,
+    function::*, predicate::*, stmt::*, trigger::*,
 };
 
 mod bodyless_method;
@@ -18,3 +18,4 @@ mod function;
 mod predicate;
 mod stmt;
 mod trigger;
+mod backend_type;

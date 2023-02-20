@@ -89,9 +89,7 @@ pub(in super::super) fn try_ensure_enum_discriminant_by_unfolding(
                     unconditional_predicate_state
                         .contains_discriminant_with_prefix(place)
                         .is_some(),
-                    "The state must contain the discriminant of the enum: {}. State: {}",
-                    place,
-                    unconditional_predicate_state,
+                    "The state must contain the discriminant of the enum: {place}. State: {unconditional_predicate_state}",
                 );
                 Ok((None, Vec::new()))
             }

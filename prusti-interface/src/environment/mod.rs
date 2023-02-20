@@ -50,7 +50,6 @@ mod name;
 pub mod polonius_info;
 mod procedure;
 mod query;
-mod traits;
 
 pub use self::{
     body::EnvBody,
@@ -168,9 +167,10 @@ impl<'tcx> Environment<'tcx> {
             true
         } else {
             let param_env = self.tcx().param_env(caller_def_id);
-            if let Some(instance) =
-                traits::resolve_instance(self.tcx(), param_env.and((called_def_id, call_substs)))
-                    .unwrap()
+            if let Some(instance) = self
+                .tcx()
+                .resolve_instance(param_env.and((called_def_id, call_substs)))
+                .unwrap()
             {
                 self.tcx()
                     .mir_callgraph_reachable((instance, caller_def_id.expect_local()))

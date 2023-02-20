@@ -27,20 +27,23 @@ impl<'tcx> MaybeBorrowedState<'tcx> {
 impl<'tcx> Serialize for MaybeBorrowedState<'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_map(Some(2))?;
+
         let mut maybe_shared_borrowed_set: Vec<_> = self.maybe_shared_borrowed.iter().collect();
-        maybe_shared_borrowed_set.sort();
-        let mut maybe_shared_borrowed_strings = vec![];
-        for &place in maybe_shared_borrowed_set {
-            maybe_shared_borrowed_strings.push(format!("{:?}", place));
-        }
+        maybe_shared_borrowed_set.sort_unstable();
+        let maybe_shared_borrowed_strings: Vec<_> = maybe_shared_borrowed_set
+            .into_iter()
+            .map(|place| format!("{place:?}"))
+            .collect();
         seq.serialize_entry("frozen", &maybe_shared_borrowed_strings)?;
+
         let mut maybe_mut_borrowed_set: Vec<_> = self.maybe_mut_borrowed.iter().collect();
-        maybe_mut_borrowed_set.sort();
-        let mut maybe_mut_borrowed_strings = vec![];
-        for &place in maybe_mut_borrowed_set {
-            maybe_mut_borrowed_strings.push(format!("{:?}", place));
-        }
+        maybe_mut_borrowed_set.sort_unstable();
+        let maybe_mut_borrowed_strings: Vec<_> = maybe_mut_borrowed_set
+            .into_iter()
+            .map(|place| format!("{place:?}"))
+            .collect();
         seq.serialize_entry("blocked", &maybe_mut_borrowed_strings)?;
+
         seq.end()
     }
 }

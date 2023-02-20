@@ -67,9 +67,6 @@ pub fn generate_constructor(
         },
     };
 
-    let mut parameter_names: Vec<String> = vec![];
-    let mut parameter_signatures: Vec<String> = vec![];
-
     let parameters = env
         .call_method(
             constructor,
@@ -79,6 +76,9 @@ pub fn generate_constructor(
         )?
         .l()?;
     let num_parameters = env.get_array_length(*parameters)?;
+
+    let mut parameter_names: Vec<String> = Vec::with_capacity(num_parameters as usize);
+    let mut parameter_signatures: Vec<String> = Vec::with_capacity(num_parameters as usize);
 
     for parameter_index in 0..num_parameters {
         let parameter = env.get_object_array_element(*parameters, parameter_index)?;
@@ -107,7 +107,7 @@ pub fn generate_constructor(
 
     let constructor_name = match suffix {
         None => "new".to_string(),
-        Some(s) => format!("new_{}", s),
+        Some(s) => format!("new_{s}"),
     };
 
     Ok(generate(
@@ -140,10 +140,7 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!(
-            "/// - `{}`: `{}` (`{}`)",
-            par_name, par_type, par_sign
-        ));
+        code.push(format!("/// - `{par_name}`: `{par_type}` (`{par_sign}`)"));
     }
 
     code.push("///".to_string());
@@ -152,53 +149,59 @@ fn generate(
         class.path()
     ));
 
-    code.push(format!("pub fn {}(", constructor_name));
+    code.push(format!("pub fn {constructor_name}("));
     code.push("    &self,".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!("    {}: {},", par_name, par_type));
+        code.push(format!("    {par_name}: {par_type},"));
     }
 
     code.push(") -> JNIResult<JObject<'a>> {".to_string());
 
     // Generate dynamic type check for the arguments
-    if cfg!(debug_assertions) {
-        for i in 0..parameter_names.len() {
-            let par_name = &parameter_names[i];
-            let par_sign = &parameter_signatures[i];
-            if par_sign.starts_with('L') {
-                let par_class = &par_sign[1..(par_sign.len() - 1)];
-                code.push("    debug_assert!(".to_string());
-                code.push(format!(
-                    "        self.env.is_instance_of({}, self.env.find_class(\"{}\")?)?",
-                    par_name, par_class
-                ));
-                code.push("    );".to_string());
-            }
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if par_sign.starts_with('L') {
+            let par_class = &par_sign[1..(par_sign.len() - 1)];
+            code.push("    debug_assert!(".to_string());
+            code.push(format!(
+                "        self.env.is_instance_of({par_name}, self.env.find_class(\"{par_class}\")?)?"
+            ));
+            code.push("    );".to_string());
         }
     }
+    code.push("".to_string());
 
+    code.push(format!("    let class_name = \"{}\";", class.path()));
+    code.push("    let method_name = \"<init>\";".to_string());
     code.push(format!(
-        "    let class = self.env.find_class(\"{}\")?;",
-        class.path()
+        "    let method_signature = \"{constructor_signature}\";"
     ));
 
-    code.push(format!(
-        "    let method_signature = \"{}\";",
-        constructor_signature
-    ));
-
-    code.push("    let method_id = self.env.get_method_id(".to_string());
-    code.push("        class,".to_string());
-    code.push("        \"<init>\",".to_string());
-    code.push("        method_signature".to_string());
-    code.push("    )?;".to_string());
+    code.push(
+        r#"static CLASS: OnceCell<GlobalRef> = OnceCell::new();
+    static METHOD_ID: OnceCell<JMethodID> = OnceCell::new();
+    let class = CLASS.get_or_try_init(|| {
+        let class = self.env.find_class(class_name)?;
+        self.env.new_global_ref(class)
+    })?;
+    let method_id = *METHOD_ID.get_or_try_init(|| {
+        self.env.get_method_id(
+            class_name,
+            method_name,
+            method_signature
+        )
+    })?;
+"#
+        .to_string(),
+    );
 
     code.push("    let result = self.env.new_object_unchecked(".to_string());
-    code.push("        class,".to_string());
+    code.push("        JClass::from(class.as_obj()),".to_string());
     code.push("        method_id,".to_string());
     code.push("        &[".to_string());
 
@@ -206,13 +209,24 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {},", par_jvalue));
+        code.push(format!("            {par_jvalue},"));
     }
 
     code.push("        ]".to_string());
     code.push("    );".to_string());
+    code.push("".to_string());
 
-    code.push("    self.env.delete_local_ref(class.into()).unwrap();".to_string());
+    // Generate dynamic type check for the result
+    code.push("    if let Ok(result) = result {".to_string());
+    code.push("        debug_assert!(".to_string());
+    code.push("            self.env.is_instance_of(".to_string());
+    code.push("                result,".to_string());
+    code.push("                self.env.find_class(class_name)?,".to_string());
+    code.push("            )?".to_string());
+    code.push("        );".to_string());
+    code.push("    }".to_string());
+    code.push("".to_string());
+
     code.push("    result".to_string());
     code.push("}".to_string());
 

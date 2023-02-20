@@ -26,13 +26,13 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
             for (name, opt_rec_result) in modules {
                 match opt_rec_result {
                     None => {
-                        res.push(format!("mod {}_wrapper;\n", name));
-                        res.push(format!("pub use self::{}_wrapper::*;\n", name));
+                        res.push(format!("mod {name}_wrapper;\n"));
+                        res.push(format!("pub use self::{name}_wrapper::*;\n"));
                     }
                     Some(rec_result) => {
-                        res.push(format!("pub mod {} {{\n", name));
+                        res.push(format!("pub mod {name} {{\n"));
                         res.push(rec_result.to_string());
-                        res.push(format!("}} // end of mod {}\n", name));
+                        res.push(format!("}} // end of mod {name}\n"));
                     }
                 }
             }

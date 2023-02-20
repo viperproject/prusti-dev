@@ -88,7 +88,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom = vir_low::DomainAxiomDecl {
-                name: format!("{}$sequence_repeat_constructor_definition", domain_name),
+                comment: None,
+                name: format!("{domain_name}$sequence_repeat_constructor_definition"),
                 body,
             };
             self.declare_axiom(&domain_name, axiom)?;
@@ -115,7 +116,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinFunctionsInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.encode_sequence_repeat_constructor_def(ty)?;
         let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let function_name = format!("sequence_repeat_constructor${}", domain_name);
+        let function_name = format!("sequence_repeat_constructor${domain_name}");
         let result_type = ty.to_snapshot(self)?;
         self.create_domain_func_app(
             domain_name,

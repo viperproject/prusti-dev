@@ -7,8 +7,8 @@
 use super::super::borrows::Borrow;
 use crate::legacy::ast::*;
 use log::debug;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{
-    collections::{HashMap, HashSet},
     fmt,
     hash::{Hash, Hasher},
     mem,
@@ -158,25 +158,25 @@ pub enum Const {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Expr::Local(ref v, ref _pos) => write!(f, "{}", v),
+            Expr::Local(ref v, ref _pos) => write!(f, "{v}"),
             Expr::Variant(ref base, ref variant_index, ref _pos) => {
-                write!(f, "{}[{}]", base, variant_index)
+                write!(f, "{base}[{variant_index}]")
             }
-            Expr::Field(ref base, ref field, ref _pos) => write!(f, "{}.{}", base, field),
-            Expr::AddrOf(ref base, _, ref _pos) => write!(f, "&({})", base),
-            Expr::Const(ref value, ref _pos) => write!(f, "{}", value),
+            Expr::Field(ref base, ref field, ref _pos) => write!(f, "{base}.{field}"),
+            Expr::AddrOf(ref base, _, ref _pos) => write!(f, "&({base})"),
+            Expr::Const(ref value, ref _pos) => write!(f, "{value}"),
             Expr::BinOp(op, ref left, ref right, ref _pos) => {
-                write!(f, "({}) {} ({})", left, op, right)
+                write!(f, "({left}) {op} ({right})")
             }
             Expr::ContainerOp(op, box ref left, box ref right, _) => match op {
-                ContainerOpKind::SeqIndex => write!(f, "{}[{}]", left, right),
-                ContainerOpKind::SeqConcat => write!(f, "{} ++ {}", left, right),
-                ContainerOpKind::SeqLen => write!(f, "|{}|", left),
+                ContainerOpKind::SeqIndex => write!(f, "{left}[{right}]"),
+                ContainerOpKind::SeqConcat => write!(f, "{left} ++ {right}"),
+                ContainerOpKind::SeqLen => write!(f, "|{left}|"),
             },
             Expr::Seq(ty, elems, _) => {
                 let elems_printed = elems
                     .iter()
-                    .map(|e| format!("{}", e))
+                    .map(|e| format!("{e}"))
                     .collect::<Vec<_>>()
                     .join(", ");
                 let elem_ty = if let Type::Seq(box elem_ty) = ty {
@@ -184,30 +184,30 @@ impl fmt::Display for Expr {
                 } else {
                     unreachable!()
                 };
-                write!(f, "Seq[{}]({})", elem_ty, elems_printed)
+                write!(f, "Seq[{elem_ty}]({elems_printed})")
             }
             Expr::Map(..) => {
                 unimplemented!()
             }
-            Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
+            Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{op}({expr})"),
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
-                write!(f, "acc({}({}), {})", pred_name, arg, perm)
+                write!(f, "acc({pred_name}({arg}), {perm})")
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
-                write!(f, "acc({}, {})", expr, perm)
+                write!(f, "acc({expr}, {perm})")
             }
             Expr::LabelledOld(ref label, ref expr, ref _pos) => {
-                write!(f, "old[{}]({})", label, expr)
+                write!(f, "old[{label}]({expr})")
             }
             Expr::MagicWand(ref left, ref right, ref borrow, ref _pos) => {
-                write!(f, "({}) {:?} --* ({})", left, borrow, right)
+                write!(f, "({left}) {borrow:?} --* ({right})")
             }
             Expr::Unfolding(ref pred_name, ref args, ref expr, perm, ref variant, ref _pos) => {
                 write!(
                     f,
                     "(unfolding acc({}({}), {}) in {})",
                     if let Some(variant_index) = variant {
-                        format!("{}<variant {}>", pred_name, variant_index)
+                        format!("{pred_name}<variant {variant_index}>")
                     } else {
                         pred_name.to_string()
                     },
@@ -220,13 +220,13 @@ impl fmt::Display for Expr {
                 )
             }
             Expr::Cond(ref guard, ref left, ref right, ref _pos) => {
-                write!(f, "({})?({}):({})", guard, left, right)
+                write!(f, "({guard})?({left}):({right})")
             }
             Expr::ForAll(ref vars, ref triggers, ref body, ref _pos) => write!(
                 f,
                 "forall {} {} :: {}",
                 vars.iter()
-                    .map(|x| format!("{:?}", x))
+                    .map(|x| format!("{x:?}"))
                     .collect::<Vec<String>>()
                     .join(", "),
                 triggers
@@ -240,7 +240,7 @@ impl fmt::Display for Expr {
                 f,
                 "exists {} {} :: {}",
                 vars.iter()
-                    .map(|x| format!("{:?}", x))
+                    .map(|x| format!("{x:?}"))
                     .collect::<Vec<String>>()
                     .join(", "),
                 triggers
@@ -251,7 +251,7 @@ impl fmt::Display for Expr {
                 body
             ),
             Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => {
-                write!(f, "(let {:?} == ({}) in {})", var, expr, body,)
+                write!(f, "(let {var:?} == ({expr}) in {body})",)
             }
             Expr::FuncApp(ref name, ref args, ref params, ref typ, ref _pos) => write!(
                 f,
@@ -297,15 +297,15 @@ impl fmt::Display for Expr {
             ),
 
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) => {
-                write!(f, "[({}), ({})]", inhale_expr, exhale_expr)
+                write!(f, "[({inhale_expr}), ({exhale_expr})]")
             }
 
             Expr::Downcast(ref base, ref enum_place, ref field) => {
-                write!(f, "(downcast {} to {} in {})", enum_place, field, base,)
+                write!(f, "(downcast {enum_place} to {field} in {base})",)
             }
 
-            Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr),
-            Expr::Cast(ref kind, ref base, _) => write!(f, "cast<{:?}>({})", kind, base),
+            Expr::SnapApp(ref expr, _) => write!(f, "snap({expr})"),
+            Expr::Cast(ref kind, ref base, _) => write!(f, "cast<{kind:?}>({base})"),
         }
     }
 }
@@ -352,11 +352,11 @@ impl fmt::Display for BinaryOpKind {
 impl fmt::Display for Const {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Const::Bool(val) => write!(f, "{}", val),
-            Const::Int(val) => write!(f, "{}", val),
-            Const::BigInt(ref val) => write!(f, "{}", val),
-            Const::Float(val) => write!(f, "{:?}", val),
-            Const::BitVector(val) => write!(f, "{:?}", val),
+            Const::Bool(val) => write!(f, "{val}"),
+            Const::Int(val) => write!(f, "{val}"),
+            Const::BigInt(ref val) => write!(f, "{val}"),
+            Const::Float(val) => write!(f, "{val:?}"),
+            Const::BitVector(val) => write!(f, "{val:?}"),
             Const::FnPtr => write!(f, "FnPtr"),
         }
     }
@@ -754,7 +754,7 @@ impl Expr {
     #[must_use]
     pub fn variant(self, index: &str) -> Self {
         assert!(self.is_place());
-        let field_name = format!("enum_{}", index);
+        let field_name = format!("enum_{index}");
         let typ = self.get_type();
         let variant = Field::new(field_name, typ.clone().variant(index));
         Expr::Variant(box self, variant, Position::default())
@@ -1106,8 +1106,8 @@ impl Expr {
     */
 
     pub fn has_proper_prefix(&self, other: &Expr) -> bool {
-        debug_assert!(self.is_place(), "self={} other={}", self, other);
-        debug_assert!(other.is_place(), "self={} other={}", self, other);
+        debug_assert!(self.is_place(), "self={self} other={other}");
+        debug_assert!(other.is_place(), "self={self} other={other}");
         self != other && self.has_prefix(other)
     }
 
@@ -1233,14 +1233,14 @@ impl Expr {
                 | BinaryOpKind::Max => {
                     let typ1 = base1.get_type();
                     let typ2 = base2.get_type();
-                    assert_eq!(typ1, typ2, "expr: {:?}", self);
+                    assert_eq!(typ1, typ2, "expr: {self:?}");
                     typ1
                 }
             },
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
                 let typ1 = base1.get_maybe_type();
                 let typ2 = base2.get_maybe_type();
-                assert_eq!(typ1, typ2, "expr: {:?}", self);
+                assert_eq!(typ1, typ2, "expr: {self:?}");
                 typ1?
             }
             Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
@@ -1768,9 +1768,9 @@ impl Expr {
 
     /// Replace all generic types with their instantiations by using substitution.
     #[must_use]
-    pub fn patch_types(self, substs: &HashMap<String, String>) -> Self {
+    pub fn patch_types(self, substs: &FxHashMap<String, String>) -> Self {
         struct TypePatcher<'a> {
-            substs: &'a HashMap<String, String>,
+            substs: &'a FxHashMap<String, String>,
         }
         impl<'a> ExprFolder for TypePatcher<'a> {
             fn fold_predicate_access_predicate(

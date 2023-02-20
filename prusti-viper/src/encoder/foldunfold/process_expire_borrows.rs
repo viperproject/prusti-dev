@@ -147,7 +147,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 dropped_permissions
             );
             for perm in &dropped_permissions {
-                let comment = format!("restored (from log): {}", perm);
+                let comment = format!("restored (from log): {perm}");
                 curr_block_pre_statements.push(vir::Stmt::comment(comment));
             }
             pctxt
@@ -194,7 +194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     dropped_permissions.iter().to_string()
                 );
                 for perm in &dropped_permissions {
-                    let comment = format!("restored (from log): {}", perm);
+                    let comment = format!("restored (from log): {perm}");
                     let key = (predecessor, curr_block_index);
                     let entry = cfg.edges.entry(key).or_insert_with(Vec::new);
                     entry.push(vir::Stmt::comment(comment));
@@ -219,8 +219,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                             && perm.get_perm_amount() != vir::PermAmount::Read
                         {
                             let comment = vir::Stmt::comment(format!(
-                                "restored (in branch merge): {} ({})",
-                                perm, missing_perm
+                                "restored (in branch merge): {perm} ({missing_perm})"
                             ));
                             stmts_to_add.push(comment);
                             pctxt.mut_state().restore_dropped_perm(perm.clone())?;
@@ -375,7 +374,7 @@ fn construct_final_pctxt<'p>(
                         && perm.get_perm_amount() != vir::PermAmount::Read
                     {
                         let comment =
-                            format!("restored (in branch merge): {} ({})", perm, missing_perm);
+                            format!("restored (in branch merge): {perm} ({missing_perm})");
                         stmts_to_add.push(vir::Stmt::comment(comment));
                         final_pctxt.mut_state().restore_dropped_perm(perm.clone())?;
                     }

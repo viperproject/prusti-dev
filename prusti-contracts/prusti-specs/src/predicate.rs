@@ -1,10 +1,12 @@
 //! Predicate parsing
 
-use crate::{rewriter, SpecificationId, SPECS_VERSION};
+use crate::{
+    common::{HasMacro, HasSignature},
+    rewriter, SpecificationId, SPECS_VERSION,
+};
 use proc_macro2::{Span, TokenStream};
-use quote::ToTokens;
+use quote::{quote_spanned, ToTokens};
 use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
-use crate::common::{HasMacro, HasSignature};
 
 #[derive(Debug)]
 pub struct PredicateWithBody<T: ToTokens> {
@@ -82,9 +84,18 @@ fn parse_predicate_internal(
     let input: PredicateFnInput = syn::parse2(tokens).map_err(|e| {
         syn::Error::new(
             e.span(),
-            "`predicate!` can only be used on function definitions. it supports no attributes.",
+            "`predicate!` can only be used on function definitions; it supports no attributes",
         )
     })?;
+    let return_type = match &input.fn_sig.output {
+        syn::ReturnType::Default => {
+            return Err(syn::Error::new(
+                input.fn_sig.span(),
+                "`predicate!` must specify an output type",
+            ));
+        }
+        syn::ReturnType::Type(_, box typ) => typ.to_token_stream(),
+    };
 
     if input.body.is_some() {
         let mut rewriter = rewriter::AstRewriter::new();
@@ -93,8 +104,12 @@ fn parse_predicate_internal(
         if in_spec_refinement {
             let patched_function: syn::ImplItemMethod =
                 patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function =
-                generate_spec_function(input.body.unwrap(), spec_id, &patched_function)?;
+            let spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                &patched_function,
+            )?;
 
             Ok(ParsedPredicate::Impl(PredicateWithBody {
                 spec_function,
@@ -102,8 +117,12 @@ fn parse_predicate_internal(
             }))
         } else {
             let patched_function: syn::ItemFn = patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function =
-                generate_spec_function(input.body.unwrap(), spec_id, &patched_function)?;
+            let spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                &patched_function,
+            )?;
 
             Ok(ParsedPredicate::FreeStanding(PredicateWithBody {
                 spec_function,
@@ -145,12 +164,13 @@ fn patch_predicate_macro_body<R: Parse>(
 
 fn generate_spec_function<T: HasSignature + Spanned>(
     body: TokenStream,
+    return_type: TokenStream,
     spec_id: SpecificationId,
     patched_function: &T,
 ) -> syn::Result<syn::Item> {
     let mut rewriter = rewriter::AstRewriter::new();
     rewriter.process_assertion(
-        rewriter::SpecItemType::Predicate,
+        rewriter::SpecItemType::Predicate(return_type),
         spec_id,
         body,
         patched_function,
@@ -175,8 +195,9 @@ impl syn::parse::Parse for PredicateFnInput {
         } else {
             let brace_content;
             let _brace_token = syn::braced!(brace_content in input);
-            let parsed_body = brace_content.parse()?;
-            Some(parsed_body)
+            let parsed_body: TokenStream = brace_content.parse()?;
+            // add the braces back to allow function-like syntax
+            Some(quote_spanned!(parsed_body.span()=> { #parsed_body }))
         };
 
         Ok(PredicateFnInput {

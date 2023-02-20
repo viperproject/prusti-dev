@@ -21,7 +21,7 @@ fn env_prepend_path(name: &str, value: Vec<PathBuf>, cmd: &mut Command) {
         Ok(new_value) => {
             cmd.env(name, new_value);
         }
-        Err(err) => panic!("Error: {:?}", err),
+        Err(err) => panic!("Error: {err:?}"),
     }
 }
 
@@ -57,20 +57,20 @@ fn generate_program_testing_accessible_paths(
 
     add_to_loader_path(vec![compiler_lib, compiler_bin], &mut cmd);
 
-    println!("Running {:?}", cmd);
+    println!("Running {cmd:?}");
     let output = cmd
         .env("RUST_BACKTRACE", "1")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()
-        .unwrap_or_else(|err| panic!("Failed to execute process: {:?}", err));
+        .unwrap_or_else(|err| panic!("Failed to execute process: {err:?}"));
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     if !output.status.success() {
-        println!("Test case {:?} unexpectedly failed.", program_path);
+        println!("Test case {program_path:?} unexpectedly failed.");
         println!("Exit status: {:?}", output.status);
         println!("┌─── Begin of stdout ───┐");
-        println!("{}", stdout);
+        println!("{stdout}");
         println!("└──── End of stdout ────┘");
         println!("┌─── Begin of stderr ───┐");
         println!("{}", String::from_utf8_lossy(&output.stderr));
@@ -89,13 +89,13 @@ fn check_compile_pass(cwd: impl AsRef<Path>, program_path: impl AsRef<OsStr> + f
     let mut cmd = Command::new("rustc");
     cmd.args(["--edition=2018", "--crate-type=lib", "-Zpolonius"])
         .arg(&program_path);
-    println!("Running {:?}", cmd);
+    println!("Running {cmd:?}");
     let output = cmd
         .current_dir(cwd)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()
-        .unwrap_or_else(|err| panic!("Failed to execute process: {:?}", err));
+        .unwrap_or_else(|err| panic!("Failed to execute process: {err:?}"));
     if !output.status.success() {
         println!("Program {:?} failed to compile.", &program_path);
         println!("Exit status: {:?}", output.status);
@@ -129,7 +129,7 @@ fn collect_standalone_test_programs() -> Vec<PathBuf> {
             glob_path
         );
         assert!(!new_programs.is_empty());
-        new_programs.sort();
+        new_programs.sort_unstable();
         programs.append(&mut new_programs);
     }
     assert!(programs.len() >= glob_paths.len());
@@ -148,7 +148,7 @@ fn test_accessibility() {
         fs::remove_dir_all(&out_dir).expect("Failed to remove output directory");
     }
     fs::create_dir(&out_dir).expect("Failed to create output directory");
-    println!("Output directory: {:?}", out_dir);
+    println!("Output directory: {out_dir:?}");
 
     for (test_num, test_program) in test_programs.iter().enumerate() {
         println!(
@@ -162,15 +162,11 @@ fn test_accessibility() {
         println!("The analysis generated {} programs", gen_programs.len());
         let limit = 10;
         if gen_programs.len() > limit {
-            println!(
-                "Too many generated programs. Only the first {} will be considered.",
-                limit
-            );
+            println!("Too many generated programs. Only the first {limit} will be considered.");
         }
         for (gen_num, gen_program) in gen_programs.iter().take(limit).enumerate() {
             let test_filename = test_program.file_name().unwrap().to_str().unwrap();
-            let gen_path =
-                out_dir.join(format!("{:03}_{:02}_{}", test_num, gen_num, test_filename));
+            let gen_path = out_dir.join(format!("{test_num:03}_{gen_num:02}_{test_filename}"));
             println!(
                 "Generated program: {:?} ({}/{})",
                 gen_path,
@@ -178,7 +174,7 @@ fn test_accessibility() {
                 gen_programs.len()
             );
             println!("┌─── Begin of generated program ───┐");
-            println!("{}", gen_program);
+            println!("{gen_program}");
             println!("└──── End of generated program ────┘");
 
             // Check that it compiles successfully
@@ -187,7 +183,7 @@ fn test_accessibility() {
         }
     }
 
-    println!("All tests passed. Removing output directory {:?}", out_dir);
+    println!("All tests passed. Removing output directory {out_dir:?}");
     // Note that this does *not* remove the output directory in case of failures.
     // It's done on purpose to help debugging.
     fs::remove_dir_all(&out_dir).expect("Failed to remove output directory");

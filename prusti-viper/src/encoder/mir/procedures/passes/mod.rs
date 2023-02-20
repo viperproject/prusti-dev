@@ -20,7 +20,7 @@ fn log_pass<'v, 'tcx: 'v>(
         let source_filename = encoder.env().name.source_file_name();
         let is_before = if is_before { "before" } else { "after" };
         prusti_common::report::log::report_with_writer(
-            &format!("graphviz_method_pass_{}_{}", pass_name, is_before),
+            &format!("graphviz_method_pass_{pass_name}_{is_before}"),
             format!("{}.{}.dot", source_filename, procedure.name),
             |writer| procedure.to_graphviz(writer).unwrap(),
         );

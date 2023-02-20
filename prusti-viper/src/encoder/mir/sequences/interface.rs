@@ -107,7 +107,7 @@ impl<'v, 'tcx: 'v> MirSequencesEncoderInterface<'tcx> for super::super::super::E
                 .mir_sequences_encoder_state
                 .sequence_types_cache
                 .borrow_mut()
-                .insert(sequence_ty.kind().clone(), encoded_type.clone())
+                .insert(sequence_ty.kind().clone(), encoded_type)
                 .is_none());
         }
         let encoded_type = self

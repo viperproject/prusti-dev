@@ -10,10 +10,17 @@ fn client(a: u32) {}
 
 #[pure]
 #[ensures(result)]
-fn test1() -> bool { false }
+fn test1() -> bool {
+    false
+}
 
 #[pure]
 #[ensures(x)]
-fn test2(x: bool) -> bool { x }
+fn test2(x: bool) -> bool {
+    x
+}
+
+#[ensures(a === b)]
+fn test3<T>(a: T, b: T) {}
 
 fn main() {}

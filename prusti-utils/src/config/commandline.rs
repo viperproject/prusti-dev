@@ -1,5 +1,6 @@
 use ::config::{ConfigError, Source, Value};
 use itertools::Itertools;
+// Cannot use rustc_hash::FxHashMap here, due to type requirement in config::Source
 use std::{collections::HashMap, env};
 
 #[derive(Clone, Debug)]
@@ -111,8 +112,7 @@ impl Source for CommandLine {
             if !self.is_valid_arg(&arg) {
                 if !self.ignore_invalid {
                     return Err(ConfigError::Message(format!(
-                        "Invalid command-line arg: '{}'",
-                        arg
+                        "Invalid command-line arg: '{arg}'"
                     )));
                 }
 

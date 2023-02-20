@@ -19,7 +19,8 @@ use crate::{
     common::add_phantom_data_for_generic_params,
     user_provided_type_params::{
         UserAnnotatedTypeParam, UserAnnotatedTypeParamParser, UserAnnotatedTypeParamParserError,
-    }, SPECS_VERSION,
+    },
+    SPECS_VERSION,
 };
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
@@ -30,9 +31,11 @@ use uuid::Uuid;
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<Vec<syn::Item>> {
     let res = rewrite_internal(item_struct);
     match res {
-        Ok(result) => {
-            Ok(vec![syn::Item::Struct(result.model_struct), syn::Item::Trait(result.to_model_trait), syn::Item::Impl(result.model_impl)])
-        },
+        Ok(result) => Ok(vec![
+            syn::Item::Struct(result.model_struct),
+            syn::Item::Trait(result.to_model_trait),
+            syn::Item::Impl(result.model_impl),
+        ]),
         Err(err) => Err(err.into()),
     }
 }
@@ -135,7 +138,7 @@ impl ToModelTrait {
             .collect();
 
         let model_path = &model_struct.path;
-        
+
         let to_model_trait_ident = &idents.to_model_trait_ident;
         let item = parse_quote_spanned! {item_struct.span()=>
             #[allow(non_camel_case_types)]
@@ -225,11 +228,11 @@ impl GeneratedIdents {
 
         GeneratedIdents {
             model_struct_ident: Ident::new(
-                format!("Prusti{}Model_{}", name, uuid).as_str(),
+                format!("Prusti{name}Model_{uuid}").as_str(),
                 item_struct.ident.span(),
             ),
             to_model_trait_ident: Ident::new(
-                format!("Prusti{}ToModel_{}", name, uuid).as_str(),
+                format!("Prusti{name}ToModel_{uuid}").as_str(),
                 item_struct.ident.span(),
             ),
         }

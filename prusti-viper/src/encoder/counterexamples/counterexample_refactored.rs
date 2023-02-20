@@ -31,7 +31,7 @@ impl CounterexampleEntry {
 /// Indents the debug output of the given value with "  " starting with the
 /// second line.
 fn indented_debug<T: std::fmt::Debug>(val: &T) -> String {
-    format!("{:#?}", val)
+    format!("{val:#?}")
         .split('\n')
         .collect::<Vec<&str>>()
         .join("\n  ")
@@ -40,7 +40,7 @@ fn indented_debug<T: std::fmt::Debug>(val: &T) -> String {
 impl fmt::Display for CounterexampleEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for message in self.history_to_string() {
-            write!(f, "{}", message)?;
+            write!(f, "{message}")?;
         }
         Ok(())
     }
@@ -69,7 +69,7 @@ impl Counterexample {
 }
 
 /// An expression mapped from a Silicon counterexample.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum Entry {
     /// A string is used to be able to represent integers outside the 128-bit
     /// range.
@@ -101,6 +101,7 @@ pub enum Entry {
     Array(Vec<Entry>),
     Tuple(Vec<Entry>),
     Seq(Vec<Entry>),
+    #[default]
     Unknown,
 }
 
@@ -113,18 +114,12 @@ impl Entry {
     }
 }
 
-impl Default for Entry {
-    fn default() -> Self {
-        Entry::Unknown
-    }
-}
-
 impl fmt::Debug for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Entry::Int(value) => write!(f, "{}", value),
-            Entry::Float(value) => write!(f, "{}", value),
-            Entry::Bool(value) => write!(f, "{}", value),
+            Entry::Int(value) => write!(f, "{value}"),
+            Entry::Float(value) => write!(f, "{value}"),
+            Entry::Bool(value) => write!(f, "{value}"),
             Entry::Char(value) => {
                 if value.is_control() {
                     // avoid displaying line breaks etc directly
@@ -133,8 +128,8 @@ impl fmt::Debug for Entry {
                     write!(f, "'{}' (0x{:x})", value, *value as i32)
                 }
             }
-            Entry::Ref(el) => write!(f, "ref({:#?})", el),
-            Entry::Box(el) => write!(f, "box({:#?})", el),
+            Entry::Ref(el) => write!(f, "ref({el:#?})"),
+            Entry::Box(el) => write!(f, "box({el:#?})"),
             Entry::Enum {
                 super_name,
                 name,
@@ -153,14 +148,14 @@ impl fmt::Debug for Entry {
                             .find(|(name, _)| fieldname == name)
                             .unwrap()
                             .1; //safe because of encoding (checked by compiler)
-                        output.push_str(&format!("{:#?}", field_entry));
+                        output.push_str(&format!("{field_entry:#?}"));
                         output.push_str(next);
                     }
-                    write!(f, "{}", output)
+                    write!(f, "{output}")
                 } else {
                     let named_fields =
                         !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
-                    let enum_name = format!("{}::{}", super_name, name);
+                    let enum_name = format!("{super_name}::{name}");
                     if named_fields {
                         let mut f1 = f.debug_struct(&enum_name);
                         for (fieldname, entry) in field_entries {
@@ -193,10 +188,10 @@ impl fmt::Debug for Entry {
                             .find(|(name, _)| fieldname == name)
                             .unwrap()
                             .1; //safe because of encoding (checked by compiler)
-                        output.push_str(&format!("{:#?}", field_entry));
+                        output.push_str(&format!("{field_entry:#?}"));
                         output.push_str(next);
                     }
-                    write!(f, "{}", output)
+                    write!(f, "{output}")
                 } else {
                     let mut f1 = f.debug_struct(name);
                     for (fieldname, entry) in field_entries {
@@ -222,9 +217,9 @@ impl fmt::Debug for Entry {
                 } else {
                     let mut output = "".to_string();
                     for elem in elements {
-                        output.push_str(&format!("{:#?}, ", elem));
+                        output.push_str(&format!("{elem:#?}, "));
                     }
-                    write!(f, "Seq({})", output)
+                    write!(f, "Seq({output})")
                 }
             }
             Entry::Union { name, field_entry } => {
@@ -239,9 +234,9 @@ impl fmt::Debug for Entry {
                 } else {
                     let mut output = "".to_string();
                     for elem in elements {
-                        output.push_str(&format!("{:#?}, ", elem));
+                        output.push_str(&format!("{elem:#?}, "));
                     }
-                    write!(f, "[{}]", output)
+                    write!(f, "[{output}]")
                 }
             }
             Entry::Unknown => write!(f, "?"),

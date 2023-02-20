@@ -27,7 +27,7 @@ impl std::fmt::Display for PredicateStateOnPath {
             self.owned_non_aliased.len()
         )?;
         for place in &self.owned_non_aliased {
-            writeln!(f, "      {}", place)?;
+            writeln!(f, "      {place}")?;
         }
         writeln!(
             f,
@@ -35,11 +35,11 @@ impl std::fmt::Display for PredicateStateOnPath {
             self.memory_block_stack.len()
         )?;
         for place in &self.memory_block_stack {
-            writeln!(f, "      {}", place)?;
+            writeln!(f, "      {place}")?;
         }
         writeln!(f, "    mut_borrowed ({}):", self.mut_borrowed.len())?;
         for (place, lifetime) in &self.mut_borrowed {
-            writeln!(f, "      &{} {}", lifetime, place)?;
+            writeln!(f, "      &{lifetime} {place}")?;
         }
         Ok(())
     }
@@ -101,8 +101,7 @@ impl PredicateStateOnPath {
         assert!(place.is_place());
         assert!(
             self.mut_borrowed.remove(place).is_some(),
-            "not found in mut_borrowed: {}",
-            place,
+            "not found in mut_borrowed: {place}",
         );
         Ok(())
     }
@@ -326,7 +325,7 @@ impl PredicateStateOnPath {
                     }
                 }
             }
-            assert!(!self.is_empty(), "self: {}", self);
+            assert!(!self.is_empty(), "self: {self}");
         }
     }
 
@@ -389,8 +388,7 @@ impl PredicateStateOnPath {
     ) -> (BTreeSet<vir_typed::Expression>, Vec<PlaceWithDeadLifetimes>) {
         assert!(
             !self.dead_lifetimes.contains(lifetime),
-            "The lifetime {} is already dead.",
-            lifetime
+            "The lifetime {lifetime} is already dead."
         );
         let all_dead_references: Vec<_> = self
             .owned_non_aliased

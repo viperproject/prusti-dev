@@ -13,7 +13,7 @@ pub fn to_sorted_text<S: ToText>(texts: &[S]) -> Vec<String> {
 }
 
 pub fn opaque_lifetime_string(index: usize) -> String {
-    format!("bw{}", index)
+    format!("bw{index}")
 }
 
 impl ToText for str {
@@ -30,7 +30,7 @@ impl ToText for String {
 
 impl ToText for prusti_rustc_interface::middle::mir::Local {
     fn to_text(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 }
 
@@ -67,11 +67,11 @@ impl ToText
 impl ToText for prusti_rustc_interface::middle::ty::BoundRegionKind {
     fn to_text(&self) -> String {
         match self {
-            prusti_rustc_interface::middle::ty::BoundRegionKind::BrAnon(id) => {
-                format!("lft_br_anon_{}", id)
+            prusti_rustc_interface::middle::ty::BoundRegionKind::BrAnon(id, _) => {
+                format!("lft_br_anon_{id}")
             }
             prusti_rustc_interface::middle::ty::BoundRegionKind::BrNamed(_, name) => {
-                format!("lft_br_named_{}", name)
+                format!("lft_br_named_{name}")
             }
             prusti_rustc_interface::middle::ty::BoundRegionKind::BrEnv => "lft_br_env".to_string(),
         }
@@ -111,7 +111,7 @@ pub fn points_to_text(points: &[Point]) -> String {
 }
 
 pub fn loan_to_text(loan: &crate::environment::borrowck::facts::Loan) -> String {
-    format!("{:?}", loan)
+    format!("{loan:?}")
 }
 
 pub fn loans_to_text(loans: &[crate::environment::borrowck::facts::Loan]) -> String {
@@ -142,19 +142,19 @@ pub fn loan_containment_to_text(
 
 impl ToText for prusti_rustc_interface::middle::mir::BasicBlock {
     fn to_text(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 }
 
 impl ToText for prusti_rustc_interface::middle::mir::Location {
     fn to_text(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 }
 
 impl<'tcx> ToText for prusti_rustc_interface::middle::mir::Statement<'tcx> {
     fn to_text(&self) -> String {
-        escape_html(format!("{:?}", self))
+        escape_html(format!("{self:?}"))
     }
 }
 
@@ -166,7 +166,7 @@ impl<'tcx> ToText for prusti_rustc_interface::middle::mir::Terminator<'tcx> {
 
 impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Ty<'tcx> {
     fn to_text(&self) -> String {
-        escape_html(format!("{:?}", self))
+        escape_html(format!("{self:?}"))
     }
 }
 
@@ -180,14 +180,14 @@ impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Region<'tcx> {
                 format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
             }
             prusti_rustc_interface::middle::ty::ReFree(_) => {
-                unimplemented!("ReFree: {}", format!("{}", self));
+                unimplemented!("ReFree: {}", format!("{self}"));
             }
             prusti_rustc_interface::middle::ty::ReStatic => String::from("lft_static"),
             prusti_rustc_interface::middle::ty::ReVar(region_vid) => {
                 format!("lft_{}", region_vid.index())
             }
             prusti_rustc_interface::middle::ty::RePlaceholder(_) => {
-                unimplemented!("RePlaceholder: {}", format!("{}", self));
+                unimplemented!("RePlaceholder: {}", format!("{self}"));
             }
             prusti_rustc_interface::middle::ty::ReErased => String::from("lft_erased"),
         }

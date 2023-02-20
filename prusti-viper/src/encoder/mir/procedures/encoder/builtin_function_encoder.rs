@@ -180,7 +180,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 let panic_message = format!("{:?}", args[0]);
                 let panic_cause = self.encoder.encode_panic_cause(span)?;
                 if self.check_panics {
-                    block_builder.add_comment(format!("Rust panic - {}", panic_message));
+                    block_builder.add_comment(format!("Rust panic - {panic_message}"));
                     block_builder.add_statement(self.encoder.set_statement_error_ctxt(
                         vir_high::Statement::assert_no_pos(false.into()),
                         span,

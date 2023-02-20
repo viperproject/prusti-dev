@@ -26,7 +26,7 @@
   - [External specifications](verify/external.md)
   - [Loop body invariants](verify/loop.md)
   - [Pledges](verify/pledge.md)
-  - [Trait contract refinement](verify/traits.md)
+  - [Type-conditional spec refinements](verify/type_cond_spec.md)
   - [Closures](verify/closure.md)
   - [Specification entailments](verify/spec_ent.md)
   - [Type models](verify/type-models.md)

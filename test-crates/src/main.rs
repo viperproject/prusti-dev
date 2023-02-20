@@ -204,7 +204,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         java_home: Some(guest_java_home.clone()),
     };
 
-    info!("Crate a new workspace...");
+    info!("Create a new workspace...");
     // `Error: Compat { error: SandboxImagePullFailed(ExecutionFailed(ExitStatus(unix_wait_status(256)))) }` if
     // docker daemon isn't running
     let workspace = WorkspaceBuilder::new(workspace_path, "prusti-test-crates").init()?;
@@ -262,7 +262,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         if !args.skip_build_check {
             info!("Build crate...");
-            let mut build_dir = workspace.build_dir(&format!("build_{}", index));
+            let mut build_dir = workspace.build_dir(&format!("build_{index}"));
 
             let sandbox = cmd::SandboxBuilder::new()
                 .memory_limit(Some(1024 * 1024 * 1024))
@@ -279,7 +279,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             });
 
             if let Err(err) = build_status {
-                warn!("Error: {:?}", err);
+                warn!("Error: {}", err);
                 warn!("Output:\n{}", storage);
 
                 // Report the failure
@@ -290,7 +290,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         info!("Verify crate...");
         {
-            let mut build_dir = workspace.build_dir(&format!("verify_{}", index));
+            let mut build_dir = workspace.build_dir(&format!("verify_{index}"));
 
             let mut sandbox = cmd::SandboxBuilder::new()
                 .memory_limit(Some(4024 * 1024 * 1024))
@@ -323,6 +323,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
                         .env("PRUSTI_CHECK_PANICS", "false")
                         .env("PRUSTI_CHECK_OVERFLOWS", "false")
+                        .env("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "false")
                         // Do not report errors for unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true");
                     match test_kind {
@@ -344,7 +345,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             });
 
             if let Err(err) = verification_status {
-                error!("Error: {:?}", err);
+                error!("Error: {}", err);
                 error!("Output:\n{}", storage);
 
                 // Report the failure
@@ -356,7 +357,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         if args.fail_fast {
             if let Some((krate, test_kind)) = failed_crates.first() {
-                panic!("Failed to verify the crate {} ({:?})", krate, test_kind);
+                panic!("Failed to verify the crate {krate} ({test_kind:?})");
             }
         }
     }

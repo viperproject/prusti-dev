@@ -41,7 +41,7 @@ impl CounterexampleEntry {
 /// Indents the debug output of the given value with "  " starting with the
 /// second line.
 fn indented_debug<T: std::fmt::Debug>(val: &T) -> String {
-    format!("{:#?}", val)
+    format!("{val:#?}")
         .split('\n')
         .collect::<Vec<&str>>()
         .join("\n  ")
@@ -51,7 +51,7 @@ impl fmt::Display for CounterexampleEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "counterexample for ")?;
         if let Some(name) = &self.name {
-            write!(f, "\"{}\"", name)?;
+            write!(f, "\"{name}\"")?;
         } else {
             write!(f, "result")?;
         }
@@ -79,14 +79,14 @@ impl Counterexample {
     /// mapped counterexample.
     pub fn annotate_error(&self, mut prusti_error: PrustiError) -> PrustiError {
         for entry in &self.0 {
-            prusti_error = prusti_error.add_note(format!("{}", entry), Some(entry.span));
+            prusti_error = prusti_error.add_note(format!("{entry}"), Some(entry.span));
         }
         prusti_error
     }
 }
 
 /// An expression mapped from a Silicon counterexample.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum Entry {
     /// A string is used to be able to represent integers outside the 128-bit
     /// range.
@@ -108,6 +108,7 @@ pub enum Entry {
         //that is why no FxHashMap is used
     },
     Tuple(Vec<Entry>),
+    #[default]
     Unknown,
 }
 
@@ -206,18 +207,12 @@ impl Entry {
     }
 }
 
-impl Default for Entry {
-    fn default() -> Self {
-        Entry::Unknown
-    }
-}
-
 impl fmt::Debug for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Entry::Int(value) => write!(f, "{}", value),
-            Entry::Float(value) => write!(f, "{}", value),
-            Entry::Bool(value) => write!(f, "{}", value),
+            Entry::Int(value) => write!(f, "{value}"),
+            Entry::Float(value) => write!(f, "{value}"),
+            Entry::Bool(value) => write!(f, "{value}"),
             Entry::Char(value) => {
                 if value.is_control() {
                     // avoid displaying line breaks etc directly
@@ -226,8 +221,8 @@ impl fmt::Debug for Entry {
                     write!(f, "'{}' (0x{:x})", value, *value as i32)
                 }
             }
-            Entry::Ref(el) => write!(f, "ref({:#?})", el),
-            Entry::Box(el) => write!(f, "box({:#?})", el),
+            Entry::Ref(el) => write!(f, "ref({el:#?})"),
+            Entry::Box(el) => write!(f, "box({el:#?})"),
             Entry::Enum {
                 super_name,
                 name,
@@ -235,7 +230,7 @@ impl fmt::Debug for Entry {
             } => {
                 let named_fields =
                     !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
-                let enum_name = format!("{}::{}", super_name, name);
+                let enum_name = format!("{super_name}::{name}");
                 if named_fields {
                     let mut f1 = f.debug_struct(&enum_name);
                     for (fieldname, entry) in field_entries {

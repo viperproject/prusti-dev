@@ -7,10 +7,9 @@
 use crate::{
     common::identifier::WithIdentifier, converter::type_substitution::Generic, polymorphic::ast::*,
 };
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHasher};
 use std::{
     cmp::Ordering,
-    collections::hash_map::DefaultHasher,
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
@@ -143,6 +142,19 @@ impl fmt::Display for BitVectorSize {
             BitVectorSize::BV32 => write!(f, "BV32"),
             BitVectorSize::BV64 => write!(f, "BV64"),
             BitVectorSize::BV128 => write!(f, "BV128"),
+        }
+    }
+}
+
+impl From<usize> for BitVectorSize {
+    fn from(value: usize) -> Self {
+        match value {
+            8 => BitVectorSize::BV8,
+            16 => BitVectorSize::BV16,
+            32 => BitVectorSize::BV32,
+            64 => BitVectorSize::BV64,
+            128 => BitVectorSize::BV128,
+            _ => panic!("Invalid bitvector size: {}", value),
         }
     }
 }
@@ -483,7 +495,7 @@ impl Type {
     }
 
     fn hash_arguments(args: &[Type]) -> u64 {
-        let mut s = DefaultHasher::new();
+        let mut s = FxHasher::default();
         args.hash(&mut s);
         s.finish()
     }

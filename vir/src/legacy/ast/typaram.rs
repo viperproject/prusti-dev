@@ -6,11 +6,11 @@
 
 use log::trace;
 use regex::Regex;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 pub struct Substs {
     regex: Regex,
-    repls: HashMap<String, String>,
+    repls: FxHashMap<String, String>,
 }
 
 impl std::fmt::Debug for Substs {
@@ -61,8 +61,8 @@ impl Substs {
         }
 
         // Use `repls_regex` to find typaram replacements
-        let mut repls = HashMap::new();
-        trace!("regex {:?} from {:?} to {:?}", repls_regex, from, to);
+        let mut repls = FxHashMap::default();
+        trace!("regex {repls_regex:?} from {from:?} to {to:?}");
         let captures = repls_regex.captures(to).unwrap();
         for i in 1..captures.len() {
             let from_typaram = found_typarams[i - 1].to_string();

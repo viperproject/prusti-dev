@@ -1,28 +1,33 @@
-use crate::{ExternSpecKind, extract_prusti_attributes, generate_spec_and_assertions, RewritableReceiver, SelfTypeRewriter};
-use quote::{quote, ToTokens};
-use syn::{Expr, FnArg, GenericParam, GenericArgument, parse_quote_spanned, Pat, PatType, Token};
-use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
-use crate::common::{HasAttributes, HasSignature};
-use crate::span_overrider::SpanOverrider;
-use crate::untyped::AnyFnItem;
-use syn::visit::Visit;
-use syn::visit_mut::VisitMut;
+use crate::{
+    common::{HasAttributes, HasSignature},
+    extract_prusti_attributes, generate_spec_and_assertions,
+    span_overrider::SpanOverrider,
+    untyped::AnyFnItem,
+    ExternSpecKind, RewritableReceiver, SelfTypeRewriter,
+};
+use itertools::Itertools;
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote, quote_spanned, ToTokens};
+use syn::{
+    parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, visit::Visit,
+    visit_mut::VisitMut, Expr, FnArg, GenericArgument, GenericParam, Pat, PatType, Token,
+};
 
 /// Counts the number of elided lifetimes in receivers and types.
 /// For details see the function `with_explicit_lifetimes`.
 struct ElidedLifetimeCounter {
-    num_elided_lifetimes: u32
+    num_elided_lifetimes: u32,
 }
-
 
 impl ElidedLifetimeCounter {
     fn new() -> ElidedLifetimeCounter {
-        ElidedLifetimeCounter { num_elided_lifetimes: 0 }
+        ElidedLifetimeCounter {
+            num_elided_lifetimes: 0,
+        }
     }
 }
 
-impl <'ast> syn::visit::Visit<'ast> for ElidedLifetimeCounter {
+impl<'ast> syn::visit::Visit<'ast> for ElidedLifetimeCounter {
     fn visit_receiver(&mut self, receiver: &syn::Receiver) {
         if let Some((_, None)) = receiver.reference {
             self.num_elided_lifetimes += 1;
@@ -35,7 +40,6 @@ impl <'ast> syn::visit::Visit<'ast> for ElidedLifetimeCounter {
         }
     }
 }
-
 
 fn has_multiple_elided_lifetimes(inputs: &Punctuated<FnArg, syn::token::Comma>) -> bool {
     let mut visitor = ElidedLifetimeCounter::new();
@@ -60,31 +64,34 @@ fn returns_reference_with_elided_lifetime(return_type: &syn::ReturnType) -> bool
 /// annotations. The explicit lifetime annotations correspond to what Rust would assign
 /// for the elided lifetimes in the original signature.
 fn with_explicit_lifetimes(sig: &syn::Signature) -> Option<syn::Signature> {
-
     // This struct is responsible for inserting an explicit lifetime for elided
     // lifetimes in the receiver and output type.
     struct SelfLifetimeInserter {}
 
     impl syn::visit_mut::VisitMut for SelfLifetimeInserter {
         fn visit_type_reference_mut(&mut self, reference: &mut syn::TypeReference) {
-            reference.lifetime = parse_quote_spanned!{reference.span() => 'prusti_self_lifetime };
+            reference.lifetime = parse_quote_spanned! {reference.span() => 'prusti_self_lifetime };
         }
 
         fn visit_receiver_mut(&mut self, receiver: &mut syn::Receiver) {
-            receiver.reference.as_mut().unwrap().1 = parse_quote_spanned!{receiver.span() => 'prusti_self_lifetime };
+            receiver.reference.as_mut().unwrap().1 =
+                parse_quote_spanned! {receiver.span() => 'prusti_self_lifetime };
         }
     }
 
-    if !returns_reference_with_elided_lifetime(&sig.output) ||
-       !has_multiple_elided_lifetimes(&sig.inputs)
+    if !returns_reference_with_elided_lifetime(&sig.output)
+        || !has_multiple_elided_lifetimes(&sig.inputs)
     {
         return None;
     }
     let mut new_sig = sig.clone();
-    let mut inserter = SelfLifetimeInserter{};
+    let mut inserter = SelfLifetimeInserter {};
 
     // Insert explicit lifetime parameter to method signature
-    new_sig.generics.params.insert(0, parse_quote_spanned!{new_sig.generics.params.span() => 'prusti_self_lifetime });
+    new_sig.generics.params.insert(
+        0,
+        parse_quote_spanned! {new_sig.generics.params.span() => 'prusti_self_lifetime },
+    );
 
     // Assign the explicit lifetime to the reference to self
     if let Some(syn::FnArg::Receiver(r)) = new_sig.inputs.first_mut() {
@@ -133,13 +140,14 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
         },
         None => parse_quote_spanned! {method_sig_span=>
             <#self_type> :: #method_ident
-        }
+        },
     };
 
     // Build the method stub
-    let stub_method: syn::ImplItemMethod =
-        generate_extern_spec_function_stub(method, &method_path, extern_spec_kind);
-    
+    let stub_method =
+        generate_extern_spec_function_stub(method, &method_path, extern_spec_kind, false);
+    let stub_method: syn::ImplItemMethod = syn::parse2(stub_method)?;
+
     // Eagerly extract and process specifications
     let mut stub_method = AnyFnItem::ImplMethod(stub_method);
     let prusti_attributes = extract_prusti_attributes(&mut stub_method);
@@ -155,7 +163,10 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     stub_method.rewrite_receiver(self_type);
 
     // Set span of generated method to externally specified method for better error reporting
-    syn::visit_mut::visit_impl_item_method_mut(&mut SpanOverrider::new(method_sig_span), &mut stub_method);
+    syn::visit_mut::visit_impl_item_method_mut(
+        &mut SpanOverrider::new(method_sig_span),
+        &mut stub_method,
+    );
 
     let rewritten_spec_items = spec_items.into_iter().map(|spec_item| {
         match spec_item {
@@ -175,20 +186,24 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     Ok((stub_method, rewritten_spec_items))
 }
 
-pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttributes + Spanned, Output: syn::parse::Parse>(
+pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttributes + Spanned>(
     function: &Input,
     fn_path: &syn::ExprPath,
     extern_spec_kind: ExternSpecKind,
-) -> Output {
+    mangle_name: bool,
+) -> TokenStream {
     let signature = function.sig();
+    let mut signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
+    if mangle_name {
+        signature.ident = format_ident!("prusti_extern_spec_{}", signature.ident);
+    }
     // Make elided lifetimes explicit, if necessary.
-    let signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
     let attrs = function.attrs().clone();
     let generic_params = &signature.generic_params_as_call_args();
     let args = &signature.params_as_call_args();
     let extern_spec_kind_string: String = extern_spec_kind.into();
-    
-    parse_quote_spanned! {function.span()=>
+
+    quote_spanned! {function.span()=>
         #[trusted]
         #[prusti::extern_spec = #extern_spec_kind_string]
         #(#attrs)*
@@ -216,20 +231,17 @@ impl<H: HasSignature> MethodParamsAsCallArguments for H {
 
 impl MethodParamsAsCallArguments for Punctuated<FnArg, Token![,]> {
     fn params_as_call_args(&self) -> Punctuated<Expr, Token!(,)> {
-        Punctuated::from_iter(
-            self.iter()
-                .map(|param| -> Expr {
-                    let span = param.span();
-                    match param {
-                        FnArg::Typed(PatType { pat: box Pat::Ident(ident), .. }) =>
-                            parse_quote_spanned! {span=>#ident },
-                        FnArg::Receiver(_) =>
-                            parse_quote_spanned! {span=>self},
-                        _ =>
-                            unimplemented!(),
-                    }
-                })
-        )
+        Punctuated::from_iter(self.iter().map(|param| -> Expr {
+            let span = param.span();
+            match param {
+                FnArg::Typed(PatType {
+                    pat: box Pat::Ident(ident),
+                    ..
+                }) => parse_quote_spanned! {span=>#ident },
+                FnArg::Receiver(_) => parse_quote_spanned! {span=>self},
+                _ => unimplemented!(),
+            }
+        }))
     }
 }
 
@@ -246,20 +258,18 @@ impl<H: HasSignature> GenericParamsAsCallArguments for H {
 impl GenericParamsAsCallArguments for Punctuated<GenericParam, Token![,]> {
     fn generic_params_as_call_args(&self) -> Punctuated<GenericArgument, Token!(,)> {
         use syn::*;
-        Punctuated::from_iter(
-            self.iter()
-                .flat_map(|param| -> Option<GenericArgument> {
-                    let span = param.span();
-                    match param {
-                        GenericParam::Type(TypeParam { ident, .. }) =>
-                            Some(parse_quote_spanned! {span=>#ident }),
-                        GenericParam::Lifetime(_) =>
-                            None,
-                        GenericParam::Const(ConstParam { ident, .. }) =>
-                            Some(parse_quote_spanned! {span=>#ident }),
-                    }
-                })
-        )
+        Punctuated::from_iter(self.iter().flat_map(|param| -> Option<GenericArgument> {
+            let span = param.span();
+            match param {
+                GenericParam::Type(TypeParam { ident, .. }) => {
+                    Some(parse_quote_spanned! {span=>#ident })
+                }
+                GenericParam::Lifetime(_) => None,
+                GenericParam::Const(ConstParam { ident, .. }) => {
+                    Some(parse_quote_spanned! {span=>#ident })
+                }
+            }
+        }))
     }
 }
 
@@ -279,7 +289,10 @@ impl GenericParamsAsCallArguments for Punctuated<GenericParam, Token![,]> {
 /// }
 /// ```
 pub fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStruct) {
-    let fields = item_struct.generics.params.iter()
+    let fields = item_struct
+        .generics
+        .params
+        .iter()
         .flat_map(|param| match param {
             syn::GenericParam::Type(tp) => {
                 let ident = tp.ident.clone();
@@ -306,11 +319,38 @@ pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArgum
         .map(|gp| {
             let ts = match gp {
                 syn::GenericParam::Type(syn::TypeParam { ident, .. })
-                | syn::GenericParam::Const(syn::ConstParam { ident, .. }) => ident.into_token_stream(),
+                | syn::GenericParam::Const(syn::ConstParam { ident, .. }) => {
+                    ident.into_token_stream()
+                }
                 syn::GenericParam::Lifetime(ld) => ld.lifetime.into_token_stream(),
             };
             syn::parse2::<syn::GenericArgument>(ts).unwrap()
         })
         .collect();
     syn::parse_quote! { < #(#args),* > }
+}
+
+/// Checks that the given block is a stub (`;`), returning an error otherwise.
+pub(super) fn check_is_stub(block: &syn::Block) -> Result<(), syn::Error> {
+    if is_stub(block) {
+        Ok(())
+    } else {
+        Err(syn::Error::new(
+            block.span(),
+            "Unexpected method body. (Extern specs only define specifications.)",
+        ))
+    }
+}
+
+/// Recognizes method stubs, e.g. `fn foo();`.
+///
+/// The absence of a body is represented in a roundabout way:
+/// They have a body comprising a single verbatim item containing a single semicolon token.
+fn is_stub(block: &syn::Block) -> bool {
+    if let Ok(Some(syn::Stmt::Item(syn::Item::Verbatim(tokens)))) = block.stmts.iter().at_most_one()
+    {
+        tokens.to_string() == ";"
+    } else {
+        false
+    }
 }

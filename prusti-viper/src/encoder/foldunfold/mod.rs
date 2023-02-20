@@ -20,8 +20,8 @@ use std::{self, fmt, ops::Deref};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{
-        borrows::Borrow, CfgBlockIndex, CfgReplacer, CheckNoOpAction, ExprWalker,
-        FallibleExprFolder, PermAmount, PermAmountError,
+        borrows::Borrow, CfgBlockIndex, CfgReplacer, CheckNoOpAction, FallibleExprFolder,
+        PermAmount, PermAmountError,
     },
 };
 
@@ -72,7 +72,7 @@ impl fmt::Display for FoldUnfoldError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             FoldUnfoldError::FailedToObtain(perm) => {
-                writeln!(f, "The required permission {} cannot be obtained.", perm)
+                writeln!(f, "The required permission {perm} cannot be obtained.")
             }
             FoldUnfoldError::RequiresFolding(_pred, args, frac, _variant, _pos) => {
                 writeln!(f,
@@ -82,33 +82,31 @@ impl fmt::Display for FoldUnfoldError {
                 )
             }
             FoldUnfoldError::InvalidPermAmountAdd(error) => {
-                writeln!(f, "Failed to add fractional permissions: {}.", error)
+                writeln!(f, "Failed to add fractional permissions: {error}.")
             }
             FoldUnfoldError::InvalidPermAmountSub(error) => {
-                writeln!(f, "Failed to subtract fractional permissions: {}.", error)
+                writeln!(f, "Failed to subtract fractional permissions: {error}.")
             }
             FoldUnfoldError::MissingPredicate(pred) => {
-                writeln!(f, "The predicate definition of {} is not available.", pred)
+                writeln!(f, "The predicate definition of {pred} is not available.")
             }
             FoldUnfoldError::FailedToRemovePred(expr, frac) => {
                 writeln!(
                     f,
-                    "Tried to exhale a Pred({}, {}) permission that is not available.",
-                    expr, frac
+                    "Tried to exhale a Pred({expr}, {frac}) permission that is not available."
                 )
             }
             FoldUnfoldError::MissingLabel(label) => {
                 writeln!(
                     f,
-                    "An old[{}](..) expression uses a label that has not been declared.",
-                    label
+                    "An old[{label}](..) expression uses a label that has not been declared."
                 )
             }
             FoldUnfoldError::SpannedEncodingError(error) => {
-                writeln!(f, "Encoding error: {:?}", error)
+                writeln!(f, "Encoding error: {error:?}")
             }
             FoldUnfoldError::Unsupported(error) => {
-                writeln!(f, "Unsupported feature: {}.", error)
+                writeln!(f, "Unsupported feature: {error}.")
             }
         }
     }
@@ -118,12 +116,11 @@ impl From<PermAmountError> for FoldUnfoldError {
     fn from(err: PermAmountError) -> Self {
         match err {
             PermAmountError::InvalidAdd(a, b) => {
-                FoldUnfoldError::InvalidPermAmountAdd(format!("invalid addition: {} + {}", a, b))
+                FoldUnfoldError::InvalidPermAmountAdd(format!("invalid addition: {a} + {b}"))
             }
-            PermAmountError::InvalidSub(a, b) => FoldUnfoldError::InvalidPermAmountSub(format!(
-                "invalid substraction: {} - {}",
-                a, b
-            )),
+            PermAmountError::InvalidSub(a, b) => {
+                FoldUnfoldError::InvalidPermAmountSub(format!("invalid substraction: {a} - {b}"))
+            }
         }
     }
 }
@@ -225,10 +222,23 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
                 self.walk(base);
             }
         }
+        impl vir::StmtWalker for OldExprCollector {
+            fn walk_expr(&mut self, expr: &vir::Expr) {
+                vir::ExprWalker::walk(self, expr);
+            }
+            // We also need to collect old expressions inside ReborrowingDAGs
+            fn walk_expire_borrows(&mut self, expire_borrows: &vir::ExpireBorrows) {
+                for node in expire_borrows.dag.iter() {
+                    for stmt in &node.stmts {
+                        vir::StmtWalker::walk(self, stmt);
+                    }
+                }
+            }
+        }
         let mut old_expr_collector = OldExprCollector {
             old_exprs: FxHashMap::default(),
         };
-        cfg.walk_expressions(|expr| old_expr_collector.walk(expr));
+        cfg.walk_statements(|stmt| vir::StmtWalker::walk(&mut old_expr_collector, stmt));
         old_expr_collector.old_exprs
     };
     let initial_pctxt = PathCtxt::new(cfg_vars, &predicates, &old_exprs);
@@ -404,10 +414,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         }
         assert!(
             nearest_block.is_some(),
-            "Could not find a predecessor of {:?} in the blocks that create the borrow {:?} ({:?})",
-            curr_block,
-            borrow,
-            borrow_creation,
+            "Could not find a predecessor of {curr_block:?} in the blocks that create the borrow {borrow:?} ({borrow_creation:?})",
         );
         nearest_block.unwrap().0
     }
@@ -447,7 +454,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
             let method_name = new_cfg.name();
             report::log::report_with_writer(
                 "graphviz_method_during_foldunfold",
-                format!("{}.{}.dot", source_filename, method_name),
+                format!("{source_filename}.{method_name}.dot"),
                 |writer| {
                     new_cfg.to_graphviz_with_extra(writer, |bb_index| {
                         initial_pctxt
@@ -471,7 +478,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                                             .collect::<Vec<_>>()
                                             .join("\n");
                                     }
-                                    vec![format!("Acc:\n{}", acc), format!("Pred:\n{}", pred)]
+                                    vec![format!("Acc:\n{acc}"), format!("Pred:\n{pred}")]
                                 })
                             })
                             .unwrap_or_default()
@@ -511,7 +518,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         debug!("[enter] replace_stmt: {}", stmt);
 
         if let vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) = stmt {
-            let mut stmts = vec![vir::Stmt::comment(format!("{}", stmt))];
+            let mut stmts = vec![vir::Stmt::comment(format!("{stmt}"))];
             trace!("State acc {{\n{}\n}}", pctxt.state().display_acc());
             trace!("State pred {{\n{}\n}}", pctxt.state().display_pred());
             trace!("State moved {{\n{}\n}}", pctxt.state().display_moved());
@@ -564,18 +571,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         if stmt_index == 0 && config::dump_path_ctxt_in_debug_info() {
             let acc_state = pctxt.state().display_acc().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
-                "[state] acc: {{\n//{}\n//}}",
-                acc_state
+                "[state] acc: {{\n//{acc_state}\n//}}"
             )));
             let pred_state = pctxt.state().display_pred().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
-                "[state] pred: {{\n//{}\n//}}",
-                pred_state
+                "[state] pred: {{\n//{pred_state}\n//}}"
             )));
             let moved_state = pctxt.state().display_moved().replace('\n', "\n//");
             stmts.push(vir::Stmt::comment(format!(
-                "[state] moved: {{\n//{}\n//}}",
-                moved_state
+                "[state] moved: {{\n//{moved_state}\n//}}"
             )));
         }
 
@@ -611,7 +615,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 "required permissions: {{\n{}\n}}",
                 perms
                     .iter()
-                    .map(|x| format!("  {:?}", x))
+                    .map(|x| format!("  {x:?}"))
                     .collect::<Vec<_>>()
                     .join(",\n")
             );
@@ -854,7 +858,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     (place.clone(), *perm_amount, acc_perm_counter)
                 })
                 .collect();
-            acc_perms.sort_by(|(place1, _, id1), (place2, _, id2)| {
+            acc_perms.sort_unstable_by(|(place1, _, id1), (place2, _, id2)| {
                 let key1 = (place1.place_depth(), id1);
                 let key2 = (place2.place_depth(), id2);
                 key1.cmp(&key2)
@@ -863,7 +867,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 "acc_perms = {}",
                 acc_perms
                     .iter()
-                    .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
+                    .map(|(a, p, id)| format!("({a}, {p}, {id}), "))
                     .collect::<String>()
             );
             for (place, perm_amount, _) in acc_perms {
