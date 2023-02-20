@@ -4,6 +4,7 @@ use prusti_rustc_interface::{
     hir::def_id::DefId,
     span::{source_map::SourceMap, Span},
 };
+use prusti_viper::ide::vsc_span::VscSpan;
 use serde::{ser::SerializeStruct, Serialize};
 
 // create some struct storing all the information the IDE will ever need.
@@ -28,7 +29,7 @@ impl IdeInfo {
             .map(|(name, defid, sp)| ProcDef {
                 name,
                 defid,
-                span: VscSpan::from_span(sp, source_map).unwrap(),
+                span: VscSpan::from_span(&sp, source_map).unwrap(),
             })
             .collect();
 
@@ -61,18 +62,6 @@ impl Serialize for ProcDef {
     }
 }
 
-/// a representation of spans that is more usable with VSCode.
-#[derive(Serialize)]
-pub struct VscSpan {
-    column_end: usize,
-    column_start: usize,
-    line_end: usize,
-    line_start: usize,
-    file_name: String,
-    is_primary: bool,
-    label: Option<()>,
-    expansion: Option<()>,
-}
 
 // collect information about the program that will be passed to IDE:
 fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec<ProcDef> {
@@ -81,8 +70,7 @@ fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec<Pro
     for procedure in procedures {
         let defpath = env.name.get_unique_item_name(*procedure);
         let span = env.query.get_def_span(procedure);
-        println!("found procedure: {}, span: {:?}", defpath, span);
-        let vscspan = VscSpan::from_span(span, sourcemap).unwrap();
+        let vscspan = VscSpan::from_span(&span, sourcemap).unwrap();
 
         procs.push(ProcDef {
             name: defpath,
@@ -108,28 +96,3 @@ fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, DefId, Span)> {
     return fnvisitor.called_functions;
 }
 
-impl VscSpan {
-    pub fn from_span(sp: Span, sourcemap: &SourceMap) -> Option<Self> {
-        let filename = sourcemap.span_to_filename(sp);
-        let diag_filename = sourcemap.filename_for_diagnostics(&filename);
-        let fname = format!("{}", diag_filename);
-
-        if let Ok((l1, l2)) = sourcemap.is_valid_span(sp) {
-            Some(Self {
-                column_end: l2.col.0,
-                column_start: l1.col.0,
-                line_end: l2.line,
-                line_start: l2.line,
-                file_name: fname,
-                // the following 3 are not relevant here, we just want to be
-                // able to reuse the existing methods and the parser
-                // for spans in VSCode
-                is_primary: false,
-                label: None,
-                expansion: None,
-            })
-        } else {
-            None
-        }
-    }
-}

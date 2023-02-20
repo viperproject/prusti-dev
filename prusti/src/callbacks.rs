@@ -142,10 +142,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                     verify(env, def_spec, verification_task);
                 } else {
                     let target_def_path = config::selective_verify().unwrap();
-                    info!(
-                        "Selective Verification invoked for method {}\n\n\n",
-                        target_def_path
-                    );
                     let procedures = annotated_procedures
                         .into_iter()
                         .filter(|x| env.name.get_unique_item_name(*x) == target_def_path)

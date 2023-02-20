@@ -54,20 +54,13 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
         intravisit::walk_expr(self, expr);
         match expr.kind {
             ExprKind::Call(e1, _e2) => {
-                println!("found a call: resolving!");
-
                 if let ExprKind::Path(ref qself) = e1.kind {
                     let tyck_res = self.tcx.typeck(e1.hir_id.owner.def_id);
                     let res = tyck_res.qpath_res(qself, e1.hir_id);
                     if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
                         let defpath = self.tcx.def_path_str(def_id);
-                        println!("Call DefPath: {}", defpath);
                         self.called_functions.push((defpath, def_id, expr.span));
-                    } else {
-                        println!("Resolving a call failed!\n\n\n");
                     }
-                } else {
-                    println!("Resolving a Call failed!\n\n\n");
                 }
             }
             ExprKind::MethodCall(_path, _e1, _e2, sp) => {
@@ -106,16 +99,10 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                             // TODO: replace with is_local once we are not debugging anymore
                             // no need to create external specs for local methods
                             if defpath_unresolved == defpath_resolved {
-                                println!("Defpaths for binary operation were equal");
                                 self.called_functions.push((defpath_resolved, resolved_def_id, expr.span));
                             } else {
                                 // For binary operations this will be the operation
                                 // from the standard libary and the "overriding" method
-                                println!(
-                                    "\n\n\n\nFound two differing defpaths for binary operation"
-                                );
-                                println!("1. {}", defpath_resolved);
-                                println!("2. {}", defpath_unresolved);
 
                                 self.called_functions.push((defpath_resolved, resolved_def_id,expr.span));
                                 self.called_functions.push((defpath_unresolved, method_def_id, expr.span));

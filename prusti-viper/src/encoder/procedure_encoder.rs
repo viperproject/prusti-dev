@@ -23,6 +23,7 @@ use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
 use crate::error_unsupported;
+use crate::ide::encoding_info::SpanOfCallContracts;
 use prusti_common::{
     config,
     utils::to_string::ToString,
@@ -3387,6 +3388,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 substs,
             ).with_span(call_site_span)?
         };
+        self.store_contract_spans(
+            called_def_id, 
+            &procedure_contract,
+            call_site_span,
+        );
+
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;
 
         // Store a label for the pre state
@@ -3526,6 +3533,63 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .insert(location, (procedure_contract, fake_exprs));
 
         Ok(stmts)
+    }
+
+    fn store_contract_spans(
+        &self,
+        called_def_id: ProcedureDefId,
+        contract: &ProcedureContract<'tcx>,
+        call_site_span: Span,
+    ) {
+        let mut precondition_spans:Vec<Span> = contract
+            .functional_precondition(self.encoder.env(), self.substs)
+            .iter()
+            .map(|(ts,_)| self.encoder.env().query.get_def_span(ts))
+            .collect();
+        let mut postcondition_spans: Vec<Span> = contract
+            .functional_postcondition(self.encoder.env(), self.substs)
+            .iter()
+            .map(|(ts,_)| self.encoder.env().query.get_def_span(ts))
+            .collect();
+        let purity: Option<Span> = contract
+            .specification.purity
+            .extract_with_selective_replacement()
+            .copied().unwrap_or(None)
+            .map(|id| self.encoder.env().query.get_def_span(id));
+        let terminates: Option<Span> = contract.specification.terminates
+            .extract_with_selective_replacement()
+            .copied().unwrap_or(None)
+            .map(|id| self.encoder.env().query.get_def_span(id));
+
+        // pledges store 2 defids, let's put in both..
+        // let mut pledges_lhs: Vec<Span> = contract.pledges().filter_map(|x| x.lhs)
+        //     .map(|id| self.encoder.env().query.get_def_span(id))
+        //     .collect();
+        // let mut pledges_rhs: Vec<Span> = contract.pledges().map(|x| x.rhs)
+        //     .map(|id| self.encoder.env().query.get_def_span(id))
+        //     .collect();
+        let mut result = vec![]; 
+        result.append(&mut precondition_spans);
+        result.append(&mut postcondition_spans);
+        // result.append(&mut pledges_rhs);
+        // result.append(&mut pledges_lhs);
+        if let Some(purity) = purity {
+            result.push(purity);
+        }
+        if let Some(terminates) = terminates {
+            result.push(terminates);
+        }
+        // let mut pure_opt = contract.
+        let tcx = self.encoder.env().tcx();
+        let contract_spans_opt = SpanOfCallContracts::new(
+            tcx.def_path_str(called_def_id),
+            call_site_span,
+            result,
+            &tcx.sess.source_map(),
+        );
+        if let Some(contract_spans) = contract_spans_opt {
+            self.encoder.spans_of_call_contracts.borrow_mut().push(contract_spans);
+        }
     }
 
     #[allow(clippy::too_many_arguments)]

@@ -95,6 +95,12 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         };
         programs.extend(self.encoder.get_core_proof_programs());
 
+        if config::show_ide_info() {
+            self.emit_contract_spans();
+        }
+
+
+
         stopwatch.start_next("verifying Viper program");
 
         let requests = self.programs_to_requests(programs);
@@ -337,6 +343,14 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             }
         };
         return verification_stream.flatten();
+    }
+
+    pub fn emit_contract_spans(&self) {
+        let encoding_info = ide::encoding_info::EncodingInfo {
+            call_contract_spans: self.encoder.spans_of_call_contracts.borrow().to_vec(),
+        };
+        println!("EncodingInfo {}", encoding_info.to_json_string());
+
     }
 }
 
