@@ -171,8 +171,8 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
 
             SwitchInt {
                 discr,
-                switch_ty: _,
                 targets,
+                ..
             } => {
                 let temp_1 = TemporaryPlace { id: 1 };
                 let temp_1_mut = Self::encode_operand(ctx, discr, temp_1)?;

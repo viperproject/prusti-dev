@@ -25,7 +25,7 @@ use prusti_rustc_interface::{
     },
     polonius_engine::{Algorithm, Output},
     session::{Attribute, Session},
-};=
+};
 use prusti_utils::report::log::report_with_writer;
 use std::{cell::RefCell, rc::Rc};
 

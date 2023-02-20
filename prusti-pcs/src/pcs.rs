@@ -449,9 +449,8 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                 .kind)
             {
                 TerminatorKind::SwitchInt {
-                    discr: _,
-                    switch_ty: _,
                     targets: ts,
+                    ..
                 } => {
                     for t in ts.all_targets().iter() {
                         edges.push((b, *t));
