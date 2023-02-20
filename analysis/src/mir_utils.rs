@@ -191,19 +191,6 @@ impl<'tcx> Place<'tcx> {
     }
 }
 
-/// Convert a `location` to a string representing the statement or terminator at that `location`
-pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
-    let bb_mir = &mir[location.block];
-    if location.statement_index < bb_mir.statements.len() {
-        let stmt = &bb_mir.statements[location.statement_index];
-        format!("{stmt:?}")
-    } else {
-        // location = terminator
-        let terminator = bb_mir.terminator();
-        format!("{:?}", terminator.kind)
-    }
-}
-
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
 /// +   `is_prefix(x.f, x.f) == true`
@@ -494,9 +481,8 @@ pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Plac
 pub fn happy_path_successors(terminator: &TerminatorKind) -> Vec<mir::BasicBlock> {
     match terminator {
         TerminatorKind::SwitchInt {
-            discr: _,
-            switch_ty: _,
             targets: ts,
+            ..
         } => ts.all_targets().iter().cloned().collect(),
         TerminatorKind::Resume
         | TerminatorKind::Abort
@@ -636,7 +622,7 @@ pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String 
     let bb_mir = &mir[location.block];
     if location.statement_index < bb_mir.statements.len() {
         let stmt = &bb_mir.statements[location.statement_index];
-        format!("{:?}", stmt)
+        format!("{stmt:?}")
     } else {
         // location = terminator
         let terminator = bb_mir.terminator();
