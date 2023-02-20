@@ -142,10 +142,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         while let Some((program_name, server_msg)) = verification_messages.next().await {
             match server_msg {
                 ServerMessage::Termination(result) => {
-                    PrustiError::message(
-                        serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap(),
-                        DUMMY_SP.into()
-                    ).emit(&self.env.diagnostic);
+                    if config::show_ide_info() {
+                        eprintln!("ide_verification_result{}", serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap());
+                    }
                     match result.result_type {
                         // nothing to do
                         viper::VerificationResultType::Success => (),
