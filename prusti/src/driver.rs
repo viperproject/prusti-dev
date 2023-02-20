@@ -107,9 +107,11 @@ fn init_loggers() -> Option<FlushGuard> {
     // TODO: The `config::log() != ""` here is very bad; it makes us ignore the `log_tracing` flag
     // It's enabled so that we only create a `trace.json` file if the user has explicitly requested logging
     let guard = if config::log_tracing() && !config::log().is_empty() {
+        let log_dir = config::log_dir();
+        std::fs::create_dir_all(&log_dir).expect("failed to create log directory");
         let filter = EnvFilter::new(config::log());
         let (chrome_layer, guard) = ChromeLayerBuilder::new()
-            .file(config::log_dir().join("trace.json"))
+            .file(log_dir.join("trace.json"))
             .include_args(true)
             .build();
         tracing_subscriber::registry()
