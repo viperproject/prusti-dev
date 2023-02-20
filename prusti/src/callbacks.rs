@@ -19,7 +19,6 @@ use prusti_rustc_interface::{
     },
     session::Session,
 };
-use ::log::info;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;

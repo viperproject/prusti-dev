@@ -12,7 +12,7 @@ use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::Encoder;
 use crate::encoder::counterexamples::counterexample_translation;
 use crate::encoder::counterexamples::counterexample_translation_refactored;
-use crate::ide_verification_result::IdeVerificationResult;
+use crate::ide::{self, ide_verification_result::IdeVerificationResult};
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
@@ -349,7 +349,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let encoding_info = ide::encoding_info::EncodingInfo {
             call_contract_spans: self.encoder.spans_of_call_contracts.borrow().to_vec(),
         };
-        println!("EncodingInfo {}", encoding_info.to_json_string());
+        eprintln!("EncodingInfo{}", encoding_info.to_json_string());
 
     }
 }
