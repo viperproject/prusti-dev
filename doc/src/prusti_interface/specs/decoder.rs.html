@@ -134,7 +134,23 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
-</pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::path::PathBuf;
+
+<span class="kw">use </span>prusti_rustc_interface::{
     hir::def_id::{CrateNum, DefId, DefIndex, DefPathHash},
     middle::{
         implement_ty_decoder,
@@ -150,14 +166,18 @@
     opaque: opaque::MemDecoder&lt;<span class="lifetime">&#39;a</span>&gt;,
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ty_rcache: FxHashMap&lt;usize, Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+    specs_file: PathBuf,
+    crate_name: String,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], specs_file: PathBuf, crate_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         DefSpecsDecoder {
             opaque: opaque::MemDecoder::new(data, <span class="number">0</span>),
             tcx,
             ty_rcache: Default::default(),
+            specs_file,
+            crate_name: crate_name.to_string(),
         }
     }
 
@@ -168,7 +188,15 @@
             cstore.stable_crate_id_to_crate_num(hash.stable_crate_id())
         });
         <span class="kw">if </span>result.is_err() {
-            <span class="macro">panic!</span>(<span class="string">&quot;A compiled dependency is out of sync. Try deleting the target folder (`cargo clean`).&quot;</span>)
+            <span class="comment">// The way to fix this in Prusti is to somehow regenerate the `.specs`
+            // file whenever the DefPathHash might change (e.g. different args)
+            </span><span class="kw">let </span>(specs_file, crate_name) = (<span class="kw-2">&amp;</span><span class="self">self</span>.specs_file, <span class="kw-2">&amp;</span><span class="self">self</span>.crate_name);
+            <span class="kw">let </span>target_dir = specs_file.parent().unwrap();
+            <span class="macro">panic!</span>(
+                <span class="string">&quot;A compiled dependency (referenced from `{specs_file:?}`) is out of sync. \
+            Running `cargo clean -p {crate_name}` and rebuilding should fix this. \
+            Otherwise try deleting the entire `{target_dir:?}` directory.&quot;
+            </span>)
         }
         <span class="comment">// Get `DefId`
         </span><span class="self">self</span>.tcx.def_path_hash_to_def_id(hash, <span class="kw-2">&amp;mut </span>|| {

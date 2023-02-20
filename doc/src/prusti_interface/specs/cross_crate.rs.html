@@ -111,6 +111,10 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
     metadata::creader::CStore,
     serialize::{Decodable, Encodable},
@@ -167,11 +171,14 @@
         </span><span class="kw">for </span>crate_num <span class="kw">in </span>env.tcx().crates(()) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(extern_crate) = env.tcx().extern_crate(crate_num.as_def_id()) {
                 <span class="kw">if </span>extern_crate.is_direct() {
+                    <span class="kw">let </span>crate_name = env.tcx().crate_name(<span class="kw-2">*</span>crate_num);
                     <span class="kw">let </span>cs = cstore.crate_source_untracked(<span class="kw-2">*</span>crate_num);
                     <span class="kw">let </span><span class="kw-2">mut </span>source = cs.paths().next().unwrap().clone();
                     source.set_extension(<span class="string">&quot;specs&quot;</span>);
                     <span class="kw">if </span>source.is_file() {
-                        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">Self</span>::import_from_file(env, def_spec, <span class="kw-2">&amp;</span>source) {
+                        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) =
+                            <span class="self">Self</span>::import_from_file(env, def_spec, <span class="kw-2">&amp;</span>source, crate_name.as_str())
+                        {
                             PrustiError::internal(
                                 <span class="macro">format!</span>(
                                     <span class="string">&quot;error importing specs from file \&quot;{}\&quot;: {}&quot;</span>,
@@ -209,12 +216,13 @@
         env: <span class="kw-2">&amp;mut </span>Environment,
         def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap,
         path: <span class="kw-2">&amp;</span>path::PathBuf,
+        crate_name: <span class="kw-2">&amp;</span>str,
     ) -&gt; io::Result&lt;()&gt; {
         <span class="kw">use </span>std::io::Read;
         <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>file = fs::File::open(path)<span class="question-mark">?</span>;
         file.read_to_end(<span class="kw-2">&amp;mut </span>data)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>decoder = DefSpecsDecoder::new(env.tcx(), <span class="kw-2">&amp;</span>data);
+        <span class="kw">let </span><span class="kw-2">mut </span>decoder = DefSpecsDecoder::new(env.tcx(), <span class="kw-2">&amp;</span>data, path.clone(), crate_name);
 
         <span class="kw">let </span>proc_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span>decoder);
         <span class="kw">let </span>type_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span>decoder);
