@@ -9,7 +9,7 @@ use crate::encoder::foldunfold::{
     footprint::*,
     perm::{Perm::*, *},
 };
-use log::{debug, trace};
+use log::debug;
 use rustc_hash::FxHashSet;
 use std::iter::FromIterator;
 use vir_crate::polymorphic::{self as vir, PermAmount};
@@ -221,11 +221,11 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
 /// expressions.
 /// The result will in some cases contain conflicting requirements (e.g. require `x.f` folded
 /// but also `x.f.g` folded) which can be solved by calling the `solve_conficts` function.
+#[tracing::instrument(level = "trace", skip_all, fields(expr = %expr), ret)]
 fn get_all_required_expr_permissions(
     expr: &vir::Expr,
     preds: &Predicates,
 ) -> (FxHashSet<Perm>, FxHashSet<vir::Expr>) {
-    trace!("[enter] get_all_required_expr_permissions(expr={})", expr);
     let mut reqs: FxHashSet<Perm> = FxHashSet::default();
     let mut discr: FxHashSet<vir::Expr> = FxHashSet::default();
 
@@ -382,35 +382,22 @@ fn get_all_required_expr_permissions(
         }
         _ => {}
     }
-
-    trace!(
-        "[exit] get_all_required_expr_permissions(expr={}) {:#?} {:#?}",
-        expr,
-        reqs,
-        discr
-    );
     (reqs, discr)
 }
 
 impl RequiredExprPermissionsGetter for vir::Expr {
+    #[tracing::instrument(level = "trace", skip_all, fields(self = %self), ret)]
     fn get_required_stmt_permissions(&self, preds: &Predicates) -> FxHashSet<Perm> {
-        trace!("[enter] get_required_stmt_permissions(expr={})", self);
-        let reqs = get_all_required_expr_permissions(self, preds)
+        get_all_required_expr_permissions(self, preds)
             .0
             .into_iter()
             .filter(|p| p.is_pred())
-            .collect();
-        trace!(
-            "[exit] get_required_stmt_permissions(expr={}) {:#?}",
-            self,
-            reqs
-        );
-        reqs
+            .collect()
     }
 
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn get_required_expr_permissions(&self, predicates: &Predicates) -> FxHashSet<Perm> {
-        trace!("[enter] get_required_expr_permissions(expr={})", self);
-        let permissions = match self {
+        match self {
             vir::Expr::Unfolding(vir::Unfolding {
                 arguments,
                 permission,
@@ -507,12 +494,6 @@ impl RequiredExprPermissionsGetter for vir::Expr {
             }
 
             _ => FxHashSet::default(),
-        };
-        trace!(
-            "[exit] get_required_expr_permissions(expr={}): {:#?}",
-            self,
-            permissions
-        );
-        permissions
+        }
     }
 }

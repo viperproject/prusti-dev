@@ -29,6 +29,7 @@ pub(super) struct LoopInvariantBlocks {
 }
 
 impl SpecificationBlocks {
+    #[tracing::instrument(name = "SpecificationBlocks::build", level = "debug", skip_all)]
     pub fn build<'tcx>(
         env_query: EnvQuery<'tcx>,
         body: &mir::Body<'tcx>,

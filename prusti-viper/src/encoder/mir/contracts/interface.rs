@@ -98,6 +98,7 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
         Ok(contract)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn get_procedure_contract_for_def(
         &self,
         proc_def_id: DefId,
@@ -109,6 +110,7 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
             .map_err(|err| err.clone())
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn get_procedure_contract_for_call(
         &self,
         caller_def_id: DefId,
@@ -129,6 +131,7 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
     }
 }
 
+#[tracing::instrument(level = "debug", skip(encoder, specification))]
 fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     specification: typed::ProcedureSpecification,
@@ -136,9 +139,6 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     substs: SubstsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
     let env = encoder.env();
-
-    trace!("[get_procedure_contract] enter name={:?}", proc_def_id);
-
     let args_ty: Vec<(mir::Local, ty::Ty<'tcx>)>;
     let return_ty;
 

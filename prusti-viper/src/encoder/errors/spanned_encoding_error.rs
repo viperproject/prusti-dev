@@ -56,6 +56,7 @@ impl SpannedEncodingError {
     }
 
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
+    #[tracing::instrument(level = "debug", skip(message, span))]
     pub fn unsupported<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
         if cfg!(debug_assertions) {
             debug!("Constructing unsupported error at:\n{:?}", Backtrace::new());
@@ -67,6 +68,7 @@ impl SpannedEncodingError {
     }
 
     /// An incorrect usage of Prusti (e.g. call an impure function in a contract)
+    #[tracing::instrument(level = "debug", skip(message, span))]
     pub fn incorrect<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
         if cfg!(debug_assertions) {
             debug!("Constructing incorrect error at:\n{:?}", Backtrace::new());

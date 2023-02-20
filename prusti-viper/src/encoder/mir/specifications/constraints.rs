@@ -19,6 +19,7 @@ pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
         query: &SpecQuery<'tcx>,
     ) -> Result<&'spec ProcedureSpecification, PrustiError>;
 
+    #[tracing::instrument(level = "debug", skip(self, env))]
     fn resolve_emit_err(
         &'spec self,
         env: &'env Environment<'tcx>,
@@ -40,13 +41,12 @@ pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
 impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
     for SpecGraph<ProcedureSpecification>
 {
+    #[tracing::instrument(level = "debug", skip(self, env))]
     fn resolve(
         &'spec self,
         env: &'env Environment<'tcx>,
         query: &SpecQuery<'tcx>,
     ) -> Result<&'spec ProcedureSpecification, PrustiError> {
-        debug!("Resolving spec constraints for {query:?}");
-
         if self.specs_with_constraints.is_empty() {
             trace!("Spec has no constraints, using base spec");
             return Ok(&self.base_spec);
@@ -132,13 +132,17 @@ mod trait_bounds {
     use prusti_interface::{utils::has_trait_bounds_type_cond_spec, PrustiError};
     use rustc_hash::FxHashMap;
 
+    #[tracing::instrument(
+        name = "trait_bounds::resolve",
+        level = "debug",
+        skip(env, proc_spec),
+        ret
+    )]
     pub(super) fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
         env: &'env Environment<'tcx>,
         context: &ConstraintSolvingContext<'tcx>,
         proc_spec: &'spec ProcedureSpecification,
     ) -> bool {
-        debug!("Trait bound constraint resolving for {:?}", context);
-
         let param_env_constraint = extract_param_env(env, proc_spec);
         let param_env_constraint =
             perform_param_env_substitutions(env, context, param_env_constraint);
@@ -154,7 +158,7 @@ mod trait_bounds {
             context.proc_def_id
         };
 
-        let all_bounds_satisfied = param_env_constraint
+        param_env_constraint
             .caller_bounds()
             .iter()
             .all(|predicate| {
@@ -167,20 +171,16 @@ mod trait_bounds {
 
                 env.query
                     .evaluate_predicate(normalized_predicate, param_env_lookup)
-            });
-
-        trace!("Constraint fulfilled: {all_bounds_satisfied}");
-        all_bounds_satisfied
+            })
     }
 
     /// Substitutes the param environment
+    #[tracing::instrument(level = "debug", skip(env), ret)]
     fn perform_param_env_substitutions<'env, 'tcx: 'env>(
         env: &'env Environment<'tcx>,
         context: &ConstraintSolvingContext<'tcx>,
         param_env: ty::ParamEnv<'tcx>,
     ) -> ty::ParamEnv<'tcx> {
-        trace!("Unsubstituted constraints: {:#?}", param_env);
-
         let maybe_trait_method = env
             .query
             .find_trait_method_substs(context.proc_def_id, context.substs);
@@ -196,19 +196,12 @@ mod trait_bounds {
             param_env
         );
 
-        let param_env = if context.substs.is_empty() {
+        if context.substs.is_empty() {
             param_env
         } else {
             trace!("Applying call substs {:?}", context.substs);
             ty::EarlyBinder(param_env).subst(env.tcx(), context.substs)
-        };
-
-        trace!(
-            "Constraints after substituting call substs: {:#?}",
-            param_env
-        );
-
-        param_env
+        }
     }
 
     fn extract_param_env<'a, 'tcx>(

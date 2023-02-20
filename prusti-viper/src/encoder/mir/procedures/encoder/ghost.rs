@@ -79,6 +79,7 @@ impl<'a, 'p, 'v, 'tcx> GhostChecker<'a, 'p, 'v, 'tcx> {
 }
 
 impl<'a, 'p, 'v, 'tcx> Visitor<'tcx> for GhostChecker<'a, 'p, 'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self))]
     fn visit_local(&mut self, local: mir::Local, context: PlaceContext, location: mir::Location) {
         let is_ghost = self.is_ghost_place(location) || self.is_ghost_local(&local);
         if !is_ghost && context.is_use() {

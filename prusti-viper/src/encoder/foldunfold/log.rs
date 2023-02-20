@@ -58,12 +58,8 @@ impl EventLog {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(block_index = %block_index, action = %action))]
     pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
-        trace!(
-            "[enter] log_prejoin_action(block_index={}, action={})",
-            block_index,
-            action
-        );
         let entry_rc = self
             .prejoin_actions
             .entry(block_index)
@@ -109,11 +105,11 @@ impl EventLog {
         self.id_generator += 1;
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn get_duplicated_read_permissions(
         &self,
         borrow: vir::borrows::Borrow,
     ) -> Vec<(vir::Expr, vir::Expr)> {
-        trace!("[enter] get_duplicated_read_permissions({:?})", borrow);
         let mut result = self
             .duplicated_reads
             .get(&borrow)
@@ -149,7 +145,7 @@ impl EventLog {
             },
         );
         trace!(
-            "[enter] get_duplicated_read_permissions({:?}) = {}",
+            "[exit] get_duplicated_read_permissions({:?}) = {}",
             borrow,
             result
                 .iter()

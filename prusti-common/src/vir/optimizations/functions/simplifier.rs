@@ -7,7 +7,6 @@
 //! Function simplifier that simplifies expressions.
 
 use crate::vir::polymorphic_vir::ast::{self, ExprFolder};
-use log::trace;
 
 pub trait Simplifier {
     /// Simplify by doing constant evaluation.
@@ -18,11 +17,10 @@ pub trait Simplifier {
 impl Simplifier for ast::Function {
     /// Simplify functions in a way that tries to work-around regressions caused by
     /// <https://github.com/viperproject/silicon/issues/387>
+    #[tracing::instrument(level = "debug", skip(self), fields(self = %self), ret(Display))]
     fn simplify(mut self) -> Self {
-        trace!("[enter] simplify = {}", self);
         let new_body = self.body.map(|b| b.simplify());
         self.body = new_body;
-        trace!("[exit] simplify = {}", self);
         self
     }
 }
@@ -38,9 +36,9 @@ impl Simplifier for ast::Expr {
 struct ExprSimplifier {}
 
 impl ExprSimplifier {
+    #[tracing::instrument(level = "debug", skip(e), fields(e = %e), ret(Display))]
     fn apply_rules(e: ast::Expr) -> ast::Expr {
-        trace!("[enter] apply_rules={}", e);
-        let result = match e {
+        match e {
             ast::Expr::UnaryOp(ast::UnaryOp {
                 op_kind: ast::UnaryOpKind::Not,
                 argument:
@@ -186,9 +184,7 @@ impl ExprSimplifier {
                 position: pos,
             }),
             r => r,
-        };
-        trace!("[exit] apply_rules={}", result);
-        result
+        }
     }
 }
 

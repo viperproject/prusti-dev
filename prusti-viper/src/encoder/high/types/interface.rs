@@ -173,6 +173,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         self.ensure_viper_predicate_encoded(name)?;
         Ok(self.high_type_encoder_state.viper_predicates.borrow()[name].clone())
     }
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type> {
         let ty_kind = ty.kind();
         if !self

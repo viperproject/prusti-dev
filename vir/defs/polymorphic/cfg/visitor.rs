@@ -96,6 +96,7 @@ pub trait CfgReplacer<PathCtxt: Debug + Clone, Action: CheckNoOpAction + Debug> 
     ) -> Result<Vec<Stmt>, Self::Error>;
 
     /// The main method: visit and replace the reachable blocks of a CFG.
+    #[tracing::instrument(level = "debug", skip(self, cfg))]
     fn replace_cfg(&mut self, cfg: &CfgMethod) -> Result<CfgMethod, Self::Error> {
         // Initialize the variables of the new cfg
         let mut new_cfg = CfgMethod::new(

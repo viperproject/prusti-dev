@@ -24,6 +24,7 @@ use self::{
 };
 
 #[allow(clippy::let_and_return)]
+#[tracing::instrument(level = "debug", skip_all)]
 pub fn optimize_method_encoding(
     cfg: CfgMethod,
     source_file_name: &str,

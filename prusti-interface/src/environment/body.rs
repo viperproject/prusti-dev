@@ -1,4 +1,3 @@
-use log::trace;
 use prusti_common::config;
 use prusti_rustc_interface::{
     macros::{TyDecodable, TyEncodable},
@@ -277,11 +276,11 @@ impl<'tcx> EnvBody<'tcx> {
         self.try_get_local_mir_borrowck_facts(def_id).unwrap()
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn try_get_local_mir_borrowck_facts(
         &self,
         def_id: LocalDefId,
     ) -> Option<Rc<BorrowckFacts>> {
-        trace!("try_get_local_mir_borrowck_facts: {:?}", def_id);
         self.local_impure_fns
             .borrow()
             .get(&def_id)

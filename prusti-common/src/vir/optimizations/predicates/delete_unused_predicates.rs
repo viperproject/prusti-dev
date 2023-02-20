@@ -104,6 +104,7 @@ fn visit_predicate(
 }
 
 /// Delete all unused predicates and eliminate bodies of predicates that are never folded or unfolded
+#[tracing::instrument(level = "debug", skip(methods, functions, predicates))]
 pub fn delete_unused_predicates(
     methods: &[CfgMethod],
     functions: &[Function],
