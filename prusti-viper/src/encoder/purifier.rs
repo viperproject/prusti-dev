@@ -12,10 +12,10 @@ use log::{debug, trace};
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 
 /// Replaces shared references to pure Viper variables.
+#[tracing::instrument(level = "debug", skip(encoder, method), fields(method = method.name()))]
 pub fn purify_method(encoder: &Encoder, method: &mut vir::CfgMethod) {
     // A set of candidate references to be purified.
     let mut candidates = FxHashSet::default();
-    debug!("method: {}", method.name());
     for var in &method.local_vars {
         match var.typ {
             vir::Type::TypedRef(ref typed_ref) if typed_ref.label.starts_with("ref$") => {

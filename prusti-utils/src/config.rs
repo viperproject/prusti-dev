@@ -86,6 +86,7 @@ lazy_static::lazy_static! {
         settings.set_default("log", "").unwrap();
         settings.set_default("log_style", "auto").unwrap();
         settings.set_default("log_dir", "log").unwrap();
+        settings.set_default("log_tracing", true).unwrap();
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
@@ -440,6 +441,11 @@ pub fn log_style() -> String {
 /// Path to directory in which log files and dumped output will be stored.
 pub fn log_dir() -> PathBuf {
     PathBuf::from(read_setting::<String>("log_dir"))
+}
+
+/// When enabled, trace using tracing_chrome crate.
+pub fn log_tracing() -> bool {
+    read_setting("log_tracing")
 }
 
 /// Path to a cache file, where verification cache will be loaded from and

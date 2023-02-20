@@ -55,6 +55,7 @@ impl<'tcx> CollectPrustiSpecVisitor<'tcx> {
 }
 
 impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
+    #[tracing::instrument(level = "trace", skip(self, item))]
     fn visit_item(&mut self, item: &hir::Item) {
         let attrs = self.env_query.get_local_attributes(item.owner_id.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
@@ -80,6 +81,7 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip(self, trait_item))]
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
         let attrs = self
             .env_query
@@ -108,6 +110,7 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
         self.procedures.push(def_id);
     }
 
+    #[tracing::instrument(level = "trace", skip(self, impl_item))]
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
         let attrs = self
             .env_query

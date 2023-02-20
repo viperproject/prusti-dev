@@ -15,11 +15,11 @@ use log::trace;
 /// Substitute (map) expressions in a statement
 impl Stmt {
     #[must_use]
+    #[tracing::instrument(name = "Stmt::map_expr", level = "trace", skip_all, fields(self = %self))]
     pub fn map_expr<F>(self, substitutor: F) -> Self
     where
         F: FnMut(Expr) -> Expr,
     {
-        trace!("Stmt::map_expr {}", self);
         struct StmtExprSubstitutor<T>
         where
             T: FnMut(Expr) -> Expr,
@@ -37,11 +37,11 @@ impl Stmt {
         StmtExprSubstitutor { substitutor }.fold(self)
     }
 
+    #[tracing::instrument(name = "Stmt::fallible_map_expr", level = "trace", skip_all, fields(self = %self))]
     pub fn fallible_map_expr<F, E>(self, substitutor: F) -> Result<Self, E>
     where
         F: Fn(Expr) -> Result<Expr, E>,
     {
-        trace!("Stmt::fallible_map_expr {}", self);
         struct StmtExprSubstitutor<T, U>
         where
             T: Fn(Expr) -> Result<Expr, U>,
@@ -65,11 +65,11 @@ impl Stmt {
 /// In an expression, substitute labels of old expressions
 impl Expr {
     #[must_use]
+    #[tracing::instrument(name = "Expr::map_old_expr_label", level = "trace", skip_all, fields(self = %self))]
     pub fn map_old_expr_label<F>(self, substitutor: F) -> Self
     where
         F: Fn(String) -> String,
     {
-        trace!("Expr::map_old_expr_label {}", self);
         struct ExprLabelSubstitutor<T>
         where
             T: Fn(String) -> String,

@@ -111,6 +111,7 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Get ids of Rust procedures that are annotated with a Prusti specification
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn get_annotated_procedures_and_types(&self) -> (Vec<ProcedureDefId>, Vec<ty::Ty<'tcx>>) {
         let mut visitor = CollectPrustiSpecVisitor::new(self);
         visitor.visit_all_item_likes();

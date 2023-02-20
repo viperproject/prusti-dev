@@ -21,6 +21,7 @@ impl<'a> AstUtils<'a> {
     }
 
     /// Returns a vector of consistency errors, or a Java exception
+    #[tracing::instrument(level = "debug", skip_all)]
     pub(crate) fn check_consistency(
         &self,
         program: Program<'a>,
@@ -32,6 +33,7 @@ impl<'a> AstUtils<'a> {
             .map(|java_vec| self.jni.seq_to_vec(java_vec))
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn pretty_print(&self, program: Program<'a>) -> String {
         let fast_pretty_printer_wrapper =
             silver::ast::pretty::FastPrettyPrinter_object::with(self.env);

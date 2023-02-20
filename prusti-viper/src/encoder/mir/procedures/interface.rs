@@ -22,6 +22,7 @@ pub(crate) trait MirProcedureEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_procedure_core_proof_high(
         &mut self,
         proc_def_id: DefId,

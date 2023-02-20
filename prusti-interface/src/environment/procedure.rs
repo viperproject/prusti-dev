@@ -38,8 +38,8 @@ pub struct Procedure<'tcx> {
 impl<'tcx> Procedure<'tcx> {
     /// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
+    #[tracing::instrument(name = "Procedure::new", level = "debug", skip(env))]
     pub fn new(env: &Environment<'tcx>, proc_def_id: ProcedureDefId) -> Self {
-        trace!("Encoding procedure {proc_def_id:?}");
         let mir = env
             .body
             .get_impure_fn_body_identity(proc_def_id.expect_local());
@@ -309,6 +309,7 @@ struct BasicBlockNode {
     predecessors: FxHashSet<BasicBlock>,
 }
 
+#[tracing::instrument(level = "debug", skip_all)]
 fn _blocks_definitely_leading_to<'a>(
     bb_graph: &'a FxHashMap<BasicBlock, BasicBlockNode>,
     target: BasicBlock,
@@ -345,6 +346,7 @@ fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> FxHashSet<BasicBloc
     blocks
 }
 
+#[tracing::instrument(level = "trace", skip_all)]
 fn get_nonspec_basic_blocks(
     env_query: EnvQuery,
     bb_graph: FxHashMap<BasicBlock, BasicBlockNode>,

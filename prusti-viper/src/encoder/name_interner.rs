@@ -4,8 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt::Debug;
+
 use rustc_hash::{FxHashMap, FxHashSet};
-use log::debug;
 
 /// Name interner.
 /// This structure can be used to shorten long unique names without losing the uniqueness property.
@@ -26,7 +27,8 @@ impl NameInterner {
     /// Intern a full unique name, returning a possibly readable string that uniquely identifies it.
     /// The `readable_names` must not collide with past or future `full_unique_name`s, except for
     /// the `full_unique_name` passed in the same call.
-    pub fn intern<S: AsRef<str>>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
+    #[tracing::instrument(level = "debug", skip(self), ret)]
+    pub fn intern<S: AsRef<str> + Debug>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
         let full_unique_name = full_unique_name.as_ref();
 
         debug_assert!(!readable_names.iter().any(|r| r.as_ref() == ""));
@@ -44,7 +46,6 @@ impl NameInterner {
 
         // Return the symbol, if we already interned the full name
         if let Some(symbol) = self.name_to_symbol.get(full_unique_name) {
-            debug!("Interning of {:?} is {:?}", full_unique_name, symbol);
             return symbol.clone();
         }
 
@@ -52,7 +53,6 @@ impl NameInterner {
             .find(|r| !self.used_symbols.contains(r.as_ref()))
             .map(|r| r.as_ref())
             .unwrap_or(full_unique_name);
-        debug!("Interning of {:?} is {:?}", full_unique_name, symbol);
         self.used_symbols.insert(symbol.to_string());
         self.name_to_symbol.insert(full_unique_name.to_string(), symbol.to_string());
 

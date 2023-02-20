@@ -77,6 +77,7 @@ impl<T> AnalysisResult<T> {
 /// The result of the definitely initialized analysis.
 pub type DefinitelyInitializedAnalysisResult<'tcx> = AnalysisResult<PlaceSet<'tcx>>;
 
+#[tracing::instrument(level = "debug", skip_all)]
 pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     def_id: DefId,
     body: &'a mir::Body<'tcx>,

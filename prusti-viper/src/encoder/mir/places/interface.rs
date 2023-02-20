@@ -153,6 +153,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         Ok(variable_decl)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_place_high(
         &self,
         mir: &mir::Body<'tcx>,
