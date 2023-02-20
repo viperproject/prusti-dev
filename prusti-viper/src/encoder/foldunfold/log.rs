@@ -119,7 +119,7 @@ impl EventLog {
             .get(&borrow)
             .cloned()
             .unwrap_or_default();
-        result.sort_by(
+        result.sort_unstable_by(
             |(access1, _, id1), (access2, _, id2)| match (access1, access2) {
                 (
                     vir::Expr::PredicateAccessPredicate(..),
@@ -153,7 +153,7 @@ impl EventLog {
             borrow,
             result
                 .iter()
-                .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
+                .map(|(a, p, id)| format!("({a}, {p}, {id}), "))
                 .collect::<String>()
         );
         result

@@ -42,6 +42,8 @@ pub(super) fn collect_definitions(
         unfolded_predicates: Default::default(),
     };
     vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
+    // Keep all domains around. An alternative is to make the collector walk over domain axioms.
+    let used_builtin_domains = encoder.get_encoded_builtin_domains().into_iter().collect();
     let mut collector = Collector {
         error_span,
         encoder,
@@ -51,6 +53,7 @@ pub(super) fn collect_definitions(
         used_predicates: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
+        used_builtin_domains,
         used_snap_domain_functions: Default::default(),
         used_functions: Default::default(),
         checked_function_contracts: Default::default(),
@@ -77,6 +80,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     new_unfolded_predicates: FxHashSet<vir::Type>,
     used_fields: FxHashSet<vir::Field>,
     used_domains: FxHashSet<String>,
+    used_builtin_domains: FxHashSet<vir::Domain>,
     used_snap_domain_functions: FxHashSet<vir::FunctionIdentifier>,
     /// The set of all functions that are mentioned in the method.
     used_functions: FxHashSet<vir::FunctionIdentifier>,
@@ -101,10 +105,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let functions = self.get_used_functions()?;
         let viper_predicates = self.get_used_predicates()?;
         let domains = self.get_used_domains();
+        let backend_types = self.get_used_backend_types();
         let fields = self.get_used_fields();
         Ok(vir::Program {
             name,
             domains,
+            backend_types,
             fields,
             builtin_methods: self.get_all_methods(),
             methods,
@@ -287,8 +293,527 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 domains.push(mirror_domain);
             }
         }
+        domains.extend(self.used_builtin_domains.iter().cloned());
         domains.sort_by_cached_key(|domain| domain.name.clone());
         domains
+    }
+    fn get_used_backend_types(&self) -> Vec<vir::BackendType> {
+        let f32_name = "FloatDomain24e8".to_string();
+        let f32_type = vir::Type::Float(vir::Float::F32);
+        let b32_type = vir::Type::BitVector(vir::BitVector::Unsigned(vir::BitVectorSize::BV32));
+        let f32 = vir::BackendType {
+            name: f32_name.clone(),
+            functions: vec![
+                vir::BackendFuncDecl {
+                    name: "f32_from_bv".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", b32_type)],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "(_ to_fp 8 24)".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_add".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.add RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_sub".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.sub RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_mul".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.mul RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_div".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.div RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_min".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.min".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_max".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.max".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_eq".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.eq".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_leq".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.leq".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_geq".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.geq".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_lt".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.lt".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_gt".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f32_type.clone()),
+                        vir::LocalVar::new("b", f32_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.gt".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_neg".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f32_type.clone())],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.neg".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_abs".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f32_type.clone())],
+                    return_type: f32_type.clone(),
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.abs".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_is_zero".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f32_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.isZero".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_is_infinite".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f32_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.isInfinite".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_is_nan".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f32_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.isNaN".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_is_negative".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f32_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name.clone(),
+                    interpretation: "fp.isNegative".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f32_fp_is_positive".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f32_type)],
+                    return_type: vir::Type::Bool,
+                    domain_name: f32_name,
+                    interpretation: "fp.isPositive".to_string(),
+                },
+            ],
+            interpretations: vec![
+                ("Boogie", "float24e8"),
+                ("SMTLIB", "(_ FloatingPoint 8 24)"),
+            ]
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect(),
+        };
+        let f64_name = "FloatDomain52e12".to_string();
+        let f64_type = vir::Type::Float(vir::Float::F64);
+        let b64_type = vir::Type::BitVector(vir::BitVector::Unsigned(vir::BitVectorSize::BV64));
+        let f64 = vir::BackendType {
+            name: f64_name.clone(),
+            functions: vec![
+                vir::BackendFuncDecl {
+                    name: "f64_from_bv".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", b64_type)],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "(_ to_fp 12 52)".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_add".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.add RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_sub".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.sub RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_mul".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.mul RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_div".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.div RNE".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_min".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.min".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_max".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.max".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_eq".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.eq".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_leq".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.leq".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_geq".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.geq".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_lt".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.lt".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_gt".to_string(),
+                    formal_args: vec![
+                        vir::LocalVar::new("a", f64_type.clone()),
+                        vir::LocalVar::new("b", f64_type.clone()),
+                    ],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.gt".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_neg".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type.clone())],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.neg".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_abs".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type.clone())],
+                    return_type: f64_type.clone(),
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.abs".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_is_zero".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.isZero".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_is_infinite".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.isInfinite".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_is_nan".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.isNaN".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_is_negative".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.isNegative".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_is_positive".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type.clone())],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name.clone(),
+                    interpretation: "fp.isPositive".to_string(),
+                },
+                vir::BackendFuncDecl {
+                    name: "f64_fp_typ".to_string(),
+                    formal_args: vec![vir::LocalVar::new("a", f64_type)],
+                    return_type: vir::Type::Bool,
+                    domain_name: f64_name,
+                    interpretation: "fp.typ".to_string(),
+                },
+            ],
+            interpretations: vec![
+                ("Boogie", "float52e12"),
+                ("SMTLIB", "(_ FloatingPoint 12 52)"),
+            ]
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect(),
+        };
+        let mut backend_types = vec![f32, f64];
+        for size in &[8, 16, 32, 64, 128] {
+            let name = format!("BitVectorDomain{size}");
+            let typ =
+                vir::Type::BitVector(vir::BitVector::Unsigned(vir::BitVectorSize::from(*size)));
+            backend_types.push(vir::BackendType {
+                name: name.clone(),
+                functions: vec![
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_from_int"),
+                        formal_args: vec![vir::LocalVar::new("i", vir::Type::Int)],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: format!("(_ int2bv {size})"),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_to_int"),
+                        formal_args: vec![vir::LocalVar::new("i", typ.clone())],
+                        return_type: vir::Type::Int,
+                        domain_name: name.clone(),
+                        interpretation: format!("(_ bv2int {size})"),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_and"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvand".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_or"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvor".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_xor"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvxor".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_add"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvadd".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_sub"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvsub".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_mul"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvmul".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_udiv"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvudiv".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_shl"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvshl".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_lshr"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvlshr".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_ashr"),
+                        formal_args: vec![
+                            vir::LocalVar::new("a", typ.clone()),
+                            vir::LocalVar::new("b", typ.clone()),
+                        ],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvashr".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_not"),
+                        formal_args: vec![vir::LocalVar::new("a", typ.clone())],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvnot".to_string(),
+                    },
+                    vir::BackendFuncDecl {
+                        name: format!("bv{size}_neg"),
+                        formal_args: vec![vir::LocalVar::new("a", typ.clone())],
+                        return_type: typ.clone(),
+                        domain_name: name.clone(),
+                        interpretation: "bvneg".to_string(),
+                    },
+                ],
+                interpretations: vec![
+                    ("Boogie", format!("bv{size}")),
+                    ("SMTLIB", format!("(_ BitVec {size})")),
+                ]
+                .into_iter()
+                .map(|(k, v)| (k.to_string(), v))
+                .collect(),
+            });
+        }
+        backend_types
     }
     fn contains_unfolded_predicates(&self, exprs: &[vir::Expr]) -> bool {
         let unfolded_predicate_checker = &mut UnfoldedPredicateChecker {

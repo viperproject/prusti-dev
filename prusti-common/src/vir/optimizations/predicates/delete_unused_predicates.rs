@@ -10,7 +10,7 @@ use crate::vir::polymorphic_vir::{
     utils::{walk_functions, walk_methods},
 };
 use log::debug;
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 fn collect_info_from_methods_and_functions(
     methods: &[CfgMethod],
@@ -29,9 +29,11 @@ fn collect_info_from_methods_and_functions(
 }
 
 /// Computes a map of Predicate to the predicates used  in that predicate
-fn get_used_predicates_in_predicate_map(predicates: &[Predicate]) -> HashMap<Type, HashSet<Type>> {
+fn get_used_predicates_in_predicate_map(
+    predicates: &[Predicate],
+) -> FxHashMap<Type, FxHashSet<Type>> {
     let mut collector = UsedPredicateCollector::new();
-    let mut map = HashMap::new();
+    let mut map = FxHashMap::default();
 
     for pred in predicates {
         match pred {
@@ -39,7 +41,7 @@ fn get_used_predicates_in_predicate_map(predicates: &[Predicate]) -> HashMap<Typ
                 typ, body: Some(e), ..
             }) => {
                 ExprWalker::walk(&mut collector, e);
-                let mut res = HashSet::new();
+                let mut res = FxHashSet::default();
                 std::mem::swap(&mut res, &mut collector.used_predicates);
                 map.insert(typ.clone(), res);
             }
@@ -58,7 +60,7 @@ fn get_used_predicates_in_predicate_map(predicates: &[Predicate]) -> HashMap<Typ
                         .for_each(|e| ExprWalker::walk(&mut collector, e))
                 }
 
-                let mut res = HashSet::new();
+                let mut res = FxHashSet::default();
                 std::mem::swap(&mut res, &mut collector.used_predicates);
                 map.insert(p.typ.clone(), res);
             }
@@ -71,10 +73,10 @@ fn get_used_predicates_in_predicate_map(predicates: &[Predicate]) -> HashMap<Typ
 /// Return the set of the predicates in the predicate map that are actually
 /// reachable from the provided set of predicates
 fn compute_reachable_predicates(
-    predicates_in_predicates: &HashMap<Type, HashSet<Type>>,
-    used_predicates: &HashSet<Type>,
-) -> HashSet<Type> {
-    let mut visited = HashSet::new();
+    predicates_in_predicates: &FxHashMap<Type, FxHashSet<Type>>,
+    used_predicates: &FxHashSet<Type>,
+) -> FxHashSet<Type> {
+    let mut visited = FxHashSet::default();
     for to_visit in used_predicates {
         visit_predicate(to_visit, predicates_in_predicates, &mut visited);
     }
@@ -85,8 +87,8 @@ fn compute_reachable_predicates(
 /// Function used by compute_reachable_predicates to visit all the predicates
 fn visit_predicate(
     to_visit: &Type,
-    predicates_in_predicates: &HashMap<Type, HashSet<Type>>,
-    visited: &mut HashSet<Type>,
+    predicates_in_predicates: &FxHashMap<Type, FxHashSet<Type>>,
+    visited: &mut FxHashSet<Type>,
 ) {
     if visited.contains(to_visit) {
         return;
@@ -150,16 +152,16 @@ pub fn delete_unused_predicates(
 
 struct UsedPredicateCollector {
     /// set of all predicates that are used
-    used_predicates: HashSet<Type>,
+    used_predicates: FxHashSet<Type>,
     /// set of all predicates that are folded or unfolded
-    folded_predicates: HashSet<Type>,
+    folded_predicates: FxHashSet<Type>,
 }
 
 impl UsedPredicateCollector {
     fn new() -> Self {
         UsedPredicateCollector {
-            used_predicates: HashSet::new(),
-            folded_predicates: HashSet::new(),
+            used_predicates: FxHashSet::default(),
+            folded_predicates: FxHashSet::default(),
         }
     }
 }

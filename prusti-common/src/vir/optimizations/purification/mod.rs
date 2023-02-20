@@ -2,7 +2,8 @@ use crate::vir::polymorphic_vir::{
     ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
 use log::debug;
-use std::collections::{BTreeSet, HashSet};
+use rustc_hash::FxHashSet;
+use std::collections::BTreeSet;
 
 /// This purifies local variables in a method body
 pub fn purify_methods(
@@ -36,7 +37,7 @@ fn translate_type(typ: &Type) -> Type {
 static SUPPORTED_TYPES: &[&str] = &["bool", "i32", "isize", "usize", "u32"];
 
 fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
-    let mut candidates = HashSet::new();
+    let mut candidates = FxHashSet::default();
     for var in &method.local_vars {
         match &var.typ {
             Type::TypedRef(..) if SUPPORTED_TYPES.contains(&var.typ.name().as_str()) => {
@@ -105,11 +106,11 @@ fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
 /// without a field access.
 #[derive(Debug)]
 struct PurifiableVariableCollector {
-    vars: HashSet<String>,
+    vars: FxHashSet<String>,
 }
 
 impl PurifiableVariableCollector {
-    fn new(initial_vars: HashSet<String>) -> Self {
+    fn new(initial_vars: FxHashSet<String>) -> Self {
         PurifiableVariableCollector { vars: initial_vars }
     }
 }

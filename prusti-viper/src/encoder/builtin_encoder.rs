@@ -7,6 +7,7 @@
 use prusti_common::{vir_local, vir_expr};
 use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
+use super::errors::EncodingResult;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderInterface;
 use super::versioning;
 
@@ -50,9 +51,7 @@ pub enum BuiltinFunctionKind {
     },
 }
 
-// This code is currently dead, but we should start using it soon.
-#[allow(dead_code)]
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinDomainKind {
     Nat,
     Primitive,
@@ -73,7 +72,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         match method {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
-            BuiltinMethodKind::HavocBV(variant)  => format!("builtin$havoc_{}", variant),
+            BuiltinMethodKind::HavocBV(variant)  => format!("builtin$havoc_{variant}"),
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
@@ -81,7 +80,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_builtin_method_def(&self, method: BuiltinMethodKind) -> vir::BodylessMethod {
+    pub fn encode_builtin_method_def(&self, method: BuiltinMethodKind) -> EncodingResult<vir::BodylessMethod> {
+        let method_name = self.encode_builtin_method_name(method);
         let return_type = match method {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
             BuiltinMethodKind::HavocInt => vir::Type::Int,
@@ -90,16 +90,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
             BuiltinMethodKind::BumpMemVersion => {
-                return versioning::bump_mem_version_definition();
+                return Ok(versioning::bump_mem_version_definition());
             }
         };
-        vir::BodylessMethod {
-            name: self.encode_builtin_method_name(method),
+        Ok(vir::BodylessMethod {
+            name: method_name,
             formal_args: vec![],
             formal_returns: vec![vir_local!{ ret: {return_type} }],
             pres: vec![],
             posts: vec![],
-        }
+        })
     }
 
     pub fn encode_builtin_function_def(&self, function: BuiltinFunctionKind) -> vir::Function {
@@ -224,13 +224,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    // This code is currently dead, but we should start using it soon.
-    #[allow(dead_code)]
-    pub fn encode_builtin_domain(&self, kind: BuiltinDomainKind) -> vir::Domain {
-        match kind {
+    pub fn encode_builtin_domain(&self, kind: BuiltinDomainKind) -> EncodingResult<vir::Domain> {
+        Ok(match kind {
             BuiltinDomainKind::Nat => self.encode_nat_builtin_domain(),
             BuiltinDomainKind::Primitive => self.encode_primitive_builtin_domain(),
-        }
+        })
+    }
+
+    pub fn encode_builtin_domain_type(&self, kind: BuiltinDomainKind) -> EncodingResult<vir::Type> {
+        Ok(match kind {
+            BuiltinDomainKind::Nat | BuiltinDomainKind::Primitive => {
+                vir::Type::domain(self.encode_builtin_domain(kind)?.name)
+            }
+        })
     }
 
     fn encode_nat_builtin_domain(&self) -> vir::Domain {
@@ -286,7 +292,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
 
                 let self_arg = vir::LocalVar::new("self", arg_typ);
                 vir::DomainFunc {
-                    name: format!("{}$valid", domain_name),
+                    name: format!("{domain_name}$valid"),
                     type_arguments: vec![], // FIXME: This is most likely wrong.
                     formal_args: vec![self_arg],
                     return_type: vir::Type::Bool,
@@ -304,6 +310,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                 vec![vir::Trigger::new(vec![function_app.clone()])],
                 function_app);
             let axiom = vir::DomainAxiom {
+                comment: None,
                 name: format!("{}$axiom", f.get_identifier()),
                 expr: body,
                 domain_name: domain_name.to_string(),

@@ -11,10 +11,7 @@ use crate::encoder::{
 };
 use prusti_common::{vir_expr, vir_local};
 use prusti_interface::specs::typed;
-use prusti_rustc_interface::{
-    middle::ty::{self, layout::IntegerExt},
-    target::abi::Integer,
-};
+use prusti_rustc_interface::{middle::ty, target::abi::Integer};
 use vir_crate::polymorphic::{self as vir, ExprIterator};
 
 pub(super) fn needs_invariant_func(ty: ty::Ty<'_>) -> bool {
@@ -80,7 +77,7 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
         //| ty::TyKind::Uint(_) => { ... }
         ty::TyKind::Tuple(substs) => {
             for (field_num, field_ty) in substs.iter().enumerate() {
-                let field_name = format!("tuple_{}", field_num);
+                let field_name = format!("tuple_{field_num}");
                 conjuncts.push(encoder.encode_invariant_func_app(
                     field_ty,
                     vir::Expr::snap_app(vir::Expr::field(
@@ -94,7 +91,7 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
         ty::TyKind::Closure(_def_id, substs) => {
             let cl_substs = substs.as_closure();
             for (field_num, field_ty) in cl_substs.upvar_tys().enumerate() {
-                let field_name = format!("closure_{}", field_num);
+                let field_name = format!("closure_{field_num}");
                 conjuncts.push(encoder.encode_invariant_func_app(
                     field_ty,
                     vir::Expr::snap_app(vir::Expr::field(

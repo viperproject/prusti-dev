@@ -64,8 +64,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
                 ty,
                 vir_mid::Type::MBool | vir_mid::Type::MInt | vir_mid::Type::MPerm
             ),
-            "ty: {}",
-            ty
+            "ty: {ty}"
         );
         let domain_name = match ty {
             vir_mid::Type::Lifetime => self.lifetime_domain_name()?,

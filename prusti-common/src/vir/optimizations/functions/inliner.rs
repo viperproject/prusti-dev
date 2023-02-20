@@ -8,7 +8,8 @@
 
 use crate::vir::polymorphic_vir::{ast, cfg};
 use log::trace;
-use std::{collections::HashMap, mem};
+use rustc_hash::FxHashMap;
+use std::mem;
 
 /// Convert functions whose body does not depend on arguments such as
 ///
@@ -38,7 +39,7 @@ pub fn inline_constant_functions(
 ) -> (Vec<cfg::CfgMethod>, Vec<ast::Function>) {
     trace!("[enter] purify_constant_functions");
     let mut non_pure_functions = Vec::new();
-    let mut pure_function_map = HashMap::new();
+    let mut pure_function_map = FxHashMap::default();
     let mut changed = true;
     while changed {
         changed = false;
@@ -76,12 +77,12 @@ fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
 
 /// Inline all calls to constant functions.
 struct ConstantFunctionInliner<'a> {
-    pure_function_map: &'a HashMap<String, ast::Expr>,
+    pure_function_map: &'a FxHashMap<String, ast::Expr>,
 }
 
 fn inline_into(
     mut function: ast::Function,
-    pure_function_map: &HashMap<String, ast::Expr>,
+    pure_function_map: &FxHashMap<String, ast::Expr>,
 ) -> ast::Function {
     function.body = function.body.map(|body| {
         let mut inliner = ConstantFunctionInliner { pure_function_map };
@@ -150,7 +151,7 @@ impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
 
 fn inline_into_methods(
     methods: Vec<cfg::CfgMethod>,
-    pure_function_map: HashMap<String, ast::Expr>,
+    pure_function_map: FxHashMap<String, ast::Expr>,
 ) -> Vec<cfg::CfgMethod> {
     let mut inliner = ConstantFunctionInliner {
         pure_function_map: &pure_function_map,

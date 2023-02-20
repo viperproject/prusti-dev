@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![deny(unused_must_use)]
+#![warn(clippy::disallowed_types)]
 
 #[rustfmt::skip]
 #[path = "../gen/mod.rs"]

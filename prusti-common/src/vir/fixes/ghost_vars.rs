@@ -6,9 +6,8 @@
 
 //! Fix ghost variables.
 
-use super::super::polymorphic_vir::ast;
-use super::super::polymorphic_vir::cfg;
-use std::collections::HashSet;
+use super::super::polymorphic_vir::{ast, cfg};
+use rustc_hash::FxHashSet;
 use std::mem;
 
 /// Viper has a consistency check that only variables declared inside
@@ -18,9 +17,7 @@ use std::mem;
 /// creating the encoding. Therefore, we fix this with an additional
 /// pass that renames all variables declared inside package statements
 /// so that they are unique.
-pub fn fix_ghost_vars(
-    mut method: cfg::CfgMethod
-) -> cfg::CfgMethod {
+pub fn fix_ghost_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     let mut fixer = GhostVarFixer {
         package_stmt_count: 0,
         vars: None,
@@ -41,7 +38,7 @@ struct GhostVarFixer {
     package_stmt_count: u32,
     /// A set of variables declared inside a package stmt that should be
     /// renamed.
-    vars: Option<HashSet<ast::LocalVar>>,
+    vars: Option<FxHashSet<ast::LocalVar>>,
 }
 
 impl GhostVarFixer {
@@ -53,12 +50,12 @@ impl GhostVarFixer {
 }
 
 impl ast::ExprFolder for GhostVarFixer {
-    fn fold_local(&mut self, ast::Local {variable, position}: ast::Local) -> ast::Expr {
+    fn fold_local(&mut self, ast::Local { variable, position }: ast::Local) -> ast::Expr {
         match self.vars {
             Some(ref vars) if vars.contains(&variable) => {
                 ast::Expr::local_with_pos(self.fix_name(variable), position)
             }
-            _ => ast::Expr::local_with_pos(variable, position)
+            _ => ast::Expr::local_with_pos(variable, position),
         }
     }
 }
@@ -68,11 +65,22 @@ impl ast::StmtFolder for GhostVarFixer {
         ast::ExprFolder::fold(self, e)
     }
 
-    fn fold_package_magic_wand(&mut self, ast::PackageMagicWand {magic_wand, package_stmts, label, variables, position}: ast::PackageMagicWand)
-     -> ast::Stmt {
+    fn fold_package_magic_wand(
+        &mut self,
+        ast::PackageMagicWand {
+            magic_wand,
+            package_stmts,
+            label,
+            variables,
+            position,
+        }: ast::PackageMagicWand,
+    ) -> ast::Stmt {
         let magic_wand = self.fold_expr(magic_wand);
         self.vars = Some(variables.into_iter().collect());
-        let package_stmts = package_stmts.into_iter().map(|stmt| self.fold(stmt)).collect();
+        let package_stmts = package_stmts
+            .into_iter()
+            .map(|stmt| self.fold(stmt))
+            .collect();
         let unfixed_vars = self.vars.take().unwrap();
         let variables = unfixed_vars
             .into_iter()

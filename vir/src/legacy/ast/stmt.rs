@@ -74,7 +74,7 @@ pub enum Stmt {
 }
 
 // This preserves `Stmt == Stmt ==> hash(Stmt) == hash(Stmt)`
-#[allow(clippy::derive_hash_xor_eq)]
+#[allow(clippy::derived_hash_with_manual_eq)]
 impl Hash for Stmt {
     /// Hash ignoring Comments and ExpireBorrows
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -124,14 +124,14 @@ pub enum AssignKind {
 impl fmt::Display for Stmt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Stmt::Comment(ref comment) => write!(f, "// {}", comment),
-            Stmt::Label(ref label) => write!(f, "label {}", label),
+            Stmt::Comment(ref comment) => write!(f, "// {comment}"),
+            Stmt::Label(ref label) => write!(f, "label {label}"),
             Stmt::Inhale(ref expr) => {
-                write!(f, "inhale {}", expr)
+                write!(f, "inhale {expr}")
             }
-            Stmt::Exhale(ref expr, _) => write!(f, "exhale {}", expr),
+            Stmt::Exhale(ref expr, _) => write!(f, "exhale {expr}"),
             Stmt::Assert(ref expr, _) => {
-                write!(f, "assert {}", expr)
+                write!(f, "assert {expr}")
             }
             Stmt::MethodCall(ref name, ref args, ref vars) => write!(
                 f,
@@ -147,22 +147,22 @@ impl fmt::Display for Stmt {
                     .join(", "),
             ),
             Stmt::Assign(ref lhs, ref rhs, kind) => match kind {
-                AssignKind::Move => write!(f, "{} := move {}", lhs, rhs),
-                AssignKind::Copy => write!(f, "{} := copy {}", lhs, rhs),
+                AssignKind::Move => write!(f, "{lhs} := move {rhs}"),
+                AssignKind::Copy => write!(f, "{lhs} := copy {rhs}"),
                 AssignKind::MutableBorrow(borrow) => {
-                    write!(f, "{} := mut borrow {} // {:?}", lhs, rhs, borrow)
+                    write!(f, "{lhs} := mut borrow {rhs} // {borrow:?}")
                 }
                 AssignKind::SharedBorrow(borrow) => {
-                    write!(f, "{} := borrow {} // {:?}", lhs, rhs, borrow)
+                    write!(f, "{lhs} := borrow {rhs} // {borrow:?}")
                 }
-                AssignKind::Ghost => write!(f, "{} := ghost {}", lhs, rhs),
+                AssignKind::Ghost => write!(f, "{lhs} := ghost {rhs}"),
             },
 
             Stmt::Fold(ref pred_name, ref args, perm, ref variant, _) => write!(
                 f,
                 "fold acc({}({}), {})",
                 if let Some(variant_index) = variant {
-                    format!("{}<variant {}>", pred_name, variant_index)
+                    format!("{pred_name}<variant {variant_index}>")
                 } else {
                     pred_name.to_string()
                 },
@@ -177,7 +177,7 @@ impl fmt::Display for Stmt {
                 f,
                 "unfold acc({}({}), {})",
                 if let Some(variant_index) = variant {
-                    format!("{}<variant {}>", pred_name, variant_index)
+                    format!("{pred_name}<variant {variant_index}>")
                 } else {
                     pred_name.to_string()
                 },
@@ -188,17 +188,15 @@ impl fmt::Display for Stmt {
                 perm,
             ),
 
-            Stmt::Obtain(ref expr, _) => write!(f, "obtain {}", expr),
+            Stmt::Obtain(ref expr, _) => write!(f, "obtain {expr}"),
 
             Stmt::BeginFrame => write!(f, "begin frame"),
 
             Stmt::EndFrame => write!(f, "end frame"),
 
-            Stmt::TransferPerm(ref lhs, ref rhs, unchecked) => write!(
-                f,
-                "transfer perm {} --> {} // unchecked: {}",
-                lhs, rhs, unchecked
-            ),
+            Stmt::TransferPerm(ref lhs, ref rhs, unchecked) => {
+                write!(f, "transfer perm {lhs} --> {rhs} // unchecked: {unchecked}")
+            }
 
             Stmt::PackageMagicWand(
                 ref magic_wand,
@@ -208,10 +206,10 @@ impl fmt::Display for Stmt {
                 _position,
             ) => {
                 if let Expr::MagicWand(ref lhs, ref rhs, None, _) = magic_wand {
-                    writeln!(f, "package[{}] {}", label, lhs)?;
-                    writeln!(f, "    --* {}", rhs)?;
+                    writeln!(f, "package[{label}] {lhs}")?;
+                    writeln!(f, "    --* {rhs}")?;
                 } else {
-                    writeln!(f, "package[{}] {}", label, magic_wand)?;
+                    writeln!(f, "package[{label}] {magic_wand}")?;
                 }
                 write!(f, "{{")?;
                 if !package_stmts.is_empty() {
@@ -224,18 +222,18 @@ impl fmt::Display for Stmt {
             }
 
             Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs, Some(borrow), _), _) => {
-                writeln!(f, "apply[{:?}] {} --* {}", borrow, lhs, rhs)
+                writeln!(f, "apply[{borrow:?}] {lhs} --* {rhs}")
             }
 
             Stmt::ApplyMagicWand(ref magic_wand, _) => {
                 if let Expr::MagicWand(ref lhs, ref rhs, Some(borrow), _) = magic_wand {
-                    writeln!(f, "apply[{:?}] {} --* {}", borrow, lhs, rhs)
+                    writeln!(f, "apply[{borrow:?}] {lhs} --* {rhs}")
                 } else {
-                    writeln!(f, "apply {}", magic_wand)
+                    writeln!(f, "apply {magic_wand}")
                 }
             }
 
-            Stmt::ExpireBorrows(dag) => writeln!(f, "expire_borrows {:?}", dag),
+            Stmt::ExpireBorrows(dag) => writeln!(f, "expire_borrows {dag:?}"),
 
             Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
                 fn write_stmt(f: &mut fmt::Formatter, stmt: &Stmt) -> fmt::Result {
@@ -251,13 +249,13 @@ impl fmt::Display for Stmt {
                     }
                     write!(f, "}}")
                 }
-                write!(f, "if {} ", guard)?;
+                write!(f, "if {guard} ")?;
                 write_block(f, then_stmts)?;
                 write!(f, " else ")?;
                 write_block(f, else_stmts)
             }
 
-            Stmt::Downcast(e, v) => writeln!(f, "downcast {} to {}", e, v),
+            Stmt::Downcast(e, v) => writeln!(f, "downcast {e} to {v}"),
         }
     }
 }
@@ -858,6 +856,6 @@ pub trait StmtWalker {
 pub fn stmts_to_str(stmts: &[Stmt]) -> String {
     stmts
         .iter()
-        .map(|stmt| format!("{}\n", stmt))
+        .map(|stmt| format!("{stmt}\n"))
         .collect::<String>()
 }

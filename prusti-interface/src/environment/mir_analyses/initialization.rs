@@ -48,7 +48,7 @@ impl<T> AnalysisResult<T> {
     pub fn get_before_block(&self, bb: mir::BasicBlock) -> &T {
         self.before_block
             .get(&bb)
-            .unwrap_or_else(|| panic!("Missing initialization info for block {:?}", bb))
+            .unwrap_or_else(|| panic!("Missing initialization info for block {bb:?}"))
     }
     /// Get the initialization set after the statement.
     /// If `location.statement_index` is equal to the number of statements,
@@ -56,7 +56,7 @@ impl<T> AnalysisResult<T> {
     pub fn get_after_statement(&self, location: mir::Location) -> &T {
         self.after_statement
             .get(&location)
-            .unwrap_or_else(|| panic!("Missing initialization info for location {:?}", location))
+            .unwrap_or_else(|| panic!("Missing initialization info for location {location:?}"))
     }
 
     /// Get initialization information before the statement.

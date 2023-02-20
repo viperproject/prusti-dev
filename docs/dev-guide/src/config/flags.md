@@ -23,7 +23,6 @@
 | [`DUMP_REBORROWING_DAG_IN_DEBUG_INFO`](#dump_reborrowing_dag_in_debug_info) | `bool` | `false` | A |
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` | A |
 | [`ENABLE_CACHE`](#enable_cache) | `bool` | `true` | A |
-| [`ENABLE_GHOST_CONSTRAINTS`](#enable_ghost_constraints) | `bool` | `false` | A |
 | [`ENABLE_PURIFICATION_OPTIMIZATION`](#enable_purification_optimization) | `bool` | `false` | A |
 | [`ENABLE_TYPE_INVARIANTS`](#enable_type_invariants) | `bool` | `false` | A |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` | A |
@@ -47,6 +46,7 @@
 | [`MIN_PRUSTI_VERSION`](#min_prusti_version) | `Option<String>` | `None` | A |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` | A |
 | [`NO_VERIFY_DEPS`](#no_verify_deps) | `bool` | `false` | B |
+| [`OPT_IN_VERIFICATION`](#opt_in_verification) | `bool` | `false` | A |
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" | A |
 | [`PRESERVE_SMT_TRACE_FILES`](#preserve_smt_trace_files) | `bool` | `false` | A |
 | [`PRINT_COLLECTED_VERIFICATION_ITEMS`](#print_collected_verification_items) | `bool` | `false` | A |
@@ -173,20 +173,12 @@ When enabled, reborrowing DAGs will be output in debug files.
 
 ## `DUMP_VIPER_PROGRAM`
 
-When enabled, the encoded Viper program will be output.
+When enabled, the encoded Viper programs will be output.
+You can find them either in `log/viper_program` or `target/verify/log/viper_program`.
 
 ## `ENABLE_CACHE`
 
 When enabled, verification requests (to verify individual `fn`s) are cached to improve future verification. By default the cache is only saved in memory (of the `prusti-server` if enabled). For long-running verification projects use [`CACHE_PATH`](#cache_path) to save to disk.
-
-## `ENABLE_GHOST_CONSTRAINTS`
-
-When enabled, ghost constraints can be used in Prusti specifications.
-
-Ghost constraints allow for specifications which are only active if a certain "constraint" (i.e. a trait bound
-on a generic type parameter) is satisfied.
-
-**This is an experimental feature**, because it is currently possible to introduce unsound verification behavior.
 
 ## `ENABLE_PURIFICATION_OPTIMIZATION`
 
@@ -265,6 +257,9 @@ When enabled, communication with the server will be encoded as JSON instead of t
 
 Log level and filters. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#enabling-logging).
 
+For example, `PRUSTI_LOG=prusti_viper=trace` enables trace logging for the prusti-viper crate.
+Debug and trace logs are not available in release builds.
+
 ## `LOG_DIR`
 
 Path to directory in which log files and dumped output will be stored.
@@ -298,6 +293,9 @@ When enabled, verification is skipped altogether, though specs are still exporte
 When enabled, verification is skipped for dependencies. Equivalent to enabling `NO_VERIFY` for all dependencies. Remote dependencies from e.g. git/crates.io are already automatically `NO_VERIFY`.
 
 > **Note:** applied to all dependency crates when running with `cargo prusti`.
+
+## `OPT_IN_VERIFICATION`
+When enabled, Prusti will only try to verify the functions annotated with `#[verified]`. All other functions are assumed to be `#[trusted]`, by default. Functions annotated with both `#[trusted]` and `#[verified]` will not be verified.
 
 ## `ONLY_MEMORY_SAFETY`
 

@@ -42,7 +42,7 @@ impl Expression {
             .iter()
             .enumerate()
             .map(|(i, argument)| VariableDecl {
-                name: format!("_{}", i),
+                name: format!("_{i}"),
                 ty: argument.get_type().clone(),
             })
             .collect();
@@ -58,7 +58,7 @@ impl Expression {
             .iter()
             .enumerate()
             .map(|(i, argument)| VariableDecl {
-                name: format!("_{}", i),
+                name: format!("_{i}"),
                 ty: argument.get_type().clone(),
             })
             .collect();
@@ -100,9 +100,7 @@ impl Expression {
         assert_eq!(
             target.get_type(),
             replacement.get_type(),
-            "{} → {}",
-            target,
-            replacement
+            "{target} → {replacement}"
         );
         struct PlaceReplacer<'a> {
             target: &'a Expression,

@@ -17,12 +17,12 @@ $ ./x.py setup
 
 The script will perform the following steps:
 
- 1. (Ubuntu only) Installs the [native dependencies](#native-dependencies).
+ 1. (Ubuntu only) Installs the [native dependencies](#native-dependencies) (except for java).
     - On other OS (including non-Ubuntu Linux distributions) this step has to be performed manually.
  2. Downloads and extracts the latest [Viper tools](#viper-tools).
  3. Sets up [the Rust toolchain](#rustup-setup).
 
-Steps 1 and 2 can be skipped by adding the `--rustup-only` argument to the command line. `--dry-run` can be used to prevent any shell commands from actually running, only printing them to the terminal.
+Step 1 can be skipped by adding the `--no-deps` argument to the command line. `--dry-run` can be used to prevent any shell commands from actually running, only printing them to the terminal.
 
 The `setup` step should be repeated if the Rust toolchain version changes, or if the native dependencies or Viper tools need to be updated.
 
@@ -34,14 +34,14 @@ On a Linux-based OS, the required libraries are:
 
  - `build-essential`
  - `pkg-config`
- - `wget`
+ - `curl`
  - `gcc`
  - `libssl-dev`
- - `openjdk-11-jdk`
+ - `openjdk-11-jdk` (or newer)
 
 ### macOS
 
-On macOS, [Java JDK 11](https://www.oracle.com/java/technologies/javase-downloads.html) is required.
+On macOS, [Java JDK 11](https://www.oracle.com/java/technologies/javase-downloads.html) or newer is required.
 
 ## Viper tools
 
@@ -66,16 +66,15 @@ To use the locally compiled version in Prusti Assistant, make sure to build Prus
 ./x.py build --release
 ```
 
-Add necessary symlinks to the release directory:
+Prepare a Prusti package in a new folder:
 
 ```bash
-ln -s $(pwd)/viper_tools $(pwd)/target/release/
-ln -s $(pwd)/rust-toolchain $(pwd)/target/release/
+./x.py package release <prusti-package-path>
 ```
 
-Open VS Code and its settings change as follows:
+Open VS Code and change its settings as follows:
 
  - Set `prusti-assistant.buildChannel` to `Local`.
- - Set `prusti-assistant.localPrustiPath` to `<prusti-dev-dir>/target/release/`.
+ - Set `prusti-assistant.localPrustiPath` to the `<prusti-package-path>` that you chose.
 
 Now, you should be able to verify Rust programs with a locally built version of Prusti.

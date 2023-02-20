@@ -7,12 +7,13 @@
 //! Optimization that removes unused temporary variables.
 
 use crate::vir::polymorphic_vir::{ast, cfg};
-use std::{collections::HashSet, mem};
+use rustc_hash::FxHashSet;
+use std::mem;
 
 /// Remove unused temporary variables and related inhale statements.
 pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     let mut collector = UsedVarCollector {
-        used_vars: HashSet::new(),
+        used_vars: FxHashSet::default(),
     };
     method.walk_statements(|stmt| {
         ast::StmtWalker::walk(&mut collector, stmt);
@@ -25,7 +26,7 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
             }
         }
     });
-    let mut unused_vars = HashSet::new();
+    let mut unused_vars = FxHashSet::default();
     let mut used_vars = Vec::new();
     for local_var in method.local_vars {
         if collector.used_vars.contains(&local_var.name) {
@@ -50,7 +51,7 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
 /// Collects all used variables. A variable is used if it is mentioned
 /// somewhere not inside an access predicate.
 struct UsedVarCollector {
-    used_vars: HashSet<String>,
+    used_vars: FxHashSet<String>,
 }
 
 impl ast::ExprWalker for UsedVarCollector {
@@ -93,7 +94,7 @@ impl ast::StmtWalker for UsedVarCollector {
 }
 
 struct UnusedVarRemover {
-    unused_vars: HashSet<ast::LocalVar>,
+    unused_vars: FxHashSet<ast::LocalVar>,
 }
 
 impl ast::ExprFolder for UnusedVarRemover {

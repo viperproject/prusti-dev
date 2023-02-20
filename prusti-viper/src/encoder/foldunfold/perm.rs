@@ -110,8 +110,8 @@ impl Perm {
 impl fmt::Display for Perm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Perm::Acc(ref place, perm_amount) => write!(f, "Acc({}, {})", place, perm_amount),
-            Perm::Pred(ref place, perm_amount) => write!(f, "Pred({}, {})", place, perm_amount),
+            Perm::Acc(ref place, perm_amount) => write!(f, "Acc({place}, {perm_amount})"),
+            Perm::Pred(ref place, perm_amount) => write!(f, "Pred({place}, {perm_amount})"),
         }
     }
 }
@@ -119,8 +119,8 @@ impl fmt::Display for Perm {
 impl fmt::Debug for Perm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Perm::Acc(ref place, perm_amount) => write!(f, "Acc({:?}, {})", place, perm_amount),
-            Perm::Pred(ref place, perm_amount) => write!(f, "Pred({:?}, {})", place, perm_amount),
+            Perm::Acc(ref place, perm_amount) => write!(f, "Acc({place:?}, {perm_amount})"),
+            Perm::Pred(ref place, perm_amount) => write!(f, "Pred({place:?}, {perm_amount})"),
         }
     }
 }
@@ -170,7 +170,7 @@ impl fmt::Display for PermSet {
                 write!(f, ", ")?;
             }
             first = false;
-            write!(f, "{}", perm)?;
+            write!(f, "{perm}")?;
         }
         write!(f, "}}")
     }

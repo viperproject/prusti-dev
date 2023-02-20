@@ -66,10 +66,7 @@ impl State {
                     trace!("place: {:?}", place);
                     trace!("Acc state: {{\n{}\n}}", self.display_acc());
                     trace!("Pred state: {{\n{}\n}}", self.display_pred());
-                    panic!(
-                        "Consistency error: state has pred {}, but not acc {}",
-                        place, place
-                    );
+                    panic!("Consistency error: state has pred {place}, but not acc {place}");
                 }
             }
         }
@@ -116,8 +113,7 @@ impl State {
                     && matches!(self.pred[pred_place], PermAmount::Write)
                 {
                     panic!(
-                        "Consistency error: state has acc {}, but also a full pred {}",
-                        acc_place, pred_place
+                        "Consistency error: state has acc {acc_place}, but also a full pred {pred_place}"
                     );
                 }
             }
@@ -129,8 +125,7 @@ impl State {
                     && acc_place.has_proper_prefix(moved_place)
                 {
                     panic!(
-                        "Consistency error: state has acc {}, but also moved path {}",
-                        acc_place, moved_place
+                        "Consistency error: state has acc {acc_place}, but also moved path {moved_place}"
                     );
                 }
             }
@@ -142,8 +137,7 @@ impl State {
                     && pred_place.has_prefix(moved_place)
                 {
                     panic!(
-                        "Consistency error: state has pred {}, but also moved path {}",
-                        pred_place, moved_place
+                        "Consistency error: state has pred {pred_place}, but also moved path {moved_place}"
                     );
                 }
                 if moved_place.is_simple_place()
@@ -151,8 +145,7 @@ impl State {
                     && moved_place.has_prefix(pred_place)
                 {
                     panic!(
-                        "Consistency error: state has pred {}, but also moved path {}",
-                        pred_place, moved_place
+                        "Consistency error: state has pred {pred_place}, but also moved path {moved_place}"
                     );
                 }
             }
@@ -321,9 +314,9 @@ impl State {
         let mut info = self
             .acc
             .iter()
-            .map(|(p, f)| format!("  {}: {}", p, f))
+            .map(|(p, f)| format!("  {p}: {f}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
@@ -331,9 +324,9 @@ impl State {
         let mut info = self
             .pred
             .iter()
-            .map(|(p, f)| format!("  {}: {}", p, f))
+            .map(|(p, f)| format!("  {p}: {f}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
@@ -341,9 +334,9 @@ impl State {
         let mut info = self
             .moved
             .iter()
-            .map(|x| format!("  {}", x))
+            .map(|x| format!("  {x}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
@@ -438,8 +431,7 @@ impl State {
     pub fn remove_acc_place(&mut self, place: &vir::Expr) -> PermAmount {
         assert!(
             self.acc.contains_key(place),
-            "Place {} is not in state (acc), so it can not be removed.",
-            place
+            "Place {place} is not in state (acc), so it can not be removed."
         );
         self.acc.remove(place).unwrap()
     }
@@ -447,8 +439,7 @@ impl State {
     pub fn remove_pred_place(&mut self, place: &vir::Expr) -> PermAmount {
         assert!(
             self.pred.contains_key(place),
-            "Place {} is not in state (pred), so it can not be removed.",
-            place
+            "Place {place} is not in state (pred), so it can not be removed."
         );
         self.pred.remove(place).unwrap()
     }
@@ -460,8 +451,7 @@ impl State {
     ) -> Result<(), FoldUnfoldError> {
         assert!(
             self.acc.contains_key(place),
-            "Place {} is not in state (acc), so it can not be removed.",
-            place
+            "Place {place} is not in state (acc), so it can not be removed."
         );
         if self.acc[place] == perm {
             self.acc.remove(place);

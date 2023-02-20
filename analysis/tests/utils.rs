@@ -7,7 +7,7 @@ pub fn find_compiled_executable(name: &str) -> PathBuf {
         "release"
     };
     let executable_name = if cfg!(windows) {
-        format!("{}.exe", name)
+        format!("{name}.exe")
     } else {
         name.to_string()
     };
@@ -25,9 +25,8 @@ pub fn find_compiled_executable(name: &str) -> PathBuf {
         return workspace_driver_path;
     }
     panic!(
-        "Could not find the {:?} {:?} binary to be used in tests. \
-        It might be that the project has not been compiled correctly.",
-        target_directory, executable_name
+        "Could not find the {target_directory:?} {executable_name:?} binary to be used in tests. \
+        It might be that the project has not been compiled correctly."
     );
 }
 
@@ -36,7 +35,7 @@ pub fn find_sysroot() -> String {
     let home = option_env!("RUSTUP_HOME").or(option_env!("MULTIRUST_HOME"));
     let toolchain = option_env!("RUSTUP_TOOLCHAIN").or(option_env!("MULTIRUST_TOOLCHAIN"));
     match (home, toolchain) {
-        (Some(home), Some(toolchain)) => format!("{}/toolchains/{}", home, toolchain),
+        (Some(home), Some(toolchain)) => format!("{home}/toolchains/{toolchain}"),
         _ => option_env!("RUST_SYSROOT")
             .expect("need to specify RUST_SYSROOT env var or use rustup or multirust")
             .to_owned(),

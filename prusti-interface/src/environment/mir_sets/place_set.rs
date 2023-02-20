@@ -43,15 +43,11 @@ impl<'tcx> PlaceSet<'tcx> {
                 if place1 != place2 {
                     assert!(
                         !is_prefix(*place1, *place2),
-                        "The place {:?} is a prefix of the place {:?}",
-                        place2,
-                        place1
+                        "The place {place2:?} is a prefix of the place {place1:?}"
                     );
                     assert!(
                         !is_prefix(*place2, *place1),
-                        "The place {:?} is a prefix of the place {:?}",
-                        place1,
-                        place2
+                        "The place {place1:?} is a prefix of the place {place2:?}"
                     );
                 }
             }
@@ -106,23 +102,17 @@ impl<'tcx> PlaceSet<'tcx> {
         for place1 in places.iter() {
             assert!(
                 !is_prefix(*place1, place) && !is_prefix(place, *place1),
-                "Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}",
-                place,
-                place1
+                "Bug: failed to ensure that there are no prefixes: place={place:?} place1={place1:?}"
             );
             for place2 in places.iter() {
                 if place1 != place2 {
                     assert!(
                         !is_prefix(*place1, *place2),
-                        "The place {:?} is a prefix of the place {:?}",
-                        place2,
-                        place1
+                        "The place {place2:?} is a prefix of the place {place1:?}"
                     );
                     assert!(
                         !is_prefix(*place2, *place1),
-                        "The place {:?} is a prefix of the place {:?}",
-                        place1,
-                        place2
+                        "The place {place1:?} is a prefix of the place {place2:?}"
                     );
                 }
             }

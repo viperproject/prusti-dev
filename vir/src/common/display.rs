@@ -28,7 +28,7 @@ pub(crate) fn join<T: Display>(separator: &str, values: &[T]) -> String {
         } else {
             buf.push_str(separator);
         }
-        write!(buf, "{}", value).unwrap();
+        write!(buf, "{value}").unwrap();
     }
     buf
 }

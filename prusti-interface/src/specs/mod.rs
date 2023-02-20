@@ -7,8 +7,10 @@ use crate::{
     PrustiError,
 };
 use log::debug;
+use prusti_common::config;
 use prusti_rustc_interface::{
     ast::ast,
+    data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
         def_id::{DefId, LocalDefId},
@@ -17,7 +19,7 @@ use prusti_rustc_interface::{
     middle::{hir::map::Map, ty},
     span::Span,
 };
-use std::{collections::HashMap, convert::TryInto, fmt::Debug};
+use std::{convert::TryInto, fmt::Debug};
 
 pub mod checker;
 pub mod cross_crate;
@@ -71,13 +73,13 @@ pub struct SpecCollector<'a, 'tcx> {
     extern_resolver: ExternSpecResolver<'tcx>,
 
     /// Map from specification IDs to their typed expressions.
-    spec_functions: HashMap<SpecificationId, LocalDefId>,
+    spec_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
-    procedure_specs: HashMap<LocalDefId, ProcedureSpecRefs>,
+    procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
-    type_specs: HashMap<LocalDefId, TypeSpecRefs>,
+    type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
     prusti_assertions: Vec<LocalDefId>,
     prusti_assumptions: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
@@ -89,11 +91,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         Self {
             extern_resolver: ExternSpecResolver::new(env),
             env,
-            spec_functions: HashMap::new(),
-            procedure_specs: HashMap::new(),
+            spec_functions: FxHashMap::default(),
+            procedure_specs: FxHashMap::default(),
             loop_specs: vec![],
             loop_variants: vec![],
-            type_specs: HashMap::new(),
+            type_specs: FxHashMap::default(),
             prusti_assertions: vec![],
             prusti_assumptions: vec![],
             ghost_begin: vec![],
@@ -120,7 +122,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
 
-            let mut kind = refs.into();
+            // We do not want to create an empty kind.
+            // This would lead to refinement inheritance if there is a trait involved.
+            // Instead, we require the user to explicitly make annotations.
+            spec.set_kind(refs.into());
+            let mut kind_override = None;
 
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
@@ -133,6 +139,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             self.env,
                         );
                     }
+                    SpecIdRef::Purity(spec_id) => {
+                        spec.add_purity(*self.spec_functions.get(spec_id).unwrap(), self.env);
+                    }
                     SpecIdRef::Pledge { lhs, rhs } => {
                         spec.add_pledge(typed::Pledge {
                             reference: None, // FIXME: Currently only `result` is supported.
@@ -143,9 +152,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         });
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        kind = ProcedureSpecificationKind::Predicate(Some(
+                        kind_override = Some(ProcedureSpecificationKind::Predicate(Some(
                             self.spec_functions.get(spec_id).unwrap().to_def_id(),
-                        ));
+                        )));
                     }
                     SpecIdRef::Terminates(spec_id) => {
                         spec.set_terminates(*self.spec_functions.get(spec_id).unwrap());
@@ -155,26 +164,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             spec.set_trusted(refs.trusted);
 
-            // We do not want to create an empty kind.
-            // This would lead to refinement inheritance if there is a trait involved.
-            // Instead, we require the user to explicitly make annotations.
-            spec.set_kind(kind);
+            if let Some(kind) = kind_override {
+                spec.set_kind(kind);
+            }
 
-            if !spec.specs_with_constraints.is_empty()
-                && !prusti_common::config::enable_ghost_constraints()
+            if !spec.specs_with_constraints.is_empty() && !*spec.base_spec.trusted.expect_inherent()
             {
                 let span = self.env.query.get_def_span(*local_id);
                 PrustiError::unsupported(
-                    "Ghost constraints need to be enabled with the feature flag `enable_ghost_constraints`",
-                    MultiSpan::from(span),
-                )
-                .emit(&self.env.diagnostic);
-            } else if !spec.specs_with_constraints.is_empty()
-                && !*spec.base_spec.trusted.expect_inherent()
-            {
-                let span = self.env.query.get_def_span(*local_id);
-                PrustiError::unsupported(
-                    "Ghost constraints can only be used on trusted functions",
+                    "Type-conditional spec refinements can only be applied to trusted functions",
                     MultiSpan::from(span),
                 )
                 .emit(&self.env.diagnostic);
@@ -302,7 +300,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
     spec_id
         .try_into()
-        .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {:?}", def_id))
+        .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {def_id:?}"))
 }
 
 /// Returns true iff def_id points to a spec function (i.e. a function for
@@ -324,6 +322,11 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
         read_prusti_attrs("post_spec_id_ref", attrs)
             .into_iter()
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
+    );
+    spec_id_refs.extend(
+        read_prusti_attrs("pure_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::Purity(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
         read_prusti_attrs("terminates_spec_id_ref", attrs)
@@ -357,13 +360,15 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
         read_prusti_attr("pred_spec_id_ref", attrs)
             .map(|raw_spec_id| SpecIdRef::Predicate(parse_spec_id(raw_spec_id, def_id))),
     );
+    let is_predicate = matches!(spec_id_refs.last(), Some(SpecIdRef::Predicate(..)));
     debug!(
         "Function {:?} has specification ids {:?}",
         def_id, spec_id_refs
     );
 
     let pure = has_prusti_attr(attrs, "pure");
-    let trusted = has_prusti_attr(attrs, "trusted");
+    let trusted = has_prusti_attr(attrs, "trusted")
+        || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
 
     if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
@@ -434,7 +439,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "type_invariant_spec") {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let hir = self.env.query.hir();
-                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let impl_id = hir.parent_id(hir.parent_id(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
@@ -447,7 +452,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "trusted_type") {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let hir = self.env.query.hir();
-                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let impl_id = hir.parent_id(hir.parent_id(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
@@ -460,7 +465,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let name = read_prusti_attr("counterexample_print", attrs);
                 let hir = self.env.query.hir();
-                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let impl_id = hir.parent_id(hir.parent_id(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
@@ -510,7 +515,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                             if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs) {
                                 let self_id = fn_decl.inputs[0].hir_id;
                                 let hir = self.env.query.hir();
-                                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                                let impl_id = hir.parent_id(hir.parent_id(self_id));
                                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                                 if let Some(local_id) = type_id.as_local() {
                                     self.type_specs.entry(local_id).or_default().model =

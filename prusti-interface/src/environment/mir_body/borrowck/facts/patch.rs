@@ -366,15 +366,11 @@ impl<'a> LocationTablePatcher<'a> {
                 .locations
                 .insert(point, location)
                 .is_none(),
-            "location: {:?} point: {:?}",
-            location,
-            point
+            "location: {location:?} point: {point:?}"
         );
         assert!(
             self.location_table.points.insert(location, point).is_none(),
-            "location: {:?} point: {:?}",
-            location,
-            point
+            "location: {location:?} point: {point:?}"
         );
     }
 
