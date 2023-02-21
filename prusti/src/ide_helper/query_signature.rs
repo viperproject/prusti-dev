@@ -245,13 +245,13 @@ impl FunctionSignature {
         let sig = tcx.fn_sig(defid).skip_binder();
         let arg_types = sig.inputs().iter();
         let arg_names = tcx.fn_arg_names(defid);
-        let output = sig.output();
+        let output = sig.output().skip_binder();
         let return_type = if output.is_unit() { None } else { Some(output.to_string()) };
 
         let arguments: Vec<(String, String)> = arg_names
             .iter()
             .zip(arg_types)
-            .map(|(name, ty)| (name.to_string(), ty.to_string()))
+            .map(|(name, ty)| (name.to_string(), ty.skip_binder().to_string()))
             .collect();
 
         let generics = generic_params(tcx, defid);
