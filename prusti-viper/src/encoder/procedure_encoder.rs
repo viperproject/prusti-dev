@@ -3561,18 +3561,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .copied().unwrap_or(None)
             .map(|id| self.encoder.env().query.get_def_span(id));
 
-        // pledges store 2 defids, let's put in both..
-        // let mut pledges_lhs: Vec<Span> = contract.pledges().filter_map(|x| x.lhs)
-        //     .map(|id| self.encoder.env().query.get_def_span(id))
-        //     .collect();
-        // let mut pledges_rhs: Vec<Span> = contract.pledges().map(|x| x.rhs)
-        //     .map(|id| self.encoder.env().query.get_def_span(id))
-        //     .collect();
+        // for each pledge, if it has a lefthandside, join the 2, otherwise
+        // just return span of the righthandside
+        let mut pledges: Vec<Span> = contract.pledges()
+            .map(|pledge| {
+                if let Some(lhs_defid) = pledge.lhs {
+                    let lhs_span = self.encoder.env().query.get_def_span(lhs_defid);
+                    let rhs_span = self.encoder.env().query.get_def_span(pledge.rhs);
+                    lhs_span.to(rhs_span)
+                } else {
+                    self.encoder.env().query.get_def_span(pledge.rhs)
+                }
+            })
+            .collect();
         let mut result = vec![]; 
         result.append(&mut precondition_spans);
         result.append(&mut postcondition_spans);
-        // result.append(&mut pledges_rhs);
-        // result.append(&mut pledges_lhs);
+        result.append(&mut pledges);
         if let Some(purity) = purity {
             result.push(purity);
         }

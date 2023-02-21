@@ -119,11 +119,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             // determine procedures that have to be verified.
             let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
 
-            // todo: selective verification, filter procedures that are
-            // part of verification_task
-
             if config::show_ide_info() && !config::no_verify() {
-                let compiler_info = compiler_info::IdeInfo::collect(&env, &annotated_procedures);
+                let compiler_info = compiler_info::IdeInfo::collect(&env, &annotated_procedures, &def_spec);
                 let out = serde_json::to_string(&compiler_info).unwrap();
                 // probably should make this part of compilers output..
                 // actually not sure which way is better...
