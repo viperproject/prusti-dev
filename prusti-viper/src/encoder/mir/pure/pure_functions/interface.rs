@@ -10,7 +10,7 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
-use prusti_rustc_interface::middle::{ty, ty::subst::SubstsRef};
+use prusti_rustc_interface::middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use prusti_interface::specs::typed::ProcedureSpecificationKind;
@@ -123,6 +123,11 @@ pub(crate) struct FunctionDescription<'tcx> {
 }
 
 pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
+    fn encode_uneval_const(
+        &self,
+        c: mir::UnevaluatedConst<'tcx>,
+    ) -> SpannedEncodingResult<vir_poly::Expr>;
+
     fn encode_pure_expression(
         &self,
         proc_def_id: ProcedureDefId,
@@ -237,6 +242,18 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 .is_none());
         }
         Ok(self.pure_function_encoder_state.bodies_high.borrow()[&key].clone())
+    }
+
+    fn encode_uneval_const(
+        &self,
+        mir::UnevaluatedConst {
+            def,
+            substs,
+            promoted,
+        }: mir::UnevaluatedConst<'tcx>,
+    ) -> SpannedEncodingResult<vir_poly::Expr> {
+        let promoted_id = promoted.expect("unevaluated const should have a promoted ID");
+        super::encoder_poly::encode_promoted(self, def, promoted_id, def.did, substs)
     }
 
     // FIXME: This should be refactored to depend on encode_pure_expression_high
