@@ -77,6 +77,9 @@ impl ViperBackendConfig {
             VerificationBackend::Carbon => {
                 verifier_args.extend(vec!["--disableAllocEncoding".to_string()]);
             }
+            VerificationBackend::Lithium => {
+                // TODO: add lithium-specific arguments
+            }
         }
         Self {
             backend,

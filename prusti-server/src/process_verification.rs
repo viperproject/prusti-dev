@@ -111,7 +111,11 @@ pub fn process_verification_request<'v, 't: 'v>(
             ),
             verification_context,
         ),
-    };
+            VerificationBackend::Lithium => {
+                Backend::Lithium(native_verifier::Verifier::new(config::smt_solver_path()))
+                // TODO: Wrapper support
+            }
+        };
 
     stopwatch.start_next("backend verification");
     let mut result = backend.verify(&request.program);
@@ -169,6 +173,7 @@ fn new_viper_verifier<'v, 't: 'v>(
                 format!("/logPrefix {log_dir_str}"),
                 //"--print".to_string(), "./log/boogie_program/program.bpl".to_string(),
             ]),
+            VerificationBackend::Lithium => unreachable!("Lithium is not a Viper backend"),
         }
     } else {
         report_path = None;
