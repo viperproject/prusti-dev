@@ -11,8 +11,9 @@ use self::commandline::CommandLine;
 use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
+use rustc_hash::FxHashSet;
 use serde::Deserialize;
-use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
+use std::{env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -79,7 +80,7 @@ lazy_static::lazy_static! {
         settings.set_default("check_foldunfold_state", false).unwrap();
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
-        settings.set_default("encode_unsigned_num_constraint", false).unwrap();
+        settings.set_default("encode_unsigned_num_constraint", true).unwrap();
         settings.set_default("encode_bitvectors", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log", "").unwrap();
@@ -107,6 +108,7 @@ lazy_static::lazy_static! {
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
+        settings.set_default("opt_in_verification", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations", "all").unwrap();
@@ -221,7 +223,7 @@ lazy_static::lazy_static! {
     });
 }
 
-fn get_keys(settings: &Config) -> HashSet<String> {
+fn get_keys(settings: &Config) -> FxHashSet<String> {
     settings
         .cache
         .clone()
@@ -231,7 +233,7 @@ fn get_keys(settings: &Config) -> HashSet<String> {
         .collect()
 }
 
-fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
+fn check_keys(settings: &Config, allowed_keys: &FxHashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
         assert!(
             allowed_keys.contains(key),
@@ -979,6 +981,12 @@ pub fn set_no_verify(value: bool) {
 /// When enabled, verification is skipped for dependencies.
 pub fn no_verify_deps() -> bool {
     read_setting("no_verify_deps")
+}
+
+/// When enabled, verification is skipped for functions
+/// that do not have the `#[verified]` attribute.
+pub fn opt_in_verification() -> bool {
+    read_setting("opt_in_verification")
 }
 
 /// When enabled, compilation will continue and a binary will be generated

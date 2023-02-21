@@ -14,6 +14,7 @@ use analysis::{
 use prusti_rustc_interface::{
     ast::ast,
     borrowck::BodyWithBorrowckFacts,
+    data_structures::fx::FxHashMap,
     driver::Compilation,
     hir::def_id::{DefId, LocalDefId},
     interface::{interface, Config, Queries},
@@ -24,7 +25,7 @@ use prusti_rustc_interface::{
     polonius_engine::{Algorithm, Output},
     session::{Attribute, Session},
 };
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 struct OurCompilerCalls {
     args: Vec<String>,
@@ -83,8 +84,8 @@ mod mir_storage {
     // because we cast it back to `'tcx` before using.
     thread_local! {
         static MIR_BODIES:
-            RefCell<HashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
-            RefCell::new(HashMap::new());
+            RefCell<FxHashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
+            RefCell::new(FxHashMap::default());
     }
 
     pub unsafe fn store_mir_body<'tcx>(
@@ -160,7 +161,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
 
         println!(
             "Analyzing file {} using {}...",
-            compiler.input().source_name().prefer_local(),
+            compiler.session().io.input.source_name().prefer_local(),
             abstract_domain
         );
 

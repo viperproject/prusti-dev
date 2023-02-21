@@ -54,11 +54,14 @@ impl CrossCrateSpecs {
         for crate_num in env.tcx().crates(()) {
             if let Some(extern_crate) = env.tcx().extern_crate(crate_num.as_def_id()) {
                 if extern_crate.is_direct() {
+                    let crate_name = env.tcx().crate_name(*crate_num);
                     let cs = cstore.crate_source_untracked(*crate_num);
                     let mut source = cs.paths().next().unwrap().clone();
                     source.set_extension("specs");
                     if source.is_file() {
-                        if let Err(e) = Self::import_from_file(env, def_spec, &source) {
+                        if let Err(e) =
+                            Self::import_from_file(env, def_spec, &source, crate_name.as_str())
+                        {
                             PrustiError::internal(
                                 format!(
                                     "error importing specs from file \"{}\": {}",
@@ -96,12 +99,13 @@ impl CrossCrateSpecs {
         env: &mut Environment,
         def_spec: &mut DefSpecificationMap,
         path: &path::PathBuf,
+        crate_name: &str,
     ) -> io::Result<()> {
         use std::io::Read;
         let mut data = Vec::new();
         let mut file = fs::File::open(path)?;
         file.read_to_end(&mut data)?;
-        let mut decoder = DefSpecsDecoder::new(env.tcx(), &data);
+        let mut decoder = DefSpecsDecoder::new(env.tcx(), &data, path.clone(), crate_name);
 
         let proc_specs = FxHashMap::decode(&mut decoder);
         let type_specs = FxHashMap::decode(&mut decoder);

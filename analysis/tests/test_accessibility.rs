@@ -129,7 +129,7 @@ fn collect_standalone_test_programs() -> Vec<PathBuf> {
             glob_path
         );
         assert!(!new_programs.is_empty());
-        new_programs.sort();
+        new_programs.sort_unstable();
         programs.append(&mut new_programs);
     }
     assert!(programs.len() >= glob_paths.len());

@@ -858,7 +858,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     (place.clone(), *perm_amount, acc_perm_counter)
                 })
                 .collect();
-            acc_perms.sort_by(|(place1, _, id1), (place2, _, id2)| {
+            acc_perms.sort_unstable_by(|(place1, _, id1), (place2, _, id2)| {
                 let key1 = (place1.place_depth(), id1);
                 let key2 = (place2.place_depth(), id2);
                 key1.cmp(&key2)

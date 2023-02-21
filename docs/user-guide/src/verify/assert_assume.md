@@ -31,6 +31,10 @@ assert!(map.insert(5));
 prusti_assert!(map.insert(5)); // error
 ```
 
+`prusti_assert_eq!` and `prusti_assert_ne!` are the Prusti counterparts to
+`assert_eq!` and `assert_ne!`, but the check is made for
+[snapshot equality](../syntax.md#snapshot-equality), resp. snapshot inequality.
+
 ## Assumptions
 
 The `prusti_assume!` macro instructs Prusti to assume that a certain property
