@@ -150,7 +150,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 ServerMessage::Termination(result) => {
                     if config::show_ide_info() {
                         PrustiError::message(
-                            format!("ide_verification_result{}",
+                            format!("IdeVerificationResult{}",
                                     serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap()
                             ), DUMMY_SP.into()
                         ).emit(&self.env.diagnostic);
@@ -248,7 +248,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     n += *insts;
                                 }
                                 PrustiError::message(
-                                    format!("quantifier_instantiations_message{}",
+                                    format!("QuantifierInstantiationsMessage{}",
                                         json!({"instantiations": n, "method": program_name}),
                                     ), span.clone()
                                 ).emit(&self.env.diagnostic);
@@ -263,7 +263,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                             match error_manager.position_manager().get_span_from_id(pos_id) {
                                 Some(span) => {
                                     PrustiError::message(
-                                        format!("quantifier_chosen_triggers_message{}",
+                                        format!("QuantifierChosenTriggersMessage{}",
                                             json!({"viper_quant": viper_quant, "triggers": triggers}),
                                         ), span.clone()
                                     ).emit(&self.env.diagnostic);
