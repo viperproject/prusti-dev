@@ -67,9 +67,56 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
         .env()
         .body
         .get_expression_body(proc_def_id, substs, parent_def_id);
-    let interpreter = PureFunctionBackwardInterpreter::new(
+    encode_mir(
         encoder,
         &mir,
+        proc_def_id,
+        pure_encoding_context,
+        parent_def_id,
+    )
+}
+
+/// Used to encode unevaluated constants.
+pub(super) fn encode_promoted<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    proc_def_id: ty::WithOptConstParam<DefId>,
+    promoted_id: mir::Promoted,
+    parent_def_id: DefId,
+    substs: SubstsRef<'tcx>,
+) -> SpannedEncodingResult<vir::Expr> {
+    let tcx = encoder.env().tcx();
+    let promoted_bodies = tcx.promoted_mir_opt_const_arg(proc_def_id);
+    let param_env = tcx.param_env(parent_def_id);
+    let mir = tcx.subst_and_normalize_erasing_regions(
+        substs,
+        param_env,
+        promoted_bodies[promoted_id].clone(),
+    );
+    encode_mir(
+        encoder,
+        &mir,
+        proc_def_id.did,
+        PureEncodingContext::Code,
+        parent_def_id,
+    )
+}
+
+/// Backing implementation for `encode_body` and `encode_promoted`. The extra
+/// `mir` argument may be the MIR body identified by `proc_def_id` (when
+/// encoding a regular function), or it may be the body of a promoted constant
+/// (when encoding an unevaluated constant in the MIR). The latter does not
+/// have a `DefId` of its own, it is identified by the `DefId` of its
+/// containing function and a promoted ID.
+fn encode_mir<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    mir: &mir::Body<'tcx>,
+    proc_def_id: DefId,
+    pure_encoding_context: PureEncodingContext,
+    parent_def_id: DefId,
+) -> SpannedEncodingResult<vir::Expr> {
+    let interpreter = PureFunctionBackwardInterpreter::new(
+        encoder,
+        mir,
         proc_def_id,
         pure_encoding_context,
         parent_def_id,
@@ -78,7 +125,7 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     let function_name = encoder.env().name.get_absolute_item_name(proc_def_id);
     debug!("Encode body of pure function {}", function_name);
 
-    let state = run_backward_interpretation(&mir, &interpreter)?
+    let state = run_backward_interpretation(mir, &interpreter)?
         .unwrap_or_else(|| panic!("Procedure {proc_def_id:?} contains a loop"));
     let body_expr = state.into_expr().unwrap();
     debug!(
