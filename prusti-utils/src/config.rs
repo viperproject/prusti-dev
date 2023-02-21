@@ -104,7 +104,7 @@ lazy_static::lazy_static! {
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("smt_qi_profile", true).unwrap();
         settings.set_default("smt_qi_profile_freq", 10000).unwrap();
-        settings.set_default("report_viper_messages", true).unwrap();
+        settings.set_default("report_viper_messages", false).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
