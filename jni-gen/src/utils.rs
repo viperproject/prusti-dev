@@ -72,11 +72,10 @@ pub fn java_str_to_string(string: &JavaStr) -> Result<String> {
 }
 
 pub fn java_str_to_valid_rust_argument_name(string: &JavaStr) -> Result<String> {
-    let mut res = "arg_".to_string();
-    res.push_str(
-        &java_str_to_string(string)?
-            .replace('_', "___")
-            .replace('$', "_d_"),
-    );
-    Ok(res)
+    Ok(format!("arg_{}", java_identifier_to_rust(&java_str_to_string(string)?)))
+}
+
+pub fn java_identifier_to_rust(name: &str) -> String {
+    // identifier can only be composed of [a-zA-Z&_] characters - https://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8
+    name.replace('_', "__").replace('$', "_dollar_")
 }
