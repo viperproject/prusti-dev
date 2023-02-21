@@ -7,6 +7,7 @@ use prusti_interface::{
     data::VerificationTask,
     environment::{mir_storage, Environment},
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
+    PrustiError,
 };
 use prusti_rustc_interface::{
     driver::Compilation,
@@ -18,6 +19,7 @@ use prusti_rustc_interface::{
         TyCtxt,
     },
     session::Session,
+    span::DUMMY_SP,
 };
 
 #[derive(Default)]
@@ -140,7 +142,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 let out = serde_json::to_string(&compiler_info).unwrap();
                 // probably should make this part of compilers output..
                 // actually not sure which way is better...
-                eprintln!("CompilerInfo{out}");
+                eprintln!("");
+                PrustiError::message(format!("CompilerInfo{out}"), DUMMY_SP.into())
+                    .emit(&env.diagnostic);
             }
 
             // collect and output Information used by IDE:

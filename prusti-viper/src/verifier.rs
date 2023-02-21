@@ -149,7 +149,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             match server_msg {
                 ServerMessage::Termination(result) => {
                     if config::show_ide_info() {
-                        eprintln!("ide_verification_result{}", serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap());
+                        PrustiError::message(
+                            format!("ide_verification_result{}",
+                                    serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap()
+                            ), DUMMY_SP.into()
+                        ).emit(&self.env.diagnostic);
                     }
                     match result.result_type {
                         // nothing to do
@@ -349,7 +353,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let encoding_info = ide::encoding_info::EncodingInfo {
             call_contract_spans: self.encoder.spans_of_call_contracts.borrow().to_vec(),
         };
-        eprintln!("EncodingInfo{}", encoding_info.to_json_string());
+        PrustiError::message(
+            format!("EncodingInfo{}", encoding_info.to_json_string()), DUMMY_SP.into()
+        ).emit(&self.env.diagnostic);
 
     }
 }
