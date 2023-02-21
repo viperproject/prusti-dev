@@ -109,11 +109,23 @@ impl PrustiTokenStream {
         while pos < source.len() {
             // no matter what tokens we see, we will consume at least one
             pos += 1;
-            tokens.push_back(match (&source[pos - 1], source.get(pos), source.get(pos + 1)) {
+            tokens.push_back(match (&source[pos - 1], source.get(pos), source.get(pos + 1), source.get(pos + 2)) {
                 (
                     TokenTree::Punct(p1),
                     Some(TokenTree::Punct(p2)),
                     Some(TokenTree::Punct(p3)),
+                    Some(TokenTree::Punct(p4)),
+                ) if let Some(op) = PrustiToken::parse_op4(p1, p2, p3, p4) => {
+                    // this was a four-character operator, consume three
+                    // additional tokens
+                    pos += 3;
+                    op
+                }
+                (
+                    TokenTree::Punct(p1),
+                    Some(TokenTree::Punct(p2)),
+                    Some(TokenTree::Punct(p3)),
+                    _
                 ) if let Some(op) = PrustiToken::parse_op3(p1, p2, p3) => {
                     // this was a three-character operator, consume two
                     // additional tokens
@@ -124,28 +136,29 @@ impl PrustiTokenStream {
                     TokenTree::Punct(p1),
                     Some(TokenTree::Punct(p2)),
                     _,
+                    _,
                 ) if let Some(op) = PrustiToken::parse_op2(p1, p2) => {
                     // this was a two-character operator, consume one
                     // additional token
                     pos += 1;
                     op
                 }
-                (TokenTree::Ident(ident), _, _) if ident == "outer" =>
+                (TokenTree::Ident(ident), _, _, _) if ident == "outer" =>
                     PrustiToken::Outer(ident.span()),
-                (TokenTree::Ident(ident), _, _) if ident == "forall" =>
+                (TokenTree::Ident(ident), _, _, _) if ident == "forall" =>
                     PrustiToken::Quantifier(ident.span(), Quantifier::Forall),
-                (TokenTree::Ident(ident), _, _) if ident == "exists" =>
+                (TokenTree::Ident(ident), _, _, _) if ident == "exists" =>
                     PrustiToken::Quantifier(ident.span(), Quantifier::Exists),
-                (TokenTree::Punct(punct), _, _)
+                (TokenTree::Punct(punct), _, _, _)
                     if punct.as_char() == ',' && punct.spacing() == Alone =>
                     PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Comma)),
-                (TokenTree::Punct(punct), _, _)
+                (TokenTree::Punct(punct), _, _, _)
                     if punct.as_char() == ';' && punct.spacing() == Alone =>
                     PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Semicolon)),
-                (TokenTree::Punct(punct), _, _)
+                (TokenTree::Punct(punct), _, _, _)
                     if punct.as_char() == '=' && punct.spacing() == Alone =>
                     PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Assign)),
-                (token @ TokenTree::Punct(punct), _, _) if punct.spacing() == Joint => {
+                (token @ TokenTree::Punct(punct), _, _, _) if punct.spacing() == Joint => {
                     // make sure to fully consume any Rust operator
                     // to avoid later mis-identifying its suffix
                     tokens.push_back(PrustiToken::Token(token.clone()));
@@ -158,12 +171,12 @@ impl PrustiTokenStream {
                     }
                     continue;
                 }
-                (TokenTree::Group(group), _, _) => PrustiToken::Group(
+                (TokenTree::Group(group), _, _, _) => PrustiToken::Group(
                     group.span(),
                     group.delimiter(),
                     box Self::new(group.stream()),
                 ),
-                (token, _, _) => PrustiToken::Token(token.clone()),
+                (token, _, _, _) => PrustiToken::Token(token.clone()),
             });
         }
         Self {
@@ -368,7 +381,13 @@ impl PrustiTokenStream {
             }
             self.tokens.pop_front();
             let rhs = self.expr_bp(r_bp)?;
-            // TODO: explain
+
+            // In [new], when identifying consecutive sequences of operators,
+            // we delegate to `parse_op*` which identifies Rust operators. In
+            // some cases, such as `..`, the binary operator does not actually
+            // require a RHS. Thus we only emit this error for operators that
+            // Prusti defines, as the actual Rust operators will raise a parse
+            // error after desugaring anyway.
             if !matches!(op, PrustiBinaryOp::Rust(_)) && rhs.is_empty() {
                 return err(span, "expected expression");
             }
@@ -723,7 +742,7 @@ impl Quantifier {
         args: TokenStream,
         body: TokenStream,
     ) -> TokenStream {
-        // TODO: refer to forall and exists with prusti_contracts:: prefix
+        let full_span = join_spans(span, body.span());
         let trigger_sets = triggers
             .into_iter()
             .map(|set| {
@@ -731,25 +750,24 @@ impl Quantifier {
                     quote_spanned! { trigger.span() =>
                     #[prusti::spec_only] | #args | ( #trigger ), }
                 }));
-                quote_spanned! { span => ( #triggers ) }
+                quote_spanned! { full_span => ( #triggers ) }
             })
-            //.map(|set| quote_spanned! { span =>
-            //    ( #( #[prusti::spec_only] | #args | ( #set ), )* ) })
             .collect::<Vec<_>>();
+        let body = quote_spanned! { body.span() => ((#body): bool) };
         match self {
-            Self::Forall => quote_spanned! { body.span() => forall(
+            Self::Forall => quote_spanned! { full_span => ::prusti_contracts::forall(
                 ( #( #trigger_sets, )* ),
-                #[prusti::spec_only] | #args | -> bool { ((#body): bool) }
+                #[prusti::spec_only] | #args | -> bool { #body }
             ) },
-            Self::Exists => quote_spanned! { body.span() => exists(
+            Self::Exists => quote_spanned! { full_span => ::prusti_contracts::exists(
                 ( #( #trigger_sets, )* ),
-                #[prusti::spec_only] | #args | -> bool { ((#body): bool) }
+                #[prusti::spec_only] | #args | -> bool { #body }
             ) },
         }
     }
 }
 
-// For Prusti-specific operators, in both [operator2] and [operator3]
+// For Prusti-specific operators, in [operator2], [operator3], and [operator4]
 // we mainly care about the spacing of the last [Punct], as this lets us
 // know that the last character is not itself part of an actual Rust
 // operator.
@@ -767,6 +785,15 @@ fn operator3(op: &str, p1: &Punct, p2: &Punct, p3: &Punct) -> bool {
         && p1.spacing() == Joint
         && p2.spacing() == Joint
         && p3.spacing() == Alone
+}
+
+fn operator4(op: &str, p1: &Punct, p2: &Punct, p3: &Punct, p4: &Punct) -> bool {
+    let chars = op.chars().collect::<Vec<_>>();
+    [p1.as_char(), p2.as_char(), p3.as_char(), p4.as_char()] == chars[0..4]
+        && p1.spacing() == Joint
+        && p2.spacing() == Joint
+        && p3.spacing() == Joint
+        && p4.spacing() == Alone
 }
 
 impl PrustiToken {
@@ -833,8 +860,12 @@ impl PrustiToken {
             span,
             if operator3("==>", p1, p2, p3) {
                 PrustiBinaryOp::Implies
+            } else if operator3("<==", p1, p2, p3) {
+                PrustiBinaryOp::ImpliesReverse
             } else if operator3("===", p1, p2, p3) {
                 PrustiBinaryOp::SnapEq
+            } else if operator3("!==", p1, p2, p3) {
+                PrustiBinaryOp::SnapNe
             } else if operator3("..=", p1, p2, p3) {
                 PrustiBinaryOp::Rust(RustOp::RangeInclusive)
             } else if operator3("<<=", p1, p2, p3) {
@@ -850,47 +881,97 @@ impl PrustiToken {
             },
         ))
     }
+
+    fn parse_op4(p1: &Punct, p2: &Punct, p3: &Punct, p4: &Punct) -> Option<Self> {
+        let span = join_spans(
+            join_spans(join_spans(p1.span(), p2.span()), p3.span()),
+            p4.span(),
+        );
+        Some(Self::BinOp(
+            span,
+            if operator4("<==>", p1, p2, p3, p4) {
+                PrustiBinaryOp::Iff
+            } else {
+                return None;
+            },
+        ))
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PrustiBinaryOp {
     Rust(RustOp),
+    Iff,
     Implies,
+    ImpliesReverse,
     Or,
     And,
     SnapEq,
+    SnapNe,
 }
 
 impl PrustiBinaryOp {
+    /// This function defines both the precedence and associativity of each
+    /// binary operator. The result is used in [PrustiTokenStream::expr_bp].
+    /// The value is the "power" with which each side of the binary operator
+    /// binds to its LHS resp. RHS. So, given:
+    ///
+    /// binop1  expr  binop2
+    ///
+    /// Where binop1 has binding power (_, 3) and binop2 (4, _), then binop2
+    /// will bind to expr first, as 4 > 3.
+    ///
+    /// Associativity is likewise defined by making sure that each side of the
+    /// binding power is different. (4, 3) is right associative, (3, 4) is left
+    /// associative.
     fn binding_power(&self) -> (u8, u8) {
+        // TODO: should <== and ==> have the same binding power? === and !==?
         match self {
-            // TODO: explain
             Self::Rust(_) => (0, 0),
-            Self::Implies => (4, 3),
-            Self::Or => (5, 6),
-            Self::And => (7, 8),
-            Self::SnapEq => (9, 10),
+            Self::Iff => (4, 3),
+            Self::Implies => (6, 5),
+            Self::ImpliesReverse => (5, 6),
+            Self::Or => (7, 8),
+            Self::And => (9, 10),
+            Self::SnapEq => (11, 12),
+            Self::SnapNe => (11, 12),
         }
     }
 
     fn translate(&self, span: Span, raw_lhs: TokenStream, raw_rhs: TokenStream) -> TokenStream {
+        // TODO: enforce types more strictly with type ascriptions
         let lhs = quote_spanned! { raw_lhs.span() => (#raw_lhs) };
         let rhs = quote_spanned! { raw_rhs.span() => (#raw_rhs) };
         match self {
             Self::Rust(op) => op.translate(span, raw_lhs, raw_rhs),
+            Self::Iff => {
+                let joined_span = join_spans(lhs.span(), rhs.span());
+                quote_spanned! { joined_span => #lhs == #rhs }
+            }
             // implication is desugared into this form to avoid evaluation
             // order issues: `f(a, b)` makes Rust evaluate both `a` and `b`
             // before the `f` call
             Self::Implies => {
+                let joined_span = join_spans(lhs.span(), rhs.span());
                 // preserve span of LHS
                 let not_lhs = quote_spanned! { lhs.span() => !#lhs };
-                quote_spanned! { span => #not_lhs || #rhs }
+                quote_spanned! { joined_span => #not_lhs || #rhs }
+            }
+            Self::ImpliesReverse => {
+                let joined_span = join_spans(lhs.span(), rhs.span());
+                // preserve span of RHS
+                let not_rhs = quote_spanned! { rhs.span() => !#rhs };
+                quote_spanned! { joined_span => #not_rhs || #lhs }
             }
             Self::Or => quote_spanned! { span => #lhs || #rhs },
             Self::And => quote_spanned! { span => #lhs && #rhs },
             Self::SnapEq => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
                 quote_spanned! { joined_span => snapshot_equality(&#lhs, &#rhs) }
+            }
+            Self::SnapNe => {
+                let joined_span = join_spans(lhs.span(), rhs.span());
+                quote_spanned! { joined_span => !snapshot_equality(&#lhs, &#rhs) }
             }
         }
     }
@@ -987,6 +1068,12 @@ mod tests {
             "snapshot_equality (& (a) , & (b + c))",
         );
         assert_eq!(
+            parse_prusti("a !== b + c".parse().unwrap())
+                .unwrap()
+                .to_string(),
+            "! snapshot_equality (& (a) , & (b + c))",
+        );
+        assert_eq!(
             parse_prusti("a ==> b ==> c".parse().unwrap())
                 .unwrap()
                 .to_string(),
@@ -1002,15 +1089,15 @@ mod tests {
             parse_prusti("forall(|x: i32| a ==> b)".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "forall (() , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
+            ":: prusti_contracts :: forall (() , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
         );
         assert_eq!(
             parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
-            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& (a) , & (b))) : bool) })",
+            ":: prusti_contracts :: exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& (a) , & (b))) : bool) })",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
-            "forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
+            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
         );
         assert_eq!(
             parse_prusti("assert!(a === b ==> b)".parse().unwrap())

@@ -148,22 +148,13 @@ fn main() {
                 method!("hasNewMessage"),
                 method!("getNewMessage"),
             ]),
-            java_class!("viper.silver.reporter.EntitySuccessMessage", vec![
-                method!("verificationTime"),
-                method!("cached"),
-                method!("concerning"),
-            ]),
-            java_class!("viper.silver.reporter.EntityFailureMessage", vec![
-                method!("verificationTime"),
-                method!("cached"),
-                method!("concerning"),
+            java_class!("viper.silver.reporter.QuantifierChosenTriggersMessage", vec![
+                method!("quantifier"),
+                method!("triggers_string"),
             ]),
             java_class!("viper.silver.reporter.QuantifierInstantiationsMessage", vec![
                 method!("quantifier"),
                 method!("instantiations"),
-            ]),
-            java_class!("viper.silver.ast.Member", vec![
-                method!("name"),
             ]),
             java_class!("viper.silver.verifier.Verifier", vec![
                 method!("name"),

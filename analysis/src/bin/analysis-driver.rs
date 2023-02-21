@@ -161,7 +161,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
 
         println!(
             "Analyzing file {} using {}...",
-            compiler.input().source_name().prefer_local(),
+            compiler.session().io.input.source_name().prefer_local(),
             abstract_domain
         );
 

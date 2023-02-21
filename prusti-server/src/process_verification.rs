@@ -17,6 +17,7 @@ use viper::{
     smt_manager::SmtManager, PersistentCache, Cache, VerificationBackend, VerificationResult, VerificationResultType, Viper, VerificationContext, jni_utils::JniUtils
 };
 use viper_sys::wrappers::viper::*;
+use viper_sys::wrappers::java;
 use std::time;
 use futures::{stream::Stream, lock};
 
@@ -203,8 +204,8 @@ pub fn process_verification_request(
             new_viper_verifier(program_name, &verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
-        result.result_type = if config::report_qi_profile() {
-            verify_and_poll_qi(verification_context, verifier, viper_program, viper_arc, sender.clone())
+        result.result_type = if config::report_viper_messages() {
+            verify_and_poll_msgs(verification_context, verifier, viper_program, viper_arc, sender.clone())
         } else {
             verifier.verify(viper_program)
         };
@@ -225,7 +226,7 @@ pub fn process_verification_request(
     })
 }
 
-fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
+fn verify_and_poll_msgs(verification_context: &viper::VerificationContext,
                       mut verifier: viper::Verifier,
                       viper_program: viper::Program,
                       viper_arc: &Arc<Viper>,
@@ -241,11 +242,8 @@ fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
         let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(verifier.verifier_instance().clone()));
         let rep_glob_ref = env.new_global_ref(reporter).unwrap();
 
-        let (main_tx, thread_rx) = mpsc::channel();
-        let polling_thread = scope.spawn(|| polling_function(viper_arc, rep_glob_ref, sender, thread_rx));
+        let polling_thread = scope.spawn(|| polling_function(viper_arc, rep_glob_ref, sender));
         result_type = verifier.verify(viper_program);
-        // send termination signal to polling thread
-        main_tx.send(()).unwrap();
         // FIXME: here the global ref is dropped from a detached thread
         polling_thread.join().unwrap();
     });
@@ -254,15 +252,13 @@ fn verify_and_poll_qi(verification_context: &viper::VerificationContext,
 
 fn polling_function(viper_arc: &Arc<Viper>,
                     rep_glob_ref: jni::objects::GlobalRef,
-                    sender: mpsc::Sender<ServerMessage>,
-                    thread_rx: mpsc::Receiver<()>) {
+                    sender: mpsc::Sender<ServerMessage>) {
     let verification_context = viper_arc.attach_current_thread();
     let env = verification_context.env();
     let jni = JniUtils::new(env);
     let reporter_instance = rep_glob_ref.as_obj();
     let reporter_wrapper = silver::reporter::PollingReporter::with(env);
-    let mut done = false;
-    while !done {
+    loop {
         while reporter_wrapper.call_hasNewMessage(reporter_instance).unwrap() {
             let msg = reporter_wrapper.call_getNewMessage(reporter_instance).unwrap();
             match jni.class_name(msg).as_str() {
@@ -270,15 +266,14 @@ fn polling_function(viper_arc: &Arc<Viper>,
                     let msg_wrapper = silver::reporter::QuantifierInstantiationsMessage::with(env);
                     let q_name = jni.get_string(jni.unwrap_result(msg_wrapper.call_quantifier(msg)));
                     let q_inst = jni.unwrap_result(msg_wrapper.call_instantiations(msg));
-                    // TODO: find out which more quantifiers are derived from the user
-                    // quantifiers
                     info!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
-                    // also matches the "-aux" quantifiers generated
-                    // we encoded the position id in the line number since this is not used by
+                    // also matches the "-aux" and "_precondition" quantifiers generated
+                    // we encoded the position id in the line and column number since this is not used by
                     // prusti either way
                     if q_name.starts_with("prog.l") {
                         let no_pref = q_name.strip_prefix("prog.l").unwrap();
-                        let stripped = no_pref.strip_suffix("-aux").or(Some(no_pref)).unwrap();
+                        let stripped = no_pref.strip_suffix("-aux").or(
+                                       no_pref.strip_suffix("_precondition")).unwrap_or(no_pref);
                         let parsed = stripped.parse::<u64>();
                         match parsed {
                             Ok(pos_id) => {
@@ -291,15 +286,32 @@ fn polling_function(viper_arc: &Arc<Viper>,
                         }
                     }
                 }
+                "viper.silver.reporter.QuantifierChosenTriggersMessage" => {
+                    let obj_wrapper = java::lang::Object::with(env);
+                    let positioned_wrapper = silver::ast::Positioned::with(env);
+                    let msg_wrapper = silver::reporter::QuantifierChosenTriggersMessage::with(env);
+
+                    let viper_quant = jni.unwrap_result(msg_wrapper.call_quantifier(msg));
+                    let viper_quant_str = jni.get_string(jni.unwrap_result(obj_wrapper.call_toString(viper_quant)));
+                    // we encoded the position id in the line and column number since this is not used by
+                    // prusti either way
+                    let pos = jni.unwrap_result(positioned_wrapper.call_pos(viper_quant));
+                    let pos_string = jni.get_string(jni.unwrap_result(obj_wrapper.call_toString(pos)));
+                    let pos_id_index = pos_string.rfind(".").unwrap();
+                    let pos_id = pos_string[pos_id_index+1..].parse::<u64>().unwrap();
+
+                    let viper_triggers = jni.get_string(jni.unwrap_result(msg_wrapper.call_triggers__string(msg)));
+                    info!("QuantifierChosenTriggersMessage: {} {} {}", viper_quant_str, viper_triggers, pos_id);
+                    sender.send(ServerMessage::QuantifierChosenTriggers{viper_quant: viper_quant_str,
+                                                                       triggers: viper_triggers,
+                                                                       pos_id: pos_id}
+                               ).unwrap();
+                }
+                "viper.silver.reporter.VerificationTerminationMessage" => return,
                 _ => ()
             }
         }
-        if !thread_rx.try_recv().is_err() {
-            info!("Polling thread received termination signal!");
-            done = true;
-        } else {
-            thread::sleep(time::Duration::from_millis(10));
-        }
+        thread::sleep(time::Duration::from_millis(10));
     }
 }
 

@@ -12,7 +12,7 @@ use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::Encoder;
 use crate::encoder::counterexamples::counterexample_translation;
 use crate::encoder::counterexamples::counterexample_translation_refactored;
-use crate::ide;
+use crate::ide::{self, ide_verification_result::IdeVerificationResult};
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
@@ -143,14 +143,14 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         // if we are not running in an ide, we want the errors to be reported sortedly
         let mut prusti_errors: Vec<_> = vec![];
 
-        let mut verification_info = ide::verification_info::VerificationInfo::new();
-
         pin_mut!(verification_messages);
 
         while let Some((program_name, server_msg)) = verification_messages.next().await {
             match server_msg {
                 ServerMessage::Termination(result) => {
-                    verification_info.add(&result);
+                    if config::show_ide_info() {
+                        eprintln!("ide_verification_result{}", serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap());
+                    }
                     match result.result_type {
                         // nothing to do
                         viper::VerificationResultType::Success => (),
@@ -229,7 +229,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     }
                 }
                 ServerMessage::QuantifierInstantiation{q_name, insts, pos_id} => {
-                    if config::report_qi_profile() {
+                    if config::report_viper_messages() {
                         match error_manager.position_manager().get_span_from_id(pos_id) {
                             Some(span) => {
                                 let key = (pos_id, program_name.clone());
@@ -249,7 +249,23 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     ), span.clone()
                                 ).emit(&self.env.diagnostic);
                             },
-                            None => info!("#{insts} quantifier instantiations of {q_name} for unknown position id {pos_id} in verification of {program_name}"),
+                            None => error!("#{insts} quantifier instantiations of {q_name} for unknown position id {pos_id} in verification of {program_name}"),
+                        }
+                    }
+                }
+                ServerMessage::QuantifierChosenTriggers{viper_quant, triggers, pos_id} => {
+                    if config::report_viper_messages() {
+                        if pos_id != 0 {
+                            match error_manager.position_manager().get_span_from_id(pos_id) {
+                                Some(span) => {
+                                    PrustiError::message(
+                                        format!("quantifier_chosen_triggers_message{}",
+                                            json!({"viper_quant": viper_quant, "triggers": triggers}),
+                                        ), span.clone()
+                                    ).emit(&self.env.diagnostic);
+                                },
+                                None => error!("Invalid position id {pos_id} for viper quantifier {viper_quant} in verification of {program_name}"),
+                            }
                         }
                     }
                 }
@@ -265,8 +281,6 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 debug!("Prusti error: {:?}", prusti_error);
                 prusti_error.emit(&self.env.diagnostic);
             }
-        } else {
-            println!("VerificationInfo {}", verification_info.to_json_string());
         }
 
         if encoding_errors_count != 0 {
@@ -335,7 +349,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let encoding_info = ide::encoding_info::EncodingInfo {
             call_contract_spans: self.encoder.spans_of_call_contracts.borrow().to_vec(),
         };
-        println!("EncodingInfo {}", encoding_info.to_json_string());
+        eprintln!("EncodingInfo{}", encoding_info.to_json_string());
 
     }
 }

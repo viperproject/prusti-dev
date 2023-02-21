@@ -2,21 +2,21 @@ use prusti_rustc_interface::span::{source_map::SourceMap, Span};
 use serde::Serialize;
 
 use super::vsc_span::VscSpan;
-/// stores the spans of a calls contracts. 
+/// stores the spans of a calls contracts.
 /// obtained during encoding
 
 #[derive(Serialize, Clone)]
 pub struct SpanOfCallContracts {
     pub defpath: String,
     pub call_span: VscSpan,
-    pub contracts_spans: Vec<VscSpan>,    
+    pub contracts_spans: Vec<VscSpan>,
 }
 
 impl SpanOfCallContracts {
     pub fn new(
-        defpath: String, 
-        call_span: Span, 
-        contracts_spans: Vec<Span>, 
+        defpath: String,
+        call_span: Span,
+        contracts_spans: Vec<Span>,
         source_map: &SourceMap
     ) -> Option<Self> {
         let call_span = VscSpan::from_span(&call_span, source_map)?;

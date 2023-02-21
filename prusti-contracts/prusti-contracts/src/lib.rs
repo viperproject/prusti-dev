@@ -82,6 +82,16 @@ mod private {
         };
     }
 
+    #[macro_export]
+    macro_rules! prusti_assert_eq {
+        ($left:expr, $right:expr $(,)?) => {};
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_ne {
+        ($left:expr, $right:expr $(,)?) => {};
+    }
+
     /// A sequence type
     #[non_exhaustive]
     #[derive(PartialEq, Eq, Copy, Clone)]
@@ -154,6 +164,20 @@ mod private {
     }
 
     __int_dummy_trait_impls__!(Add add, Sub sub, Mul mul, Div div, Rem rem);
+
+    #[macro_export]
+    macro_rules! prusti_assert_eq {
+        ($left:expr, $right:expr $(,)?) => {
+            $crate::prusti_assert!($crate::snapshot_equality($left, $right))
+        };
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_ne {
+        ($left:expr, $right:expr $(,)?) => {
+            $crate::prusti_assert!(!$crate::snapshot_equality($left, $right))
+        };
+    }
 
     impl Neg for Int {
         type Output = Self;
