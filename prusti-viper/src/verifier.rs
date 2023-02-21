@@ -103,18 +103,18 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let mut java_exceptions: Vec<_> = vec![];
         for (method_name, result) in verification_results.into_iter() {
             match result {
-                viper::VerificationResult::Success => {}
-                viper::VerificationResult::ConsistencyErrors(errors) => {
+                backend_common::VerificationResult::Success => {}
+                backend_common::VerificationResult::ConsistencyErrors(errors) => {
                     for error in errors.into_iter() {
                         consistency_errors.push((method_name.clone(), error));
                     }
                 }
-                viper::VerificationResult::Failure(errors) => {
+                backend_common::VerificationResult::Failure(errors) => {
                     for error in errors.into_iter() {
                         verification_errors.push((method_name.clone(), error));
                     }
                 }
-                viper::VerificationResult::JavaException(exception) => {
+                backend_common::VerificationResult::JavaException(exception) => {
                     java_exceptions.push((method_name, exception));
                 }
             }
@@ -211,10 +211,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
 /// Verify a list of programs.
 /// Returns a list of (program_name, verification_result) tuples.
-fn verify_programs(
-    env: &Environment,
-    programs: Vec<Program>,
-) -> Vec<(String, viper::VerificationResult)> {
+fn verify_programs(env: &Environment, programs: Vec<Program>)
+    -> Vec<(String, backend_common::VerificationResult)>
+{
     let source_path = env.name.source_path();
     let rust_program_name = source_path
         .file_name()

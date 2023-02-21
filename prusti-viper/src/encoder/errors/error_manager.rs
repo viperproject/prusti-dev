@@ -4,14 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt::Debug;
-
 use super::PositionManager;
+use backend_common::VerificationError;
 use log::debug;
 use prusti_interface::{data::ProcedureDefId, PrustiError};
 use prusti_rustc_interface::{errors::MultiSpan, span::source_map::SourceMap};
 use rustc_hash::FxHashMap;
-use viper::VerificationError;
 use vir_crate::polymorphic::Position;
 
 const ASSERTION_TIMEOUT_HELP_MESSAGE: &str =

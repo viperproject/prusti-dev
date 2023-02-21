@@ -6,6 +6,7 @@ use crate::encoder::{
     places::{Local, LocalVariableManager},
     Encoder,
 };
+use backend_common::{DomainEntry, ModelEntry, SiliconCounterexample};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_rustc_interface::{
@@ -20,7 +21,6 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::{iter, vec};
-use viper::silicon_counterexample::*;
 
 pub fn backtranslate(
     encoder: &Encoder,

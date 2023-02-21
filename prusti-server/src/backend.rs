@@ -8,6 +8,7 @@ use viper::{VerificationContext, VerificationResult};
 
 pub enum Backend<'a> {
     Viper(viper::Verifier<'a>, &'a VerificationContext<'a>),
+    Lithium(native_verifier::Verifier),
 }
 
 impl<'a> Backend<'a> {
@@ -36,6 +37,7 @@ impl<'a> Backend<'a> {
                     viper.verify(viper_program)
                 })
             }
+            Backend::Lithium(lithium) => lithium.verify(program),
         }
     }
 }

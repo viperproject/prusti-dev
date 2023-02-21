@@ -8,7 +8,7 @@ use crate::VerificationRequest;
 use prusti_common::config;
 use reqwest::Client;
 use url::{ParseError, Url};
-use viper::VerificationResult;
+use backend_common::VerificationResult;
 
 pub struct PrustiClient {
     client: Client,

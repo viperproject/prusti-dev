@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
+use crate::{SiliconCounterexample, JavaException};
 
 /// The result of a verification request on a Viper program.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -56,22 +56,4 @@ impl VerificationError {
             counterexample,
         }
     }
-}
-
-/// The consistency error reported by the verifier.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct ConsistencyError {
-    /// To which method corresponds the program that triggered the error.
-    pub method: String,
-    /// The actual error.
-    pub error: String,
-}
-
-/// The Java exception reported by the verifier.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct JavaExceptionWithOrigin {
-    /// To which method corresponds the program that triggered the exception.
-    pub method: String,
-    /// The actual exception.
-    pub exception: JavaException,
 }

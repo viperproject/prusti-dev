@@ -4,6 +4,7 @@ use crate::encoder::{
     places::{Local, LocalVariableManager},
     Encoder,
 };
+use backend_common::{DomainEntry, ModelEntry, SiliconCounterexample};
 use prusti_interface::{
     data::ProcedureDefId,
     environment::{body::MirBody, EnvQuery},
@@ -17,7 +18,6 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::iter;
-use viper::silicon_counterexample::*;
 use DiscriminantsStateInterface;
 
 pub fn backtranslate(

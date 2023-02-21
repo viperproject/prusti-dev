@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{Backend, VerificationRequest, ViperBackendConfig};
+use backend_common::VerificationResult;
 use log::info;
 use once_cell::sync::Lazy;
 use prusti_common::{
@@ -14,16 +15,14 @@ use prusti_common::{
     Stopwatch,
 };
 use std::{fs::create_dir_all, path::PathBuf};
-use viper::{
-    smt_manager::SmtManager, Cache, VerificationBackend, VerificationContext, VerificationResult,
-};
+use viper::{smt_manager::SmtManager, Cache, VerificationBackend, VerificationContext};
 
 #[tracing::instrument(level = "debug", skip_all, fields(program = %request.program.get_name()))]
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v Lazy<VerificationContext<'t>, impl Fn() -> VerificationContext<'t>>,
     mut request: VerificationRequest,
     cache: impl Cache,
-) -> viper::VerificationResult {
+) -> VerificationResult {
     let ast_utils = verification_context.new_ast_utils();
 
     // Only for testing: Check that the normalization is reversible.
@@ -78,7 +77,7 @@ pub fn process_verification_request<'v, 't: 'v>(
                 let _ = build_or_dump_viper_program();
             });
         }
-        return viper::VerificationResult::Success;
+        return VerificationResult::Success;
     }
 
     // Early return in case of cache hit
