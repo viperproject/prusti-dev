@@ -112,7 +112,7 @@ macro_rules! method {
 }
 
 #[macro_export]
-macro_rules! field_getter_setter {
+macro_rules! field {
     ($name:expr, $signature:expr) => {
         ItemWrapperSpec::FieldGetterSetter {
             field_name: $name.into(),

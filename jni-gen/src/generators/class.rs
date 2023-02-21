@@ -7,7 +7,7 @@
 use crate::{
     class_name::*,
     errors::*,
-    generators::{constructor::*, method::*, scala_object_getter::*, field_getter_setter::*},
+    generators::{constructor::*, field_getter_setter::*, method::*, scala_object_getter::*},
     wrapper_spec::*,
 };
 use jni::JNIEnv;
@@ -133,9 +133,7 @@ impl<'a> ClassGenerator<'a> {
                 ItemWrapperSpec::FieldGetterSetter {
                     ref field_name,
                     ref signature,
-                } => {
-                    generate_field_getter_setter(self.env, &self.class, field_name, signature)?
-                }
+                } => generate_field_getter_setter(self.env, &self.class, field_name, signature)?,
             };
             gen_items.push(gen)
         }

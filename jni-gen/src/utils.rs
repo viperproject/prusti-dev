@@ -72,7 +72,10 @@ pub fn java_str_to_string(string: &JavaStr) -> Result<String> {
 }
 
 pub fn java_str_to_valid_rust_argument_name(string: &JavaStr) -> Result<String> {
-    Ok(format!("arg_{}", java_identifier_to_rust(&java_str_to_string(string)?)))
+    Ok(format!(
+        "arg_{}",
+        java_identifier_to_rust(&java_str_to_string(string)?)
+    ))
 }
 
 pub fn java_identifier_to_rust(name: &str) -> String {
