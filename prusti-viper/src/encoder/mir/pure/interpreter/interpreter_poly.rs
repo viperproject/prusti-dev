@@ -134,9 +134,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             &mir::Operand::Move(place) | &mir::Operand::Copy(place) => {
                 Ok((self.encode_place(place)?.0, false))
             }
-            mir::Operand::Constant(constant) => {
-                Ok((self.encoder.encode_snapshot_constant(constant)?, true))
-            }
+            mir::Operand::Constant(constant) => match constant.literal {
+                mir::ConstantKind::Unevaluated(c, _cty) => {
+                    Ok((self.encoder.encode_uneval_const(c)?, true))
+                }
+                _ => Ok((self.encoder.encode_snapshot_constant(constant)?, true)),
+            },
         }
     }
 
