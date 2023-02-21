@@ -52,6 +52,47 @@ impl SMTLib {
     fn add_code(&mut self, text: String) {
         self.code.push(text);
     }
+    fn emit(&mut self, predicate: FolStatement) {
+        match predicate {
+            FolStatement::Comment(comment) => self.add_code(format!("; {}", comment)),
+            FolStatement::Assume(expression) => {
+                // assert predicate
+                self.add_code(format!("(assert {})", expression.to_smt()));
+            }
+            FolStatement::Assert(expression) => {
+                // check if just asserting true
+                // TODO: Optimization module
+                if let Expression::Constant(Constant {
+                    ty: Type::Bool,
+                    value: ConstantValue::Bool(true),
+                    ..
+                }) = expression
+                {
+                    return;
+                }
+
+                // negate predicate
+                let position = expression.position();
+                let negated = Expression::UnaryOp(UnaryOp {
+                    op_kind: UnaryOpKind::Not,
+                    argument: Box::new(expression.clone()),
+                    position,
+                });
+
+                // assert negated predicate
+                self.add_code("(push)".to_string());
+                self.add_code(format!("(assert {})", negated.to_smt()));
+                self.add_code("(check-sat)".to_string());
+                self.add_code("(pop)".to_string());
+
+                // assume predicate afterwards
+                self.add_code(format!(
+                    "(assert {}) ; assumed after assert",
+                    expression.to_smt()
+                ));
+            }
+        }
+    }
     fn follow(&mut self, block_label: &String, precond: Option<&Expression>) {
         let block = self
             .blocks
@@ -63,8 +104,12 @@ impl SMTLib {
             return;
         }
 
+        let is_branch = precond.is_some();
+
         self.add_code(format!("; Basic block: {}", block.label));
-        self.add_code("(push)".to_string());
+        if is_branch {
+            self.add_code("(push)".to_string());
+        }
 
         // assume precond if any
         if let Some(precond) = precond {
@@ -75,42 +120,60 @@ impl SMTLib {
         // verify body
         let predicates = vir_to_fol(&block.statements, &self.methods);
 
-        for predicate in predicates.into_iter() {
-            match predicate {
-                FolStatement::Comment(comment) => self.add_code(format!("; {}", comment)),
-                FolStatement::Assume(expression) => {
-                    // assert predicate
-                    self.add_code(format!("(assert {})", expression.to_smt()));
-                }
-                FolStatement::Assert(expression) => {
-                    // negate predicate
-                    let position = expression.position();
-                    let negated = Expression::UnaryOp(UnaryOp {
-                        op_kind: UnaryOpKind::Not,
-                        argument: Box::new(expression),
-                        position,
-                    });
-                    // assert negated predicate
-                    self.add_code("(push)".to_string());
-                    self.add_code(format!("(assert {})", negated.to_smt()));
-                    self.add_code("(check-sat)".to_string());
-                    self.add_code("(pop)".to_string());
-                }
-            }
-        }
+        predicates.into_iter().for_each(|predicate| {
+            self.emit(predicate);
+        });
 
         // process successor
         match &block.successor {
             Successor::Goto(label) => {
                 self.follow(&label.name, None);
             }
-            Successor::GotoSwitch(mapping) => mapping.iter().for_each(|(expr, label)| {
-                self.follow(&label.name, Some(expr));
-            }),
+            Successor::GotoSwitch(mapping) => {
+                if mapping.len() == 2 {
+                    // TODO: What is wrong with if-statements generating a "true" branch instead of condition and negation?
+                    let ((e1, l1), (e2, l2)) = (&mapping[0], &mapping[1]);
+
+                    let neg1 = Expression::UnaryOp(UnaryOp {
+                        op_kind: UnaryOpKind::Not,
+                        argument: Box::new(e1.clone()),
+                        position: e1.position(),
+                    });
+
+                    let neg2 = Expression::UnaryOp(UnaryOp {
+                        op_kind: UnaryOpKind::Not,
+                        argument: Box::new(e2.clone()),
+                        position: e2.position(),
+                    });
+
+                    let e1_and_neg2 = Expression::BinaryOp(BinaryOp {
+                        op_kind: BinaryOpKind::And,
+                        left: Box::new(e1.clone()),
+                        right: Box::new(neg2.clone()),
+                        position: e1.position(),
+                    });
+
+                    let neg1_and_e2 = Expression::BinaryOp(BinaryOp {
+                        op_kind: BinaryOpKind::And,
+                        left: Box::new(neg1.clone()),
+                        right: Box::new(e2.clone()),
+                        position: e1.position(),
+                    });
+
+                    self.follow(&l1.name, Some(&e1_and_neg2));
+                    self.follow(&l2.name, Some(&neg1_and_e2));
+                } else {
+                    mapping.iter().for_each(|(expr, label)| {
+                        self.follow(&label.name, Some(expr));
+                    })
+                }
+            }
             Successor::Return => {}
         }
 
-        self.add_code(format!("(pop); End basic block: {}", block.label));
+        if is_branch {
+            self.add_code(format!("(pop); End basic block: {}", block.label));
+        }
     }
 }
 
@@ -179,11 +242,10 @@ impl ToString for SMTLib {
 
         result.push_str(&main);
 
-        // strip all lines containing "$marker"
-        // TODO: SSO form for marker variables?
         result
             .lines()
-            .filter(|line| !line.contains("$marker"))
+            .filter(|&line| !line.contains("$marker")) // TODO: SSO form for marker variables?
+            .filter(|&line| line != "(assert true)") // TODO: Optimization module
             .collect::<Vec<_>>()
             .join("\n")
     }
