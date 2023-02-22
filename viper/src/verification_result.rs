@@ -32,7 +32,7 @@ impl VerificationResult {
 pub enum VerificationResultType{
     /// The program verified.
     Success,
-    /// The program did not verify. Again with quantifier statistics.
+    /// The program did not verify.
     Failure(Vec<VerificationError>),
     /// The program has consistency errors.
     ConsistencyErrors(Vec<String>),
