@@ -140,9 +140,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             if config::show_ide_info() && !config::no_verify() {
                 let compiler_info = compiler_info::IdeInfo::collect(&env, &annotated_procedures, &def_spec);
                 let out = serde_json::to_string(&compiler_info).unwrap();
-                // probably should make this part of compilers output..
-                // actually not sure which way is better...
-                eprintln!("");
                 PrustiError::message(format!("compilerInfo{out}"), DUMMY_SP.into())
                     .emit(&env.diagnostic);
             }

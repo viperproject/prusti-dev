@@ -58,8 +58,10 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                     let tyck_res = self.tcx.typeck(e1.hir_id.owner.def_id);
                     let res = tyck_res.qpath_res(qself, e1.hir_id);
                     if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
-                        let defpath = self.tcx.def_path_str(def_id);
-                        self.called_functions.push((defpath, def_id, expr.span));
+                        if !def_id.as_local().is_some() {
+                            let defpath = self.tcx.def_path_str(def_id);
+                            self.called_functions.push((defpath, def_id, expr.span));
+                        }
                     }
                 }
             }
@@ -67,13 +69,11 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                 let resolve_res = self.resolve_expression(expr);
                 match resolve_res {
                     Ok((method_def_id, resolved_def_id)) => {
-                        let _is_local = method_def_id.as_local().is_some();
+                        let is_local = method_def_id.as_local().is_some();
                         let defpath_unresolved = self.tcx.def_path_str(method_def_id);
                         let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
 
-                        if true {
-                            // TODO: replace with is_local once we are not debugging anymore
-                            // no need to create external specs for local methods
+                        if !is_local {
                             if defpath_unresolved == defpath_resolved {
                                 self.called_functions.push((defpath_resolved, resolved_def_id, sp));
                             } else {
@@ -91,13 +91,11 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                 // this will already fail for standard addition
                 match resolve_res {
                     Ok((method_def_id, resolved_def_id)) => {
-                        let _is_local = method_def_id.as_local().is_some();
+                        let is_local = method_def_id.as_local().is_some();
                         let defpath_unresolved = self.tcx.def_path_str(method_def_id);
                         let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
 
-                        if true {
-                            // TODO: replace with is_local once we are not debugging anymore
-                            // no need to create external specs for local methods
+                        if !is_local {
                             if defpath_unresolved == defpath_resolved {
                                 self.called_functions.push((defpath_resolved, resolved_def_id, expr.span));
                             } else {
