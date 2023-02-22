@@ -131,48 +131,53 @@ impl SMTLib {
                 self.follow(&label.name, None);
             }
             Successor::GotoSwitch(mapping) => {
-                if mapping.len() == 2 {
-                    // TODO: What is wrong with if-statements generating a "true" branch instead of condition and negation?
-                    let ((e1, l1), (e2, l2)) = (&mapping[0], &mapping[1]);
+                // if last branch is "true", it is the "otherwise" branch
+                // see: prusti-viper/src/encoder/mir/procedures/encoder/mod.rs
+                let (last_expr, last_label) = mapping.iter().last().unwrap();
 
-                    if let Expression::Constant(Constant {
-                        ty: Type::Bool,
-                        value: ConstantValue::Bool(true),
-                        ..
-                    }) = &e1
-                    {
-                        let neg2 = Expression::UnaryOp(UnaryOp {
-                            op_kind: UnaryOpKind::Not,
-                            argument: Box::new(e2.clone()),
-                            position: e2.position(),
+                if let Expression::Constant(Constant {
+                    ty: Type::Bool,
+                    value: ConstantValue::Bool(true),
+                    ..
+                }) = last_expr
+                {
+                    // create an "and" of all negations of previous expressions
+                    let and = mapping
+                        .iter()
+                        .take(mapping.len() - 1)
+                        .map(|(expr, _)| expr)
+                        .fold(None, |acc, expr| {
+                            if let Some(acc) = acc {
+                                Some(Expression::BinaryOp(BinaryOp {
+                                    op_kind: BinaryOpKind::And,
+                                    left: Box::new(acc),
+                                    right: Box::new(Expression::UnaryOp(UnaryOp {
+                                        op_kind: UnaryOpKind::Not,
+                                        argument: Box::new(expr.clone()),
+                                        position: expr.position(),
+                                    })),
+                                    position: expr.position(),
+                                }))
+                            } else {
+                                Some(Expression::UnaryOp(UnaryOp {
+                                    op_kind: UnaryOpKind::Not,
+                                    argument: Box::new(expr.clone()),
+                                    position: expr.position(),
+                                }))
+                            }
                         });
 
-                        self.follow(&l1.name, Some(&neg2));
-                    } else {
-                        self.follow(&l1.name, Some(e1));
-                    }
-
-                    if let Expression::Constant(Constant {
-                        ty: Type::Bool,
-                        value: ConstantValue::Bool(true),
-                        ..
-                    }) = &e2
-                    {
-                        let neg1 = Expression::UnaryOp(UnaryOp {
-                            op_kind: UnaryOpKind::Not,
-                            argument: Box::new(e1.clone()),
-                            position: e1.position(),
-                        });
-
-                        self.follow(&l2.name, Some(&neg1));
-                    } else {
-                        self.follow(&l2.name, Some(e2));
-                    }
+                    self.follow(&last_label.name, and.as_ref());
                 } else {
-                    mapping.iter().for_each(|(expr, label)| {
+                    self.follow(&last_label.name, Some(last_expr));
+                }
+
+                mapping
+                    .iter()
+                    .take(mapping.len() - 1)
+                    .for_each(|(expr, label)| {
                         self.follow(&label.name, Some(expr));
                     })
-                }
             }
             Successor::Return => {}
         }
