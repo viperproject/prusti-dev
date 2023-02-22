@@ -9,19 +9,19 @@ use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct VerificationResult {
     pub item_name: String,
-    pub result_type: VerificationResultType,
+    pub result_type: VerificationResultKind,
     pub cached: bool,
     pub time_ms: u128,
 }
 
 impl VerificationResult {
     pub fn is_success(&self) -> bool {
-        matches!(self.result_type, VerificationResultType::Success)
+        matches!(self.result_type, VerificationResultKind::Success)
     }
     pub fn dummy_success() -> Self {
         VerificationResult {
             item_name: "".to_string(),
-            result_type: VerificationResultType::Success,
+            result_type: VerificationResultKind::Success,
             cached: false,
             time_ms: 0,
         }
@@ -29,7 +29,7 @@ impl VerificationResult {
 }
 /// The result of a verification request on a Viper program.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum VerificationResultType {
+pub enum VerificationResultKind {
     /// The program verified.
     Success,
     /// The program did not verify.
@@ -40,7 +40,7 @@ pub enum VerificationResultType {
     JavaException(JavaException),
 }
 
-impl VerificationResultType {
+impl VerificationResultKind {
     pub fn is_success(&self) -> bool {
         matches!(self, Self::Success)
     }

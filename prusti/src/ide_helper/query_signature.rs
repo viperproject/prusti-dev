@@ -7,9 +7,8 @@ use prusti_rustc_interface::{
     middle::ty::{self, Clause, DefIdTree, ImplSubject, PredicateKind, TyCtxt},
 };
 
-// data structure to represent what we want to generate
-// since we didnt manage to this with syn etc..
-
+/// data structure to represent the code we want to generate
+/// since we didnt manage to this with syn etc..
 #[derive(Debug)]
 enum ExternSpecBlock {
     StandaloneFn {
@@ -152,8 +151,10 @@ struct GenericArg {
 }
 
 impl fmt::Display for GenericArg {
-    // default formatter will include the traitbounds,
-    // otherwise just take .name field..
+    /// For a generic argument, generate a string such as
+    /// T: Add<Output=T> + Display
+    /// default formatter will include the traitbounds, otherwise just take
+    /// .name field if they should be part of a where block
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let bounds_str = traitbounds_string(&self.bounds);
         write!(f, "{}: {bounds_str}", self.name)
@@ -165,7 +166,13 @@ impl fmt::Display for GenericArg {
     }
 }
 
-// the string for the where clause
+/// the string for the where clause. Given a list of genericArgs, this would
+/// generate a string of the form:
+/// ```
+/// where
+///     T: bound1 + bound2,
+///     S: anotherbound,
+/// ```
 fn bounds_where_block(arglist: &[GenericArg]) -> String {
     let bounds_vec = arglist
         .iter()
@@ -179,6 +186,8 @@ fn bounds_where_block(arglist: &[GenericArg]) -> String {
     }
 }
 
+/// If a function or impl block has a list of generic arguments, this
+/// will generate the string for it such as <T, S, J>.
 fn generic_args_str(arglist: &Vec<GenericArg>, include_bounds: bool) -> String {
     if !arglist.is_empty() {
         let res = arglist
@@ -189,8 +198,7 @@ fn generic_args_str(arglist: &Vec<GenericArg>, include_bounds: bool) -> String {
                 } else {
                     genarg.name.clone()
                 }
-            }) // if we wanted to include defaults this should
-            // probably happen here
+            })
             .collect::<Vec<String>>()
             .join(", ");
         format!("<{res}>")
@@ -199,7 +207,7 @@ fn generic_args_str(arglist: &Vec<GenericArg>, include_bounds: bool) -> String {
     }
 }
 
-// example result: Sized + PartialEq + Eq
+/// example result: Sized + PartialEq + Eq
 fn traitbounds_string(boundlist: &Vec<TraitBound>) -> String {
     if !boundlist.is_empty() {
         let res = boundlist
@@ -408,8 +416,8 @@ fn get_parent_chain(defid: DefId, tcx: TyCtxt<'_>) -> String {
     defpath.join("::")
 }
 
+/// indent all lines that are not empty by one tab
 fn indent(input: &String) -> String {
-    // indent all lines that are not empty by one tab
     let mut res = String::from("\t");
     let len = input.len();
     for (i, c) in input.chars().enumerate() {

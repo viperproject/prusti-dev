@@ -169,8 +169,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     }
                     match result.result_type {
                         // nothing to do
-                        viper::VerificationResultType::Success => (),
-                        viper::VerificationResultType::ConsistencyErrors(errors) => {
+                        viper::VerificationResultKind::Success => (),
+                        viper::VerificationResultKind::ConsistencyErrors(errors) => {
                             for error in errors {
                                 PrustiError::internal(
                                     format!("consistency error in {program_name}: {error}"),
@@ -180,7 +180,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                             }
                             overall_result = VerificationResult::Failure;
                         }
-                        viper::VerificationResultType::Failure(errors) => {
+                        viper::VerificationResultKind::Failure(errors) => {
                             for verification_error in errors {
                                 debug!(
                                     "Verification error in {}: {:?}",
@@ -251,7 +251,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                             }
                             overall_result = VerificationResult::Failure;
                         }
-                        viper::VerificationResultType::JavaException(exception) => {
+                        viper::VerificationResultKind::JavaException(exception) => {
                             error!("Java exception: {}", exception.get_stack_trace());
                             PrustiError::internal(
                                 format!("in {program_name}: {exception}"),

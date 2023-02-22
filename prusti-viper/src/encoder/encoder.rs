@@ -104,6 +104,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// this requires special care when encoding array/slice accesses which may come with
     /// bound checks included in the MIR.
     pub(super) is_encoding_trigger: Cell<bool>,
+    /// When calls are being encoded, this Vec saves the spans of all items of the 
+    /// contract so they can later be passed to prusti-assistant
     pub spans_of_call_contracts: RefCell<Vec<SpanOfCallContracts>>,
 }
 

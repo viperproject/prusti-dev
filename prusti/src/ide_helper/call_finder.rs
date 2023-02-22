@@ -9,6 +9,7 @@ use prusti_rustc_interface::{
     span::Span,
 };
 
+/// The hir-visitor to collect all the function calls
 pub struct CallSpanFinder<'tcx> {
     pub env_query: EnvQuery<'tcx>,
     pub tcx: TyCtxt<'tcx>,

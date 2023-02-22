@@ -1,5 +1,6 @@
 use prusti_rustc_interface::span::{source_map::SourceMap, Span};
 use serde::Serialize;
+
 /// a representation of spans that is more usable with VSCode.
 #[derive(Serialize, Clone)]
 pub struct VscSpan {

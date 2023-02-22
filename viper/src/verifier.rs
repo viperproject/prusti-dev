@@ -11,7 +11,7 @@ use crate::{
     silicon_counterexample::SiliconCounterexample,
     smt_manager::SmtManager,
     verification_backend::VerificationBackend,
-    verification_result::{VerificationError, VerificationResultType},
+    verification_result::{VerificationError, VerificationResultKind},
 };
 use jni::{objects::JObject, JNIEnv};
 use log::{debug, error, info};
@@ -108,7 +108,7 @@ impl<'a> Verifier<'a> {
         self
     }
 
-    pub fn verify(&mut self, program: Program) -> VerificationResultType {
+    pub fn verify(&mut self, program: Program) -> VerificationResultKind {
         self.ast_utils.with_local_frame(16, || {
             debug!(
                 "Program to be verified:\n{}",
@@ -119,7 +119,7 @@ impl<'a> Verifier<'a> {
                 let consistency_errors = match self.ast_utils.check_consistency(program) {
                     Ok(errors) => errors,
                     Err(java_exception) => {
-                        return VerificationResultType::JavaException(java_exception);
+                        return VerificationResultKind::JavaException(java_exception);
                     }
                 };
             );
@@ -129,7 +129,7 @@ impl<'a> Verifier<'a> {
                     "The provided Viper program has {} consistency errors.",
                     consistency_errors.len()
                 );
-                return VerificationResultType::ConsistencyErrors(
+                return VerificationResultKind::ConsistencyErrors(
                     consistency_errors
                         .into_iter()
                         .map(|e| self.jni.to_string(e))
@@ -332,9 +332,9 @@ impl<'a> Verifier<'a> {
                     ))
                 }
 
-                VerificationResultType::Failure(errors)
+                VerificationResultKind::Failure(errors)
             } else {
-                VerificationResultType::Success
+                VerificationResultKind::Success
             }
         })
     }

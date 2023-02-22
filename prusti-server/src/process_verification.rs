@@ -21,7 +21,7 @@ use std::{
 };
 use viper::{
     jni_utils::JniUtils, smt_manager::SmtManager, Cache, PersistentCache, VerificationBackend,
-    VerificationContext, VerificationResult, VerificationResultType, Viper,
+    VerificationContext, VerificationResult, VerificationResultKind, Viper,
 };
 use viper_sys::wrappers::{java, viper::*};
 
@@ -187,7 +187,7 @@ pub fn process_verification_request(
 
     let mut result = VerificationResult {
         item_name: request.program.get_name().to_string(),
-        result_type: VerificationResultType::Success,
+        result_type: VerificationResultKind::Success,
         cached: false,
         time_ms: 0,
     };
@@ -238,7 +238,7 @@ pub fn process_verification_request(
 
         // Don't cache Java exceptions, which might be due to misconfigured paths.
         if config::enable_cache()
-            && !matches!(result.result_type, VerificationResultType::JavaException(_))
+            && !matches!(result.result_type, VerificationResultKind::JavaException(_))
         {
             info!(
                 "Storing new cached result {:?} for program {}",
@@ -259,8 +259,8 @@ fn verify_and_poll_msgs(
     viper_program: viper::Program,
     viper_arc: &Arc<Viper>,
     sender: mpsc::Sender<ServerMessage>,
-) -> VerificationResultType {
-    let mut result_type = VerificationResultType::Success;
+) -> VerificationResultKind {
+    let mut result_type = VerificationResultKind::Success;
 
     // get the reporter global reference outside of the thread scope because it needs to
     // be dropped by thread attached to the jvm. This is also why we pass it as reference

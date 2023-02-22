@@ -1,10 +1,9 @@
 use prusti_rustc_interface::span::{source_map::SourceMap, Span};
 use serde::Serialize;
-
 use super::vsc_span::VscSpan;
+
 /// stores the spans of a calls contracts.
 /// obtained during encoding
-
 #[derive(Serialize, Clone)]
 pub struct SpanOfCallContracts {
     pub defpath: String,

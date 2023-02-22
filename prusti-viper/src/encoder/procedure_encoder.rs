@@ -3388,6 +3388,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 substs,
             ).with_span(call_site_span)?
         };
+        // store spans of items of the contracts for prusti-assistant
         self.store_contract_spans(
             called_def_id, 
             &procedure_contract,
@@ -3535,6 +3536,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    /// Collect all the available spans of the items of a contract 
+    /// and store them. Purpose of this function is to later pass these
+    /// spans to prusti-assistant, so users can look up contracts of 
+    /// function calls
     fn store_contract_spans(
         &self,
         called_def_id: ProcedureDefId,

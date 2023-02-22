@@ -7,9 +7,8 @@ use prusti_rustc_interface::{
 use prusti_viper::ide::vsc_span::VscSpan;
 use serde::{ser::SerializeStruct, Serialize};
 
-// create some struct storing all the information the IDE will ever need.
-// needs to be transformable into json!
-
+/// This struct will be passed to prusti-assistant containing information
+/// about the program that is currently being verified
 #[derive(Serialize)]
 pub struct IdeInfo {
     procedure_defs: Vec<ProcDef>,
@@ -47,13 +46,15 @@ impl IdeInfo {
     }
 }
 
+/// A struct that contains either a reference to a procedure that can be verified
+/// (for selective verification) or a function call (so a user can query
+/// external_spec blocks for it). The name contains the defpath.
 pub struct ProcDef {
     pub name: String,
     pub defid: DefId,
     pub span: VscSpan,
 }
 
-// defid is not needed for VSCode and not serializable as of now..
 impl Serialize for ProcDef {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -66,7 +67,8 @@ impl Serialize for ProcDef {
     }
 }
 
-// collect information about the program that will be passed to IDE:
+/// collect information about the program that will be passed to IDE.
+/// This should find all non-trusted functions that can be verified
 fn collect_procedures(
     env: &Environment<'_>,
     procedures: &Vec<DefId>,
@@ -114,14 +116,10 @@ fn collect_procedures(
     procs
 }
 
+/// collect all the function calls, so the extension can query external_spec
+/// templates for it
 fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, DefId, Span)> {
-    // let l_hir = env.tcx().hir();
-    // let hir_body = l_hir.body();
-
     let mut fnvisitor = call_finder::CallSpanFinder::new(env);
-
-    // let mut adjusted_visitor =
-    // fnvisitor.visit_body(hir_body);
     env.tcx()
         .hir()
         .visit_all_item_likes_in_crate(&mut fnvisitor);
