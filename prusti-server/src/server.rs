@@ -41,7 +41,10 @@ pub fn spawn_server_thread() -> SocketAddr {
     receiver.recv().unwrap()
 }
 
-// initialize on first access
+// This VerificationRequestProcessing object is starting the verification thread (for more details
+// see the file process_verification.rs).
+// It has to have a static lifetime because warp websockets need their closures to have a static
+// lifetime and we need to access this object in them.
 static VERIFICATION_REQUEST_PROCESSING: Lazy<VerificationRequestProcessing> = Lazy::new(|| { VerificationRequestProcessing::new() });
 
 fn listen_on_port_with_address_callback<F>(port: u16, address_callback: F) -> !
