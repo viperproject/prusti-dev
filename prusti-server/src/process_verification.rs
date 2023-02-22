@@ -31,10 +31,10 @@ pub struct VerificationRequestProcessing {
     mtx_tx_verreq: sync::Mutex<mpsc::Sender<ServerRequest>>,
 }
 
-// one structure that lives for all the requests and has a single thread working on all the
-// requests sequentially
-// on reception of a verification request, we send it through a channel to the already running
-// thread
+/// A structure that lives for all the requests and has a single thread working on all the
+/// requests sequentially.
+/// On reception of a verification request, we send it through a channel to the already running
+/// thread.
 impl VerificationRequestProcessing {
     pub fn new() -> Self {
         let (tx_servermsg, rx_servermsg) = mpsc::channel();
@@ -76,6 +76,7 @@ impl VerificationRequestProcessing {
             .unwrap()
             .send(ServerRequest::Verification(request))
             .unwrap();
+        // return a stream that has as last non-None message the ServerMessage::Termination
         futures::stream::unfold(false, move |done: bool| async move {
             if done {
                 return None;
@@ -233,25 +234,27 @@ fn verify_and_poll_msgs(verification_context: &viper::VerificationContext,
                       sender: mpsc::Sender<ServerMessage>)
     -> VerificationResultType {
     let mut result_type = VerificationResultType::Success;
+
+    // get the reporter global reference outside of the thread scope because it needs to
+    // be dropped by thread attached to the jvm. This is also why we pass it as reference
+    // and not per value
+    let env = &verification_context.env();
+    let jni = JniUtils::new(env);
+    let verifier_wrapper = silver::verifier::Verifier::with(env);
+    let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(verifier.verifier_instance().clone()));
+    let rep_glob_ref = env.new_global_ref(reporter).unwrap();
+
     // start thread for polling messages
     thread::scope(|scope| {
-        // get the reporter
-        let env = &verification_context.env();
-        let jni = JniUtils::new(env);
-        let verifier_wrapper = silver::verifier::Verifier::with(env);
-        let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(verifier.verifier_instance().clone()));
-        let rep_glob_ref = env.new_global_ref(reporter).unwrap();
-
-        let polling_thread = scope.spawn(|| polling_function(viper_arc, rep_glob_ref, sender));
+        let polling_thread = scope.spawn(|| polling_function(viper_arc, &rep_glob_ref, sender));
         result_type = verifier.verify(viper_program);
-        // FIXME: here the global ref is dropped from a detached thread
         polling_thread.join().unwrap();
     });
     result_type
 }
 
 fn polling_function(viper_arc: &Arc<Viper>,
-                    rep_glob_ref: jni::objects::GlobalRef,
+                    rep_glob_ref: &jni::objects::GlobalRef,
                     sender: mpsc::Sender<ServerMessage>) {
     let verification_context = viper_arc.attach_current_thread();
     let env = verification_context.env();

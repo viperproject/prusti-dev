@@ -5,7 +5,6 @@ use async_std::{
     sync::Mutex,
 };
 use std::{env::VarError, str::FromStr};
-use log::trace;
 
 #[derive(Debug)]
 pub(super) struct Context {
@@ -16,7 +15,6 @@ pub(super) struct Context {
 
 impl Context {
     pub(crate) async fn new() -> Self {
-        trace!("BBBB");
         let (log_file_path, z3_trace_path) =
             if let Some(port) = read_integer("PRUSTI_SMT_SOLVER_MANAGER_PORT") {
                 let stream = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
@@ -31,7 +29,6 @@ impl Context {
             } else {
                 (None, None)
             };
-        trace!("{:?} BBBB {:?}", log_file_path, z3_trace_path);
         let quantifier_instantiations_bound_global = read_integer("PRUSTI_SMT_QI_BOUND_GLOBAL");
         let log_file = {
             if let Ok(value) = std::env::var("PRUSTI_LOG_SMT_INTERACTION") {
