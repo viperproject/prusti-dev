@@ -143,7 +143,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 // probably should make this part of compilers output..
                 // actually not sure which way is better...
                 eprintln!("");
-                PrustiError::message(format!("CompilerInfo{out}"), DUMMY_SP.into())
+                PrustiError::message(format!("compilerInfo{out}"), DUMMY_SP.into())
                     .emit(&env.diagnostic);
             }
 

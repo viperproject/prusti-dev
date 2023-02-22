@@ -150,7 +150,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 ServerMessage::Termination(result) => {
                     if config::show_ide_info() {
                         PrustiError::message(
-                            format!("IdeVerificationResult{}",
+                            format!("ideVerificationResult{}",
                                     serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap()
                             ), DUMMY_SP.into()
                         ).emit(&self.env.diagnostic);
@@ -248,7 +248,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     n += *insts;
                                 }
                                 PrustiError::message(
-                                    format!("QuantifierInstantiationsMessage{}",
+                                    format!("quantifierInstantiationsMessage{}",
                                         json!({"instantiations": n, "method": program_name}),
                                     ), span.clone()
                                 ).emit(&self.env.diagnostic);
@@ -263,7 +263,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                             match error_manager.position_manager().get_span_from_id(pos_id) {
                                 Some(span) => {
                                     PrustiError::message(
-                                        format!("QuantifierChosenTriggersMessage{}",
+                                        format!("quantifierChosenTriggersMessage{}",
                                             json!({"viper_quant": viper_quant, "triggers": triggers}),
                                         ), span.clone()
                                     ).emit(&self.env.diagnostic);
@@ -354,7 +354,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             call_contract_spans: self.encoder.spans_of_call_contracts.borrow().to_vec(),
         };
         PrustiError::message(
-            format!("EncodingInfo{}", encoding_info.to_json_string()), DUMMY_SP.into()
+            format!("encodingInfo{}", encoding_info.to_json_string()), DUMMY_SP.into()
         ).emit(&self.env.diagnostic);
 
     }
