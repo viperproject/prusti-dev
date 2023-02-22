@@ -35,7 +35,7 @@ use prusti_server::{
     VerificationRequestProcessing, ViperBackendConfig,
 };
 use serde_json::json;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.
@@ -142,12 +142,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
     ) -> VerificationResult {
         let mut overall_result = VerificationResult::Success;
         let encoding_errors_count = self.encoder.count_encoding_errors();
-        let error_manager = self.encoder.error_manager();
         // we want quantifier_pos_ID + program_name + q_name as identifier because there are
         // different q_names for the same ID and each program reports independent results
         // key: (pos_id, program_name), key to result: q_name result: num_instantiations
-        let mut quantifier_instantiations: HashMap<(u64, String), HashMap<String, u64>> =
-            HashMap::new();
+        let mut quantifier_instantiations: FxHashMap<(u64, String), FxHashMap<String, u64>> =
+            FxHashMap::default();
 
         // if we are not running in an ide, we want the errors to be reported sortedly
         let mut prusti_errors: Vec<_> = vec![];
@@ -188,8 +187,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     program_name.clone(),
                                     verification_error
                                 );
-                                let mut prusti_error =
-                                    error_manager.translate_verification_error(&verification_error);
+                                let mut prusti_error = self.encoder.error_manager()
+                                    .translate_verification_error(&verification_error);
 
                                 // annotate with counterexample, if requested
                                 if config::counterexample() {
@@ -197,12 +196,12 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                         if let Some(silicon_counterexample) =
                                             &verification_error.counterexample
                                         {
-                                            if let Some(def_id) =
-                                                error_manager.get_def_id(&verification_error)
+                                            if let Some(def_id) = self.encoder.error_manager()
+                                                .get_def_id(&verification_error)
                                             {
                                                 let counterexample = counterexample_translation_refactored::backtranslate(
                                                     &self.encoder,
-                                                    error_manager.position_manager(),
+                                                    self.encoder.error_manager().position_manager(),
                                                     def_id,
                                                     silicon_counterexample,
                                                 );
@@ -220,8 +219,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                     } else if let Some(silicon_counterexample) =
                                         &verification_error.counterexample
                                     {
-                                        if let Some(def_id) =
-                                            error_manager.get_def_id(&verification_error)
+                                        if let Some(def_id) = self.encoder.error_manager()
+                                            .get_def_id(&verification_error)
                                         {
                                             let counterexample =
                                                 counterexample_translation::backtranslate(
@@ -269,11 +268,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     pos_id,
                 } => {
                     if config::report_viper_messages() {
-                        match error_manager.position_manager().get_span_from_id(pos_id) {
+                        match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
                             Some(span) => {
                                 let key = (pos_id, program_name.clone());
                                 if !quantifier_instantiations.contains_key(&key) {
-                                    quantifier_instantiations.insert(key.clone(), HashMap::new());
+                                    quantifier_instantiations.insert(key.clone(), FxHashMap::default());
                                 }
                                 let map = quantifier_instantiations.get_mut(&key).unwrap();
                                 // this replaces the old entry which is exactly what we want
@@ -298,7 +297,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     pos_id,
                 } => {
                     if config::report_viper_messages() && pos_id != 0 {
-                        match error_manager.position_manager().get_span_from_id(pos_id) {
+                        match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
                             Some(span) => {
                                 PrustiError::message(
                                     format!("quantifierChosenTriggersMessage{}",
