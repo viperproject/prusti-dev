@@ -9,6 +9,14 @@ use viper::VerificationResult;
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum ServerMessage {
     Termination(VerificationResult),
-    QuantifierInstantiation { q_name: String, insts: u64, pos_id: u64 },
-    QuantifierChosenTriggers { viper_quant: String, triggers: String, pos_id: u64 },
+    QuantifierInstantiation {
+        q_name: String,
+        insts: u64,
+        pos_id: u64,
+    },
+    QuantifierChosenTriggers {
+        viper_quant: String,
+        triggers: String,
+        pos_id: u64,
+    },
 }

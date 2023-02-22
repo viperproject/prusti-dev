@@ -79,11 +79,7 @@ impl<'tcx> EnvDiagnostic<'tcx> {
     }
 
     /// Emits a note
-    pub fn span_note<S: Into<MultiSpan> + Clone>(
-        &self,
-        sp: S,
-        msg: &str,
-    ) {
+    pub fn span_note<S: Into<MultiSpan> + Clone>(&self, sp: S, msg: &str) {
         self.tcx.sess.span_note_without_error(sp, msg);
     }
 

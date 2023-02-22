@@ -3590,7 +3590,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             tcx.def_path_str(called_def_id),
             call_site_span,
             result,
-            &tcx.sess.source_map(),
+            tcx.sess.source_map(),
         );
         if let Some(contract_spans) = contract_spans_opt {
             self.encoder.spans_of_call_contracts.borrow_mut().push(contract_spans);

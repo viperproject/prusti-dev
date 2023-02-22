@@ -4,12 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{VerificationRequest, ServerMessage};
+use crate::{ServerMessage, VerificationRequest};
+use futures_util::{
+    sink::SinkExt,
+    stream::{Stream, StreamExt},
+};
 use prusti_common::config;
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{error::Error, Message},
+};
 use url::Url;
-use tokio_tungstenite::{connect_async,
-                        tungstenite::{Message, error::Error}};
-use futures_util::{stream::{Stream, StreamExt}, sink::SinkExt};
 
 pub struct PrustiClient;
 
@@ -29,13 +34,22 @@ impl PrustiClient {
         let use_json = config::json_communication();
 
         let uri = server_url
-                .join(if use_json { "json/" } else { "bincode/" })
-                .unwrap()
-                .join("verify/")
-                .unwrap();
+            .join(if use_json { "json/" } else { "bincode/" })
+            .unwrap()
+            .join("verify/")
+            .unwrap();
         let (mut socket, _) = connect_async(uri).await.unwrap();
-        let msg = if use_json { Message::text(serde_json::to_string(&request).expect("error encoding verification request in json")) }
-                  else { Message::binary(bincode::serialize(&request).expect("error encoding verification request as binary")) };
+        let msg = if use_json {
+            Message::text(
+                serde_json::to_string(&request)
+                    .expect("error encoding verification request in json"),
+            )
+        } else {
+            Message::binary(
+                bincode::serialize(&request)
+                    .expect("error encoding verification request as binary"),
+            )
+        };
         socket.send(msg).await.unwrap();
         let json_map = |ws_msg| {
             if let Message::Text(json) = ws_msg {
@@ -58,7 +72,8 @@ impl PrustiClient {
                 _ => Some(msg),
             }
         };
-        let s = socket.filter_map(filter_close).map(if use_json { json_map } else { bin_map });
-        s
+        socket
+            .filter_map(filter_close)
+            .map(if use_json { json_map } else { bin_map })
     }
 }

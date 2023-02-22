@@ -21,7 +21,11 @@ pub struct IdeInfo {
 }
 
 impl IdeInfo {
-    pub fn collect(env: &Environment<'_>, procedures: &Vec<DefId>, def_spec: &typed::DefSpecificationMap) -> Self {
+    pub fn collect(
+        env: &Environment<'_>,
+        procedures: &Vec<DefId>,
+        def_spec: &typed::DefSpecificationMap,
+    ) -> Self {
         let procs = collect_procedures(env, procedures, def_spec);
         let source_map = env.tcx().sess.source_map();
         let fncalls: Vec<ProcDef> = collect_fncalls(env)
@@ -62,16 +66,19 @@ impl Serialize for ProcDef {
     }
 }
 
-
 // collect information about the program that will be passed to IDE:
-fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>, def_spec: &typed::DefSpecificationMap) -> Vec<ProcDef> {
+fn collect_procedures(
+    env: &Environment<'_>,
+    procedures: &Vec<DefId>,
+    def_spec: &typed::DefSpecificationMap,
+) -> Vec<ProcDef> {
     let sourcemap: &SourceMap = env.tcx().sess.source_map();
     let mut procs = Vec::new();
     for defid in procedures {
         let defpath = env.name.get_unique_item_name(*defid);
         let span = env.query.get_def_span(defid);
         let vscspan = VscSpan::from_span(&span, sourcemap).unwrap();
-        
+
         // Filter out the predicates and trusted methods,
         // since we don't want to allow selective verification
         // for them
@@ -80,11 +87,17 @@ fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>, def_spec: 
 
         let proc_spec_opt = def_spec.get_proc_spec(defid);
         if let Some(proc_spec) = proc_spec_opt {
-            let kind_spec = proc_spec.base_spec.kind.extract_with_selective_replacement();
-            let trusted_spec = proc_spec.base_spec.trusted.extract_with_selective_replacement();
+            let kind_spec = proc_spec
+                .base_spec
+                .kind
+                .extract_with_selective_replacement();
+            let trusted_spec = proc_spec
+                .base_spec
+                .trusted
+                .extract_with_selective_replacement();
             if let Some(typed::ProcedureSpecificationKind::Predicate(..)) = kind_spec {
                 is_predicate = true;
-            } 
+            }
             if let Some(true) = trusted_spec {
                 is_trusted = true;
             }
@@ -113,6 +126,5 @@ fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, DefId, Span)> {
         .hir()
         .visit_all_item_likes_in_crate(&mut fnvisitor);
 
-    return fnvisitor.called_functions;
+    fnvisitor.called_functions
 }
-

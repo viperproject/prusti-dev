@@ -17,7 +17,7 @@ impl VscSpan {
     pub fn from_span(sp: &Span, sourcemap: &SourceMap) -> Option<Self> {
         let filename = sourcemap.span_to_filename(*sp);
         let diag_filename = sourcemap.filename_for_diagnostics(&filename);
-        let fname = format!("{}", diag_filename);
+        let fname = format!("{diag_filename}");
 
         if let Ok((l1, l2)) = sourcemap.is_valid_span(*sp) {
             Some(Self {

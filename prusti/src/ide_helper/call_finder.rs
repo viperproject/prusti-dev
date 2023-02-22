@@ -36,9 +36,9 @@ impl<'tcx> CallSpanFinder<'tcx> {
             let (resolved_def_id, _subst) =
                 self.env_query
                     .resolve_method_call(owner_def_id, method_def_id, substs);
-            return Ok((method_def_id, resolved_def_id));
+            Ok((method_def_id, resolved_def_id))
         } else {
-            return Err(());
+            Err(())
         }
     }
 }
@@ -58,7 +58,7 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                     let tyck_res = self.tcx.typeck(e1.hir_id.owner.def_id);
                     let res = tyck_res.qpath_res(qself, e1.hir_id);
                     if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
-                        if !def_id.as_local().is_some() {
+                        if def_id.as_local().is_none() {
                             let defpath = self.tcx.def_path_str(def_id);
                             self.called_functions.push((defpath, def_id, expr.span));
                         }
@@ -67,47 +67,54 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
             }
             ExprKind::MethodCall(_path, _e1, _e2, sp) => {
                 let resolve_res = self.resolve_expression(expr);
-                match resolve_res {
-                    Ok((method_def_id, resolved_def_id)) => {
-                        let is_local = method_def_id.as_local().is_some();
-                        let defpath_unresolved = self.tcx.def_path_str(method_def_id);
-                        let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
+                if let Ok((method_def_id, resolved_def_id)) = resolve_res {
+                    let defpath_unresolved = self.tcx.def_path_str(method_def_id);
+                    let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
 
-                        if !is_local {
-                            if defpath_unresolved == defpath_resolved {
-                                self.called_functions.push((defpath_resolved, resolved_def_id, sp));
-                            } else {
-                                // in this case we want both
-                                self.called_functions.push((defpath_resolved, resolved_def_id, sp));
-                                self.called_functions.push((defpath_unresolved, method_def_id, sp));
-                            }
+                    if method_def_id.as_local().is_none() {
+                        if defpath_unresolved == defpath_resolved {
+                            self.called_functions
+                                .push((defpath_resolved, resolved_def_id, sp));
+                        } else {
+                            // in this case we want both
+                            self.called_functions
+                                .push((defpath_resolved, resolved_def_id, sp));
+                            self.called_functions
+                                .push((defpath_unresolved, method_def_id, sp));
                         }
                     }
-                    Err(()) => {}
                 }
             }
             ExprKind::Binary(..) | ExprKind::AssignOp(..) | ExprKind::Unary(..) => {
                 let resolve_res = self.resolve_expression(expr);
                 // this will already fail for standard addition
-                match resolve_res {
-                    Ok((method_def_id, resolved_def_id)) => {
-                        let is_local = method_def_id.as_local().is_some();
-                        let defpath_unresolved = self.tcx.def_path_str(method_def_id);
-                        let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
+                if let Ok((method_def_id, resolved_def_id)) = resolve_res {
+                    let defpath_unresolved = self.tcx.def_path_str(method_def_id);
+                    let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
 
-                        if !is_local {
-                            if defpath_unresolved == defpath_resolved {
-                                self.called_functions.push((defpath_resolved, resolved_def_id, expr.span));
-                            } else {
-                                // For binary operations this will be the operation
-                                // from the standard libary and the "overriding" method
+                    if method_def_id.as_local().is_none() {
+                        if defpath_unresolved == defpath_resolved {
+                            self.called_functions.push((
+                                defpath_resolved,
+                                resolved_def_id,
+                                expr.span,
+                            ));
+                        } else {
+                            // For binary operations this will be the operation
+                            // from the standard libary and the "overriding" method
 
-                                self.called_functions.push((defpath_resolved, resolved_def_id,expr.span));
-                                self.called_functions.push((defpath_unresolved, method_def_id, expr.span));
-                            }
+                            self.called_functions.push((
+                                defpath_resolved,
+                                resolved_def_id,
+                                expr.span,
+                            ));
+                            self.called_functions.push((
+                                defpath_unresolved,
+                                method_def_id,
+                                expr.span,
+                            ));
                         }
                     }
-                    Err(()) => {} // standard addition etc should be caught here
                 }
             }
             _ => {}

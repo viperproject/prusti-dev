@@ -47,9 +47,10 @@ impl<'a> Verifier<'a> {
                 jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
             };
 
-            let reporter = jni.unwrap_result(silver::reporter::PollingReporter::with(env).new(
-                    jni.new_string("polling_reporter"),
-                    pass_through_reporter));
+            let reporter = jni.unwrap_result(
+                silver::reporter::PollingReporter::with(env)
+                    .new(jni.new_string("polling_reporter"), pass_through_reporter),
+            );
 
             let debug_info = jni.new_seq(&[]);
             match backend {

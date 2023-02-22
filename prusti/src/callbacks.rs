@@ -1,5 +1,5 @@
 use crate::{
-    ide_helper::{fake_error::fake_error, compiler_info},
+    ide_helper::{compiler_info, fake_error::fake_error},
     verifier::verify,
 };
 use prusti_common::config;
@@ -138,7 +138,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
 
             if config::show_ide_info() && !config::no_verify() {
-                let compiler_info = compiler_info::IdeInfo::collect(&env, &annotated_procedures, &def_spec);
+                let compiler_info =
+                    compiler_info::IdeInfo::collect(&env, &annotated_procedures, &def_spec);
                 let out = serde_json::to_string(&compiler_info).unwrap();
                 PrustiError::message(format!("compilerInfo{out}"), DUMMY_SP.into())
                     .emit(&env.diagnostic);

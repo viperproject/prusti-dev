@@ -1045,7 +1045,7 @@ pub fn enable_type_invariants() -> bool {
 }
 
 /// When enabled, prusti should return various Data structures that are
-/// used by prusti-assistant, such as a list of method calls, 
+/// used by prusti-assistant, such as a list of method calls,
 /// a list of all procedures to be verified, etc.
 pub fn show_ide_info() -> bool {
     read_setting("show_ide_info")

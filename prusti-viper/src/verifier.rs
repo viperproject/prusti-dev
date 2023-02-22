@@ -4,30 +4,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir::{optimizations::optimize_program};
-use prusti_common::{
-    config, report::log, Stopwatch, vir::program::Program,
+use crate::{
+    encoder::{
+        counterexamples::{counterexample_translation, counterexample_translation_refactored},
+        Encoder,
+    },
+    ide::{self, ide_verification_result::IdeVerificationResult},
 };
-use vir_crate::common::check_mode::CheckMode;
-use crate::encoder::Encoder;
-use crate::encoder::counterexamples::counterexample_translation;
-use crate::encoder::counterexamples::counterexample_translation_refactored;
-use crate::ide::{self, ide_verification_result::IdeVerificationResult};
-use prusti_interface::data::VerificationResult;
-use prusti_interface::data::VerificationTask;
-use prusti_interface::environment::Environment;
-use prusti_interface::PrustiError;
+use prusti_common::{
+    config,
+    report::log,
+    vir::{optimizations::optimize_program, program::Program},
+    Stopwatch,
+};
+use prusti_interface::{
+    data::{VerificationResult, VerificationTask},
+    environment::Environment,
+    PrustiError,
+};
 use viper;
+use vir_crate::common::check_mode::CheckMode;
 
-use prusti_interface::specs::typed;
-use ::log::{info, debug, error};
-use prusti_server::{VerificationRequest, PrustiClient, VerificationRequestProcessing, spawn_server_thread, ViperBackendConfig, ServerMessage};
-use prusti_rustc_interface::span::DUMMY_SP;
-use prusti_server::tokio::runtime::Builder;
-use std::collections::HashMap;
-use serde_json::json;
+use ::log::{debug, error, info};
 use async_stream::stream;
-use futures_util::{Stream, StreamExt, pin_mut};
+use futures_util::{pin_mut, Stream, StreamExt};
+use prusti_interface::specs::typed;
+use prusti_rustc_interface::span::DUMMY_SP;
+use prusti_server::{
+    spawn_server_thread, tokio::runtime::Builder, PrustiClient, ServerMessage, VerificationRequest,
+    VerificationRequestProcessing, ViperBackendConfig,
+};
+use serde_json::json;
+use std::collections::HashMap;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.
@@ -40,10 +48,7 @@ where
 }
 
 impl<'v, 'tcx> Verifier<'v, 'tcx> {
-    pub fn new(
-        env: &'v Environment<'tcx>,
-        def_spec: typed::DefSpecificationMap,
-    ) -> Self {
+    pub fn new(env: &'v Environment<'tcx>, def_spec: typed::DefSpecificationMap) -> Self {
         Verifier {
             env,
             encoder: Encoder::new(env, def_spec),
@@ -85,21 +90,21 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let mut programs: Vec<Program> = if config::simplify_encoding() {
             stopwatch.start_next("optimizing Viper program");
             let source_file_name = self.encoder.env().name.source_file_name();
-            polymorphic_programs.into_iter().map(
-                |program| Program::Legacy(optimize_program(program, &source_file_name).into())
-            ).collect()
+            polymorphic_programs
+                .into_iter()
+                .map(|program| Program::Legacy(optimize_program(program, &source_file_name).into()))
+                .collect()
         } else {
-            polymorphic_programs.into_iter().map(
-                |program| Program::Legacy(program.into())
-            ).collect()
+            polymorphic_programs
+                .into_iter()
+                .map(|program| Program::Legacy(program.into()))
+                .collect()
         };
         programs.extend(self.encoder.get_core_proof_programs());
 
         if config::show_ide_info() {
             self.emit_contract_spans();
         }
-
-
 
         stopwatch.start_next("verifying Viper program");
 
@@ -131,14 +136,18 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         overall_result
     }
 
-    async fn handle_stream(&self, verification_messages: impl Stream<Item = (String, ServerMessage)>) -> VerificationResult {
+    async fn handle_stream(
+        &self,
+        verification_messages: impl Stream<Item = (String, ServerMessage)>,
+    ) -> VerificationResult {
         let mut overall_result = VerificationResult::Success;
         let encoding_errors_count = self.encoder.count_encoding_errors();
         let error_manager = self.encoder.error_manager();
         // we want quantifier_pos_ID + program_name + q_name as identifier because there are
         // different q_names for the same ID and each program reports independent results
         // key: (pos_id, program_name), key to result: q_name result: num_instantiations
-        let mut quantifier_instantiations: HashMap::<(u64, String), HashMap::<String, u64>> = HashMap::new();
+        let mut quantifier_instantiations: HashMap<(u64, String), HashMap<String, u64>> =
+            HashMap::new();
 
         // if we are not running in an ide, we want the errors to be reported sortedly
         let mut prusti_errors: Vec<_> = vec![];
@@ -150,10 +159,14 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 ServerMessage::Termination(result) => {
                     if config::show_ide_info() {
                         PrustiError::message(
-                            format!("ideVerificationResult{}",
-                                    serde_json::to_string(&IdeVerificationResult::from_res(&result)).unwrap()
-                            ), DUMMY_SP.into()
-                        ).emit(&self.env.diagnostic);
+                            format!(
+                                "ideVerificationResult{}",
+                                serde_json::to_string(&IdeVerificationResult::from_res(&result))
+                                    .unwrap()
+                            ),
+                            DUMMY_SP.into(),
+                        )
+                        .emit(&self.env.diagnostic);
                     }
                     match result.result_type {
                         // nothing to do
@@ -161,28 +174,40 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         viper::VerificationResultType::ConsistencyErrors(errors) => {
                             for error in errors {
                                 PrustiError::internal(
-                                    format!("consistency error in {program_name}: {error}"), DUMMY_SP.into()
-                                ).emit(&self.env.diagnostic);
+                                    format!("consistency error in {program_name}: {error}"),
+                                    DUMMY_SP.into(),
+                                )
+                                .emit(&self.env.diagnostic);
                             }
                             overall_result = VerificationResult::Failure;
                         }
                         viper::VerificationResultType::Failure(errors) => {
                             for verification_error in errors {
-                                debug!("Verification error in {}: {:?}", program_name.clone(), verification_error);
-                                let mut prusti_error = error_manager.translate_verification_error(&verification_error);
+                                debug!(
+                                    "Verification error in {}: {:?}",
+                                    program_name.clone(),
+                                    verification_error
+                                );
+                                let mut prusti_error =
+                                    error_manager.translate_verification_error(&verification_error);
 
                                 // annotate with counterexample, if requested
                                 if config::counterexample() {
-                                    if config::unsafe_core_proof(){
-                                        if let Some(silicon_counterexample) = &verification_error.counterexample {
-                                            if let Some(def_id) = error_manager.get_def_id(&verification_error) {
+                                    if config::unsafe_core_proof() {
+                                        if let Some(silicon_counterexample) =
+                                            &verification_error.counterexample
+                                        {
+                                            if let Some(def_id) =
+                                                error_manager.get_def_id(&verification_error)
+                                            {
                                                 let counterexample = counterexample_translation_refactored::backtranslate(
                                                     &self.encoder,
                                                     error_manager.position_manager(),
                                                     def_id,
                                                     silicon_counterexample,
                                                 );
-                                                prusti_error = counterexample.annotate_error(prusti_error);
+                                                prusti_error =
+                                                    counterexample.annotate_error(prusti_error);
                                             } else {
                                                 prusti_error = prusti_error.add_note(
                                                     format!(
@@ -192,14 +217,20 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                                 );
                                             }
                                         }
-                                    } else if let Some(silicon_counterexample) = &verification_error.counterexample {
-                                        if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                                            let counterexample = counterexample_translation::backtranslate(
-                                                &self.encoder,
-                                                def_id,
-                                                silicon_counterexample,
-                                            );
-                                            prusti_error = counterexample.annotate_error(prusti_error);
+                                    } else if let Some(silicon_counterexample) =
+                                        &verification_error.counterexample
+                                    {
+                                        if let Some(def_id) =
+                                            error_manager.get_def_id(&verification_error)
+                                        {
+                                            let counterexample =
+                                                counterexample_translation::backtranslate(
+                                                    &self.encoder,
+                                                    def_id,
+                                                    silicon_counterexample,
+                                                );
+                                            prusti_error =
+                                                counterexample.annotate_error(prusti_error);
                                         } else {
                                             prusti_error = prusti_error.add_note(
                                                 format!(
@@ -213,12 +244,10 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                 debug!("Prusti error: {:?}", prusti_error);
                                 if prusti_error.is_disabled() {
                                     prusti_error.cancel();
+                                } else if config::show_ide_info() {
+                                    prusti_error.emit(&self.env.diagnostic);
                                 } else {
-                                    if config::show_ide_info() {
-                                        prusti_error.emit(&self.env.diagnostic);
-                                    } else {
-                                        prusti_errors.push(prusti_error);
-                                    }
+                                    prusti_errors.push(prusti_error);
                                 }
                             }
                             overall_result = VerificationResult::Failure;
@@ -226,13 +255,19 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         viper::VerificationResultType::JavaException(exception) => {
                             error!("Java exception: {}", exception.get_stack_trace());
                             PrustiError::internal(
-                                format!("in {program_name}: {exception}"), DUMMY_SP.into()
-                            ).emit(&self.env.diagnostic);
+                                format!("in {program_name}: {exception}"),
+                                DUMMY_SP.into(),
+                            )
+                            .emit(&self.env.diagnostic);
                             overall_result = VerificationResult::Failure;
                         }
                     }
                 }
-                ServerMessage::QuantifierInstantiation{q_name, insts, pos_id} => {
+                ServerMessage::QuantifierInstantiation {
+                    q_name,
+                    insts,
+                    pos_id,
+                } => {
                     if config::report_viper_messages() {
                         match error_manager.position_manager().get_span_from_id(pos_id) {
                             Some(span) => {
@@ -244,7 +279,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                 // this replaces the old entry which is exactly what we want
                                 map.insert(q_name, insts);
                                 let mut n: u64 = 0;
-                                for (_, insts) in map {
+                                for insts in map.values() {
                                     n += *insts;
                                 }
                                 PrustiError::message(
@@ -257,19 +292,21 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         }
                     }
                 }
-                ServerMessage::QuantifierChosenTriggers{viper_quant, triggers, pos_id} => {
-                    if config::report_viper_messages() {
-                        if pos_id != 0 {
-                            match error_manager.position_manager().get_span_from_id(pos_id) {
-                                Some(span) => {
-                                    PrustiError::message(
-                                        format!("quantifierChosenTriggersMessage{}",
-                                            json!({"viper_quant": viper_quant, "triggers": triggers}),
-                                        ), span.clone()
-                                    ).emit(&self.env.diagnostic);
-                                },
-                                None => error!("Invalid position id {pos_id} for viper quantifier {viper_quant} in verification of {program_name}"),
-                            }
+                ServerMessage::QuantifierChosenTriggers {
+                    viper_quant,
+                    triggers,
+                    pos_id,
+                } => {
+                    if config::report_viper_messages() && pos_id != 0 {
+                        match error_manager.position_manager().get_span_from_id(pos_id) {
+                            Some(span) => {
+                                PrustiError::message(
+                                    format!("quantifierChosenTriggersMessage{}",
+                                        json!({"viper_quant": viper_quant, "triggers": triggers}),
+                                    ), span.clone()
+                                ).emit(&self.env.diagnostic);
+                            },
+                            None => error!("Invalid position id {pos_id} for viper quantifier {viper_quant} in verification of {program_name}"),
                         }
                     }
                 }
@@ -310,7 +347,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 config::verify_specifications_backend()
             } else {
                 config::viper_backend()
-            }.parse().unwrap();
+            }
+            .parse()
+            .unwrap();
             let request = VerificationRequest {
                 program,
                 backend_config: ViperBackendConfig::new(backend),
@@ -321,9 +360,10 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
     }
 
     /// Returns a list of (program_name, verification_requests) tuples.
-    fn verify_requests_server(verification_requests: Vec<(String, VerificationRequest)>, server_address: String)
-        -> impl Stream<Item = (String, ServerMessage)>
-    {
+    fn verify_requests_server(
+        verification_requests: Vec<(String, VerificationRequest)>,
+        server_address: String,
+    ) -> impl Stream<Item = (String, ServerMessage)> {
         let server_address = if server_address == "MOCK" {
             spawn_server_thread().to_string()
         } else {
@@ -338,15 +378,16 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         verification_stream.flatten()
     }
 
-    fn verify_requests_local<'a>(verification_requests: Vec<(String, VerificationRequest)>, vrp: &'a VerificationRequestProcessing)
-        -> impl Stream<Item = (String, ServerMessage)> + 'a
-    {
+    fn verify_requests_local<'a>(
+        verification_requests: Vec<(String, VerificationRequest)>,
+        vrp: &'a VerificationRequestProcessing,
+    ) -> impl Stream<Item = (String, ServerMessage)> + 'a {
         let verification_stream = stream! {
             for (program_name, request) in verification_requests {
                 yield vrp.verify(request).map(move |msg| (program_name.clone(), msg));
             }
         };
-        return verification_stream.flatten();
+        verification_stream.flatten()
     }
 
     pub fn emit_contract_spans(&self) {
@@ -354,9 +395,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             call_contract_spans: self.encoder.spans_of_call_contracts.borrow().to_vec(),
         };
         PrustiError::message(
-            format!("encodingInfo{}", encoding_info.to_json_string()), DUMMY_SP.into()
-        ).emit(&self.env.diagnostic);
-
+            format!("encodingInfo{}", encoding_info.to_json_string()),
+            DUMMY_SP.into(),
+        )
+        .emit(&self.env.diagnostic);
     }
 }
-

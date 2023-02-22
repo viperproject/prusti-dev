@@ -16,7 +16,6 @@ pub fn verify<'tcx>(
 ) {
     trace!("[verify] enter");
 
-
     if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
@@ -43,7 +42,6 @@ pub fn verify<'tcx>(
                 );
             }
         }
-
 
         let verification_result =
             if verification_task.procedures.is_empty() && verification_task.types.is_empty() {

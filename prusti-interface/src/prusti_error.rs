@@ -212,10 +212,7 @@ impl PrustiError {
                 &self.help,
                 &self.notes,
             ),
-            PrustiErrorKind::Message => env_diagnostic.span_note(
-                *self.span,
-                &self.message,
-            ),
+            PrustiErrorKind::Message => env_diagnostic.span_note(*self.span, &self.message),
         };
     }
 

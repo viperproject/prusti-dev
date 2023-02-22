@@ -290,7 +290,11 @@ pub(super) fn encode_quantifier<'tcx>(
             final_body,
             // we encode the position ID in the line number because that is used to name the
             // quantifiers in z3
-            vir_crate::polymorphic::Position::new(i32::try_from(pos.id()).unwrap(), i32::try_from(pos.id()).unwrap(), pos.id()),
+            vir_crate::polymorphic::Position::new(
+                i32::try_from(pos.id()).unwrap(),
+                i32::try_from(pos.id()).unwrap(),
+                pos.id(),
+            ),
         ))
     }
 }

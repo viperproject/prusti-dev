@@ -29,7 +29,7 @@ impl VerificationResult {
 }
 /// The result of a verification request on a Viper program.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum VerificationResultType{
+pub enum VerificationResultType {
     /// The program verified.
     Success,
     /// The program did not verify.
@@ -39,7 +39,6 @@ pub enum VerificationResultType{
     /// The verification raised a Java exception.
     JavaException(JavaException),
 }
-
 
 impl VerificationResultType {
     pub fn is_success(&self) -> bool {
