@@ -135,34 +135,39 @@ impl SMTLib {
                     // TODO: What is wrong with if-statements generating a "true" branch instead of condition and negation?
                     let ((e1, l1), (e2, l2)) = (&mapping[0], &mapping[1]);
 
-                    let neg1 = Expression::UnaryOp(UnaryOp {
-                        op_kind: UnaryOpKind::Not,
-                        argument: Box::new(e1.clone()),
-                        position: e1.position(),
-                    });
+                    if let Expression::Constant(Constant {
+                        ty: Type::Bool,
+                        value: ConstantValue::Bool(true),
+                        ..
+                    }) = &e1
+                    {
+                        let neg2 = Expression::UnaryOp(UnaryOp {
+                            op_kind: UnaryOpKind::Not,
+                            argument: Box::new(e2.clone()),
+                            position: e2.position(),
+                        });
 
-                    let neg2 = Expression::UnaryOp(UnaryOp {
-                        op_kind: UnaryOpKind::Not,
-                        argument: Box::new(e2.clone()),
-                        position: e2.position(),
-                    });
+                        self.follow(&l1.name, Some(&neg2));
+                    } else {
+                        self.follow(&l1.name, Some(e1));
+                    }
 
-                    let e1_and_neg2 = Expression::BinaryOp(BinaryOp {
-                        op_kind: BinaryOpKind::And,
-                        left: Box::new(e1.clone()),
-                        right: Box::new(neg2.clone()),
-                        position: e1.position(),
-                    });
+                    if let Expression::Constant(Constant {
+                        ty: Type::Bool,
+                        value: ConstantValue::Bool(true),
+                        ..
+                    }) = &e2
+                    {
+                        let neg1 = Expression::UnaryOp(UnaryOp {
+                            op_kind: UnaryOpKind::Not,
+                            argument: Box::new(e1.clone()),
+                            position: e1.position(),
+                        });
 
-                    let neg1_and_e2 = Expression::BinaryOp(BinaryOp {
-                        op_kind: BinaryOpKind::And,
-                        left: Box::new(neg1.clone()),
-                        right: Box::new(e2.clone()),
-                        position: e1.position(),
-                    });
-
-                    self.follow(&l1.name, Some(&e1_and_neg2));
-                    self.follow(&l2.name, Some(&neg1_and_e2));
+                        self.follow(&l2.name, Some(&neg1));
+                    } else {
+                        self.follow(&l2.name, Some(e2));
+                    }
                 } else {
                     mapping.iter().for_each(|(expr, label)| {
                         self.follow(&label.name, Some(expr));
