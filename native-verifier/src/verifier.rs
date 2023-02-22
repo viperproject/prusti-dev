@@ -7,7 +7,7 @@
 use crate::smt_lib::*;
 use backend_common::{VerificationError, VerificationResult};
 use core::panic;
-use log::{self, debug, info, warn};
+use log::{self, debug};
 use prusti_common::vir::program::Program;
 use prusti_utils::{report::log::report_with_writer, run_timed};
 use std::{
@@ -61,52 +61,51 @@ impl Verifier {
                 let output = child.wait_with_output()?;
 
                 if output.status.success() {
-                    let raw_output = String::from_utf8(output.stdout)?;
-                    if raw_output.lines().any(|line| line == "sat" || line == "unknown") {
-                        Err(raw_output)?
-                    } else {
-                        raw_output
-                    }
+                    String::from_utf8(output.stdout)?
                 } else {
                     let err = String::from_utf8(output.stdout)?;
                     Err(err)?
                 }
             };
-
-            let is_failure = match result {
-                Ok(output) => {
-                    info!("SMT verification output:\n{}", output);
-                    !output.contains("unsat")
-                }
-                Err(err) => {
-                    warn!("SMT verification errors:\n{}", err.to_string());
-                    true
-                }
-            };
         );
 
-        if is_failure {
-            let mut errors: Vec<VerificationError> = vec![];
+        let mut errors = vec![];
 
-            let error_full_id = "verification.error".to_string();
-            let pos_id = None;
-            let offending_pos_id = None;
-            let reason_pos_id = None;
-            let message = "At least one assertion was 'sat' or 'unknown'".to_string();
-            let counterexample = None;
-
+        // TODO: Actual unexpected error handling
+        if let Err(err) = result {
             errors.push(VerificationError::new(
-                error_full_id,
-                pos_id,
-                offending_pos_id,
-                reason_pos_id,
-                message,
-                counterexample,
+                "assert.failed:assertion.false".to_string(),
+                Some("0".to_string()),
+                Some("0".to_string()),
+                Some("0".to_string()),
+                format!("Z3 failed with error: {}", err),
+                None,
             ));
 
-            VerificationResult::Failure(errors)
-        } else {
+            return VerificationResult::Failure(errors);
+        }
+
+        let mut last_pos: i32 = 0;
+        for line in result.unwrap().lines() {
+            if line.starts_with("position: ") {
+                let position_id = line.split("position: ").nth(1).unwrap();
+                last_pos = position_id.parse().unwrap();
+            } else if line == "sat" || line == "unknown" {
+                errors.push(VerificationError::new(
+                    "assert.failed:assertion.false".to_string(),
+                    Some("0".to_string()),
+                    Some(last_pos.to_string()),
+                    Some("0".to_string()),
+                    format!("Assert might fail. Assertion might not hold."),
+                    None,
+                ));
+            }
+        }
+
+        if errors.is_empty() {
             VerificationResult::Success
+        } else {
+            VerificationResult::Failure(errors)
         }
     }
 }

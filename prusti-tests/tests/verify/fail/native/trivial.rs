@@ -1,5 +1,5 @@
 // compile-flags: -Pviper_backend=Lithium
 
 fn main() {
-    assert!(false);
+    assert!(false); //~ ERROR might not hold
 }

@@ -82,6 +82,7 @@ impl SMTLib {
                 // assert negated predicate
                 self.add_code("(push)".to_string());
                 self.add_code(format!("(assert {})", negated.to_smt()));
+                self.add_code(format!("(echo \"position: {}\")", expression.position().id));
                 self.add_code("(check-sat)".to_string());
                 self.add_code("(pop)".to_string());
 
