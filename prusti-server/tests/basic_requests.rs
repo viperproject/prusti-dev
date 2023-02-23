@@ -2,9 +2,10 @@ use lazy_static::lazy_static;
 use prusti_common::vir::*;
 use prusti_server::{
     spawn_server_thread, tokio::runtime::Builder, PrustiClient, VerificationRequest,
-    ViperBackendConfig,
+    ViperBackendConfig, ServerMessage,
 };
 use viper::VerificationResultKind;
+use futures_util::stream::StreamExt;
 
 
 lazy_static! {
@@ -60,14 +61,21 @@ where
         ),
     };
 
-    // Builder::new_current_thread()
-    //     .enable_all()
-    //     .build()
-    //     .expect("failed to construct Tokio runtime")
-    //     .block_on(PrustiClient::verify(SERVER_ADDRESS.clone(), request))
-    //     .expect("Verification request failed")
+    let get_result_type = |acc: VerificationResultKind, msg: ServerMessage| async move {
+        match msg {
+            ServerMessage::Termination(res) => res.result_type,
+            _ => acc,
+        }
+    };
 
-    // TODO @jthomme: either delete or update this function
-    // the success below is a placeholder so I can proceed
-    VerificationResultKind::Success
+    Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .expect("failed to construct Tokio runtime")
+        .block_on(async {
+            PrustiClient::verify(SERVER_ADDRESS.clone(), request)
+                .await
+                .fold(VerificationResultKind::Failure(vec![]), get_result_type)
+                .await
+        })
 }
