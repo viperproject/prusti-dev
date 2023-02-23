@@ -1,12 +1,11 @@
+use futures_util::stream::StreamExt;
 use lazy_static::lazy_static;
 use prusti_common::vir::*;
 use prusti_server::{
-    spawn_server_thread, tokio::runtime::Builder, PrustiClient, VerificationRequest,
-    ViperBackendConfig, ServerMessage,
+    spawn_server_thread, tokio::runtime::Builder, PrustiClient, ServerMessage, VerificationRequest,
+    ViperBackendConfig,
 };
 use viper::VerificationResultKind;
-use futures_util::stream::StreamExt;
-
 
 lazy_static! {
     // only start the jvm & server once

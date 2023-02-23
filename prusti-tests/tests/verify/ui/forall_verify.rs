@@ -25,9 +25,6 @@ fn test4() {}
 #[ensures(exists(|x: i32| identity(x) == x))]
 fn test5() {}
 
-// TODO: Figure out why the error position is worse than for test3. I
-// have checked the emitted Viper code (including the positions) and
-// could not see any relevant differences.
 #[ensures(exists(|x: i32| identity(x) == x + 1))]
 fn test6() {}
 
