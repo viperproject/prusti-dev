@@ -111,11 +111,11 @@ pub fn process_verification_request<'v, 't: 'v>(
             ),
             verification_context,
         ),
-            VerificationBackend::Lithium => {
-                Backend::Lithium(native_verifier::Verifier::new(config::smt_solver_path()))
-                // TODO: Wrapper support
-            }
-        };
+        VerificationBackend::Lithium => {
+            Backend::Lithium(native_verifier::Verifier::new(config::smt_solver_path()))
+            // TODO: SMT Wrapper support
+        }
+    };
 
     stopwatch.start_next("backend verification");
     let mut result = backend.verify(&request.program);
