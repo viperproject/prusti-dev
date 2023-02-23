@@ -32,7 +32,7 @@ fn runtime_error() {
 
     assert!(matches!(
         verification_result,
-        VerificationResult::JavaException(_)
+        VerificationResultKind::JavaException(_)
     ));
 }
 
@@ -99,7 +99,7 @@ where
 
     let verification_result = verifier.verify(program);
     match verification_result {
-        VerificationResult::ConsistencyErrors(_) => (),
+        VerificationResultKind::ConsistencyErrors(_) => (),
         other => panic!("consistency errors not identified, instead found {other:?}"),
     }
 }
