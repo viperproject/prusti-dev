@@ -196,12 +196,13 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                         if let Some(silicon_counterexample) =
                                             &verification_error.counterexample
                                         {
-                                            if let Some(def_id) = self.encoder.error_manager()
+                                            let error_manager = self.encoder.error_manager();
+                                            if let Some(def_id) = error_manager 
                                                 .get_def_id(&verification_error)
                                             {
                                                 let counterexample = counterexample_translation_refactored::backtranslate(
                                                     &self.encoder,
-                                                    self.encoder.error_manager().position_manager(),
+                                                    error_manager.position_manager(),
                                                     def_id,
                                                     silicon_counterexample,
                                                 );

@@ -3393,6 +3393,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             called_def_id, 
             &procedure_contract,
             call_site_span,
+            substs,
         );
 
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;
@@ -3545,14 +3546,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         called_def_id: ProcedureDefId,
         contract: &ProcedureContract<'tcx>,
         call_site_span: Span,
+        substs: ty::subst::SubstsRef<'tcx>,
     ) {
         let mut precondition_spans:Vec<Span> = contract
-            .functional_precondition(self.encoder.env(), self.substs)
+            .functional_precondition(self.encoder.env(), substs)
             .iter()
             .map(|(ts,_)| self.encoder.env().query.get_def_span(ts))
             .collect();
         let mut postcondition_spans: Vec<Span> = contract
-            .functional_postcondition(self.encoder.env(), self.substs)
+            .functional_postcondition(self.encoder.env(), substs)
             .iter()
             .map(|(ts,_)| self.encoder.env().query.get_def_span(ts))
             .collect();
