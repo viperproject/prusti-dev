@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use viper_sys::wrappers::{scala, viper::*};
 
 pub struct Verifier<'a> {
-    pub env: &'a JNIEnv<'a>,
+    env: &'a JNIEnv<'a>,
     verifier_wrapper: silver::verifier::Verifier<'a>,
     verifier_instance: JObject<'a>,
     jni: JniUtils<'a>,
