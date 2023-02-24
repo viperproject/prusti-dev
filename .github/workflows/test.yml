@@ -319,3 +319,11 @@ jobs:
           python x.py build --release -p test-crates
       - name: Test Prusti on a collection of crates
         run: ./target/release/test-crates --fail-fast --num-shards=4 --shard-index=${{ matrix.shard_index }}
+
+  # Dummy job to specify the jobs that must pass before merging on master
+  can-merge:
+    runs-on: ubuntu-latest
+    needs: [all-tests, purification-tests, test-crates]
+    steps:
+      - name: Finalize job
+        run: true
