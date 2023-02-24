@@ -55,9 +55,7 @@ jobs:
 
   # Build in release mode (but don't test) for macOS ARM
   # See: https://stackoverflow.com/a/66875783/2491528
-  # Blocked by: https://github.com/viperproject/prusti-dev/issues/1193
   build_macos_arm:
-    if: false
     runs-on: macos-latest
     steps:
       - name: Check out the repo
@@ -83,7 +81,8 @@ jobs:
         run: |
           SDKROOT=$(xcrun -sdk macosx --show-sdk-path) \
           MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version) \
-          python x.py build --release --all --target=aarch64-apple-darwin
+          python x.py build --release --target=aarch64-apple-darwin -p prusti-launch
+          python x.py build --release --target=aarch64-apple-darwin -p prusti-contracts-build
 
       - name: Package Prusti artifact
         run: python x.py package release prusti_artifact
@@ -106,7 +105,7 @@ jobs:
       - name: Zip Prusti artifacts
         shell: bash
         run: |
-          for os in ubuntu-20.04 ubuntu-22.04 windows-latest macos-latest
+          for os in ubuntu-20.04 ubuntu-22.04 windows-latest macos-latest macos-arm
           do
             echo "Package Prusti artifact for $os"
             cd prusti-release-$os
@@ -176,4 +175,14 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./prusti-release-macos-latest/prusti.zip
           asset_name: prusti-release-macos.zip
+          asset_content_type: application/zip
+
+      - name: Upload release asset for MacOS ARM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-macos-arm/prusti.zip
+          asset_name: prusti-release-macos-arm.zip
           asset_content_type: application/zip
