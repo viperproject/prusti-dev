@@ -6,7 +6,7 @@
 
 use crate::{ServerMessage, VerificationRequest, ViperBackendConfig};
 use futures::{lock, stream::Stream};
-use log::info;
+use log::{info, debug};
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
@@ -271,12 +271,15 @@ fn verify_and_poll_msgs(
     let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(*verifier.verifier_instance()));
     let rep_glob_ref = env.new_global_ref(reporter).unwrap();
 
+    debug!("Starting viper message polling thread");
+
     // start thread for polling messages
     thread::scope(|scope| {
         let polling_thread = scope.spawn(|| polling_function(viper_arc, &rep_glob_ref, sender));
         result_type = verifier.verify(viper_program);
         polling_thread.join().unwrap();
     });
+    debug!("Viper message polling thread terminated");
     result_type
 }
 
@@ -298,13 +301,14 @@ fn polling_function(
             let msg = reporter_wrapper
                 .call_getNewMessage(reporter_instance)
                 .unwrap();
+            debug!("Polling thread received {}", jni.class_name(msg).as_str());
             match jni.class_name(msg).as_str() {
                 "viper.silver.reporter.QuantifierInstantiationsMessage" => {
                     let msg_wrapper = silver::reporter::QuantifierInstantiationsMessage::with(env);
                     let q_name =
                         jni.get_string(jni.unwrap_result(msg_wrapper.call_quantifier(msg)));
                     let q_inst = jni.unwrap_result(msg_wrapper.call_instantiations(msg));
-                    info!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
+                    debug!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
                     // also matches the "-aux" and "_precondition" quantifiers generated
                     // we encoded the position id in the line and column number since this is not used by
                     // prusti either way
@@ -347,7 +351,7 @@ fn polling_function(
 
                     let viper_triggers =
                         jni.get_string(jni.unwrap_result(msg_wrapper.call_triggers__string(msg)));
-                    info!(
+                    debug!(
                         "QuantifierChosenTriggersMessage: {} {} {}",
                         viper_quant_str, viper_triggers, pos_id
                     );
