@@ -705,6 +705,7 @@ pub fn verify_only_basic_block_path() -> Vec<String> {
 /// - `"optimize_folding"`
 /// - `"remove_empty_if"`
 /// - `"purify_vars"`
+/// - `"simplify_exprs"`
 /// - `"fix_quantifiers"`
 /// - `"fix_unfoldings"`
 /// - `"remove_unused_vars"`
@@ -724,6 +725,7 @@ pub fn optimizations() -> Optimizations {
             "optimize_folding" => opt.optimize_folding = true,
             "remove_empty_if" => opt.remove_empty_if = true,
             "purify_vars" => opt.purify_vars = true,
+            "simplify_exprs" => opt.simplify_exprs = true,
             "fix_quantifiers" => opt.fix_quantifiers = true,
             "fix_unfoldings" => opt.fix_unfoldings = true,
             "remove_unused_vars" => opt.remove_unused_vars = true,
