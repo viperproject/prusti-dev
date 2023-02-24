@@ -98,6 +98,8 @@ pub fn process_verification_request<'v, 't: 'v>(
         }
     };
 
+    let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
+
     // Create a new verifier each time.
     // Workaround for https://github.com/viperproject/prusti-dev/issues/744
     let mut backend = match request.backend_config.backend {
@@ -111,6 +113,7 @@ pub fn process_verification_request<'v, 't: 'v>(
         ),
     };
 
+    stopwatch.start_next("verification");
     let mut result = backend.verify(&request.program);
 
     // Don't cache Java exceptions, which might be due to misconfigured paths.
@@ -127,7 +130,11 @@ pub fn process_verification_request<'v, 't: 'v>(
     result
 }
 
-fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
+pub fn dump_viper_program(
+    ast_utils: &viper::AstUtils,
+    program: viper::Program,
+    program_name: &str,
+) {
     let namespace = "viper_program";
     let filename = format!("{program_name}.vpr");
     info!("Dumping Viper program to '{}/{}'", namespace, filename);
