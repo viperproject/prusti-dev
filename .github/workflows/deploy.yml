@@ -55,8 +55,10 @@ jobs:
 
   # Build in release mode (but don't test) for macOS ARM
   # See: https://stackoverflow.com/a/66875783/2491528
+  # Blocked by: requires jni-rs version >=0.21 to avoid linking to the JVM at compilation time
   build_macos_arm:
     runs-on: macos-latest
+    if: false
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -66,21 +68,9 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Set up Java for ARM
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'zulu'
-          java-version: '15'
-          architecture: 'aarch64'
-
-      - name: Store the JAVA_HOME for ARM
-        run: |
-          echo "ARM_JAVA_HOME=\"$JAVA_HOME\"" >> $GITHUB_ENV
-
       - name: Set up Java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v1
         with:
-          distribution: 'zulu'
           java-version: '15'
 
       - name: Set up the environment
@@ -91,7 +81,6 @@ jobs:
 
       - name: Build with cargo --release for arm64
         run: |
-          export DYLD_LIBRARY_PATH="$ARM_JAVA_HOME/zulu-15.jdk/Contents/Home/lib/libjli.dylib:$DYLD_LIBRARY_PATH"
           export SDKROOT=$(xcrun -sdk macosx --show-sdk-path)
           export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)
           python x.py build --release --target=aarch64-apple-darwin -p prusti-launch
@@ -110,7 +99,7 @@ jobs:
 
   # Deploy to a new GitHub pre-release
   deploy:
-    needs: [build, build_macos_arm]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download all Prusti artifacts
@@ -119,7 +108,7 @@ jobs:
       - name: Zip Prusti artifacts
         shell: bash
         run: |
-          for os in ubuntu-20.04 ubuntu-22.04 windows-latest macos-latest macos-arm
+          for os in ubuntu-20.04 ubuntu-22.04 windows-latest macos-latest
           do
             echo "Package Prusti artifact for $os"
             cd prusti-release-$os
@@ -189,14 +178,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./prusti-release-macos-latest/prusti.zip
           asset_name: prusti-release-macos.zip
-          asset_content_type: application/zip
-
-      - name: Upload release asset for MacOS ARM
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-macos-arm/prusti.zip
-          asset_name: prusti-release-macos-arm.zip
           asset_content_type: application/zip
