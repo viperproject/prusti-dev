@@ -6,7 +6,7 @@
 
 use crate::{ServerMessage, VerificationRequest, ViperBackendConfig};
 use futures::{lock, stream::Stream};
-use log::{info, debug};
+use log::{debug, info};
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
@@ -30,9 +30,22 @@ enum ServerRequest {
     SaveCache,
 }
 
+struct ThreadJoin {
+    handle: Option<thread::JoinHandle<()>>,
+}
+
+impl Drop for ThreadJoin {
+    fn drop(&mut self) {
+        self.handle.take().unwrap().join().unwrap();
+    }
+}
+
 pub struct VerificationRequestProcessing {
     mtx_rx_servermsg: lock::Mutex<mpsc::Receiver<ServerMessage>>,
     mtx_tx_verreq: sync::Mutex<mpsc::Sender<ServerRequest>>,
+    // mtx_tx_verreq has to be dropped before thread_join
+    #[allow(dead_code)]
+    thread_join: ThreadJoin,
 }
 
 impl Default for VerificationRequestProcessing {
@@ -52,39 +65,13 @@ impl VerificationRequestProcessing {
         let mtx_rx_servermsg = lock::Mutex::new(rx_servermsg);
         let mtx_tx_verreq = sync::Mutex::new(tx_verreq);
 
-        let ret = Self {
+        let handle = thread::spawn(move || verification_thread(rx_verreq, tx_servermsg));
+        Self {
             mtx_rx_servermsg,
             mtx_tx_verreq,
-        };
-        thread::spawn(|| Self::verification_thread(rx_verreq, tx_servermsg));
-        ret
-    }
-
-    fn verification_thread(
-        rx_verreq: mpsc::Receiver<ServerRequest>,
-        tx_servermsg: mpsc::Sender<ServerMessage>,
-    ) {
-        let mut stopwatch = Stopwatch::start("verification_request_processing", "JVM startup");
-        let viper = Arc::new(Viper::new_with_args(
-            &config::viper_home(),
-            config::extra_jvm_args(),
-        ));
-        let mut cache = PersistentCache::load_cache(config::cache_path());
-        stopwatch.start_next("attach thread to JVM");
-        let verification_context = viper.attach_current_thread();
-        stopwatch.finish();
-        // loop {
-        while let Ok(request) = rx_verreq.recv() {
-            match request {
-                ServerRequest::Verification(verification_request) => process_verification_request(
-                    &viper,
-                    &mut cache,
-                    &verification_context,
-                    &tx_servermsg,
-                    verification_request,
-                ),
-                ServerRequest::SaveCache => cache.save(),
-            }
+            thread_join: ThreadJoin {
+                handle: Some(handle),
+            },
         }
     }
 
@@ -116,6 +103,37 @@ impl VerificationRequestProcessing {
             .unwrap();
     }
 }
+
+fn verification_thread(
+    rx_verreq: mpsc::Receiver<ServerRequest>,
+    tx_servermsg: mpsc::Sender<ServerMessage>,
+) {
+    debug!("Verification thread started.");
+    let mut stopwatch = Stopwatch::start("verification_request_processing", "JVM startup");
+    let viper = Arc::new(Viper::new_with_args(
+        &config::viper_home(),
+        config::extra_jvm_args(),
+    ));
+    let mut cache = PersistentCache::load_cache(config::cache_path());
+    stopwatch.start_next("attach thread to JVM");
+    let verification_context = viper.attach_current_thread();
+    stopwatch.finish();
+
+    while let Ok(request) = rx_verreq.recv() {
+        match request {
+            ServerRequest::Verification(verification_request) => process_verification_request(
+                &viper,
+                &mut cache,
+                &verification_context,
+                &tx_servermsg,
+                verification_request,
+            ),
+            ServerRequest::SaveCache => cache.save(),
+        }
+    }
+    debug!("Verification thread finished.");
+}
+
 pub fn process_verification_request(
     viper_arc: &Arc<Viper>,
     cache: impl Cache,

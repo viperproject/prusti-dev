@@ -31,9 +31,10 @@ use futures_util::{pin_mut, Stream, StreamExt};
 use prusti_interface::specs::typed;
 use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::{
-    spawn_server_thread, tokio::runtime::Builder, PrustiClient, ServerMessage, VerificationRequest,
+    spawn_server_thread, PrustiClient, ServerMessage, VerificationRequest,
     VerificationRequestProcessing, ViperBackendConfig,
 };
+use tokio::runtime::Builder;
 use serde_json::json;
 use rustc_hash::FxHashMap;
 
@@ -121,9 +122,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             .build()
             .unwrap();
 
-        let mut overall_result = VerificationResult::Success;
-        rt.block_on(async {
-            overall_result = if let Some(server_address) = config::server_address() {
+        let overall_result = rt.block_on(async {
+            if let Some(server_address) = config::server_address() {
                 let verification_messages = Self::verify_requests_server(requests, server_address);
                 self.handle_stream(verification_messages).await
             } else {
