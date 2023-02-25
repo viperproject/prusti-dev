@@ -55,8 +55,9 @@ where
     let json_verify = warp::path!("json" / "verify")
         .and(warp::filters::ws::ws())
         .map(|ws: warp::filters::ws::Ws| {
-            ws.on_upgrade(|mut websocket| async {
-                let req_msg = websocket.next().await.unwrap().unwrap();
+            ws.on_upgrade(|websocket| async {
+                let (mut ws_send, mut ws_recv) = websocket.split();
+                let req_msg = ws_recv.next().await.unwrap().unwrap();
                 let verification_request = req_msg
                     .to_str()
                     .and_then(|s: &str| serde_json::from_str(s).unwrap())
@@ -64,34 +65,39 @@ where
                 let stream = VERIFICATION_REQUEST_PROCESSING.verify(verification_request);
                 pin_mut!(stream);
                 while let Some(server_msg) = stream.next().await {
-                    websocket
+                    ws_send
                         .send(warp::filters::ws::Message::text(
                             serde_json::to_string(&server_msg).unwrap(),
                         ))
                         .await
                         .unwrap();
                 }
-                websocket.close().await.unwrap();
+                ws_send.close().await.unwrap();
+                // receive the client close to complete the handshake
+                ws_recv.next().await.unwrap().unwrap();
             })
         });
 
     let bincode_verify = warp::path!("bincode" / "verify")
         .and(warp::filters::ws::ws())
         .map(|ws: warp::filters::ws::Ws| {
-            ws.on_upgrade(|mut websocket| async {
-                let req_msg = websocket.next().await.unwrap().unwrap();
+            ws.on_upgrade(|websocket| async {
+                let (mut ws_send, mut ws_recv) = websocket.split();
+                let req_msg = ws_recv.next().await.unwrap().unwrap();
                 let verification_request = bincode::deserialize(req_msg.as_bytes()).unwrap();
                 let stream = VERIFICATION_REQUEST_PROCESSING.verify(verification_request);
                 pin_mut!(stream);
                 while let Some(server_msg) = stream.next().await {
-                    websocket
+                    ws_send
                         .send(warp::filters::ws::Message::binary(
                             bincode::serialize(&server_msg).unwrap(),
                         ))
                         .await
                         .unwrap();
                 }
-                websocket.close().await.unwrap();
+                ws_send.close().await.unwrap();
+                // receive the client close to complete the handshake
+                ws_recv.next().await.unwrap().unwrap();
             })
         });
     let save_cache = warp::post()
