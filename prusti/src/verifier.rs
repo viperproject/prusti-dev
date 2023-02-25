@@ -10,7 +10,7 @@ use prusti_interface::{
 use prusti_viper::verifier::Verifier;
 
 pub fn verify<'tcx>(
-    env: Environment<'tcx>,
+    env: &Environment<'tcx>,
     def_spec: typed::DefSpecificationMap,
     verification_task: VerificationTask<'tcx>,
 ) {
@@ -50,7 +50,7 @@ pub fn verify<'tcx>(
                 debug!("Dump borrow checker info...");
                 env.dump_borrowck_info(&verification_task.procedures);
 
-                let mut verifier = Verifier::new(&env, def_spec);
+                let mut verifier = Verifier::new(env, def_spec);
                 let verification_result = verifier.verify(&verification_task);
                 debug!("Verifier returned {:?}", verification_result);
 

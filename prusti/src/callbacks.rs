@@ -152,7 +152,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         procedures: annotated_procedures,
                         types,
                     };
-                    verify(env, def_spec, verification_task);
+                    verify(&env, def_spec, verification_task);
                 } else {
                     let target_def_path = config::selective_verify().unwrap();
                     let procedures = annotated_procedures
@@ -160,12 +160,16 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         .filter(|x| env.name.get_unique_item_name(*x) == target_def_path)
                         .collect();
                     let selective_task = VerificationTask { procedures, types };
-                    verify(env, def_spec, selective_task);
+                    // fake_error because otherwise a verification-success
+                    // (for a single method for example) will cause this result
+                    // to be cached by compiler at the moment
+                    verify(&env, def_spec, selective_task);
+                    fake_error(&env);
                 }
             } else if config::show_ide_info() && config::skip_verification() && !config::no_verify()
             {
                 // add a fake error, reason explained in issue #1261
-                fake_error(env)
+                fake_error(&env)
             }
         });
 
