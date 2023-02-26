@@ -4,8 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// use core::num::flt2dec::Sign;
+
 use crate::{class_name::*, errors::*, utils::*};
-use jni::JNIEnv;
+use jni::{objects::JObject, JNIEnv};
 
 fn generate_type_check(type_signature: &str, type_name: &str, is_result: bool) -> String {
     if !type_signature.starts_with('L') {
@@ -144,10 +146,19 @@ pub fn generate_field_getter_setter(
     env: &JNIEnv,
     class_name: &ClassName,
     field_name: &str,
-    type_signature: &str,
 ) -> Result<String> {
-    env.get_field_id(class_name.path(), field_name, type_signature)
-        .map(|_| ())?;
+    let clazz = env.find_class(class_name.path())?;
+
+    let field = env
+        .call_method(
+            clazz,
+            "getField",
+            "(Ljava/lang/String;)Ljava/lang/reflect/Field;",
+            &[JObject::from(env.new_string(field_name.to_owned())?).into()],
+        )?
+        .l()?;
+
+    let type_signature = ""; // TODO Generate the signature in a proper format
 
     let setter_code = generate_field_getter(class_name, field_name, type_signature);
     let getter_code = generate_field_setter(class_name, field_name, type_signature);
