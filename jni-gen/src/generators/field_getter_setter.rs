@@ -65,7 +65,7 @@ fn generate_field_getter(class_name: &ClassName, field_name: &str, type_signatur
         format!("pub fn {rust_getter_name}("),
         "    &self,".to_string(),
         "    receiver: JObject<'a>,".to_string(),
-        ") -> JNIResult<JObject> {".to_string(),
+        format!(") -> JNIResult<{parameter_type}> {{"),
         format!("    let class_name = \"{}\";", class_name.path()),
         format!("    let field_name = \"{field_name}\";"),
         format!("    let return_signature = \"{type_signature}\";"),
