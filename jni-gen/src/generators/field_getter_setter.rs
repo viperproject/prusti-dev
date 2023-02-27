@@ -62,8 +62,8 @@ fn class_field_lookup<'a>(
     Ok(None)
 }
 
-// Generates a runtine check that the object is of the expected class - applies only to object types (starting with L)
-// If this value is also the returned value in the setter, unwrap it first (since it is of type Result<T>)
+/// Generates a runtime check that the object is of the expected class - applies only to object types (starting with L)
+/// If this value is also the returned value in the setter, unwrap it first (since it is of type Result<T>)
 fn generate_type_check(expected_variable_signature: &str, variable_name: &str, is_result: bool) -> String {
     if !expected_variable_signature.starts_with('L') {
         return "".to_string();
@@ -203,7 +203,7 @@ fn generate_field_setter(class: &ClassName, field_name: &str, type_signature: &s
 /// It works also for private fields and for inherited fields
 ///
 /// It determines the type of the field by iterating over the
-/// inheritance hierarchy and checking for a field with matching name
+/// inheritance hierarchy and checking for a field with the matching name
 ///
 /// For class type fields it also generates runtime checks verifying
 /// that the given object is of the specified class (or its descendant)
