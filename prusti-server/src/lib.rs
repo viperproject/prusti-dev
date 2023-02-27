@@ -10,7 +10,9 @@ mod client;
 mod process_verification;
 mod server;
 mod verification_request;
+mod backend;
 
+pub use backend::*;
 pub use client::*;
 pub use process_verification::*;
 pub use server::*;
