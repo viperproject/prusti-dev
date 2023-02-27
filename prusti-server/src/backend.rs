@@ -32,6 +32,7 @@ impl<'a> Backend<'a> {
                         );
                     }
 
+                    stopwatch.start_next("viper verification");
                     viper.verify(viper_program)
                 })
             }
