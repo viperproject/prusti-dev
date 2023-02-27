@@ -61,6 +61,7 @@ impl ApplyOnState for vir::Stmt {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
             | &vir::Stmt::Assert(_)
+            | &vir::Stmt::Refute(_)
             | &vir::Stmt::Obtain(_) => {}
 
             &vir::Stmt::Inhale(vir::Inhale { ref expr }) => {

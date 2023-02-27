@@ -431,6 +431,10 @@ pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens)
 }
 
+pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens)
+}
+
 /// Generates the TokenStream encoding an expression using prusti syntax
 /// Used for body invariants, assertions, and assumptions
 fn generate_expression_closure(
