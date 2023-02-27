@@ -4,8 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// use core::num::flt2dec::Sign;
-
 use crate::{class_name::*, errors::*, utils::*};
 use jni::{
     objects::{JClass, JObject, JValue},
@@ -64,18 +62,20 @@ fn class_field_lookup<'a>(
     Ok(None)
 }
 
-fn generate_type_check(type_signature: &str, type_name: &str, is_result: bool) -> String {
-    if !type_signature.starts_with('L') {
+// Generates a runtine check that the object is of the expected class - applies only to object types (starting with L)
+// If this value is also the returned value in the setter, unwrap it first (since it is of type Result<T>)
+fn generate_type_check(expected_variable_signature: &str, variable_name: &str, is_result: bool) -> String {
+    if !expected_variable_signature.starts_with('L') {
         return "".to_string();
     }
 
-    let type_class = &type_signature[1..(type_signature.len() - 1)];
+    let variable_type = &expected_variable_signature[1..(expected_variable_signature.len() - 1)];
 
     let type_check = vec![
         "    debug_assert!(".to_string(),
         "        self.env.is_instance_of(".to_string(),
-        format!("            {type_name},"),
-        format!("            self.env.find_class(\"{type_class}\")?,"),
+        format!("            {variable_name},"),
+        format!("            self.env.find_class(\"{variable_type}\")?,"),
         "        )?".to_string(),
         "    );".to_string(),
     ];
@@ -197,6 +197,16 @@ fn generate_field_setter(class: &ClassName, field_name: &str, type_signature: &s
         + "\n"
 }
 
+/// Generates Rust code to both retrieve and modify a value of
+/// the specified field of a given object of the specified class
+///
+/// It works also for private fields and for inherited fields
+///
+/// It determines the type of the field by iterating over the
+/// inheritance hierarchy and checking for a field with matching name
+///
+/// For class type fields it also generates runtime checks verifying
+/// that the given object is of the specified class (or its descendant)
 pub fn generate_field_getter_setter(
     env: &JNIEnv,
     class: &ClassName,
