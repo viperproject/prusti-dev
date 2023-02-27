@@ -119,6 +119,7 @@
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -127,6 +128,7 @@
 
 </span><span class="kw">use crate</span>::{process_verification_request, VerificationRequest};
 <span class="kw">use </span>log::info;
+<span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>prusti_common::{config, Stopwatch};
 <span class="kw">use </span>std::{
     net::{Ipv4Addr, SocketAddr},
@@ -167,18 +169,18 @@
     </span>F: FnOnce(SocketAddr),
 {
     <span class="kw">let </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
-    <span class="kw">let </span>viper = Arc::new(Viper::new_with_args(
-        <span class="kw-2">&amp;</span>config::viper_home(),
-        config::extra_jvm_args(),
-    ));
+    <span class="kw">let </span>viper = Arc::new(Lazy::new(|| {
+        Viper::new_with_args(<span class="kw-2">&amp;</span>config::viper_home(), config::extra_jvm_args())
+    }));
+
     stopwatch.finish();
 
     <span class="kw">let </span>cache_data = PersistentCache::load_cache(config::cache_path());
     <span class="kw">let </span>cache = Arc::new(Mutex::new(cache_data));
-    <span class="kw">let </span>build_verification_request_handler = |viper_arc: Arc&lt;Viper&gt;, cache| {
+    <span class="kw">let </span>build_verification_request_handler = |viper_arc: Arc&lt;Lazy&lt;Viper, <span class="kw">_</span>&gt;&gt;, cache| {
         <span class="kw">move </span>|request: VerificationRequest| {
             <span class="kw">let </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;attach thread to JVM&quot;</span>);
-            <span class="kw">let </span>viper_thread = viper_arc.attach_current_thread();
+            <span class="kw">let </span>viper_thread = Lazy::new(|| viper_arc.attach_current_thread());
             stopwatch.finish();
             process_verification_request(<span class="kw-2">&amp;</span>viper_thread, request, <span class="kw-2">&amp;</span>cache)
         }
