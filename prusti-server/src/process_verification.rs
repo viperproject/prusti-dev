@@ -4,8 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{VerificationRequest, ViperBackendConfig};
+use crate::{Backend, VerificationRequest, ViperBackendConfig};
 use log::info;
+use once_cell::sync::Lazy;
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
@@ -18,7 +19,7 @@ use viper::{
 };
 
 pub fn process_verification_request<'v, 't: 'v>(
-    verification_context: &'v VerificationContext<'t>,
+    verification_context: &'v Lazy<VerificationContext<'t>, impl Fn() -> VerificationContext<'t>>,
     mut request: VerificationRequest,
     cache: impl Cache,
 ) -> viper::VerificationResult {
@@ -97,35 +98,43 @@ pub fn process_verification_request<'v, 't: 'v>(
         }
     };
 
-    ast_utils.with_local_frame(16, || {
-        let viper_program = build_or_dump_viper_program();
-        let program_name = request.program.get_name();
+    let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
 
-        // Create a new verifier each time.
-        // Workaround for https://github.com/viperproject/prusti-dev/issues/744
-        let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let mut verifier =
-            new_viper_verifier(program_name, verification_context, request.backend_config);
+    // Create a new verifier each time.
+    // Workaround for https://github.com/viperproject/prusti-dev/issues/744
+    let mut backend = match request.backend_config.backend {
+        VerificationBackend::Carbon | VerificationBackend::Silicon => Backend::Viper(
+            new_viper_verifier(
+                request.program.get_name(),
+                verification_context,
+                request.backend_config,
+            ),
+            verification_context,
+        ),
+    };
 
-        stopwatch.start_next("verification");
-        let mut result = verifier.verify(viper_program);
+    stopwatch.start_next("backend verification");
+    let mut result = backend.verify(&request.program);
 
-        // Don't cache Java exceptions, which might be due to misconfigured paths.
-        if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
-            info!(
-                "Storing new cached result {:?} for program {}",
-                &result,
-                request.program.get_name()
-            );
-            cache.insert(hash, result.clone());
-        }
+    // Don't cache Java exceptions, which might be due to misconfigured paths.
+    if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
+        info!(
+            "Storing new cached result {:?} for program {}",
+            &result,
+            request.program.get_name()
+        );
+        cache.insert(hash, result.clone());
+    }
 
-        normalization_info.denormalize_result(&mut result);
-        result
-    })
+    normalization_info.denormalize_result(&mut result);
+    result
 }
 
-fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
+pub fn dump_viper_program(
+    ast_utils: &viper::AstUtils,
+    program: viper::Program,
+    program_name: &str,
+) {
     let namespace = "viper_program";
     let filename = format!("{program_name}.vpr");
     info!("Dumping Viper program to '{}/{}'", namespace, filename);

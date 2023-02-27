@@ -6,6 +6,7 @@
 
 use crate::{process_verification_request, VerificationRequest};
 use log::info;
+use once_cell::sync::Lazy;
 use prusti_common::{config, Stopwatch};
 use std::{
     net::{Ipv4Addr, SocketAddr},
@@ -46,18 +47,18 @@ where
     F: FnOnce(SocketAddr),
 {
     let stopwatch = Stopwatch::start("prusti-server", "JVM startup");
-    let viper = Arc::new(Viper::new_with_args(
-        &config::viper_home(),
-        config::extra_jvm_args(),
-    ));
+    let viper = Arc::new(Lazy::new(|| {
+        Viper::new_with_args(&config::viper_home(), config::extra_jvm_args())
+    }));
+
     stopwatch.finish();
 
     let cache_data = PersistentCache::load_cache(config::cache_path());
     let cache = Arc::new(Mutex::new(cache_data));
-    let build_verification_request_handler = |viper_arc: Arc<Viper>, cache| {
+    let build_verification_request_handler = |viper_arc: Arc<Lazy<Viper, _>>, cache| {
         move |request: VerificationRequest| {
             let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
-            let viper_thread = viper_arc.attach_current_thread();
+            let viper_thread = Lazy::new(|| viper_arc.attach_current_thread());
             stopwatch.finish();
             process_verification_request(&viper_thread, request, &cache)
         }
