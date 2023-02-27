@@ -357,6 +357,8 @@ impl SMTTranslatable for MethodDecl {
         // we assume these to be correct by default and collect their signatures
         if self.body.is_none() {
             smt.methods.insert(self.name.clone(), self.clone());
+        } else {
+            unimplemented!("Method bodies are not yet supported");
         }
     }
 }
@@ -430,11 +432,7 @@ impl SMTTranslatable for Expression {
                 ConstantValue::Int(i64) => i64.to_string(),
                 ConstantValue::BigInt(s) => s.clone(),
             },
-            Expression::MagicWand(magic_wand) => format!(
-                "(=> {} {})", // TODO: is this correct?
-                magic_wand.left.to_smt(),
-                magic_wand.right.to_smt()
-            ),
+            Expression::MagicWand(magic_wand) => unimplemented!("Magic wands"),
             Expression::PredicateAccessPredicate(_access) => {
                 // TODO: access predicates for predicates
                 warn!("PredicateAccessPredicate not supported");

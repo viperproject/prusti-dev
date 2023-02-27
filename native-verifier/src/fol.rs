@@ -32,6 +32,15 @@ fn vir_statement_to_fol_statements(
 
             vec![FolStatement::Assume(eq)]
         }
+        Statement::Conditional(cond) => {
+            if !(cond.then_branch.is_empty() && cond.else_branch.is_empty()) {
+                log::warn!(
+                    "Conditional statement with non-empty branches, guard: {:?}",
+                    cond.guard
+                );
+            }
+            vec![]
+        }
         Statement::MethodCall(method_call) => {
             let method_decl = known_methods
                 .get(&method_call.method_name)
