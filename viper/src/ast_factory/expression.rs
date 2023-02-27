@@ -1501,4 +1501,8 @@ impl<'a> AstFactory<'a> {
             pos.to_jobject()
         )
     }
+
+    pub fn low_event(&self) -> Expr<'a> {
+        build_ast_node!(self, Expr, sif::SIFLowEventExp)
+    }
 }

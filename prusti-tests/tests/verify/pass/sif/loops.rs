@@ -25,4 +25,14 @@ fn test(n: u32) -> u32 {
     res
 }
 
+#[ensures(low(n))]
+fn l(n: u32) {
+    let mut i = 0;
+    while i < n {
+        body_invariant!(low_event());
+        body_invariant!(low(i));
+        i += 1;
+    }
+}
+
 fn main() {}

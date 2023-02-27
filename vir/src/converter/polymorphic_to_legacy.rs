@@ -409,6 +409,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
             polymorphic::Expr::Low(low) => {
                 legacy::Expr::Low(Box::new((*low.base).into()), low.position.into())
             }
+            polymorphic::Expr::LowEvent => legacy::Expr::LowEvent,
         }
     }
 }

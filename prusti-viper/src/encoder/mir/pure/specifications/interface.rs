@@ -266,6 +266,16 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                     .with_span(span)
                 }
             }
+            "prusti_contracts::low_event" => {
+                if config::sif() {
+                    Ok(vir_poly::Expr::LowEvent)
+                } else {
+                    Err(EncodingError::incorrect(
+                        "Found low specification when sif option is disabled!",
+                    ))
+                    .with_span(span)
+                }
+            }
             _ => unimplemented!(),
         }
     }

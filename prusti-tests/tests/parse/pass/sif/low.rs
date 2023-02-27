@@ -19,4 +19,12 @@ fn baz() -> i32 {
     x + y
 }
 
+fn l(n: u32) {
+    let mut i = 0;
+    while i < n {
+        body_invariant!(low_event());
+        i += 1;
+    }
+}
+
 fn main() {}

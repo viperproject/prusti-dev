@@ -753,6 +753,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             Expr::Low(expr, position) => {
                 ast.low_with_pos(expr.to_viper(context, ast), position.to_viper(context, ast))
             }
+            Expr::LowEvent => ast.low_event(),
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

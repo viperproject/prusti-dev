@@ -378,4 +378,9 @@ pub fn low<T>(_t: T) -> bool {
     true
 }
 
+/// Check that all execusion must either all reach this point or none
+pub fn low_event() -> bool {
+    true
+}
+
 pub use private::*;

@@ -345,6 +345,10 @@ pub trait ExprFolder: Sized {
         Expr::Low(self.fold_boxed(expr), self.fold_position(p))
     }
 
+    fn fold_low_event(&mut self) -> Expr {
+        Expr::LowEvent
+    }
+
     fn fold_position(&mut self, p: Position) -> Position {
         p
     }
@@ -383,6 +387,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Map(x, y, p) => this.fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fold_cast(kind, base, p),
         Expr::Low(e, p) => this.fold_low(e, p),
+        Expr::LowEvent => this.fold_low_event(),
     }
 }
 
@@ -616,6 +621,8 @@ pub trait ExprWalker: Sized {
         self.walk_position(pos);
     }
 
+    fn walk_low_event(&mut self) {}
+
     fn walk_position(&mut self, _pos: &Position) {}
 }
 
@@ -652,6 +659,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Map(ref ty, ref elems, ref p) => this.walk_map(ty, elems, p),
         Expr::Cast(ref kind, ref base, ref p) => this.walk_cast(kind, base, p),
         Expr::Low(ref expr, ref p) => this.walk_low(expr, p),
+        Expr::LowEvent => this.walk_low_event(),
     }
 }
 
@@ -979,6 +987,10 @@ pub trait FallibleExprFolder: Sized {
     fn fallible_fold_low(&mut self, expr: Box<Expr>, p: Position) -> Result<Expr, Self::Error> {
         Ok(Expr::Low(self.fallible_fold_boxed(expr)?, p))
     }
+
+    fn fallible_fold_low_event(&mut self) -> Result<Expr, Self::Error> {
+        Ok(Expr::LowEvent)
+    }
 }
 
 pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
@@ -1017,5 +1029,6 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Map(x, y, p) => this.fallible_fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fallible_fold_cast(kind, base, p),
         Expr::Low(expr, p) => this.fallible_fold_low(expr, p),
+        Expr::LowEvent => this.fallible_fold_low_event(),
     }
 }

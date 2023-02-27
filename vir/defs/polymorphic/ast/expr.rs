@@ -72,6 +72,8 @@ pub enum Expr {
     Cast(Cast),
     /// Set the given expression to the low security level
     Low(Low),
+    /// The expression must always be reached by none or all execussion
+    LowEvent,
 }
 
 impl fmt::Display for Expr {
@@ -105,6 +107,7 @@ impl fmt::Display for Expr {
             Expr::Downcast(downcast_expr) => downcast_expr.fmt(f),
             Expr::Cast(expr) => expr.fmt(f),
             Expr::Low(low) => low.fmt(f),
+            Expr::LowEvent => write!(f, "low_event"),
         }
     }
 }
@@ -190,6 +193,7 @@ impl Expr {
             | Expr::Low(Low { position, .. })
             | Expr::Seq(Seq { position, .. }) => *position,
             Expr::Downcast(DowncastExpr { base, .. }) => base.pos(),
+            Expr::LowEvent => Default::default(),
         }
     }
 
@@ -213,6 +217,7 @@ impl Expr {
                         ..inner
                     }),
                     Expr::Downcast(..) => self,
+                    Expr::LowEvent => self,
                 }
             }
         }
@@ -479,10 +484,15 @@ impl Expr {
     }
 
     pub fn low(expr: Expr) -> Self {
+        let pos = expr.pos();
         Expr::Low(Low {
             base: Box::new(expr),
-            position: Position::default(),
+            position: pos,
         })
+    }
+
+    pub fn low_event() -> Self {
+        Expr::LowEvent
     }
 
     pub fn find(&self, sub_target: &Expr) -> bool {
@@ -1059,7 +1069,7 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
                 typ1
             }
-            Expr::ForAll(..) | Expr::Exists(..) | Expr::Low(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::Low(..) | Expr::LowEvent => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1543,6 +1553,7 @@ impl Expr {
                     | Expr::Map(..)
                     | Expr::SnapApp(..)
                     | Expr::Low(..)
+                    | Expr::LowEvent
                     | Expr::Cast(..) => true.into(),
                 }
             }
@@ -1763,6 +1774,23 @@ impl Expr {
         }
         let mut remover = ReadPermRemover {};
         remover.fold(self)
+    }
+
+    pub fn is_relational(&self) -> bool {
+        struct RelationalFinder {
+            found: bool,
+        }
+        impl ExprWalker for RelationalFinder {
+            fn walk_low(&mut self, _expr: &Low) {
+                self.found = true;
+            }
+
+            fn walk_low_event(&mut self) {
+                self.found = true;
+            }
+        }
+        let founder = RelationalFinder { found: false };
+        founder.found
     }
 }
 

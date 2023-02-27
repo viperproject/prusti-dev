@@ -77,6 +77,8 @@ pub enum Expr {
     Cast(CastKind, Box<Expr>, Position),
     /// check that the given expression is at the low security level
     Low(Box<Expr>, Position),
+    /// check that both execution reach this point or none
+    LowEvent,
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -309,6 +311,7 @@ impl fmt::Display for Expr {
             Expr::SnapApp(ref expr, _) => write!(f, "snap({expr})"),
             Expr::Cast(ref kind, ref base, _) => write!(f, "cast<{kind:?}>({base})"),
             Expr::Low(ref base, _) => write!(f, "low({base})"),
+            Expr::LowEvent => write!(f, "low_event"),
         }
     }
 }
@@ -395,6 +398,7 @@ impl Expr {
             | Expr::SnapApp(_, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
+            Expr::LowEvent => Position::default(),
         }
     }
 
@@ -1247,7 +1251,7 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {self:?}");
                 typ1?
             }
-            Expr::ForAll(..) | Expr::Exists(..) | Expr::Low(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::Low(..) | Expr::LowEvent => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1721,6 +1725,7 @@ impl Expr {
                     | Expr::Map(..)
                     | Expr::SnapApp(..)
                     | Expr::Low(..)
+                    | Expr::LowEvent
                     | Expr::Cast(..) => true.into(),
                 }
             }

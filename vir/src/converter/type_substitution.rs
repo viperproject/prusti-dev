@@ -170,6 +170,7 @@ impl Generic for Expr {
             Expr::SnapApp(snap_app) => Expr::SnapApp(snap_app.substitute(map)),
             Expr::Cast(cast) => Expr::Cast(cast.substitute(map)),
             Expr::Low(low) => Expr::Low(low.substitute(map)),
+            Expr::LowEvent => Expr::LowEvent,
         }
     }
 }
