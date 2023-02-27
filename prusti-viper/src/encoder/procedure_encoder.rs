@@ -5554,6 +5554,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
         }
+        if encoded_specs.iter().any(|e| e.is_relational()) {
+            encoded_specs.push(vir::Expr::LowEvent);
+        }
+
         Ok((encoded_specs, MultiSpan::from_spans(encoded_spec_spans)))
     }
 

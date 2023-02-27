@@ -399,6 +399,13 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         Err(())
     }
 
+    fn fallible_fold_low(
+        &mut self,
+        _expr: vir::polymorphic::Low,
+    ) -> Result<vir::polymorphic::Expr, Self::Error> {
+        Err(())
+    }
+
     fn fallible_fold_predicate_access_predicate(
         &mut self,
         _predicate_access_predicate: ast::PredicateAccessPredicate,
