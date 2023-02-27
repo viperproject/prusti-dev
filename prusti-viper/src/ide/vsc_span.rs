@@ -22,10 +22,10 @@ impl VscSpan {
 
         if let Ok((l1, l2)) = sourcemap.is_valid_span(*sp) {
             Some(Self {
-                column_end: l2.col.0,
                 column_start: l1.col.0,
+                column_end: l2.col.0,
+                line_start: l1.line,
                 line_end: l2.line,
-                line_start: l2.line,
                 file_name: fname,
                 // the following 3 are not relevant here, we just want to be
                 // able to reuse the existing methods and the parser
