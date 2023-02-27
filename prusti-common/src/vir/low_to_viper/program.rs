@@ -6,6 +6,7 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Program<'v> {
         let Program {
             name: _,
+            path: _,
             check_mode: _,
             domains,
             procedures,

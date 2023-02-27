@@ -851,6 +851,7 @@ impl From<polymorphic::Program> for legacy::Program {
     fn from(program: polymorphic::Program) -> legacy::Program {
         legacy::Program {
             name: program.name,
+            path: program.path,
             backend_types: program
                 .backend_types
                 .into_iter()

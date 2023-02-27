@@ -5,6 +5,7 @@ use crate::encoder::{
 use log::debug;
 use prusti_common::config;
 use prusti_rustc_interface::{hir::def_id::DefId, middle::ty};
+use prusti_rustc_interface::span::FileName;
 use vir_crate::{
     common::{check_mode::CheckMode, identifier::WithIdentifier},
     low::{self as vir_low},
@@ -50,8 +51,17 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             predicates,
             methods,
         } = super::lowerer::lower_procedure(self, proc_def_id, procedure)?;
+        let error_span = self.env().query.get_def_span(proc_def_id);
+        let fname = self.env().query.codemap().span_to_filename(error_span);
+        assert!(fname.is_real());
+        let path = if let FileName::Real(path) = fname {
+            let mut path = path.local_path().unwrap().to_path_buf();
+            path.set_extension("");
+            path.to_str().unwrap().to_string()
+        } else { unreachable!() };
         let mut program = vir_low::Program {
             name: self.env().name.get_absolute_item_name(proc_def_id),
+            path,
             check_mode,
             procedures,
             domains,
@@ -101,8 +111,19 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             methods,
         } = super::lowerer::lower_type(self, def_id, ty, check_copy)?;
         assert!(procedures.is_empty());
+        let path = def_id.map(|def_id| {
+            let error_span = self.env().query.get_def_span(def_id);
+            let fname = self.env().query.codemap().span_to_filename(error_span);
+            assert!(fname.is_real());
+            if let FileName::Real(path) = fname {
+                let mut path = path.local_path().unwrap().to_path_buf();
+                path.set_extension("");
+                path.to_str().unwrap().to_string()
+            } else { unreachable!() }
+        }).unwrap_or(String::new());
         let mut program = vir_low::Program {
             name,
+            path,
             check_mode,
             procedures: vec![],
             domains,

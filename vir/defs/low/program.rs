@@ -28,6 +28,7 @@ use crate::common::{check_mode::CheckMode, display};
 )]
 pub struct Program {
     pub name: String,
+    pub path: String,
     pub check_mode: CheckMode,
     pub domains: Vec<DomainDecl>,
     pub predicates: Vec<PredicateDecl>,
