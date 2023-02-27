@@ -113,7 +113,7 @@ pub fn process_verification_request<'v, 't: 'v>(
         ),
     };
 
-    stopwatch.start_next("verification");
+    stopwatch.start_next("backend verification");
     let mut result = backend.verify(&request.program);
 
     // Don't cache Java exceptions, which might be due to misconfigured paths.
