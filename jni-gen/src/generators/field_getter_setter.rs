@@ -64,7 +64,11 @@ fn class_field_lookup<'a>(
 
 /// Generates a runtime check that the object is of the expected class - applies only to object types (starting with L)
 /// If this value is also the returned value in the setter, unwrap it first (since it is of type Result<T>)
-fn generate_type_check(expected_variable_signature: &str, variable_name: &str, is_result: bool) -> String {
+fn generate_type_check(
+    expected_variable_signature: &str,
+    variable_name: &str,
+    is_result: bool,
+) -> String {
     if !expected_variable_signature.starts_with('L') {
         return "".to_string();
     }
