@@ -307,7 +307,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                let refutation = match self.encoder.get_prusti_refutation(cl_def_id.to_def_id()) {
+                let refutation = match self.encoder.get_prusti_refutation(cl_def_id) {
                     Some(spec) => spec,
                     None => return Ok(false),
                 };
