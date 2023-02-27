@@ -5,7 +5,7 @@ use super::{
 };
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use prusti_common::vir_local;
-use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::span::{FileName, Span};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use vir_crate::{
@@ -63,7 +63,14 @@ pub(super) fn collect_definitions(
         in_directly_calling_state: true,
     };
     collector.walk_methods(&methods)?;
-    collector.into_program(name, methods)
+    let fname = encoder.env().query.codemap().span_to_filename(error_span);
+    assert!(fname.is_real());
+    let path = if let FileName::Real(path) = fname {
+        let mut path = path.local_path().unwrap().to_path_buf();
+        path.set_extension("");
+        path.to_str().unwrap().to_string()
+    } else { unreachable!() };
+    collector.into_program(name, path, methods)
 }
 
 struct Collector<'p, 'v: 'p, 'tcx: 'v> {
@@ -100,6 +107,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     fn into_program(
         mut self,
         name: String,
+        path: String,
         methods: Vec<vir::CfgMethod>,
     ) -> SpannedEncodingResult<vir::Program> {
         let functions = self.get_used_functions()?;
@@ -109,6 +117,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let fields = self.get_used_fields();
         Ok(vir::Program {
             name,
+            path,
             domains,
             backend_types,
             fields,

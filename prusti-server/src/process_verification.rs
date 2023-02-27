@@ -57,6 +57,7 @@ pub fn process_verification_request<'v, 't: 'v>(
                 &ast_utils,
                 viper_program,
                 &request.program.get_name_with_check_mode(),
+                request.program.get_path(),
             );
         }
 
@@ -125,11 +126,11 @@ pub fn process_verification_request<'v, 't: 'v>(
     })
 }
 
-fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
-    let namespace = "viper_program";
+fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str, program_path: &str) {
+    let namespace = format!("viper_program/{program_path}");
     let filename = format!("{program_name}.vpr");
     info!("Dumping Viper program to '{}/{}'", namespace, filename);
-    report(namespace, filename, ast_utils.pretty_print(program));
+    report(&namespace, filename, ast_utils.pretty_print(program));
 }
 
 fn new_viper_verifier<'v, 't: 'v>(

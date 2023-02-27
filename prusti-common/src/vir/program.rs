@@ -14,6 +14,12 @@ impl Program {
             Program::Low(program) => &program.name,
         }
     }
+    pub fn get_path(&self) -> &str {
+        match self {
+            Program::Legacy(program) => &program.path,
+            Program::Low(program) => &program.path,
+        }
+    }
     pub fn set_name(&mut self, name: String) {
         match self {
             Program::Legacy(program) => program.name = name,

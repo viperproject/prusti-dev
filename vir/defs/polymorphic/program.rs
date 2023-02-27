@@ -3,6 +3,7 @@ use crate::polymorphic::{ast::*, cfg::CfgMethod};
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Program {
     pub name: String,
+    pub path: String,
     pub domains: Vec<Domain>,
     pub backend_types: Vec<BackendType>,
     pub fields: Vec<Field>,
