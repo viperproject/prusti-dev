@@ -130,10 +130,9 @@ impl<'a> ClassGenerator<'a> {
                     signature.clone(),
                     suffix.clone(),
                 )?,
-                ItemWrapperSpec::FieldGetterSetter {
-                    ref field_name,
-                    ref signature,
-                } => generate_field_getter_setter(self.env, &self.class, field_name, signature)?,
+                ItemWrapperSpec::FieldGetterSetter { ref field_name } => {
+                    generate_field_getter_setter(self.env, &self.class, field_name)?
+                }
             };
             gen_items.push(gen)
         }

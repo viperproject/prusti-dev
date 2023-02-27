@@ -30,7 +30,7 @@ fn main() {
         .wrap_all(vec![
             java_class!("java.lang.Integer", vec![
                 constructor!("(I)V"),
-                field!("value", "I")
+                field!("value")
             ]),
             java_class!("java.util.Arrays", vec![
                 method!("binarySearch", "([Ljava/lang/Object;Ljava/lang/Object;)I"),
@@ -38,7 +38,7 @@ fn main() {
             java_class!("java.lang.Error", vec![
                 constructor!("(Ljava/lang/String;)V"),
                 method!("getMessage"),
-                field!("detailMessage", "Ljava/lang/String;"),
+                field!("detailMessage"),
             ]),
         ])
         .generate(&generated_dir)
