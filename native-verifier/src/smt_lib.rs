@@ -432,7 +432,7 @@ impl SMTTranslatable for Expression {
                 ConstantValue::Int(i64) => i64.to_string(),
                 ConstantValue::BigInt(s) => s.clone(),
             },
-            Expression::MagicWand(magic_wand) => unimplemented!("Magic wands"),
+            Expression::MagicWand(_) => unimplemented!("Magic wands are not supported"),
             Expression::PredicateAccessPredicate(_access) => {
                 // TODO: access predicates for predicates
                 warn!("PredicateAccessPredicate not supported");
@@ -534,7 +534,7 @@ impl SMTTranslatable for BinaryOpKind {
             BinaryOpKind::Sub => "-",
             BinaryOpKind::Mul => "*",
             BinaryOpKind::Div => "/",
-            BinaryOpKind::Mod => "%",
+            BinaryOpKind::Mod => "mod",
             BinaryOpKind::And => "and",
             BinaryOpKind::Or => "or",
             BinaryOpKind::Implies => "=>",
