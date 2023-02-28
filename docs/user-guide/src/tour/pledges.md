@@ -1,7 +1,7 @@
 # Pledges
 
-Now we will look at [`pledges`](../verify/pledge.md). Pledges are used for functions that return mutable reference into some datastructure.
-They explain to Prusti how the original object gets affected by changes to the returned reference.
+Now we will look at [`pledges`](../verify/pledge.md). Pledges are used for functions that return mutable references into some datastructure.
+With a pledge you can explain to Prusti how the original object gets affected by changes to the returned reference.
 We will demonstrate it by implementing a function that gives you a mutable reference to the first element in the list:
 
 ## Implementing `peek_mut`
@@ -12,7 +12,7 @@ As a first postcondition, we want to ensure that the `result` of `peek_mut` poin
 In the code, we need to get a mutable reference to the type inside the `Link = Option<Box<Node<T>>>`. This requires the use of the type `Option<&mut T>`, which is a structure containing a reference, so it is not yet supported by Prusti (see [limitations chapter](../limitations.md)). To still be able to verify `peek_mut`, we mark it as `trusted` for now:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/peek_mut/initial_code.rs:peek_mut_code}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/peek_mut_pledges.rs:peek_mut_code}}
 ```
 
 Note that `peek_mut` cannot be `#[pure]`, since it returns a mutable reference.
@@ -29,10 +29,10 @@ Lets write a test to see if our specification works:
   - Is the second element 8?
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/peek_mut/initial_code.rs:test_peek_mut}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/peek_mut_pledges.rs:test_peek_mut}}
 ```
 
-But this fails, Prusti cannot verify any of our last three `prusti_assert` statements. This is where `pledges` come in. We have to tell Prusti how the `result` affects the original list. Without this, Prusti assumes that the reference can change anything about the original list, so nothing can be known about it after the reference gets dropped.
+But this fails, Prusti cannot verify any of our last three `prusti_assert` statements. This is where `pledges` come in. We have to tell Prusti how the `result` affects the original list. Without this, Prusti assumes that changes to the reference can change every property of the original list, so nothing can be known about it after the reference gets dropped.
 
 ## Writing the pledge
 
@@ -40,7 +40,7 @@ The pledge gets written with an annotation like for `ensures` and `requires`, bu
 Inside we have all the conditions that hold after the returned reference gets dropped:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/peek_mut/final_code.rs:pledge}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/peek_mut_pledges.rs:pledge}}
 ```
 
 We have 3 conditions here:
@@ -58,7 +58,7 @@ As an example, we could use this to make sure that our list of `i32` can only co
 Given that this invariant held before the reference was given out, it will hold again if the changed element is still in the correct range:
 
 ```rust,noplaypen,ignore
-{{#rustdoc_include tour-src/src/peek_mut/assert_on_expiry.rs:assert_on_expiry}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/assert_on_expiry.rs:assert_on_expiry}}
 ```
 The syntax here is `#[assert_on_expiry(condition, invariant)]`.
 This means that the `invariant` holds, given that `condition` is true when the reference expires.
@@ -69,5 +69,5 @@ Note that for some condition `A`, `after_expiry(A)` is equal to `assert_one_expi
 
 ```rust,noplaypen
 // Expand to see full code up to this chapter
-{{#rustdoc_include tour-src/src/peek_mut/final_code.rs:nothing}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/peek_mut_pledges.rs:nothing}}
 ```

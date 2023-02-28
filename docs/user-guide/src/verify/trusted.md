@@ -2,7 +2,7 @@
 
 Sometimes specifications express a fact which is true about a function, but the verifier cannot prove it automatically, or it uses features not yet supported by Prusti. In such cases, it is possible to mark a function as `#[trusted]`:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[trusted]
@@ -24,7 +24,7 @@ When declaring a function as `#[trusted]`, Prusti ignores the function's body an
 As the example below demonstrates, a single wrong, yet trusted, specification may lead to wrong and unexpected verification results.
 Hence, some care is needed to ensure that the specifications of trusted functions are indeed correct.
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[trusted]

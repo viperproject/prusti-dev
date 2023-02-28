@@ -9,7 +9,7 @@ function (via an assumption).
 
 The macros `prusti_assert!`, `prusti_assert_eq` and `prusti_assert_ne` instruct Prusti to verify that a certain property holds at a specific point within the body of a function. In contrast to the `assert!`, `assert_eq` and `assert_ne` macros, which only accept Rust expressions, the Prusti variants accept [specification](../syntax.md) expressions as arguments. Therefore, [quantifiers](../syntax.md#quantifiers), [`old`](../syntax.md#old-expressions) expressions and other Prusti specification syntax is allowed within a call to `prusti_assert!`, as in the following example:
 
-```rust,noplaypen
+```rust,noplaypen,ignore
 # use prusti_contracts::*;
 # 
 #[requires(*x != 2)]
@@ -21,7 +21,7 @@ fn go(x: &mut u32) {
 
 The two macros `prusti_assert_eq` and `prusti_assert_ne` are also slightly different their standard counterparts, in that they use [snapshot equality](syntax.md#snapshot-equality) `===` instead of [Partial Equality](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html) `==`.
 
-```rust
+```rust,noplaypen,ignore
 # use prusti_contracts::*;
 # 
 #[requires(a === b)]
@@ -59,7 +59,7 @@ holds at a point within the body of a function. Of course, if used improperly,
 this can be used to introduce unsoundness. For example, Prusti would verify the
 following function:
 
-```rust,noplaypen
+```rust,noplaypen,ignore
 #[ensures(p == np)]
 fn proof(p: u32, np: u32) {
     prusti_assume!(false);

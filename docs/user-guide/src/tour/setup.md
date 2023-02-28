@@ -1,6 +1,6 @@
 # Setup
 
-To get started, you can use an existing Rust project or create a new one with Cargo:
+To get started, you can use an existing Rust project or create a new one with [Cargo](https://doc.rust-lang.org/cargo/):
 
 ```sh
 cargo new prusti_tutorial
@@ -18,11 +18,10 @@ cargo add prusti-contracts
 For older versions of Rust, you can manually add the dependency in your Cargo.toml file:
 ```toml
 [dependencies]
-prusti-contracts = "0.1.3"
+prusti-contracts = "0.1.4"
 ```
 
-
-To use prusti-contracts in a Rust file, just add the following line:
+To use prusti-contracts in a Rust code file, just add the following line:
 ```rust,ignore
 use prusti_contracts::*;
 ```
@@ -34,7 +33,20 @@ In this file, you can set [configuration flags](https://viperproject.github.io/p
 check_overflows = false
 ```
 
-TODO:
-- nightly compiler needed(?)
-- mention how to run Prusti on the created project
-- mention that strings are not supported (remove print from generated main fn)
+**Note**: Creating a new project will create a `main.rs` file containing a `Hello World` program. Since Prusti does not yet support Strings (see [Prusti Limitations](../limitations.md#strings-and-string-slices) chapter), verification will fail on `main.rs`. To still verify the code, remove the line `println!("Hello, world!");`.
+
+
+## Standard library annotations
+
+Annotations for functions and types in the Rust standard library will be available in the [prusti-std crate](https://crates.io/crates/prusti-std) after [this PR](https://github.com/viperproject/prusti-dev/pull/1249) is merged.
+
+Adding this crate works the same as for the `prusti-contracts` crate:
+```sh
+cargo add prusti-std
+```
+or:
+```toml
+[dependencies]
+prusti-std = "0.1.4"
+```
+You do not need to import anything to use the annotations in this crate in a file.

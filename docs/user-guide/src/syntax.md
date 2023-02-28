@@ -21,7 +21,7 @@ When using Prusti, `result` is used to refer to what a function returns.
 `result` can only be used inside a postcondition, meaning that variables called `result` used in a function need to be renamed.
 
 Here is an example for returning an integer:
-```
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[ensures(result == 5)]
@@ -31,7 +31,7 @@ fn five() -> i32 {
 ```
 
 And an example for returning a tuple and accessing individual fields:
-```
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[ensures(result.0 / 2 == result.1 && result.2 == 'a')]
@@ -45,8 +45,7 @@ fn tuple() -> (i32, i32, char) {
 
 Old expressions are used to refer to the value that a memory location pointed at by a mutable reference had at the beginning of the function:
 
-```rust,noplaypen
-# extern crate prusti_contracts;
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[ensures(*x == old(*x) + 1)]
@@ -61,7 +60,6 @@ pub fn inc(x: &mut u32) {
 Implications express a [relationship](https://en.wikipedia.org/wiki/Material_conditional) between two boolean expressions:
 
 ```rust,noplaypen,ignore
-# extern crate prusti_contracts;
 # use prusti_contracts::*;
 # 
 #[pure]
@@ -84,7 +82,6 @@ Note: The expression `b` is only evaluated if `a` is true ([Short-circuit evalua
 There is also syntax for a right-to-left implication:
 
 ```rust,noplaypen,ignore
-# extern crate prusti_contracts;
 # use prusti_contracts::*;
 # 
 #[pure]
@@ -95,7 +92,9 @@ pub fn is_empty(&self) -> bool;
 
 As well as a biconditional ("if and only if"):
 
-```rust,noplaypen
+```rust,noplaypen,ignore
+# use prusti_contracts::*;
+# 
 #[pure]
 #[ensures(self.len() == 0 <==> result)]
 pub fn is_empty(&self) -> bool;
@@ -117,7 +116,6 @@ Nonetheless, snapshot equality could be used to compare values of such types, as
 in the following code:
 
 ```rust,noplaypen,ignore
-# extern crate prusti_contracts;
 # use prusti_contracts::*;
 # 
 #[requires(a === b)]
@@ -139,7 +137,7 @@ The function `snap` can be used to take a snapshot of a reference in specificati
 Its functionality is similar to the `clone` function, but `snap` is only intended for use in specifications. It also does not require the type behind the reference to implement the `Clone` trait.
 
 The `snap` function enables writing specifications that would otherwise break Rusts ownership rules:
-```rust,noplaypen
+```rust,noplaypen,ignore
 # use prusti_contracts::*;
 # 
 struct NonCopyInt {
@@ -160,8 +158,7 @@ TODO: avoid snap
 
 Quantifiers are typically used for describing how a method call changes a container such as a vector:
 
-```rust,noplaypen
-# extern crate prusti_contracts;
+```rust,noplaypen,ignore
 # use prusti_contracts::*;
 # 
 #[requires(0 <= index && index < self.len())]
