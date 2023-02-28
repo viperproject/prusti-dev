@@ -1,6 +1,5 @@
 # Summary
 
-- [TODO: Remove this after writing The guided tour](tour/code.md)
 - [Introduction](intro.md)
 - [Installation](install.md)
 - [Basic Usage](basic.md)
@@ -16,6 +15,8 @@
   - [Peek](tour/peek.md)
   - [Pledges (mutable peek)](tour/pledges.md)
   - [Final Code](tour/final.md)
+  - [Loop Invariants](tour/loop_invariants.md)
+  - [Counterexample](tour/counterexamples.md)
 - [Verification Features](verify/summary.md)
   - [Absence of panics](verify/panic.md)
   - [Overflow checks](verify/overflow.md)
@@ -32,5 +33,7 @@
   - [Specification entailments](verify/spec_ent.md)
   - [Type models](verify/type-models.md)
   - [Customizable counterexample](verify/print_counterexample.md)
-- [Current Prusti Limitations](limitations.md)
+- [Prusti capabilities summary](capabilities.md)
+  - [Supported Rust and verification features](capabilities/supported.md)
+  - [Current Prusti limitations](capabilities/limitations.md)
 - [Specification Syntax](syntax.md)
