@@ -19,14 +19,14 @@ For example, reading up on possible data layouts for lists might be useful for b
 >
 > Discusses potential pitfalls and errors when setting up a singly-linked data structure in Rust.
 
-## Stack Layout
+## Stack layout
 
 Our naïve singly-linked stack is composed of a public structure `List` storing 
 the head of the list, an enum `Link` representing either an empty list or a heap-allocated
 Node storing the payload—an integer—and the link to the next node:
 
 ```rust,noplaypen
-{{#include tour-src/src/getting_started/working.rs:1:13}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/getting_started_working.rs:types}}
 // Prusti: VERIFIES
 ```
 
@@ -34,7 +34,7 @@ As explained in the chapter [2.1: Basic Data Layout](https://rust-unofficial.git
 Moreover, it benefits from the Rust compiler's [null-pointer optimization](https://rust-lang.github.io/unsafe-code-guidelines/layout/enums.html#discriminant-elision-on-option-like-enums)
 and makes sure that all list elements are uniformly allocated on the heap.
 
-## Absence of Runtime Errors
+## Absence of runtime errors
 
 Prusti automatically checks that no statement or macro that causes
 an explicit runtime error, such as
@@ -43,13 +43,13 @@ an explicit runtime error, such as
 [`unimplemented`](https://doc.rust-lang.org/std/macro.unimplemented.html),
 [`todo`](https://doc.rust-lang.org/std/macro.todo.html), or
 possibly a failing [assertion](https://doc.rust-lang.org/std/macro.assert.html),
-is reachable. [Prusti assertions](../syntax.md#prusti-assertions) are also checked. These are like the normal `assert` statements, but they can use the full Prusti specification syntax and will not result in any runtime checks when compiled normally.
+is reachable. [Prusti assertions](../verify/assert_assume.md) are also checked. These are like the normal `assert` statements, but they can use the full Prusti specification syntax and will not result in any runtime checks or code when compiled normally.
 
 For example, the following test function creates a node with no successor and panics
 if the node's payload is greater than 23:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/getting_started/working.rs:15:24}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/getting_started_working.rs:code}}
 // Prusti: VERIFIES
 ```
 Prusti successfully verifies the above function 
@@ -59,7 +59,7 @@ whenever execution reaches the `if` statement.
 This is not the case for the following function in which the test node is initialized
 with an arbitrary integer:
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/getting_started/failing.rs:26:35}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/getting_started_failing.rs:failing_code}}
 // Prusti: FAILS
 ```
 
@@ -68,12 +68,9 @@ Prusti reports errors in the same fashion as the Rust compiler (although with th
 is:
 
 ```plain
-error: [Prusti: verification error] panic!(..) statement might be reachable
+error: [Prusti: verification error] statement might panic
   --> getting_started_failing.rs:33:9
    |
 33 |         panic!()
    |         ^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-Verification failed
 ```

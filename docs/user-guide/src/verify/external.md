@@ -4,7 +4,7 @@ Since the Rust standard library and external libraries do not specify contracts 
 
 The standard library type `std::option::Option` could be specified as follows:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[extern_spec]
@@ -28,7 +28,7 @@ Any function in an external specification is implicitly [trusted](trusted.md) (a
 
 Module functions can be specified using a nested `mod` syntax:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[extern_spec]

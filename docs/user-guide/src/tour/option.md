@@ -13,67 +13,24 @@ type Link = Option<Box<Node>>;
 In order to use the `Option::take` function, we also have to implement the `extern_spec` for it. As you can see, it is quite similar to the `extern_spec` for `mem::replace`, since `take` does the same as `replace(&mut self, None)`:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/option/initial_code.rs:option_take_extern_spec}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:option_take_extern_spec}}
 ```
 
-These changes require some adjustments of the code and specifications. With the new type alias for `Link`, we cannot have an `impl` block anymore, so our `lookup` and `len` functions on `Link` are now normal, non-associated functions:
+Changing the `Link` type requires some adjustments of the code and specifications. With the new type alias for `Link`, we cannot have an `impl Link` block anymore, so our `lookup` and `len` functions on `Link` are now normal, non-associated functions:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/option/initial_code.rs:rewrite_link_impl}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:rewrite_link_impl}}
 ```
 
-Due to current [limitations of Prusti](../limitations.md), we cannot replace our `len` and `lookup` functions with loops:
+Due to current [limitations of Prusti](../limitations.md#loops-in-pure-functions-unsupported), we cannot replace our `link_len` and `link_lookup` functions with loops:
 
 ```rust,noplaypen,ignore
-# use prusti_contracts::*;
-# 
-# pub struct List {
-#     head: Link,
-# }
-# 
-# type Link = Option<Box<Node>>;
-# 
-# struct Node {
-#     elem: i32,
-#     next: Link,
-# }
-# 
-impl List {
-    // Prusti cannot verify these functions at the moment,
-    // since loops in pure functions are not yet supported:
-    #[pure]
-    pub fn len(&self) -> usize {
-        let mut curr = &self.head;
-        let mut i = 0;
-        while let Some(node) = curr {
-#             body_invariant!(true);
-            i += 1;
-            curr = &node.next;
-        }
-        i
-    }
-
-    #[pure]
-    #[requires(index < self.len())]
-    pub fn lookup(&self, index: usize) -> i32 {
-        let mut curr = &self.head;
-        let mut i = index;
-        while let Some(node) = curr {
-#             body_invariant!(true);
-            if i == 0 {
-                return node.elem;
-            }
-            i -= 1;
-            curr = &node.next;
-        }
-        unreachable!()
-    }
-}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/option_loops_in_pure_fn.rs:code}}
 ```
 
 Since Prusti doesn't fully support closures yet, we also cannot do the rewrite to use the `Option::map` function:
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/option/initial_code.rs:try_pop_rewrite}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:try_pop_rewrite}}
 ```
 
 After all the changes done in this chapter, Prusti is still be able to verify the code, so we didn't break anything.
@@ -81,5 +38,5 @@ If you want to see the full code after all the changes, expand the following cod
 
 ```rust,noplaypen
 // Expand to see full code up to this chapter
-{{#rustdoc_include tour-src/src/option/initial_code.rs:nothing}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:nothing}}
 ```
