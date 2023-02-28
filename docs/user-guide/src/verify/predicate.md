@@ -6,7 +6,7 @@ They are more powerful than pure functions: inside predicate bodies the full [Pr
 
 Predicates are declared using the `predicate!` macro on a function:
 
-```rust
+```rust,noplaypen,ignore
 predicate! {
     fn all_zeroes(a: &MyArray) -> bool {
         forall(|i: usize|
@@ -17,7 +17,7 @@ predicate! {
 
 Within specifications, predicates can be called just like pure functions:
 
-```rust
+```rust,noplaypen,ignore
 #[ensures(all_zeros(a))]
 fn zero(a: &mut MyArray) { ... }
 ```

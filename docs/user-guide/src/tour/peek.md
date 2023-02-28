@@ -8,21 +8,21 @@ Ideally, we could implement `peek` and `try_peek` like we implemented `pop` and 
 We can still implement `peek`, but we just cannot do it by using `try_peek` like before in `pop`. Instead, we can reuse th already implemented and verified `lookup` function! Since `lookup` can return a reference to any element of the list, we can just call `self.lookup(0)` inside of `peek`: 
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/peek/initial_code.rs:implementation}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/peek.rs:implementation}}
 ```
 
 We can also write a test again, to see if our specification holds up in actual code:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/peek/initial_code.rs:test_peek}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/peek.rs:test_peek}}
 ```
 
 This verifies too, so it appears our implementation of `peek` is correct.
 
-The `peek` method only returns an immutable reference, but what if you want to change elements of the list? We will see how in the next chapter.
+The `peek` method only returns an immutable reference, but what if you want to get a mutable reference? We will see how in the next chapter.
 
 Here you can see the full code we have now:
 ```rust,noplaypen
 // Expand to see full code up to this chapter
-{{#rustdoc_include tour-src/src/peek/initial_code.rs:nothing}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/peek.rs:nothing}}
 ```

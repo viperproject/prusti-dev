@@ -8,16 +8,16 @@
 > writing simple static functions;
 > Rust's ownership system.
 
-## Implementing New
+## Implementing `new`
 
 We first provide a static function to create empty lists:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/impl_new.rs:impl_new}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/impl_new.rs:impl_new}}
 // Prusti: VERIFIES
 ```
 
-## A First Specification
+## A first specification
 
 What would be a sensible first specification for `new()`?
 We could attempt to verify the list returned by `new()` is always empty.
@@ -25,10 +25,10 @@ In other words, the length of the returned list is always zero.
 To express this property, we first implement a length method for lists which
 itself calls an auxiliary length method implemented for `Link`.
 For simplicity, we will not actually compute the length of a `Link` yet.
-Rather, we will just always return 0.
+Rather, we will just always return 0. The return type for the `len` functions is [`usize`](https://doc.rust-lang.org/std/primitive.usize.html), which is a pointer-sized unsigned integer (e.g., 64 bits on a 64-bit computer). `usize` is also used in the [`Vec::len`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.len) function in the standard library.
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/spec_failing_1.rs:first_spec_1}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/impl_new_spec_1.rs:first_spec_1}}
 // Prusti: VERIFIES
 ```
 
@@ -39,7 +39,7 @@ That is, we attach the [postcondition](../verify/prepost.md)
 `result.len() == 0` to the function `new()`. The special variable [`result`](../syntax.md#result-variable) is used in Prusti specifications to refer to the value that is returned by a function:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/spec_failing_1.rs:first_spec_2}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/impl_new_spec_1.rs:first_spec_2}}
 ```
 
 Unfortunately, Prusti—or rather: the Rust compiler—will complain about
@@ -60,7 +60,7 @@ Before we can use these specifications, we need to make the path to these
 macros and attributes visible:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/spec_failing_2.rs:import_prusti}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/impl_new_spec_2.rs:import_prusti}}
 ```
 
 Declaring that we use the `prusti_contracts` crate removes the compiler error but
@@ -86,13 +86,13 @@ After adding the `#[pure]` attribute to our `List::len()` method, it is allowed 
 appear in Prusti specifications:
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/spec_failing_3.rs:pure_annotation}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/impl_new_spec_3.rs:pure_annotation}}
 ```
 
 However, Prusti still won't verify! It produces the same error but now it refers
 to the *body* of `len()`:
 
-```markdown
+```plain
 error: [Prusti: invalid specification] use of impure function "Link::len" in pure code is not allowed
   --> list.rs:30:9
    |
@@ -102,18 +102,18 @@ error: [Prusti: invalid specification] use of impure function "Link::len" in pur
 
 Whenever we add the attribute `#[pure]` to a function, Prusti will check whether that
 function is indeed deterministic and side-effect free
-(notice that termination is *not* checked); otherwise, it complains.
+(notice that [termination](../limitations.md#termination-checks-total-correctness-missing) is *not* checked); otherwise, it complains.
 In this case, Prusti complains because we call an impure function,
 namely `Link::len()`, within the body of the pure function `List::len()`.
 
 To fix this issue, it suffices to mark `Link::len()` as pure as well.
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/spec_fixed.rs:pure_annotation}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/impl_new_spec_fixed.rs:pure_annotation}}
 // Prusti: VERIFIES
 ```
 
-```markdown
+```plain
 $ cargo-prusti
 // ...
 Successful verification of 4 items
@@ -128,20 +128,22 @@ this is hardly surprising since `len()` ultimately always returns 0.)
 We will now properly implement `len()`, and while we're at it, `is_empty()` for `Link`. Both of them are pure functions, so we will add the `#[pure]` annotation. Both functions can be called without any restrictions, so they have the default postcondition `#[requires(true)]`, which we don't have to add manually. We also don't need to add any additional postconditions, since pure functions will be inlined wherever they are used during verification.
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/full_code.rs:31:44}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/impl_new_full_code.rs:implementation}}
 ```
+
+Here we use the [`matches` macro](https://doc.rust-lang.org/std/macro.matches.html) in `is_empty`, which is true if and only if the first argument matches the pattern in the second argument.
 
 We can now check if the specification is working, by writing a function that panics if the specification is wrong:
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/full_code.rs:46:50}}
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/impl_new_full_code.rs:test_len}}
 ```
 
 The last line asserts, that the `is_empty` function only returns `true`, if the `len` function returns `0`.
-And Prusti can verify it! Now we know that this assert statement can never fail, no matter what `Link` is passed to the test function.
+And Prusti can verify it! Now we know that this assert statement holds for any `link` that is passed to the `test_len` function.
 
 ### Overflow checks
 
-Here you can also see why we disabled overflow checking for this tutorial. If you remove the `check_overflows = false` setting in the `Prusti.toml` file, and then try to verify the crate again, you will get an error:
+Here you can also see why we disabled overflow checking for this tutorial. If you remove the `check_overflows = false` flag in the `Prusti.toml` file, and then try to verify the crate again, you will get an error:
 ```plain
 [Prusti: verification error] assertion might fail with "attempt to add with overflow"
     Link::More(node) => 1 + node.next.len(),
@@ -156,5 +158,6 @@ It should successfully verify with Prusti and we will further extend it througho
 the next four chapters.
 
 ```rust,noplaypen
-{{#rustdoc_include tour-src/src/new/full_code.rs}}
+// Expand to see full code up to this chapter
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/impl_new_full_code.rs:nothing}}
 ```

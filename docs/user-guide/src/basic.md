@@ -49,6 +49,8 @@ To also verify that `max` indeed always returns the maximum of its two inputs, w
 that the return value of `max` is at least as large as both `a` and `b` and, additionally, coincides with `a` or `b`:
 
 ```rust,noplaypen
+# // The next line is only required for doctests, you can ignore/remove it
+# extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[ensures(result >= a && result >= b)]
@@ -75,6 +77,8 @@ Notice that Prusti assumes by default that integer types are bounded; it thus pe
 Next, we add a second function `max3` which returns the maximum of three instead of two integers; we reuse the already verified function `max` in the new function's specification to show that this function is implemented correctly.
 
 ```rust,noplaypen
+# // The next line is only required for doctests, you can ignore/remove it
+# extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[pure]
@@ -110,6 +114,10 @@ So far, we only considered programs that meet their specification and that, cons
 To conclude this example, assume we accidentally return `c` instead of `b` if `b > c` holds:
 
 ```rust,noplaypen
+# // The next line is only required for doctests, you can ignore/remove it
+# extern crate prusti_contracts;
+# use prusti_contracts::*;
+#
 #[ensures(result == max(a, max(b, c)))]
 fn max3(a: i32, b: i32, c: i32) -> i32 {
     if a > b && a > c {
@@ -129,6 +137,8 @@ In this case, Prusti will highlight the line with the error and report that the 
 For debugging purposes, it is often useful to add `assert!(...)` macros to our code to locate the issue. For example, in the code below, we added an assertion that fails because `b > c` and thus the maximum of `b` and `c` is `b` instead of `c`. 
 
 ```rust,noplaypen
+# // The next line is only required for doctests, you can ignore/remove it
+# extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[pure]

@@ -5,7 +5,7 @@ To provide a specification for such structs, you can add model fields to be used
 model for a struct, simply annotate it with the `#[model]` macro and declare the to-be-modelled fields inside the
 struct:
 
-```rust
+```rust,noplaypen,ignore
 #[model]
 struct SomeStruct {
     some_i32: i32,
@@ -15,7 +15,7 @@ struct SomeStruct {
 
 You then can use the model of `SomeStruct` inside specifications via the `.model()` function:
 
-```rust
+```rust,noplaypen,ignore
 #[requires(some_struct.model().some_i32 == 42)]
 fn some_method(some_struct: &SomeStruct) {
     // ...
@@ -25,7 +25,7 @@ fn some_method(some_struct: &SomeStruct) {
 A model cannot be used outside of specification code, that is the following code will emit an error in Prusti and panic
 when executed:
 
-```rust
+```rust,noplaypen,ignore
 fn some_client(some_struct: &mut SomeStruct) {
     some_struct.model().some_i32 = 42;
 }
@@ -47,7 +47,7 @@ Different (generic) models for the same type can have different fields. In order
 needs attributes attached to the generics. A type argument needs to be attributed with `#[concrete]`, a type parameter
 with `#[generic]`. In the last example above, we would create a model with:
 
-```rust
+```rust,noplaypen,ignore
 #[model]
 struct SomeGenericStruct<#[generic] A: Copy, #[concrete] i32> {
     field_a: A
@@ -68,7 +68,7 @@ Note: If you create ambiguous models, you can get a compile error when accessing
 
 Using models on types without fields can have unexpected verification behavior as shown in the code snippet below:
 
-```rust
+```rust,noplaypen,ignore
 struct A;
 
 // no fields
@@ -104,7 +104,7 @@ field `val` for the *same* model is `42` and `43`, a contradiction.
 An example where a type model comes in handy is the `std::slice::Iter` struct from the standard library. We would like
 to provide a specification for the `Iterator`:
 
-```rust
+```rust,noplaypen,ignore
 impl<T> Iterator<'a, T> for std::slice::Iter<'a, T> {
     // ??? spec involving Iter ??? 
     fn next(&mut self) -> Option<&'a T>;
@@ -116,7 +116,7 @@ a [straightforward specification](https://doc.rust-lang.org/src/core/slice/iter.
 
 We can instead provide a model for `Iter` in the following way, using the `#[model]` macro:
 
-```rust
+```rust,noplaypen,ignore
 use std::slice::Iter;
 
 #[model]
@@ -131,7 +131,7 @@ This allows an instance of `Iter<'_, T>` to be modelled by the fields `position`
 
 The model can then be used in specifications:
 
-```rust
+```rust,noplaypen,ignore
 #[ensures(result.model().position == 0)]
 #[ensures(result.model().len == slice.len())]
 #[trusted]

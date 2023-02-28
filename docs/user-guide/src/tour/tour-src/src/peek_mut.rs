@@ -1,3 +1,0 @@
-// mod initial_code; // should fail
-// mod final_code;
-mod assert_on_expiry;

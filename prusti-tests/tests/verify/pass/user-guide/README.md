@@ -1,0 +1,1 @@
+**The files in this directory are used in the Prusti user guide (prusti-dev/docs/user-guide). If you move or rename any files in this directory, remember to also adjust the user-guide.**
