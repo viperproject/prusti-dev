@@ -241,4 +241,6 @@ fn trusted_println(s: &str) {
 
 ## Verifying unit tests
 
-Unit tests (marked by `#[cfg(test)]`) are currently not verified by Prusti, but this may be added in the future.
+Unit tests (marked by `#[cfg(test)]` or `#[test]`) are currently not verified by Prusti, but this may be added in the future.
+
+By removing `#[cfg(test)]` and `#[test]` from a test, Prusti will be able to verify it like a normal function.
