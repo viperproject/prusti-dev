@@ -1299,6 +1299,9 @@
 <a href="#1299" id="1299">1299</a>
 <a href="#1300" id="1300">1300</a>
 <a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     encoder::{
         builtin_encoder::BuiltinFunctionKind,
@@ -1435,9 +1438,12 @@
             <span class="kw-2">&amp;</span>mir::Operand::Move(place) | <span class="kw-2">&amp;</span>mir::Operand::Copy(place) =&gt; {
                 <span class="prelude-val">Ok</span>((<span class="self">self</span>.encode_place(place)<span class="question-mark">?</span>.<span class="number">0</span>, <span class="bool-val">false</span>))
             }
-            mir::Operand::Constant(constant) =&gt; {
-                <span class="prelude-val">Ok</span>((<span class="self">self</span>.encoder.encode_snapshot_constant(constant)<span class="question-mark">?</span>, <span class="bool-val">true</span>))
-            }
+            mir::Operand::Constant(constant) =&gt; <span class="kw">match </span>constant.literal {
+                mir::ConstantKind::Unevaluated(c, _cty) =&gt; {
+                    <span class="prelude-val">Ok</span>((<span class="self">self</span>.encoder.encode_uneval_const(c)<span class="question-mark">?</span>, <span class="bool-val">true</span>))
+                }
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>((<span class="self">self</span>.encoder.encode_snapshot_constant(constant)<span class="question-mark">?</span>, <span class="bool-val">true</span>)),
+            },
         }
     }
 
