@@ -11,7 +11,7 @@ pub mod errors;
 mod generators;
 mod module_tree;
 mod unordered_set_eq;
-mod utils;
+pub mod utils;
 mod wrapper_generator;
 mod wrapper_spec;
 

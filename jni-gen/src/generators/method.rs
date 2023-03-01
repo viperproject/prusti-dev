@@ -255,7 +255,8 @@ fn generate(
     code.push("        self.env.is_instance_of(".to_string());
     code.push("            receiver,".to_string());
     code.push("            self.env.find_class(class_name)?,".to_string());
-    code.push("        )?".to_string());
+    code.push("        )?,".to_string());
+    code.push(format!("        \"Function '{rust_method_name}' expected receiver of class {{class_name}}, but got {{}} instead\", get_jobject_class_name(self.env, receiver)"));
     code.push("    );".to_string());
     code.push("".to_string());
 

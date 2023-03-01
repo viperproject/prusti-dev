@@ -92,6 +92,9 @@ fn test_jvm_builtin_classes() {
         error_wrapper.set_detailMessage(error, string_to_jobject(&env, &another_message)?)?;
         assert!(jobject_to_string(&env, error_wrapper.get_detailMessage(error)?)? == another_message);
 
+        let integer_value = java::lang::Integer::with(&env).new(5)?;
+        error_wrapper.call_getMessage(integer_value)?;
+
         Ok(JObject::null())
     }).unwrap_or_else(|e| {
         print_exception(&env);
