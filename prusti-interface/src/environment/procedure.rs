@@ -44,7 +44,8 @@ impl<'tcx> Procedure<'tcx> {
         let mir = env
             .body
             .get_impure_fn_body_identity(proc_def_id.expect_local());
-        let _micro_mir = MicroBody::new(mir.body());
+        let micro_mir = MicroBody::new(mir.body(), env.tcx());
+        println!("--------\n{:?}\n--------", micro_mir.basic_blocks);
         let real_edges = RealEdges::new(&mir);
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(env.query, &mir, &real_edges);
