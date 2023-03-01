@@ -343,7 +343,7 @@ impl SMTTranslatable for DomainAxiomDecl {
             smt.add_assert(format!("; {}", comment));
         }
 
-        smt.add_assert(self.body.to_smt());
+        smt.add_code(format!("(assert {}) ; {}", self.body.to_smt(), self.name));
     }
 }
 
@@ -430,13 +430,54 @@ impl SMTTranslatable for Expression {
             Expression::Constant(constant) => match &constant.value {
                 ConstantValue::Bool(bool) => bool.to_string(),
                 ConstantValue::Int(i64) => i64.to_string(),
+                ConstantValue::Float32(u32) => {
+                    let bits = u32.to_le_bytes();
+                    let bits = bits
+                        .iter()
+                        .rev()
+                        .map(|b| format!("{:08b}", b))
+                        .collect::<Vec<_>>()
+                        .join("");
+                    format!(
+                        "(fp #b{} #b{} #b{})",
+                        &bits.chars().next().unwrap(),
+                        &bits[1..=8],
+                        &bits[9..=31]
+                    )
+                }
+                ConstantValue::Float64(u64) => {
+                    let bits = u64.to_le_bytes();
+                    let bits = bits
+                        .iter()
+                        .rev()
+                        .map(|b| format!("{:08b}", b))
+                        .collect::<Vec<_>>()
+                        .join("");
+                    format!(
+                        "(fp #b{} #b{} #b{})",
+                        &bits.chars().next().unwrap(),
+                        &bits[1..=11],
+                        &bits[12..=63]
+                    )
+                }
                 ConstantValue::BigInt(s) => s.clone(),
             },
-            Expression::MagicWand(_) => unimplemented!("Magic wands are not supported"),
+            Expression::MagicWand(wand) => {
+                warn!("MagicWand not supported: {}", wand);
+                format!("(=> {} {})", wand.left.to_smt(), wand.right.to_smt())
+            }
             Expression::PredicateAccessPredicate(_access) => {
-                // TODO: access predicates for predicates
-                warn!("PredicateAccessPredicate not supported");
-                "".to_string()
+                warn!("PredicateAccessPredicate not supported: {}", _access);
+                format!(
+                    "({} {})",
+                    _access.name,
+                    _access
+                        .arguments
+                        .iter()
+                        .map(|x| x.to_smt())
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                )
             }
             Expression::FieldAccessPredicate(_) => unimplemented!(),
             Expression::Unfolding(_) => unimplemented!(),
@@ -481,7 +522,18 @@ impl SMTTranslatable for Expression {
                     );
                     quant.push_str(") ");
 
-                    if quantifier.triggers.is_empty() {
+                    let triggers: Vec<_> = quantifier
+                        .triggers
+                        .iter()
+                        .filter(|t| {
+                            !t.terms
+                                .iter()
+                                .any(|t| matches!(t, Expression::PredicateAccessPredicate(_)))
+                            // TODO: Support triggers with predicate access predicates?
+                        })
+                        .collect();
+
+                    if triggers.is_empty() {
                         quant.push_str(&quantifier.body.to_smt());
                         quant.push_str(")");
                     } else {
@@ -489,7 +541,7 @@ impl SMTTranslatable for Expression {
                         quant.push_str("(!");
                         quant.push_str(&quantifier.body.to_smt());
 
-                        for trigger in &quantifier.triggers {
+                        for trigger in &triggers {
                             quant.push_str(" :pattern (");
 
                             quant.push_str(

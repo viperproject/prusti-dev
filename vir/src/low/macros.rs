@@ -1,5 +1,7 @@
 pub macro ty {
     (Int) => {$crate::low::ast::ty::Type::Int},
+    (Float32) => {$crate::low::ast::ty::Type::Float(crate::low::ast::ty::Float::F32)},
+    (Float64) => {$crate::low::ast::ty::Type::Float(crate::low::ast::ty::Float::F64)},
     (Bool) => {$crate::low::ast::ty::Type::Bool},
     (Perm) => {$crate::low::ast::ty::Type::Perm},
     (Place) => {$crate::low::ast::ty::Type::domain("Place".to_string())},

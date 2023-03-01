@@ -236,6 +236,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Type::MFloat64 => unimplemented!(),
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::Float(vir_mid::ty::Float::F32) => {
+                vir_low::Type::Float(vir_low::ty::Float::F32)
+            }
+            vir_mid::Type::Float(vir_mid::ty::Float::F64) => {
+                vir_low::Type::Float(vir_low::ty::Float::F64)
+            }
             vir_mid::Type::MPerm => vir_low::Type::Perm,
             _ => unimplemented!("constant: {:?}", constant),
         };
@@ -274,9 +280,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::expression::ConstantValue::BigInt(value) => {
                 vir_low::expression::ConstantValue::BigInt(value.clone())
             }
-            vir_mid::expression::ConstantValue::Float(_value) => {
-                unimplemented!();
-            }
+            vir_mid::expression::ConstantValue::Float(vir_crate::polymorphic::FloatConst::F32(
+                value,
+            )) => vir_low::expression::ConstantValue::Float32(*value),
+            vir_mid::expression::ConstantValue::Float(vir_crate::polymorphic::FloatConst::F64(
+                value,
+            )) => vir_low::expression::ConstantValue::Float64(*value),
             vir_mid::expression::ConstantValue::FnPtr => {
                 unimplemented!();
             }

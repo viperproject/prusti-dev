@@ -98,6 +98,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let validity = conjuncts.into_iter().conjoin();
                 self.encode_validity_axioms_primitive(&domain_name, vir_low::Type::Int, validity)?;
             }
+            vir_mid::TypeDecl::Float(decl) => {
+                self.ensure_type_definition(&vir_mid::Type::Bool)?;
+                self.register_constant_constructor(
+                    &domain_name,
+                    vir_low::Type::Float(vir_low::ty::Float::F32), // TODO: What about f64?
+                )?;
+                var_decls! { value: Float64 };
+
+                let mut conjuncts = Vec::new();
+                if let Some(lower_bound) = &decl.lower_bound {
+                    conjuncts
+                        .push(expr! { [lower_bound.clone().to_pure_snapshot(self)? ] <= value });
+                }
+                if let Some(upper_bound) = &decl.upper_bound {
+                    conjuncts
+                        .push(expr! { value <= [upper_bound.clone().to_pure_snapshot(self)? ] });
+                }
+                let validity = conjuncts.into_iter().conjoin();
+                self.encode_validity_axioms_primitive(
+                    &domain_name,
+                    vir_low::Type::Float(vir_low::ty::Float::F32),
+                    validity,
+                )?;
+            }
             vir_mid::TypeDecl::Trusted(_) => {
                 // FIXME: ensure type definition for trusted
             }
@@ -422,6 +446,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             let constant_type = match argument_type {
                 vir_mid::Type::Bool => Some(ty! { Bool }),
                 vir_mid::Type::Int(_) => Some(ty! {Int}),
+                vir_mid::Type::Float(vir_mid::ty::Float::F32) => Some(ty! {Float32}),
+                vir_mid::Type::Float(vir_mid::ty::Float::F64) => Some(ty! {Float64}),
                 vir_mid::Type::Pointer(_) => Some(ty!(Address)),
                 _ => None,
             };

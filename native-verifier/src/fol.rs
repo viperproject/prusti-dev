@@ -132,8 +132,7 @@ fn vir_statement_to_fol_statements(
         Statement::Comment(comment) => vec![FolStatement::Comment(comment.comment.clone())],
         Statement::LogEvent(_) => vec![], // TODO: Embed in SMT-LIB code
         _ => {
-            log::warn!("Statement {:?} not yet supported", statement);
-            vec![]
+            unimplemented!("Statement {:?} not yet supported", statement);
         }
     }
 }

@@ -277,12 +277,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         let mut functions = vec![];
         let mut axioms = vec![];
 
-        for t in &[vir::Type::Bool, vir::Type::Int] {
+        for t in &[
+            vir::Type::Bool,
+            vir::Type::Int,
+            vir::Type::Float(vir::Float::F32),
+            vir::Type::Float(vir::Float::F64),
+        ] {
             //let f = snapshot::valid_func_for_type(t);
             let f = {
                 let domain_name: String = match t {
                     // vir::Type::Domain(name) => name.clone(),
-                    vir::Type::Bool | vir::Type::Int => domain_name.to_string(),
+                    vir::Type::Bool
+                    | vir::Type::Int
+                    | vir::Type::Float(vir::Float::F32)
+                    | vir::Type::Float(vir::Float::F64) => domain_name.to_string(),
                     // vir::Type::TypedRef(_) => unreachable!(),
                     // vir::Type::TypeVar(_) => unreachable!(),
                     // vir::Type::Snapshot(_) => unreachable!(),
@@ -293,6 +301,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                     // vir::Type::Domain(vir::DomainType{label, ..}) => vir::Type::domain(label.clone()),
                     vir::Type::Bool => vir::Type::Bool,
                     vir::Type::Int => vir::Type::Int,
+                    vir::Type::Float(vir::Float::F32) => vir::Type::Float(vir::Float::F32),
+                    vir::Type::Float(vir::Float::F64) => vir::Type::Float(vir::Float::F64),
                     // vir::Type::TypedRef(_) => unreachable!(),
                     // vir::Type::TypeVar(_) => unreachable!(),
                     // vir::Type::Snapshot(_) => unreachable!(),

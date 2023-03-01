@@ -55,6 +55,26 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                     .unwrap();
                 number.into()
             }
+            ty::TyKind::Float(ty::FloatTy::F32) => {
+                let ty = self.encode_type_high(mir_type)?;
+                let bits = scalar_value()?.to_u32().unwrap();
+                vir_high::Expression::constant_no_pos(
+                    vir_high::expression::ConstantValue::Float(
+                        vir_high::expression::FloatConst::F32(bits),
+                    ),
+                    ty,
+                )
+            }
+            ty::TyKind::Float(ty::FloatTy::F64) => {
+                let ty = self.encode_type_high(mir_type)?;
+                let bits = scalar_value()?.to_u64().unwrap();
+                vir_high::Expression::constant_no_pos(
+                    vir_high::expression::ConstantValue::Float(
+                        vir_high::expression::FloatConst::F64(bits),
+                    ),
+                    ty,
+                )
+            }
             ty::TyKind::FnDef(..) => {
                 let ty = self.encode_type_high(mir_type)?;
                 vir_high::Expression::constant_no_pos(

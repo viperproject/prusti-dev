@@ -65,6 +65,8 @@ pub struct Constant {
 pub enum ConstantValue {
     Bool(bool),
     Int(i64),
+    Float32(f32),
+    Float64(f64),
     BigInt(String),
 }
 

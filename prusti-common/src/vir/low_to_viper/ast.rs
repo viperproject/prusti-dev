@@ -287,6 +287,8 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
                 expression::ConstantValue::Int(value) => {
                     ast.int_lit_with_pos(*value, self.position.to_viper(context, ast))
                 }
+                expression::ConstantValue::Float32(_) => unimplemented!("Float32 to Viper"),
+                expression::ConstantValue::Float64(_) => unimplemented!("Float64 to Viper"),
                 expression::ConstantValue::BigInt(value) => {
                     ast.int_lit_from_ref_with_pos(value, self.position.to_viper(context, ast))
                 }
@@ -308,7 +310,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
             Type::Map(_) => unimplemented!(),
             Type::Ref => unimplemented!(),
             Type::Perm => match &self.value {
-                expression::ConstantValue::Bool(_) => {
+                expression::ConstantValue::Float32(_)
+                | expression::ConstantValue::Float64(_)
+                | expression::ConstantValue::Bool(_) => {
                     unreachable!()
                 }
                 expression::ConstantValue::Int(value) => match value {
