@@ -612,8 +612,9 @@ impl SMTTranslatable for IntBinaryOpKind {
 impl SMTTranslatable for FloatBinaryOpKind {
     fn to_smt(&self) -> String {
         match self.0 {
-            BinaryOpKind::EqCmp => "fp.eq",
-            BinaryOpKind::NeCmp => unimplemented!("FP !="),
+            // BinaryOpKind::EqCmp => "fp.eq", // TODO: = in axioms, fp.eq in arithmetic?
+            BinaryOpKind::EqCmp => "=",
+            BinaryOpKind::NeCmp => "fp.neq", // Not in SMT-LIB 2.6 standard, part of static preamble
             BinaryOpKind::GtCmp => "fp.gt",
             BinaryOpKind::GeCmp => "fp.geq",
             BinaryOpKind::LtCmp => "fp.lt",

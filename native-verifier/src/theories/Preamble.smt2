@@ -33,6 +33,11 @@
 
 (set-option :timeout 1000)
 
+; --- Floating-point arithmetic ---
+
+(define-fun fp.neq ((x (_ FloatingPoint 8 24)) (y (_ FloatingPoint 8 24))) Bool (not (fp.eq x y)))
+(define-fun fp.neq ((x (_ FloatingPoint 11 53)) (y (_ FloatingPoint 11 53))) Bool (not (fp.eq x y)))
+
 ; --- Snapshots ---
 
 (declare-datatypes (($Snap 0)) ((
