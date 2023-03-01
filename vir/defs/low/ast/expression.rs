@@ -65,8 +65,8 @@ pub struct Constant {
 pub enum ConstantValue {
     Bool(bool),
     Int(i64),
-    Float32(f32),
-    Float64(f64),
+    Float32(u32),
+    Float64(u64),
     BigInt(String),
 }
 
@@ -107,6 +107,7 @@ pub struct Unfolding {
     pub position: Position,
 }
 
+#[derive(Copy)]
 pub enum UnaryOpKind {
     Not,
     Minus,

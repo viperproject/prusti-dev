@@ -10,6 +10,7 @@ use vir::{
     common::position::Positioned,
     low::{
         ast::{expression::*, ty::*},
+        operations::ty::Typed,
         *,
     },
 };
@@ -482,18 +483,28 @@ impl SMTTranslatable for Expression {
             Expression::FieldAccessPredicate(_) => unimplemented!(),
             Expression::Unfolding(_) => unimplemented!(),
             Expression::UnaryOp(unary_op) => {
+                let op_smt = if unary_op.argument.get_type().is_float() {
+                    FloatUnaryOpKind(unary_op.op_kind).to_smt()
+                } else {
+                    IntUnaryOpKind(unary_op.op_kind).to_smt()
+                };
+
+                format!("({} {})", op_smt, unary_op.argument.to_smt())
+            }
+            Expression::BinaryOp(binary_op) => {
+                let op_smt = if binary_op.left.get_type().is_float() {
+                    FloatBinaryOpKind(binary_op.op_kind).to_smt()
+                } else {
+                    IntBinaryOpKind(binary_op.op_kind).to_smt()
+                };
+
                 format!(
-                    "({} {})",
-                    unary_op.op_kind.to_smt(),
-                    unary_op.argument.to_smt()
+                    "({} {} {})",
+                    op_smt,
+                    binary_op.left.to_smt(),
+                    binary_op.right.to_smt()
                 )
             }
-            Expression::BinaryOp(binary_op) => format!(
-                "({} {} {})",
-                binary_op.op_kind.to_smt(),
-                binary_op.left.to_smt(),
-                binary_op.right.to_smt()
-            ),
             Expression::PermBinaryOp(perm_binary_op) => format!(
                 "({} {} {})",
                 perm_binary_op.op_kind.to_smt(),
@@ -573,9 +584,12 @@ impl SMTTranslatable for Expression {
     }
 }
 
-impl SMTTranslatable for BinaryOpKind {
+struct IntBinaryOpKind(BinaryOpKind);
+struct FloatBinaryOpKind(BinaryOpKind);
+
+impl SMTTranslatable for IntBinaryOpKind {
     fn to_smt(&self) -> String {
-        match self {
+        match self.0 {
             BinaryOpKind::EqCmp => "=",
             BinaryOpKind::NeCmp => "distinct",
             BinaryOpKind::GtCmp => ">",
@@ -595,6 +609,28 @@ impl SMTTranslatable for BinaryOpKind {
     }
 }
 
+impl SMTTranslatable for FloatBinaryOpKind {
+    fn to_smt(&self) -> String {
+        match self.0 {
+            BinaryOpKind::EqCmp => "fp.eq",
+            BinaryOpKind::NeCmp => unimplemented!("FP !="),
+            BinaryOpKind::GtCmp => "fp.gt",
+            BinaryOpKind::GeCmp => "fp.geq",
+            BinaryOpKind::LtCmp => "fp.lt",
+            BinaryOpKind::LeCmp => "fp.leq",
+            BinaryOpKind::Add => "fp.add roundNearestTiesToAway",
+            BinaryOpKind::Sub => "fp.sub roundNearestTiesToAway",
+            BinaryOpKind::Mul => "fp.mul roundNearestTiesToAway",
+            BinaryOpKind::Div => "fp.div roundNearestTiesToAway",
+            BinaryOpKind::Mod => "fp.rem",
+            BinaryOpKind::And => unreachable!("FP and"),
+            BinaryOpKind::Or => unreachable!("FP or"),
+            BinaryOpKind::Implies => unreachable!("FP implication"),
+        }
+        .to_string()
+    }
+}
+
 impl SMTTranslatable for PermBinaryOpKind {
     fn to_smt(&self) -> String {
         match self {
@@ -607,11 +643,24 @@ impl SMTTranslatable for PermBinaryOpKind {
     }
 }
 
-impl SMTTranslatable for UnaryOpKind {
+struct IntUnaryOpKind(UnaryOpKind);
+struct FloatUnaryOpKind(UnaryOpKind);
+
+impl SMTTranslatable for IntUnaryOpKind {
     fn to_smt(&self) -> String {
-        match self {
+        match self.0 {
             UnaryOpKind::Not => "not",
             UnaryOpKind::Minus => "-",
+        }
+        .to_string()
+    }
+}
+
+impl SMTTranslatable for FloatUnaryOpKind {
+    fn to_smt(&self) -> String {
+        match self.0 {
+            UnaryOpKind::Not => unreachable!("FP not"),
+            UnaryOpKind::Minus => "fp.neg",
         }
         .to_string()
     }

@@ -99,12 +99,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.encode_validity_axioms_primitive(&domain_name, vir_low::Type::Int, validity)?;
             }
             vir_mid::TypeDecl::Float(decl) => {
+                let is_f64 = domain_name.contains("F64");
+                let float_type = || {
+                    if is_f64 {
+                        vir_low::Type::Float(vir_low::ty::Float::F64)
+                    } else {
+                        vir_low::Type::Float(vir_low::ty::Float::F32)
+                    }
+                };
+
                 self.ensure_type_definition(&vir_mid::Type::Bool)?;
-                self.register_constant_constructor(
-                    &domain_name,
-                    vir_low::Type::Float(vir_low::ty::Float::F32), // TODO: What about f64?
-                )?;
-                var_decls! { value: Float64 };
+                self.register_constant_constructor(&domain_name, float_type())?;
+
+                let value = vir_low::ast::variable::VariableDecl::new("value", float_type());
 
                 let mut conjuncts = Vec::new();
                 if let Some(lower_bound) = &decl.lower_bound {
@@ -116,11 +123,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         .push(expr! { value <= [upper_bound.clone().to_pure_snapshot(self)? ] });
                 }
                 let validity = conjuncts.into_iter().conjoin();
-                self.encode_validity_axioms_primitive(
-                    &domain_name,
-                    vir_low::Type::Float(vir_low::ty::Float::F32),
-                    validity,
-                )?;
+                self.encode_validity_axioms_primitive(&domain_name, float_type(), validity)?;
             }
             vir_mid::TypeDecl::Trusted(_) => {
                 // FIXME: ensure type definition for trusted
@@ -389,6 +392,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::Type::Int(_) => {
                     assert_eq!(op, vir_low::UnaryOpKind::Minus);
                     var_decls! { constant: Int };
+                    Some((expr! { -constant }, constant))
+                }
+                vir_mid::Type::Float(vir_mid::ty::Float::F32) => {
+                    assert_eq!(op, vir_low::UnaryOpKind::Minus);
+                    var_decls! { constant: Float32 };
+                    Some((expr! { -constant }, constant))
+                }
+                vir_mid::Type::Float(vir_mid::ty::Float::F64) => {
+                    assert_eq!(op, vir_low::UnaryOpKind::Minus);
+                    var_decls! { constant: Float64 };
                     Some((expr! { -constant }, constant))
                 }
                 _ => None,
