@@ -4,11 +4,36 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::index::vec::Idx;
+use derive_more::{Deref, DerefMut};
+use prusti_rustc_interface::{
+    index::vec::{Idx, IndexVec},
+    middle::mir::Operand,
+};
 use std::fmt::{Debug, Formatter};
 
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Deref, DerefMut)]
+pub struct Operands<'tcx> {
+    operands: IndexVec<Temporary, Operand<'tcx>>,
+}
+impl<'tcx> Operands<'tcx> {
+    pub(crate) fn new() -> Self {
+        Self {
+            operands: IndexVec::new(),
+        }
+    }
+    pub(crate) fn translate_operand(&mut self, operand: &Operand<'tcx>) -> MicroOperand {
+        let index = self.operands.push(operand.clone());
+        MicroOperand::new(index)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Deref, DerefMut)]
 pub struct MicroOperand(Temporary);
+impl MicroOperand {
+    pub const fn new(value: Temporary) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub struct Temporary {
