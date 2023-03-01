@@ -28,14 +28,18 @@ fn main() {
         .use_jar(&asm_jar)
         .wrap(java_class!("java.lang.Object"))
         .wrap_all(vec![
-            java_class!("java.lang.Integer", vec![constructor!("(I)V")]),
-            java_class!(
-                "java.util.Arrays",
-                vec![method!(
-                    "binarySearch",
-                    "([Ljava/lang/Object;Ljava/lang/Object;)I"
-                ),]
-            ),
+            java_class!("java.lang.Integer", vec![
+                constructor!("(I)V"),
+                field!("value")
+            ]),
+            java_class!("java.util.Arrays", vec![
+                method!("binarySearch", "([Ljava/lang/Object;Ljava/lang/Object;)I"),
+            ]),
+            java_class!("java.lang.Error", vec![
+                constructor!("(Ljava/lang/String;)V"),
+                method!("getMessage"),
+                field!("detailMessage"),
+            ]),
         ])
         .generate(&generated_dir)
         .unwrap_or_else(|e| {

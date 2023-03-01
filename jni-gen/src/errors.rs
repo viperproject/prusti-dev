@@ -54,5 +54,10 @@ error_chain::error_chain! {
             description("no matching method")
             display("no method '{}' with signature '{}' in class '{}'", method, signature, class)
         }
+
+        NoField(class: String, field: String) {
+            description("no field")
+            display("no field '{}' in class '{}'", field, class)
+        }
     }
 }
