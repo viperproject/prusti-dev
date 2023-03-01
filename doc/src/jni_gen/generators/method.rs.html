@@ -454,8 +454,6 @@
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -605,8 +603,8 @@
     }
 
     <span class="kw">let </span>rust_method_name = <span class="kw">match </span>suffix {
-        <span class="prelude-val">None </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}&quot;</span>, java_method_to_rust(method_name)),
-        <span class="prelude-val">Some</span>(s) =&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}_{}&quot;</span>, java_method_to_rust(method_name), s),
+        <span class="prelude-val">None </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}&quot;</span>, java_identifier_to_rust(method_name)),
+        <span class="prelude-val">Some</span>(s) =&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}_{}&quot;</span>, java_identifier_to_rust(method_name), s),
     };
 
     <span class="kw">if </span>is_static {
@@ -648,9 +646,12 @@
         method_name,
         class.full_name()
     ));
-    code.push(<span class="string">&quot;///&quot;</span>.to_string());
-    code.push(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.to_string());
-    code.push(<span class="string">&quot;///&quot;</span>.to_string());
+
+    <span class="kw">if </span>!parameter_names.is_empty() {
+        code.push(<span class="string">&quot;///&quot;</span>.to_string());
+        code.push(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.to_string());
+        code.push(<span class="string">&quot;///&quot;</span>.to_string());
+    }
 
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..parameter_names.len() {
         <span class="kw">let </span>par_name = <span class="kw-2">&amp;</span>parameter_names[i];
@@ -908,11 +909,6 @@
     code.push(<span class="string">&quot;}&quot;</span>.to_string());
 
     code.join(<span class="string">&quot;\n&quot;</span>) + <span class="string">&quot;\n&quot;
-</span>}
-
-<span class="kw">fn </span>java_method_to_rust(method_name: <span class="kw-2">&amp;</span>str) -&gt; String {
-    method_name.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;__&quot;</span>).replace(<span class="string">&#39;$&#39;</span>, <span class="string">&quot;_dollar_&quot;</span>)
-    <span class="comment">// If needed, replace other charachters with &quot;_{something}_&quot;
 </span>}
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jni_gen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

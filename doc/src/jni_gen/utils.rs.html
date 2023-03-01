@@ -80,6 +80,8 @@
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -154,13 +156,15 @@
 }
 
 <span class="kw">pub fn </span>java_str_to_valid_rust_argument_name(string: <span class="kw-2">&amp;</span>JavaStr) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="string">&quot;arg_&quot;</span>.to_string();
-    res.push_str(
-        <span class="kw-2">&amp;</span>java_str_to_string(string)<span class="question-mark">?
-            </span>.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;___&quot;</span>)
-            .replace(<span class="string">&#39;$&#39;</span>, <span class="string">&quot;_d_&quot;</span>),
-    );
-    <span class="prelude-val">Ok</span>(res)
+    <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(
+        <span class="string">&quot;arg_{}&quot;</span>,
+        java_identifier_to_rust(<span class="kw-2">&amp;</span>java_str_to_string(string)<span class="question-mark">?</span>)
+    ))
+}
+
+<span class="kw">pub fn </span>java_identifier_to_rust(name: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="comment">// identifier can only be composed of [a-zA-Z&amp;_] characters - https://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8
+    </span>name.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;__&quot;</span>).replace(<span class="string">&#39;$&#39;</span>, <span class="string">&quot;_dollar_&quot;</span>)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jni_gen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
