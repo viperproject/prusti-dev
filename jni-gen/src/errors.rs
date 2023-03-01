@@ -57,7 +57,7 @@ error_chain::error_chain! {
 
         NoField(class: String, field: String) {
             description("no field")
-            display("no field '{}' in class'{}'", field, class)
+            display("no field '{}' in class '{}'", field, class)
         }
     }
 }
