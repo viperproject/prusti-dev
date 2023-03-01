@@ -147,8 +147,8 @@ pub fn generate_method(
     }
 
     let rust_method_name = match suffix {
-        None => format!("call_{}", java_method_to_rust(method_name)),
-        Some(s) => format!("call_{}_{}", java_method_to_rust(method_name), s),
+        None => format!("call_{}", java_identifier_to_rust(method_name)),
+        Some(s) => format!("call_{}_{}", java_identifier_to_rust(method_name), s),
     };
 
     if is_static {
@@ -190,9 +190,12 @@ fn generate(
         method_name,
         class.full_name()
     ));
-    code.push("///".to_string());
-    code.push("/// Type and Java signature of parameters:".to_string());
-    code.push("///".to_string());
+
+    if !parameter_names.is_empty() {
+        code.push("///".to_string());
+        code.push("/// Type and Java signature of parameters:".to_string());
+        code.push("///".to_string());
+    }
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -450,9 +453,4 @@ fn generate_static(
     code.push("}".to_string());
 
     code.join("\n") + "\n"
-}
-
-fn java_method_to_rust(method_name: &str) -> String {
-    method_name.replace('_', "__").replace('$', "_dollar_")
-    // If needed, replace other charachters with "_{something}_"
 }
