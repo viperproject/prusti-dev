@@ -1942,6 +1942,12 @@
 <a href="#1942" id="1942">1942</a>
 <a href="#1943" id="1943">1943</a>
 <a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -2661,6 +2667,9 @@
                 <span class="kw">for </span>field <span class="kw">in </span>adt_def.all_fields() {
                     <span class="comment">// or adt_def.variants[0].fields ?
                     </span><span class="kw">let </span>field_ty = field.ty(tcx, substs);
+                    <span class="kw">let </span>field_ty = tcx
+                        .try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                        .unwrap_or(field_ty);
                     fields.push(SnapshotField {
                         name: encode_field_name(<span class="kw-2">&amp;</span>field.ident(tcx).to_string()),
                         access: <span class="self">self</span>.snap_app(
@@ -2706,6 +2715,9 @@
                     };
                     <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
                         <span class="kw">let </span>field_ty = field.ty(tcx, substs);
+                        <span class="kw">let </span>field_ty = tcx
+                            .try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                            .unwrap_or(field_ty);
                         fields.push(SnapshotField {
                             name: encode_field_name(<span class="kw-2">&amp;</span>field.ident(tcx).to_string()),
                             access: <span class="self">self</span>.snap_app(

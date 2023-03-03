@@ -879,6 +879,15 @@
 <a href="#879" id="879">879</a>
 <a href="#880" id="880">880</a>
 <a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -899,7 +908,10 @@
 <span class="kw">use </span>prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    middle::{mir, ty},
+    middle::{
+        mir,
+        ty::{<span class="self">self</span>, TypeVisitable},
+    },
 };
 <span class="kw">use </span>vir_crate::high::{<span class="self">self </span><span class="kw">as </span>vir, operations::ty::Typed};
 
@@ -1584,6 +1596,12 @@
     <span class="kw">for </span>(field_index, field) <span class="kw">in </span>variant.fields.iter().enumerate() {
         <span class="kw">let </span>field_name = <span class="kw">crate</span>::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
         <span class="kw">let </span>field_ty = field.ty(tcx, substs);
+        <span class="kw">let </span>field_ty = <span class="kw">if </span>config::unsafe_core_proof() &amp;&amp; field_ty.has_erasable_regions() {
+            field_ty
+        } <span class="kw">else </span>{
+            tcx.try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                .unwrap_or(field_ty)
+        };
         <span class="kw">let </span>field =
             vir::FieldDecl::new(field_name, field_index, encoder.encode_type_high(field_ty)<span class="question-mark">?</span>);
         fields.push(field);
