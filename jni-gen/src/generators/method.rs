@@ -239,12 +239,9 @@ fn generate(
         if par_sign.starts_with('L') {
             let par_class = &par_sign[1..(par_sign.len() - 1)];
             code.push("    debug_assert!(".to_string());
-            code.push("        self.env.is_instance_of(".to_string());
-            code.push(format!("            {par_name},"));
             code.push(format!(
-                "            self.env.find_class(\"{par_class}\")?,"
+                "        self.env.is_instance_of({par_name}, self.env.find_class(\"{par_class}\")?)?"
             ));
-            code.push("        )?".to_string());
             code.push("    );".to_string());
         }
     }
@@ -252,10 +249,9 @@ fn generate(
 
     // Generate dynamic type check for `receiver`
     code.push("    debug_assert!(".to_string());
-    code.push("        self.env.is_instance_of(".to_string());
-    code.push("            receiver,".to_string());
-    code.push("            self.env.find_class(class_name)?,".to_string());
-    code.push("        )?".to_string());
+    code.push(
+        "        self.env.is_instance_of(receiver, self.env.find_class(class_name)?)?".to_string(),
+    );
     code.push("    );".to_string());
     code.push("".to_string());
 
@@ -301,12 +297,9 @@ fn generate(
         let return_class = &return_signature[1..(return_signature.len() - 1)];
         code.push("    if let Ok(result) = result {".to_string());
         code.push("        debug_assert!(".to_string());
-        code.push("            self.env.is_instance_of(".to_string());
-        code.push("                result,".to_string());
         code.push(format!(
-            "                self.env.find_class(\"{return_class}\")?,"
+            "        self.env.is_instance_of(result, self.env.find_class(\"{return_class}\")?)?"
         ));
-        code.push("            )?".to_string());
         code.push("        );".to_string());
         code.push("    }".to_string());
         code.push("".to_string());
@@ -381,12 +374,9 @@ fn generate_static(
         if par_sign.starts_with('L') {
             let par_class = &par_sign[1..(par_sign.len() - 1)];
             code.push("    debug_assert!(".to_string());
-            code.push("        self.env.is_instance_of(".to_string());
-            code.push(format!("            {par_name},"));
             code.push(format!(
-                "            self.env.find_class(\"{par_class}\")?,"
+                "        self.env.is_instance_of({par_name}, self.env.find_class(\"{par_class}\")?)?"
             ));
-            code.push("        )?".to_string());
             code.push("    );".to_string());
         }
     }
@@ -438,12 +428,9 @@ fn generate_static(
         let return_class = &return_signature[1..(return_signature.len() - 1)];
         code.push("    if let Ok(result) = result {".to_string());
         code.push("        debug_assert!(".to_string());
-        code.push("            self.env.is_instance_of(".to_string());
-        code.push("                result,".to_string());
         code.push(format!(
-            "                self.env.find_class(\"{return_class}\")?,"
+            "        self.env.is_instance_of(result, self.env.find_class(\"{return_class}\")?)?"
         ));
-        code.push("            )?".to_string());
         code.push("        );".to_string());
         code.push("    }".to_string());
         code.push("".to_string());

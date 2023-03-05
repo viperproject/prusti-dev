@@ -183,7 +183,7 @@ fn generate(
     ));
 
     code.push(
-    r#"    static CLASS: OnceCell<GlobalRef> = OnceCell::new();
+        r#"    static CLASS: OnceCell<GlobalRef> = OnceCell::new();
     static METHOD_ID: OnceCell<JMethodID> = OnceCell::new();
     let class = CLASS.get_or_try_init(|| {
         let class = self.env.find_class(class_name)?;
@@ -219,10 +219,10 @@ fn generate(
     // Generate dynamic type check for the result
     code.push("    if let Ok(result) = result {".to_string());
     code.push("        debug_assert!(".to_string());
-    code.push("            self.env.is_instance_of(".to_string());
-    code.push("                result,".to_string());
-    code.push("                self.env.find_class(class_name)?,".to_string());
-    code.push("            )?".to_string());
+    code.push(
+        "            self.env.is_instance_of(result, self.env.find_class(class_name)?)?"
+            .to_string(),
+    );
     code.push("        );".to_string());
     code.push("    }".to_string());
     code.push("".to_string());

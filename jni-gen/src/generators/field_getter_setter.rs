@@ -75,14 +75,12 @@ fn generate_type_check(
 
     let variable_type = &expected_variable_signature[1..(expected_variable_signature.len() - 1)];
 
-    let type_check = vec![
-        "    debug_assert!(".to_string(),
-        "        self.env.is_instance_of(".to_string(),
-        format!("            {variable_name},"),
-        format!("            self.env.find_class(\"{variable_type}\")?,"),
-        "        )?".to_string(),
-        "    );".to_string(),
-    ];
+    let mut type_check: Vec<String> = vec![];
+    type_check.push("    debug_assert!(".to_string());
+    type_check.push(format!(
+        "        self.env.is_instance_of({variable_name}, self.env.find_class(\"{variable_type}\")?)?"
+    ));
+    type_check.push("    );".to_string());
 
     if is_result {
         let indented_type_check = type_check
@@ -91,11 +89,11 @@ fn generate_type_check(
             .collect::<Vec<_>>()
             .join("\n");
 
-        vec![
-            "    if let Ok(result) = result {".to_string(),
-            indented_type_check,
-            "    }".to_string(),
-        ]
+        let mut type_check_with_result: Vec<String> = vec![];
+        type_check_with_result.push("    if let Ok(result) = result {".to_string());
+        type_check_with_result.push(indented_type_check);
+        type_check_with_result.push("    }".to_string());
+        type_check_with_result
     } else {
         type_check
     }
@@ -115,44 +113,44 @@ fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &s
     let rust_getter_name = format!("get_{}", java_identifier_to_rust(field_name));
     let parameter_type = generate_jni_type(type_signature);
 
-    vec![
-        format!(
-            "/// Returns the field `{}` of the scala class `{}`.",
-            field_name,
-            class.full_name()
-        ),
-        "///".to_string(),
-        format!("/// Return type and Java signature: `{parameter_type}` (`{type_signature}`)"),
-        format!("pub fn {rust_getter_name}("),
-        "    &self,".to_string(),
-        "    receiver: JObject<'a>,".to_string(),
-        format!(") -> JNIResult<{parameter_type}> {{"),
-        format!("    let class_name = \"{}\";", class.path()),
-        format!("    let field_name = \"{field_name}\";"),
-        format!("    let return_signature = \"{type_signature}\";"),
-        "".to_string(),
-        "    debug_assert!(".to_string(),
-        "        self.env.is_instance_of(".to_string(),
-        "            receiver,".to_string(),
-        "            self.env.find_class(class_name)?,".to_string(),
-        "        )?".to_string(),
-        "    );".to_string(),
-        "".to_string(),
-        "    let result = self.env.get_field(".to_string(),
-        "        receiver,".to_string(),
-        "        field_name,".to_string(),
-        "        return_signature,".to_string(),
-        format!(
-            "    ).and_then(|x| x.{}());",
-            generate_jni_type_char(type_signature)
-        ),
-        "".to_string(),
-        generate_result_type_check(type_signature),
-        "    result".to_string(),
-        "}".to_string(),
-    ]
-    .join("\n")
-        + "\n"
+    let mut code: Vec<String> = vec![];
+    code.push(format!(
+        "/// Returns the field `{}` of the scala class `{}`.",
+        field_name,
+        class.full_name()
+    ));
+    code.push("///".to_string());
+    code.push(format!(
+        "/// Return type and Java signature: `{parameter_type}` (`{type_signature}`)"
+    ));
+    code.push(format!("pub fn {rust_getter_name}("));
+    code.push("    &self,".to_string());
+    code.push("    receiver: JObject<'a>,".to_string());
+    code.push(format!(") -> JNIResult<{parameter_type}> {{"));
+    code.push(format!("    let class_name = \"{}\";", class.path()));
+    code.push(format!("    let field_name = \"{field_name}\";"));
+    code.push(format!("    let return_signature = \"{type_signature}\";"));
+    code.push("".to_string());
+    code.push("    debug_assert!(".to_string());
+    code.push(
+        "        self.env.is_instance_of(receiver, self.env.find_class(class_name)?)?".to_string(),
+    );
+    code.push("    );".to_string());
+    code.push("".to_string());
+    code.push("    let result = self.env.get_field(".to_string());
+    code.push("        receiver,".to_string());
+    code.push("        field_name,".to_string());
+    code.push("        return_signature,".to_string());
+    code.push(format!(
+        "    ).and_then(|x| x.{}());",
+        generate_jni_type_char(type_signature)
+    ));
+    code.push("".to_string());
+    code.push(generate_result_type_check(type_signature));
+    code.push("    result".to_string());
+    code.push("}".to_string());
+
+    code.join("\n") + "\n"
 }
 
 fn generate_field_setter(class: &ClassName, field_name: &str, type_signature: &str) -> String {
@@ -160,45 +158,48 @@ fn generate_field_setter(class: &ClassName, field_name: &str, type_signature: &s
     let parameter_name = format!("new_{field_name}");
     let parameter_type = generate_jni_type(type_signature);
 
-    vec![
-        format!(
-            "/// Sets the field `{}` of the scala class `{}`.",
-            field_name,
-            class.full_name()
-        ),
-        "///".to_string(),
-        "/// Type and Java signature of parameters:".to_string(),
-        "///".to_string(),
-        format!("/// - `{parameter_name}`: `{parameter_type}` (`{type_signature}`)"),
-        "/// ".to_string(),
-        "/// Return type and Java signature: `()` (`V`)".to_string(),
-        format!("pub fn {rust_setter_name}("),
-        "    &self,".to_string(),
-        "    receiver: JObject<'a>,".to_string(),
-        format!("    {parameter_name}: {parameter_type},"),
-        ") -> JNIResult<()> {".to_string(),
-        format!("    let class_name = \"{}\";", class.path()),
-        format!("    let field_name = \"{field_name}\";"),
-        format!("    let return_signature = \"{type_signature}\";"),
-        "".to_string(),
-        "    debug_assert!(".to_string(),
-        "        self.env.is_instance_of(".to_string(),
-        "            receiver,".to_string(),
-        "            self.env.find_class(class_name)?,".to_string(),
-        "        )?".to_string(),
-        "    );".to_string(),
-        "".to_string(),
-        generate_parameter_type_check(type_signature, &parameter_name),
-        "    self.env.set_field(".to_string(),
-        "        receiver,".to_string(),
-        "        field_name,".to_string(),
-        "        return_signature,".to_string(),
-        format!("        JValue::from({parameter_name})"),
-        "    )".to_string(),
-        "}".to_string(),
-    ]
-    .join("\n")
-        + "\n"
+    let mut code: Vec<String> = vec![];
+    code.push(format!(
+        "/// Sets the field `{}` of the scala class `{}`.",
+        field_name,
+        class.full_name()
+    ));
+    code.push("///".to_string());
+    code.push("/// Type and Java signature of parameters:".to_string());
+    code.push("///".to_string());
+    code.push(format!(
+        "/// - `{parameter_name}`: `{parameter_type}` (`{type_signature}`)"
+    ));
+    code.push("/// ".to_string());
+    code.push("/// Return type and Java signature: `()` (`V`)".to_string());
+    code.push(format!("pub fn {rust_setter_name}("));
+    code.push("    &self,".to_string());
+    code.push("    receiver: JObject<'a>,".to_string());
+    code.push(format!("    {parameter_name}: {parameter_type},"));
+    code.push(") -> JNIResult<()> {".to_string());
+    code.push(format!("    let class_name = \"{}\";", class.path()));
+    code.push(format!("    let field_name = \"{field_name}\";"));
+    code.push(format!("    let return_signature = \"{type_signature}\";"));
+    code.push("".to_string());
+    code.push("    debug_assert!(".to_string());
+    code.push(
+        "        self.env.is_instance_of(receiver, self.env.find_class(class_name)?)?".to_string(),
+    );
+    code.push("    );".to_string());
+    code.push("".to_string());
+    code.push(generate_parameter_type_check(
+        type_signature,
+        &parameter_name,
+    ));
+    code.push("    self.env.set_field(".to_string());
+    code.push("        receiver,".to_string());
+    code.push("        field_name,".to_string());
+    code.push("        return_signature,".to_string());
+    code.push(format!("        JValue::from({parameter_name})"));
+    code.push("    )".to_string());
+    code.push("}".to_string());
+
+    code.join("\n") + "\n"
 }
 
 /// Generates Rust code to both retrieve and modify a value of

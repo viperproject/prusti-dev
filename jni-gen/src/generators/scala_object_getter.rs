@@ -15,47 +15,51 @@ pub fn generate_scala_object_getter(env: &JNIEnv, class_name: &ClassName) -> Res
     )
     .map(|_| ())?;
 
-    Ok(vec![
-        format!(
-            "/// Returns the unique instance of the Scala object `{}`.",
-            class_name.full_name()
-        ),
-        "///".to_string(),
-        format!(
-            "/// Return type and Java signature: `JObject`, `L{};`",
-            class_name.path()
-        ),
-        "pub fn singleton(&self) -> JNIResult<JObject<'a>> {".to_string(),
-        format!("    let class_name = \"{}\";", class_name.path()),
-        "    let field_name = \"MODULE$\";".to_string(),
-        format!("    let field_signature = \"L{};\";", class_name.path()),
-        "".to_string(),
-        "    static CLASS: OnceCell<GlobalRef> = OnceCell::new();".to_string(),
+    let mut code: Vec<String> = vec![];
+    code.push(format!(
+        "/// Returns the unique instance of the Scala object `{}`.",
+        class_name.full_name()
+    ));
+    code.push("///".to_string());
+    code.push(format!(
+        "/// Return type and Java signature: `JObject`, `L{};`",
+        class_name.path()
+    ));
+    code.push("pub fn singleton(&self) -> JNIResult<JObject<'a>> {".to_string());
+    code.push(format!("    let class_name = \"{}\";", class_name.path()));
+    code.push("    let field_name = \"MODULE$\";".to_string());
+    code.push(format!(
+        "    let field_signature = \"L{};\";",
+        class_name.path()
+    ));
+    code.push("".to_string());
+    code.push("    static CLASS: OnceCell<GlobalRef> = OnceCell::new();".to_string());
+    code.push(
         "    static STATIC_FIELD_ID: OnceCell<JStaticFieldID> = OnceCell::new();".to_string(),
-        "    static FIELD_TYPE: OnceCell<JavaType> = OnceCell::new();".to_string(),
-        "    let class = CLASS.get_or_try_init(|| {".to_string(),
-        "        let class = self.env.find_class(class_name)?;".to_string(),
-        "        self.env.new_global_ref(class)".to_string(),
-        "    })?;".to_string(),
-        "    let static_field_id = *STATIC_FIELD_ID.get_or_try_init(|| {".to_string(),
-        "        self.env.get_static_field_id(".to_string(),
-        "            class_name,".to_string(),
-        "            field_name,".to_string(),
-        "            field_signature,".to_string(),
-        "        )".to_string(),
-        "    })?;".to_string(),
-        "    let field_type = FIELD_TYPE.get_or_try_init(|| {".to_string(),
-        "        JavaType::from_str(field_signature)".to_string(),
-        "    })?.clone();".to_string(),
-        "".to_string(),
-        "    let result = self.env.get_static_field_unchecked(".to_string(),
-        "        JClass::from(class.as_obj()),".to_string(),
-        "        static_field_id,".to_string(),
-        "        field_type,".to_string(),
-        "    ).and_then(|x| x.l());".to_string(),
-        "    result".to_string(),
-        "}".to_string(),
-    ]
-    .join("\n")
-        + "\n")
+    );
+    code.push("    static FIELD_TYPE: OnceCell<JavaType> = OnceCell::new();".to_string());
+    code.push("    let class = CLASS.get_or_try_init(|| {".to_string());
+    code.push("        let class = self.env.find_class(class_name)?;".to_string());
+    code.push("        self.env.new_global_ref(class)".to_string());
+    code.push("    })?;".to_string());
+    code.push("    let static_field_id = *STATIC_FIELD_ID.get_or_try_init(|| {".to_string());
+    code.push("        self.env.get_static_field_id(".to_string());
+    code.push("            class_name,".to_string());
+    code.push("            field_name,".to_string());
+    code.push("            field_signature,".to_string());
+    code.push("        )".to_string());
+    code.push("    })?;".to_string());
+    code.push("    let field_type = FIELD_TYPE.get_or_try_init(|| {".to_string());
+    code.push("        JavaType::from_str(field_signature)".to_string());
+    code.push("    })?.clone();".to_string());
+    code.push("".to_string());
+    code.push("    let result = self.env.get_static_field_unchecked(".to_string());
+    code.push("        JClass::from(class.as_obj()),".to_string());
+    code.push("        static_field_id,".to_string());
+    code.push("        field_type,".to_string());
+    code.push("    ).and_then(|x| x.l());".to_string());
+    code.push("    result".to_string());
+    code.push("}".to_string());
+
+    Ok(code.join("\n") + "\n")
 }
