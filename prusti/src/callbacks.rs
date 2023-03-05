@@ -134,7 +134,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
 
-            // determine procedures that have to be verified.
+            // TODO: can we replace `get_annotated_procedures` with information
+            // that is already in `def_spec`?
             let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
 
             if config::show_ide_info() && !config::no_verify() {

@@ -206,12 +206,13 @@ impl PrustiError {
                 &self.help,
                 &self.notes,
             ),
-            PrustiDiagnosticKind::WarningOnError => env_diagnostic.span_warn_on_err_with_help_and_notes(
-                *self.span,
-                &self.message,
-                &self.help,
-                &self.notes,
-            ),
+            PrustiDiagnosticKind::WarningOnError => env_diagnostic
+                .span_warn_on_err_with_help_and_notes(
+                    *self.span,
+                    &self.message,
+                    &self.help,
+                    &self.notes,
+                ),
             PrustiDiagnosticKind::Message => env_diagnostic.span_note(*self.span, &self.message),
         };
     }

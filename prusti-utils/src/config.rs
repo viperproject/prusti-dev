@@ -1051,8 +1051,10 @@ pub fn show_ide_info() -> bool {
     read_setting("show_ide_info")
 }
 
-/// Very similar to no_verify but should only be used by prusti-assistant
-/// to avoid interference
+/// When enabled, verification is skipped. Similar to no_verify but needed
+/// because no_verify is also set automatically for dependencies, independent
+/// of whether the user passed this flag. In general only required because
+/// of issue #1261
 pub fn skip_verification() -> bool {
     read_setting("skip_verification")
 }
