@@ -183,7 +183,7 @@ fn generate(
     ));
 
     code.push(
-        r#"static CLASS: OnceCell<GlobalRef> = OnceCell::new();
+    r#"    static CLASS: OnceCell<GlobalRef> = OnceCell::new();
     static METHOD_ID: OnceCell<JMethodID> = OnceCell::new();
     let class = CLASS.get_or_try_init(|| {
         let class = self.env.find_class(class_name)?;
