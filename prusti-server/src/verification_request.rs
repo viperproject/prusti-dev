@@ -57,16 +57,17 @@ impl ViperBackendConfig {
                 // model.partial changes the default case of functions in counterexamples
                 // to #unspecified
                 let mut prover_args = format!(
-                        "smt.qi.eager_threshold={} model.partial={}",
-                        config::smt_qi_eager_threshold(),
-                        config::counterexample()
-                        );
+                    "smt.qi.eager_threshold={} model.partial={}",
+                    config::smt_qi_eager_threshold(),
+                    config::counterexample()
+                );
 
                 if let Some(smt_qi_profile) = config::smt_qi_profile() {
                     prover_args = format!("{prover_args} smt.qi.profile={smt_qi_profile}");
                 }
                 if let Some(smt_qi_profile_freq) = config::smt_qi_profile_freq() {
-                    prover_args = format!("{prover_args} smt.qi.profile_freq={smt_qi_profile_freq}");
+                    prover_args =
+                        format!("{prover_args} smt.qi.profile_freq={smt_qi_profile_freq}");
                 }
                 verifier_args.push(prover_args);
 

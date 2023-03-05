@@ -66,12 +66,14 @@ where
         .expect("failed to construct Tokio runtime")
         .block_on(async {
             PrustiClient::verify(SERVER_ADDRESS.clone(), request)
+                .await
                 .collect::<Vec<ServerMessage>>()
                 .await
-                .find_map(|&&m| match m {
+                .into_iter()
+                .find_map(|m| match m {
                     ServerMessage::Termination(res) => Some(res.kind),
                     _ => None,
                 })
-                .unwrap_or_else(VerificationResultKind::Failure(vec![]))
+                .unwrap_or_else(|| VerificationResultKind::Failure(vec![]))
         })
 }
