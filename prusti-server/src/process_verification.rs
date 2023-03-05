@@ -205,7 +205,7 @@ pub fn process_verification_request(
 
     let mut result = VerificationResult {
         item_name: request.program.get_name().to_string(),
-        result_type: VerificationResultKind::Success,
+        kind: VerificationResultKind::Success,
         cached: false,
         time_ms: 0,
     };
@@ -224,7 +224,7 @@ pub fn process_verification_request(
                 });
             }
             result.cached = true;
-            normalization_info.denormalize_result(&mut result.result_type);
+            normalization_info.denormalize_result(&mut result.kind);
             sender.send(ServerMessage::Termination(result)).unwrap();
             return;
         }
@@ -241,7 +241,7 @@ pub fn process_verification_request(
             new_viper_verifier(program_name, verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
-        result.result_type = if config::report_viper_messages() {
+        result.kind = if config::report_viper_messages() {
             verify_and_poll_msgs(
                 verification_context,
                 verifier,
@@ -256,7 +256,7 @@ pub fn process_verification_request(
 
         // Don't cache Java exceptions, which might be due to misconfigured paths.
         if config::enable_cache()
-            && !matches!(result.result_type, VerificationResultKind::JavaException(_))
+            && !matches!(result.kind, VerificationResultKind::JavaException(_))
         {
             info!(
                 "Storing new cached result {:?} for program {}",
@@ -266,7 +266,7 @@ pub fn process_verification_request(
             cache.insert(hash, result.clone());
         }
 
-        normalization_info.denormalize_result(&mut result.result_type);
+        normalization_info.denormalize_result(&mut result.kind);
         sender.send(ServerMessage::Termination(result)).unwrap();
     })
 }
@@ -278,7 +278,7 @@ fn verify_and_poll_msgs(
     viper_arc: &Arc<Viper>,
     sender: mpsc::Sender<ServerMessage>,
 ) -> VerificationResultKind {
-    let mut result_type = VerificationResultKind::Success;
+    let mut kind = VerificationResultKind::Success;
 
     // get the reporter global reference outside of the thread scope because it needs to
     // be dropped by thread attached to the jvm. This is also why we pass it as reference
@@ -294,11 +294,11 @@ fn verify_and_poll_msgs(
     // start thread for polling messages
     thread::scope(|scope| {
         let polling_thread = scope.spawn(|| polling_function(viper_arc, &rep_glob_ref, sender));
-        result_type = verifier.verify(viper_program);
+        kind = verifier.verify(viper_program);
         polling_thread.join().unwrap();
     });
     debug!("Viper message polling thread terminated");
-    result_type
+    kind
 }
 
 fn polling_function(

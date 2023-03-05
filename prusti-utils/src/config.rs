@@ -102,8 +102,8 @@ lazy_static::lazy_static! {
         settings.set_default("quiet", false).unwrap();
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
-        settings.set_default("smt_qi_profile", true).unwrap();
-        settings.set_default("smt_qi_profile_freq", 10000).unwrap();
+        settings.set_default::<Option<bool>>("smt_qi_profile", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_profile_freq", None).unwrap();
         settings.set_default("report_viper_messages", false).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
@@ -504,13 +504,13 @@ pub fn smt_qi_eager_threshold() -> u64 {
     read_setting("smt_qi_eager_threshold")
 }
 
-/// Set `qi.profile` value to the given one.
-pub fn smt_qi_profile() -> bool {
+/// Whether to make Z3 periodically report quantifier instantiations to Viper.
+pub fn smt_qi_profile() -> Option<bool> {
     read_setting("smt_qi_profile")
 }
 
-/// Set `qi.profile_freq` value to the given one.
-pub fn smt_qi_profile_freq() -> u64 {
+/// The frequency for the report of quantifier instantiations of Z3 to Viper.
+pub fn smt_qi_profile_freq() -> Option<u64> {
     read_setting("smt_qi_profile_freq")
 }
 

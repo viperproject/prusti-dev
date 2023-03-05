@@ -9,19 +9,20 @@ use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct VerificationResult {
     pub item_name: String,
-    pub result_type: VerificationResultKind,
+    pub kind: VerificationResultKind,
     pub cached: bool,
     pub time_ms: u128,
 }
 
 impl VerificationResult {
     pub fn is_success(&self) -> bool {
-        matches!(self.result_type, VerificationResultKind::Success)
+        self.kind.is_success()
     }
+
     pub fn dummy_success() -> Self {
         VerificationResult {
             item_name: "".to_string(),
-            result_type: VerificationResultKind::Success,
+            kind: VerificationResultKind::Success,
             cached: false,
             time_ms: 0,
         }

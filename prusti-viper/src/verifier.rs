@@ -148,173 +148,28 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let mut quantifier_instantiations: FxHashMap<(u64, String), FxHashMap<String, u64>> =
             FxHashMap::default();
 
-        // if we are not running in an ide, we want the errors to be reported sortedly
         let mut prusti_errors: Vec<_> = vec![];
 
         pin_mut!(verification_messages);
 
         while let Some((program_name, server_msg)) = verification_messages.next().await {
             match server_msg {
-                ServerMessage::Termination(result) => {
-                    if config::show_ide_info() {
-                        PrustiError::message(
-                            format!(
-                                "ideVerificationResult{}",
-                                serde_json::to_string(&IdeVerificationResult::from_res(&result))
-                                    .unwrap()
-                            ),
-                            DUMMY_SP.into(),
-                        )
-                        .emit(&self.env.diagnostic);
-                    }
-                    match result.result_type {
-                        // nothing to do
-                        viper::VerificationResultKind::Success => (),
-                        viper::VerificationResultKind::ConsistencyErrors(errors) => {
-                            for error in errors {
-                                PrustiError::internal(
-                                    format!("consistency error in {program_name}: {error}"),
-                                    DUMMY_SP.into(),
-                                )
-                                .emit(&self.env.diagnostic);
-                            }
-                            overall_result = VerificationResult::Failure;
-                        }
-                        viper::VerificationResultKind::Failure(errors) => {
-                            for verification_error in errors {
-                                debug!(
-                                    "Verification error in {}: {:?}",
-                                    program_name.clone(),
-                                    verification_error
-                                );
-                                let mut prusti_error = self.encoder.error_manager()
-                                    .translate_verification_error(&verification_error);
-
-                                // annotate with counterexample, if requested
-                                if config::counterexample() {
-                                    if config::unsafe_core_proof() {
-                                        if let Some(silicon_counterexample) =
-                                            &verification_error.counterexample
-                                        {
-                                            let error_manager = self.encoder.error_manager();
-                                            if let Some(def_id) = error_manager 
-                                                .get_def_id(&verification_error)
-                                            {
-                                                let counterexample = counterexample_translation_refactored::backtranslate(
-                                                    &self.encoder,
-                                                    error_manager.position_manager(),
-                                                    def_id,
-                                                    silicon_counterexample,
-                                                );
-                                                prusti_error =
-                                                    counterexample.annotate_error(prusti_error);
-                                            } else {
-                                                prusti_error = prusti_error.add_note(
-                                                    format!(
-                                                        "the verifier produced a counterexample for {program_name}, but it could not be mapped to source code"
-                                                    ),
-                                                    None,
-                                                );
-                                            }
-                                        }
-                                    } else if let Some(silicon_counterexample) =
-                                        &verification_error.counterexample
-                                    {
-                                        if let Some(def_id) = self.encoder.error_manager()
-                                            .get_def_id(&verification_error)
-                                        {
-                                            let counterexample =
-                                                counterexample_translation::backtranslate(
-                                                    &self.encoder,
-                                                    def_id,
-                                                    silicon_counterexample,
-                                                );
-                                            prusti_error =
-                                                counterexample.annotate_error(prusti_error);
-                                        } else {
-                                            prusti_error = prusti_error.add_note(
-                                                format!(
-                                                    "the verifier produced a counterexample for {program_name}, but it could not be mapped to source code"
-                                                ),
-                                                None,
-                                            );
-                                        }
-                                    }
-                                }
-                                debug!("Prusti error: {:?}", prusti_error);
-                                if prusti_error.is_disabled() {
-                                    prusti_error.cancel();
-                                } else if config::show_ide_info() {
-                                    prusti_error.emit(&self.env.diagnostic);
-                                } else {
-                                    prusti_errors.push(prusti_error);
-                                }
-                            }
-                            overall_result = VerificationResult::Failure;
-                        }
-                        viper::VerificationResultKind::JavaException(exception) => {
-                            error!("Java exception: {}", exception.get_stack_trace());
-                            PrustiError::internal(
-                                format!("in {program_name}: {exception}"),
-                                DUMMY_SP.into(),
-                            )
-                            .emit(&self.env.diagnostic);
-                            overall_result = VerificationResult::Failure;
-                        }
-                    }
-                }
+                ServerMessage::Termination(result) => self.handle_termination_message(program_name, result, &mut prusti_errors, &mut overall_result),
                 ServerMessage::QuantifierInstantiation {
                     q_name,
                     insts,
                     pos_id,
-                } => {
-                    if config::report_viper_messages() {
-                        match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
-                            Some(span) => {
-                                let key = (pos_id, program_name.clone());
-                                if !quantifier_instantiations.contains_key(&key) {
-                                    quantifier_instantiations.insert(key.clone(), FxHashMap::default());
-                                }
-                                let map = quantifier_instantiations.get_mut(&key).unwrap();
-                                // this replaces the old entry which is exactly what we want
-                                map.insert(q_name, insts);
-                                let mut n: u64 = 0;
-                                for insts in map.values() {
-                                    n += *insts;
-                                }
-                                PrustiError::message(
-                                    format!("quantifierInstantiationsMessage{}",
-                                        json!({"instantiations": n, "method": program_name}),
-                                    ), span.clone()
-                                ).emit(&self.env.diagnostic);
-                            },
-                            None => error!("#{insts} quantifier instantiations of {q_name} for unknown position id {pos_id} in verification of {program_name}"),
-                        }
-                    }
-                }
+                } => self.handle_quantifier_instantiation_message(program_name, q_name, insts, pos_id, &mut quantifier_instantiations),
                 ServerMessage::QuantifierChosenTriggers {
                     viper_quant,
                     triggers,
                     pos_id,
-                } => {
-                    if config::report_viper_messages() && pos_id != 0 {
-                        match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
-                            Some(span) => {
-                                PrustiError::message(
-                                    format!("quantifierChosenTriggersMessage{}",
-                                        json!({"viper_quant": viper_quant, "triggers": triggers}),
-                                    ), span.clone()
-                                ).emit(&self.env.diagnostic);
-                            },
-                            None => error!("Invalid position id {pos_id} for viper quantifier {viper_quant} in verification of {program_name}"),
-                        }
-                    }
-                }
+                } => self.handle_quantifier_chosen_triggers_message(program_name, viper_quant, triggers, pos_id),
             }
         }
 
         // if we are in an ide, we already emit the errors asynchronously, otherwise we wait for
-        // all of them in order to sort them
+        // all of them because we want the errors to be reported sortedly
         if !config::show_ide_info() {
             prusti_errors.sort();
 
@@ -330,6 +185,177 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         overall_result
     }
 
+    fn handle_termination_message(
+        &self,
+        program_name: String,
+        result: viper::VerificationResult,
+        prusti_errors: &mut Vec<PrustiError>,
+        overall_result: &mut VerificationResult
+    ) {
+        if config::show_ide_info() {
+            PrustiError::message(
+                format!(
+                    "ideVerificationResult{}",
+                    serde_json::to_string(&IdeVerificationResult::from_res(&result))
+                        .unwrap()
+                ),
+                DUMMY_SP.into(),
+            )
+            .emit(&self.env.diagnostic);
+        }
+        match result.kind {
+            // nothing to do
+            viper::VerificationResultKind::Success => (),
+            viper::VerificationResultKind::ConsistencyErrors(errors) => {
+                for error in errors {
+                    PrustiError::internal(
+                        format!("consistency error in {program_name}: {error}"),
+                        DUMMY_SP.into(),
+                    )
+                    .emit(&self.env.diagnostic);
+                }
+                *overall_result = VerificationResult::Failure;
+            }
+            viper::VerificationResultKind::Failure(errors) => {
+                for verification_error in errors {
+                    debug!(
+                        "Verification error in {}: {:?}",
+                        program_name.clone(),
+                        verification_error
+                    );
+                    let mut prusti_error = self.encoder.error_manager()
+                        .translate_verification_error(&verification_error);
+
+                    // annotate with counterexample, if requested
+                    if config::counterexample() {
+                        if config::unsafe_core_proof() {
+                            if let Some(silicon_counterexample) =
+                                &verification_error.counterexample
+                            {
+                                let error_manager = self.encoder.error_manager();
+                                if let Some(def_id) = error_manager
+                                    .get_def_id(&verification_error)
+                                {
+                                    let counterexample = counterexample_translation_refactored::backtranslate(
+                                        &self.encoder,
+                                        error_manager.position_manager(),
+                                        def_id,
+                                        silicon_counterexample,
+                                    );
+                                    prusti_error =
+                                        counterexample.annotate_error(prusti_error);
+                                } else {
+                                    prusti_error = prusti_error.add_note(
+                                        format!(
+                                            "the verifier produced a counterexample for {program_name}, but it could not be mapped to source code"
+                                        ),
+                                        None,
+                                    );
+                                }
+                            }
+                        } else if let Some(silicon_counterexample) =
+                            &verification_error.counterexample
+                        {
+                            if let Some(def_id) = self.encoder.error_manager()
+                                .get_def_id(&verification_error)
+                            {
+                                let counterexample =
+                                    counterexample_translation::backtranslate(
+                                        &self.encoder,
+                                        def_id,
+                                        silicon_counterexample,
+                                    );
+                                prusti_error =
+                                    counterexample.annotate_error(prusti_error);
+                            } else {
+                                prusti_error = prusti_error.add_note(
+                                    format!(
+                                        "the verifier produced a counterexample for {program_name}, but it could not be mapped to source code"
+                                    ),
+                                    None,
+                                );
+                            }
+                        }
+                    }
+
+                    debug!("Prusti error: {:?}", prusti_error);
+                    if prusti_error.is_disabled() {
+                        prusti_error.cancel();
+                    } else if config::show_ide_info() {
+                        prusti_error.emit(&self.env.diagnostic);
+                    } else {
+                        prusti_errors.push(prusti_error);
+                    }
+                }
+                *overall_result = VerificationResult::Failure;
+            }
+            viper::VerificationResultKind::JavaException(exception) => {
+                error!("Java exception: {}", exception.get_stack_trace());
+                PrustiError::internal(
+                    format!("in {program_name}: {exception}"),
+                    DUMMY_SP.into(),
+                )
+                .emit(&self.env.diagnostic);
+                *overall_result = VerificationResult::Failure;
+            }
+        }
+    }
+
+    fn handle_quantifier_instantiation_message(
+        &self,
+        program_name: String,
+        q_name: String,
+        insts: u64,
+        pos_id: u64,
+        quantifier_instantiations: &mut FxHashMap<(u64, String), FxHashMap<String, u64>>
+    ) {
+        if config::report_viper_messages() {
+            match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
+                Some(span) => {
+                    let key = (pos_id, program_name.clone());
+                    if !quantifier_instantiations.contains_key(&key) {
+                        quantifier_instantiations.insert(key.clone(), FxHashMap::default());
+                    }
+                    let map = quantifier_instantiations.get_mut(&key).unwrap();
+                    // this replaces the old entry which is exactly what we want
+                    map.insert(q_name, insts);
+                    let mut n: u64 = 0;
+                    for insts in map.values() {
+                        n += *insts;
+                    }
+                    PrustiError::message(
+                        format!("quantifierInstantiationsMessage{}",
+                            json!({"instantiations": n, "method": program_name}),
+                        ), span.clone()
+                    ).emit(&self.env.diagnostic);
+                },
+                None => error!("#{insts} quantifier instantiations of {q_name} for unknown position id {pos_id} in verification of {program_name}"),
+            }
+        }
+    }
+
+    fn handle_quantifier_chosen_triggers_message(
+        &self,
+        program_name: String,
+        viper_quant: String,
+        triggers: String,
+        pos_id: u64
+    ) {
+        if config::report_viper_messages() && pos_id != 0 {
+            match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
+                Some(span) => {
+                    PrustiError::message(
+                        format!("quantifierChosenTriggersMessage{}",
+                            json!({"viper_quant": viper_quant, "triggers": triggers}),
+                        ), span.clone()
+                    ).emit(&self.env.diagnostic);
+                },
+                None => error!("Invalid position id {pos_id} for viper quantifier {viper_quant} in verification of {program_name}"),
+            }
+        }
+    }
+
+    /// Returns a list of (program_name, verification_requests) tuples.
     fn programs_to_requests(&self, programs: Vec<Program>) -> Vec<(String, VerificationRequest)> {
         let source_path = self.env.name.source_path();
         let rust_program_name = source_path
@@ -359,7 +385,6 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         verification_requests.collect()
     }
 
-    /// Returns a list of (program_name, verification_requests) tuples.
     fn verify_requests_server(
         verification_requests: Vec<(String, VerificationRequest)>,
         server_address: String,

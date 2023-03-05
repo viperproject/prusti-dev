@@ -60,21 +60,18 @@ where
         ),
     };
 
-    let get_result_type = |acc: VerificationResultKind, msg: ServerMessage| async move {
-        match msg {
-            ServerMessage::Termination(res) => res.result_type,
-            _ => acc,
-        }
-    };
-
     Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("failed to construct Tokio runtime")
         .block_on(async {
             PrustiClient::verify(SERVER_ADDRESS.clone(), request)
+                .collect::<Vec<ServerMessage>>()
                 .await
-                .fold(VerificationResultKind::Failure(vec![]), get_result_type)
-                .await
+                .find_map(|&&m| match m {
+                    ServerMessage::Termination(res) => Some(res.kind),
+                    _ => None,
+                })
+                .unwrap_or_else(VerificationResultKind::Failure(vec![]))
         })
 }
