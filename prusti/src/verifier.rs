@@ -20,8 +20,6 @@ pub fn verify<'tcx>(
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
         debug!("Prepare verification task...");
-        // TODO: can we replace `get_annotated_procedures` with information
-        // that is already in `def_spec`?
         debug!("Verification task: {:?}", &verification_task);
 
         user::message(format!(

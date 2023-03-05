@@ -7,8 +7,10 @@ use prusti_rustc_interface::{
     middle::ty::{self, Clause, DefIdTree, ImplSubject, PredicateKind, TyCtxt},
 };
 
-/// data structure to represent the code we want to generate
-/// since we didnt manage to this with syn etc..
+/// Data structure used to generate an external specification template.
+/// The main purpose of this struct is to strictly split the collection
+/// of all this information from the displaying afterwards.
+/// Allows users in prusti-assistant to query such a template for function calls.
 #[derive(Debug)]
 enum ExternSpecBlock {
     StandaloneFn {
@@ -44,8 +46,7 @@ impl ExternSpecBlock {
             }
             DefKind::AssocFn => {
                 // this will be None for traits
-                let impl_defid_opt = tcx.impl_of_method(defid);
-                match impl_defid_opt {
+                match tcx.impl_of_method(defid) {
                     Some(impl_defid) => {
                         // function is part of impl block
                         let mut trait_name = None;
