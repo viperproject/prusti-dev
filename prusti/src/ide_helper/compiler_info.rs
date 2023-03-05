@@ -5,7 +5,7 @@ use prusti_rustc_interface::{
     span::{source_map::SourceMap, Span},
 };
 use prusti_viper::ide::vsc_span::VscSpan;
-use serde::{ser::SerializeStruct, Serialize};
+use serde::Serialize;
 
 /// This struct will be passed to prusti-assistant containing information
 /// about the program that is currently being verified
@@ -14,9 +14,6 @@ pub struct IdeInfo {
     procedure_defs: Vec<ProcDef>,
     function_calls: Vec<ProcDef>,
     queried_source: Option<String>,
-    // additionally this will contain:
-    // function_calls:
-    // ... we'll see
 }
 
 impl IdeInfo {
@@ -25,22 +22,22 @@ impl IdeInfo {
         procedures: &Vec<DefId>,
         def_spec: &typed::DefSpecificationMap,
     ) -> Self {
-        let procs = collect_procedures(env, procedures, def_spec);
+        let procedure_defs = collect_procedures(env, procedures, def_spec);
         let source_map = env.tcx().sess.source_map();
-        let fncalls: Vec<ProcDef> = collect_fncalls(env)
+        let function_calls = collect_fncalls(env)
             .into_iter()
             .map(|(name, defid, sp)| ProcDef {
                 name,
                 defid,
-                span: VscSpan::from_span(&sp, source_map).unwrap(),
+                span: VscSpan::from_span(&sp, source_map),
             })
-            .collect();
+            .collect::<Vec<_>>();
 
         // For declaring external specifications:
-        let queried_source = query_signature::collect_queried_signature(env.tcx(), &fncalls);
+        let queried_source = query_signature::collect_queried_signature(env.tcx(), &function_calls);
         Self {
-            procedure_defs: procs,
-            function_calls: fncalls,
+            procedure_defs,
+            function_calls,
             queried_source,
         }
     }
@@ -49,22 +46,12 @@ impl IdeInfo {
 /// A struct that contains either a reference to a procedure that can be verified
 /// (for selective verification) or a function call (so a user can query
 /// external_spec blocks for it). The name contains the defpath.
+#[derive(Serialize)]
 pub struct ProcDef {
     pub name: String,
+    #[serde(skip)]
     pub defid: DefId,
     pub span: VscSpan,
-}
-
-impl Serialize for ProcDef {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut state = serializer.serialize_struct("ProcDef", 2)?;
-        state.serialize_field("name", &self.name)?;
-        state.serialize_field("span", &self.span)?;
-        state.end()
-    }
 }
 
 /// collect information about the program that will be passed to IDE.
@@ -79,7 +66,7 @@ fn collect_procedures(
     for defid in procedures {
         let defpath = env.name.get_unique_item_name(*defid);
         let span = env.query.get_def_span(defid);
-        let vscspan = VscSpan::from_span(&span, sourcemap).unwrap();
+        let vscspan = VscSpan::from_span(&span, sourcemap);
 
         // Filter out the predicates and trusted methods,
         // since we don't want to allow selective verification

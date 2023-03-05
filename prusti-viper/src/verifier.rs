@@ -196,7 +196,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             PrustiError::message(
                 format!(
                     "ideVerificationResult{}",
-                    serde_json::to_string(&IdeVerificationResult::from_res(&result))
+                    serde_json::to_string(&IdeVerificationResult::from(&result))
                         .unwrap()
                 ),
                 DUMMY_SP.into(),

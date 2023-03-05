@@ -3388,13 +3388,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 substs,
             ).with_span(call_site_span)?
         };
-        // store spans of items of the contracts for prusti-assistant
-        self.store_contract_spans(
-            called_def_id, 
-            &procedure_contract,
-            call_site_span,
-            substs,
-        );
+        if config::show_ide_info() {
+            // store spans of items of the contracts for prusti-assistant
+            self.store_contract_spans(
+                called_def_id,
+                &procedure_contract,
+                call_site_span,
+                substs,
+            );
+        }
 
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;
 
@@ -3537,9 +3539,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    /// Collect all the available spans of the items of a contract 
+    /// Collect all the available spans of the items of a contract
     /// and store them. Purpose of this function is to later pass these
-    /// spans to prusti-assistant, so users can look up contracts of 
+    /// spans to prusti-assistant, so users can look up contracts of
     /// function calls
     fn store_contract_spans(
         &self,
@@ -3548,25 +3550,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         call_site_span: Span,
         substs: ty::subst::SubstsRef<'tcx>,
     ) {
-        let mut precondition_spans:Vec<Span> = contract
-            .functional_precondition(self.encoder.env(), substs)
+
+        let mut pre_post = contract.functional_precondition(self.encoder.env(), substs);
+        pre_post.append(&mut contract.functional_postcondition(self.encoder.env(), substs));
+        let mut contracts_def_ids: Vec<ProcedureDefId> = pre_post.iter().map(|(ts, _)| *ts).collect();
+
+        if let Some(Some(purity_defid)) = contract.specification.purity.extract_with_selective_replacement() {
+            contracts_def_ids.push(*purity_defid);
+        }
+        if let Some(Some(term_local_defid)) = contract.specification.terminates.extract_with_selective_replacement() {
+            contracts_def_ids.push(term_local_defid.to_def_id());
+        }
+        let mut result = contracts_def_ids
             .iter()
-            .map(|(ts,_)| self.encoder.env().query.get_def_span(ts))
-            .collect();
-        let mut postcondition_spans: Vec<Span> = contract
-            .functional_postcondition(self.encoder.env(), substs)
-            .iter()
-            .map(|(ts,_)| self.encoder.env().query.get_def_span(ts))
-            .collect();
-        let purity: Option<Span> = contract
-            .specification.purity
-            .extract_with_selective_replacement()
-            .copied().unwrap_or(None)
-            .map(|id| self.encoder.env().query.get_def_span(id));
-        let terminates: Option<Span> = contract.specification.terminates
-            .extract_with_selective_replacement()
-            .copied().unwrap_or(None)
-            .map(|id| self.encoder.env().query.get_def_span(id));
+            .map(|id| self.encoder.env().query.get_def_span(*id))
+            .collect::<Vec<Span>>();
 
         // for each pledge, if it has a lefthandside, join the 2, otherwise
         // just return span of the righthandside
@@ -3581,27 +3579,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             })
             .collect();
-        let mut result = vec![]; 
-        result.append(&mut precondition_spans);
-        result.append(&mut postcondition_spans);
         result.append(&mut pledges);
-        if let Some(purity) = purity {
-            result.push(purity);
-        }
-        if let Some(terminates) = terminates {
-            result.push(terminates);
-        }
-        // let mut pure_opt = contract.
         let tcx = self.encoder.env().tcx();
-        let contract_spans_opt = SpanOfCallContracts::new(
+        let contract_spans = SpanOfCallContracts::new(
             tcx.def_path_str(called_def_id),
             call_site_span,
             result,
             tcx.sess.source_map(),
         );
-        if let Some(contract_spans) = contract_spans_opt {
-            self.encoder.spans_of_call_contracts.borrow_mut().push(contract_spans);
-        }
+        self.encoder.spans_of_call_contracts.borrow_mut().push(contract_spans);
     }
 
     #[allow(clippy::too_many_arguments)]

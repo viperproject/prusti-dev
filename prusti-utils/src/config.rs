@@ -173,7 +173,7 @@ lazy_static::lazy_static! {
         // Flags specifically for Prusti-Assistant:
         settings.set_default("show_ide_info", false).unwrap();
         settings.set_default("skip_verification", false).unwrap();
-        settings.set_default::<Option<String>>("selective_verify", None).unwrap();
+        settings.set_default::<Option<String>>("verify_only_defpath", None).unwrap();
         settings.set_default::<Option<String>>("query_method_signature", None).unwrap();
 
 
@@ -1059,11 +1059,11 @@ pub fn skip_verification() -> bool {
 
 /// Used for selective verification, can be passed a String containing
 /// the DefPath of the method to be verified
-pub fn selective_verify() -> Option<String> {
-    read_setting("selective_verify")
+pub fn verify_only_defpath() -> Option<String> {
+    read_setting("verify_only_defpath")
 }
 
-/// A flag that can be used to ask the compiler for the declaration /  
+/// A flag that can be used to ask the compiler for the declaration /
 /// signature of a method, used to automatically generate a skeleton
 /// for an external specification
 pub fn query_method_signature() -> Option<String> {

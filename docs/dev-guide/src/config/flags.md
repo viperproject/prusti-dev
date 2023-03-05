@@ -57,7 +57,7 @@
 | [`QUERY_METHOD_SIGNATURE`](#query_method_signature) | `Option<String>` | `None` | A |
 | [`QUIET`](#quiet) | `bool` | `false` | A* |
 | [`REPORT_VIPER_MESSAGES`](#report_viper_messages) | `bool` | `false` | A |
-| [`SELECTIVE_VERIFY`](#selective_verify) | `Option<String>` | `None` | A |
+| [`VERIFY_ONLY_DEFPATH`](#verify_only_defpath) | `Option<String>` | `None` | A |
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` | A |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` | A |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` | A |
@@ -353,7 +353,7 @@ When enabled, prints the type-checked specifications.
 
 ## `QUERY_METHOD_SIGNATURE`
 
-When enabled, @cedihegi I don't know what exactly happens :)
+When set to a defpath, prusti will generate a template for an external specification for this method. The result is part of the CompilerInfo and will only be emitted if the `SHOW_IDE_INFO` flag is enabled too.
 
 ## `QUIET`
 
@@ -365,9 +365,9 @@ When enabled, user messages are not printed. Otherwise, messages output into `st
 
 When enabled for both server and client, certain supported Viper messages will be reported to the user.
 
-## `SELECTIVE_VERIFY`
+## `VERIFY_ONLY_DEFPATH`
 
-When enabled, @cedihegi I don't know what exactly happens :)
+When set to the defpath of a local method, prusti will only verify the specified method. A fake error will be generated to avoid caching of a success.
 
 ## `SERVER_ADDRESS`
 
@@ -387,7 +387,7 @@ Maximum amount of instantiated Viper verifiers the server will keep around for r
 
 ## `SHOW_IDE_INFO`
 
-When enabled, @cedihegi I don't know what exactly happens :)
+When enabled, we emit various json data structures containing information about the program, its encoding, and the results of the verification. This flag intended for prusti-assistant (IDE).
 
 ## `SIMPLIFY_ENCODING`
 
@@ -399,7 +399,7 @@ When enabled, features not supported by Prusti will be reported as warnings rath
 
 ## `SKIP_VERIFICATION`
 
-When enabled, @cedihegi I don't know what exactly happens :)
+When enabled, verification will be skipped. Opposed to `NO_VERIFY`, this flag will cause fake errors to stop the compiler from caching the result. 
 
 ## `SMT_QI_BOUND_GLOBAL`
 

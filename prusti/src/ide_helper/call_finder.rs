@@ -88,7 +88,7 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
             }
             ExprKind::Binary(..) | ExprKind::AssignOp(..) | ExprKind::Unary(..) => {
                 let resolve_res = self.resolve_expression(expr);
-                // this will already fail for standard addition
+                // this will already fail for builtin-operations
                 if let Ok((method_def_id, resolved_def_id)) = resolve_res {
                     let defpath_unresolved = self.tcx.def_path_str(method_def_id);
                     let defpath_resolved = self.tcx.def_path_str(resolved_def_id);
