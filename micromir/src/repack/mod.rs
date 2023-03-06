@@ -6,7 +6,7 @@
 
 mod repack;
 mod calculate;
-mod triple;
+pub(crate) mod triple;
 mod place;
 
 pub use calculate::*;
