@@ -1,4 +1,5 @@
 use crate::verifier::verify;
+use micromir::test_free_pcs;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
@@ -138,7 +139,11 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
-                verify(env, def_spec);
+                if config::test_free_pcs() {
+                    test_free_pcs(&env);
+                } else {
+                    verify(env, def_spec);
+                }
             }
         });
 
