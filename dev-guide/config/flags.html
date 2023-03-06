@@ -70,10 +70,12 @@
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -184,6 +186,7 @@
 <tr><td><a href="#log_dir"><code>LOG_DIR</code></a></td><td><code>String</code></td><td><code>&quot;log&quot;</code></td><td>A*</td></tr>
 <tr><td><a href="#log_style"><code>LOG_STYLE</code></a></td><td><code>String</code></td><td><code>&quot;auto&quot;</code></td><td>A</td></tr>
 <tr><td><a href="#log_smt_wrapper_interaction"><code>LOG_SMT_WRAPPER_INTERACTION</code></a></td><td><code>bool</code></td><td><code>false</code></td><td>A</td></tr>
+<tr><td><a href="#log_tracing"><code>LOG_TRACING</code></a></td><td><code>bool</code></td><td><code>true</code></td><td>A</td></tr>
 <tr><td><a href="#max_log_file_name_length"><code>MAX_LOG_FILE_NAME_LENGTH</code></a></td><td><code>usize</code></td><td><code>60</code></td><td>A</td></tr>
 <tr><td><a href="#min_prusti_version"><code>MIN_PRUSTI_VERSION</code></a></td><td><code>Option&lt;String&gt;</code></td><td><code>None</code></td><td>A</td></tr>
 <tr><td><a href="#no_verify"><code>NO_VERIFY</code></a></td><td><code>bool</code></td><td><code>false</code></td><td>A</td></tr>
@@ -336,7 +339,8 @@ hide actual verification errors.</p>
 <p>When enabled, communication with the server will be encoded as JSON instead of the default bincode.</p>
 <h2 id="log"><a class="header" href="#log"><code>LOG</code></a></h2>
 <p>Log level and filters. See <a href="https://docs.rs/env_logger/0.7.1/env_logger/index.html#enabling-logging"><code>env_logger</code> documentation</a>.</p>
-<p>For example, <code>PRUSTI_LOG=prusti_viper=trace</code> enables trace logging for the prusti-viper crate.
+<p>For example, <code>PRUSTI_LOG=prusti_viper=trace</code> enables trace logging for the prusti-viper crate, or <code>PRUSTI_LOG=debug</code> enables lighter logging everywhere. When using <code>trace</code> it is recommended to disable <code>jni</code> messages with e.g. <code>PRUSTI_LOG=trace,jni=warn</code>.
+A useful explanation of this can be found in the <a href="https://rustc-dev-guide.rust-lang.org/tracing.html">rustc docs</a> (we set <code>PRUSTI_LOG</code> rather than <code>RUSTC_LOG</code>).
 Debug and trace logs are not available in release builds.</p>
 <h2 id="log_dir"><a class="header" href="#log_dir"><code>LOG_DIR</code></a></h2>
 <p>Path to directory in which log files and dumped output will be stored.</p>
@@ -344,12 +348,15 @@ Debug and trace logs are not available in release builds.</p>
 <p><strong>Note:</strong> <code>cargo prusti</code> sets this flag with <code>DEFAULT_PRUSTI_LOG_DIR=$CARGO_TARGET_DIR/log</code>.</p>
 </blockquote>
 <h2 id="log_style"><a class="header" href="#log_style"><code>LOG_STYLE</code></a></h2>
-<p>Log style. See <a href="https://docs.rs/env_logger/0.7.1/env_logger/index.html#disabling-colors"><code>env_logger</code> documentation</a>.</p>
+<p>Log style. See <a href="https://docs.rs/env_logger/0.7.1/env_logger/index.html#disabling-colors"><code>env_logger</code> documentation</a>. Has no effect when <code>LOG_TRACING=true</code>.</p>
 <h2 id="log_smt_wrapper_interaction"><a class="header" href="#log_smt_wrapper_interaction"><code>LOG_SMT_WRAPPER_INTERACTION</code></a></h2>
 <p>When enabled, logs all SMT wrapper interaction to a file.</p>
 <blockquote>
 <p><strong>Note:</strong> Requires <code>USE_SMT_WRAPPER</code> to be <code>true</code>.</p>
 </blockquote>
+<h2 id="log_tracing"><a class="header" href="#log_tracing"><code>LOG_TRACING</code></a></h2>
+<p>When enabled, logs are outputted using the <a href="https://docs.rs/tracing-chrome/0.7.0/tracing_chrome/"><code>tracing_chrome</code> crate</a> rather than as std output with the <code>env_logger</code>.
+You can find the file at <code>$LOG_DIR/trace.json</code> which can be opened in <a href="https://ui.perfetto.dev/">ui.perfetto.dev</a>. The file is only generated if <a href="#log"><code>LOG</code></a> is set.</p>
 <h2 id="max_log_file_name_length"><a class="header" href="#max_log_file_name_length"><code>MAX_LOG_FILE_NAME_LENGTH</code></a></h2>
 <p>Maximum allowed length of a log file name. If this is exceeded, the file name is truncated.</p>
 <h2 id="min_prusti_version"><a class="header" href="#min_prusti_version"><code>MIN_PRUSTI_VERSION</code></a></h2>
