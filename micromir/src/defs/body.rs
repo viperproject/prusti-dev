@@ -12,9 +12,14 @@ use prusti_rustc_interface::{
         ty::TyCtxt,
     },
 };
-use std::rc::Rc;
+use std::{
+    fmt::{Display, Formatter, Result},
+    rc::Rc,
+};
 
-use crate::{MicroStatement, MicroTerminator, PlaceCapabilitySummary};
+use crate::{
+    FreeState, MicroStatement, MicroTerminator, TermDebug, TerminatorPlaceCapabilitySummary,
+};
 
 #[derive(Clone, Debug, Deref, DerefMut)]
 pub struct MicroBody<'tcx> {
@@ -51,7 +56,7 @@ pub struct MicroBasicBlocks<'tcx> {
 }
 
 impl<'tcx> From<&Body<'tcx>> for MicroBasicBlocks<'tcx> {
-    #[tracing::instrument(level = "debug", skip(body), fields(body = format!("{body:#?}")))]
+    #[tracing::instrument(level = "info", skip(body), fields(body = format!("{body:#?}")))]
     fn from(body: &Body<'tcx>) -> Self {
         Self {
             basic_blocks: body
@@ -60,6 +65,48 @@ impl<'tcx> From<&Body<'tcx>> for MicroBasicBlocks<'tcx> {
                 .map(MicroBasicBlockData::from)
                 .collect(),
         }
+    }
+}
+
+impl Display for MicroBasicBlocks<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        for (bb, data) in self.basic_blocks.iter_enumerated() {
+            writeln!(f, "{bb:?}: {{")?;
+            for stmt in &data.statements {
+                let repack = stmt.repack_operands.as_ref().unwrap();
+                writeln!(f, "  // {}", repack.state())?;
+                for rpck in &**repack.repacks() {
+                    writeln!(f, "  {rpck:?};")?;
+                }
+                for (tmp, operand) in stmt.operands.iter_enumerated() {
+                    writeln!(f, "  {tmp:?} <- {operand:?};")?;
+                }
+                writeln!(f, "  {:?};", stmt.kind)?;
+            }
+            let repack = data.terminator.repack_operands.as_ref().unwrap();
+            writeln!(f, "  // {}", repack.state())?;
+            for rpck in &**repack.repacks() {
+                writeln!(f, "  {rpck:?};")?;
+            }
+            for (tmp, operand) in data.terminator.operands.iter_enumerated() {
+                writeln!(f, "  {tmp:?} <- {operand:?};")?;
+            }
+            let display = TermDebug(&data.terminator.kind, &data.terminator.original_kind);
+            writeln!(f, "  {display:?};")?;
+            let repack = data.terminator.repack_join.as_ref().unwrap();
+            // writeln!(f, "  // {}", repack.state())?;
+            for (bb, repacks) in repack.repacks().iter() {
+                if repacks.is_empty() {
+                    continue;
+                }
+                writeln!(f, "  {bb:?}:")?;
+                for rpck in &**repacks {
+                    writeln!(f, "    {rpck:?};")?;
+                }
+            }
+            writeln!(f, "}}")?;
+        }
+        Ok(())
     }
 }
 
@@ -81,7 +128,16 @@ impl<'tcx> From<&BasicBlockData<'tcx>> for MicroBasicBlockData<'tcx> {
 }
 
 impl<'tcx> MicroBasicBlockData<'tcx> {
-    pub(crate) fn get_pcs_mut(&mut self) -> Option<&mut PlaceCapabilitySummary<'tcx>> {
+    pub(crate) fn get_start_state(&self) -> &FreeState<'tcx> {
+        if self.statements.is_empty() {
+            self.terminator.repack_operands.as_ref().unwrap().state()
+        } else {
+            self.statements[0].repack_operands.as_ref().unwrap().state()
+        }
+    }
+    pub(crate) fn get_end_pcs_mut(
+        &mut self,
+    ) -> Option<&mut TerminatorPlaceCapabilitySummary<'tcx>> {
         self.terminator.repack_join.as_mut()
     }
 }
