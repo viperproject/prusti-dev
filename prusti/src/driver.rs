@@ -140,8 +140,15 @@ fn main() {
     // have been filtered out.
     let original_rustc_args = config::get_filtered_args();
 
-    // If the environment asks us to actually be rustc, then run `rustc` instead of Prusti.
-    if config::be_rustc() {
+    // Are we building a build script?
+    let build_script_build = arg_value(&original_rustc_args, "--crate-name", |val| {
+        val == "build_script_build"
+    })
+    .is_some();
+
+    // If the environment asks us to actually be rustc, then run `rustc` instead of Prusti,
+    // or if we're building a build script where we can't retrieve MIR bodies.
+    if config::be_rustc() || build_script_build {
         prusti_rustc_interface::driver::main();
     }
 
