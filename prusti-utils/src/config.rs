@@ -131,6 +131,8 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
         settings.set_default("num_errors_per_function", 1).unwrap();
         settings.set_default("ignore_deps_contracts", false).unwrap();
+        // TODO: remove this option
+        settings.set_default("test_free_pcs", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -1035,4 +1037,8 @@ pub fn num_errors_per_function() -> u32 {
 /// When enabled Prusti won't collect contracts from the project's dependencies
 pub fn ignore_deps_contracts() -> bool {
     read_setting("ignore_deps_contracts")
+}
+
+pub fn test_free_pcs() -> bool {
+    read_setting("test_free_pcs")
 }

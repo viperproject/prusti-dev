@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::middle::mir::{Operand, RETURN_PLACE};
+use prusti_rustc_interface::middle::mir::RETURN_PLACE;
 
 use crate::{
-    FreeStateUpdate, MicroStatement, MicroStatementKind, MicroTerminator, MicroTerminatorKind,
-    Operands, PermissionKind,
+    FreeStateUpdate, MicroFullOperand, MicroStatement, MicroStatementKind, MicroTerminator,
+    MicroTerminatorKind, Operands, PermissionKind,
 };
 
 pub(crate) trait ModifiesFreeState<'tcx> {
@@ -16,19 +16,22 @@ pub(crate) trait ModifiesFreeState<'tcx> {
 }
 
 impl<'tcx> ModifiesFreeState<'tcx> for Operands<'tcx> {
-    #[tracing::instrument(level = "debug")]
+    #[tracing::instrument(level = "trace")]
     fn get_update(&self, locals: usize) -> FreeStateUpdate<'tcx> {
         let mut update = FreeStateUpdate::default(locals);
         for operand in &**self {
             match *operand {
-                Operand::Copy(place) => {
-                    update[place.local].requires_alloc(place, PermissionKind::Shared)
+                MicroFullOperand::Copy(place) => {
+                    update[place.local].requires_alloc(
+                        place,
+                        &[PermissionKind::Exclusive, PermissionKind::Shared],
+                    );
                 }
-                Operand::Move(place) => {
-                    update[place.local].requires_alloc(place, PermissionKind::Exclusive);
+                MicroFullOperand::Move(place) => {
+                    update[place.local].requires_alloc_one(place, PermissionKind::Exclusive);
                     update[place.local].ensures_alloc(place, PermissionKind::Uninit);
                 }
-                Operand::Constant(..) => (),
+                MicroFullOperand::Constant(..) => (),
             }
         }
         update
@@ -36,37 +39,40 @@ impl<'tcx> ModifiesFreeState<'tcx> for Operands<'tcx> {
 }
 
 impl<'tcx> ModifiesFreeState<'tcx> for MicroStatement<'tcx> {
-    #[tracing::instrument(level = "debug")]
+    #[tracing::instrument(level = "trace")]
     fn get_update(&self, locals: usize) -> FreeStateUpdate<'tcx> {
         let mut update = self.operands.get_update(locals);
         match &self.kind {
-            MicroStatementKind::Assign(box (place, _)) => {
-                update[place.local].requires_alloc(*place, PermissionKind::Uninit);
-                update[place.local].ensures_alloc(*place, PermissionKind::Exclusive);
+            &MicroStatementKind::Assign(box (place, _)) => {
+                if let Some(pre) = update[place.local].get_pre_for(place) {
+                    assert_eq!(pre.len(), 2);
+                    assert!(pre.contains(&PermissionKind::Exclusive));
+                    assert!(pre.contains(&PermissionKind::Shared));
+                } else {
+                    update[place.local].requires_alloc_one(place, PermissionKind::Uninit);
+                }
+                update[place.local].ensures_alloc(place, PermissionKind::Exclusive);
             }
-            MicroStatementKind::FakeRead(box (_, place)) => {
-                update[place.local].requires_alloc(*place, PermissionKind::Shared)
-            }
+            MicroStatementKind::FakeRead(box (_, place)) => update[place.local]
+                .requires_alloc(*place, &[PermissionKind::Exclusive, PermissionKind::Shared]),
             MicroStatementKind::SetDiscriminant { box place, .. } => {
-                update[place.local].requires_alloc(*place, PermissionKind::Exclusive)
+                update[place.local].requires_alloc_one(*place, PermissionKind::Exclusive)
             }
             MicroStatementKind::Deinit(box place) => {
-                update[place.local].requires_alloc(*place, PermissionKind::Exclusive);
+                // TODO: Maybe OK to also allow `Uninit` here?
+                update[place.local].requires_alloc_one(*place, PermissionKind::Exclusive);
                 update[place.local].ensures_alloc(*place, PermissionKind::Uninit);
             }
-            MicroStatementKind::StorageLive(local) => {
-                update[*local].requires_unalloc();
-                update[*local].ensures_alloc((*local).into(), PermissionKind::Uninit);
+            &MicroStatementKind::StorageLive(local) => {
+                update[local].requires_unalloc();
+                update[local].ensures_alloc(local.into(), PermissionKind::Uninit);
             }
-            // TODO: The MIR is allowed to have multiple StorageDead statements for the same local.
-            // But right now we go `PermissionLocal::Allocated` -SD-> `PermissionLocal::Unallocated`,
-            // which would error when encountering a second StorageDead statement.
-            MicroStatementKind::StorageDead(local) => {
-                update[*local].requires_alloc((*local).into(), PermissionKind::Uninit);
-                update[*local].ensures_unalloc();
+            &MicroStatementKind::StorageDead(local) => {
+                update[local].requires_unalloc_or_uninit(local);
+                update[local].ensures_unalloc();
             }
             MicroStatementKind::Retag(_, box place) => {
-                update[place.local].requires_alloc(*place, PermissionKind::Exclusive)
+                update[place.local].requires_alloc_one(*place, PermissionKind::Exclusive)
             }
             MicroStatementKind::AscribeUserType(..)
             | MicroStatementKind::Coverage(..)
@@ -79,7 +85,7 @@ impl<'tcx> ModifiesFreeState<'tcx> for MicroStatement<'tcx> {
 }
 
 impl<'tcx> ModifiesFreeState<'tcx> for MicroTerminator<'tcx> {
-    #[tracing::instrument(level = "debug")]
+    #[tracing::instrument(level = "trace")]
     fn get_update(&self, locals: usize) -> FreeStateUpdate<'tcx> {
         let mut update = self.operands.get_update(locals);
         match &self.kind {
@@ -92,22 +98,24 @@ impl<'tcx> ModifiesFreeState<'tcx> for MicroTerminator<'tcx> {
             | MicroTerminatorKind::GeneratorDrop
             | MicroTerminatorKind::FalseEdge { .. }
             | MicroTerminatorKind::FalseUnwind { .. } => (),
-            MicroTerminatorKind::Return => {
-                update[RETURN_PLACE].requires_alloc(RETURN_PLACE.into(), PermissionKind::Exclusive)
-            }
+            MicroTerminatorKind::Return => update[RETURN_PLACE]
+                .requires_alloc_one(RETURN_PLACE.into(), PermissionKind::Exclusive),
             MicroTerminatorKind::Drop { place, .. } => {
-                update[place.local].requires_alloc(*place, PermissionKind::Exclusive);
+                update[place.local]
+                    .requires_alloc(*place, &[PermissionKind::Exclusive, PermissionKind::Uninit]);
                 update[place.local].ensures_alloc(*place, PermissionKind::Uninit);
             }
             MicroTerminatorKind::DropAndReplace { place, .. } => {
-                update[place.local].requires_alloc(*place, PermissionKind::Exclusive);
+                update[place.local]
+                    .requires_alloc(*place, &[PermissionKind::Exclusive, PermissionKind::Uninit]);
+                update[place.local].ensures_alloc(*place, PermissionKind::Exclusive);
             }
             MicroTerminatorKind::Call { destination, .. } => {
-                update[destination.local].requires_alloc(*destination, PermissionKind::Uninit);
+                update[destination.local].requires_alloc_one(*destination, PermissionKind::Uninit);
                 update[destination.local].ensures_alloc(*destination, PermissionKind::Exclusive);
             }
             MicroTerminatorKind::Yield { resume_arg, .. } => {
-                update[resume_arg.local].requires_alloc(*resume_arg, PermissionKind::Uninit);
+                update[resume_arg.local].requires_alloc_one(*resume_arg, PermissionKind::Uninit);
                 update[resume_arg.local].ensures_alloc(*resume_arg, PermissionKind::Exclusive);
             }
         };

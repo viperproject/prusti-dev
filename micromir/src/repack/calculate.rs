@@ -15,8 +15,8 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    FreeState, MicroBasicBlockData, MicroBasicBlocks, MicroBody, MicroStatement, MicroTerminator,
-    PermissionKind, PlaceCapabilitySummary,
+    check::checker, FreeState, MicroBasicBlockData, MicroBasicBlocks, MicroBody, MicroStatement,
+    MicroTerminator, PermissionKind, TerminatorPlaceCapabilitySummary,
 };
 
 use super::{place::PlaceRepacker, triple::ModifiesFreeState};
@@ -52,6 +52,11 @@ impl<'tcx> MicroBody<'tcx> {
         // Do the actual repacking calculation
         self.basic_blocks
             .calculate_repacking(start_node, state, |bb| &preds[bb], rp);
+
+        if cfg!(debug_assertions) {
+            // println!("--------\n{}\n--------", &self.basic_blocks);
+            checker::check(&self.basic_blocks, rp);
+        }
     }
 }
 
@@ -61,6 +66,7 @@ struct Queue {
     dirty_queue: FxHashSet<BasicBlock>,
     done: IndexVec<BasicBlock, bool>,
     can_redo: IndexVec<BasicBlock, bool>,
+    recompute_count: IndexVec<BasicBlock, u32>,
 }
 impl Queue {
     fn new(start_node: BasicBlock, len: usize) -> Self {
@@ -71,6 +77,7 @@ impl Queue {
             dirty_queue: FxHashSet::default(),
             done,
             can_redo: IndexVec::from_elem_n(true, len),
+            recompute_count: IndexVec::from_elem_n(0, len),
         }
     }
     fn add_succs<'a>(
@@ -88,8 +95,8 @@ impl Queue {
             }
         }
     }
-    #[tracing::instrument(name = "Queue::pop", level = "debug", ret)]
-    fn pop(&mut self) -> Option<BasicBlock> {
+    #[tracing::instrument(name = "Queue::pop", level = "warn", skip(min_by), ret)]
+    fn pop(&mut self, min_by: impl Fn(&BasicBlock) -> usize) -> Option<BasicBlock> {
         if let Some(bb) = self.queue.pop() {
             self.done[bb] = true;
             Some(bb)
@@ -101,14 +108,18 @@ impl Queue {
                     .all(|bb| self.done[bb] || !self.can_redo[bb]));
                 return None;
             }
-            let bb = *self
+            let bb = self
                 .dirty_queue
                 .iter()
-                .filter(|bb| self.can_redo[**bb])
-                .next()
+                .copied()
+                .filter(|bb| self.can_redo[*bb])
+                .min_by_key(min_by)
                 .unwrap(); // Can this happen? If so probably a bug
             self.can_redo[bb] = false;
             self.dirty_queue.remove(&bb);
+            self.recompute_count[bb] += 1;
+            // TODO: assert that recompute count is low
+            assert!(self.recompute_count[bb] < 200);
             Some(bb)
         }
     }
@@ -130,47 +141,79 @@ impl<'tcx> MicroBasicBlocks<'tcx> {
         self.basic_blocks[start_node].calculate_repacking(initial, rp);
         let mut queue = Queue::new(start_node, self.basic_blocks.len());
         queue.add_succs(&self.basic_blocks[start_node].terminator, &preds);
-        while let Some(can_do) = queue.pop() {
+        while let Some(can_do) = queue.pop(|bb: &BasicBlock| {
+            let preds = preds(*bb);
+            preds.len() - self.get_valid_pred_count(preds)
+        }) {
+            // if can_do.as_u32() == 27 {
+            //     tracing::warn!("IJOFD");
+            // }
             let is_cleanup = self.basic_blocks[can_do].is_cleanup;
             let predecessors = self.get_pred_pcs(preds(can_do));
-            let initial = Self::calculate_join(predecessors, is_cleanup, rp);
+            let initial = if predecessors.len() == 1 {
+                predecessors[0].state().clone()
+            } else {
+                Self::calculate_join(can_do, predecessors, is_cleanup, rp)
+            };
+            // TODO: A better way to do this might be to calculate a pre/post for entire basic blocks;
+            // start with pre/post of all `None` and walk over the statements collecting all the
+            // pre/posts, ignoring some (e.g. if we already have `x.f` in our pre then if we ran into
+            // `x.f.g` we'd ignore it, and if we ran into `x` we'd add `rp.expand(`x`, `x.f`).1`).
+            // And then calculate the fixpoint from that (rather than having to go through all the
+            // statements again each time). Then, once we have the state for the start and end of each
+            // bb, we simply calculate intermediate states along with repacking for all straight-line
+            // code within each bb.
             let changed = self.basic_blocks[can_do].calculate_repacking(initial, rp);
             if changed {
                 queue.add_succs(&self.basic_blocks[can_do].terminator, &preds);
             }
         }
-        // debug_assert!(done.iter().all(|b| *b), "{done:?}");
     }
 
     fn get_pred_pcs(
         &mut self,
         predecessors: &[BasicBlock],
-    ) -> Vec<&mut PlaceCapabilitySummary<'tcx>> {
+    ) -> Vec<&mut TerminatorPlaceCapabilitySummary<'tcx>> {
         let predecessors = self
             .basic_blocks
             .iter_enumerated_mut()
             .filter(|(bb, _)| predecessors.contains(bb));
         predecessors
-            .filter_map(|(_, bb)| bb.get_pcs_mut())
+            .filter_map(|(_, bb)| bb.get_end_pcs_mut())
             .collect::<Vec<_>>()
     }
 
+    fn get_valid_pred_count(&self, predecessors: &[BasicBlock]) -> usize {
+        predecessors
+            .iter()
+            .map(|bb| &self.basic_blocks[*bb])
+            .filter(|bb| bb.terminator.repack_join.is_some())
+            .count()
+    }
+
+    #[tracing::instrument(level = "info", skip(rp))]
     fn calculate_join(
-        predecessors: Vec<&mut PlaceCapabilitySummary<'tcx>>,
+        bb: BasicBlock,
+        predecessors: Vec<&mut TerminatorPlaceCapabilitySummary<'tcx>>,
         is_cleanup: bool,
         rp: PlaceRepacker<'_, 'tcx>,
     ) -> FreeState<'tcx> {
         let mut join = predecessors[0].state().clone();
         for pred in predecessors.iter().skip(1) {
             pred.state().join(&mut join, is_cleanup, rp);
+            if cfg!(debug_assertions) {
+                join.consistency_check(rp);
+            }
         }
-        // TODO: calculate the repacking statements needed
-        // println!("join {join:#?} of\n{predecessors:#?}");
+        for pred in predecessors {
+            pred.join(&join, bb, is_cleanup, rp);
+        }
         join
     }
 }
 
 impl<'tcx> MicroBasicBlockData<'tcx> {
+    #[tracing::instrument(level = "info", skip(rp))]
     pub(crate) fn calculate_repacking(
         &mut self,
         mut incoming: FreeState<'tcx>,
@@ -207,8 +250,14 @@ impl<'tcx> MicroStatement<'tcx> {
     ) -> FreeState<'tcx> {
         let update = self.get_update(incoming.len());
         let (pcs, mut pre) = incoming.bridge(&update, rp);
+        if cfg!(debug_assertions) {
+            pre.consistency_check(rp);
+        }
         self.repack_operands = Some(pcs);
         update.update_free(&mut pre);
+        if cfg!(debug_assertions) {
+            pre.consistency_check(rp);
+        }
         pre
     }
 }
@@ -222,14 +271,27 @@ impl<'tcx> MicroTerminator<'tcx> {
     ) -> bool {
         let update = self.get_update(incoming.len());
         let (pcs, mut pre) = incoming.bridge(&update, rp);
+        if cfg!(debug_assertions) {
+            pre.consistency_check(rp);
+        }
         self.repack_operands = Some(pcs);
         update.update_free(&mut pre);
-        let changed = self
-            .repack_join
-            .as_ref()
-            .map(|pcs| pcs.state() != &pre)
-            .unwrap_or(true);
-        self.repack_join = Some(PlaceCapabilitySummary::empty(pre));
-        changed
+        if cfg!(debug_assertions) {
+            pre.consistency_check(rp);
+        }
+        if let Some(pcs) = self.repack_join.as_mut() {
+            let changed = pcs.state() != &pre;
+            debug_assert!(!(changed && self.previous_rjs.contains(&pre)));
+            if cfg!(debug_assertions) {
+                let old = std::mem::replace(pcs.state_mut(), pre);
+                self.previous_rjs.push(old);
+            } else {
+                *pcs.state_mut() = pre;
+            }
+            changed
+        } else {
+            self.repack_join = Some(TerminatorPlaceCapabilitySummary::empty(pre));
+            true
+        }
     }
 }
