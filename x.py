@@ -37,6 +37,7 @@ dry_run = False
 RUSTFMT_CRATES = [
     'analysis',
     'jni-gen',
+    'micromir',
     'prusti',
     'prusti-common',
     'prusti-contracts/prusti-contracts',

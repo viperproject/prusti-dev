@@ -4,54 +4,122 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::cmp::Ordering;
+use std::{
+    cmp::Ordering,
+    fmt::{Debug, Display, Formatter, Result},
+};
 
 use derive_more::{Deref, DerefMut};
 
 use prusti_rustc_interface::{
-    data_structures::fx::FxHashMap,
+    data_structures::fx::{FxHashMap, FxHashSet},
     index::vec::IndexVec,
-    middle::mir::{Local, Place},
+    middle::mir::Local,
 };
 
-use crate::PlaceRepacker;
+use crate::{Place, PlaceOrdering, PlaceRepacker};
 
 pub type FreeStateUpdate<'tcx> = LocalsState<LocalUpdate<'tcx>>;
 #[derive(Clone, Debug, PartialEq, Eq, Deref, DerefMut, Default)]
-pub struct LocalUpdate<'tcx>((Option<PermissionLocal<'tcx>>, Option<PermissionLocal<'tcx>>));
+pub struct LocalUpdate<'tcx>(
+    (
+        Option<LocalRequirement<'tcx>>,
+        Option<PermissionLocal<'tcx>>,
+    ),
+);
+
+#[derive(Clone, Debug, PartialEq, Eq, Deref, DerefMut, Default)]
+pub struct LocalRequirement<'tcx> {
+    unalloc_allowed: bool,
+    #[deref]
+    #[deref_mut]
+    place_reqs: FxHashMap<Place<'tcx>, FxHashSet<PermissionKind>>,
+}
 
 impl<'tcx> LocalUpdate<'tcx> {
-    pub(crate) fn requires_unalloc(&mut self) {
-        Self::unalloc(&mut self.0 .0);
+    fn init_pre(&mut self) -> &mut LocalRequirement<'tcx> {
+        assert!(self.0 .0.is_none());
+        self.0 .0 = Some(LocalRequirement::default());
+        self.0 .0.as_mut().unwrap()
     }
-    pub(crate) fn ensures_unalloc(&mut self) {
-        Self::unalloc(&mut self.0 .1);
+    pub(crate) fn requires_unalloc_or_uninit(&mut self, local: Local) {
+        let req = self.init_pre();
+        req.unalloc_allowed = true;
+        self.requires_alloc(local.into(), &[PermissionKind::Uninit]);
     }
-    fn unalloc(local: &mut Option<PermissionLocal<'tcx>>) {
-        if let Some(pre) = local {
-            assert_eq!(*pre, PermissionLocal::Unallocated);
+    pub(crate) fn requires_alloc(&mut self, place: Place<'tcx>, perms: &[PermissionKind]) {
+        let req = if self.0 .0.is_none() {
+            self.init_pre()
         } else {
-            *local = Some(PermissionLocal::Unallocated);
-        }
+            self.0 .0.as_mut().unwrap()
+        };
+        assert!(
+            req.keys().all(|other| !place.related_to(*other)),
+            "{req:?} {place:?} {perms:?}"
+        );
+        req.insert(place, perms.iter().copied().collect());
     }
-    pub(crate) fn requires_alloc(&mut self, place: Place<'tcx>, perm: PermissionKind) {
-        Self::alloc(&mut self.0 .0, place, perm);
+    pub(crate) fn requires_unalloc(&mut self) {
+        let req = self.init_pre();
+        req.unalloc_allowed = true;
+    }
+    pub(crate) fn requires_alloc_one(&mut self, place: Place<'tcx>, perm: PermissionKind) {
+        self.requires_alloc(place, &[perm]);
+    }
+
+    pub(crate) fn ensures_unalloc(&mut self) {
+        assert!(self.0 .1.is_none());
+        self.0 .1 = Some(PermissionLocal::Unallocated);
     }
     pub(crate) fn ensures_alloc(&mut self, place: Place<'tcx>, perm: PermissionKind) {
-        Self::alloc(&mut self.0 .1, place, perm);
-    }
-    fn alloc(local: &mut Option<PermissionLocal<'tcx>>, place: Place<'tcx>, perm: PermissionKind) {
-        if let Some(pre) = local {
-            let old = pre.get_allocated_mut().insert(place, perm);
-            assert!(old.is_none());
+        if let Some(pre) = &mut self.0 .1 {
+            let pre = pre.get_allocated_mut();
+            assert!(pre.keys().all(|other| !place.related_to(*other)));
+            pre.insert(place, perm);
         } else {
-            *local = Some(PermissionLocal::Allocated(
+            self.0 .1 = Some(PermissionLocal::Allocated(
                 PermissionProjections::new_update(place, perm),
             ));
         }
     }
-    pub(crate) fn get_pre(&self) -> &Option<PermissionLocal<'tcx>> {
-        &self.0 .0
+
+    /// Used for the edge case of assigning to the same place you copy from, do not use otherwise!
+    pub(crate) fn get_pre_for(&self, place: Place<'tcx>) -> Option<&FxHashSet<PermissionKind>> {
+        let pre = self.0 .0.as_ref()?;
+        pre.get(&place)
+    }
+
+    pub(crate) fn get_pre(&self, state: &PermissionLocal<'tcx>) -> Option<PermissionLocal<'tcx>> {
+        let pre = self.0 .0.as_ref()?;
+        match state {
+            PermissionLocal::Unallocated => {
+                assert!(pre.unalloc_allowed);
+                return Some(PermissionLocal::Unallocated);
+            }
+            PermissionLocal::Allocated(state) => {
+                let mut achievable = PermissionProjections(FxHashMap::default());
+                for (place, allowed_perms) in pre.iter() {
+                    let related_set = state.find_all_related(*place, None);
+                    let mut perm = None;
+                    for &ap in allowed_perms {
+                        if related_set.minimum >= ap {
+                            perm = Some(ap);
+                        }
+                        if related_set.minimum == ap {
+                            break;
+                        }
+                    }
+                    assert!(
+                        perm.is_some(),
+                        "{place:?}, {allowed_perms:?}, {state:?}, {:?}, {:?}",
+                        related_set.minimum,
+                        related_set.from
+                    );
+                    achievable.insert(*place, perm.unwrap());
+                }
+                Some(PermissionLocal::Allocated(achievable))
+            }
+        }
     }
 }
 
@@ -65,6 +133,27 @@ pub type FreeState<'tcx> = LocalsState<PermissionLocal<'tcx>>;
 impl<T> FromIterator<T> for LocalsState<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         Self(IndexVec::from_iter(iter))
+    }
+}
+impl Display for FreeState<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{{")?;
+        let mut first = true;
+        for state in self.iter() {
+            if let PermissionLocal::Allocated(state) = state {
+                if !first {
+                    write!(f, ", ")?;
+                }
+                first = false;
+                for (i, (place, perm)) in state.iter().enumerate() {
+                    if i != 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{perm:?} {place:?}")?;
+                }
+            }
+        }
+        write!(f, "}}")
     }
 }
 
@@ -82,9 +171,10 @@ impl<'tcx> LocalsState<PermissionLocal<'tcx>> {
             local_count,
         ))
     }
-    pub(crate) fn consistency_check(&self) {
+    #[tracing::instrument(level = "trace", skip(rp))]
+    pub(crate) fn consistency_check(&self, rp: PlaceRepacker<'_, 'tcx>) {
         for p in self.iter() {
-            p.consistency_check();
+            p.consistency_check(rp);
         }
     }
 }
@@ -104,23 +194,26 @@ impl<T> LocalsState<T> {
 }
 impl<'tcx> LocalsState<LocalUpdate<'tcx>> {
     pub fn update_free(self, state: &mut FreeState<'tcx>) {
-        for (local, LocalUpdate((pre, post))) in self.0.clone().into_iter_enumerated() {
+        for (local, update) in self.0.into_iter_enumerated() {
             if cfg!(debug_assertions) {
-                if let Some(pre) = pre {
-                    match (&state[local], pre) {
-                        (PermissionLocal::Unallocated, PermissionLocal::Unallocated) => {}
-                        (PermissionLocal::Allocated(local_state), PermissionLocal::Allocated(pre)) => {
-                            for (place, required_perm) in pre.iter() {
-                                let perm = local_state.get(place).unwrap();
-                                let is_read = required_perm.is_shared() && perm.is_exclusive();
-                                assert!(perm == required_perm || is_read, "Req\n{self:#?}\n, have\n{state:#?}\n{place:#?}\n{perm:#?}\n{required_perm:#?}\n");
-                            }
+                use PermissionLocal::*;
+                match (&state[local], update.get_pre(&state[local])) {
+                    (_, None) => {}
+                    (Unallocated, Some(Unallocated)) => {}
+                    (Allocated(local_state), Some(Allocated(pre))) => {
+                        for (place, required_perm) in pre.0 {
+                            let perm = *local_state.get(&place).unwrap();
+                            let is_read = required_perm.is_shared() && perm.is_exclusive();
+                            assert!(
+                                perm == required_perm || is_read,
+                                "Have\n{state:#?}\n{place:#?}\n{perm:#?}\n{required_perm:#?}\n"
+                            );
                         }
-                        _ => unreachable!(),
                     }
+                    _ => unreachable!(),
                 }
             }
-            if let Some(post) = post {
+            if let Some(post) = update.0 .1 {
                 match (post, &mut state[local]) {
                     (post @ PermissionLocal::Unallocated, _)
                     | (post, PermissionLocal::Unallocated) => state[local] = post,
@@ -133,14 +226,28 @@ impl<'tcx> LocalsState<LocalUpdate<'tcx>> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 /// The permissions of a local
 pub enum PermissionLocal<'tcx> {
     Unallocated,
     Allocated(PermissionProjections<'tcx>),
 }
+impl Debug for PermissionLocal<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            PermissionLocal::Unallocated => write!(f, "U"),
+            PermissionLocal::Allocated(a) => write!(f, "{a:?}"),
+        }
+    }
+}
 
 impl<'tcx> PermissionLocal<'tcx> {
+    pub fn get_allocated(&self) -> &PermissionProjections<'tcx> {
+        match self {
+            PermissionLocal::Allocated(places) => places,
+            _ => panic!(),
+        }
+    }
     pub fn get_allocated_mut(&mut self) -> &mut PermissionProjections<'tcx> {
         match self {
             PermissionLocal::Allocated(places) => places,
@@ -148,20 +255,43 @@ impl<'tcx> PermissionLocal<'tcx> {
         }
     }
 
-    fn consistency_check(&self) {
+    fn consistency_check(&self, rp: PlaceRepacker<'_, 'tcx>) {
         match self {
             PermissionLocal::Unallocated => {}
             PermissionLocal::Allocated(places) => {
-                places.consistency_check();
+                places.consistency_check(rp);
             }
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
+#[derive(Clone, PartialEq, Eq, Deref, DerefMut)]
 /// The permissions for all the projections of a place
 // We only need the projection part of the place
 pub struct PermissionProjections<'tcx>(FxHashMap<Place<'tcx>, PermissionKind>);
+
+impl<'tcx> Debug for PermissionProjections<'tcx> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        self.0.fmt(f)
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct RelatedSet<'tcx> {
+    pub(crate) from: Vec<(Place<'tcx>, PermissionKind)>,
+    pub(crate) to: Place<'tcx>,
+    pub(crate) minimum: PermissionKind,
+    pub(crate) relation: PlaceOrdering,
+}
+impl<'tcx> RelatedSet<'tcx> {
+    pub fn get_from(&self) -> FxHashSet<Place<'tcx>> {
+        assert!(matches!(
+            self.relation,
+            PlaceOrdering::Suffix | PlaceOrdering::Both
+        ));
+        self.from.iter().map(|(p, _)| *p).collect()
+    }
+}
 
 impl<'tcx> PermissionProjections<'tcx> {
     pub fn new(local: Local, perm: PermissionKind) -> Self {
@@ -178,128 +308,177 @@ impl<'tcx> PermissionProjections<'tcx> {
     /// Returns all related projections of the given place that are contained in this map.
     /// A `Ordering::Less` means that the given `place` is a prefix of the iterator place.
     /// For example: find_all_related(x.f.g) = [(Less, x.f.g.h), (Greater, x.f)]
-    pub fn find_all_related(
+    /// It also checks that the ordering conforms to the expected ordering (the above would
+    /// fail in any situation since all orderings need to be the same)
+    #[tracing::instrument(level = "trace", ret)]
+    pub(crate) fn find_all_related(
         &self,
-        place: Place<'tcx>,
-    ) -> impl Iterator<Item = (Ordering, Place<'tcx>, PermissionKind)> + '_ {
-        self.iter().filter_map(move |(other, perm)| {
-            PlaceRepacker::partial_cmp(*other, place).map(|ord| (ord, *other, *perm))
-        })
+        to: Place<'tcx>,
+        mut expected: Option<PlaceOrdering>,
+    ) -> RelatedSet<'tcx> {
+        let mut minimum = None::<PermissionKind>;
+        let mut related = Vec::new();
+        for (&from, &perm) in &**self {
+            if let Some(ord) = from.partial_cmp(to) {
+                minimum = if let Some(min) = minimum {
+                    Some(min.minimum(perm).unwrap())
+                } else {
+                    Some(perm)
+                };
+                if let Some(expected) = expected {
+                    assert_eq!(ord, expected);
+                } else {
+                    expected = Some(ord);
+                }
+                related.push((from, perm));
+            }
+        }
+        assert!(
+            !related.is_empty(),
+            "Cannot find related of {to:?} in {self:?}"
+        );
+        let relation = expected.unwrap();
+        if matches!(relation, PlaceOrdering::Prefix | PlaceOrdering::Equal) {
+            assert_eq!(related.len(), 1);
+        }
+        RelatedSet {
+            from: related,
+            to,
+            minimum: minimum.unwrap(),
+            relation,
+        }
     }
+    // pub fn all_related_with_minimum(
+    //     &self,
+    //     place: Place<'tcx>,
+    // ) -> (PermissionKind, PlaceOrdering, Vec<(Place<'tcx>, PermissionKind)>) {
+    //     let mut ord = None;
+    //     let related: Vec<_> = self
+    //         .find_all_related(place, &mut ord)
+    //         .map(|(_, p, k)| (p, k))
+    //         .collect();
+    //     let mut minimum = related.iter().map(|(_, k)| *k).reduce(|acc, k| {
+    //         acc.minimum(k).unwrap()
+    //     });
+    //     (minimum.unwrap(), ord.unwrap(), related)
+    // }
+
+    #[tracing::instrument(name = "PermissionProjections::unpack", level = "trace", skip(rp), ret)]
     pub(crate) fn unpack(
         &mut self,
+        from: Place<'tcx>,
         to: Place<'tcx>,
         rp: PlaceRepacker<'_, 'tcx>,
-    ) -> Vec<Place<'tcx>> {
-        // Inefficient to do the work here when not needed
+    ) -> Vec<(Place<'tcx>, Place<'tcx>)> {
         debug_assert!(!self.contains_key(&to));
-        let (ord, other, perm) = {
-            let mut related = self.find_all_related(to);
-            let r = related.next().unwrap();
-            debug_assert!(
-                related.next().is_none(),
-                "{:?} ({to:?})",
-                self.find_all_related(to).collect::<Vec<_>>()
-            );
-            r
-        };
-        assert!(ord == Ordering::Less);
-        let (expanded, others) = rp.expand(other, to);
-        self.remove(&other);
+        let (expanded, others) = rp.expand(from, to);
+        let perm = self.remove(&from).unwrap();
         self.extend(others.into_iter().map(|p| (p, perm)));
         self.insert(to, perm);
         expanded
     }
+
+    // TODO: this could be implemented more efficiently, by assuming that a valid
+    // state can always be packed up to the root
+    #[tracing::instrument(name = "PermissionProjections::pack", level = "trace", skip(rp), ret)]
     pub(crate) fn pack(
         &mut self,
+        mut from: FxHashSet<Place<'tcx>>,
         to: Place<'tcx>,
+        perm: PermissionKind,
         rp: PlaceRepacker<'_, 'tcx>,
-    ) -> Vec<Place<'tcx>> {
-        // Inefficient to do the work here when not needed
+    ) -> Vec<(Place<'tcx>, Place<'tcx>)> {
         debug_assert!(!self.contains_key(&to));
-        let related: Vec<_> = self.find_all_related(to).collect();
-        debug_assert!(related.len() > 0);
-        debug_assert!(related.iter().all(|(ord, _, _)| *ord == Ordering::Greater));
-        debug_assert!(related.iter().all(|(_, _, perm)| *perm == related[0].2));
-        let mut related_set = related.iter().map(|(_, p, _)| *p).collect();
-        let collapsed = rp.collapse(to, &mut related_set);
-        assert!(related_set.is_empty());
-        for (_, p, _) in &related {
-            self.remove(p);
+        for place in &from {
+            let p = self.remove(place).unwrap();
+            assert_eq!(p, perm, "Cannot pack {place:?} with {p:?} into {to:?}");
         }
-        self.insert(to, related[0].2);
+        let collapsed = rp.collapse(to, &mut from);
+        assert!(from.is_empty());
+        self.insert(to, perm);
         collapsed
     }
 
+    #[tracing::instrument(name = "PermissionProjections::join", level = "info", skip(rp))]
     pub(crate) fn join(&self, other: &mut Self, rp: PlaceRepacker<'_, 'tcx>) {
-        for (place, kind) in &**self {
-            let mut place = *place;
-            let mut expand: Vec<_>;
-            while {
-                expand = other
-                    .iter()
-                    .filter_map(|(&p, &k)| {
-                        PlaceRepacker::expandable_no_enum(place, p).map(|o| (o, p, k))
-                    })
-                    .collect();
-                expand.is_empty()
-            } {
-                place = rp.pop_till_enum(place);
-            }
-            debug_assert!(expand.iter().all(|o| o.0 == expand[0].0));
-            for (_, other_place, perm) in &expand {
-                let cmp = kind.partial_cmp(&perm).unwrap();
-                if cmp.is_lt() {
-                    other.insert(*other_place, *kind);
-                }
-            }
-            match expand[0].0 {
-                // Current place has already been expanded in `other`
-                Ok(Ordering::Less) => (),
-                Ok(Ordering::Equal) => assert_eq!(expand.len(), 1),
-                Ok(Ordering::Greater) => {
-                    assert_eq!(expand.len(), 1);
-                    // Do expand
-                    // TODO: remove duplicate code with above
-                    let to_expand = expand[0].1;
-                    let (_, others) = rp.expand(to_expand, place);
-                    let perm = other.remove(&to_expand).unwrap();
-                    other.extend(others.into_iter().map(|p| (p, perm)));
-                    other.insert(place, perm);
-                }
-                Err(Ordering::Less) => {
-                    // Do collapse
-                    // TODO: remove duplicate code with above
-                    for (_, p, _) in &expand {
-                        other.remove(p);
+        for (&place, &kind) in &**self {
+            let related = other.find_all_related(place, None);
+            match related.relation {
+                PlaceOrdering::Prefix => {
+                    let from = related.from[0].0;
+                    let joinable_place = rp.joinable_to(from, place);
+                    if joinable_place != from {
+                        other.unpack(from, joinable_place, rp);
                     }
-                    other.insert(place, *kind);
+                    // Downgrade the permission if needed
+                    let new_min = kind.minimum(related.minimum).unwrap();
+                    if new_min != related.minimum {
+                        other.insert(joinable_place, new_min);
+                    }
                 }
-                Err(Ordering::Equal) => unreachable!(),
-                // Current place has already been collapsed in `other`
-                Err(Ordering::Greater) => (),
+                PlaceOrdering::Equal => {
+                    // Downgrade the permission if needed
+                    let new_min = kind.minimum(related.minimum).unwrap();
+                    if new_min != related.minimum {
+                        other.insert(place, new_min);
+                    }
+                }
+                PlaceOrdering::Suffix => {
+                    // Downgrade the permission if needed
+                    for &(p, k) in &related.from {
+                        let new_min = kind.minimum(k).unwrap();
+                        if new_min != k {
+                            other.insert(p, new_min);
+                        }
+                    }
+                }
+                PlaceOrdering::Both => {
+                    // Downgrade the permission if needed
+                    let min = kind.minimum(related.minimum).unwrap();
+                    for &(p, k) in &related.from {
+                        let new_min = min.minimum(k).unwrap();
+                        if new_min != k {
+                            other.insert(p, new_min);
+                        }
+                    }
+                    let cp = rp.common_prefix(related.from[0].0, place);
+                    other.pack(related.get_from(), cp, min, rp);
+                }
             }
         }
     }
 
-    fn consistency_check(&self) {
+    fn consistency_check(&self, rp: PlaceRepacker<'_, 'tcx>) {
+        // All keys unrelated to each other
         let keys = self.keys().copied().collect::<Vec<_>>();
         for (i, p1) in keys.iter().enumerate() {
             for p2 in keys[i + 1..].iter() {
-                assert!(
-                    PlaceRepacker::partial_cmp(*p1, *p2).is_none(),
-                    "{p1:?} {p2:?}",
-                );
+                assert!(!p1.related_to(*p2), "{p1:?} {p2:?}",);
             }
         }
+        // Can always pack up to the root
+        let root: Place = self.iter().next().unwrap().0.local.into();
+        let mut keys = self.keys().copied().collect();
+        rp.collapse(root, &mut keys);
+        assert!(keys.is_empty());
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub enum PermissionKind {
     Shared,
     Exclusive,
     Uninit,
+}
+
+impl Debug for PermissionKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            PermissionKind::Shared => write!(f, "s"),
+            PermissionKind::Exclusive => write!(f, "e"),
+            PermissionKind::Uninit => write!(f, "u"),
+        }
+    }
 }
 
 impl PartialOrd for PermissionKind {
@@ -328,5 +507,11 @@ impl PermissionKind {
     }
     pub fn is_uninit(self) -> bool {
         self == PermissionKind::Uninit
+    }
+    pub fn minimum(self, other: Self) -> Option<Self> {
+        match self.partial_cmp(&other)? {
+            Ordering::Greater => Some(other),
+            _ => Some(self),
+        }
     }
 }
