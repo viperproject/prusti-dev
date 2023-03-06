@@ -10,7 +10,6 @@ use prusti_rustc_interface::middle::ty::{
     TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
 use prusti_rustc_interface::hir::def_id::DefId;
-use log::trace;
 
 pub trait TypeVisitor<'tcx>: Sized {
     type Error;
@@ -19,14 +18,14 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn unsupported<S: ToString>(&self, _msg: S) -> Self::Error;
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_ty(&mut self, ty: Ty<'tcx>) -> Result<(), Self::Error> {
-        trace!("visit_ty({:?})", ty);
         self.visit_sty(ty.kind())?;
         self.visit_flags(ty.flags())
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_sty(&mut self, sty: &TyKind<'tcx>) -> Result<(), Self::Error> {
-        trace!("visit_sty({:?})", sty);
         match *sty {
             TyKind::Bool => {
                 self.visit_bool()
@@ -123,15 +122,16 @@ pub trait TypeVisitor<'tcx>: Sized {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_adt(
         &mut self,
         adt_def: AdtDef<'tcx>,
         substs: SubstsRef<'tcx>
     ) -> Result<(), Self::Error> {
-        trace!("visit_adt({:?})", adt_def);
         walk_adt(self, adt_def, substs)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_adt_variant(
         &mut self,
         adt: AdtDef<'tcx>,
@@ -139,81 +139,80 @@ pub trait TypeVisitor<'tcx>: Sized {
         variant: &VariantDef,
         substs: SubstsRef<'tcx>,
     )  -> Result<(), Self::Error> {
-        trace!("visit_adt_variant({:?}, {:?}, {:?})", adt, idx, variant);
         walk_adt_variant(self, variant, substs)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_field(
         &mut self,
         index: usize,
         field: &FieldDef,
         substs: SubstsRef<'tcx>,
     ) -> Result<(), Self::Error> {
-        trace!("visit_field({}, {:?})", index, field);
         walk_field(self, field, substs)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_ref(
         &mut self,
         region: Region<'tcx>,
         ty: Ty<'tcx>,
         mutability: Mutability
     ) -> Result<(), Self::Error> {
-        trace!("visit_ref({:?}, {:?}, {:?})", region, ty, mutability);
         walk_ref(self, region, ty, mutability)
     }
 
     #[allow(dead_code)]
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_ref_type(
         &mut self,
         ty: Ty<'tcx>,
         mutability: Mutability
     ) -> Result<(), Self::Error> {
-        trace!("visit_ref_type({:?}, {:?})", ty, mutability);
         walk_ref_type(self, ty, mutability)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_tuple(
         &mut self,
         types: &'tcx List<Ty<'tcx>>
     ) -> Result<(), Self::Error> {
-        trace!("visit_tuple({:?})", types);
         walk_tuple(self, types)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_raw_ptr(
         &mut self,
         ty: Ty<'tcx>,
         mutability: Mutability
     ) -> Result<(), Self::Error> {
-        trace!("visit_raw_ptr({:?}, {:?})", ty, mutability);
         walk_raw_ptr(self, ty, mutability)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_closure(
         &mut self,
         def_id: DefId,
         substs: SubstsRef<'tcx>
     ) -> Result<(), Self::Error> {
-        trace!("visit_closure({:?})", def_id);
         walk_closure(self, def_id, substs)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_fndef(
         &mut self,
         def_id: DefId,
         substs: SubstsRef<'tcx>
     ) -> Result<(), Self::Error> {
-        trace!("visit_fndef({:?})", def_id);
         walk_fndef(self, def_id, substs)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_array(
         &mut self,
         ty: Ty<'tcx>,
         len: Const<'tcx>,
     ) -> Result<(), Self::Error> {
-        trace!("visit_array({:?}, {:?})", ty, len);
         walk_array(self, ty, len)
     }
 }

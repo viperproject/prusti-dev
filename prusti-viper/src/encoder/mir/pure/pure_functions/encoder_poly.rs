@@ -21,7 +21,7 @@ use crate::encoder::{
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
-use log::{debug, trace};
+use log::debug;
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
 
 use prusti_rustc_interface::{
@@ -56,6 +56,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 /// Used to encode expressions in assertions
+#[tracing::instrument(level = "debug", skip(encoder))]
 pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: DefId,
@@ -137,6 +138,11 @@ fn encode_mir<'p, 'v: 'p, 'tcx: 'v>(
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(
+        name = "PureFunctionEncoder::new",
+        level = "trace",
+        skip(encoder, pure_encoding_context)
+    )]
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
@@ -144,8 +150,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Self {
-        trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
-
         // should hold for extern specs as well (otherwise there would have
         // been an error reported earlier)
         assert_eq!(
@@ -171,6 +175,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_function(&mut self) -> SpannedEncodingResult<vir::Function> {
         let mir = self.encoder.env().body.get_pure_fn_body(
             self.proc_def_id,
@@ -234,6 +239,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(Some(body_expr))
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_bodyless_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode trusted (bodyless) pure function {}", function_name);
@@ -241,6 +247,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(None)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_predicate_function(
         &self,
         predicate_body: &DefId,
@@ -280,6 +287,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     // Private
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_function_given_body(
         &self,
         body: Option<vir::Expr>,
@@ -429,6 +437,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     /// Encode the precondition with two expressions:
     /// - one for the type encoding
     /// - one for the functional specification.
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
@@ -484,6 +493,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     /// Encode the postcondition with one expression just for the functional specification (no
     /// type encoding).
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_postcondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,

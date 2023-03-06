@@ -17,6 +17,7 @@ pub(super) trait BuiltinFuncAppEncoder<'p, 'v, 'tcx> {
 }
 
 impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip_all, fields(called_def_id = ?called_def_id))]
     fn try_encode_builtin_call(
         &mut self,
         block_builder: &mut BasicBlockBuilder,

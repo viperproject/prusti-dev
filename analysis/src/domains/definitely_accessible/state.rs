@@ -80,6 +80,7 @@ impl fmt::Debug for DefinitelyAccessibleState<'_> {
 
 impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx>> {
     /// Make a best-effort at injecting statements to check the analysis state.
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn generate_test_program(&self, tcx: TyCtxt<'tcx>, source_map: &SourceMap) -> String {
         let mir_span = self.mir.span;
         let source_file = source_map.lookup_source_file(mir_span.data().lo);

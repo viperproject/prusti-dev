@@ -1361,6 +1361,7 @@ impl Expr {
     }
 
     #[must_use]
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
         // TODO: disabled for snapshot patching
         /*
@@ -1492,6 +1493,7 @@ impl Expr {
     }
 
     #[must_use]
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
         // TODO: disabled for snapshot patching
         /*

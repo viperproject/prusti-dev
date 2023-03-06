@@ -10,6 +10,11 @@ use prusti_rustc_interface::{ast::ast::Attribute, errors::MultiSpan, hir, middle
 pub struct MismatchedVersionsChecker;
 
 impl<'tcx> SpecCheckerStrategy<'tcx> for MismatchedVersionsChecker {
+    #[tracing::instrument(
+        name = "MismatchedVersionsChecker::check",
+        level = "debug",
+        skip(self, env)
+    )]
     fn check(&self, env: &Environment<'tcx>) -> Vec<PrustiError> {
         let mut check_version = CheckVersionVisitor {
             env_query: env.query,
