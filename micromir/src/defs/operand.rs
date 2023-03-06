@@ -7,31 +7,59 @@
 use derive_more::{Deref, DerefMut};
 use prusti_rustc_interface::{
     index::vec::{Idx, IndexVec},
-    middle::mir::Operand,
+    middle::mir::{Constant, Operand},
 };
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Formatter, Result};
 
-#[derive(Clone, Debug, Deref, DerefMut)]
-pub struct Operands<'tcx> {
-    operands: IndexVec<Temporary, Operand<'tcx>>,
+use crate::Place;
+
+#[derive(Clone, Debug, PartialEq, Hash)]
+pub enum MicroFullOperand<'tcx> {
+    Copy(Place<'tcx>),
+    Move(Place<'tcx>),
+    Constant(Box<Constant<'tcx>>),
 }
-impl<'tcx> Operands<'tcx> {
-    pub(crate) fn new() -> Self {
-        Self {
-            operands: IndexVec::new(),
+
+impl<'tcx> From<&Operand<'tcx>> for MicroFullOperand<'tcx> {
+    fn from(value: &Operand<'tcx>) -> Self {
+        match value {
+            &Operand::Copy(p) => MicroFullOperand::Copy(p.into()),
+            &Operand::Move(p) => MicroFullOperand::Move(p.into()),
+            Operand::Constant(c) => MicroFullOperand::Constant(c.clone()),
         }
     }
+}
+
+/// Note that one can have the same `Local` multiple times in the `Operands` vector
+/// for a single statement. For example in the following code:
+/// ```
+/// struct S { a: bool, b: bool, c: bool }
+/// fn true_a(s: &S) -> S {
+///     S { a: true, .. *s }
+/// }
+/// ```
+#[derive(Clone, Debug, Deref, DerefMut)]
+pub struct Operands<'tcx>(IndexVec<Temporary, MicroFullOperand<'tcx>>);
+impl<'tcx> Operands<'tcx> {
+    pub(crate) fn new() -> Self {
+        Self(IndexVec::new())
+    }
     pub(crate) fn translate_operand(&mut self, operand: &Operand<'tcx>) -> MicroOperand {
-        let index = self.operands.push(operand.clone());
+        let index = self.push(operand.into());
         MicroOperand::new(index)
     }
 }
 
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Deref, DerefMut)]
+#[derive(Clone, Copy, Hash, Eq, PartialEq, Deref, DerefMut)]
 pub struct MicroOperand(Temporary);
 impl MicroOperand {
     pub const fn new(value: Temporary) -> Self {
         Self(value)
+    }
+}
+impl Debug for MicroOperand {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:?}", self.0)
     }
 }
 
@@ -66,7 +94,7 @@ impl Idx for Temporary {
     }
 }
 impl Debug for Temporary {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "tmp{}", self.private)
     }
 }
