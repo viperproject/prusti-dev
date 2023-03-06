@@ -75,7 +75,8 @@ pub(super) fn extract_const_parameters_from_type<'tcx>(
         | ty::TyKind::Placeholder(_)
         | ty::TyKind::Infer(_)
         | ty::TyKind::Generator(..)
-        | ty::TyKind::GeneratorWitness(_) => {
+        | ty::TyKind::GeneratorWitness(_)
+        | ty::TyKind::GeneratorWitnessMIR(..) => {
             return Err(SpannedEncodingError::unsupported(
                 format!(
                     "unsupported type to extract const_parameters: {:?}",

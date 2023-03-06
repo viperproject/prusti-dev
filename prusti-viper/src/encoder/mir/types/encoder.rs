@@ -18,7 +18,10 @@ use prusti_common::config;
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    middle::{mir, ty},
+    middle::{
+        mir,
+        ty::{self, TypeVisitable},
+    },
 };
 use vir_crate::high::{self as vir, operations::ty::Typed};
 
@@ -266,6 +269,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::FnPtr(_)
             | ty::TyKind::Dynamic(..)
             | ty::TyKind::GeneratorWitness(..)
+            | ty::TyKind::GeneratorWitnessMIR(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Alias(ty::AliasKind::Projection, _)
@@ -703,6 +707,12 @@ fn encode_variant<'v, 'tcx: 'v>(
     for (field_index, field) in variant.fields.iter().enumerate() {
         let field_name = crate::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
         let field_ty = field.ty(tcx, substs);
+        let field_ty = if config::unsafe_core_proof() && field_ty.has_erasable_regions() {
+            field_ty
+        } else {
+            tcx.try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                .unwrap_or(field_ty)
+        };
         let field =
             vir::FieldDecl::new(field_name, field_index, encoder.encode_type_high(field_ty)?);
         fields.push(field);

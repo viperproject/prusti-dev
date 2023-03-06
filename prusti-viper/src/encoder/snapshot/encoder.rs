@@ -716,6 +716,9 @@ impl SnapshotEncoder {
                 for field in adt_def.all_fields() {
                     // or adt_def.variants[0].fields ?
                     let field_ty = field.ty(tcx, substs);
+                    let field_ty = tcx
+                        .try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                        .unwrap_or(field_ty);
                     fields.push(SnapshotField {
                         name: encode_field_name(&field.ident(tcx).to_string()),
                         access: self.snap_app(
@@ -761,6 +764,9 @@ impl SnapshotEncoder {
                     };
                     for field in &variant.fields {
                         let field_ty = field.ty(tcx, substs);
+                        let field_ty = tcx
+                            .try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                            .unwrap_or(field_ty);
                         fields.push(SnapshotField {
                             name: encode_field_name(&field.ident(tcx).to_string()),
                             access: self.snap_app(

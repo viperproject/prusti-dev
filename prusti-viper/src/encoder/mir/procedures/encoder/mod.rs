@@ -1968,7 +1968,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                let assertion = match self.encoder.get_prusti_assertion(cl_def_id.to_def_id()) {
+                let assertion = match self.encoder.get_prusti_assertion(cl_def_id) {
                     Some(spec) => spec,
                     None => return Ok(false),
                 };
@@ -2017,7 +2017,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                let assumption = match self.encoder.get_prusti_assumption(cl_def_id.to_def_id()) {
+                let assumption = match self.encoder.get_prusti_assumption(cl_def_id) {
                     Some(spec) => spec,
                     None => return Ok(false),
                 };
@@ -2064,11 +2064,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
             )) = stmt.kind
             {
-                let is_begin = self
-                    .encoder
-                    .get_ghost_begin(cl_def_id.to_def_id())
-                    .is_some();
-                let is_end = self.encoder.get_ghost_end(cl_def_id.to_def_id()).is_some();
+                let is_begin = self.encoder.get_ghost_begin(cl_def_id).is_some();
+                let is_end = self.encoder.get_ghost_end(cl_def_id).is_some();
                 return Ok(is_begin || is_end);
             }
         }

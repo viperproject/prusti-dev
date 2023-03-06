@@ -50,7 +50,7 @@ impl SpecificationBlocks {
         let dominators = body.basic_blocks.dominators();
         for specification_block in specification_blocks.clone() {
             for bb in body.basic_blocks.indices() {
-                if dominators.is_dominated_by(bb, specification_block) {
+                if dominators.dominates(specification_block, bb) {
                     specification_blocks.insert(bb);
                 }
             }
