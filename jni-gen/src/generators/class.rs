@@ -56,19 +56,19 @@ impl<'a> ClassGenerator<'a> {
 
     fn generate_imports(&self) -> String {
         vec![
-            "use jni::JNIEnv;".to_string(),
-            "use jni::objects::GlobalRef;".to_string(),
-            "use jni::objects::JObject;".to_string(),
-            "use jni::objects::JMethodID;".to_string(),
-            "use jni::objects::JStaticFieldID;".to_string(),
-            "use jni::objects::JStaticMethodID;".to_string(),
-            "use jni::objects::JValue;".to_string(),
-            "use jni::objects::JClass;".to_string(),
-            "use jni::errors::Result as JNIResult;".to_string(),
-            "use jni::sys::*;".to_string(),
-            "use jni::signature::*;".to_string(),
-            "use once_cell::sync::OnceCell;".to_string(),
-            "use std::str::FromStr;".to_string(),
+            "use jni::JNIEnv;",
+            "use jni::objects::GlobalRef;",
+            "use jni::objects::JObject;",
+            "use jni::objects::JMethodID;",
+            "use jni::objects::JStaticFieldID;",
+            "use jni::objects::JStaticMethodID;",
+            "use jni::objects::JValue;",
+            "use jni::objects::JClass;",
+            "use jni::errors::Result as JNIResult;",
+            "use jni::sys::*;",
+            "use jni::signature::*;",
+            "use once_cell::sync::OnceCell;",
+            "use std::str::FromStr;",
         ]
         .join("\n")
             + "\n"
