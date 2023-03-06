@@ -94,8 +94,13 @@ impl<'a> VerificationContext<'a> {
 
         debug!("Verifier arguments: '{}'", verifier_args.to_vec().join(" "));
 
-        Verifier::new(&self.env, backend, report_path, smt_manager)
-            .parse_command_line(&verifier_args)
-            .start()
+        let ver = Verifier::new(&self.env, backend, report_path, smt_manager);
+
+        ver.frontend_wrapper.call___program(ver.frontend_instance).expect("fail 3");
+        ver.verifier_wrapper.call_name(ver.verifier_instance).expect("fail 5");
+
+        ver.parse_command_line(&verifier_args);
+        ver.start();
+        ver
     }
 }

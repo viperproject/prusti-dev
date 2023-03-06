@@ -25,13 +25,13 @@ use std::{borrow::Cow, env, panic};
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
 
-lazy_static! {
-    static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
-        let hook = panic::take_hook();
-        panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
-        hook
-    };
-}
+// lazy_static! {
+//     static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
+//         let hook = panic::take_hook();
+//         // panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
+//         hook
+//     };
+// }
 
 fn get_prusti_version_info() -> String {
     format!(
@@ -46,7 +46,7 @@ fn get_prusti_version_info() -> String {
 /// Report a readable error message in case of panic, with a link to open a new Prusti issue.
 fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     // Invoke our ICE handler, which prints the actual panic message and optionally a backtrace
-    (*ICE_HOOK)(info);
+    // (*ICE_HOOK)(info);
 
     // Separate the output with an empty line
     eprintln!();
@@ -140,7 +140,7 @@ fn main() {
         config::set_no_verify(true);
     }
 
-    lazy_static::initialize(&ICE_HOOK);
+    // lazy_static::initialize(&ICE_HOOK);
     init_loggers();
 
     // Disable incremental compilation because it causes mir_borrowck not to
