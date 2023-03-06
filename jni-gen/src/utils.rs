@@ -82,3 +82,44 @@ pub fn java_identifier_to_rust(name: &str) -> String {
     // identifier can only be composed of [a-zA-Z&_] characters - https://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8
     name.replace('_', "__").replace('$', "_dollar_")
 }
+
+pub fn is_signature_of_class_type(signature: &str) -> bool {
+    signature.starts_with('L')
+}
+
+/// Generates a runtime check that the object is of the expected class - applies only to object types (starting with L)
+/// If this value is also the returned value in the setter, unwrap it first (since it is of type Result<T>)
+fn generate_type_check(variable_name: &str, variable_type_name: &str, is_result: bool) -> String {
+    let mut type_check: Vec<String> = vec![];
+    type_check.push("    debug_assert!(".to_string());
+    type_check.push(format!(
+        "        self.env.is_instance_of({variable_name}, self.env.find_class({variable_type_name})?)?"
+    ));
+    type_check.push("    );".to_string());
+
+    if is_result {
+        let indented_type_check = type_check
+            .iter()
+            .map(|x| format!("    {x}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        vec![
+            "    if let Ok(result) = result {".to_string(),
+            indented_type_check,
+            "    }".to_string(),
+        ]
+    } else {
+        type_check
+    }
+    .join("\n")
+        + "\n"
+}
+
+pub fn generate_result_type_check(variable_type_name: &str) -> String {
+    generate_type_check("result", variable_type_name, true)
+}
+
+pub fn generate_variable_type_check(variable_name: &str, variable_type_name: &str) -> String {
+    generate_type_check(variable_name, variable_type_name, false)
+}

@@ -40,10 +40,11 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
         })
         .unwrap_or_else(|| "// No modules".to_string());
 
-    let mut code: Vec<String> = vec![];
-    code.push("//! Automatically generated code\n".to_string());
-    code.push("#![allow(non_snake_case)]\n".to_string());
-    code.push(modules_tree);
-
-    code.join("\n") + "\n"
+    vec![
+        "//! Automatically generated code\n".to_string(),
+        "#![allow(non_snake_case)]\n".to_string(),
+        modules_tree,
+    ]
+    .join("\n")
+        + "\n"
 }

@@ -55,22 +55,23 @@ impl<'a> ClassGenerator<'a> {
     }
 
     fn generate_imports(&self) -> String {
-        let mut code: Vec<String> = vec![];
-        code.push("use jni::JNIEnv;".to_string());
-        code.push("use jni::objects::GlobalRef;".to_string());
-        code.push("use jni::objects::JObject;".to_string());
-        code.push("use jni::objects::JMethodID;".to_string());
-        code.push("use jni::objects::JStaticFieldID;".to_string());
-        code.push("use jni::objects::JStaticMethodID;".to_string());
-        code.push("use jni::objects::JValue;".to_string());
-        code.push("use jni::objects::JClass;".to_string());
-        code.push("use jni::errors::Result as JNIResult;".to_string());
-        code.push("use jni::sys::*;".to_string());
-        code.push("use jni::signature::*;".to_string());
-        code.push("use once_cell::sync::OnceCell;".to_string());
-        code.push("use std::str::FromStr;".to_string());
-
-        code.join("\n")
+        vec![
+            "use jni::JNIEnv;".to_string(),
+            "use jni::objects::GlobalRef;".to_string(),
+            "use jni::objects::JObject;".to_string(),
+            "use jni::objects::JMethodID;".to_string(),
+            "use jni::objects::JStaticFieldID;".to_string(),
+            "use jni::objects::JStaticMethodID;".to_string(),
+            "use jni::objects::JValue;".to_string(),
+            "use jni::objects::JClass;".to_string(),
+            "use jni::errors::Result as JNIResult;".to_string(),
+            "use jni::sys::*;".to_string(),
+            "use jni::signature::*;".to_string(),
+            "use once_cell::sync::OnceCell;".to_string(),
+            "use std::str::FromStr;".to_string(),
+        ]
+        .join("\n")
+            + "\n"
     }
 
     fn generate_struct(&self) -> String {

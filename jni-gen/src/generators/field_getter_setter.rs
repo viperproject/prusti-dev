@@ -62,53 +62,6 @@ fn class_field_lookup<'a>(
     Ok(None)
 }
 
-/// Generates a runtime check that the object is of the expected class - applies only to object types (starting with L)
-/// If this value is also the returned value in the setter, unwrap it first (since it is of type Result<T>)
-fn generate_type_check(
-    expected_variable_signature: &str,
-    variable_name: &str,
-    is_result: bool,
-) -> String {
-    if !expected_variable_signature.starts_with('L') {
-        return "".to_string();
-    }
-
-    let variable_type = &expected_variable_signature[1..(expected_variable_signature.len() - 1)];
-
-    let mut type_check: Vec<String> = vec![];
-    type_check.push("    debug_assert!(".to_string());
-    type_check.push(format!(
-        "        self.env.is_instance_of({variable_name}, self.env.find_class(\"{variable_type}\")?)?"
-    ));
-    type_check.push("    );".to_string());
-
-    if is_result {
-        let indented_type_check = type_check
-            .iter()
-            .map(|x| format!("    {x}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        let mut type_check_with_result: Vec<String> = vec![];
-        type_check_with_result.push("    if let Ok(result) = result {".to_string());
-        type_check_with_result.push(indented_type_check);
-        type_check_with_result.push("    }".to_string());
-        type_check_with_result
-    } else {
-        type_check
-    }
-    .join("\n")
-        + "\n"
-}
-
-fn generate_result_type_check(return_signature: &str) -> String {
-    generate_type_check(return_signature, "result", true)
-}
-
-fn generate_parameter_type_check(type_signature: &str, type_name: &str) -> String {
-    generate_type_check(type_signature, type_name, false)
-}
-
 fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &str) -> String {
     let rust_getter_name = format!("get_{}", java_identifier_to_rust(field_name));
     let parameter_type = generate_jni_type(type_signature);
@@ -131,12 +84,7 @@ fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &s
     code.push(format!("    let field_name = \"{field_name}\";"));
     code.push(format!("    let return_signature = \"{type_signature}\";"));
     code.push("".to_string());
-    code.push("    debug_assert!(".to_string());
-    code.push(
-        "        self.env.is_instance_of(receiver, self.env.find_class(class_name)?)?".to_string(),
-    );
-    code.push("    );".to_string());
-    code.push("".to_string());
+    code.push(generate_variable_type_check("receiver", "class_name"));
     code.push("    let result = self.env.get_field(".to_string());
     code.push("        receiver,".to_string());
     code.push("        field_name,".to_string());
@@ -146,7 +94,10 @@ fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &s
         generate_jni_type_char(type_signature)
     ));
     code.push("".to_string());
-    code.push(generate_result_type_check(type_signature));
+    if is_signature_of_class_type(type_signature) {
+        code.push(generate_result_type_check("return_signature"));
+    }
+
     code.push("    result".to_string());
     code.push("}".to_string());
 
@@ -181,16 +132,7 @@ fn generate_field_setter(class: &ClassName, field_name: &str, type_signature: &s
     code.push(format!("    let field_name = \"{field_name}\";"));
     code.push(format!("    let return_signature = \"{type_signature}\";"));
     code.push("".to_string());
-    code.push("    debug_assert!(".to_string());
-    code.push(
-        "        self.env.is_instance_of(receiver, self.env.find_class(class_name)?)?".to_string(),
-    );
-    code.push("    );".to_string());
-    code.push("".to_string());
-    code.push(generate_parameter_type_check(
-        type_signature,
-        &parameter_name,
-    ));
+    code.push(generate_variable_type_check("receiver", "class_name"));
     code.push("    self.env.set_field(".to_string());
     code.push("        receiver,".to_string());
     code.push("        field_name,".to_string());
