@@ -4,11 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt::Debug;
+
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
 use prusti_rustc_interface::span::source_map::SourceMap;
 use prusti_rustc_interface::errors::MultiSpan;
-use log::{debug, trace};
+use log::debug;
 use prusti_interface::data::ProcedureDefId;
 
 /// Mapping from VIR positions to the source code that generated them.
@@ -35,11 +37,11 @@ impl<'tcx> PositionManager<'tcx>
         }
     }
 
-    pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
+    #[tracing::instrument(level = "trace", skip(self), ret)]
+    pub fn register_span<T: Into<MultiSpan> + Debug>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
         let span = span.into();
         let pos_id = self.next_pos_id;
         self.next_pos_id += 1;
-        trace!("Register position id {} for span {:?} in {:?}, ", pos_id, span, def_id);
 
         let pos = if let Some(primary_span) = span.primary_span() {
             let lines_info_res = self

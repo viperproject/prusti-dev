@@ -5,7 +5,6 @@ use crate::encoder::{
     high::builtin_functions::encoder::encode_builtin_function_def,
     mir::pure::PureFunctionEncoderInterface,
 };
-use log::trace;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
@@ -110,11 +109,11 @@ trait HighBuiltinFunctionEncoderInterfacePrivate<'tcx> {
 impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterfacePrivate<'tcx>
     for crate::encoder::encoder::Encoder<'v, 'tcx>
 {
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_builtin_function_def_high(
         &self,
         function_kind: BuiltinFunctionHighKind,
     ) -> SpannedEncodingResult<()> {
-        trace!("encode_builtin_function_def_high({:?})", function_kind);
         if !self
             .high_builtin_function_encoder_state
             .builtin_functions_high
@@ -139,8 +138,8 @@ impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterfacePrivate<'tcx>
     ) -> (String, Vec<vir_high::Type>) {
         encode_builtin_function_name_with_type_args(function)
     }
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_builtin_function_def(&self, function_kind: BuiltinFunctionKind) {
-        trace!("encode_builtin_function_def({:?})", function_kind);
         if !self
             .high_builtin_function_encoder_state
             .builtin_functions
@@ -176,11 +175,11 @@ pub(crate) trait HighBuiltinFunctionEncoderInterface<'tcx> {
 impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterface<'tcx>
     for crate::encoder::encoder::Encoder<'v, 'tcx>
 {
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_builtin_function_use_high(
         &self,
         function_kind: BuiltinFunctionHighKind,
     ) -> SpannedEncodingResult<(String, Vec<vir_high::Type>)> {
-        trace!("encode_builtin_function_use_high({:?})", function_kind);
         if !self
             .high_builtin_function_encoder_state
             .builtin_functions_high
@@ -192,11 +191,11 @@ impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterface<'tcx>
         }
         Ok(self.encode_builtin_function_name_with_type_args_high(&function_kind))
     }
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_builtin_function_use(
         &self,
         function_kind: BuiltinFunctionKind,
     ) -> (String, Vec<vir_poly::Type>) {
-        trace!("encode_builtin_function_use({:?})", function_kind);
         // FIXME: We should use encode_builtin_function_use_high with lowering instead..
         if !self
             .high_builtin_function_encoder_state

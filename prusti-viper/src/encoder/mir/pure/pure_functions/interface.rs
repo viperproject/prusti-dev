@@ -69,7 +69,7 @@ type FunctionConstructor<'v, 'tcx> = Box<
 
 /// Depending on the context of the pure encoding,
 /// panics will be encoded slightly differently.
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub(crate) enum PureEncodingContext {
     /// Panics will be encoded as calls to unreachable functions
     /// (which have a `requires false` pre-condition).
@@ -291,13 +291,13 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         Ok(self.pure_function_encoder_state.bodies_poly.borrow()[&key].clone())
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_pure_function_def(
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<()> {
-        trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {proc_def_id:?}"
@@ -409,8 +409,6 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 }
             }
         }
-
-        trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
         Ok(())
     }
 

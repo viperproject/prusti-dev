@@ -23,6 +23,7 @@ pub struct PrustiCompilerCalls;
 // necessary; for crates which won't be verified or spec_fns it suffices to load just the fn body
 
 #[allow(clippy::needless_lifetimes)]
+#[tracing::instrument(level = "debug", skip(tcx))]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
     // *Don't take MIR bodies with borrowck info if we won't need them*
     if !is_spec_fn(tcx, def_id.to_def_id()) {
@@ -55,6 +56,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             );
         }
     }
+    #[tracing::instrument(level = "debug", skip_all)]
     fn after_expansion<'tcx>(
         &mut self,
         compiler: &Compiler,
@@ -102,6 +104,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         }
         Compilation::Continue
     }
+
+    #[tracing::instrument(level = "debug", skip_all)]
     fn after_analysis<'tcx>(
         &mut self,
         compiler: &Compiler,
@@ -116,8 +120,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 
             let hir = env.query.hir();
             let mut spec_collector = specs::SpecCollector::new(&mut env);
-            hir.walk_toplevel_module(&mut spec_collector);
-            hir.walk_attributes(&mut spec_collector);
+            spec_collector.collect_specs(hir);
 
             let mut def_spec = spec_collector.build_def_specs();
             // Do print_typeckd_specs prior to importing cross crate

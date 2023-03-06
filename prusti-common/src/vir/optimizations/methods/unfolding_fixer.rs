@@ -76,6 +76,7 @@ impl vir::StmtFolder for Optimizer {
 }
 
 impl vir::ExprFolder for Optimizer {
+    #[tracing::instrument(level = "debug", skip(self, unfolding))]
     fn fold_unfolding(&mut self, unfolding: vir::Unfolding) -> vir::Expr {
         let is_nested_duplicate = self
             .stack

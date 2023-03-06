@@ -14,7 +14,6 @@ use prusti_interface::environment::Procedure;
 use prusti_common::report::log;
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::mir;
-use ::log::trace;
 
 
 pub struct StubProcedureEncoder<'p, 'v: 'p, 'tcx: 'v>
@@ -27,10 +26,9 @@ pub struct StubProcedureEncoder<'p, 'v: 'p, 'tcx: 'v>
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(name = "StubProcedureEncoder::new", level = "trace", skip(encoder, procedure), fields(def_id = ?procedure.get_id()))]
     pub fn new(encoder: &'p Encoder<'v, 'tcx>, procedure: &'p Procedure<'tcx>) -> Self {
         let def_id = procedure.get_id();
-        trace!("StubProcedureEncoder constructor: {:?}", def_id);
-
         let mir = procedure.get_mir();
 
         StubProcedureEncoder {
@@ -42,9 +40,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip(self), fields(procedure = %self.procedure.get_def_path()))]
     pub fn encode(self) -> vir::CfgMethod {
-        trace!("Encode stub for procedure {}", self.procedure.get_def_path());
-
         let mut cfg_method = vir::CfgMethod::new(
             // method name
             self.encoder.encode_item_name(self.def_id),

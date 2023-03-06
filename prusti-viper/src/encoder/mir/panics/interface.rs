@@ -7,6 +7,7 @@ pub(crate) trait MirPanicsEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> MirPanicsEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_panic_cause(&self, span: Span) -> SpannedEncodingResult<PanicCause> {
         let macro_backtrace: Vec<_> = span.macro_backtrace().collect();
         debug!("macro_backtrace: {:?}", macro_backtrace);

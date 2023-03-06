@@ -16,6 +16,7 @@ pub enum NormalizationInfo {
 
 impl NormalizationInfo {
     /// Normalize a vir::legacy program. Do nothing for vir::low programs.
+    #[tracing::instrument(level = "debug", skip(program))]
     pub fn normalize_program(program: &mut Program) -> Self {
         match program {
             Program::Low(_) => {
@@ -81,6 +82,7 @@ impl NormalizationInfo {
     }
 
     /// Denormalize the verification result.
+    #[tracing::instrument(level = "debug", skip(self, program))]
     pub fn denormalize_program(&self, program: &mut Program) {
         match program {
             Program::Low(_) => debug!("No denormalization is done for vir::low programs."),

@@ -122,8 +122,8 @@ impl ProcedureBuilder {
 }
 
 impl<'a> BasicBlockBuilder<'a> {
+    #[tracing::instrument(level = "debug", skip(self), fields(block_id = ?self.id))]
     pub fn build(self) {
-        debug!("Building: {:?}", self.id);
         let successor = match self.successor {
             SuccessorBuilder::Exit(SuccessorExitKind::Return) => {
                 self.procedure_builder.is_return_label_used = true;

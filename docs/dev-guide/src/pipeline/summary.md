@@ -24,3 +24,9 @@ This chapter summarizes the steps that take place when the user runs Prusti on a
     - (With Prusti server only) Send verification results back to the client.
 5. [Reporting stage](report.md)
     - The Prusti client reports compilation and verification errors.
+
+Prusti supports tracing which can be useful to get an idea of the most important functions in stages 3 to 5. To enable this, set the [`log`](../config/flags.md#log) flag, for example:
+
+> `./x.py run --bin prusti-rustc -- --edition=2021 prusti-tests/**/nfm22/bst_generics.rs -Plog=debug`
+
+Prusti then generates a `log/trace.json` file which can be opened in [ui.perfetto.dev](https://ui.perfetto.dev/) to visualize the trace.

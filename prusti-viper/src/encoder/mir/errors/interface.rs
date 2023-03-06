@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::encoder::errors::{ErrorCtxt, SpannedEncodingResult};
 use prusti_interface::data::ProcedureDefId;
 use prusti_rustc_interface::errors::MultiSpan;
@@ -11,7 +13,7 @@ use vir_crate::high::{
 };
 
 pub(crate) trait ErrorInterface {
-    fn register_error<T: Into<MultiSpan>>(
+    fn register_error<T: Into<MultiSpan> + Debug>(
         &mut self,
         span: T,
         error_ctxt: ErrorCtxt,
@@ -35,7 +37,7 @@ pub(crate) trait ErrorInterface {
         default_position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Expression;
-    fn set_expression_error_ctxt<T: Into<MultiSpan>>(
+    fn set_expression_error_ctxt<T: Into<MultiSpan> + Debug>(
         &mut self,
         expression: vir_high::Expression,
         span: T,
@@ -54,7 +56,7 @@ pub(crate) trait ErrorInterface {
         default_position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Rvalue;
-    fn set_statement_error_ctxt<T: Into<MultiSpan>>(
+    fn set_statement_error_ctxt<T: Into<MultiSpan> + Debug>(
         &mut self,
         statement: vir_high::Statement,
         span: T,
@@ -70,7 +72,7 @@ pub(crate) trait ErrorInterface {
 }
 
 impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
-    fn register_error<T: Into<MultiSpan>>(
+    fn register_error<T: Into<MultiSpan> + Debug>(
         &mut self,
         span: T,
         error_ctxt: ErrorCtxt,
@@ -132,7 +134,7 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         };
         visitor.fold_expression(expression)
     }
-    fn set_expression_error_ctxt<T: Into<MultiSpan>>(
+    fn set_expression_error_ctxt<T: Into<MultiSpan> + Debug>(
         &mut self,
         expression: vir_high::Expression,
         span: T,
@@ -218,7 +220,7 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         };
         visitor.fold_rvalue(rvalue)
     }
-    fn set_statement_error_ctxt<T: Into<MultiSpan>>(
+    fn set_statement_error_ctxt<T: Into<MultiSpan> + Debug>(
         &mut self,
         statement: vir_high::Statement,
         span: T,

@@ -25,6 +25,7 @@ impl Viper {
         Self::new_with_args(viper_home, vec![])
     }
 
+    #[tracing::instrument(level = "debug")]
     pub fn new_with_args(viper_home: &str, java_args: Vec<String>) -> Self {
         let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "512".to_string());
 

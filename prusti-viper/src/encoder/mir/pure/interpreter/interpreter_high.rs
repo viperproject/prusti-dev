@@ -153,6 +153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip(self, state))]
     fn apply_assign_statement(
         &self,
         state: &mut ExprBackwardInterpreterState,
@@ -340,6 +341,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip(self, states))]
     fn apply_switch_int_terminator(
         &self,
         switch_ty: ty::Ty<'tcx>,
@@ -348,12 +350,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
-        trace!(
-            "SwitchInt ty '{:?}', discr '{:?}', targets '{:?}'",
-            switch_ty,
-            discriminant,
-            targets
-        );
         let encoded_discriminant = self.encode_operand(discriminant, span)?;
         let mut cfg_targets = Vec::new();
         for (value, target) in targets.iter() {
@@ -792,6 +788,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = "trace", skip(self, states))]
     fn encode_call_generic(
         &self,
         target_block: mir::BasicBlock,
@@ -871,6 +868,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     type State = ExprBackwardInterpreterState;
     type Error = SpannedEncodingError;
 
+    #[tracing::instrument(level = "debug", skip(self, states))]
     fn apply_terminator(
         &self,
         _bb: mir::BasicBlock,
@@ -1040,6 +1038,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         Ok(state)
     }
 
+    #[tracing::instrument(level = "debug", skip(self, state), fields(state = %state))]
     fn apply_statement(
         &self,
         bb: mir::BasicBlock,
@@ -1047,7 +1046,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         statement: &mir::Statement<'tcx>,
         state: &mut Self::State,
     ) -> Result<(), Self::Error> {
-        trace!("apply_statement {:?}, state: {}", statement, state);
         let span = statement.source_info.span;
         let location = mir::Location {
             block: bb,

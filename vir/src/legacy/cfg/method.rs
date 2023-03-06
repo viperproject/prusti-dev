@@ -313,16 +313,12 @@ impl CfgMethod {
     /// Find some path from the `start_block` to the `end_block`.
     ///
     /// The returned path includes both `start_block` and `end_block`.
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn find_path(
         &self,
         start_block: CfgBlockIndex,
         end_block: CfgBlockIndex,
     ) -> Option<Vec<CfgBlockIndex>> {
-        trace!(
-            "[enter] find_path start={:?} end={:?}",
-            start_block,
-            end_block
-        );
         if start_block.weak_eq(&end_block) {
             return Some(vec![start_block]);
         }

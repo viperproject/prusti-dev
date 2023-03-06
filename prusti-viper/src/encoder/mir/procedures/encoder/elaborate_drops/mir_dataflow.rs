@@ -194,8 +194,8 @@ where
     //
     // FIXME: I think we should just control the flags externally,
     // and then we do not need this machinery.
+    #[tracing::instrument(level = "debug")]
     pub fn elaborate_drop(&mut self, bb: BasicBlock) {
-        debug!("elaborate_drop({:?}, {:?})", bb, self);
         let style = self.elaborator.drop_style(self.path, DropFlagMode::Deep);
         debug!("elaborate_drop({:?}, {:?}): live - {:?}", bb, self, style);
         match style {
@@ -255,6 +255,7 @@ where
             .collect()
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn drop_subpath(
         &mut self,
         place: Place<'tcx>,
@@ -344,14 +345,13 @@ where
     ///
     /// NOTE: this does not clear the master drop flag, so you need
     /// to point succ/unwind on a `drop_ladder_bottom`.
+    #[tracing::instrument(level = "debug")]
     fn drop_ladder(
         &mut self,
         fields: Vec<(Place<'tcx>, Option<D::Path>)>,
         succ: BasicBlock,
         unwind: Unwind,
     ) -> (BasicBlock, Unwind) {
-        debug!("drop_ladder({:?}, {:?})", self, fields);
-
         let mut fields = fields;
         fields.retain(|&(place, _)| {
             self.place_ty(place)
@@ -376,9 +376,8 @@ where
         )
     }
 
+    #[tracing::instrument(level = "debug")]
     fn open_drop_for_tuple(&mut self, tys: &[Ty<'tcx>]) -> BasicBlock {
-        debug!("open_drop_for_tuple({:?}, {:?})", self, tys);
-
         let fields = tys
             .iter()
             .enumerate()
@@ -394,9 +393,8 @@ where
         self.drop_ladder(fields, succ, unwind).0
     }
 
+    #[tracing::instrument(level = "debug")]
     fn open_drop_for_box(&mut self, adt: ty::AdtDef<'tcx>, substs: SubstsRef<'tcx>) -> BasicBlock {
-        debug!("open_drop_for_box({:?}, {:?}, {:?})", self, adt, substs);
-
         let interior = self.tcx().mk_place_deref(self.place);
         let interior_path = self.elaborator.deref_subpath(self.path);
 
@@ -408,8 +406,8 @@ where
         self.drop_subpath(interior, interior_path, succ, unwind_succ)
     }
 
+    #[tracing::instrument(level = "debug")]
     fn open_drop_for_adt(&mut self, adt: ty::AdtDef<'tcx>, substs: SubstsRef<'tcx>) -> BasicBlock {
-        debug!("open_drop_for_adt({:?}, {:?}, {:?})", self, adt, substs);
         if adt.variants().is_empty() {
             return self.elaborator.patch().new_block(BasicBlockData {
                 statements: vec![],
@@ -732,9 +730,8 @@ where
         loop_block
     }
 
+    #[tracing::instrument(level = "debug")]
     fn open_drop_for_array(&mut self, ety: Ty<'tcx>, opt_size: Option<u64>) -> BasicBlock {
-        debug!("open_drop_for_array({:?}, {:?})", ety, opt_size);
-
         // if size_of::<ety>() == 0 {
         //     index_based_loop
         // } else {
@@ -794,13 +791,13 @@ where
     /// Creates a pair of drop-loops of `place`, which drops its contents, even
     /// in the case of 1 panic. If `ptr_based`, creates a pointer loop,
     /// otherwise create an index loop.
+    #[tracing::instrument(level = "debug")]
     fn drop_loop_pair(
         &mut self,
         ety: Ty<'tcx>,
         ptr_based: bool,
         length: Place<'tcx>,
     ) -> BasicBlock {
-        debug!("drop_loop_pair({:?}, {:?})", ety, ptr_based);
         let tcx = self.tcx();
         let iter_ty = if ptr_based {
             tcx.mk_mut_ptr(ety)
@@ -913,9 +910,8 @@ where
         }
     }
 
+    #[tracing::instrument(level = "debug")]
     fn complete_drop(&mut self, succ: BasicBlock, unwind: Unwind) -> BasicBlock {
-        debug!("complete_drop(succ={:?}, unwind={:?})", succ, unwind);
-
         let drop_block = self.drop_block(succ, unwind);
 
         self.drop_flag_test_block(drop_block, succ, unwind)
@@ -923,14 +919,13 @@ where
 
     /// Creates a block that resets the drop flag. If `mode` is deep, all children drop flags will
     /// also be cleared.
+    #[tracing::instrument(level = "debug")]
     fn drop_flag_reset_block(
         &mut self,
         mode: DropFlagMode,
         succ: BasicBlock,
         unwind: Unwind,
     ) -> BasicBlock {
-        debug!("drop_flag_reset_block({:?},{:?})", self, mode);
-
         if unwind.is_cleanup() {
             // The drop flag isn't read again on the unwind path, so don't
             // bother setting it.
@@ -946,8 +941,8 @@ where
         block
     }
 
+    #[tracing::instrument(level = "debug")]
     fn elaborated_drop_block(&mut self) -> BasicBlock {
-        debug!("elaborated_drop_block({:?})", self);
         let blk = self.drop_block(self.succ, self.unwind);
         self.elaborate_drop(blk);
         blk
@@ -1031,6 +1026,7 @@ where
     /// Depending on the required `DropStyle`, this might be a generated block with an `if`
     /// terminator (for dynamic/open drops), or it might be `on_set` or `on_unset` itself, in case
     /// the drop can be statically determined.
+    #[tracing::instrument(level = "debug", skip_all)]
     fn drop_flag_test_block(
         &mut self,
         on_set: BasicBlock,

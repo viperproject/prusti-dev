@@ -21,6 +21,11 @@ use prusti_rustc_interface::{
 pub struct IllegalPredicateUsagesChecker;
 
 impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
+    #[tracing::instrument(
+        name = "IllegalPredicateUsagesChecker::check",
+        level = "debug",
+        skip(self, env)
+    )]
     fn check(&self, env: &Environment<'tcx>) -> Vec<PrustiError> {
         let collected_predicates = self.collect_predicates(env.query);
         debug!("Predicate funcs: {:?}", collected_predicates.predicates);
