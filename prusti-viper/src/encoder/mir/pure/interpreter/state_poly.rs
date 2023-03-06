@@ -4,7 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use log::trace;
 use rustc_hash::FxHashMap;
 use std::{
     fmt::{self, Debug, Display},
@@ -56,8 +55,8 @@ impl ExprBackwardInterpreterState {
         self.expr
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn substitute_value(&mut self, target: &vir::Expr, replacement: vir::Expr) {
-        trace!("substitute_value {:?} --> {:?}", target, replacement);
         let target = target.clone().patch_types(&self.substs);
         let replacement = replacement.patch_types(&self.substs);
 
@@ -69,8 +68,8 @@ impl ExprBackwardInterpreterState {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     pub fn uses_place(&self, sub_target: &vir::Expr) -> bool {
-        trace!("use_place {:?}", sub_target);
         let sub_target = sub_target.clone().patch_types(&self.substs);
         self.expr
             .as_ref()

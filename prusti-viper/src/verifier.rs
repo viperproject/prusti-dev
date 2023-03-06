@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use async_stream::stream;
 use crate::{
     encoder::{
         counterexamples::{counterexample_translation, counterexample_translation_refactored},
@@ -11,6 +12,8 @@ use crate::{
     },
     ide::{self, ide_verification_result::IdeVerificationResult},
 };
+use futures_util::{pin_mut, Stream, StreamExt};
+use ::log::{debug, error, info};
 use prusti_common::{
     config,
     report::log,
@@ -20,23 +23,19 @@ use prusti_common::{
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
+    specs::typed,
     PrustiError,
 };
-use viper;
-use vir_crate::common::check_mode::CheckMode;
-
-use ::log::{debug, error, info};
-use async_stream::stream;
-use futures_util::{pin_mut, Stream, StreamExt};
-use prusti_interface::specs::typed;
 use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::{
     spawn_server_thread, PrustiClient, ServerMessage, VerificationRequest,
     VerificationRequestProcessing, ViperBackendConfig,
 };
-use tokio::runtime::Builder;
-use serde_json::json;
 use rustc_hash::FxHashMap;
+use serde_json::json;
+use tokio::runtime::Builder;
+use viper;
+use vir_crate::common::check_mode::CheckMode;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.
@@ -56,12 +55,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(name = "prusti_viper::verify", level = "info", skip(self))]
     pub fn verify(&mut self, task: &VerificationTask<'tcx>) -> VerificationResult {
-        info!(
-            "Received {} functions to be verified:",
-            task.procedures.len()
-        );
-
         let mut stopwatch = Stopwatch::start("prusti-viper", "encoding to Viper");
 
         // Dump the configuration

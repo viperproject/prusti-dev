@@ -1,6 +1,6 @@
 //! A module that invokes the verifier `prusti-viper`
 
-use log::{debug, trace, warn};
+use log::{debug, warn};
 use prusti_common::{config, report::user};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
@@ -9,13 +9,12 @@ use prusti_interface::{
 };
 use prusti_viper::verifier::Verifier;
 
+#[tracing::instrument(name = "prusti::verify", level = "debug", skip(env))]
 pub fn verify<'tcx>(
     env: &Environment<'tcx>,
     def_spec: typed::DefSpecificationMap,
     verification_task: VerificationTask<'tcx>,
 ) {
-    trace!("[verify] enter");
-
     if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
@@ -80,6 +79,4 @@ pub fn verify<'tcx>(
             }
         };
     }
-
-    trace!("[verify] exit");
 }

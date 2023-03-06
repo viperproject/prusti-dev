@@ -4,9 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{ServerMessage, VerificationRequest, ViperBackendConfig};
+use crate::{Backend, ServerMessage, VerificationRequest, ViperBackendConfig};
 use futures::{lock, stream::Stream};
 use log::{debug, info};
+use once_cell::sync::Lazy;
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
@@ -17,13 +18,12 @@ use std::{
     fs::create_dir_all,
     path::PathBuf,
     sync::{self, mpsc, Arc},
-    thread, time,
+    thread,
 };
 use viper::{
-    jni_utils::JniUtils, smt_manager::SmtManager, Cache, PersistentCache, VerificationBackend,
-    VerificationContext, VerificationResult, VerificationResultKind, Viper,
+    smt_manager::SmtManager, Cache, PersistentCache, VerificationBackend, VerificationContext,
+    VerificationResult, VerificationResultKind, Viper,
 };
-use viper_sys::wrappers::{java, viper::*};
 
 enum ServerRequest {
     Verification(VerificationRequest),
@@ -34,6 +34,8 @@ struct ThreadJoin {
     handle: Option<thread::JoinHandle<()>>,
 }
 
+// we join the thread after dropping the sender for the ServerRequests, so
+// that the verification thread actually terminates
 impl Drop for ThreadJoin {
     fn drop(&mut self) {
         self.handle.take().unwrap().join().unwrap();
@@ -109,22 +111,21 @@ fn verification_thread(
     tx_servermsg: mpsc::Sender<ServerMessage>,
 ) {
     debug!("Verification thread started.");
-    let mut stopwatch = Stopwatch::start("verification_request_processing", "JVM startup");
-    let viper = Arc::new(Viper::new_with_args(
-        &config::viper_home(),
-        config::extra_jvm_args(),
-    ));
+    let viper = Lazy::new(|| {
+        Arc::new(Viper::new_with_args(
+            &config::viper_home(),
+            config::extra_jvm_args(),
+        ))
+    });
+    let viper_thread = Lazy::new(|| viper.attach_current_thread());
     let mut cache = PersistentCache::load_cache(config::cache_path());
-    stopwatch.start_next("attach thread to JVM");
-    let verification_context = viper.attach_current_thread();
-    stopwatch.finish();
 
     while let Ok(request) = rx_verreq.recv() {
         match request {
             ServerRequest::Verification(verification_request) => process_verification_request(
                 &viper,
+                &viper_thread,
                 &mut cache,
-                &verification_context,
                 &tx_servermsg,
                 verification_request,
             ),
@@ -134,13 +135,16 @@ fn verification_thread(
     debug!("Verification thread finished.");
 }
 
-pub fn process_verification_request(
-    viper_arc: &Arc<Viper>,
+#[tracing::instrument(level = "debug", skip_all, fields(program = %request.program.get_name()))]
+pub fn process_verification_request<'v, 't: 'v>(
+    viper_arc: &Lazy<Arc<Viper>, impl Fn() -> Arc<Viper>>,
+    verification_context: &'v Lazy<VerificationContext<'t>, impl Fn() -> VerificationContext<'t>>,
     cache: impl Cache,
-    verification_context: &VerificationContext,
     sender: &mpsc::Sender<ServerMessage>,
     mut request: VerificationRequest,
 ) {
+    // TODO: if I'm not mistaken, this currently triggers the creation of the JVM on every request,
+    // so this should be changed once there are actually backends that not use a JVM
     let ast_utils = verification_context.new_ast_utils();
 
     // Only for testing: Check that the normalization is reversible.
@@ -203,13 +207,6 @@ pub fn process_verification_request(
         return;
     }
 
-    let mut result = VerificationResult {
-        item_name: request.program.get_name().to_string(),
-        kind: VerificationResultKind::Success,
-        cached: false,
-        time_ms: 0,
-    };
-
     // Early return in case of cache hit
     if config::enable_cache() {
         if let Some(mut result) = cache.get(hash) {
@@ -230,166 +227,51 @@ pub fn process_verification_request(
         }
     };
 
-    ast_utils.with_local_frame(16, || {
-        let viper_program = build_or_dump_viper_program();
-        let program_name = request.program.get_name();
+    let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
 
-        // Create a new verifier each time.
-        // Workaround for https://github.com/viperproject/prusti-dev/issues/744
-        let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let mut verifier =
-            new_viper_verifier(program_name, verification_context, request.backend_config);
-
-        stopwatch.start_next("verification");
-        result.kind = if config::report_viper_messages() {
-            verify_and_poll_msgs(
+    // Create a new verifier each time.
+    // Workaround for https://github.com/viperproject/prusti-dev/issues/744
+    let mut backend = match request.backend_config.backend {
+        VerificationBackend::Carbon | VerificationBackend::Silicon => Backend::Viper(
+            new_viper_verifier(
+                request.program.get_name(),
                 verification_context,
-                verifier,
-                viper_program,
-                viper_arc,
-                sender.clone(),
-            )
-        } else {
-            verifier.verify(viper_program)
-        };
-        result.time_ms = stopwatch.finish().as_millis();
+                request.backend_config,
+            ),
+            verification_context,
+            Lazy::force(viper_arc),
+        ),
+    };
 
-        // Don't cache Java exceptions, which might be due to misconfigured paths.
-        if config::enable_cache()
-            && !matches!(result.kind, VerificationResultKind::JavaException(_))
-        {
-            info!(
-                "Storing new cached result {:?} for program {}",
-                &result,
-                request.program.get_name()
-            );
-            cache.insert(hash, result.clone());
-        }
+    stopwatch.start_next("backend verification");
+    let mut result = VerificationResult {
+        item_name: request.program.get_name().to_string(),
+        kind: VerificationResultKind::Success,
+        cached: false,
+        time_ms: 0,
+    };
+    result.kind = backend.verify(&request.program, sender.clone());
+    result.time_ms = stopwatch.finish().as_millis();
 
-        normalization_info.denormalize_result(&mut result.kind);
-        sender.send(ServerMessage::Termination(result)).unwrap();
-    })
-}
-
-fn verify_and_poll_msgs(
-    verification_context: &viper::VerificationContext,
-    mut verifier: viper::Verifier,
-    viper_program: viper::Program,
-    viper_arc: &Arc<Viper>,
-    sender: mpsc::Sender<ServerMessage>,
-) -> VerificationResultKind {
-    let mut kind = VerificationResultKind::Success;
-
-    // get the reporter global reference outside of the thread scope because it needs to
-    // be dropped by thread attached to the jvm. This is also why we pass it as reference
-    // and not per value
-    let env = &verification_context.env();
-    let jni = JniUtils::new(env);
-    let verifier_wrapper = silver::verifier::Verifier::with(env);
-    let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(*verifier.verifier_instance()));
-    let rep_glob_ref = env.new_global_ref(reporter).unwrap();
-
-    debug!("Starting viper message polling thread");
-
-    // start thread for polling messages
-    thread::scope(|scope| {
-        let polling_thread = scope.spawn(|| polling_function(viper_arc, &rep_glob_ref, sender));
-        kind = verifier.verify(viper_program);
-        polling_thread.join().unwrap();
-    });
-    debug!("Viper message polling thread terminated");
-    kind
-}
-
-fn polling_function(
-    viper_arc: &Arc<Viper>,
-    rep_glob_ref: &jni::objects::GlobalRef,
-    sender: mpsc::Sender<ServerMessage>,
-) {
-    let verification_context = viper_arc.attach_current_thread();
-    let env = verification_context.env();
-    let jni = JniUtils::new(env);
-    let reporter_instance = rep_glob_ref.as_obj();
-    let reporter_wrapper = silver::reporter::PollingReporter::with(env);
-    loop {
-        while reporter_wrapper
-            .call_hasNewMessage(reporter_instance)
-            .unwrap()
-        {
-            let msg = reporter_wrapper
-                .call_getNewMessage(reporter_instance)
-                .unwrap();
-            debug!("Polling thread received {}", jni.class_name(msg).as_str());
-            match jni.class_name(msg).as_str() {
-                "viper.silver.reporter.QuantifierInstantiationsMessage" => {
-                    let msg_wrapper = silver::reporter::QuantifierInstantiationsMessage::with(env);
-                    let q_name =
-                        jni.get_string(jni.unwrap_result(msg_wrapper.call_quantifier(msg)));
-                    let q_inst = jni.unwrap_result(msg_wrapper.call_instantiations(msg));
-                    debug!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
-                    // also matches the "-aux" and "_precondition" quantifiers generated
-                    // we encoded the position id in the line and column number since this is not used by
-                    // prusti either way
-                    if q_name.starts_with("prog.l") {
-                        let no_pref = q_name.strip_prefix("prog.l").unwrap();
-                        let stripped = no_pref
-                            .strip_suffix("-aux")
-                            .or(no_pref.strip_suffix("_precondition"))
-                            .unwrap_or(no_pref);
-                        let parsed = stripped.parse::<u64>();
-                        match parsed {
-                            Ok(pos_id) => {
-                                sender
-                                    .send(ServerMessage::QuantifierInstantiation {
-                                        q_name,
-                                        insts: u64::try_from(q_inst).unwrap(),
-                                        pos_id,
-                                    })
-                                    .unwrap();
-                            }
-                            _ => info!("Unexpected quantifier name {}", q_name),
-                        }
-                    }
-                }
-                "viper.silver.reporter.QuantifierChosenTriggersMessage" => {
-                    let obj_wrapper = java::lang::Object::with(env);
-                    let positioned_wrapper = silver::ast::Positioned::with(env);
-                    let msg_wrapper = silver::reporter::QuantifierChosenTriggersMessage::with(env);
-
-                    let viper_quant = jni.unwrap_result(msg_wrapper.call_quantifier(msg));
-                    let viper_quant_str =
-                        jni.get_string(jni.unwrap_result(obj_wrapper.call_toString(viper_quant)));
-                    // we encoded the position id in the line and column number since this is not used by
-                    // prusti either way
-                    let pos = jni.unwrap_result(positioned_wrapper.call_pos(viper_quant));
-                    let pos_string =
-                        jni.get_string(jni.unwrap_result(obj_wrapper.call_toString(pos)));
-                    let pos_id_index = pos_string.rfind('.').unwrap();
-                    let pos_id = pos_string[pos_id_index + 1..].parse::<u64>().unwrap();
-
-                    let viper_triggers =
-                        jni.get_string(jni.unwrap_result(msg_wrapper.call_triggers__string(msg)));
-                    debug!(
-                        "QuantifierChosenTriggersMessage: {} {} {}",
-                        viper_quant_str, viper_triggers, pos_id
-                    );
-                    sender
-                        .send(ServerMessage::QuantifierChosenTriggers {
-                            viper_quant: viper_quant_str,
-                            triggers: viper_triggers,
-                            pos_id,
-                        })
-                        .unwrap();
-                }
-                "viper.silver.reporter.VerificationTerminationMessage" => return,
-                _ => (),
-            }
-        }
-        thread::sleep(time::Duration::from_millis(10));
+    // Don't cache Java exceptions, which might be due to misconfigured paths.
+    if config::enable_cache() && !matches!(result.kind, VerificationResultKind::JavaException(_)) {
+        info!(
+            "Storing new cached result {:?} for program {}",
+            &result,
+            request.program.get_name()
+        );
+        cache.insert(hash, result.clone());
     }
+
+    normalization_info.denormalize_result(&mut result.kind);
+    sender.send(ServerMessage::Termination(result)).unwrap();
 }
 
-fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {
+pub fn dump_viper_program(
+    ast_utils: &viper::AstUtils,
+    program: viper::Program,
+    program_name: &str,
+) {
     let namespace = "viper_program";
     let filename = format!("{program_name}.vpr");
     info!("Dumping Viper program to '{}/{}'", namespace, filename);

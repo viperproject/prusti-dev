@@ -13,7 +13,7 @@ use crate::{
     verification_backend::VerificationBackend,
     verification_result::{VerificationError, VerificationResultKind},
 };
-use jni::{objects::JObject, JNIEnv};
+use jni::{errors::Result, objects::JObject, JNIEnv};
 use log::{debug, error, info};
 use std::path::PathBuf;
 use viper_sys::wrappers::{scala, viper::*};
@@ -53,14 +53,7 @@ impl<'a> Verifier<'a> {
             );
 
             let debug_info = jni.new_seq(&[]);
-            match backend {
-                VerificationBackend::Silicon => {
-                    silicon::Silicon::with(env).new(reporter, debug_info)
-                }
-                VerificationBackend::Carbon => {
-                    carbon::CarbonVerifier::with(env).new(reporter, debug_info)
-                }
-            }
+            Self::instantiate_verifier(backend, env, reporter, debug_info)
         }));
 
         ast_utils.with_local_frame(16, || {
@@ -82,7 +75,23 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
+    fn instantiate_verifier(
+        backend: VerificationBackend,
+        env: &'a JNIEnv,
+        reporter: JObject,
+        debug_info: JObject,
+    ) -> Result<JObject<'a>> {
+        match backend {
+            VerificationBackend::Silicon => silicon::Silicon::with(env).new(reporter, debug_info),
+            VerificationBackend::Carbon => {
+                carbon::CarbonVerifier::with(env).new(reporter, debug_info)
+            }
+        }
+    }
+
     #[must_use]
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn parse_command_line(self, args: &[String]) -> Self {
         self.ast_utils.with_local_frame(16, || {
             let args = self.jni.new_seq(
@@ -100,6 +109,7 @@ impl<'a> Verifier<'a> {
     }
 
     #[must_use]
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn start(self) -> Self {
         self.ast_utils.with_local_frame(16, || {
             self.jni
@@ -108,8 +118,10 @@ impl<'a> Verifier<'a> {
         self
     }
 
+    #[tracing::instrument(name = "viper::verify", level = "debug", skip_all)]
     pub fn verify(&mut self, program: Program) -> VerificationResultKind {
-        self.ast_utils.with_local_frame(16, || {
+        let ast_utils = self.ast_utils;
+        ast_utils.with_local_frame(16, || {
             debug!(
                 "Program to be verified:\n{}",
                 self.ast_utils.pretty_print(program)
@@ -139,8 +151,7 @@ impl<'a> Verifier<'a> {
 
             run_timed!("Viper verification", debug,
                 let viper_result = self.jni.unwrap_result(
-                    self.verifier_wrapper
-                        .call_verify(self.verifier_instance, program.to_jobject()),
+                    self.call_verify(program)
                 );
             );
             debug!(
@@ -341,6 +352,12 @@ impl<'a> Verifier<'a> {
 
     pub fn verifier_instance(&self) -> &JObject<'a> {
         &self.verifier_instance
+    }
+
+    #[tracing::instrument(level = "debug", skip_all)]
+    fn call_verify(&self, program: Program) -> Result<JObject<'a>> {
+        self.verifier_wrapper
+            .call_verify(self.verifier_instance, program.to_jobject())
     }
 }
 

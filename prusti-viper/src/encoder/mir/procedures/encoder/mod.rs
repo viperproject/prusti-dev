@@ -1281,6 +1281,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn encode_terminator_switch_int(
         &mut self,
         block_builder: &mut BasicBlockBuilder,

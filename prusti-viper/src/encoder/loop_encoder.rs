@@ -11,7 +11,7 @@ use prusti_interface::environment::mir_sets::PlaceSet;
 use prusti_interface::environment::{BasicBlockIndex, LoopAnalysisError, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
 use prusti_rustc_interface::middle::{mir, ty};
-use log::{trace, debug};
+use log::debug;
 
 pub enum LoopEncoderError {
     LoopInvariantInBranch(BasicBlockIndex),
@@ -131,11 +131,11 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
     }
 
     /// Return the block at whose end the loop invariant holds
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn get_loop_invariant_block(
         &self,
         loop_head: BasicBlockIndex
     ) -> Result<BasicBlockIndex, LoopEncoderError> {
-        trace!("get_loop_special_blocks: {:?}", loop_head);
         let loop_info = self.loops();
         debug_assert!(loop_info.is_loop_head(loop_head));
         let loop_depth = loop_info.get_loop_head_depth(loop_head);

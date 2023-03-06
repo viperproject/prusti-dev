@@ -61,6 +61,7 @@ impl<'a> VerificationContext<'a> {
         )
     }
 
+    #[tracing::instrument(level = "debug", skip(self, smt_manager))]
     pub fn new_verifier(
         &self,
         backend: VerificationBackend,

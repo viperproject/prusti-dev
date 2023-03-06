@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ::log::{info, debug, trace};
+use ::log::{info, debug};
 use prusti_common::utils::identifiers::encode_identifier;
 use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
@@ -26,6 +26,7 @@ use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::middle::ty;
 use std::cell::{Cell, RefCell, RefMut, Ref};
+use std::fmt::Debug;
 use rustc_hash::{FxHashSet, FxHashMap};
 use std::io::Write;
 use std::rc::Rc;
@@ -219,6 +220,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(name = "Encoder::initialize", level = "debug", skip(self))]
     fn initialize(&mut self) -> EncodingResult<()> {
         // These are used in optimization passes
         self.encode_builtin_method_def(BuiltinMethodKind::HavocBool)?;
@@ -256,8 +258,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
-        debug!("Encoding error: {:?}", encoding_error);
         let prusti_error: PrustiError = encoding_error.into();
         if prusti_error.is_error() {
             self.encoding_errors_counter.borrow_mut().add_assign(1);
@@ -427,8 +429,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }))
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_builtin_domain(&self, domain_kind: BuiltinDomainKind) -> EncodingResult<vir::Domain> {
-        trace!("encode_builtin_domain({:?})", domain_kind);
         if !self.builtin_domains.borrow().contains_key(&domain_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
             let domain = builtin_encoder.encode_builtin_domain(domain_kind)?;
@@ -439,8 +441,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(self.builtin_domains.borrow()[&domain_kind].clone())
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_builtin_domain_type(&self, domain_kind: BuiltinDomainKind) -> EncodingResult<vir::Type> {
-        trace!("encode_builtin_domain_type({:?})", domain_kind);
         // Also encode the definition, if it's not already under construction.
         let mut domains_in_progress = self.builtin_domains_in_progress.borrow_mut();
         if !domains_in_progress.contains(&domain_kind) {
@@ -454,8 +456,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         builtin_encoder.encode_builtin_domain_type(domain_kind)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> EncodingResult<vir::BodylessMethod> {
-        trace!("encode_builtin_method_def({:?})", method_kind);
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
             let method = builtin_encoder.encode_builtin_method_def(method_kind)?;
@@ -467,18 +469,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(self.builtin_methods.borrow()[&method_kind].clone())
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> EncodingResult<String> {
-        trace!("encode_builtin_method_use({:?})", method_kind);
         // Trigger encoding of definition
         self.encode_builtin_method_def(method_kind)?;
         let builtin_encoder = BuiltinEncoder::new(self);
         Ok(builtin_encoder.encode_builtin_method_name(method_kind))
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
-        trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${src_ty}${dst_ty}");
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
             let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty)?} };
@@ -501,10 +503,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(function_name)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn encode_unsize_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
-        trace!("encode_unsize_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         // at some point we may want to add support for other types of unsizing calls?
         assert!(matches!(src_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));
         assert!(matches!(dst_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));
@@ -552,8 +554,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// This encodes the Rust function as a Viper method for verification. It
     /// does this also for pure functions.
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
-        debug!("encode_procedure({:?})", def_id);
         assert!(
             !self.is_trusted(def_id, None),
             "procedure is marked as trusted: {def_id:?}"
@@ -604,12 +606,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     pub fn encode_const_expr(
         &self,
         ty: ty::Ty<'tcx>,
         value: mir::ConstantKind<'tcx>
     ) -> EncodingResult<vir::Expr> {
-        trace!("encode_const_expr {:?}", value);
         let scalar_value = self.const_eval_intlike(value)?;
 
         let expr = match ty.kind() {
@@ -651,13 +653,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 error_unsupported!("unsupported constant type {:?}", ty.kind());
             }
         };
-        debug!("encode_const_expr {:?} --> {:?}", value, expr);
         Ok(expr)
     }
 
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
-        trace!("encode_int_cast {:?} as {:?}", value, ty);
-
         let expr = match ty.kind() {
             ty::TyKind::Bool => (value != 0).into(),
             ty::TyKind::Int(ty::IntTy::I8) => (value as i8).into(),
@@ -675,7 +675,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Char => value.into(),
             ref x => unimplemented!("{:?}", x),
         };
-        debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);
         expr
     }
 
@@ -703,6 +702,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn process_encoding_queue(&mut self) {
         if let Err(error) = self.initialize() {
             panic!("The initialization of the encoder failed with the error: {error:?}");
@@ -807,7 +807,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn intern_viper_identifier<S: AsRef<str>>(&self, full_name: S, short_name: S) -> String {
+    pub fn intern_viper_identifier<S: AsRef<str> + Debug>(&self, full_name: S, short_name: S) -> String {
         let result = if config::disable_name_mangling() {
             short_name.as_ref().to_string()
         } else if config::intern_names() {

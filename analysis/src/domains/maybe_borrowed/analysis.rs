@@ -28,6 +28,7 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn run_analysis(
         &self,
     ) -> AnalysisResult<PointwiseState<'mir, 'tcx, MaybeBorrowedState<'tcx>>> {

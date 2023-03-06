@@ -22,6 +22,8 @@ use log::info;
 use prusti_common::{config, report::user, Stopwatch};
 use prusti_rustc_interface::interface::interface::try_print_query_stack;
 use std::{borrow::Cow, env, panic};
+use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
+use tracing_subscriber::{filter::EnvFilter, prelude::*};
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -102,14 +104,33 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 }
 
 /// Initialize Prusti and the Rust compiler loggers.
-fn init_loggers() {
-    env_logger::init_from_env(
-        env_logger::Env::new()
-            .filter_or("PRUSTI_LOG", config::log())
-            .write_style_or("PRUSTI_LOG_STYLE", config::log_style()),
-    );
+fn init_loggers() -> Option<FlushGuard> {
+    // TODO: The `config::log() != ""` here is very bad; it makes us ignore the `log_tracing` flag
+    // It's enabled so that we only create a `trace.json` file if the user has explicitly requested logging
+    let guard = if config::log_tracing() && !config::log().is_empty() {
+        let log_dir = config::log_dir();
+        std::fs::create_dir_all(&log_dir).expect("failed to create log directory");
+        let filter = EnvFilter::new(config::log());
+        let (chrome_layer, guard) = ChromeLayerBuilder::new()
+            .file(log_dir.join("trace.json"))
+            .include_args(true)
+            .build();
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(chrome_layer)
+            .init();
+        Some(guard)
+    } else {
+        env_logger::init_from_env(
+            env_logger::Env::new()
+                .filter_or("PRUSTI_LOG", config::log())
+                .write_style_or("PRUSTI_LOG_STYLE", config::log_style()),
+        );
+        None
+    };
 
     prusti_rustc_interface::driver::init_rustc_env_logger();
+    guard
 }
 
 fn main() {
@@ -142,7 +163,7 @@ fn main() {
     }
 
     lazy_static::initialize(&ICE_HOOK);
-    init_loggers();
+    let _guard = init_loggers();
 
     // Disable incremental compilation because it causes mir_borrowck not to
     // be called.
