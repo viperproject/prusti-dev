@@ -907,33 +907,6 @@
 <a href="#907" id="907">907</a>
 <a href="#908" id="908">908</a>
 <a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -1014,18 +987,15 @@
     }
 
     <span class="doccomment">/// Simulate an unfold
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(
+        pred_place = %pred_place, perm_amount = %perm_amount, variant = <span class="question-mark">?</span>variant
+    ))]
     </span><span class="kw">fn </span>unfold(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         pred_place: <span class="kw-2">&amp;</span>vir::Expr,
         perm_amount: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Action, FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;We want to unfold {} (variant {:?}) with {}&quot;</span>,
-            pred_place,
-            variant,
-            perm_amount
-        );
         <span class="comment">//assert!(self.state.contains_acc(pred_place), &quot;missing acc({}) in {}&quot;, pred_place, self.state);
         </span><span class="macro">assert!</span>(
             <span class="self">self</span>.state.contains_pred(pred_place),
@@ -1087,16 +1057,13 @@
 
     <span class="doccomment">/// left is self, right is other
     /// Note: this merges the event logs as well
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(left = %<span class="self">self</span>.state, right = %other.state))]
     </span><span class="kw">pub fn </span>join(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>other: PathCtxt,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Action&gt;, Vec&lt;Action&gt;), FoldUnfoldError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>left_actions: Vec&lt;Action&gt; = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>right_actions: Vec&lt;Action&gt; = <span class="macro">vec!</span>[];
-
-        <span class="macro">trace!</span>(<span class="string">&quot;Join branches&quot;</span>);
-        <span class="macro">trace!</span>(<span class="string">&quot;Left branch: {}&quot;</span>, <span class="self">self</span>.state);
-        <span class="macro">trace!</span>(<span class="string">&quot;Right branch: {}&quot;</span>, other.state);
         <span class="self">self</span>.state.check_consistency();
 
         <span class="comment">// If they are already the same, avoid unnecessary operations
@@ -1445,6 +1412,7 @@
     }
 
     <span class="doccomment">/// Obtain the required permissions, changing the state inplace and returning the statements.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
     </span><span class="kw">fn </span>obtain_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>reqs: Vec&lt;Perm&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Action&gt;, FoldUnfoldError&gt; {
         reqs.sort_unstable();
         <span class="macro">trace!</span>(<span class="string">&quot;[enter] obtain_all: {{{}}}&quot;</span>, reqs.iter().to_string());
@@ -1457,9 +1425,8 @@
     <span class="doccomment">/// Obtain the required permission, changing the state inplace and returning the statements.
     ///
     /// ``in_join`` – are we currently trying to join branches?
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
     </span><span class="kw">fn </span>obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, req: <span class="kw-2">&amp;</span>Perm, in_join: bool) -&gt; <span class="prelude-ty">Result</span>&lt;ObtainResult, FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] obtain(req={})&quot;</span>, req);
-
         <span class="kw">let </span><span class="kw-2">mut </span>actions: Vec&lt;Action&gt; = <span class="macro">vec!</span>[];
 
         <span class="macro">trace!</span>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
@@ -1467,13 +1434,11 @@
 
         <span class="comment">// 1. Check if the requirement is satisfied
         </span><span class="kw">if </span><span class="self">self</span>.state.contains_perm(req) {
-            <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain: Requirement {} is satisfied&quot;</span>, req);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(ObtainResult::Success(actions));
         }
         <span class="kw">if </span>req.is_acc() &amp;&amp; req.is_local() {
             <span class="comment">// access permissions on local variables are always satisfied
-            </span><span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain: Requirement {} is satisfied&quot;</span>, req);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(ObtainResult::Success(actions));
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(ObtainResult::Success(actions));
         }
 
         <span class="macro">trace!</span>(<span class="string">&quot;Try to satisfy requirement {}&quot;</span>, req);
@@ -1508,7 +1473,6 @@
             <span class="comment">// Check if we are done
             </span><span class="kw">let </span>new_actions = <span class="self">self</span>.obtain(req, <span class="bool-val">false</span>)<span class="question-mark">?</span>.get_actions()<span class="question-mark">?</span>;
             actions.extend(new_actions);
-            <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain&quot;</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(ObtainResult::Success(actions));
         }
 
@@ -1617,7 +1581,6 @@
 
                 <span class="comment">// Done. Continue checking the remaining requirements
                 </span><span class="macro">trace!</span>(<span class="string">&quot;We folded {}&quot;</span>, req);
-                <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain&quot;</span>);
                 <span class="prelude-val">Ok</span>(ObtainResult::Success(actions))
             } <span class="kw">else </span>{
                 <span class="macro">debug!</span>(
@@ -1663,9 +1626,8 @@ Predicates: {{
     }
 
     <span class="doccomment">/// Returns some of the dropped permissions
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>apply_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>vir::Stmt) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;apply_stmt: {}&quot;</span>, stmt);
-
         <span class="macro">trace!</span>(<span class="string">&quot;Acc state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_acc());
         <span class="macro">trace!</span>(<span class="string">&quot;Pred state before: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
 
@@ -1681,15 +1643,11 @@ Predicates: {{
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>obtain_permissions(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">pub fn </span>obtain_permissions(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         permissions: Vec&lt;Perm&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Action&gt;, FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] obtain_permissions: {}&quot;</span>,
-            permissions.iter().to_string()
-        );
-
         <span class="comment">// Solve conflicting requirements
         // See issue https://github.com/viperproject/prusti-dev/issues/362
         </span><span class="kw">let </span>permissions = solve_conficts(permissions);
@@ -1709,35 +1667,22 @@ Predicates: {{
         <span class="macro">trace!</span>(<span class="string">&quot;Pred state after: {{\n{}\n}}&quot;</span>, <span class="self">self</span>.state.display_pred());
 
         <span class="self">self</span>.state.check_consistency();
-
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] obtain_permissions: {}&quot;</span>, actions.iter().to_string());
         <span class="prelude-val">Ok</span>(actions)
     }
 }
 
 <span class="doccomment">/// Find in `variant_place` the variant index of the enum encoded by `enum_place`.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, ret)]
 </span><span class="kw">fn </span>find_variant(enum_place: <span class="kw-2">&amp;</span>vir::Expr, variant_place: <span class="kw-2">&amp;</span>vir::Expr) -&gt; vir::MaybeEnumVariantIndex {
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;[enter] find_variant(enum_place={}, variant_place={})&quot;</span>,
-        enum_place,
-        variant_place
-    );
     <span class="kw">let </span>parent = variant_place.get_parent_ref().unwrap();
-    <span class="kw">let </span>result = <span class="kw">if </span>enum_place == parent {
+    <span class="kw">if </span>enum_place == parent {
         <span class="kw">match </span>variant_place {
             vir::Expr::Variant(vir::Variant { variant_index, .. }) =&gt; <span class="prelude-val">Some</span>(variant_index.into()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     } <span class="kw">else </span>{
         find_variant(enum_place, parent)
-    };
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;[exit] find_variant(place={}, variant_place={}) = {:?}&quot;</span>,
-        enum_place,
-        variant_place,
-        result
-    );
-    result
+    }
 }
 
 <span class="doccomment">/// Find the variant of the place encoding an expression.
@@ -1857,6 +1802,7 @@ Predicates: {{
 
 <span class="doccomment">/// Result of the obtain operation. Either success and a list of actions, or failure and the
 /// permission that was missing.
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>ObtainResult {
     Success(Vec&lt;Action&gt;),
     Failure(Box&lt;Perm&gt;),

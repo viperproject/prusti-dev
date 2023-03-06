@@ -6970,68 +6970,6 @@
 <a href="#6970" id="6970">6970</a>
 <a href="#6971" id="6971">6971</a>
 <a href="#6972" id="6972">6972</a>
-<a href="#6973" id="6973">6973</a>
-<a href="#6974" id="6974">6974</a>
-<a href="#6975" id="6975">6975</a>
-<a href="#6976" id="6976">6976</a>
-<a href="#6977" id="6977">6977</a>
-<a href="#6978" id="6978">6978</a>
-<a href="#6979" id="6979">6979</a>
-<a href="#6980" id="6980">6980</a>
-<a href="#6981" id="6981">6981</a>
-<a href="#6982" id="6982">6982</a>
-<a href="#6983" id="6983">6983</a>
-<a href="#6984" id="6984">6984</a>
-<a href="#6985" id="6985">6985</a>
-<a href="#6986" id="6986">6986</a>
-<a href="#6987" id="6987">6987</a>
-<a href="#6988" id="6988">6988</a>
-<a href="#6989" id="6989">6989</a>
-<a href="#6990" id="6990">6990</a>
-<a href="#6991" id="6991">6991</a>
-<a href="#6992" id="6992">6992</a>
-<a href="#6993" id="6993">6993</a>
-<a href="#6994" id="6994">6994</a>
-<a href="#6995" id="6995">6995</a>
-<a href="#6996" id="6996">6996</a>
-<a href="#6997" id="6997">6997</a>
-<a href="#6998" id="6998">6998</a>
-<a href="#6999" id="6999">6999</a>
-<a href="#7000" id="7000">7000</a>
-<a href="#7001" id="7001">7001</a>
-<a href="#7002" id="7002">7002</a>
-<a href="#7003" id="7003">7003</a>
-<a href="#7004" id="7004">7004</a>
-<a href="#7005" id="7005">7005</a>
-<a href="#7006" id="7006">7006</a>
-<a href="#7007" id="7007">7007</a>
-<a href="#7008" id="7008">7008</a>
-<a href="#7009" id="7009">7009</a>
-<a href="#7010" id="7010">7010</a>
-<a href="#7011" id="7011">7011</a>
-<a href="#7012" id="7012">7012</a>
-<a href="#7013" id="7013">7013</a>
-<a href="#7014" id="7014">7014</a>
-<a href="#7015" id="7015">7015</a>
-<a href="#7016" id="7016">7016</a>
-<a href="#7017" id="7017">7017</a>
-<a href="#7018" id="7018">7018</a>
-<a href="#7019" id="7019">7019</a>
-<a href="#7020" id="7020">7020</a>
-<a href="#7021" id="7021">7021</a>
-<a href="#7022" id="7022">7022</a>
-<a href="#7023" id="7023">7023</a>
-<a href="#7024" id="7024">7024</a>
-<a href="#7025" id="7025">7025</a>
-<a href="#7026" id="7026">7026</a>
-<a href="#7027" id="7027">7027</a>
-<a href="#7028" id="7028">7028</a>
-<a href="#7029" id="7029">7029</a>
-<a href="#7030" id="7030">7030</a>
-<a href="#7031" id="7031">7031</a>
-<a href="#7032" id="7032">7032</a>
-<a href="#7033" id="7033">7033</a>
-<a href="#7034" id="7034">7034</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -7084,6 +7022,7 @@
     PrustiError,
 };
 <span class="kw">use </span>std::collections::{BTreeMap};
+<span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>prusti_interface::utils;
 <span class="kw">use </span>prusti_rustc_interface::middle::mir::Mutability;
 <span class="kw">use </span>prusti_rustc_interface::middle::mir;
@@ -7169,12 +7108,11 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;ProcedureEncoder::new&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all, fields(proc_def_id = <span class="question-mark">?</span>procedure.get_id()))]
+    </span><span class="kw">pub fn </span>new(
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         procedure: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Procedure&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; SpannedEncodingResult&lt;<span class="self">Self</span>&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;ProcedureEncoder constructor&quot;</span>);
-
         <span class="kw">let </span>mir = procedure.get_mir();
         <span class="kw">let </span>proc_def_id = procedure.get_id();
         <span class="kw">let </span>substs = encoder.env().query.identity_substs(proc_def_id);
@@ -7229,7 +7167,8 @@
         })
     }
 
-    <span class="kw">fn </span>encode_specification_blocks(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>encode_specification_blocks(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="comment">// Collect the entry points into the specification blocks.
         </span><span class="kw">let </span><span class="kw-2">mut </span>entry_points: BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <span class="self">self
             </span>.specification_blocks
@@ -7392,8 +7331,8 @@
         <span class="self">self</span>.procedure_contract.as_ref().unwrap()
     }
 
-    <span class="kw">pub fn </span>encode(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;vir::CfgMethod&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;Encode procedure {}&quot;</span>, <span class="self">self</span>.cfg_method.name());
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(name = <span class="self">self</span>.cfg_method.name()))]
+    </span><span class="kw">pub fn </span>encode(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;vir::CfgMethod&gt; {
         <span class="kw">let </span>mir_span = <span class="self">self</span>.mir.span;
 
         <span class="comment">// Retrieve the contract
@@ -7596,6 +7535,7 @@
     /// * The first CFG block of the encoding.
     /// * A vector of unresolved edges.
     </span><span class="attr">#[allow(clippy::type_complexity)]
+    #[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">fn </span>encode_blocks_group(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label_prefix: <span class="kw-2">&amp;</span>str,
@@ -7812,6 +7752,7 @@
     /// }
     /// assume !g
     /// ```
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label_prefix: <span class="kw-2">&amp;</span>str,
@@ -7819,8 +7760,6 @@
         return_block: CfgBlockIndex,
     ) -&gt; SpannedEncodingResult&lt;(CfgBlockIndex, Vec&lt;(CfgBlockIndex, BasicBlockIndex)&gt;)&gt; {
         <span class="kw">let </span>loop_info = <span class="self">self</span>.loop_encoder.loops();
-        <span class="macro">debug_assert!</span>(loop_info.is_loop_head(loop_head));
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_loop: {:?}&quot;</span>, loop_head);
         <span class="macro">debug_assert!</span>(loop_info.is_loop_head(loop_head));
         <span class="kw">let </span>loop_label_prefix = <span class="macro">format!</span>(<span class="string">&quot;{}loop{}&quot;</span>, label_prefix, loop_head.index());
         <span class="kw">let </span>loop_depth = loop_info.get_loop_head_depth(loop_head);
@@ -8224,6 +8163,7 @@
     /// Returns:
     /// * The head of the encoded block
     /// * A vector unresolved edges
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_block(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label_prefix: <span class="kw-2">&amp;</span>str,
@@ -8321,6 +8261,7 @@
 
     <span class="doccomment">/// Encode the statements of the block.
     /// In case of unsupported statements, this function will return `MirSuccessor::Kill`.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_block_statements(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bbi: BasicBlockIndex,
@@ -8355,12 +8296,12 @@
     }
 
     <span class="doccomment">/// Encode the terminator of the block
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_block_terminator(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bbi: BasicBlockIndex,
         curr_block: CfgBlockIndex,
     ) -&gt; SpannedEncodingResult&lt;MirSuccessor&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;Encode terminator of {:?}&quot;</span>, bbi);
         <span class="kw">let </span>bb_data = <span class="kw-2">&amp;</span><span class="self">self</span>.mir.basic_blocks[bbi];
         <span class="kw">let </span>location = mir::Location {
             block: bbi,
@@ -8373,12 +8314,11 @@
 
     <span class="doccomment">/// Encode a MIR statement or terminator, encoding an `assert false` in case
     /// of usage of unsupported features.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_statement_at(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;(Vec&lt;vir::Stmt&gt;, <span class="prelude-ty">Option</span>&lt;MirSuccessor&gt;)&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Encode location {:?}&quot;</span>, location);
-
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>bb_data = <span class="kw-2">&amp;</span><span class="self">self</span>.mir[location.block];
         <span class="kw">let </span>index = location.statement_index;
@@ -8431,16 +8371,12 @@
     }
 
     <span class="doccomment">/// Note: it&#39;s better to call `encode_statement_at` instead of this method.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(statement = <span class="question-mark">?</span>stmt.kind, span = <span class="question-mark">?</span>stmt.source_info.span))]
     </span><span class="kw">fn </span>encode_statement(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         stmt: <span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">debug!</span>(
-            <span class="string">&quot;Encode statement &#39;{:?}&#39;, span: {:?}&quot;</span>,
-            stmt.kind, stmt.source_info.span
-        );
-
         <span class="kw">let </span><span class="kw-2">mut </span>stmts = <span class="macro">vec!</span>[vir::Stmt::comment(<span class="macro">format!</span>(<span class="string">&quot;[mir] {stmt:?}&quot;</span>))];
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
 
@@ -8674,8 +8610,8 @@
     }
 
     <span class="doccomment">/// Encode the lhs and the rhs of the assignment that create the loan
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_loan_places(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loan_places: <span class="kw-2">&amp;</span>LoanPlaces&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; SpannedEncodingResult&lt;(vir::Expr, <span class="prelude-ty">Option</span>&lt;vir::Expr&gt;, bool, Vec&lt;vir::Stmt&gt;)&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;encode_loan_places &#39;{:?}&#39;&quot;</span>, loan_places);
         <span class="kw">let </span>location = loan_places.location;
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
 
@@ -8874,7 +8810,8 @@
         }
     }
 
-    <span class="kw">fn </span>construct_vir_reborrowing_dag(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>construct_vir_reborrowing_dag(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loans: <span class="kw-2">&amp;</span>[facts::Loan],
         zombie_loans: <span class="kw-2">&amp;</span>[facts::Loan],
@@ -8954,6 +8891,7 @@
     <span class="comment">// will return None if not a slice borrow
     // as slicing is just a function call, we can only tell the difference upon
     // closer inspection
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>construct_vir_reborrowing_node_for_slice(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loan: facts::Loan,
@@ -8969,7 +8907,6 @@
             .map_err(EncodingError::from)
             .with_span(span)<span class="question-mark">?</span>;
         <span class="macro">trace!</span>(<span class="string">&quot;loan_places: {:?}&quot;</span>, loan_places);
-        <span class="macro">trace!</span>(<span class="string">&quot;node: {:?}&quot;</span>, node);
 
         <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(regained) = <span class="self">self</span>.slice_created_at.get(<span class="kw-2">&amp;</span>loan_location) {
             <span class="kw">let </span>guard = <span class="self">self</span>.construct_location_guard(loan_location);
@@ -8995,7 +8932,8 @@
         </span>})
     }
 
-    <span class="kw">fn </span>construct_vir_reborrowing_node_for_assignment(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, _mir_dag))]
+    </span><span class="kw">fn </span>construct_vir_reborrowing_node_for_assignment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         _mir_dag: <span class="kw-2">&amp;</span>ReborrowingDAG,
         loan: facts::Loan,
@@ -9086,7 +9024,8 @@
         ))
     }
 
-    <span class="kw">fn </span>construct_vir_reborrowing_node_for_call(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>construct_vir_reborrowing_node_for_call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         _mir_dag: <span class="kw-2">&amp;</span>ReborrowingDAG,
         loan: facts::Loan,
@@ -9205,7 +9144,8 @@
         ))
     }
 
-    <span class="kw">fn </span>encode_expiration_of_loans(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_expiration_of_loans(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loans: Vec&lt;facts::Loan&gt;,
         zombie_loans: <span class="kw-2">&amp;</span>[facts::Loan],
@@ -9213,11 +9153,6 @@
         end_location: <span class="prelude-ty">Option</span>&lt;mir::Location&gt;,
         is_in_package_stmt: bool,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;encode_expiration_of_loans &#39;{:?}&#39; &#39;{:?}&#39;&quot;</span>,
-            loans,
-            zombie_loans
-        );
         <span class="kw">let </span><span class="kw-2">mut </span>stmts: Vec&lt;vir::Stmt&gt; = <span class="macro">vec!</span>[];
         <span class="kw">if </span>!loans.is_empty() {
             <span class="kw">let </span>vir_reborrowing_dag =
@@ -9229,15 +9164,12 @@
         <span class="prelude-val">Ok</span>(stmts)
     }
 
-    <span class="kw">fn </span>encode_expiring_borrows_between(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_expiring_borrows_between(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         begin_loc: mir::Location,
         end_loc: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">debug!</span>(
-            <span class="string">&quot;encode_expiring_borrows_beteewn &#39;{:?}&#39; &#39;{:?}&#39;&quot;</span>,
-            begin_loc, end_loc
-        );
         <span class="kw">let </span>(all_dying_loans, zombie_loans) = <span class="self">self
             </span>.polonius_info()
             .get_all_loans_dying_between(begin_loc, end_loc);
@@ -9245,25 +9177,22 @@
         </span><span class="self">self</span>.encode_expiration_of_loans(all_dying_loans, <span class="kw-2">&amp;</span>zombie_loans, begin_loc, <span class="prelude-val">Some</span>(end_loc), <span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>encode_expiring_borrows_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: mir::Location)
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_expiring_borrows_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: mir::Location)
         -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt;
     {
-        <span class="macro">debug!</span>(<span class="string">&quot;encode_expiring_borrows_at &#39;{:?}&#39;&quot;</span>, location);
         <span class="kw">let </span>(all_dying_loans, zombie_loans) = <span class="self">self</span>.polonius_info().get_all_loans_dying_at(location);
         <span class="kw">let </span>stmts = <span class="self">self</span>.encode_expiration_of_loans(all_dying_loans, <span class="kw-2">&amp;</span>zombie_loans, location, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.set_stmts_default_pos(stmts, <span class="self">self</span>.mir_encoder.get_span_of_location(location)))
     }
 
     <span class="doccomment">/// Note: it&#39;s better to call `encode_statement_at` instead of this method.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(terminator = <span class="question-mark">?</span>term.kind, span = <span class="question-mark">?</span>term.source_info.span))]
     </span><span class="kw">fn </span>encode_terminator(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         term: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;(Vec&lt;vir::Stmt&gt;, MirSuccessor)&gt; {
-        <span class="macro">debug!</span>(
-            <span class="string">&quot;Encode terminator &#39;{:?}&#39;, span: {:?}&quot;</span>,
-            term.kind, term.source_info.span
-        );
         <span class="kw">let </span><span class="kw-2">mut </span>stmts: Vec&lt;vir::Stmt&gt; = <span class="macro">vec!</span>[vir::Stmt::comment(<span class="macro">format!</span>(<span class="string">&quot;[mir] {:?}&quot;</span>, term.kind))];
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
 
@@ -9633,7 +9562,6 @@
                         }
 
                         <span class="string">&quot;core::slice::&lt;impl [T]&gt;::len&quot; </span>=&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Encoding call of slice::len&quot;</span>);
                             stmts.extend(
                                 <span class="self">self</span>.encode_slice_len_call(
                                     destination,
@@ -9663,7 +9591,6 @@
 
                         <span class="string">&quot;core::ops::Index::index&quot; </span>|
                         <span class="string">&quot;std::ops::Index::index&quot; </span>=&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Encoding call of array/slice index call&quot;</span>);
                             stmts.extend(
                                 <span class="self">self</span>.encode_sequence_index_call(
                                     destination,
@@ -9809,7 +9736,8 @@
         <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="kw">fn </span>encode_slice_len_call(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_slice_len_call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         destination: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         args: <span class="kw-2">&amp;</span>[mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;],
@@ -9860,14 +9788,14 @@
         <span class="prelude-val">Ok</span>(stmts)
     }
 
-    <span class="kw">fn </span>encode_sequence_index_call(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_sequence_index_call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         destination: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         args: <span class="kw-2">&amp;</span>[mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;],
         location: mir::Location,
         error_span: Span
     ) -&gt; EncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_sequence_index_call(destination={:?}, args={:?})&quot;</span>, destination, args);
         <span class="comment">// args[0] is the base array/slice, args[1] is the index
         // index is not specified exactly, as std::ops::Index::index is a trait method, so all we
         // know is there needs to be an impl Index&lt;Idx&gt; for T
@@ -10176,6 +10104,7 @@
     }
 
     <span class="attr">#[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_impure_function_call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         location: mir::Location,
@@ -10563,6 +10492,7 @@
     }
 
     <span class="attr">#[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_pure_function_call(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         location: mir::Location,
@@ -10686,7 +10616,8 @@
         <span class="prelude-val">Ok</span>((encoded, pre_stmts))
     }
 
-    <span class="kw">fn </span>encode_pure_function_call_site(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_pure_function_call_site(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         location: mir::Location,
         destination: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -10845,6 +10776,7 @@
     /// - one for the type invariants
     /// - one for the functional specification.
     </span><span class="attr">#[allow(clippy::type_complexity)]
+    #[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>, override_spans))]
     </span><span class="kw">fn </span>encode_precondition_expr(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         contract: <span class="kw-2">&amp;</span>ProcedureContract&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -10958,7 +10890,8 @@
         ))
     }
 
-    <span class="kw">fn </span>encode_spec_refinement(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_spec_refinement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pre_label: <span class="kw-2">&amp;</span>str,
     ) -&gt; SpannedEncodingResult&lt;(
@@ -11094,6 +11027,7 @@
     }
 
     <span class="doccomment">/// Encode precondition inhale on the definition side.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">fn </span>encode_preconditions(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start_cfg_block: CfgBlockIndex,
@@ -11151,6 +11085,7 @@
 
     <span class="doccomment">/// Encode the magic wand used in the postcondition with its
     /// functional specification. Returns (lhs, rhs).
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_postcondition_magic_wand(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         location: <span class="prelude-ty">Option</span>&lt;mir::Location&gt;,
@@ -11349,6 +11284,7 @@
     /// `function_end` – are we encoding the exhale of the postcondition
     /// at the end of the method?
     </span><span class="attr">#[allow(clippy::too_many_arguments, clippy::type_complexity)]
+    #[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_postcondition_expr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         location: <span class="prelude-ty">Option</span>&lt;mir::Location&gt;,
@@ -11524,6 +11460,7 @@
     /// same place. Instead, we replace them with ghost variables.
     ///
     /// This method replaces all places with `label` with ghost variables.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>replace_old_places_with_ghost_vars(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
@@ -11580,13 +11517,13 @@
     }
 
     <span class="doccomment">/// Encode the package statement of magic wands at the end of the method
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_package_end_of_method(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         pre_label: <span class="kw-2">&amp;</span>str,
         post_label: <span class="kw-2">&amp;</span>str,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;encode_package_end_of_method &#39;{:?}&#39;&quot;</span>, location);
         <span class="kw">let </span><span class="kw-2">mut </span>stmts = Vec::new();
         <span class="kw">let </span>span = <span class="self">self</span>.mir.source_info(location).span;
 
@@ -11708,6 +11645,7 @@
     }
 
     <span class="doccomment">/// Encode postcondition exhale in the `return_cfg_block` CFG block.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">fn </span>encode_postconditions(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         return_cfg_block: CfgBlockIndex,
@@ -12033,18 +11971,13 @@
     /// Result:
     /// * The first vector contains permissions.
     /// * The second vector contains value preserving equalities.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_loop_invariant_permissions(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loop_head: BasicBlockIndex,
         loop_inv: BasicBlockIndex,
         drop_read_references: bool,
     ) -&gt; EncodingResult&lt;(Vec&lt;vir::Expr&gt;, Vec&lt;vir::Expr&gt;, Vec&lt;vir::Expr&gt;)&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_loop_invariant_permissions \
-             loop_head={:?} drop_read_references={}&quot;</span>,
-            loop_head,
-            drop_read_references
-        );
         <span class="kw">let </span>permissions_forest = <span class="self">self
             </span>.loop_encoder
             .compute_loop_invariant(loop_head, loop_inv)
@@ -12281,6 +12214,7 @@
     }
 
     <span class="doccomment">/// Get the basic blocks that encode the specification of a loop invariant
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>get_loop_spec_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: BasicBlockIndex) -&gt; Vec&lt;BasicBlockIndex&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[];
         <span class="kw">for </span>bbi <span class="kw">in </span><span class="self">self</span>.procedure.get_reachable_cfg_blocks() {
@@ -12301,6 +12235,7 @@
     }
 
     <span class="doccomment">/// Encode the functional specification of a loop
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
     </span><span class="kw">fn </span>encode_loop_invariant_specs(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loop_head: BasicBlockIndex,
@@ -12339,23 +12274,16 @@
                 }
             }
         }
-        <span class="macro">trace!</span>(<span class="string">&quot;encoded specs: {:?}&quot;</span>, encoded_specs);
-
         <span class="prelude-val">Ok</span>((encoded_specs, MultiSpan::from_spans(encoded_spec_spans)))
     }
 
-    <span class="kw">fn </span>encode_loop_invariant_exhale_stmts(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_loop_invariant_exhale_stmts(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop_iteration: bool,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_loop_invariant_exhale_stmts loop_head={:?} \
-             after_loop_iteration={}&quot;</span>,
-            loop_head,
-            after_loop_iteration
-        );
         <span class="kw">if </span>!after_loop_iteration {
             <span class="self">self</span>.pure_var_for_preserving_value_map
                 .insert(loop_head, FxHashMap::default());
@@ -12434,17 +12362,13 @@
         <span class="prelude-val">Ok</span>(stmts)
     }
 
-    <span class="kw">fn </span>encode_loop_invariant_inhale_perm_stmts(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_loop_invariant_inhale_perm_stmts(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
     ) -&gt; EncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_loop_invariant_inhale_perm_stmts loop_head={:?} after_loop={}&quot;</span>,
-            loop_head,
-            after_loop
-        );
         <span class="kw">let </span>(permissions, equalities, invs_spec) =
             <span class="self">self</span>.encode_loop_invariant_permissions(loop_head, loop_inv_block, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
@@ -12466,17 +12390,13 @@
         <span class="prelude-val">Ok</span>(stmts)
     }
 
-    <span class="kw">fn </span>encode_loop_invariant_inhale_fnspec_stmts(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_loop_invariant_inhale_fnspec_stmts(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
     ) -&gt; SpannedEncodingResult&lt;(Vec&lt;vir::Stmt&gt;, MultiSpan)&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_loop_invariant_inhale_fnspec_stmts loop_head={:?} after_loop={}&quot;</span>,
-            loop_head,
-            after_loop
-        );
         <span class="kw">let </span>(func_spec, func_spec_span) =
             <span class="self">self</span>.encode_loop_invariant_specs(loop_head, loop_inv_block)<span class="question-mark">?</span>;
 
@@ -12719,16 +12639,13 @@
 
     <span class="doccomment">/// Return type:
     /// - `Vec&lt;vir::Stmt&gt;`: the statements that encode the assignment of `operand` to `lhs`
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), ret())]
     </span><span class="kw">fn </span>encode_assign_operand(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         lhs: <span class="kw-2">&amp;</span>vir::Expr,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})&quot;</span>,
-            lhs, operand, location
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>stmts = <span class="kw">match </span>operand {
             mir::Operand::Move(place) =&gt; {
@@ -12851,10 +12768,7 @@
             }
         };
         <span class="macro">debug!</span>(
-            <span class="string">&quot;[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?}) = {}&quot;</span>,
-            lhs,
-            operand,
-            location,
+            <span class="string">&quot;encode_assign_operand result: {}&quot;</span>,
             vir::stmts_to_str(<span class="kw-2">&amp;</span>stmts)
         );
         <span class="prelude-val">Ok</span>(stmts)
@@ -12862,6 +12776,7 @@
 
     <span class="doccomment">/// Assignment with a binary operation on the RHS
     /// [encoded_lhs] = [left] [op] [right]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_binary_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         op: mir::BinOp,
@@ -12871,12 +12786,6 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})&quot;</span>,
-            op,
-            left,
-            right
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>encoded_left = <span class="self">self</span>.mir_encoder.encode_operand_expr(left)
             .with_span(span)<span class="question-mark">?</span>;
@@ -12907,6 +12816,7 @@
 
     <span class="doccomment">/// Assignment with a(n overflow-)checked binary operation on the RHS.
     /// [encoded_lhs] = [left] [op] [right]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_checked_binary_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         op: mir::BinOp,
@@ -12916,12 +12826,6 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})&quot;</span>,
-            op,
-            left,
-            right
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>operand_ty = <span class="kw">if let </span>ty::TyKind::Tuple(types) = ty.kind() {
             types[<span class="number">0</span>]
@@ -13005,6 +12909,7 @@
     <span class="doccomment">/// Assignment with unary op as RHS.
     /// Unary ops currently are logical and arithmetic negation
     /// [encoded_lhs] = [op] [operand]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_unary_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         op: mir::UnOp,
@@ -13013,11 +12918,6 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_assign_unary_op(op={:?}, operand={:?})&quot;</span>,
-            op,
-            operand
-        );
         <span class="kw">let </span>encoded_val = <span class="self">self</span>.mir_encoder.encode_operand_expr(operand)
             .with_span(
                 <span class="self">self</span>.mir_encoder.get_span_of_location(location)
@@ -13030,6 +12930,7 @@
     <span class="doccomment">/// Assignment with a nullary op on the RHS.
     /// Nullary ops currently are sizeof and alignof.
     /// [lhs] = [op] [op_ty]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_nullary_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         op: mir::NullOp,
@@ -13038,7 +12939,6 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] encode_assign_nullary_op(op={op:?}, op_ty={op_ty:?})&quot;</span>);
         <span class="kw">let </span>tcx = <span class="self">self</span>.encoder.env().tcx();
         <span class="kw">let </span>param_env = tcx.param_env(<span class="self">self</span>.proc_def_id);
         <span class="kw">let </span>layout = <span class="kw">match </span>tcx.layout_of(param_env.and(op_ty)) {
@@ -13097,6 +12997,7 @@
 
     <span class="doccomment">/// Assignment with the RHS being the discriminant value of an enum
     /// [lhs] = discriminant of [src]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_discriminant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         src: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -13104,11 +13005,6 @@
         encoded_lhs: vir::Expr,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_assign_discriminant(src={:?}, location={:?})&quot;</span>,
-            src,
-            location
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>(encoded_src, <span class="kw-2">mut </span>stmts, src_ty, <span class="kw">_</span>) = <span class="self">self</span>.encode_place(src, ArrayAccessKind::Shared, location)<span class="question-mark">?</span>;
         <span class="kw">let </span>encode_stmts = <span class="kw">match </span>src_ty.kind() {
@@ -13164,6 +13060,7 @@
 
     <span class="doccomment">/// Assignment with the RHS being referenced
     /// [encoded_lhs] = &amp;[mir_borrow_kind] [place]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_ref(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         mir_borrow_kind: mir::BorrowKind,
@@ -13172,12 +13069,6 @@
         encoded_lhs: vir::Expr,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})&quot;</span>,
-            mir_borrow_kind,
-            place,
-            location
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>loan = <span class="self">self</span>.polonius_info().get_loan_at_location(location);
         <span class="kw">let </span>(vir_assign_kind, array_encode_kind) = <span class="kw">match </span>mir_borrow_kind {
@@ -13215,6 +13106,7 @@
 
     <span class="doccomment">/// Assignment where the RHS is a cast operation
     /// [encoded_lhs] = [operand] as [dst_ty]
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_cast(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -13223,11 +13115,6 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_cast(operand={:?}, dst_ty={:?})&quot;</span>,
-            operand,
-            dst_ty
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>encoded_val = <span class="self">self</span>.mir_encoder.encode_cast_expr(operand, dst_ty, span)<span class="question-mark">?</span>;
         <span class="self">self</span>.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
@@ -13235,6 +13122,7 @@
 
     <span class="doccomment">/// Take a slice into the RHS array
     /// (also happens for calls that you do on an array that are slice methods, like .len())
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_slice(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         encoded_lhs: vir::Expr,
@@ -13242,7 +13130,6 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_assign_slice(lhs={:?}, operand={:?}, ty={:?})&quot;</span>, encoded_lhs, operand, ty);
         <span class="macro">debug_assert!</span>(ty.is_slice_ref());
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span><span class="kw-2">mut </span>stmts = Vec::new();
@@ -13334,18 +13221,14 @@
         <span class="prelude-val">Ok</span>(stmts)
     }
 
-    <span class="kw">fn </span>encode_assign_sequence_len(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_assign_sequence_len(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         encoded_lhs: vir::Expr,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] encode_assign_sequence_len(place={:?}, ty={:?})&quot;</span>,
-            place,
-            dst_ty,
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span>(encoded_place, <span class="kw-2">mut </span>stmts, place_ty, ..) = <span class="self">self</span>.encode_place(
             place,
@@ -13442,8 +13325,8 @@
         vir::LocalVar::new(name, vir_type)
     }
 
-    <span class="kw">fn </span>encode_havoc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span>vir::Expr) -&gt; EncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Encode havoc {:?}&quot;</span>, dst);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_havoc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span>vir::Expr) -&gt; EncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
         <span class="kw">let </span>havoc_ref_method_name = <span class="self">self
             </span>.encoder
             .encode_builtin_method_use(BuiltinMethodKind::HavocRef)<span class="question-mark">?</span>;
@@ -13471,9 +13354,8 @@
     }
 
     <span class="doccomment">/// Havoc and assume permission on fields
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_havoc_and_initialization(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span>vir::Expr) -&gt; EncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Encode havoc and allocation {:?}&quot;</span>, dst);
-
         <span class="kw">let </span><span class="kw-2">mut </span>stmts = <span class="macro">vec!</span>[];
         <span class="comment">// Havoc `dst`
         </span>stmts.extend(<span class="self">self</span>.encode_havoc(dst)<span class="question-mark">?</span>);
@@ -13489,6 +13371,7 @@
     <span class="doccomment">/// Prepare the ``dst`` to be copy target:
     ///
     /// 1.  Havoc and allocate if it is not yet allocated.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>prepare_assign_target(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         dst: vir::Expr,
@@ -13497,12 +13380,6 @@
         vir_assign_kind: vir::AssignKind,
         can_copy_reference: bool <span class="comment">// reference copies are allowed if the field is a constant
     </span>) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] prepare_assign_target(dst={}, field={}, location={:?})&quot;</span>,
-            dst,
-            field,
-            location
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">if </span>!<span class="self">self</span>.init_info.is_vir_place_accessible(<span class="kw-2">&amp;</span>dst, location) {
             <span class="kw">let </span><span class="kw-2">mut </span>alloc_stmts = <span class="self">self</span>.encode_havoc(<span class="kw-2">&amp;</span>dst).with_span(span)<span class="question-mark">?</span>;
@@ -13642,6 +13519,7 @@
     /// tuples
     /// [dst] = Foo { x: [op_0], y: [op_1], .. }
     /// [dst] = [ op_0, op_1, ..];
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_assign_aggregate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         dst: <span class="kw-2">&amp;</span>vir::Expr,
@@ -13650,10 +13528,6 @@
         operands: <span class="kw-2">&amp;</span>[mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;],
         location: mir::Location,
     ) -&gt; SpannedEncodingResult&lt;Vec&lt;vir::Stmt&gt;&gt; {
-        <span class="macro">debug!</span>(
-            <span class="string">&quot;[enter] encode_assign_aggregate({:?}, {:?})&quot;</span>,
-            aggregate, operands
-        );
         <span class="kw">let </span>span = <span class="self">self</span>.mir_encoder.get_span_of_location(location);
         <span class="kw">let </span><span class="kw-2">mut </span>stmts = <span class="self">self</span>.encode_havoc_and_initialization(dst).with_span(span)<span class="question-mark">?</span>;
         <span class="comment">// Initialize values
@@ -13810,7 +13684,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>get_label_after_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: mir::Location) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>String&gt;&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>get_label_after_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: mir::Location) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>String&gt;&gt; {
         <span class="kw">let </span>opt_label = <span class="self">self</span>.label_after_location.get(<span class="kw-2">&amp;</span>location);
         <span class="kw">if </span>opt_label.is_none() {
             <span class="kw">if </span>config::allow_unreachable_unsupported_code() {
@@ -13841,6 +13716,7 @@
     }
 
     <span class="doccomment">/// A local version of encode_place
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_place(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -13994,12 +13870,12 @@
         <span class="prelude-val">Ok</span>((res, stmts))
     }
 
-    <span class="kw">fn </span>postprocess_place_encoding(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>postprocess_place_encoding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place_encoding: PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         array_encode_kind: ArrayAccessKind,
     ) -&gt; EncodingResult&lt;(vir::Expr, Vec&lt;vir::Stmt&gt;)&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;postprocess_place_encoding: {:?}&quot;</span>, place_encoding);
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>place_encoding {
             PlaceEncoding::Expr(e) =&gt; (e, <span class="macro">vec!</span>[]),
             PlaceEncoding::FieldAccess { <span class="kw">box </span>base, field } =&gt; {
@@ -14026,7 +13902,7 @@
         })
     }
 
-    <span class="kw">fn </span>register_error&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt) -&gt; vir::Position {
+    <span class="kw">fn </span>register_error&lt;T: Into&lt;MultiSpan&gt; + Debug&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt) -&gt; vir::Position {
         <span class="self">self</span>.mir_encoder.register_error(span, error_ctxt)
     }
 }

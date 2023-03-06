@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Iter",""],["IterMut",""],["Object","A binary tree implementation of a string -> `JsonValue` map. You normally don’t have to interact with instances of `Object`, much more likely you will be using the `JsonValue::Object` variant, which wraps around this struct."]]};

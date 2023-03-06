@@ -223,6 +223,27 @@
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -246,6 +267,8 @@
 <span class="kw">use </span>prusti_common::{config, report::user, Stopwatch};
 <span class="kw">use </span>prusti_rustc_interface::interface::interface::try_print_query_stack;
 <span class="kw">use </span>std::{borrow::Cow, env, panic};
+<span class="kw">use </span>tracing_chrome::{ChromeLayerBuilder, FlushGuard};
+<span class="kw">use </span>tracing_subscriber::{filter::EnvFilter, prelude::<span class="kw-2">*</span>};
 
 <span class="doccomment">/// Link to report Prusti bugs
 </span><span class="kw">const </span>BUG_REPORT_URL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://github.com/viperproject/prusti-dev/issues/new&quot;</span>;
@@ -326,14 +349,33 @@
 }
 
 <span class="doccomment">/// Initialize Prusti and the Rust compiler loggers.
-</span><span class="kw">fn </span>init_loggers() {
-    env_logger::init_from_env(
-        env_logger::Env::new()
-            .filter_or(<span class="string">&quot;PRUSTI_LOG&quot;</span>, config::log())
-            .write_style_or(<span class="string">&quot;PRUSTI_LOG_STYLE&quot;</span>, config::log_style()),
-    );
+</span><span class="kw">fn </span>init_loggers() -&gt; <span class="prelude-ty">Option</span>&lt;FlushGuard&gt; {
+    <span class="comment">// TODO: The `config::log() != &quot;&quot;` here is very bad; it makes us ignore the `log_tracing` flag
+    // It&#39;s enabled so that we only create a `trace.json` file if the user has explicitly requested logging
+    </span><span class="kw">let </span>guard = <span class="kw">if </span>config::log_tracing() &amp;&amp; !config::log().is_empty() {
+        <span class="kw">let </span>log_dir = config::log_dir();
+        std::fs::create_dir_all(<span class="kw-2">&amp;</span>log_dir).expect(<span class="string">&quot;failed to create log directory&quot;</span>);
+        <span class="kw">let </span>filter = EnvFilter::new(config::log());
+        <span class="kw">let </span>(chrome_layer, guard) = ChromeLayerBuilder::new()
+            .file(log_dir.join(<span class="string">&quot;trace.json&quot;</span>))
+            .include_args(<span class="bool-val">true</span>)
+            .build();
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(chrome_layer)
+            .init();
+        <span class="prelude-val">Some</span>(guard)
+    } <span class="kw">else </span>{
+        env_logger::init_from_env(
+            env_logger::Env::new()
+                .filter_or(<span class="string">&quot;PRUSTI_LOG&quot;</span>, config::log())
+                .write_style_or(<span class="string">&quot;PRUSTI_LOG_STYLE&quot;</span>, config::log_style()),
+        );
+        <span class="prelude-val">None
+    </span>};
 
     prusti_rustc_interface::driver::init_rustc_env_logger();
+    guard
 }
 
 <span class="kw">fn </span>main() {
@@ -366,7 +408,7 @@
     }
 
     lazy_static::initialize(<span class="kw-2">&amp;</span>ICE_HOOK);
-    init_loggers();
+    <span class="kw">let </span>_guard = init_loggers();
 
     <span class="comment">// Disable incremental compilation because it causes mir_borrowck not to
     // be called.

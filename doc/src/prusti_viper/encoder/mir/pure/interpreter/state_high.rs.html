@@ -84,7 +84,6 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -97,7 +96,6 @@
     mem,
 };
 
-<span class="kw">use </span>log::trace;
 <span class="kw">use </span>vir_crate::high::{<span class="self">self </span><span class="kw">as </span>vir_high, Generic};
 
 <span class="attr">#[derive(Clone, Debug)]
@@ -144,12 +142,12 @@
         <span class="self">self</span>.expr
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>substitute_value(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>substitute_value(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         target: <span class="kw-2">&amp;</span>vir_high::Expression,
         replacement: vir_high::Expression,
     ) {
-        <span class="macro">trace!</span>(<span class="string">&quot;substitute_value {:?} --&gt; {:?}&quot;</span>, target, replacement);
         <span class="kw">let </span><span class="kw-2">mut </span>target = target.clone().substitute_types(<span class="kw-2">&amp;</span><span class="self">self</span>.substs);
         <span class="kw">let </span><span class="kw-2">mut </span>replacement = replacement.substitute_types(<span class="kw-2">&amp;</span><span class="self">self</span>.substs);
 
@@ -163,8 +161,8 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>uses_place(<span class="kw-2">&amp;</span><span class="self">self</span>, sub_target: <span class="kw-2">&amp;</span>vir_high::Expression) -&gt; bool {
-        <span class="macro">trace!</span>(<span class="string">&quot;use_place {:?}&quot;</span>, sub_target);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>uses_place(<span class="kw-2">&amp;</span><span class="self">self</span>, sub_target: <span class="kw-2">&amp;</span>vir_high::Expression) -&gt; bool {
         <span class="kw">let </span>sub_target = sub_target.clone().substitute_types(<span class="kw-2">&amp;</span><span class="self">self</span>.substs);
         <span class="self">self</span>.expr
             .as_ref()

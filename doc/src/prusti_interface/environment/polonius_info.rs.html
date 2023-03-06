@@ -2370,25 +2370,6 @@
 <a href="#2370" id="2370">2370</a>
 <a href="#2371" id="2371">2371</a>
 <a href="#2372" id="2372">2372</a>
-<a href="#2373" id="2373">2373</a>
-<a href="#2374" id="2374">2374</a>
-<a href="#2375" id="2375">2375</a>
-<a href="#2376" id="2376">2376</a>
-<a href="#2377" id="2377">2377</a>
-<a href="#2378" id="2378">2378</a>
-<a href="#2379" id="2379">2379</a>
-<a href="#2380" id="2380">2380</a>
-<a href="#2381" id="2381">2381</a>
-<a href="#2382" id="2382">2382</a>
-<a href="#2383" id="2383">2383</a>
-<a href="#2384" id="2384">2384</a>
-<a href="#2385" id="2385">2385</a>
-<a href="#2386" id="2386">2386</a>
-<a href="#2387" id="2387">2387</a>
-<a href="#2388" id="2388">2388</a>
-<a href="#2389" id="2389">2389</a>
-<a href="#2390" id="2390">2390</a>
-<a href="#2391" id="2391">2391</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -2419,9 +2400,10 @@
 <span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>prusti_common::config;
 <span class="kw">use </span>prusti_rustc_interface::{
+    borrowck::consumers::RustcFacts,
     index::vec::Idx,
     middle::{mir, ty},
-    polonius_engine::{Algorithm, Output},
+    polonius_engine::{Algorithm, AllFacts, Output},
     span::{def_id::DefId, Span},
 };
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
@@ -2686,7 +2668,8 @@
     <span class="kw">let </span>interner = facts::Interner::new(facts.location_table.take().unwrap());
 
     <span class="kw">let </span>borrowck_in_facts = facts.input_facts.take().unwrap();
-    <span class="kw">let </span>borrowck_out_facts = Output::compute(<span class="kw-2">&amp;</span>borrowck_in_facts, Algorithm::Naive, <span class="bool-val">true</span>);
+    <span class="kw">let </span>borrowck_out_facts =
+        PoloniusInfo::output_compute(<span class="kw-2">&amp;</span>borrowck_in_facts, Algorithm::Naive, <span class="bool-val">true</span>);
 
     <span class="kw">use </span>std::io::Write;
     <span class="kw">let </span>graph_path = config::log_dir()
@@ -2794,6 +2777,7 @@
 /// - A list of incompatability sets. Every incompatability set contains loans that cannot be
 ///   reborrows of each other.
 </span><span class="attr">#[allow(clippy::type_complexity)]
+#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
 </span><span class="kw">fn </span>add_fake_facts&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(
     all_facts: <span class="kw-2">&amp;mut </span>facts::AllInputFacts,
     interner: <span class="kw-2">&amp;</span>facts::Interner,
@@ -2912,6 +2896,7 @@
 
 <span class="doccomment">/// Remove back edges to make MIR uncyclic so that we can compute reborrowing dags at the end of
 /// the loop body.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
 </span><span class="kw">fn </span>remove_back_edges(
     <span class="kw-2">mut </span>all_facts: facts::AllInputFacts,
     interner: <span class="kw-2">&amp;</span>facts::Interner,
@@ -2937,6 +2922,7 @@
 <span class="doccomment">/// Returns the place that is borrowed by the assignment. We assume that
 /// all shared references are created only via assignments and ignore
 /// all other cases.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
 </span><span class="kw">fn </span>get_borrowed_places&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(
     mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     loan_position: <span class="kw-2">&amp;</span>FxHashMap&lt;facts::Loan, mir::Location&gt;,
@@ -3000,14 +2986,13 @@
     }
 }
 
-<span class="kw">fn </span>compute_loan_conflict_sets(
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, ret)]
+</span><span class="kw">fn </span>compute_loan_conflict_sets(
     procedure: <span class="kw-2">&amp;</span>Procedure,
     loan_position: <span class="kw-2">&amp;</span>FxHashMap&lt;facts::Loan, mir::Location&gt;,
     borrowck_in_facts: <span class="kw-2">&amp;</span>facts::AllInputFacts,
     borrowck_out_facts: <span class="kw-2">&amp;</span>facts::AllOutputFacts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;FxHashMap&lt;facts::Loan, FxHashSet&lt;facts::Loan&gt;&gt;, PoloniusInfoError&gt; {
-    <span class="macro">trace!</span>(<span class="string">&quot;[enter] compute_loan_conflict_sets&quot;</span>);
-
     <span class="kw">let </span><span class="kw-2">mut </span>loan_conflict_sets = FxHashMap::default();
 
     <span class="kw">let </span>mir = procedure.get_mir();
@@ -3046,17 +3031,12 @@
             }
         }
     }
-
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;[exit] compute_loan_conflict_sets = {:?}&quot;</span>,
-        loan_conflict_sets
-    );
-
     <span class="prelude-val">Ok</span>(loan_conflict_sets)
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt; PoloniusInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;PoloniusInfo::new&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>new(
         env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         procedure: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Procedure&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         _loop_invariant_block: <span class="kw-2">&amp;</span>FxHashMap&lt;mir::BasicBlock, mir::BasicBlock&gt;,
@@ -3101,11 +3081,11 @@
         <span class="self">Self</span>::disconnect_universal_regions(tcx, mir, <span class="kw-2">&amp;</span>place_regions, <span class="kw-2">&amp;mut </span>all_facts)
             .map_err(|(err, loc)| PoloniusInfoError::PlaceRegionsError(err, loc))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>output = Output::compute(<span class="kw-2">&amp;</span>all_facts, Algorithm::Naive, <span class="bool-val">true</span>);
+        <span class="kw">let </span>output = PoloniusInfo::output_compute(<span class="kw-2">&amp;</span>all_facts, Algorithm::Naive, <span class="bool-val">true</span>);
         <span class="kw">let </span>all_facts_without_back_edges =
             remove_back_edges(all_facts.clone(), <span class="kw-2">&amp;</span>interner, <span class="kw-2">&amp;</span>loop_info.back_edges);
         <span class="kw">let </span>output_without_back_edges =
-            Output::compute(<span class="kw-2">&amp;</span>all_facts_without_back_edges, Algorithm::Naive, <span class="bool-val">true</span>);
+            PoloniusInfo::output_compute(<span class="kw-2">&amp;</span>all_facts_without_back_edges, Algorithm::Naive, <span class="bool-val">true</span>);
 
         <span class="kw">let </span>loan_position: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = all_facts
             .loan_issued_at
@@ -3166,7 +3146,17 @@
         </span><span class="prelude-val">Ok</span>(info)
     }
 
-    <span class="kw">fn </span>disconnect_universal_regions(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>output_compute(
+        all_facts: <span class="kw-2">&amp;</span>AllFacts&lt;RustcFacts&gt;,
+        algorithm: Algorithm,
+        dump_enabled: bool,
+    ) -&gt; Output&lt;RustcFacts&gt; {
+        Output::compute(all_facts, algorithm, dump_enabled)
+    }
+
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>disconnect_universal_regions(
         tcx: ty::TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         place_regions: <span class="kw-2">&amp;</span>PlaceRegions,
@@ -3317,6 +3307,7 @@
     }
 
     <span class="doccomment">/// Get loans that are active (including those that are about to die) at the given location.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>get_active_loans(<span class="kw-2">&amp;</span><span class="self">self</span>, location: mir::Location, zombie: bool) -&gt; Vec&lt;facts::Loan&gt; {
         <span class="kw">let </span>loan_live_at = <span class="self">self</span>.get_borrow_live_at(zombie);
         <span class="kw">let </span>start_point = <span class="self">self</span>.get_point(location, facts::PointType::Start);
@@ -3362,28 +3353,15 @@
     }
 
     <span class="doccomment">/// Get loans including the zombies ``(all_loans, zombie_loans)``.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), ret)]
     </span><span class="kw">pub fn </span>get_all_loans_dying_between(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         initial_loc: mir::Location,
         final_loc: mir::Location,
     ) -&gt; (Vec&lt;facts::Loan&gt;, Vec&lt;facts::Loan&gt;) {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] get_all_loans_dying_between initial_loc={:?} final_loc={:?}&quot;</span>,
-            initial_loc,
-            final_loc
-        );
-
         <span class="kw">let </span><span class="kw-2">mut </span>loans = <span class="self">self</span>.get_loans_dying_between(initial_loc, final_loc, <span class="bool-val">false</span>);
         <span class="kw">let </span>zombie_loans = <span class="self">self</span>.get_loans_dying_between(initial_loc, final_loc, <span class="bool-val">true</span>);
         loans.extend(zombie_loans.iter().cloned());
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[exit] get_all_loans_dying_between \
-             initial_loc={:?} final_loc={:?} all={:?} zombie={:?}&quot;</span>,
-            initial_loc,
-            final_loc,
-            loans,
-            zombie_loans
-        );
         (loans, zombie_loans)
     }
 
@@ -3415,18 +3393,13 @@
     }
 
     <span class="doccomment">/// Get loans that die between two consecutive locations
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), ret)]
     </span><span class="kw">pub fn </span>get_loans_dying_between(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         initial_loc: mir::Location,
         final_loc: mir::Location,
         zombie: bool,
     ) -&gt; Vec&lt;facts::Loan&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] get_loans_dying_between {:?}, {:?}, {}&quot;</span>,
-            initial_loc,
-            final_loc,
-            zombie
-        );
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.get_successors(initial_loc).contains(<span class="kw-2">&amp;</span>final_loc));
         <span class="kw">let </span>mid_point = <span class="self">self</span>.get_point(initial_loc, facts::PointType::Mid);
         <span class="kw">let </span>becoming_zombie_loans = <span class="self">self
@@ -3441,8 +3414,7 @@
             <span class="string">&quot;loan_live_at final {:?}&quot;</span>,
             <span class="self">self</span>.borrowck_out_facts.loan_live_at.get(<span class="kw-2">&amp;</span>final_loc_point)
         );
-        <span class="kw">let </span>dying_loans = <span class="self">self
-            </span>.get_active_loans(initial_loc, zombie)
+        <span class="self">self</span>.get_active_loans(initial_loc, zombie)
             .into_iter()
             .filter(|loan| {
                 <span class="self">self</span>.get_borrow_live_at(zombie)
@@ -3450,15 +3422,7 @@
                     .map_or(<span class="bool-val">true</span>, |successor_loans| !successor_loans.contains(loan))
             })
             .filter(|loan| !becoming_zombie_loans.contains(loan))
-            .collect();
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[exit] get_loans_dying_between {:?}, {:?}, {}, dying_loans={:?}&quot;</span>,
-            initial_loc,
-            final_loc,
-            zombie,
-            dying_loans
-        );
-        dying_loans
+            .collect()
     }
 
     <span class="comment">//     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
@@ -3511,7 +3475,8 @@
             .unwrap_or_default()
     }
 
-    <span class="kw">pub fn </span>get_alive_conflicting_loans(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">pub fn </span>get_alive_conflicting_loans(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loan: facts::Loan,
         location: mir::Location,
@@ -3683,6 +3648,7 @@
     }
 
     <span class="doccomment">/// Find minimal elements that are the tree roots.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">fn </span>find_loan_roots(<span class="kw-2">&amp;</span><span class="self">self</span>, loans: <span class="kw-2">&amp;</span>[facts::Loan]) -&gt; Vec&lt;facts::Loan&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>roots = Vec::new();
         <span class="kw">for </span><span class="kw-2">&amp;</span>loan <span class="kw">in </span>loans.iter() {
@@ -3753,6 +3719,7 @@
     }
 
     <span class="doccomment">/// Get loops in which loans are defined (if any).
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">pub fn </span>get_loan_loops(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loans: <span class="kw-2">&amp;</span>[facts::Loan],
@@ -3787,6 +3754,7 @@
     }
 
     <span class="doccomment">/// ``loans`` – all loans, including the zombie loans.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>, reborrows_direct))]
     </span><span class="kw">pub fn </span>construct_reborrowing_dag_custom_reborrows(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loans: <span class="kw-2">&amp;</span>[facts::Loan],
@@ -3794,14 +3762,6 @@
         location: mir::Location,
         reborrows_direct: <span class="kw-2">&amp;</span>[(facts::Loan, facts::Loan)],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ReborrowingDAG, PoloniusInfoError&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] construct_reborrowing_dag_custom_reborrows\
-             (loans={:?}, zombie_loans={:?}, location={:?})&quot;</span>,
-            loans,
-            zombie_loans,
-            location
-        );
-
         <span class="kw">let </span><span class="kw-2">mut </span>loans: Vec&lt;<span class="kw">_</span>&gt; = loans
             .iter()
             .filter(|loan| {
@@ -4019,7 +3979,8 @@
         }
     }
 
-    <span class="kw">fn </span>construct_reborrowing_zombity(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>construct_reborrowing_zombity(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loan: facts::Loan,
         _loans: <span class="kw-2">&amp;</span>[facts::Loan],
@@ -4038,7 +3999,8 @@
         }
     }
 
-    <span class="kw">fn </span>check_incoming_zombies(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>check_incoming_zombies(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loan: facts::Loan,
         loans: <span class="kw-2">&amp;</span>[facts::Loan],

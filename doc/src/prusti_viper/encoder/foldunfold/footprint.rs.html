@@ -272,9 +272,6 @@
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
 <a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -286,7 +283,6 @@
     Predicates,
 };
 <span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::perm::{Perm::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
-<span class="kw">use </span>log::trace;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 
 <span class="kw">use </span>vir_crate::polymorphic::{<span class="self">self </span><span class="kw">as </span>vir, PermAmount};
@@ -298,9 +294,9 @@
 }
 
 <span class="kw">impl </span>ExprFootprintGetter <span class="kw">for </span>vir::Expr {
-    <span class="kw">fn </span>get_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, predicates: <span class="kw-2">&amp;</span>Predicates) -&gt; FxHashSet&lt;Perm&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;get_footprint {}&quot;</span>, <span class="self">self</span>);
-        <span class="kw">let </span>res = <span class="kw">match </span><span class="self">self </span>{
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>, predicates), fields(<span class="self">self </span>= %<span class="self">self</span>), ret)]
+    </span><span class="kw">fn </span>get_footprint(<span class="kw-2">&amp;</span><span class="self">self</span>, predicates: <span class="kw-2">&amp;</span>Predicates) -&gt; FxHashSet&lt;Perm&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
             vir::Expr::Local(<span class="kw">_</span>)
             | vir::Expr::Field(<span class="kw">_</span>)
             | vir::Expr::Variant(<span class="kw">_</span>)
@@ -454,9 +450,7 @@
             vir::Expr::SnapApp(vir::SnapApp { <span class="kw-2">ref </span>base, .. }) =&gt; base.get_footprint(predicates),
 
             vir::Expr::Cast(vir::Cast { <span class="kw-2">ref </span>base, .. }) =&gt; base.get_footprint(predicates),
-        };
-        <span class="macro">trace!</span>(<span class="string">&quot;get_footprint {} = {:?}&quot;</span>, <span class="self">self</span>, res);
-        res
+        }
     }
 }
 

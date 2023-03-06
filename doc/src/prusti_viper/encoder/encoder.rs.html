@@ -829,7 +829,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>::log::{info, debug, trace};
+</span><span class="kw">use </span>::log::{info, debug};
 <span class="kw">use </span>prusti_common::utils::identifiers::encode_identifier;
 <span class="kw">use </span>vir_crate::common::check_mode::CheckMode;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::builtin_encoder::BuiltinEncoder;
@@ -851,6 +851,7 @@
 <span class="kw">use </span>prusti_rustc_interface::middle::mir;
 <span class="kw">use </span>prusti_rustc_interface::middle::ty;
 <span class="kw">use </span>std::cell::{Cell, RefCell, RefMut, Ref};
+<span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>rustc_hash::{FxHashSet, FxHashMap};
 <span class="kw">use </span>std::io::Write;
 <span class="kw">use </span>std::rc::Rc;
@@ -1039,7 +1040,8 @@
         }
     }
 
-    <span class="kw">fn </span>initialize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; EncodingResult&lt;()&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Encoder::initialize&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>initialize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; EncodingResult&lt;()&gt; {
         <span class="comment">// These are used in optimization passes
         </span><span class="self">self</span>.encode_builtin_method_def(BuiltinMethodKind::HavocBool)<span class="question-mark">?</span>;
         <span class="self">self</span>.encode_builtin_method_def(BuiltinMethodKind::HavocInt)<span class="question-mark">?</span>;
@@ -1076,8 +1078,8 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::encoder) <span class="kw">fn </span>register_encoding_error(<span class="kw-2">&amp;</span><span class="self">self</span>, encoding_error: SpannedEncodingError) {
-        <span class="macro">debug!</span>(<span class="string">&quot;Encoding error: {:?}&quot;</span>, encoding_error);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::encoder) <span class="kw">fn </span>register_encoding_error(<span class="kw-2">&amp;</span><span class="self">self</span>, encoding_error: SpannedEncodingError) {
         <span class="kw">let </span>prusti_error: PrustiError = encoding_error.into();
         <span class="kw">if </span>prusti_error.is_error() {
             <span class="self">self</span>.encoding_errors_counter.borrow_mut().add_assign(<span class="number">1</span>);
@@ -1247,8 +1249,8 @@
         }))
     }
 
-    <span class="kw">pub fn </span>encode_builtin_domain(<span class="kw-2">&amp;</span><span class="self">self</span>, domain_kind: BuiltinDomainKind) -&gt; EncodingResult&lt;vir::Domain&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_domain({:?})&quot;</span>, domain_kind);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_builtin_domain(<span class="kw-2">&amp;</span><span class="self">self</span>, domain_kind: BuiltinDomainKind) -&gt; EncodingResult&lt;vir::Domain&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.builtin_domains.borrow().contains_key(<span class="kw-2">&amp;</span>domain_kind) {
             <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<span class="self">self</span>);
             <span class="kw">let </span>domain = builtin_encoder.encode_builtin_domain(domain_kind)<span class="question-mark">?</span>;
@@ -1259,8 +1261,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.builtin_domains.borrow()[<span class="kw-2">&amp;</span>domain_kind].clone())
     }
 
-    <span class="kw">pub fn </span>encode_builtin_domain_type(<span class="kw-2">&amp;</span><span class="self">self</span>, domain_kind: BuiltinDomainKind) -&gt; EncodingResult&lt;vir::Type&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_domain_type({:?})&quot;</span>, domain_kind);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_builtin_domain_type(<span class="kw-2">&amp;</span><span class="self">self</span>, domain_kind: BuiltinDomainKind) -&gt; EncodingResult&lt;vir::Type&gt; {
         <span class="comment">// Also encode the definition, if it&#39;s not already under construction.
         </span><span class="kw">let </span><span class="kw-2">mut </span>domains_in_progress = <span class="self">self</span>.builtin_domains_in_progress.borrow_mut();
         <span class="kw">if </span>!domains_in_progress.contains(<span class="kw-2">&amp;</span>domain_kind) {
@@ -1274,8 +1276,8 @@
         builtin_encoder.encode_builtin_domain_type(domain_kind)
     }
 
-    <span class="kw">pub fn </span>encode_builtin_method_def(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: BuiltinMethodKind) -&gt; EncodingResult&lt;vir::BodylessMethod&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_method_def({:?})&quot;</span>, method_kind);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_builtin_method_def(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: BuiltinMethodKind) -&gt; EncodingResult&lt;vir::BodylessMethod&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.builtin_methods.borrow().contains_key(<span class="kw-2">&amp;</span>method_kind) {
             <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<span class="self">self</span>);
             <span class="kw">let </span>method = builtin_encoder.encode_builtin_method_def(method_kind)<span class="question-mark">?</span>;
@@ -1287,18 +1289,18 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.builtin_methods.borrow()[<span class="kw-2">&amp;</span>method_kind].clone())
     }
 
-    <span class="kw">pub fn </span>encode_builtin_method_use(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: BuiltinMethodKind) -&gt; EncodingResult&lt;String&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_method_use({:?})&quot;</span>, method_kind);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_builtin_method_use(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: BuiltinMethodKind) -&gt; EncodingResult&lt;String&gt; {
         <span class="comment">// Trigger encoding of definition
         </span><span class="self">self</span>.encode_builtin_method_def(method_kind)<span class="question-mark">?</span>;
         <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<span class="self">self</span>);
         <span class="prelude-val">Ok</span>(builtin_encoder.encode_builtin_method_name(method_kind))
     }
 
-    <span class="kw">pub fn </span>encode_cast_function_use(<span class="kw-2">&amp;</span><span class="self">self</span>, src_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_cast_function_use(<span class="kw-2">&amp;</span><span class="self">self</span>, src_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
         -&gt; EncodingResult&lt;String&gt;
     {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_cast_function_use(src_ty={:?}, dst_ty={:?})&quot;</span>, src_ty, dst_ty);
         <span class="kw">let </span>function_name = <span class="macro">format!</span>(<span class="string">&quot;builtin$cast${src_ty}${dst_ty}&quot;</span>);
         <span class="kw">if </span>!<span class="self">self</span>.type_cast_functions.borrow().contains_key(<span class="kw-2">&amp;</span>(src_ty, dst_ty)) {
             <span class="kw">let </span>arg = <span class="macro">vir_local!</span>{ number: {<span class="self">self</span>.encode_snapshot_type(src_ty)<span class="question-mark">?</span>} };
@@ -1321,10 +1323,10 @@
         <span class="prelude-val">Ok</span>(function_name)
     }
 
-    <span class="kw">pub fn </span>encode_unsize_function_use(<span class="kw-2">&amp;</span><span class="self">self</span>, src_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_unsize_function_use(<span class="kw-2">&amp;</span><span class="self">self</span>, src_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
         -&gt; EncodingResult&lt;String&gt;
     {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_unsize_function_use(src_ty={:?}, dst_ty={:?})&quot;</span>, src_ty, dst_ty);
         <span class="comment">// at some point we may want to add support for other types of unsizing calls?
         </span><span class="macro">assert!</span>(<span class="macro">matches!</span>(src_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));
         <span class="macro">assert!</span>(<span class="macro">matches!</span>(dst_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));
@@ -1372,8 +1374,8 @@
 
     <span class="doccomment">/// This encodes the Rust function as a Viper method for verification. It
     /// does this also for pure functions.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>encode_procedure(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: ProcedureDefId) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;encode_procedure({:?})&quot;</span>, def_id);
         <span class="macro">assert!</span>(
             !<span class="self">self</span>.is_trusted(def_id, <span class="prelude-val">None</span>),
             <span class="string">&quot;procedure is marked as trusted: {def_id:?}&quot;
@@ -1424,12 +1426,12 @@
         }
     }
 
-    <span class="kw">pub fn </span>encode_const_expr(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">pub fn </span>encode_const_expr(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         value: mir::ConstantKind&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; EncodingResult&lt;vir::Expr&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_const_expr {:?}&quot;</span>, value);
         <span class="kw">let </span>scalar_value = <span class="self">self</span>.const_eval_intlike(value)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>expr = <span class="kw">match </span>ty.kind() {
@@ -1471,13 +1473,11 @@
                 <span class="macro">error_unsupported!</span>(<span class="string">&quot;unsupported constant type {:?}&quot;</span>, ty.kind());
             }
         };
-        <span class="macro">debug!</span>(<span class="string">&quot;encode_const_expr {:?} --&gt; {:?}&quot;</span>, value, expr);
         <span class="prelude-val">Ok</span>(expr)
     }
 
-    <span class="kw">pub fn </span>encode_int_cast(<span class="kw-2">&amp;</span><span class="self">self</span>, value: u128, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; vir::Expr {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_int_cast {:?} as {:?}&quot;</span>, value, ty);
-
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">pub fn </span>encode_int_cast(<span class="kw-2">&amp;</span><span class="self">self</span>, value: u128, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; vir::Expr {
         <span class="kw">let </span>expr = <span class="kw">match </span>ty.kind() {
             ty::TyKind::Bool =&gt; (value != <span class="number">0</span>).into(),
             ty::TyKind::Int(ty::IntTy::I8) =&gt; (value <span class="kw">as </span>i8).into(),
@@ -1495,7 +1495,6 @@
             ty::TyKind::Char =&gt; value.into(),
             <span class="kw-2">ref </span>x =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;{:?}&quot;</span>, x),
         };
-        <span class="macro">debug!</span>(<span class="string">&quot;encode_int_cast {:?} as {:?} --&gt; {:?}&quot;</span>, value, ty, expr);
         expr
     }
 
@@ -1523,7 +1522,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>process_encoding_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>process_encoding_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.initialize() {
             <span class="macro">panic!</span>(<span class="string">&quot;The initialization of the encoder failed with the error: {error:?}&quot;</span>);
         }
@@ -1627,7 +1627,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>intern_viper_identifier&lt;S: AsRef&lt;str&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, full_name: S, short_name: S) -&gt; String {
+    <span class="kw">pub fn </span>intern_viper_identifier&lt;S: AsRef&lt;str&gt; + Debug&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, full_name: S, short_name: S) -&gt; String {
         <span class="kw">let </span>result = <span class="kw">if </span>config::disable_name_mangling() {
             short_name.as_ref().to_string()
         } <span class="kw">else if </span>config::intern_names() {

@@ -1301,7 +1301,6 @@
 <a href="#1301" id="1301">1301</a>
 <a href="#1302" id="1302">1302</a>
 <a href="#1303" id="1303">1303</a>
-<a href="#1304" id="1304">1304</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     encoder::{
         builtin_encoder::BuiltinFunctionKind,
@@ -1505,13 +1504,13 @@
     <span class="kw">type </span>State = ExprBackwardInterpreterState;
     <span class="kw">type </span>Error = SpannedEncodingError;
 
-    <span class="kw">fn </span>apply_terminator(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>apply_terminator(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bb: mir::BasicBlock,
         term: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         states: FxHashMap&lt;mir::BasicBlock, <span class="kw-2">&amp;</span><span class="self">Self</span>::State&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::State, <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;apply_terminator {:?}, states: {:?}&quot;</span>, term, states);
         <span class="kw">use </span>prusti_rustc_interface::middle::mir::TerminatorKind;
         <span class="kw">let </span>span = term.source_info.span;
         <span class="kw">let </span>location = <span class="self">self</span>.mir.terminator_loc(bb);
@@ -1733,7 +1732,6 @@
 
                         <span class="kw">match </span>full_func_proc_name {
                             <span class="string">&quot;prusti_contracts::old&quot; </span>=&gt; {
-                                <span class="macro">trace!</span>(<span class="string">&quot;Encoding old expression {:?}&quot;</span>, args[<span class="number">0</span>]);
                                 <span class="macro">assert_eq!</span>(args.len(), <span class="number">1</span>);
 
                                 <span class="comment">// Return an error for unsupported old(..) types
@@ -2115,14 +2113,14 @@
         <span class="prelude-val">Ok</span>(state)
     }
 
-    <span class="kw">fn </span>apply_statement(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>, state), fields(state = %state))]
+    </span><span class="kw">fn </span>apply_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bb: mir::BasicBlock,
         stmt_index: usize,
         stmt: <span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;apply_statement {:?}, state: {}&quot;</span>, stmt, state);
         <span class="kw">let </span>span = stmt.source_info.span;
         <span class="kw">let </span>location = mir::Location {
             block: bb,

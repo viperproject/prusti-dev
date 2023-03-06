@@ -346,6 +346,23 @@
 <a href="#346" id="346">346</a>
 <a href="#347" id="347">347</a>
 <a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -361,7 +378,7 @@
     verification_backend::VerificationBackend,
     verification_result::{VerificationError, VerificationResult},
 };
-<span class="kw">use </span>jni::{objects::JObject, JNIEnv};
+<span class="kw">use </span>jni::{errors::Result, objects::JObject, JNIEnv};
 <span class="kw">use </span>log::{debug, error, info};
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>viper_sys::wrappers::{scala, viper::<span class="kw-2">*</span>};
@@ -396,14 +413,7 @@
             };
 
             <span class="kw">let </span>debug_info = jni.new_seq(<span class="kw-2">&amp;</span>[]);
-            <span class="kw">match </span>backend {
-                VerificationBackend::Silicon =&gt; {
-                    silicon::Silicon::with(env).new(reporter, debug_info)
-                }
-                VerificationBackend::Carbon =&gt; {
-                    carbon::CarbonVerifier::with(env).new(reporter, debug_info)
-                }
-            }
+            <span class="self">Self</span>::instantiate_verifier(backend, env, reporter, debug_info)
         }));
 
         ast_utils.with_local_frame(<span class="number">16</span>, || {
@@ -425,7 +435,23 @@
         }
     }
 
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>instantiate_verifier(
+        backend: VerificationBackend,
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JNIEnv,
+        reporter: JObject,
+        debug_info: JObject,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="kw">match </span>backend {
+            VerificationBackend::Silicon =&gt; silicon::Silicon::with(env).new(reporter, debug_info),
+            VerificationBackend::Carbon =&gt; {
+                carbon::CarbonVerifier::with(env).new(reporter, debug_info)
+            }
+        }
+    }
+
     <span class="attr">#[must_use]
+    #[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">pub fn </span>parse_command_line(<span class="self">self</span>, args: <span class="kw-2">&amp;</span>[String]) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.ast_utils.with_local_frame(<span class="number">16</span>, || {
             <span class="kw">let </span>args = <span class="self">self</span>.jni.new_seq(
@@ -443,6 +469,7 @@
     </span>}
 
     <span class="attr">#[must_use]
+    #[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">pub fn </span>start(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.ast_utils.with_local_frame(<span class="number">16</span>, || {
             <span class="self">self</span>.jni
@@ -451,8 +478,10 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, program: Program) -&gt; VerificationResult {
-        <span class="self">self</span>.ast_utils.with_local_frame(<span class="number">16</span>, || {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;viper::verify&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, program: Program) -&gt; VerificationResult {
+        <span class="kw">let </span>ast_utils = <span class="self">self</span>.ast_utils;
+        ast_utils.with_local_frame(<span class="number">16</span>, || {
             <span class="macro">debug!</span>(
                 <span class="string">&quot;Program to be verified:\n{}&quot;</span>,
                 <span class="self">self</span>.ast_utils.pretty_print(program)
@@ -482,8 +511,7 @@
 
             <span class="macro">run_timed!</span>(<span class="string">&quot;Viper verification&quot;</span>, debug,
                 <span class="kw">let </span>viper_result = <span class="self">self</span>.jni.unwrap_result(
-                    <span class="self">self</span>.verifier_wrapper
-                        .call_verify(<span class="self">self</span>.verifier_instance, program.to_jobject()),
+                    <span class="self">self</span>.call_verify(program)
                 );
             );
             <span class="macro">debug!</span>(
@@ -680,6 +708,12 @@
                 VerificationResult::Success
             }
         })
+    }
+
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>call_verify(<span class="kw-2">&amp;</span><span class="self">self</span>, program: Program) -&gt; <span class="prelude-ty">Result</span>&lt;JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="self">self</span>.verifier_wrapper
+            .call_verify(<span class="self">self</span>.verifier_instance, program.to_jobject())
     }
 }
 

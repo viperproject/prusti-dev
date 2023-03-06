@@ -609,6 +609,10 @@
 <a href="#609" id="609">609</a>
 <a href="#610" id="610">610</a>
 <a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -634,6 +638,7 @@
 }
 
 <span class="doccomment">/// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(real_edges, body))]
 </span><span class="kw">fn </span>collect_loop_body(
     head: BasicBlockIndex,
     back_edge_source: BasicBlockIndex,
@@ -707,7 +712,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>AccessCollector&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>visit_place(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_place(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: <span class="kw-2">&amp;</span>mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         context: mir::visit::PlaceContext,
@@ -864,7 +870,8 @@
 );
 
 <span class="kw">impl </span>ProcedureLoops {
-    <span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, real_edges: <span class="kw-2">&amp;</span>RealEdges) -&gt; ProcedureLoops {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;ProcedureLoops::new&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(mir, real_edges))]
+    </span><span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, real_edges: <span class="kw-2">&amp;</span>RealEdges) -&gt; ProcedureLoops {
         <span class="kw">let </span>dominators = mir.basic_blocks.dominators();
 
         <span class="kw">let </span><span class="kw-2">mut </span>back_edges: FxHashSet&lt;(<span class="kw">_</span>, <span class="kw">_</span>)&gt; = FxHashSet::default();
@@ -1111,6 +1118,7 @@
 
     <span class="doccomment">/// If `definitely_initalised_paths` is not `None`, returns only leaves that are
     /// definitely initialised.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>, mir, definitely_initalised_paths))]
     </span><span class="kw">pub fn </span>compute_read_and_write_leaves&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loop_head: BasicBlockIndex,

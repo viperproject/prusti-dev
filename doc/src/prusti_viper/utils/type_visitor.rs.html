@@ -320,7 +320,6 @@
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -333,7 +332,6 @@
     TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
 <span class="kw">use </span>prusti_rustc_interface::hir::def_id::DefId;
-<span class="kw">use </span>log::trace;
 
 <span class="kw">pub trait </span>TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt;: Sized {
     <span class="kw">type </span>Error;
@@ -342,14 +340,14 @@
 
     <span class="kw">fn </span>unsupported&lt;S: ToString&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _msg: S) -&gt; <span class="self">Self</span>::Error;
 
-    <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_ty({:?})&quot;</span>, ty);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.visit_sty(ty.kind())<span class="question-mark">?</span>;
         <span class="self">self</span>.visit_flags(ty.flags())
     }
 
-    <span class="kw">fn </span>visit_sty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sty: <span class="kw-2">&amp;</span>TyKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_sty({:?})&quot;</span>, sty);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_sty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sty: <span class="kw-2">&amp;</span>TyKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="kw">match </span><span class="kw-2">*</span>sty {
             TyKind::Bool =&gt; {
                 <span class="self">self</span>.visit_bool()
@@ -446,97 +444,97 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>visit_adt(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_adt(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         adt_def: AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_adt({:?})&quot;</span>, adt_def);
         walk_adt(<span class="self">self</span>, adt_def, substs)
     }
 
-    <span class="kw">fn </span>visit_adt_variant(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_adt_variant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         adt: AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: <span class="kw-2">&amp;</span>VariantDef,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     )  -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_adt_variant({:?}, {:?}, {:?})&quot;</span>, adt, idx, variant);
         walk_adt_variant(<span class="self">self</span>, variant, substs)
     }
 
-    <span class="kw">fn </span>visit_field(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: usize,
         field: <span class="kw-2">&amp;</span>FieldDef,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, index, field);
         walk_field(<span class="self">self</span>, field, substs)
     }
 
-    <span class="kw">fn </span>visit_ref(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_ref(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         region: Region&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         mutability: Mutability
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_ref({:?}, {:?}, {:?})&quot;</span>, region, ty, mutability);
         walk_ref(<span class="self">self</span>, region, ty, mutability)
     }
 
     <span class="attr">#[allow(dead_code)]
+    #[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>visit_ref_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         mutability: Mutability
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_ref_type({:?}, {:?})&quot;</span>, ty, mutability);
         walk_ref_type(<span class="self">self</span>, ty, mutability)
     }
 
-    <span class="kw">fn </span>visit_tuple(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_tuple(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         types: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>List&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_tuple({:?})&quot;</span>, types);
         walk_tuple(<span class="self">self</span>, types)
     }
 
-    <span class="kw">fn </span>visit_raw_ptr(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_raw_ptr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         mutability: Mutability
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_raw_ptr({:?}, {:?})&quot;</span>, ty, mutability);
         walk_raw_ptr(<span class="self">self</span>, ty, mutability)
     }
 
-    <span class="kw">fn </span>visit_closure(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_closure(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         def_id: DefId,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_closure({:?})&quot;</span>, def_id);
         walk_closure(<span class="self">self</span>, def_id, substs)
     }
 
-    <span class="kw">fn </span>visit_fndef(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_fndef(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         def_id: DefId,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_fndef({:?})&quot;</span>, def_id);
         walk_fndef(<span class="self">self</span>, def_id, substs)
     }
 
-    <span class="kw">fn </span>visit_array(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_array(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         len: Const&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_array({:?}, {:?})&quot;</span>, ty, len);
         walk_array(<span class="self">self</span>, ty, len)
     }
 }

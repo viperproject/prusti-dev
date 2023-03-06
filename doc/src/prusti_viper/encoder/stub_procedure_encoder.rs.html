@@ -93,9 +93,6 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -112,7 +109,6 @@
 <span class="kw">use </span>prusti_common::report::log;
 <span class="kw">use </span>prusti_rustc_interface::hir::def_id::DefId;
 <span class="kw">use </span>prusti_rustc_interface::middle::mir;
-<span class="kw">use </span>::log::trace;
 
 
 <span class="kw">pub struct </span>StubProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;
@@ -125,10 +121,9 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; StubProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, procedure: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Procedure&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;StubProcedureEncoder::new&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(encoder, procedure), fields(def_id = <span class="question-mark">?</span>procedure.get_id()))]
+    </span><span class="kw">pub fn </span>new(encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;, procedure: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Procedure&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>def_id = procedure.get_id();
-        <span class="macro">trace!</span>(<span class="string">&quot;StubProcedureEncoder constructor: {:?}&quot;</span>, def_id);
-
         <span class="kw">let </span>mir = procedure.get_mir();
 
         StubProcedureEncoder {
@@ -140,9 +135,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>encode(<span class="self">self</span>) -&gt; vir::CfgMethod {
-        <span class="macro">trace!</span>(<span class="string">&quot;Encode stub for procedure {}&quot;</span>, <span class="self">self</span>.procedure.get_def_path());
-
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), fields(procedure = %<span class="self">self</span>.procedure.get_def_path()))]
+    </span><span class="kw">pub fn </span>encode(<span class="self">self</span>) -&gt; vir::CfgMethod {
         <span class="kw">let </span><span class="kw-2">mut </span>cfg_method = vir::CfgMethod::new(
             <span class="comment">// method name
             </span><span class="self">self</span>.encoder.encode_item_name(<span class="self">self</span>.def_id),

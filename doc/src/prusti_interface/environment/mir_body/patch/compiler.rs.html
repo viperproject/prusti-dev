@@ -200,6 +200,8 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
 </pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:
 // https://github.com/rust-lang/rust/blob/45e2c2881d11324d610815bfff097e25c412199e/compiler/rustc_middle/src/mir/patch.rs
 // This file is licensed under Apache 2.0
@@ -316,7 +318,8 @@
         Local::new(index)
     }
 
-    <span class="kw">pub fn </span>new_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; BasicBlock {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>new_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; BasicBlock {
         <span class="kw">let </span>block = BasicBlock::new(<span class="self">self</span>.patch_map.len());
         <span class="macro">debug!</span>(<span class="string">&quot;MirPatch: new_block: {:?}: {:?}&quot;</span>, block, data);
         <span class="self">self</span>.new_blocks.push(data);
@@ -324,14 +327,14 @@
         block
     }
 
-    <span class="kw">pub fn </span>patch_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: BasicBlock, new: TerminatorKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>patch_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: BasicBlock, new: TerminatorKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
         <span class="macro">assert!</span>(<span class="self">self</span>.patch_map[block].is_none());
-        <span class="macro">debug!</span>(<span class="string">&quot;MirPatch: patch_terminator({:?}, {:?})&quot;</span>, block, new);
         <span class="self">self</span>.patch_map[block] = <span class="prelude-val">Some</span>(new);
     }
 
-    <span class="kw">pub fn </span>add_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loc: Location, stmt: StatementKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="macro">debug!</span>(<span class="string">&quot;MirPatch: add_statement({:?}, {:?})&quot;</span>, loc, stmt);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>add_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loc: Location, stmt: StatementKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
         <span class="self">self</span>.new_statements.push((loc, stmt));
     }
 
@@ -339,7 +342,8 @@
         <span class="self">self</span>.add_statement(loc, StatementKind::Assign(Box::new((place, rv))));
     }
 
-    <span class="kw">pub fn </span>apply(<span class="self">self</span>, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>apply(<span class="self">self</span>, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
         <span class="macro">debug!</span>(
             <span class="string">&quot;MirPatch: {:?} new temps, starting from index {}: {:?}&quot;</span>,
             <span class="self">self</span>.new_locals.len(),

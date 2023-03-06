@@ -461,7 +461,8 @@
     <span class="kw">fn </span>fold_magic_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, magic_wand: vir::MagicWand) -&gt; vir::Expr {
         vir::Expr::MagicWand(magic_wand)
     }
-    <span class="kw">fn </span>fold_forall(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>fold_forall(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         vir::ForAll {
             variables,
@@ -470,7 +471,6 @@
             position,
         }: vir::ForAll,
     ) -&gt; vir::Expr {
-        <span class="macro">debug!</span>(<span class="string">&quot;original body: {}&quot;</span>, body);
         <span class="kw">let </span>folded_body = <span class="self">self</span>.fold_boxed(body);
         <span class="macro">debug!</span>(<span class="string">&quot;Folded body: {}&quot;</span>, folded_body);
         <span class="kw">let </span>old_counter = <span class="self">self</span>.counter;
@@ -680,7 +680,8 @@
 }
 
 <span class="kw">impl </span>vir::ExprFolder <span class="kw">for </span>UnfoldingExtractor {
-    <span class="kw">fn </span>fold_forall(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>fold_forall(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         vir::ForAll {
             variables,
@@ -693,7 +694,6 @@
             <span class="self">self</span>.unfoldings.is_empty(),
             <span class="string">&quot;Nested quantifiers are not supported.&quot;
         </span>);
-        <span class="macro">debug!</span>(<span class="string">&quot;original body: {}&quot;</span>, body);
 
         <span class="self">self</span>.in_quantifier = <span class="bool-val">true</span>;
         <span class="kw">let </span>replaced_body = <span class="self">self</span>.fold_boxed(body);

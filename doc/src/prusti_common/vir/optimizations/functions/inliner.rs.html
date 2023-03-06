@@ -170,7 +170,6 @@
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -180,7 +179,6 @@
 </span><span class="doccomment">//! Inliner of pure functions.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::{ast, cfg};
-<span class="kw">use </span>log::trace;
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::mem;
 
@@ -206,11 +204,11 @@
 /// And then inline them on call sites.
 ///
 /// The optimization is performed until a fix-point.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
 </span><span class="kw">pub fn </span>inline_constant_functions(
     <span class="kw-2">mut </span>methods: Vec&lt;cfg::CfgMethod&gt;,
     <span class="kw-2">mut </span>functions: Vec&lt;ast::Function&gt;,
 ) -&gt; (Vec&lt;cfg::CfgMethod&gt;, Vec&lt;ast::Function&gt;) {
-    <span class="macro">trace!</span>(<span class="string">&quot;[enter] purify_constant_functions&quot;</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>non_pure_functions = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>pure_function_map = FxHashMap::default();
     <span class="kw">let </span><span class="kw-2">mut </span>changed = <span class="bool-val">true</span>;
@@ -236,8 +234,8 @@
 
 <span class="doccomment">/// Try converting the function to pure by removing permissions from the
 /// precondition. Returns true if successful.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(name = %function.name))]
 </span><span class="kw">fn </span>try_purify(function: <span class="kw-2">&amp;mut </span>ast::Function) -&gt; <span class="prelude-ty">Option</span>&lt;ast::Expr&gt; {
-    <span class="macro">trace!</span>(<span class="string">&quot;[enter] try_purify(name={})&quot;</span>, function.name);
     <span class="kw">if </span>function.has_constant_body()
         &amp;&amp; function.pres.iter().all(|cond| cond.is_only_permissions())
         &amp;&amp; function.posts.is_empty()

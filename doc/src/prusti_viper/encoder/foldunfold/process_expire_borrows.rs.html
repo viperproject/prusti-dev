@@ -594,6 +594,8 @@
 <a href="#594" id="594">594</a>
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{action::Action, borrows, path_ctxt::PathCtxt, FoldUnfold, FoldUnfoldError};
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
     foldunfold::{prepend_join, Perm},
@@ -608,6 +610,7 @@
     <span class="doccomment">/// Generates Viper statements that expire all the borrows from the given `dag`. The
     /// `surrounding_pctxt` will be modified to reflect the path context after the borrows have
     /// been expired.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>, surrounding_pctxt, new_cfg))]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>process_expire_borrows(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         dag: <span class="kw-2">&amp;</span>vir::borrows::DAG,
@@ -616,8 +619,6 @@
         new_cfg: <span class="kw-2">&amp;</span>vir::CfgMethod,
         label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;vir::Stmt&gt;, FoldUnfoldError&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;[enter] process_expire_borrows dag=[{:?}]&quot;</span>, dag);
-
         <span class="kw">let </span><span class="kw-2">mut </span>cfg = build_initial_cfg(dag);
 
         <span class="kw">let </span><span class="kw-2">mut </span>final_pctxt: Vec&lt;<span class="prelude-ty">Option</span>&lt;PathCtxt&gt;&gt; = <span class="macro">vec!</span>[<span class="prelude-val">None</span>; cfg.basic_blocks.len()];
@@ -711,7 +712,8 @@
         })
     }
 
-    <span class="kw">fn </span>construct_initial_pctxt_no_predecessors(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>construct_initial_pctxt_no_predecessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         dag: <span class="kw-2">&amp;</span>vir::borrows::DAG,
         cfg: <span class="kw-2">&amp;mut </span>borrows::CFG,
@@ -754,6 +756,7 @@
     }
 
     <span class="attr">#[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
     </span><span class="kw">fn </span>construct_initial_pctxt_with_predecessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         dag: <span class="kw-2">&amp;</span>vir::borrows::DAG,
@@ -831,6 +834,7 @@
     }
 
     <span class="attr">#[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(curr_node = <span class="question-mark">?</span>curr_block.node))]
     </span><span class="kw">fn </span>process_node(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         surrounding_pctxt: <span class="kw-2">&amp;mut </span>PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;,
@@ -843,7 +847,6 @@
         method_pos: vir::Position,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
         <span class="kw">let </span>curr_node = <span class="kw-2">&amp;</span>curr_block.node;
-        <span class="macro">trace!</span>(<span class="string">&quot;process_node: {:?}&quot;</span>, curr_node);
         <span class="kw">for </span>s <span class="kw">in </span><span class="kw-2">&amp;</span>curr_node.stmts {
             <span class="macro">trace!</span>(<span class="string">&quot;stmt: {}&quot;</span>, s);
         }
@@ -1112,11 +1115,11 @@
 }
 
 <span class="doccomment">/// Restore `Write` permissions that were converted to `Read` due to borrowing.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(pctxt))]
 </span><span class="kw">fn </span>restore_write_permissions(
     borrow: vir::borrows::Borrow,
     pctxt: <span class="kw-2">&amp;mut </span>PathCtxt,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;vir::Stmt&gt;, FoldUnfoldError&gt; {
-    <span class="macro">trace!</span>(<span class="string">&quot;[enter] restore_write_permissions({:?})&quot;</span>, borrow);
     <span class="kw">let </span><span class="kw-2">mut </span>stmts = Vec::new();
     <span class="kw">for </span>access <span class="kw">in </span>pctxt.log().get_converted_to_read_places(borrow) {
         <span class="macro">trace!</span>(<span class="string">&quot;restore_write_permissions access={}&quot;</span>, access);
@@ -1161,7 +1164,8 @@
     <span class="prelude-val">Ok</span>(stmts)
 }
 
-<span class="kw">fn </span>build_initial_cfg(dag: <span class="kw-2">&amp;</span>vir::borrows::DAG) -&gt; borrows::CFG {
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+</span><span class="kw">fn </span>build_initial_cfg(dag: <span class="kw-2">&amp;</span>vir::borrows::DAG) -&gt; borrows::CFG {
     <span class="kw">let </span><span class="kw-2">mut </span>cfg = borrows::CFG::new();
     <span class="kw">for </span>node <span class="kw">in </span>dag.iter() {
         <span class="macro">trace!</span>(<span class="string">&quot;process_expire_borrows construct cfg node={:?}&quot;</span>, node);

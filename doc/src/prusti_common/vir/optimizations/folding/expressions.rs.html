@@ -602,24 +602,6 @@
 <a href="#602" id="602">602</a>
 <a href="#603" id="603">603</a>
 <a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -638,7 +620,10 @@
 //! when unfolding are used inside a quantifiers and other cases.
 //! See: &lt;https://github.com/viperproject/silicon/issues/387&gt;
 
-</span><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
+</span><span class="kw">use crate</span>::{
+    utils::to_string::ToString,
+    vir::polymorphic_vir::{ast, cfg, FallibleExprFolder},
+};
 <span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::{cmp::Ordering, mem};
@@ -649,7 +634,8 @@
 }
 
 <span class="kw">impl </span>FoldingOptimizer <span class="kw">for </span>cfg::CfgMethod {
-    <span class="kw">fn </span>optimize(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;CfgMethod::optimize&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all, fields(method_name = %<span class="self">self</span>.name()))]
+    </span><span class="kw">fn </span>optimize(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>sentinel_stmt = ast::Stmt::comment(<span class="string">&quot;moved out stmt&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>optimizer = StmtOptimizer {};
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.basic_blocks {
@@ -664,26 +650,23 @@
 }
 
 <span class="kw">impl </span>FoldingOptimizer <span class="kw">for </span>ast::Function {
-    <span class="kw">fn </span>optimize(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] FoldingOptimizer function_name={}&quot;</span>, <span class="self">self</span>.name);
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Function::optimize&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(function_name = %<span class="self">self</span>.name))]
+    </span><span class="kw">fn </span>optimize(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.body = <span class="self">self</span>.body.map(|e| e.optimize());
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] FoldingOptimizer function_name={}&quot;</span>, <span class="self">self</span>.name);
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl </span>FoldingOptimizer <span class="kw">for </span>ast::Expr {
-    <span class="kw">fn </span>optimize(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] FoldingOptimizer::optimize = \n{}&quot;</span>, <span class="self">self</span>);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, ret)]
+    </span><span class="kw">fn </span>optimize(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>optimizer = ExprOptimizer {
             unfoldings: FxHashMap::default(),
             requirements: FxHashSet::default(),
         };
         <span class="kw">let </span>original_expr = <span class="self">self</span>.clone();
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(new_expr) = optimizer.fallible_fold(<span class="self">self</span>) {
-            <span class="kw">let </span>r = restore_unfoldings(optimizer.get_unfoldings(), new_expr);
-            <span class="macro">trace!</span>(<span class="string">&quot;[exit] FoldingOptimizer::optimize = \n{}&quot;</span>, r);
-            r
+            restore_unfoldings(optimizer.get_unfoldings(), new_expr)
         } <span class="kw">else </span>{
             <span class="comment">// The optimizer encountered unsupported expressions
             </span><span class="macro">trace!</span>(<span class="string">&quot;[exit] FoldingOptimizer::optimize encountered unsupported expressions&quot;</span>);
@@ -763,6 +746,7 @@
 <span class="doccomment">/// Check whether the requirements are conflicting.
 ///
 /// Returns a set of conflicting bases. The empty set means no conflicts.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">fn </span>check_requirements_conflict(
     reqs1: <span class="kw-2">&amp;</span>RequirementSet,
     reqs2: <span class="kw-2">&amp;</span>RequirementSet,
@@ -893,7 +877,13 @@
     }
 }
 
-<span class="kw">fn </span>merge_requirements_and_unfoldings2(
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all, fields(
+    reqs = %first_requirements.iter().to_sorted_multiline_string(),
+    first_unfoldings = %first_unfoldings.keys().to_sorted_multiline_string(),
+    reqs = %second_requirements.iter().to_sorted_multiline_string(),
+    second_unfoldings = %second_unfoldings.keys().to_sorted_multiline_string()
+))]
+</span><span class="kw">fn </span>merge_requirements_and_unfoldings2(
     first: Box&lt;ast::Expr&gt;,
     <span class="kw-2">mut </span>first_unfoldings: UnfoldingMap,
     <span class="kw-2">mut </span>first_requirements: RequirementSet,
@@ -901,25 +891,6 @@
     second_unfoldings: UnfoldingMap,
     second_requirements: RequirementSet,
 ) -&gt; (RequirementSet, UnfoldingMap, Box&lt;ast::Expr&gt;, Box&lt;ast::Expr&gt;) {
-    <span class="macro">trace!</span>(<span class="string">&quot;[enter] merge_requirements_and_unfoldings&quot;</span>);
-    <span class="kw">use </span><span class="kw">crate</span>::utils::to_string::ToString;
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;reqs: {}&quot;</span>,
-        first_requirements.iter().to_sorted_multiline_string()
-    );
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;unfoldings: {}&quot;</span>,
-        first_unfoldings.keys().to_sorted_multiline_string()
-    );
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;reqs: {}&quot;</span>,
-        second_requirements.iter().to_sorted_multiline_string()
-    );
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;unfoldings: {}&quot;</span>,
-        second_unfoldings.keys().to_sorted_multiline_string()
-    );
-
     <span class="kw">let </span>conflicts = check_requirements_conflict(<span class="kw-2">&amp;</span>first_requirements, <span class="kw-2">&amp;</span>second_requirements);
     <span class="macro">trace!</span>(
         <span class="string">&quot;conflicts: {}&quot;</span>,
@@ -1065,7 +1036,8 @@
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>fallible_fold_bin_op(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>fallible_fold_bin_op(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ast::BinOp {
             op_kind,
@@ -1074,8 +1046,6 @@
             position,
         }: ast::BinOp,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Expr, ()&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;fold_bin_op: {} {} {}&quot;</span>, op_kind, left, right);
-
         <span class="kw">let </span>first_folded = <span class="self">self</span>.fallible_fold_boxed(left)<span class="question-mark">?</span>;
         <span class="kw">let </span>first_unfoldings = <span class="self">self</span>.get_unfoldings();
         <span class="kw">let </span>first_requirements = <span class="self">self</span>.get_requirements();
@@ -1140,7 +1110,8 @@
         }
     }
 
-    <span class="kw">fn </span>fallible_fold_cond(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>fallible_fold_cond(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ast::Cond {
             guard,
@@ -1149,13 +1120,6 @@
             position,
         }: ast::Cond,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Expr, ()&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;\n\nfold_cond:\ng = {}\nt = {}\ne = {}&quot;</span>,
-            guard,
-            then_expr,
-            else_expr
-        );
-
         <span class="kw">let </span>guard_folded = <span class="self">self</span>.fallible_fold_boxed(guard)<span class="question-mark">?</span>;
         <span class="kw">let </span>guard_unfoldings = <span class="self">self</span>.get_unfoldings();
         <span class="kw">let </span>guard_requirements = <span class="self">self</span>.get_requirements();

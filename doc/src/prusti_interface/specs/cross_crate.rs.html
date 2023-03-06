@@ -115,6 +115,10 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
     metadata::creader::CStore,
     serialize::{Decodable, Encodable},
@@ -134,12 +138,14 @@
 <span class="kw">pub struct </span>CrossCrateSpecs;
 
 <span class="kw">impl </span>CrossCrateSpecs {
-    <span class="kw">pub fn </span>import_export_cross_crate(env: <span class="kw-2">&amp;mut </span>Environment, def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>import_export_cross_crate(env: <span class="kw-2">&amp;mut </span>Environment, def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap) {
         <span class="self">Self</span>::export_specs(env, def_spec);
         <span class="self">Self</span>::import_specs(env, def_spec);
     }
 
-    <span class="kw">fn </span>export_specs(env: <span class="kw-2">&amp;</span>Environment, def_spec: <span class="kw-2">&amp;</span>DefSpecificationMap) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>export_specs(env: <span class="kw-2">&amp;</span>Environment, def_spec: <span class="kw-2">&amp;</span>DefSpecificationMap) {
         <span class="kw">let </span>outputs = env.tcx().output_filenames(());
         <span class="comment">// If we run `rustc` without the `--out-dir` flag set, then don&#39;t export specs
         </span><span class="kw">if </span>outputs.out_directory.to_string_lossy() == <span class="string">&quot;&quot; </span>{
@@ -161,7 +167,8 @@
         }
     }
 
-    <span class="kw">fn </span>import_specs(env: <span class="kw-2">&amp;mut </span>Environment, def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>import_specs(env: <span class="kw-2">&amp;mut </span>Environment, def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap) {
         <span class="kw">let </span>cstore = CStore::from_tcx(env.tcx());
         <span class="comment">// TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
         // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
@@ -212,7 +219,8 @@
         file.write(<span class="kw-2">&amp;</span>encoder.into_inner())
     }
 
-    <span class="kw">fn </span>import_from_file(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(env, def_spec))]
+    </span><span class="kw">fn </span>import_from_file(
         env: <span class="kw-2">&amp;mut </span>Environment,
         def_spec: <span class="kw-2">&amp;mut </span>DefSpecificationMap,
         path: <span class="kw-2">&amp;</span>path::PathBuf,

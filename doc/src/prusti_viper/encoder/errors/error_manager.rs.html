@@ -723,19 +723,24 @@
 <a href="#723" id="723">723</a>
 <a href="#724" id="724">724</a>
 <a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>vir_crate::polymorphic::Position;
+</span><span class="kw">use </span>std::fmt::Debug;
+
+<span class="kw">use </span>vir_crate::polymorphic::Position;
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>prusti_rustc_interface::span::source_map::SourceMap;
 <span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
 <span class="kw">use </span>viper::VerificationError;
 <span class="kw">use </span>prusti_interface::PrustiError;
-<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span><span class="kw">super</span>::PositionManager;
 <span class="kw">use </span>prusti_interface::data::ProcedureDefId;
 
@@ -933,7 +938,7 @@ ASSERT_TIMEOUT to a larger value.&quot;</span>;
     }
 
     <span class="doccomment">/// Register a new VIR position.
-    </span><span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, def_id: ProcedureDefId, span: T) -&gt; Position {
+    </span><span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt; + Debug&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, def_id: ProcedureDefId, span: T) -&gt; Position {
         <span class="self">self</span>.position_manager.register_span(def_id, span)
     }
 
@@ -943,8 +948,8 @@ ASSERT_TIMEOUT to a larger value.&quot;</span>;
     }
 
     <span class="doccomment">/// Register the ErrorCtxt on an existing VIR position.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>set_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: Position, error_ctxt: ErrorCtxt) {
-        <span class="macro">trace!</span>(<span class="string">&quot;Register error {:?} at position id {:?}&quot;</span>, error_ctxt, pos.id());
         <span class="macro">assert_ne!</span>(pos, Position::default(), <span class="string">&quot;Trying to register an error on a default position&quot;</span>);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_error_ctxt) = <span class="self">self</span>.error_contexts.get(<span class="kw-2">&amp;</span>pos.id()) {
             <span class="macro">debug_assert_eq!</span>(
@@ -973,7 +978,7 @@ ASSERT_TIMEOUT to a larger value.&quot;</span>;
 
     <span class="doccomment">/// Register a new VIR position with the given ErrorCtxt.
     /// Equivalent to calling `set_error` on the output of `register_span`.
-    </span><span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -&gt; Position {
+    </span><span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt; + Debug&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -&gt; Position {
         <span class="kw">let </span>pos = <span class="self">self</span>.register_span(def_id, span);
         <span class="self">self</span>.set_error(pos, error_ctxt);
         pos
@@ -985,8 +990,8 @@ ASSERT_TIMEOUT to a larger value.&quot;</span>;
             .and_then(|id| <span class="self">self</span>.position_manager.def_id.get(<span class="kw-2">&amp;</span>id).copied())
     }
 
-    <span class="kw">pub fn </span>translate_verification_error(<span class="kw-2">&amp;</span><span class="self">self</span>, ver_error: <span class="kw-2">&amp;</span>VerificationError) -&gt; PrustiError {
-        <span class="macro">debug!</span>(<span class="string">&quot;Verification error: {:?}&quot;</span>, ver_error);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>translate_verification_error(<span class="kw-2">&amp;</span><span class="self">self</span>, ver_error: <span class="kw-2">&amp;</span>VerificationError) -&gt; PrustiError {
         <span class="kw">let </span>opt_pos_id: <span class="prelude-ty">Option</span>&lt;u64&gt; = <span class="kw">match </span>ver_error.offending_pos_id {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>viper_pos_id) =&gt; {
                 <span class="kw">match </span>viper_pos_id.parse() {
@@ -1071,7 +1076,8 @@ ASSERT_TIMEOUT to a larger value.&quot;</span>;
         }
     }
 
-    <span class="kw">fn </span>translate_verification_error_with_context(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>translate_verification_error_with_context(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ver_error: <span class="kw-2">&amp;</span>VerificationError,
         error_span: MultiSpan,

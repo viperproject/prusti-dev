@@ -232,18 +232,6 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -254,7 +242,6 @@
     encoder::errors::{EncodingError, EncodingResult},
     utils::type_visitor::{<span class="self">self</span>, TypeVisitor},
 };
-<span class="kw">use </span>log::trace;
 <span class="kw">use </span>prusti_rustc_interface::{
     hir::{<span class="self">self </span><span class="kw">as </span>hir, Mutability},
     index::vec::Idx,
@@ -399,14 +386,14 @@
         EncodingError::unsupported(msg.to_string())
     }
 
-    <span class="kw">fn </span>visit_adt_variant(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_adt_variant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         adt: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: <span class="kw-2">&amp;</span>ty::VariantDef,
         substs: ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_adt_variant({:?})&quot;</span>, variant);
         <span class="kw">let </span>old_path = <span class="self">self</span>.current_path.take().unwrap();
         <span class="self">self</span>.current_path = <span class="prelude-val">Some</span>(<span class="self">self</span>.tcx.mk_place_downcast(old_path, adt, idx));
         type_visitor::walk_adt_variant(<span class="self">self</span>, variant, substs)<span class="question-mark">?</span>;
@@ -414,13 +401,13 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>visit_field(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>visit_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: usize,
         field: <span class="kw-2">&amp;</span>ty::FieldDef,
         substs: ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, index, field);
         <span class="kw">let </span>old_path = <span class="self">self</span>.current_path.take().unwrap();
         <span class="kw">let </span>ty = field.ty(<span class="self">self</span>.tcx(), substs);
         <span class="kw">let </span>field_id = mir::Field::new(index);
@@ -432,19 +419,13 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>visit_ref(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), fields(current_path = <span class="question-mark">?</span><span class="self">self</span>.current_path))]
+    </span><span class="kw">fn </span>visit_ref(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         region: ty::Region&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         mutability: hir::Mutability,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;visit_ref({:?}, {:?}, {:?}) current_path={:?}&quot;</span>,
-            region,
-            ty,
-            mutability,
-            <span class="self">self</span>.current_path
-        );
         <span class="kw">let </span>bound_region = <span class="self">self</span>.extract_bound_region(region);
         <span class="kw">let </span>is_path_blocking = <span class="self">self</span>.is_path_blocking;
         <span class="kw">let </span>old_path = <span class="self">self</span>.current_path.take().unwrap();
@@ -475,17 +456,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>visit_raw_ptr(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), fields(current_path = <span class="question-mark">?</span><span class="self">self</span>.current_path))]
+    </span><span class="kw">fn </span>visit_raw_ptr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         mutability: hir::Mutability,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;visit_raw_ptr({:?}, {:?}) current_path={:?}&quot;</span>,
-            ty,
-            mutability,
-            <span class="self">self</span>.current_path
-        );
         <span class="comment">// Do nothing.
         </span><span class="prelude-val">Ok</span>(())
     }

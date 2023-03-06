@@ -207,10 +207,6 @@
 <a href="#207" id="207">207</a>
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -271,12 +267,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>log_prejoin_action(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_index: vir::CfgBlockIndex, action: Action) {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] log_prejoin_action(block_index={}, action={})&quot;</span>,
-            block_index,
-            action
-        );
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(block_index = %block_index, action = %action))]
+    </span><span class="kw">pub fn </span>log_prejoin_action(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_index: vir::CfgBlockIndex, action: Action) {
         <span class="kw">let </span>entry_rc = <span class="self">self
             </span>.prejoin_actions
             .entry(block_index)
@@ -322,11 +314,11 @@
         <span class="self">self</span>.id_generator += <span class="number">1</span>;
     }
 
-    <span class="kw">pub fn </span>get_duplicated_read_permissions(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>get_duplicated_read_permissions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         borrow: vir::borrows::Borrow,
     ) -&gt; Vec&lt;(vir::Expr, vir::Expr)&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] get_duplicated_read_permissions({:?})&quot;</span>, borrow);
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">self
             </span>.duplicated_reads
             .get(<span class="kw-2">&amp;</span>borrow)
@@ -362,7 +354,7 @@
             },
         );
         <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] get_duplicated_read_permissions({:?}) = {}&quot;</span>,
+            <span class="string">&quot;[exit] get_duplicated_read_permissions({:?}) = {}&quot;</span>,
             borrow,
             result
                 .iter()

@@ -139,8 +139,6 @@
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -148,7 +146,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::environment::borrowck::facts;
-<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_rustc_interface::{
     data_structures::fx::FxHashMap,
     middle::{mir, ty},
@@ -236,7 +234,8 @@
     }
 }
 
-<span class="kw">fn </span>extract_region(place_regions: <span class="kw-2">&amp;mut </span>PlaceRegions, local: mir::Local, ty: ty::Ty&lt;<span class="lifetime">&#39;_</span>&gt;) {
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(place_regions))]
+</span><span class="kw">fn </span>extract_region(place_regions: <span class="kw-2">&amp;mut </span>PlaceRegions, local: mir::Local, ty: ty::Ty&lt;<span class="lifetime">&#39;_</span>&gt;) {
     <span class="kw">match </span>ty.kind() {
         ty::TyKind::Ref(region, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
             place_regions.add_local(local, extract_region_id(region));
@@ -271,17 +270,14 @@
     }
 }
 
-<span class="kw">pub fn </span>load_place_regions(body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;PlaceRegions&gt; {
-    <span class="macro">trace!</span>(<span class="string">&quot;[enter] load_place_regions()&quot;</span>);
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(body))]
+</span><span class="kw">pub fn </span>load_place_regions(body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;PlaceRegions&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>place_regions = PlaceRegions::new();
-
     <span class="kw">for </span>(local, local_decl) <span class="kw">in </span>body.local_decls.iter_enumerated() {
         <span class="kw">let </span>ty = local_decl.ty;
         <span class="macro">debug!</span>(<span class="string">&quot;local: {:?} {:?}&quot;</span>, local, ty);
         extract_region(<span class="kw-2">&amp;mut </span>place_regions, local, ty);
     }
-
-    <span class="macro">trace!</span>(<span class="string">&quot;[exit] load_place_regions&quot;</span>);
     <span class="prelude-val">Ok</span>(place_regions)
 }
 </code></pre></div>

@@ -237,10 +237,6 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -250,7 +246,6 @@
 </span><span class="doccomment">//! Function simplifier that simplifies expressions.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::ast::{<span class="self">self</span>, ExprFolder};
-<span class="kw">use </span>log::trace;
 
 <span class="kw">pub trait </span>Simplifier {
     <span class="doccomment">/// Simplify by doing constant evaluation.
@@ -261,11 +256,10 @@
 <span class="kw">impl </span>Simplifier <span class="kw">for </span>ast::Function {
     <span class="doccomment">/// Simplify functions in a way that tries to work-around regressions caused by
     /// &lt;https://github.com/viperproject/silicon/issues/387&gt;
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(<span class="self">self </span>= %<span class="self">self</span>), ret(Display))]
     </span><span class="kw">fn </span>simplify(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] simplify = {}&quot;</span>, <span class="self">self</span>);
         <span class="kw">let </span>new_body = <span class="self">self</span>.body.map(|b| b.simplify());
         <span class="self">self</span>.body = new_body;
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] simplify = {}&quot;</span>, <span class="self">self</span>);
         <span class="self">self
     </span>}
 }
@@ -281,9 +275,9 @@
 <span class="kw">struct </span>ExprSimplifier {}
 
 <span class="kw">impl </span>ExprSimplifier {
-    <span class="kw">fn </span>apply_rules(e: ast::Expr) -&gt; ast::Expr {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] apply_rules={}&quot;</span>, e);
-        <span class="kw">let </span>result = <span class="kw">match </span>e {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(e), fields(e = %e), ret(Display))]
+    </span><span class="kw">fn </span>apply_rules(e: ast::Expr) -&gt; ast::Expr {
+        <span class="kw">match </span>e {
             ast::Expr::UnaryOp(ast::UnaryOp {
                 op_kind: ast::UnaryOpKind::Not,
                 argument:
@@ -429,9 +423,7 @@
                 position: pos,
             }),
             r =&gt; r,
-        };
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] apply_rules={}&quot;</span>, result);
-        result
+        }
     }
 }
 

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":[["RESET","The code to send to reset all styles and return to `Style::default()`."]],"struct":[["Infix","Like `AnsiString`, but only displays the difference between two styles."],["Prefix","Like `AnsiString`, but only displays the style prefix."],["Suffix","Like `AnsiString`, but only displays the style suffix."]]};

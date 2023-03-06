@@ -195,7 +195,7 @@
 <span class="kw">use </span>prusti_interface::environment::{BasicBlockIndex, LoopAnalysisError, PermissionForest, ProcedureLoops, Procedure};
 <span class="kw">use </span>prusti_interface::utils;
 <span class="kw">use </span>prusti_rustc_interface::middle::{mir, ty};
-<span class="kw">use </span>log::{trace, debug};
+<span class="kw">use </span>log::debug;
 
 <span class="kw">pub enum </span>LoopEncoderError {
     LoopInvariantInBranch(BasicBlockIndex),
@@ -315,11 +315,11 @@
     }
 
     <span class="doccomment">/// Return the block at whose end the loop invariant holds
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>get_loop_invariant_block(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         loop_head: BasicBlockIndex
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicBlockIndex, LoopEncoderError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;get_loop_special_blocks: {:?}&quot;</span>, loop_head);
         <span class="kw">let </span>loop_info = <span class="self">self</span>.loops();
         <span class="macro">debug_assert!</span>(loop_info.is_loop_head(loop_head));
         <span class="kw">let </span>loop_depth = loop_info.get_loop_head_depth(loop_head);

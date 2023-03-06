@@ -353,17 +353,6 @@
 <a href="#353" id="353">353</a>
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -373,8 +362,7 @@
 </span><span class="doccomment">//! Various helper functions for working with `mir` types.
 //! copied from prusti-interface/utils
 
-</span><span class="kw">use </span>log::trace;
-<span class="kw">use </span>prusti_rustc_interface::{
+</span><span class="kw">use </span>prusti_rustc_interface::{
     data_structures::fx::FxHashSet,
     infer::infer::TyCtxtInferExt,
     middle::{
@@ -599,6 +587,7 @@
 /// `{x.g, x.h, x.f.f, x.f.h, x.f.g.f, x.f.g.g, x.f.g.h}` and
 /// subtracting `{x.f.g.h}` from it, which results into `{x.g, x.h,
 /// x.f.f, x.f.h, x.f.g.f, x.f.g.g}`.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(mir, tcx), ret)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>expand&lt;<span class="lifetime">&#39;tcx</span>&gt;(
     mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -609,23 +598,12 @@
         is_prefix(subtrahend, minuend),
         <span class="string">&quot;The minuend must be the prefix of the subtrahend.&quot;
     </span>);
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;[enter] expand minuend={:?} subtrahend={:?}&quot;</span>,
-        minuend,
-        subtrahend
-    );
     <span class="kw">let </span><span class="kw-2">mut </span>place_set = Vec::new();
     <span class="kw">while </span>minuend.projection.len() &lt; subtrahend.projection.len() {
         <span class="kw">let </span>(new_minuend, places) = expand_one_level(mir, tcx, minuend, subtrahend);
         minuend = new_minuend;
         place_set.extend(places);
     }
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;[exit] expand minuend={:?} subtrahend={:?} place_set={:?}&quot;</span>,
-        minuend,
-        subtrahend,
-        place_set
-    );
     place_set
 }
 

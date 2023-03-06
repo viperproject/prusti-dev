@@ -576,6 +576,14 @@
 <a href="#576" id="576">576</a>
 <a href="#577" id="577">577</a>
 <a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environment::Environment,
     utils::{
@@ -681,7 +689,14 @@
         }
     }
 
-    <span class="kw">pub fn </span>build_def_specs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; typed::DefSpecificationMap {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>collect_specs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hir: Map&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        hir.walk_toplevel_module(<span class="self">self</span>);
+        hir.walk_attributes(<span class="self">self</span>);
+    }
+
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>build_def_specs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; typed::DefSpecificationMap {
         <span class="kw">let </span><span class="kw-2">mut </span>def_spec = typed::DefSpecificationMap::new();
         <span class="self">self</span>.determine_procedure_specs(<span class="kw-2">&amp;mut </span>def_spec);
         <span class="self">self</span>.determine_extern_specs(<span class="kw-2">&amp;mut </span>def_spec);
@@ -888,7 +903,8 @@
     read_prusti_attr(<span class="string">&quot;spec_id&quot;</span>, attrs).is_some()
 }
 
-<span class="kw">fn </span>get_procedure_spec_ids(def_id: DefId, attrs: <span class="kw-2">&amp;</span>[ast::Attribute]) -&gt; <span class="prelude-ty">Option</span>&lt;ProcedureSpecRefs&gt; {
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
+</span><span class="kw">fn </span>get_procedure_spec_ids(def_id: DefId, attrs: <span class="kw-2">&amp;</span>[ast::Attribute]) -&gt; <span class="prelude-ty">Option</span>&lt;ProcedureSpecRefs&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>spec_id_refs = <span class="macro">vec!</span>[];
 
     spec_id_refs.extend(

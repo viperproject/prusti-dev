@@ -512,26 +512,6 @@
 <a href="#512" id="512">512</a>
 <a href="#513" id="513">513</a>
 <a href="#514" id="514">514</a>
-<a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-<a href="#519" id="519">519</a>
-<a href="#520" id="520">520</a>
-<a href="#521" id="521">521</a>
-<a href="#522" id="522">522</a>
-<a href="#523" id="523">523</a>
-<a href="#524" id="524">524</a>
-<a href="#525" id="525">525</a>
-<a href="#526" id="526">526</a>
-<a href="#527" id="527">527</a>
-<a href="#528" id="528">528</a>
-<a href="#529" id="529">529</a>
-<a href="#530" id="530">530</a>
-<a href="#531" id="531">531</a>
-<a href="#532" id="532">532</a>
-<a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -540,7 +520,7 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::mir_sets::PlaceSet;
 <span class="kw">use </span><span class="kw">crate</span>::utils;
-<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_rustc_interface::middle::{mir, ty::TyCtxt};
 <span class="kw">use </span>std::fmt;
 
@@ -798,6 +778,7 @@
 
     <span class="doccomment">/// Add a new place by following the same rules as described in the
     /// comment for the `new`.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>add(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -847,8 +828,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.root
     }
 
-    <span class="kw">pub fn </span>get_permissions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(PermissionKind, mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] get_permissions self={:?}&quot;</span>, <span class="self">self</span>);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret)]
+    </span><span class="kw">pub fn </span>get_permissions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(PermissionKind, mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>visited = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>to_visit = <span class="macro">vec!</span>[<span class="kw-2">&amp;</span><span class="self">self</span>.root];
         <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = to_visit.pop() {
@@ -878,16 +859,11 @@
                 PermissionKind::ReadNode | PermissionKind::WriteNode | PermissionKind::None =&gt; {}
             }
         }
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] get_permissions visited={:?}&quot;</span>, visited);
         visited
     }
 
-    <span class="kw">pub fn </span>get_children(<span class="kw-2">&amp;</span><span class="self">self</span>, parent_place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] get_children self={:?} parent_place={:?}&quot;</span>,
-            <span class="self">self</span>,
-            parent_place
-        );
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret)]
+    </span><span class="kw">pub fn </span>get_children(<span class="kw-2">&amp;</span><span class="self">self</span>, parent_place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>current_parent_node = <span class="kw-2">&amp;</span><span class="self">self</span>.root;
         <span class="kw">let </span>components = utils::VecPlace::new(<span class="self">self</span>.mir, <span class="self">self</span>.tcx, parent_place);
         <span class="kw">let </span><span class="kw-2">mut </span>component_iter = components.iter();
@@ -910,7 +886,6 @@
                 }
             }
         }
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] get_children visited={:?}&quot;</span>, visited);
         visited
     }
 }
@@ -931,6 +906,7 @@
     /// +   `mut_borrowed_paths` – paths that are roots of trees to
     ///     which we hsould have write permission.
     /// +   `read_paths` – paths to whose leaves we should have read permission.
+    </span><span class="attr">#[tracing::instrument(name = <span class="string">&quot;PermissionForest::new&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(mir, tcx))]
     </span><span class="kw">pub fn </span>new(
         mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -939,31 +915,15 @@
         read_paths: <span class="kw-2">&amp;</span>[mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;],
         all_places: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;[enter] PermissionForest::new(\
-             write_paths={:?}, \
-             mut_borrowed_paths={:?}, \
-             read_paths={:?}, \
-             all_places={:?})&quot;</span>,
-            write_paths,
-            mut_borrowed_paths,
-            read_paths,
-            all_places
-        );
-
         <span class="kw">let </span><span class="kw-2">mut </span>trees: Vec&lt;PermissionTree&gt; = Vec::new();
 
         <span class="doccomment">/// Take the intended place to add and compute the set of places
         /// to add that are definitely initialised.
+        </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
         </span><span class="kw">fn </span>compute_places_to_add&lt;<span class="lifetime">&#39;tcx</span>&gt;(
             place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
             all_places: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         ) -&gt; Vec&lt;(mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
-            <span class="macro">trace!</span>(
-                <span class="string">&quot;[enter] compute_places_to_add(place={:?}, all_places={:?})&quot;</span>,
-                place,
-                all_places
-            );
             <span class="kw">let </span><span class="kw-2">mut </span>found_def_init_prefix = <span class="bool-val">false</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>found_target_prefix = <span class="bool-val">false</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();

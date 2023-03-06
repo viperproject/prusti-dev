@@ -291,15 +291,7 @@
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::mir::specifications::specs::Specifications;
-<span class="kw">use </span>log::trace;
 <span class="kw">use </span>prusti_interface::{
     specs::{
         typed,
@@ -428,7 +420,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; SpecificationsInterface&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>is_pure(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: <span class="prelude-ty">Option</span>&lt;SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; bool {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">fn </span>is_pure(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: <span class="prelude-ty">Option</span>&lt;SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; bool {
         <span class="kw">let </span>kind = <span class="self">self</span>.get_proc_kind(def_id, substs);
         <span class="kw">let </span><span class="kw-2">mut </span>pure = <span class="macro">matches!</span>(
             kind,
@@ -443,8 +436,6 @@
         {
             pure = <span class="bool-val">true</span>;
         }
-
-        <span class="macro">trace!</span>(<span class="string">&quot;is_pure {:?} = {}&quot;</span>, def_id, pure);
         pure
     }
 
@@ -464,37 +455,34 @@
             .unwrap_or(ProcedureSpecificationKind::Impure)
     }
 
-    <span class="kw">fn </span>is_trusted(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: <span class="prelude-ty">Option</span>&lt;SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; bool {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">fn </span>is_trusted(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: <span class="prelude-ty">Option</span>&lt;SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; bool {
         <span class="kw">let </span>substs = substs.unwrap_or_else(|| <span class="self">self</span>.env().query.identity_substs(def_id));
         <span class="kw">let </span>query = SpecQuery::GetProcKind(def_id, substs);
-        <span class="kw">let </span>result = <span class="self">self
-            </span>.specifications_state
+        <span class="self">self</span>.specifications_state
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(<span class="self">self</span>.env(), query)
             .and_then(|spec| spec.trusted.extract_with_selective_replacement().copied())
-            .unwrap_or(<span class="bool-val">false</span>);
-        <span class="macro">trace!</span>(<span class="string">&quot;is_trusted {:?} = {}&quot;</span>, query, result);
-        result
+            .unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>get_predicate_body(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;DefId&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">fn </span>get_predicate_body(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;DefId&gt; {
         <span class="kw">let </span>query = SpecQuery::FunctionDefEncoding(def_id, substs);
         <span class="kw">let </span><span class="kw-2">mut </span>specs = <span class="self">self</span>.specifications_state.specs.borrow_mut();
-        <span class="kw">let </span>result = specs
+        specs
             .get_and_refine_proc_spec(<span class="self">self</span>.env(), query)
             <span class="comment">// In case of error -&gt; It is emitted in get_and_refine_proc_spec
-            </span>.map(|spec| spec.kind.get_predicate_body().unwrap_or(<span class="prelude-val">None</span>))
-            .unwrap_or(<span class="prelude-val">None</span>);
-        <span class="macro">trace!</span>(<span class="string">&quot;get_predicate_body {:?} = {:?}&quot;</span>, query, result);
-        result.cloned()
+            </span>.and_then(|spec| spec.kind.get_predicate_body().unwrap_or(<span class="prelude-val">None</span>))
+            .cloned()
     }
 
-    <span class="kw">fn </span>terminates(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: <span class="prelude-ty">Option</span>&lt;SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; bool {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">fn </span>terminates(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId, substs: <span class="prelude-ty">Option</span>&lt;SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; bool {
         <span class="kw">let </span>substs = substs.unwrap_or_else(|| <span class="self">self</span>.env().query.identity_substs(def_id));
         <span class="kw">let </span>query = SpecQuery::GetProcKind(def_id, substs);
-        <span class="kw">let </span>result = <span class="self">self
-            </span>.specifications_state
+        <span class="self">self</span>.specifications_state
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(<span class="self">self</span>.env(), query)
@@ -504,9 +492,7 @@
                     .copied()
             })
             .unwrap_or(<span class="prelude-val">None</span>)
-            .is_some();
-        <span class="macro">trace!</span>(<span class="string">&quot;terminates {:?} = {}&quot;</span>, query, result);
-        result
+            .is_some()
     }
 
     <span class="kw">fn </span>get_loop_specs(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: DefId) -&gt; <span class="prelude-ty">Option</span>&lt;typed::LoopSpecification&gt; {

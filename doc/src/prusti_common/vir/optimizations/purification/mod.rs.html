@@ -480,6 +480,9 @@
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::{
     ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
@@ -488,6 +491,7 @@
 <span class="kw">use </span>std::collections::BTreeSet;
 
 <span class="doccomment">/// This purifies local variables in a method body
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
 </span><span class="kw">pub fn </span>purify_methods(
     <span class="kw-2">mut </span>methods: Vec&lt;cfg::CfgMethod&gt;,
     predicates: <span class="kw-2">&amp;</span>[ast::Predicate],
@@ -518,7 +522,8 @@
 
 <span class="kw">static </span>SUPPORTED_TYPES: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str] = <span class="kw-2">&amp;</span>[<span class="string">&quot;bool&quot;</span>, <span class="string">&quot;i32&quot;</span>, <span class="string">&quot;isize&quot;</span>, <span class="string">&quot;usize&quot;</span>, <span class="string">&quot;u32&quot;</span>];
 
-<span class="kw">fn </span>purify_method(method: <span class="kw-2">&amp;mut </span>cfg::CfgMethod, predicates: <span class="kw-2">&amp;</span>[ast::Predicate]) {
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(method, predicates))]
+</span><span class="kw">fn </span>purify_method(method: <span class="kw-2">&amp;mut </span>cfg::CfgMethod, predicates: <span class="kw-2">&amp;</span>[ast::Predicate]) {
     <span class="kw">let </span><span class="kw-2">mut </span>candidates = FxHashSet::default();
     <span class="kw">for </span>var <span class="kw">in </span><span class="kw-2">&amp;</span>method.local_vars {
         <span class="kw">match </span><span class="kw-2">&amp;</span>var.typ {
@@ -598,7 +603,8 @@
 }
 
 <span class="kw">impl </span>ast::ExprWalker <span class="kw">for </span>PurifiableVariableCollector {
-    <span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast::Local { variable, .. }: <span class="kw-2">&amp;</span>ast::Local) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>, variable))]
+    </span><span class="kw">fn </span>walk_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ast::Local { variable, .. }: <span class="kw-2">&amp;</span>ast::Local) {
         <span class="kw">if </span><span class="self">self</span>.vars.remove(<span class="kw-2">&amp;</span>variable.name) {
             <span class="macro">debug!</span>(<span class="string">&quot;Will not purify the variable {:?} &quot;</span>, variable)
         }

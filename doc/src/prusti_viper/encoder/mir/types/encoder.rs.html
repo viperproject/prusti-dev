@@ -888,6 +888,8 @@
 <a href="#888" id="888">888</a>
 <a href="#889" id="889">889</a>
 <a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -955,11 +957,11 @@
         <span class="self">self</span>.encoder.compute_array_len(size)
     }
 
-    <span class="kw">pub fn </span>encode_type(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(ty = <span class="question-mark">?</span><span class="self">self</span>.ty))]
+    </span><span class="kw">pub fn </span>encode_type(
         <span class="self">self</span>,
         const_arguments: <span class="kw-2">&amp;</span>[vir::Expression],
     ) -&gt; SpannedEncodingResult&lt;vir::Type&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Encode type &#39;{:?}&#39;&quot;</span>, <span class="self">self</span>.ty);
         <span class="comment">// self.encode_polymorphic_predicate_use()
         </span><span class="kw">let </span>lifetimes = <span class="self">self</span>.encoder.get_lifetimes_from_type_high(<span class="self">self</span>.ty)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = <span class="kw">match </span><span class="self">self</span>.ty.kind() {
@@ -1232,8 +1234,9 @@
         }
     }
 
-    <span class="kw">pub fn </span>encode_type_def_high(<span class="self">self</span>) -&gt; SpannedEncodingResult&lt;vir::TypeDecl&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Encode type predicate &#39;{:?}&#39;&quot;</span>, <span class="self">self</span>.ty);
+    <span class="doccomment">/// Encodes a type predicate for the given type.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(ty = <span class="question-mark">?</span><span class="self">self</span>.ty))]
+    </span><span class="kw">pub fn </span>encode_type_def_high(<span class="self">self</span>) -&gt; SpannedEncodingResult&lt;vir::TypeDecl&gt; {
         <span class="kw">let </span>type_decl = <span class="kw">match </span><span class="self">self</span>.ty.kind() {
             ty::TyKind::Bool =&gt; vir::TypeDecl::bool(),
             ty::TyKind::Int(<span class="kw">_</span>) | ty::TyKind::Uint(<span class="kw">_</span>) | ty::TyKind::Char =&gt; {
@@ -1612,7 +1615,8 @@
     <span class="prelude-val">Ok</span>(variant)
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_adt_def&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;(
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(encoder))]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_adt_def&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;(
     encoder: <span class="kw-2">&amp;</span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     adt_def: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     substs: ty::subst::SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,

@@ -605,8 +605,6 @@
 <a href="#605" id="605">605</a>
 <a href="#606" id="606">606</a>
 <a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A public interface to the pure function encoder.
 
 </span><span class="kw">use </span><span class="kw">super</span>::encoder_poly::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
@@ -678,7 +676,7 @@
 
 <span class="doccomment">/// Depending on the context of the pure encoding,
 /// panics will be encoded slightly differently.
-</span><span class="attr">#[derive(PartialEq, Eq, Clone, Copy)]
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>PureEncodingContext {
     <span class="doccomment">/// Panics will be encoded as calls to unreachable functions
     /// (which have a `requires false` pre-condition).
@@ -900,13 +898,13 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.pure_function_encoder_state.bodies_poly.borrow()[<span class="kw-2">&amp;</span>key].clone())
     }
 
-    <span class="kw">fn </span>encode_pure_function_def(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_pure_function_def(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] encode_pure_function_def({:?})&quot;</span>, proc_def_id);
         <span class="macro">assert!</span>(
             <span class="self">self</span>.is_pure(proc_def_id, <span class="prelude-val">Some</span>(substs)),
             <span class="string">&quot;procedure is not marked as pure: {proc_def_id:?}&quot;
@@ -1018,8 +1016,6 @@
                 }
             }
         }
-
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] encode_pure_function_def({:?})&quot;</span>, proc_def_id);
         <span class="prelude-val">Ok</span>(())
     }
 

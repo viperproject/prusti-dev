@@ -685,6 +685,9 @@
 <a href="#685" id="685">685</a>
 <a href="#686" id="686">686</a>
 <a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
 </pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:
 // https://github.com/rust-lang/rust/blob/661e8beec1fa5f3c58bf6e4362ae3c3fe0b4b1bd/compiler/rustc_mir_transform/src/elaborate_drops.rs
 // This file is licensed under Apache 2.0
@@ -719,9 +722,8 @@
 };
 <span class="kw">use </span>std::fmt;
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>run_pass&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="macro">debug!</span>(<span class="string">&quot;elaborate_drops({:?} @ {:?})&quot;</span>, body.source, body.span);
-
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(tcx, body), fields(pass = <span class="string">&quot;elaborate_drops&quot;</span>, source = <span class="question-mark">?</span>body.source, span = <span class="question-mark">?</span>body.span))]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>run_pass&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">let </span>def_id = body.source.def_id();
     <span class="kw">let </span>param_env = tcx.param_env_reveal_all_normalized(def_id);
     <span class="kw">let </span>move_data = <span class="kw">match </span>MoveData::gather_moves(body, tcx, param_env) {
@@ -772,12 +774,12 @@
 <span class="doccomment">/// Returns the set of basic blocks whose unwind edges are known
 /// to not be reachable, because they are `drop` terminators
 /// that can&#39;t drop anything.
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(tcx, body, env), fields(pass = <span class="string">&quot;find_dead_unwinds&quot;</span>, span = <span class="question-mark">?</span>body.span))]
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>find_dead_unwinds&lt;<span class="lifetime">&#39;tcx</span>&gt;(
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     env: <span class="kw-2">&amp;</span>MoveDataParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; BitSet&lt;BasicBlock&gt; {
-    <span class="macro">debug!</span>(<span class="string">&quot;find_dead_unwinds({:?})&quot;</span>, body.span);
     <span class="comment">// We only need to do this pass once, because unwind edges can only
     // reach cleanup blocks, which can&#39;t have unwind edges themselves.
     </span><span class="kw">let </span><span class="kw-2">mut </span>dead_unwinds = BitSet::new_empty(body.basic_blocks.len());
@@ -879,7 +881,8 @@
         <span class="self">self</span>.ctxt.param_env()
     }
 
-    <span class="kw">fn </span>drop_style(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, mode: DropFlagMode) -&gt; DropStyle {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>drop_style(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, mode: DropFlagMode) -&gt; DropStyle {
         <span class="kw">let </span>((maybe_live, maybe_dead), multipart) = <span class="kw">match </span>mode {
             DropFlagMode::Shallow =&gt; (<span class="self">self</span>.ctxt.init_data.maybe_live_dead(path), <span class="bool-val">false</span>),
             DropFlagMode::Deep =&gt; {
@@ -996,10 +999,10 @@
         <span class="self">self</span>.env.param_env
     }
 
-    <span class="kw">fn </span>create_drop_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: MovePathIndex, span: Span) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>), fields(self_span = <span class="question-mark">?</span><span class="self">self</span>.body.span))]
+    </span><span class="kw">fn </span>create_drop_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: MovePathIndex, span: Span) {
         <span class="kw">let </span>tcx = <span class="self">self</span>.tcx;
         <span class="kw">let </span>patch = <span class="kw-2">&amp;mut </span><span class="self">self</span>.patch;
-        <span class="macro">debug!</span>(<span class="string">&quot;create_drop_flag({:?})&quot;</span>, <span class="self">self</span>.body.span);
         <span class="self">self</span>.drop_flags
             .entry(index)
             .or_insert_with(|| patch.new_internal(tcx.types.bool, span));
@@ -1024,7 +1027,8 @@
         <span class="self">self</span>.patch
     }
 
-    <span class="kw">fn </span>collect_drop_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>collect_drop_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">for </span>(bb, data) <span class="kw">in </span><span class="self">self</span>.body.basic_blocks.iter_enumerated() {
             <span class="kw">let </span>terminator = data.terminator();
             <span class="kw">let </span>place = <span class="kw">match </span>terminator.kind {
@@ -1139,6 +1143,7 @@
     /// `replace x[i] &lt;- tmp0`). The borrow checker requires that
     /// these locations are initialized before the assignment,
     /// so we just generate an unconditional drop.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>elaborate_replace(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loc: Location,
@@ -1294,7 +1299,8 @@
         )
     }
 
-    <span class="kw">fn </span>drop_flags_for_locs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>drop_flags_for_locs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// We intentionally iterate only over the *old* basic blocks.
         //
         // Basic blocks created by drop elaboration update their

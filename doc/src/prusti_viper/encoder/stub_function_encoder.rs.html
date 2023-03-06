@@ -95,6 +95,7 @@
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -109,7 +110,7 @@
 <span class="kw">use </span>prusti_rustc_interface::hir::def_id::DefId;
 <span class="kw">use </span>prusti_rustc_interface::middle::ty::subst::SubstsRef;
 <span class="kw">use </span>prusti_rustc_interface::middle::mir;
-<span class="kw">use </span>log::{trace, debug};
+<span class="kw">use </span>log::debug;
 
 <span class="kw">use </span><span class="kw">crate</span>::encoder::errors::WithSpan;
 
@@ -124,13 +125,13 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; StubFunctionEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;StubFunctionEncoder::new&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(encoder, mir))]
+    </span><span class="kw">pub fn </span>new(
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         proc_def_id: DefId,
         mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;StubFunctionEncoder constructor: {:?}&quot;</span>, proc_def_id);
         StubFunctionEncoder {
             encoder,
             mir,
@@ -140,7 +141,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>encode_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;vir::Function&gt; {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;vir::Function&gt; {
         <span class="kw">let </span>function_name = <span class="self">self</span>.encode_function_name();
         <span class="macro">debug!</span>(<span class="string">&quot;Encode stub function {}&quot;</span>, function_name);
 

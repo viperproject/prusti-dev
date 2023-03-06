@@ -257,19 +257,13 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>log::trace;
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+</span><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>vir_crate::polymorphic::{Expr, PermAmount, Position, Type};
 
@@ -340,8 +334,8 @@
         <span class="self">self</span>.get_place().has_proper_prefix(other)
     }
 
-    <span class="kw">pub fn </span>init_perm_amount(<span class="self">self</span>, new_perm: PermAmount) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] init_perm_amount({}, {})&quot;</span>, <span class="self">self</span>, new_perm);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(<span class="self">self </span>= %<span class="self">self</span>, new_perm = %new_perm))]
+    </span><span class="kw">pub fn </span>init_perm_amount(<span class="self">self</span>, new_perm: PermAmount) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(new_perm.is_valid_for_specs());
         <span class="kw">match </span><span class="self">self </span>{
             Perm::Acc(_expr, PermAmount::Remaining) =&gt; <span class="macro">unreachable!</span>(),
@@ -487,12 +481,8 @@
 }
 
 <span class="doccomment">/// Set difference that takes into account that removing `x.f` also removes any `x.f.g.h`
+</span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">pub fn </span>perm_difference(left: FxHashSet&lt;Perm&gt;, right: FxHashSet&lt;Perm&gt;) -&gt; FxHashSet&lt;Perm&gt; {
-    <span class="macro">trace!</span>(
-        <span class="string">&quot;[enter] perm_difference(left={:?}, right={:?})&quot;</span>,
-        left,
-        right
-    );
     <span class="kw">let </span>left_acc = left.iter().filter(|x| x.is_acc()).cloned();
     <span class="kw">let </span>left_pred = left.iter().filter(|x| x.is_pred()).cloned();
     <span class="kw">let </span>right_acc = right.iter().filter(|x| x.is_acc()).cloned();

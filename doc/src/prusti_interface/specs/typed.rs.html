@@ -1034,15 +1034,8 @@
 <a href="#1034" id="1034">1034</a>
 <a href="#1035" id="1035">1035</a>
 <a href="#1036" id="1036">1036</a>
-<a href="#1037" id="1037">1037</a>
-<a href="#1038" id="1038">1038</a>
-<a href="#1039" id="1039">1039</a>
-<a href="#1040" id="1040">1040</a>
-<a href="#1041" id="1041">1041</a>
-<a href="#1042" id="1042">1042</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{environment::Environment, utils::has_trait_bounds_type_cond_spec, PrustiError};
 <span class="kw">pub use </span>common::{SpecIdRef, SpecType, SpecificationId};
-<span class="kw">use </span>log::trace;
 <span class="kw">use </span>prusti_rustc_interface::{
     hir::def_id::{DefId, LocalDefId},
     macros::{TyDecodable, TyEncodable},
@@ -1765,14 +1758,12 @@
 }
 
 <span class="kw">impl</span>&lt;T: Debug + Clone + PartialEq&gt; Refinable <span class="kw">for </span>SpecificationItem&lt;T&gt; {
-    <span class="kw">fn </span>refine(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, ret)]
+    </span><span class="kw">fn </span>refine(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span><span class="self">Self</span>: Sized,
     {
         <span class="kw">use </span>SpecificationItem::<span class="kw-2">*</span>;
-
-        <span class="macro">trace!</span>(<span class="string">&quot;Refining {:?} with {:?}&quot;</span>, <span class="self">self</span>, other);
-
         <span class="kw">let </span>other_val = <span class="kw">match </span>other {
             Empty =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Trait spec should never be empty&quot;</span>),
             Inherent(val) =&gt; val,
@@ -1780,15 +1771,12 @@
             Refined(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Can not refine with a refined item&quot;</span>),
         };
 
-        <span class="kw">let </span>refined = <span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
             Empty =&gt; Inherited(other_val.clone()),
             Inherent(val) | Inherited(val) =&gt; Refined(other_val.clone(), val),
             Refined(from, val) <span class="kw">if </span><span class="kw-2">&amp;</span>from == other_val =&gt; Refined(from, val),
             Refined(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Can not refine this refined item&quot;</span>),
-        };
-
-        <span class="macro">trace!</span>(<span class="string">&quot;\t -&gt; {:?}&quot;</span>, refined);
-        refined
+        }
     }
 }
 

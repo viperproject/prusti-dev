@@ -130,13 +130,11 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     errors::SpannedEncodingResult,
     high::to_middle::HighToMiddle,
     mir::{procedures::MirProcedureEncoderInterface, types::MirTypeEncoderInterface},
 };
-<span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_rustc_interface::{hir::def_id::DefId, middle::ty};
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>vir_crate::{
@@ -204,7 +202,8 @@
         <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="kw">fn </span>procedure_high_to_typed(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>, procedure_high), fields(procedure = %procedure_high))]
+    </span><span class="kw">fn </span>procedure_high_to_typed(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         procedure_high: vir_high::ProcedureDecl,
     ) -&gt; SpannedEncodingResult&lt;vir_typed::ProcedureDecl&gt; {
@@ -240,15 +239,14 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; HighProcedureEncoderInterface&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>encode_procedure_core_proof(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>encode_procedure_core_proof(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         proc_def_id: DefId,
         check_mode: CheckMode,
     ) -&gt; SpannedEncodingResult&lt;vir_mid::ProcedureDecl&gt; {
         <span class="kw">let </span>procedure_high = <span class="self">self</span>.encode_procedure_core_proof_high(proc_def_id, check_mode)<span class="question-mark">?</span>;
-        <span class="macro">debug!</span>(<span class="string">&quot;procedure_high:\n{}&quot;</span>, procedure_high);
         <span class="kw">let </span>procedure_typed = <span class="self">self</span>.procedure_high_to_typed(procedure_high)<span class="question-mark">?</span>;
-        <span class="macro">debug!</span>(<span class="string">&quot;procedure_typed:\n{}&quot;</span>, procedure_typed);
         <span class="kw">let </span>procedure =
             <span class="kw">super</span>::inference::infer_shape_operations(<span class="self">self</span>, proc_def_id, procedure_typed)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(procedure)

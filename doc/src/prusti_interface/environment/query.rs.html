@@ -545,7 +545,16 @@
 <a href="#545" id="545">545</a>
 <a href="#546" id="546">546</a>
 <a href="#547" id="547">547</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::data::ProcedureDefId;
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
+
+<span class="kw">use </span><span class="kw">crate</span>::data::ProcedureDefId;
 <span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_rustc_interface::{
     ast::ast::Attribute,
@@ -673,7 +682,11 @@
 
     <span class="doccomment">/// If the given DefId describes an item belonging to a trait, returns the DefId
     /// of the trait that the trait item belongs to; otherwise, returns None.
-    </span><span class="kw">pub fn </span>get_trait_of_item(<span class="self">self</span>, def_id: <span class="kw">impl </span>IntoParam&lt;ProcedureDefId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;DefId&gt; {
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>get_trait_of_item(
+        <span class="self">self</span>,
+        def_id: <span class="kw">impl </span>IntoParam&lt;ProcedureDefId&gt; + Debug,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;DefId&gt; {
         <span class="self">self</span>.tcx.trait_of_item(def_id.into_param())
     }
 
@@ -813,9 +826,10 @@
 
     <span class="doccomment">/// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
     /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>find_impl_of_trait_method_call(
         <span class="self">self</span>,
-        proc_def_id: <span class="kw">impl </span>IntoParam&lt;ProcedureDefId&gt;,
+        proc_def_id: <span class="kw">impl </span>IntoParam&lt;ProcedureDefId&gt; + Debug,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;ProcedureDefId&gt; {
         <span class="comment">// TODO(tymap): remove this method?
@@ -965,13 +979,12 @@
     /// The `param_env` should be passed as a `ProcedureDefId` which is
     /// then used to calculate the param env; i.e. the set of
     /// where-clauses that are in scope at this particular point.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>evaluate_predicate(
         <span class="self">self</span>,
         predicate: ty::Predicate&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-        param_env: <span class="kw">impl </span>IntoParamTcx&lt;<span class="lifetime">&#39;tcx</span>, ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        param_env: <span class="kw">impl </span>IntoParamTcx&lt;<span class="lifetime">&#39;tcx</span>, ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; + Debug,
     ) -&gt; bool {
-        <span class="macro">debug!</span>(<span class="string">&quot;Evaluating predicate {:?}&quot;</span>, predicate);
-
         <span class="kw">let </span>obligation = Obligation::new(
             <span class="self">self</span>.tcx,
             ObligationCause::dummy(),
@@ -991,10 +1004,11 @@
     /// The `param_env` should be passed as a `ProcedureDefId` which is
     /// then used to calculate the param env; i.e. the set of
     /// where-clauses that are in scope at this particular point.
-    </span><span class="kw">pub fn </span>resolve_assoc_types&lt;T: ty::TypeFoldable&lt;<span class="lifetime">&#39;tcx</span>&gt; + std::fmt::Debug + Copy&gt;(
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>resolve_assoc_types&lt;T: ty::TypeFoldable&lt;<span class="lifetime">&#39;tcx</span>&gt; + Debug + Copy&gt;(
         <span class="self">self</span>,
         normalizable: T,
-        param_env: <span class="kw">impl </span>IntoParamTcx&lt;<span class="lifetime">&#39;tcx</span>, ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        param_env: <span class="kw">impl </span>IntoParamTcx&lt;<span class="lifetime">&#39;tcx</span>, ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; + Debug,
     ) -&gt; T {
         <span class="kw">let </span>param_env = param_env.into_param(<span class="self">self</span>.tcx);
         <span class="kw">let </span>norm_res = <span class="self">self

@@ -205,7 +205,6 @@
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -315,8 +314,8 @@
     <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>Node&gt; {
         <span class="self">self</span>.nodes.iter()
     }
-    <span class="kw">pub fn </span>get_borrow_index(<span class="kw-2">&amp;</span><span class="self">self</span>, borrow: Borrow) -&gt; usize {
-        <span class="macro">trace!</span>(<span class="string">&quot;get_borrow_index(borrow={:?})&quot;</span>, borrow);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>get_borrow_index(<span class="kw-2">&amp;</span><span class="self">self</span>, borrow: Borrow) -&gt; usize {
         <span class="self">self</span>.borrow_indices[<span class="kw-2">&amp;</span>borrow]
     }
     <span class="kw">pub fn </span>in_borrowed_places(<span class="kw-2">&amp;</span><span class="self">self</span>, place: <span class="kw-2">&amp;</span>Expr) -&gt; bool {
@@ -324,8 +323,8 @@
             .iter()
             .any(|borrowed_place| place.has_prefix(borrowed_place))
     }
-    <span class="kw">pub fn </span>check_integrity(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] check_integrity dag=[{:?}]&quot;</span>, <span class="self">self</span>);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">pub fn </span>check_integrity(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <span class="self">self</span>.nodes.first() {
             <span class="macro">assert!</span>(first.reborrowing_nodes.is_empty());
         }
@@ -345,7 +344,6 @@
                 <span class="macro">debug!</span>(<span class="string">&quot;{:?}: {}&quot;</span>, node.borrow, place);
             }
         }
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] check_integrity dag=[{:?}]&quot;</span>, <span class="self">self</span>);
     }
     <span class="doccomment">/// Get the complete guard for the given node.
     </span><span class="kw">pub fn </span>guard(<span class="kw-2">&amp;</span><span class="self">self</span>, expiring_borrow: Borrow) -&gt; Expr {

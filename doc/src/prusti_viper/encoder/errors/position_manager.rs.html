@@ -87,17 +87,21 @@
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>vir_crate::polymorphic::Position;
+</span><span class="kw">use </span>std::fmt::Debug;
+
+<span class="kw">use </span>vir_crate::polymorphic::Position;
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>prusti_rustc_interface::span::source_map::SourceMap;
 <span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
-<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_interface::data::ProcedureDefId;
 
 <span class="doccomment">/// Mapping from VIR positions to the source code that generated them.
@@ -124,11 +128,11 @@
         }
     }
 
-    <span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, def_id: ProcedureDefId, span: T) -&gt; Position {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt; + Debug&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, def_id: ProcedureDefId, span: T) -&gt; Position {
         <span class="kw">let </span>span = span.into();
         <span class="kw">let </span>pos_id = <span class="self">self</span>.next_pos_id;
         <span class="self">self</span>.next_pos_id += <span class="number">1</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;Register position id {} for span {:?} in {:?}, &quot;</span>, pos_id, span, def_id);
 
         <span class="kw">let </span>pos = <span class="kw">if let </span><span class="prelude-val">Some</span>(primary_span) = span.primary_span() {
             <span class="kw">let </span>lines_info_res = <span class="self">self

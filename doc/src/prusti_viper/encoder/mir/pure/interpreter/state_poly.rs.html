@@ -77,15 +77,13 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span>log::trace;
-<span class="kw">use </span>rustc_hash::FxHashMap;
+</span><span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::{
     fmt::{<span class="self">self</span>, Debug, Display},
     mem,
@@ -136,8 +134,8 @@
         <span class="self">self</span>.expr
     }
 
-    <span class="kw">pub fn </span>substitute_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <span class="kw-2">&amp;</span>vir::Expr, replacement: vir::Expr) {
-        <span class="macro">trace!</span>(<span class="string">&quot;substitute_value {:?} --&gt; {:?}&quot;</span>, target, replacement);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>substitute_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <span class="kw-2">&amp;</span>vir::Expr, replacement: vir::Expr) {
         <span class="kw">let </span>target = target.clone().patch_types(<span class="kw-2">&amp;</span><span class="self">self</span>.substs);
         <span class="kw">let </span>replacement = replacement.patch_types(<span class="kw-2">&amp;</span><span class="self">self</span>.substs);
 
@@ -149,8 +147,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>uses_place(<span class="kw-2">&amp;</span><span class="self">self</span>, sub_target: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
-        <span class="macro">trace!</span>(<span class="string">&quot;use_place {:?}&quot;</span>, sub_target);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>), ret)]
+    </span><span class="kw">pub fn </span>uses_place(<span class="kw-2">&amp;</span><span class="self">self</span>, sub_target: <span class="kw-2">&amp;</span>vir::Expr) -&gt; bool {
         <span class="kw">let </span>sub_target = sub_target.clone().patch_types(<span class="kw-2">&amp;</span><span class="self">self</span>.substs);
         <span class="self">self</span>.expr
             .as_ref()

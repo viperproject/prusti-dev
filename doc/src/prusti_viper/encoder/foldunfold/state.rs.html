@@ -672,8 +672,6 @@
 <a href="#672" id="672">672</a>
 <a href="#673" id="673">673</a>
 <a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -720,7 +718,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>check_consistency(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>check_consistency(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// Skip consistency checks in release mode
         </span><span class="kw">if </span><span class="macro">cfg!</span>(not(debug_assertions)) {
             <span class="kw">return</span>;
@@ -1016,12 +1015,12 @@
         info.join(<span class="string">&quot;,\n&quot;</span>)
     }
 
-    <span class="kw">pub fn </span>insert_acc(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(place = %place, perm = %perm))]
+    </span><span class="kw">pub fn </span>insert_acc(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: vir::Expr,
         perm: PermAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;insert_acc {}, {}&quot;</span>, place, perm);
         <span class="kw">if </span><span class="self">self</span>.acc.contains_key(<span class="kw-2">&amp;</span>place) {
             <span class="kw">let </span>new_perm = <span class="self">self</span>.acc[<span class="kw-2">&amp;</span>place].add(perm)<span class="question-mark">?</span>;
             <span class="macro">assert!</span>(
@@ -1047,12 +1046,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>insert_pred(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(place = %place, perm = %perm))]
+    </span><span class="kw">pub fn </span>insert_pred(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: vir::Expr,
         perm: PermAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;insert_pred {}, {}&quot;</span>, place, perm);
         <span class="kw">if </span><span class="self">self</span>.pred.contains_key(<span class="kw-2">&amp;</span>place) {
             <span class="kw">let </span>new_perm = <span class="self">self</span>.pred[<span class="kw-2">&amp;</span>place].add(perm)<span class="question-mark">?</span>;
             <span class="macro">assert!</span>(
@@ -1137,12 +1136,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>remove_pred(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(place = %place, perm = %perm))]
+    </span><span class="kw">pub fn </span>remove_pred(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: <span class="kw-2">&amp;</span>vir::Expr,
         perm: PermAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;remove_pred {}, {}&quot;</span>, place, perm);
         <span class="kw">if </span>!<span class="self">self</span>.pred.contains_key(place) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(FoldUnfoldError::FailedToRemovePred(place.clone(), perm));
         }
@@ -1190,31 +1189,29 @@
     /// ```
     /// In such a case, the function keeps the most generic variant of
     /// permissions.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(item = %item))]
     </span><span class="kw">pub fn </span>restore_dropped_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: Perm) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] restore_dropped_perm item={}&quot;</span>, item);
         <span class="kw">for </span>moved_place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.moved {
             <span class="macro">trace!</span>(<span class="string">&quot;  moved_place={}&quot;</span>, moved_place);
         }
         <span class="kw">match </span>item {
             Perm::Acc(place, perm) =&gt; {
                 <span class="self">self</span>.remove_moved_matching(|p| place.has_prefix(p));
-                <span class="self">self</span>.restore_acc(place, perm)<span class="question-mark">?</span>;
+                <span class="self">self</span>.restore_acc(place, perm)
             }
             Perm::Pred(place, perm) =&gt; {
                 <span class="self">self</span>.remove_moved_matching(|p| place.has_prefix(p));
-                <span class="self">self</span>.restore_pred(place, perm)<span class="question-mark">?</span>;
+                <span class="self">self</span>.restore_pred(place, perm)
             }
-        };
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] restore_dropped_perm&quot;</span>);
-        <span class="prelude-val">Ok</span>(())
+        }
     }
 
-    <span class="kw">fn </span>restore_acc(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(acc_place = %acc_place, perm = %perm))]
+    </span><span class="kw">fn </span>restore_acc(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         acc_place: vir::Expr,
         <span class="kw-2">mut </span>perm: PermAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;restore_acc {}, {}&quot;</span>, acc_place, perm);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(curr_perm_amount) = <span class="self">self</span>.acc.get(<span class="kw-2">&amp;</span>acc_place) {
             perm = perm.add(<span class="kw-2">*</span>curr_perm_amount)<span class="question-mark">?</span>;
         }
@@ -1234,12 +1231,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>restore_pred(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(pred_place = %pred_place, perm = %perm))]
+    </span><span class="kw">fn </span>restore_pred(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         pred_place: vir::Expr,
         <span class="kw-2">mut </span>perm: PermAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;restore_pred {}, {}&quot;</span>, pred_place, perm);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(curr_perm_amount) = <span class="self">self</span>.pred.get(<span class="kw-2">&amp;</span>pred_place) {
             perm = perm.add(<span class="kw-2">*</span>curr_perm_amount)<span class="question-mark">?</span>;
             <span class="comment">//trace!(&quot;restore_pred {}: ignored (state already contains place)&quot;, pred_place);
@@ -1263,16 +1260,15 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>restore_dropped_perms&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt;
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>restore_dropped_perms&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt;
     <span class="kw">where
         </span>I: Iterator&lt;Item = Perm&gt;,
     {
-        <span class="macro">trace!</span>(<span class="string">&quot;[enter] restore_dropped_perms&quot;</span>);
         <span class="kw">for </span>item <span class="kw">in </span>items {
             <span class="self">self</span>.restore_dropped_perm(item)<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.check_consistency();
-        <span class="macro">trace!</span>(<span class="string">&quot;[exit] restore_dropped_perms&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1296,8 +1292,8 @@
         exprs.into_iter().conjoin()
     }
 
-    <span class="kw">pub fn </span>begin_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;begin_frame&quot;</span>);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>begin_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">trace!</span>(
             <span class="string">&quot;Before: {} frames are on the stack&quot;</span>,
             <span class="self">self</span>.framing_stack.len()
@@ -1320,8 +1316,8 @@
         );
     }
 
-    <span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;end_frame&quot;</span>);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), FoldUnfoldError&gt; {
         <span class="macro">trace!</span>(
             <span class="string">&quot;Before: {} frames are on the stack&quot;</span>,
             <span class="self">self</span>.framing_stack.len()

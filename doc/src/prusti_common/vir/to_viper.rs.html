@@ -1303,6 +1303,18 @@
 <a href="#1303" id="1303">1303</a>
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -1319,13 +1331,14 @@
         Program,
     },
 };
-<span class="kw">use </span>log::{info, trace};
+<span class="kw">use </span>log::info;
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>viper::{<span class="self">self</span>, AstFactory};
 <span class="kw">use </span>vir::common::identifier::WithIdentifier;
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Program&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Program {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Program&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Program::to_viper&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Program&lt;<span class="lifetime">&#39;v</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>domains = <span class="self">self</span>.domains.to_viper(context, ast);
         domains.extend(<span class="self">self</span>.backend_types.to_viper(context, ast));
         <span class="kw">let </span>fields = <span class="self">self</span>.fields.to_viper(context, ast);
@@ -1393,13 +1406,10 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Position&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Position {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Position&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="macro">trace!</span>(
-            <span class="string">&quot;Generating Viper position: line {} column {} id {}&quot;</span>,
-            <span class="self">self</span>.line(),
-            <span class="self">self</span>.column(),
-            <span class="self">self</span>.id()
-        );
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Position::to_viper&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(
+        line = %<span class="self">self</span>.line(), column = %<span class="self">self</span>.column(), id = %<span class="self">self</span>.id()
+    ))]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Position&lt;<span class="lifetime">&#39;v</span>&gt; {
         ast.identifier_position(<span class="self">self</span>.line(), <span class="self">self</span>.column(), <span class="self">self</span>.id().to_string())
     }
 }
@@ -1466,8 +1476,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Stmt {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;Generating Viper statement: {}&quot;</span>, <span class="self">self</span>);
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Stmt::to_viper&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(context, ast))]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Stmt&lt;<span class="lifetime">&#39;v</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Stmt::Comment(<span class="kw-2">ref </span>comment) =&gt; ast.comment(comment),
             Stmt::Label(<span class="kw-2">ref </span>label) =&gt; ast.label(label, <span class="kw-2">&amp;</span>[]),
@@ -1663,7 +1673,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Expr {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Expr::to_viper&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(context, ast))]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Expr&lt;<span class="lifetime">&#39;v</span>&gt; {
         <span class="kw">let </span>expr = <span class="kw">match </span><span class="self">self </span>{
             Expr::Local(<span class="kw-2">ref </span>local_var, <span class="kw-2">ref </span>pos) =&gt; (local_var, pos).to_viper(context, ast),
             Expr::Variant(<span class="kw-2">ref </span>base, <span class="kw-2">ref </span>field, <span class="kw-2">ref </span>pos) =&gt; ast.field_access_with_pos(
@@ -2110,7 +2121,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>Predicate {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Predicate::to_viper&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Predicate::Struct(p) =&gt; p.to_viper(context, ast),
             Predicate::Enum(p) =&gt; p.to_viper(context, ast),
@@ -2122,7 +2134,12 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>StructPredicate {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(
+        name = <span class="string">&quot;StructPredicate::to_viper&quot;</span>,
+        level = <span class="string">&quot;trace&quot;</span>,
+        skip(context, ast)
+    )]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
         ast.predicate(
             <span class="kw-2">&amp;</span><span class="self">self</span>.name,
             <span class="kw-2">&amp;</span>[<span class="self">self</span>.this.to_viper_decl(context, ast)],
@@ -2132,7 +2149,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span>EnumPredicate {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;EnumPredicate::to_viper&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(context, ast))]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Predicate&lt;<span class="lifetime">&#39;v</span>&gt; {
         ast.predicate(
             <span class="kw-2">&amp;</span><span class="self">self</span>.name,
             <span class="kw-2">&amp;</span>[<span class="self">self</span>.this.to_viper_decl(context, ast)],
@@ -2142,7 +2160,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Method&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BodylessMethod {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Method&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;BodylessMethod::to_viper&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(context, ast))]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Method&lt;<span class="lifetime">&#39;v</span>&gt; {
         ast.method(
             <span class="kw-2">&amp;</span><span class="self">self</span>.name,
             <span class="kw-2">&amp;</span><span class="self">self</span>.formal_args.to_viper_decl(context, ast),
@@ -2155,7 +2174,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Function&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Function {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Function&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Function::to_viper&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Function&lt;<span class="lifetime">&#39;v</span>&gt; {
         ast.function(
             <span class="kw-2">&amp;</span><span class="self">self</span>.get_identifier(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.formal_args.to_viper_decl(context, ast),
@@ -2169,7 +2189,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Domain&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Domain {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Domain&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;Domain::to_viper&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Domain&lt;<span class="lifetime">&#39;v</span>&gt; {
         ast.domain(
             <span class="kw-2">&amp;</span><span class="self">self</span>.name,
             <span class="kw-2">&amp;</span><span class="self">self</span>.functions.to_viper(context, ast),
@@ -2180,7 +2201,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::DomainFunc&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DomainFunc {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::DomainFunc&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;DomainFunc::to_viper&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(context, ast))]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::DomainFunc&lt;<span class="lifetime">&#39;v</span>&gt; {
         ast.domain_func(
             <span class="kw-2">&amp;</span><span class="self">self</span>.get_identifier(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.formal_args.to_viper_decl(context, ast),
@@ -2192,7 +2214,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::NamedDomainAxiom&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DomainAxiom {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::NamedDomainAxiom&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;DomainAxiom::to_viper&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip(context, ast))]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::NamedDomainAxiom&lt;<span class="lifetime">&#39;v</span>&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(comment) = <span class="kw-2">&amp;</span><span class="self">self</span>.comment {
             ast.named_domain_axiom_with_comment(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.name,
@@ -2323,7 +2346,8 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; ToViper&lt;<span class="lifetime">&#39;v</span>, viper::Method&lt;<span class="lifetime">&#39;v</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CfgMethod {
-    <span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Method&lt;<span class="lifetime">&#39;v</span>&gt; {
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;CfgMethod::to_viper&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>to_viper(<span class="kw-2">&amp;</span><span class="self">self</span>, context: Context, ast: <span class="kw-2">&amp;</span>AstFactory&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; viper::Method&lt;<span class="lifetime">&#39;v</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>blocks_ast: Vec&lt;viper::Stmt&gt; = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>declarations: Vec&lt;viper::Declaration&gt; = <span class="macro">vec!</span>[];
 

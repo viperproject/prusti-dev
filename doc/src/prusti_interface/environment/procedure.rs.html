@@ -427,6 +427,8 @@
 <a href="#427" id="427">427</a>
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -467,8 +469,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Procedure&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="doccomment">/// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
+    </span><span class="attr">#[tracing::instrument(name = <span class="string">&quot;Procedure::new&quot;</span>, level = <span class="string">&quot;debug&quot;</span>, skip(env))]
     </span><span class="kw">pub fn </span>new(env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;, proc_def_id: ProcedureDefId) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;Encoding procedure {proc_def_id:?}&quot;</span>);
         <span class="kw">let </span>mir = env
             .body
             .get_impure_fn_body_identity(proc_def_id.expect_local());
@@ -738,7 +740,8 @@
     predecessors: FxHashSet&lt;BasicBlock&gt;,
 }
 
-<span class="kw">fn </span>_blocks_definitely_leading_to&lt;<span class="lifetime">&#39;a</span>&gt;(
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+</span><span class="kw">fn </span>_blocks_definitely_leading_to&lt;<span class="lifetime">&#39;a</span>&gt;(
     bb_graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;BasicBlock, BasicBlockNode&gt;,
     target: BasicBlock,
     blocks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FxHashSet&lt;BasicBlock&gt;,
@@ -774,7 +777,8 @@
     blocks
 }
 
-<span class="kw">fn </span>get_nonspec_basic_blocks(
+<span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+</span><span class="kw">fn </span>get_nonspec_basic_blocks(
     env_query: EnvQuery,
     bb_graph: FxHashMap&lt;BasicBlock, BasicBlockNode&gt;,
     mir: <span class="kw-2">&amp;</span>Body,

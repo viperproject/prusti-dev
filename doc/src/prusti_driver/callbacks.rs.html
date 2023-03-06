@@ -140,6 +140,9 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::verifier::verify;
 <span class="kw">use </span>prusti_common::config;
 <span class="kw">use </span>prusti_interface::{
@@ -165,6 +168,7 @@
 // necessary; for crates which won&#39;t be verified or spec_fns it suffices to load just the fn body
 
 </span><span class="attr">#[allow(clippy::needless_lifetimes)]
+#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(tcx))]
 </span><span class="kw">fn </span>mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: LocalDefId) -&gt; mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="comment">// *Don&#39;t take MIR bodies with borrowck info if we won&#39;t need them*
     </span><span class="kw">if </span>!is_spec_fn(tcx, def_id.to_def_id()) {
@@ -197,7 +201,8 @@
             );
         }
     }
-    <span class="kw">fn </span>after_expansion&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>after_expansion&lt;<span class="lifetime">&#39;tcx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -244,7 +249,9 @@
         }
         Compilation::Continue
     }
-    <span class="kw">fn </span>after_analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
+    </span><span class="kw">fn </span>after_analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -258,8 +265,7 @@
 
             <span class="kw">let </span>hir = env.query.hir();
             <span class="kw">let </span><span class="kw-2">mut </span>spec_collector = specs::SpecCollector::new(<span class="kw-2">&amp;mut </span>env);
-            hir.walk_toplevel_module(<span class="kw-2">&amp;mut </span>spec_collector);
-            hir.walk_attributes(<span class="kw-2">&amp;mut </span>spec_collector);
+            spec_collector.collect_specs(hir);
 
             <span class="kw">let </span><span class="kw-2">mut </span>def_spec = spec_collector.build_def_specs();
             <span class="comment">// Do print_typeckd_specs prior to importing cross crate

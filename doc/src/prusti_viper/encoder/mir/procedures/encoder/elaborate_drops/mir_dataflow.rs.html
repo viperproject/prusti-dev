@@ -1080,10 +1080,6 @@
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
-<a href="#1085" id="1085">1085</a>
-<a href="#1086" id="1086">1086</a>
 </pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:
 // https://github.com/rust-lang/rust/blob/661e8beec1fa5f3c58bf6e4362ae3c3fe0b4b1bd/compiler/rustc_mir_dataflow/src/elaborate_drops.rs
 // This file is licensed under Apache 2.0
@@ -1280,8 +1276,8 @@
     </span><span class="comment">//
     // FIXME: I think we should just control the flags externally,
     // and then we do not need this machinery.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
     </span><span class="kw">pub fn </span>elaborate_drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bb: BasicBlock) {
-        <span class="macro">debug!</span>(<span class="string">&quot;elaborate_drop({:?}, {:?})&quot;</span>, bb, <span class="self">self</span>);
         <span class="kw">let </span>style = <span class="self">self</span>.elaborator.drop_style(<span class="self">self</span>.path, DropFlagMode::Deep);
         <span class="macro">debug!</span>(<span class="string">&quot;elaborate_drop({:?}, {:?}): live - {:?}&quot;</span>, bb, <span class="self">self</span>, style);
         <span class="kw">match </span>style {
@@ -1341,7 +1337,8 @@
             .collect()
     }
 
-    <span class="kw">fn </span>drop_subpath(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>drop_subpath(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         path: <span class="prelude-ty">Option</span>&lt;D::Path&gt;,
@@ -1430,14 +1427,13 @@
     ///
     /// NOTE: this does not clear the master drop flag, so you need
     /// to point succ/unwind on a `drop_ladder_bottom`.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
     </span><span class="kw">fn </span>drop_ladder(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         fields: Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;D::Path&gt;)&gt;,
         succ: BasicBlock,
         unwind: Unwind,
     ) -&gt; (BasicBlock, Unwind) {
-        <span class="macro">debug!</span>(<span class="string">&quot;drop_ladder({:?}, {:?})&quot;</span>, <span class="self">self</span>, fields);
-
         <span class="kw">let </span><span class="kw-2">mut </span>fields = fields;
         fields.retain(|<span class="kw-2">&amp;</span>(place, <span class="kw">_</span>)| {
             <span class="self">self</span>.place_ty(place)
@@ -1462,9 +1458,8 @@
         )
     }
 
-    <span class="kw">fn </span>open_drop_for_tuple(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tys: <span class="kw-2">&amp;</span>[Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;]) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;open_drop_for_tuple({:?}, {:?})&quot;</span>, <span class="self">self</span>, tys);
-
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">fn </span>open_drop_for_tuple(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tys: <span class="kw-2">&amp;</span>[Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;]) -&gt; BasicBlock {
         <span class="kw">let </span>fields = tys
             .iter()
             .enumerate()
@@ -1480,9 +1475,8 @@
         <span class="self">self</span>.drop_ladder(fields, succ, unwind).<span class="number">0
     </span>}
 
-    <span class="kw">fn </span>open_drop_for_box(<span class="kw-2">&amp;mut </span><span class="self">self</span>, adt: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;, substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;open_drop_for_box({:?}, {:?}, {:?})&quot;</span>, <span class="self">self</span>, adt, substs);
-
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">fn </span>open_drop_for_box(<span class="kw-2">&amp;mut </span><span class="self">self</span>, adt: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;, substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; BasicBlock {
         <span class="kw">let </span>interior = <span class="self">self</span>.tcx().mk_place_deref(<span class="self">self</span>.place);
         <span class="kw">let </span>interior_path = <span class="self">self</span>.elaborator.deref_subpath(<span class="self">self</span>.path);
 
@@ -1494,8 +1488,8 @@
         <span class="self">self</span>.drop_subpath(interior, interior_path, succ, unwind_succ)
     }
 
-    <span class="kw">fn </span>open_drop_for_adt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, adt: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;, substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;open_drop_for_adt({:?}, {:?}, {:?})&quot;</span>, <span class="self">self</span>, adt, substs);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">fn </span>open_drop_for_adt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, adt: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;, substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; BasicBlock {
         <span class="kw">if </span>adt.variants().is_empty() {
             <span class="kw">return </span><span class="self">self</span>.elaborator.patch().new_block(BasicBlockData {
                 statements: <span class="macro">vec!</span>[],
@@ -1818,9 +1812,8 @@
         loop_block
     }
 
-    <span class="kw">fn </span>open_drop_for_array(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ety: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, opt_size: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;open_drop_for_array({:?}, {:?})&quot;</span>, ety, opt_size);
-
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">fn </span>open_drop_for_array(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ety: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, opt_size: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; BasicBlock {
         <span class="comment">// if size_of::&lt;ety&gt;() == 0 {
         //     index_based_loop
         // } else {
@@ -1880,13 +1873,13 @@
     <span class="doccomment">/// Creates a pair of drop-loops of `place`, which drops its contents, even
     /// in the case of 1 panic. If `ptr_based`, creates a pointer loop,
     /// otherwise create an index loop.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
     </span><span class="kw">fn </span>drop_loop_pair(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ety: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         ptr_based: bool,
         length: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;drop_loop_pair({:?}, {:?})&quot;</span>, ety, ptr_based);
         <span class="kw">let </span>tcx = <span class="self">self</span>.tcx();
         <span class="kw">let </span>iter_ty = <span class="kw">if </span>ptr_based {
             tcx.mk_mut_ptr(ety)
@@ -1999,9 +1992,8 @@
         }
     }
 
-    <span class="kw">fn </span>complete_drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, succ: BasicBlock, unwind: Unwind) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;complete_drop(succ={:?}, unwind={:?})&quot;</span>, succ, unwind);
-
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">fn </span>complete_drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, succ: BasicBlock, unwind: Unwind) -&gt; BasicBlock {
         <span class="kw">let </span>drop_block = <span class="self">self</span>.drop_block(succ, unwind);
 
         <span class="self">self</span>.drop_flag_test_block(drop_block, succ, unwind)
@@ -2009,14 +2001,13 @@
 
     <span class="doccomment">/// Creates a block that resets the drop flag. If `mode` is deep, all children drop flags will
     /// also be cleared.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
     </span><span class="kw">fn </span>drop_flag_reset_block(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         mode: DropFlagMode,
         succ: BasicBlock,
         unwind: Unwind,
     ) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;drop_flag_reset_block({:?},{:?})&quot;</span>, <span class="self">self</span>, mode);
-
         <span class="kw">if </span>unwind.is_cleanup() {
             <span class="comment">// The drop flag isn&#39;t read again on the unwind path, so don&#39;t
             // bother setting it.
@@ -2032,8 +2023,8 @@
         block
     }
 
-    <span class="kw">fn </span>elaborated_drop_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; BasicBlock {
-        <span class="macro">debug!</span>(<span class="string">&quot;elaborated_drop_block({:?})&quot;</span>, <span class="self">self</span>);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>)]
+    </span><span class="kw">fn </span>elaborated_drop_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; BasicBlock {
         <span class="kw">let </span>blk = <span class="self">self</span>.drop_block(<span class="self">self</span>.succ, <span class="self">self</span>.unwind);
         <span class="self">self</span>.elaborate_drop(blk);
         blk
@@ -2117,6 +2108,7 @@
     /// Depending on the required `DropStyle`, this might be a generated block with an `if`
     /// terminator (for dynamic/open drops), or it might be `on_set` or `on_unset` itself, in case
     /// the drop can be statically determined.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
     </span><span class="kw">fn </span>drop_flag_test_block(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         on_set: BasicBlock,

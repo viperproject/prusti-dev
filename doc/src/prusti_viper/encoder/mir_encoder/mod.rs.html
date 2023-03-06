@@ -846,13 +846,16 @@
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
 <a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019-2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{
+</span><span class="kw">use </span>std::fmt::Debug;
+
+<span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{
     ErrorCtxt, PanicCause, SpannedEncodingError, EncodingError, WithSpan,
     SpannedEncodingResult, EncodingResult
 };
@@ -918,11 +921,11 @@
     /// - `PlaceEncoding`: the result of the projection;
     /// - `ty::Ty&lt;&#39;tcx&gt;`: the type of the expression;
     /// - `Option&lt;usize&gt;`: optionally, the variant of the enum.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_place(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;(PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;usize&gt;)&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;Encode place {:?}&quot;</span>, place);
         <span class="self">self</span>.encode_projection(place.local, place.projection)
     }
 
@@ -930,13 +933,12 @@
     /// - `PlaceEncoding`: the result of the projection;
     /// - `ty::Ty&lt;&#39;tcx&gt;`: the type of the place;
     /// - `Option&lt;usize&gt;`: optionally, the variant of the enum.
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">fn </span>encode_projection(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         local: mir::Local,
         projection: <span class="kw-2">&amp;</span>[mir::PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;],
     ) -&gt; EncodingResult&lt;(PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;usize&gt;)&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;Encode projection {:?}, {:?}&quot;</span>, local, projection);
-
         <span class="kw">if </span>projection.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>((
                 PlaceEncoding::Expr(<span class="self">self</span>.encode_local(local)<span class="question-mark">?</span>.into()),
@@ -1123,13 +1125,12 @@
         })
     }
 
-    <span class="kw">fn </span>encode_deref(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(encoded_base = %encoded_base, base_ty = %base_ty))]
+    </span><span class="kw">fn </span>encode_deref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         encoded_base: vir::Expr,
         base_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;(vir::Expr, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;usize&gt;)&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_deref {} {}&quot;</span>, encoded_base, base_ty);
-
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(<span class="kw">_</span>, ty, <span class="kw">_</span>) =&gt; {
@@ -1160,8 +1161,8 @@
         })
     }
 
-    <span class="kw">fn </span>can_be_dereferenced(<span class="kw-2">&amp;</span><span class="self">self</span>, base_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
-        <span class="macro">trace!</span>(<span class="string">&quot;can_be_dereferenced {}&quot;</span>, base_ty);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip_all, fields(base_ty = %base_ty))]
+    </span><span class="kw">fn </span>can_be_dereferenced(<span class="kw-2">&amp;</span><span class="self">self</span>, base_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
         <span class="kw">match </span>base_ty.kind() {
             ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) =&gt; <span class="bool-val">true</span>,
 
@@ -1182,12 +1183,12 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; FakeMirEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;FakeMirEncoder::new&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>new(
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         arg_tys: Vec&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
         return_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;FakeMirEncoder constructor&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>tys: IndexVec&lt;mir::Local, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; = IndexVec::new();
         tys.push(return_ty);
         <span class="kw">for </span>arg_ty <span class="kw">in </span>arg_tys {
@@ -1239,12 +1240,12 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; MirEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub fn </span>new(
+    <span class="attr">#[tracing::instrument(name = <span class="string">&quot;MirEncoder::new&quot;</span>, level = <span class="string">&quot;trace&quot;</span>, skip_all)]
+    </span><span class="kw">pub fn </span>new(
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         def_id: DefId,
     ) -&gt; <span class="self">Self </span>{
-        <span class="macro">trace!</span>(<span class="string">&quot;MirEncoder constructor&quot;</span>);
         MirEncoder {
             encoder,
             mir,
@@ -1253,11 +1254,11 @@
     }
 
     <span class="doccomment">/// Returns an `vir::Expr` that corresponds to the value of the operand
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>encode_operand_expr(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;vir::Expr&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;Encode operand expr {:?}&quot;</span>, operand);
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>operand {
             mir::Operand::Constant(expr) =&gt; <span class="self">self</span>.encoder.encode_const_expr(expr.ty(), expr.literal)<span class="question-mark">?</span>,
             <span class="kw-2">&amp;</span>mir::Operand::Copy(place) | <span class="kw-2">&amp;</span>mir::Operand::Move(place) =&gt; {
@@ -1298,8 +1299,8 @@
         </span>})
     }
 
-    <span class="kw">pub fn </span>get_operand_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Get operand ty {:?}&quot;</span>, operand);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>get_operand_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         <span class="comment">// match operand {
         //     &amp;mir::Operand::Move(ref place) | &amp;mir::Operand::Copy(ref place) =&gt; {
         //         let (_, ty, _) = self.encode_place(place);
@@ -1311,10 +1312,10 @@
     }
 
     <span class="doccomment">/// Returns an `vir::Type` that corresponds to the type of the value of the operand
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>encode_operand_expr_type(<span class="kw-2">&amp;</span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;)
         -&gt; EncodingResult&lt;vir::Type&gt;
     {
-        <span class="macro">trace!</span>(<span class="string">&quot;Encode operand expr {:?}&quot;</span>, operand);
         <span class="comment">// match operand {
         //     &amp;mir::Operand::Constant(box mir::Constant { ty, .. }) =&gt; {
         //         let ty = self.encoder.resolve_typaram(ty);
@@ -1611,11 +1612,11 @@
         <span class="prelude-val">Ok</span>(encoded_val)
     }
 
-    <span class="kw">pub fn </span>encode_operand_place(
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_operand_place(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<span class="prelude-ty">Option</span>&lt;vir::Expr&gt;&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Encode operand place {:?}&quot;</span>, operand);
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>operand {
             <span class="kw-2">&amp;</span>mir::Operand::Move(place) | <span class="kw-2">&amp;</span>mir::Operand::Copy(place) =&gt; {
                 <span class="kw">let </span>(src, <span class="kw">_</span>, <span class="kw">_</span>) = <span class="self">self</span>.encode_place(place)<span class="question-mark">?</span>;
@@ -1634,8 +1635,8 @@
         vir::Expr::pred_permission(place, perm)
     }
 
-    <span class="kw">pub fn </span>encode_old_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: vir::Expr, label: <span class="kw-2">&amp;</span>str) -&gt; vir::Expr {
-        <span class="macro">debug!</span>(<span class="string">&quot;encode_old_expr {}, {}&quot;</span>, expr, label);
+    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>encode_old_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: vir::Expr, label: <span class="kw-2">&amp;</span>str) -&gt; vir::Expr {
         vir::Expr::labelled_old(label, expr)
     }
 
@@ -1652,15 +1653,16 @@
         bb_data.terminator().source_info.span
     }
 
-    <span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T) -&gt; vir::Position {
+    <span class="kw">pub fn </span>register_span&lt;T: Into&lt;MultiSpan&gt; + Debug&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T) -&gt; vir::Position {
         <span class="self">self</span>.encoder.error_manager().register_span(<span class="self">self</span>.def_id, span)
     }
 
-    <span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt) -&gt; vir::Position {
+    <span class="kw">pub fn </span>register_error&lt;T: Into&lt;MultiSpan&gt; + Debug&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: T, error_ctxt: ErrorCtxt) -&gt; vir::Position {
         <span class="self">self</span>.encoder.error_manager().register_error(span, error_ctxt, <span class="self">self</span>.def_id)
     }
 
     <span class="doccomment">/// Return the cause of a call to `begin_panic`
+    </span><span class="attr">#[tracing::instrument(level = <span class="string">&quot;trace&quot;</span>, skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>encode_panic_cause(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; PanicCause {
         <span class="kw">let </span>macro_backtrace: Vec&lt;<span class="kw">_</span>&gt; = span.macro_backtrace().collect();
         <span class="macro">debug!</span>(<span class="string">&quot;macro_backtrace: {:?}&quot;</span>, macro_backtrace);
