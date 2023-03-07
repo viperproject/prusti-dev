@@ -11,7 +11,7 @@ use prusti_rustc_interface::{
 use rustc_hash::FxHashMap;
 use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc};
 
-use crate::environment::{borrowck::facts::BorrowckFacts, mir_storage};
+use crate::environment::mir_storage;
 
 /// Stores any possible MIR body (from the compiler) that
 /// Prusti might want to work with. Cheap to clone
@@ -27,8 +27,8 @@ impl<'tcx> std::ops::Deref for MirBody<'tcx> {
 /// Stores body of functions which we'll need to encode as impure
 struct BodyWithBorrowckFacts<'tcx> {
     body: MirBody<'tcx>,
-    /// Cached borrowck information.
-    borrowck_facts: Rc<BorrowckFacts>,
+    ///// Cached borrowck information.
+    //borrowck_facts: Rc<BorrowckFacts>,
 }
 
 /// Bodies which need not be synched across crates and so can be
@@ -122,15 +122,15 @@ impl<'tcx> EnvBody<'tcx> {
         // that was used to store the data.
         let body_with_facts = unsafe { mir_storage::retrieve_mir_body(tcx, def_id) };
 
-        let facts = BorrowckFacts {
-            input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-            output_facts: body_with_facts.output_facts,
-            location_table: RefCell::new(Some(body_with_facts.location_table)),
-        };
+        //let facts = BorrowckFacts {
+        //    input_facts: RefCell::new(Some(body_with_facts.input_facts)),
+        //    output_facts: body_with_facts.output_facts,
+        //    location_table: RefCell::new(Some(body_with_facts.location_table)),
+        //};
 
         BodyWithBorrowckFacts {
             body: MirBody(Rc::new(body_with_facts.body)),
-            borrowck_facts: Rc::new(facts),
+           // borrowck_facts: Rc::new(facts),
         }
     }
 
@@ -272,21 +272,21 @@ impl<'tcx> EnvBody<'tcx> {
         self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
     }
 
-    /// Get Polonius facts of a local procedure.
-    pub fn local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Rc<BorrowckFacts> {
-        self.try_get_local_mir_borrowck_facts(def_id).unwrap()
-    }
+    ///// Get Polonius facts of a local procedure.
+    //pub fn local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Rc<BorrowckFacts> {
+    //    self.try_get_local_mir_borrowck_facts(def_id).unwrap()
+    //}
 
-    pub fn try_get_local_mir_borrowck_facts(
-        &self,
-        def_id: LocalDefId,
-    ) -> Option<Rc<BorrowckFacts>> {
-        trace!("try_get_local_mir_borrowck_facts: {:?}", def_id);
-        self.local_impure_fns
-            .borrow()
-            .get(&def_id)
-            .map(|body| body.borrowck_facts.clone())
-    }
+    //pub fn try_get_local_mir_borrowck_facts(
+    //    &self,
+    //    def_id: LocalDefId,
+    //) -> Option<Rc<BorrowckFacts>> {
+    //    trace!("try_get_local_mir_borrowck_facts: {:?}", def_id);
+    //    self.local_impure_fns
+    //        .borrow()
+    //        .get(&def_id)
+    //        .map(|body| body.borrowck_facts.clone())
+    //}
 
     /// Ensures that the MIR body of a local spec is cached. This must be called on all specs,
     /// prior to requesting their bodies with `get_spec_body` or exporting with `CrossCrateBodies::from`!

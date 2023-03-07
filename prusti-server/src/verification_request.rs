@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::{config, vir::program::Program};
+use prusti_common::config;
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
@@ -13,7 +13,7 @@ use viper::{self, VerificationBackend};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
 pub struct VerificationRequest {
-    pub program: Program,
+    // pub program: Program,
     pub backend_config: ViperBackendConfig,
 }
 
