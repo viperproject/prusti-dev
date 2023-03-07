@@ -1,7 +1,7 @@
 use crate::dump_viper_program;
 use prusti_common::{
     config,
-    vir::{LoweringContext, ToViper},
+    //vir::{LoweringContext, ToViper},
     Stopwatch,
 };
 use viper::{VerificationContext, VerificationResult};
@@ -11,7 +11,7 @@ pub enum Backend<'a> {
 }
 
 impl<'a> Backend<'a> {
-    pub fn verify(&mut self, program: &prusti_common::vir::program::Program) -> VerificationResult {
+    pub fn verify(&mut self/*, program: &prusti_common::vir::program::Program*/) -> VerificationResult {
         match self {
             Backend::Viper(viper, context) => {
                 let mut stopwatch =
@@ -21,6 +21,7 @@ impl<'a> Backend<'a> {
 
                 ast_utils.with_local_frame(16, || {
                     let ast_factory = context.new_ast_factory();
+                    /*
                     let viper_program = program.to_viper(LoweringContext::default(), &ast_factory);
 
                     if config::dump_viper_program() {
@@ -34,6 +35,8 @@ impl<'a> Backend<'a> {
 
                     stopwatch.start_next("viper verification");
                     viper.verify(viper_program)
+                    */
+                    todo!()
                 })
             }
         }
