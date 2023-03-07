@@ -187,6 +187,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         prusti_errors: &mut Vec<PrustiError>,
         overall_result: &mut VerificationResult
     ) {
+        debug!("Received termination message with result {result:?} in verification of {program_name}");
         if config::show_ide_info() {
             PrustiError::message(
                 format!(
@@ -305,6 +306,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         quantifier_instantiations: &mut FxHashMap<(u64, String), FxHashMap<String, u64>>
     ) {
         if config::report_viper_messages() {
+            debug!("Received #{insts} quantifier instantiations of {q_name} for position id {pos_id} in verification of {program_name}");
             match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
                 Some(span) => {
                     let key = (pos_id, program_name.clone());
@@ -312,10 +314,18 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         quantifier_instantiations.insert(key.clone(), FxHashMap::default());
                     }
                     let map = quantifier_instantiations.get_mut(&key).unwrap();
-                    // this replaces the old entry which is exactly what we want
-                    map.insert(q_name, insts);
+                    // for some reason, the aux quantifiers by the same z3 instance (same uniqueId
+                    // in silicon) can have different amount of instantiations.
+                    // e.g. we receive a message with 100 instantiations for a certain quantifier
+                    // and afterwards a message with 20 instantiations for the same one.
+                    // All verifying the same viper program and by the same z3 instance.
+                    // Since I don't see a better way to take this into account than taking the
+                    // maximum, that is exactly what we do here.
+                    let old_inst = map.get(&q_name).unwrap_or(&0);
+                    map.insert(q_name, std::cmp::max(insts, *old_inst));
                     let mut n: u64 = 0;
-                    for insts in map.values() {
+                    for (q_name, insts) in map.iter() {
+                        debug!("Key: {q_name}, Value: {insts}");
                         n += *insts;
                     }
                     PrustiError::message(
@@ -337,6 +347,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         pos_id: u64
     ) {
         if config::report_viper_messages() && pos_id != 0 {
+            debug!("Received quantifier triggers {triggers} for quantifier {viper_quant} for position id {pos_id} in verification of {program_name}");
             match self.encoder.error_manager().position_manager().get_span_from_id(pos_id) {
                 Some(span) => {
                     PrustiError::message(
