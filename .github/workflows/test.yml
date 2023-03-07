@@ -324,9 +324,9 @@ jobs:
   can-merge:
     runs-on: ubuntu-latest
     needs: [all-tests, purification-tests, test-crates]
-    # Always run, even if other jobs failed or were canceled
-    if: ${{ always() }}
+    # Run if the workflow was not cancelled
+    if: ${{ success() || failure() }}
     steps:
-      - name: Fail if the workflow failed or was canceled
-        if: ${{ cancelled() || failure() }}
+      - name: Fail if the workflow failed
+        if: ${{ failure() }}
         run: false
