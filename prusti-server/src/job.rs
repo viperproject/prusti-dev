@@ -119,7 +119,7 @@ mod imp {
                     mem::size_of_val(&info) as DWORD,
                 );
                 if r == 0 {
-                    info!("failed to configure job object to defaults: {}", last_err());
+                    log::info!("failed to configure job object to defaults: {}", last_err());
                 }
             }
         }
