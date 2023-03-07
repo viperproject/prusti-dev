@@ -130,7 +130,7 @@ impl fmt::Display for ExternSpecBlock {
                 // do traits specify traitbounds too?
                 writeln!(f, "#[extern_spec({path})]")?;
                 writeln!(f, "trait {name}{generics_str} {where_block}{{")?;
-                writeln!(f, "{fn_sig}}}")
+                writeln!(f, "{fn_sig}\n}}")
             }
             ExternSpecBlock::StandaloneFn {
                 parent_chain,
