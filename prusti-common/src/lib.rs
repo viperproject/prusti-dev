@@ -9,5 +9,4 @@
 #![deny(unused_must_use)]
 #![warn(clippy::disallowed_types)]
 
-pub mod vir;
 pub use prusti_utils::*;

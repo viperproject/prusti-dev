@@ -7,7 +7,7 @@
 use super::{body::MirBody, loops, EnvName, EnvQuery};
 use crate::{
     data::ProcedureDefId,
-    environment::{debug_utils::to_text::ToText, mir_utils::RealEdges, Environment},
+    environment::{mir_utils::RealEdges, Environment},
 };
 use log::{debug, trace};
 use prusti_rustc_interface::{
@@ -79,49 +79,49 @@ impl<'tcx> Procedure<'tcx> {
         unimplemented!();
     }
 
-    pub fn get_lifetime_of_var(&self, var: mir::Local) -> Option<String> {
-        fn get_lifetime_if_matches(
-            local: mir::Local,
-            var: mir::Local,
-            mir: &Body,
-        ) -> Option<String> {
-            if local == var {
-                let ty_kind = mir.local_decls[local].ty.kind();
-                if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _ty, _mutability) =
-                    ty_kind
-                {
-                    return Some(region.to_text());
-                }
-            }
-            None
-        }
-        let mir = self.get_mir();
-        for local in mir.vars_and_temps_iter() {
-            if let Some(lifetime) = get_lifetime_if_matches(local, var, mir) {
-                return Some(lifetime);
-            }
-        }
-        for local in mir.args_iter() {
-            if let Some(lifetime) = get_lifetime_if_matches(local, var, mir) {
-                return Some(lifetime);
-            }
-        }
-        None
-    }
+    //pub fn get_lifetime_of_var(&self, var: mir::Local) -> Option<String> {
+    //    fn get_lifetime_if_matches(
+    //        local: mir::Local,
+    //        var: mir::Local,
+    //        mir: &Body,
+    //    ) -> Option<String> {
+    //        if local == var {
+    //            let ty_kind = mir.local_decls[local].ty.kind();
+    //            if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _ty, _mutability) =
+    //                ty_kind
+    //            {
+    //                return Some(region.to_text());
+    //            }
+    //        }
+    //        None
+    //    }
+    //    let mir = self.get_mir();
+    //    for local in mir.vars_and_temps_iter() {
+    //        if let Some(lifetime) = get_lifetime_if_matches(local, var, mir) {
+    //            return Some(lifetime);
+    //        }
+    //    }
+    //    for local in mir.args_iter() {
+    //        if let Some(lifetime) = get_lifetime_if_matches(local, var, mir) {
+    //            return Some(lifetime);
+    //        }
+    //    }
+    //    None
+    //}
 
-    pub fn get_var_of_lifetime(&self, lft: &str) -> Option<mir::Local> {
-        let mir = self.get_mir();
-        for local in mir.vars_and_temps_iter() {
-            if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _, _) =
-                &mir.local_decls[local].ty.kind()
-            {
-                if region.to_text() == lft {
-                    return Some(local);
-                }
-            }
-        }
-        None
-    }
+    //pub fn get_var_of_lifetime(&self, lft: &str) -> Option<mir::Local> {
+    //    let mir = self.get_mir();
+    //    for local in mir.vars_and_temps_iter() {
+    //        if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _, _) =
+    //            &mir.local_decls[local].ty.kind()
+    //        {
+    //            if region.to_text() == lft {
+    //                return Some(local);
+    //            }
+    //        }
+    //    }
+    //    None
+    //}
 
     /// Get definition ID of the procedure.
     pub fn get_id(&self) -> ProcedureDefId {

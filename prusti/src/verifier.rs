@@ -7,7 +7,7 @@ use prusti_interface::{
     environment::Environment,
     specs::typed,
 };
-use prusti_viper::verifier::Verifier;
+//use prusti_viper::verifier::Verifier;
 
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
     trace!("[verify] enter");
@@ -44,44 +44,48 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             }
         }
 
-        let verification_result =
-            if verification_task.procedures.is_empty() && verification_task.types.is_empty() {
-                VerificationResult::Success
-            } else {
-                debug!("Dump borrow checker info...");
-                env.dump_borrowck_info(&verification_task.procedures);
+        prusti_encoder::test_entrypoint(env.tcx());
 
-                let mut verifier = Verifier::new(&env, def_spec);
-                let verification_result = verifier.verify(&verification_task);
-                debug!("Verifier returned {:?}", verification_result);
+        //todo!("verify");
 
-                verification_result
-            };
-
-        match verification_result {
-            VerificationResult::Success => {
-                if env.diagnostic.has_errors() {
-                    user::message(
-                        "Verification result is inconclusive because errors \
-                                       were encountered during encoding.",
-                    );
-                } else {
-                    user::message(format!(
-                        "Successful verification of {} items",
-                        verification_task.procedures.len()
-                    ));
-                }
-            }
-            VerificationResult::Failure => {
-                user::message("Verification failed");
-                assert!(
-                    env.diagnostic.has_errors()
-                        || config::internal_errors_as_warnings()
-                        || (config::skip_unsupported_features()
-                            && config::allow_unreachable_unsupported_code())
-                );
-            }
-        };
+        //let verification_result =
+        //    if verification_task.procedures.is_empty() && verification_task.types.is_empty() {
+        //        VerificationResult::Success
+        //    } else {
+        //        debug!("Dump borrow checker info...");
+        //        env.dump_borrowck_info(&verification_task.procedures);
+        //
+        //        let mut verifier = Verifier::new(&env, def_spec);
+        //        let verification_result = verifier.verify(&verification_task);
+        //        debug!("Verifier returned {:?}", verification_result);
+        //
+        //        verification_result
+        //    };
+        //
+        //match verification_result {
+        //    VerificationResult::Success => {
+        //        if env.diagnostic.has_errors() {
+        //            user::message(
+        //                "Verification result is inconclusive because errors \
+        //                               were encountered during encoding.",
+        //            );
+        //        } else {
+        //            user::message(format!(
+        //                "Successful verification of {} items",
+        //                verification_task.procedures.len()
+        //            ));
+        //        }
+        //    }
+        //    VerificationResult::Failure => {
+        //        user::message("Verification failed");
+        //        assert!(
+        //            env.diagnostic.has_errors()
+        //                || config::internal_errors_as_warnings()
+        //                || (config::skip_unsupported_features()
+        //                    && config::allow_unreachable_unsupported_code())
+        //        );
+        //    }
+        //};
     }
 
     trace!("[verify] exit");

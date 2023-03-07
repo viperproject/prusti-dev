@@ -9,22 +9,17 @@
 use prusti_rustc_interface::middle::ty::{self, TyCtxt};
 
 pub mod body;
-pub mod borrowck;
 mod collect_closure_defs_visitor;
 mod collect_prusti_spec_visitor;
-pub mod debug_utils;
 mod diagnostic;
-mod dump_borrowck_info;
 mod loops;
 mod loops_utils;
 pub mod mir_analyses;
 pub mod mir_body;
-pub mod mir_dump;
 pub mod mir_sets;
 pub mod mir_storage;
 pub mod mir_utils;
 mod name;
-pub mod polonius_info;
 mod procedure;
 mod query;
 
@@ -73,14 +68,14 @@ impl<'tcx> Environment<'tcx> {
         self.query.tcx()
     }
 
-    /// Dump various information from the borrow checker.
-    ///
-    /// Mostly used for experiments and debugging.
-    pub fn dump_borrowck_info(&self, procedures: &[ProcedureDefId]) {
-        if prusti_common::config::dump_borrowck_info() {
-            dump_borrowck_info::dump_borrowck_info(self, procedures)
-        }
-    }
+    ///// Dump various information from the borrow checker.
+    /////
+    ///// Mostly used for experiments and debugging.
+    //pub fn dump_borrowck_info(&self, procedures: &[ProcedureDefId]) {
+    //    if prusti_common::config::dump_borrowck_info() {
+    //        dump_borrowck_info::dump_borrowck_info(self, procedures)
+    //    }
+    //}
 
     /// Get a Procedure.
     pub fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'tcx> {
