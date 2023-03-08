@@ -35,6 +35,13 @@ See more on documentation tests [here](https://doc.rust-lang.org/rustdoc/write-d
 
 Doctests should also run automatically as part of the Prusti CI.
 
-### TODO: Find better way to run doctest
 To run doctests locally with code that uses `prusti_contracts`, you will have to supply mdbook with a path containing the needed dependencies.
-One (not very nice way) to do this, is taking any Rust crate that uses `prusti_contracts`, building it, then passing the path to that crate to mdbook: mdbook test -L "(Path_to_crate)/target/debug/deps/"`
+One (not very nice way) to do this, is taking any Rust crate that uses `prusti_contracts`, building it, then passing the path to that crate to mdbook: `mdbook test -L "(Path_to_crate)/target/debug/deps/"`
+
+The crate `docs/dummy` is provided just to provide the dependencies.
+To run the doctests (in this case for the user guide):
+- `cd docs/dummy/`
+- `cargo build`
+- `cd ../user-guide/`
+- `mdbook test -L ../dummy/target/debug/deps/`
+

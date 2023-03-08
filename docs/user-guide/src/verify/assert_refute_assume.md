@@ -19,7 +19,7 @@ fn go(x: &mut u32) {
 }
 ```
 
-The two macros `prusti_assert_eq` and `prusti_assert_ne` are also slightly different than their standard counterparts, in that they use [snapshot equality](syntax.md#snapshot-equality) `===` instead of [Partial Equality](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html) `==`.
+The two macros `prusti_assert_eq` and `prusti_assert_ne` are also slightly different than their standard counterparts, in that they use [snapshot equality](../syntax.md#snapshot-equality) `===` instead of [Partial Equality](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html) `==`.
 
 ```rust,noplaypen,ignore
 # use prusti_contracts::*;

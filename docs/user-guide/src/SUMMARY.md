@@ -32,5 +32,5 @@
   - [Closures](verify/closure.md)
   - [Specification entailments](verify/spec_ent.md)
   - [Type models](verify/type-models.md)
-  - [Customizable counterexample](verify/print_counterexample.md)
+  - [Counterexamples](verify/counterexample.md)
 - [Specification Syntax](syntax.md)
