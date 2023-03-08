@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use clap::Parser;
+use prusti_server::job;
 use prusti_utils::config;
 
 /// A verification server to handle Prusti verification requests.
@@ -18,6 +19,8 @@ struct Args {
 }
 
 fn main() {
+    let _setup = job::setup().unwrap(); // Drop handler kills server on Windows
+
     env_logger::init_from_env(
         env_logger::Env::new()
             .filter_or("PRUSTI_LOG", config::log())
