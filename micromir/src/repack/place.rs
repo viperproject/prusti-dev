@@ -52,7 +52,6 @@ impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
                 min_length,
                 from_end,
             } => (0..min_length)
-                .into_iter()
                 .filter(|&i| {
                     if from_end {
                         i != min_length - offset
