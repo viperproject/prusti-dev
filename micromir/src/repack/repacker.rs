@@ -17,16 +17,11 @@ use crate::{
     PermissionProjections, Place, PlaceOrdering, RelatedSet,
 };
 
-#[derive(Clone, Deref, DerefMut)]
+#[derive(Clone, Default, Deref, DerefMut)]
 pub struct Repacks<'tcx>(Vec<RepackOp<'tcx>>);
 impl Debug for Repacks<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         self.0.fmt(f)
-    }
-}
-impl<'tcx> Repacks<'tcx> {
-    pub fn new() -> Self {
-        Self(Vec::new())
     }
 }
 
@@ -69,7 +64,7 @@ pub struct TerminatorPlaceCapabilitySummary<'tcx> {
 
 impl Debug for TerminatorPlaceCapabilitySummary<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        if self.repacks.len() == 0 {
+        if self.repacks.is_empty() {
             write!(f, "{:?}", &self.state_before)
         } else {
             f.debug_struct("PCS")
@@ -105,7 +100,7 @@ impl<'tcx> TerminatorPlaceCapabilitySummary<'tcx> {
         is_cleanup: bool,
         rp: PlaceRepacker<'_, 'tcx>,
     ) {
-        let repacks = self.repacks.entry(bb).or_insert_with(Repacks::new);
+        let repacks = self.repacks.entry(bb).or_default();
         repacks.clear();
         for (l, to) in to.iter_enumerated() {
             let new =
@@ -123,7 +118,7 @@ impl<'tcx> FreeState<'tcx> {
         update: &FreeStateUpdate<'tcx>,
         rp: PlaceRepacker<'_, 'tcx>,
     ) -> (PlaceCapabilitySummary<'tcx>, FreeState<'tcx>) {
-        let mut repacks = Repacks::new();
+        let mut repacks = Repacks::default();
         let pre = update
             .iter_enumerated()
             .map(|(l, update)| {
