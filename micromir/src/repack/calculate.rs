@@ -29,9 +29,8 @@ impl<'tcx> MicroBody<'tcx> {
         FreeState::initial(self.body.local_decls().len(), |local: Local| {
             if local == return_local {
                 Some(PermissionKind::Uninit)
-            } else if always_live.contains(local) {
-                Some(PermissionKind::Exclusive)
-            } else if local <= last_arg {
+            // TODO: figure out if `always_live` should start as `Uninit` or `Exclusive`
+            } else if local <= last_arg || always_live.contains(local) {
                 Some(PermissionKind::Exclusive)
             } else {
                 None
@@ -46,7 +45,7 @@ impl<'tcx> MicroBody<'tcx> {
         // Calculate initial state
         let state = self.initial_free_state();
         let preds = self.body.basic_blocks.predecessors();
-        let rp = PlaceRepacker::new(&*self.body, tcx);
+        let rp = PlaceRepacker::new(&self.body, tcx);
         let start_node = self.body.basic_blocks.start_node();
 
         // Do the actual repacking calculation
@@ -101,9 +100,8 @@ impl Queue {
             self.done[bb] = true;
             Some(bb)
         } else {
-            if self.dirty_queue.len() == 0 {
+            if self.dirty_queue.is_empty() {
                 debug_assert!((0..self.done.len())
-                    .into_iter()
                     .map(BasicBlock::from_usize)
                     .all(|bb| self.done[bb] || !self.can_redo[bb]));
                 return None;

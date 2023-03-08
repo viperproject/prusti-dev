@@ -65,7 +65,7 @@ impl<'tcx> From<&Statement<'tcx>> for MicroStatement<'tcx> {
                 variant_index,
             } => MicroStatementKind::SetDiscriminant {
                 place: box place.into(),
-                variant_index: variant_index,
+                variant_index,
             },
             &StatementKind::Deinit(box p) => MicroStatementKind::Deinit(box p.into()),
             &StatementKind::StorageLive(l) => MicroStatementKind::StorageLive(l),
@@ -119,9 +119,9 @@ impl Debug for MicroStatementKind<'_> {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> Result {
         use MicroStatementKind::*;
         match self {
-            Assign(box (ref place, ref rv)) => write!(fmt, "{:?} = {:?}", place, rv),
+            Assign(box (ref place, ref rv)) => write!(fmt, "{place:?} = {rv:?}"),
             FakeRead(box (ref cause, ref place)) => {
-                write!(fmt, "FakeRead({:?}, {:?})", cause, place)
+                write!(fmt, "FakeRead({cause:?}, {place:?})")
             }
             Retag(ref kind, ref place) => write!(
                 fmt,
@@ -134,27 +134,23 @@ impl Debug for MicroStatementKind<'_> {
                 },
                 place,
             ),
-            StorageLive(ref place) => write!(fmt, "StorageLive({:?})", place),
-            StorageDead(ref place) => write!(fmt, "StorageDead({:?})", place),
+            StorageLive(ref place) => write!(fmt, "StorageLive({place:?})"),
+            StorageDead(ref place) => write!(fmt, "StorageDead({place:?})"),
             SetDiscriminant {
                 ref place,
                 variant_index,
             } => {
-                write!(fmt, "discriminant({:?}) = {:?}", place, variant_index)
+                write!(fmt, "discriminant({place:?}) = {variant_index:?}")
             }
-            Deinit(ref place) => write!(fmt, "Deinit({:?})", place),
+            Deinit(ref place) => write!(fmt, "Deinit({place:?})"),
             AscribeUserType(box (ref place, ref c_ty), ref variance) => {
-                write!(
-                    fmt,
-                    "AscribeUserType({:?}, {:?}, {:?})",
-                    place, variance, c_ty
-                )
+                write!(fmt, "AscribeUserType({place:?}, {variance:?}, {c_ty:?})")
             }
             Coverage(box self::Coverage {
                 ref kind,
                 code_region: Some(ref rgn),
             }) => {
-                write!(fmt, "Coverage::{:?} for {:?}", kind, rgn)
+                write!(fmt, "Coverage::{kind:?} for {rgn:?}")
             }
             Coverage(box ref coverage) => write!(fmt, "Coverage::{:?}", coverage.kind),
             Intrinsic(box ref intrinsic) => write!(fmt, "{intrinsic}"),

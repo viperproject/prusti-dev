@@ -94,7 +94,7 @@ impl<'tcx> LocalUpdate<'tcx> {
         match state {
             PermissionLocal::Unallocated => {
                 assert!(pre.unalloc_allowed);
-                return Some(PermissionLocal::Unallocated);
+                Some(PermissionLocal::Unallocated)
             }
             PermissionLocal::Allocated(state) => {
                 let mut achievable = PermissionProjections(FxHashMap::default());

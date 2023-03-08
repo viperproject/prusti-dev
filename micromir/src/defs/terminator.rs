@@ -244,18 +244,18 @@ impl<'tcx> MicroTerminatorKind<'tcx> {
         use MicroTerminatorKind::*;
         match self {
             Goto { .. } => write!(fmt, "goto"),
-            SwitchInt { discr, .. } => write!(fmt, "switchInt({:?})", discr),
+            SwitchInt { discr, .. } => write!(fmt, "switchInt({discr:?})"),
             Return => write!(fmt, "return"),
             GeneratorDrop => write!(fmt, "generator_drop"),
             Resume => write!(fmt, "resume"),
             Abort => write!(fmt, "abort"),
             Yield {
                 value, resume_arg, ..
-            } => write!(fmt, "{:?} = yield({:?})", resume_arg, value),
+            } => write!(fmt, "{resume_arg:?} = yield({value:?})"),
             Unreachable => write!(fmt, "unreachable"),
-            Drop { place, .. } => write!(fmt, "drop({:?})", place),
+            Drop { place, .. } => write!(fmt, "drop({place:?})"),
             DropAndReplace { place, value, .. } => {
-                write!(fmt, "replace({:?} <- {:?})", place, value)
+                write!(fmt, "replace({place:?} <- {value:?})")
             }
             Call {
                 func,
@@ -263,13 +263,13 @@ impl<'tcx> MicroTerminatorKind<'tcx> {
                 destination,
                 ..
             } => {
-                write!(fmt, "{:?} = ", destination)?;
-                write!(fmt, "{:?}(", func)?;
+                write!(fmt, "{destination:?} = ")?;
+                write!(fmt, "{func:?}(")?;
                 for (index, arg) in args.iter().enumerate() {
                     if index > 0 {
                         write!(fmt, ", ")?;
                     }
-                    write!(fmt, "{:?}", arg)?;
+                    write!(fmt, "{arg:?}")?;
                 }
                 write!(fmt, ")")
             }
@@ -283,7 +283,7 @@ impl<'tcx> MicroTerminatorKind<'tcx> {
                 if !expected {
                     write!(fmt, "!")?;
                 }
-                write!(fmt, "{:?}, ", cond)?;
+                write!(fmt, "{cond:?}, ")?;
                 msg.fmt_assert_args(fmt)?;
                 write!(fmt, ")")
             }
