@@ -26,13 +26,10 @@ pub fn top_crates_range(range: std::ops::Range<usize>) {
 }
 
 fn run_on_crate(name: &str, version: &str) {
-    let dirname = format!("./tmp/{}-{}", name, version);
+    let dirname = format!("./tmp/{name}-{version}");
     let filename = format!("{dirname}.crate");
     if !std::path::PathBuf::from(&filename).exists() {
-        let dl = format!(
-            "https://crates.io/api/v1/crates/{}/{}/download",
-            name, version
-        );
+        let dl = format!("https://crates.io/api/v1/crates/{name}/{version}/download");
         let mut resp = get(&dl).expect("Could not fetch top crates");
         let mut file = std::fs::File::create(&filename).unwrap();
         resp.copy_to(&mut file).unwrap();
@@ -102,8 +99,7 @@ fn top_crates_by_download_count(mut count: usize) -> Vec<Crate> {
     let mut sources = Vec::new();
     for page in 1..page_count {
         let url = format!(
-            "https://crates.io/api/v1/crates?page={}&per_page={}&sort=downloads",
-            page, PAGE_SIZE
+            "https://crates.io/api/v1/crates?page={page}&per_page={PAGE_SIZE}&sort=downloads"
         );
         let resp = get(&url).expect("Could not fetch top crates");
         assert!(
