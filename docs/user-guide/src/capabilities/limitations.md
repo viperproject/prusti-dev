@@ -94,9 +94,13 @@ Related Issues:
 
 ## `unsafe` code
 
-### TODO
 Verficiation of `unsafe` code is currently being worked on. The current work in progress can be used with the config flag [`UNSAFE_CORE_PROOF`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#unsafe_core_proof), but it is still incomplete.
 
+### `Union`s not supported
+
+Using a [`Union`](https://doc.rust-lang.org/reference/items/unions.html) in Rust requires unsafe code anyways, but even declaring them is not yet supported.
+
+See [this issue](https://github.com/viperproject/prusti-dev/issues/1341) for updates.
 
 
 ## Quantifiers and triggers
@@ -244,3 +248,9 @@ fn trusted_println(s: &str) {
 Unit tests (marked by `#[cfg(test)]` or `#[test]`) are currently not verified by Prusti, but this may be added in the future.
 
 By removing `#[cfg(test)]` and `#[test]` from a test, Prusti will be able to verify it like a normal function.
+
+
+## Trait objects
+
+Prusti cannot verify code that uses [trait objects and the `dyn` keyword](https://doc.rust-lang.org/reference/types/trait-object.html).
+
