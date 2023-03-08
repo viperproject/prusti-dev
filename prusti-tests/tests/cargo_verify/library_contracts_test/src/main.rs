@@ -20,6 +20,11 @@ fn test_dependency_import() {
     let b = Opt::None::<i32>;
     assert!(a.is_some() == true);
     assert!(b.is_some() == false);
+
+    // Test that quantifiers are imported.
+    library_contracts_lib::quantifier_test();
+    prusti_assert!(library_contracts_lib::demo_fn(0));
+    prusti_assert!(library_contracts_lib::quantifier_predicate(1));
 }
 
 fn test_extern_specs() {

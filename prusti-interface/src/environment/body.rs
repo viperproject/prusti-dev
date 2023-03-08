@@ -87,12 +87,14 @@ pub struct EnvBody<'tcx> {
     tcx: TyCtxt<'tcx>,
 
     local_impure_fns: DynamicallyLoadedBodies<BodyWithBorrowckFacts<'tcx>>,
-    // Loop invariants or triggers
+    /// Loop invariants, quantifiers and triggers in impure functions
     local_closures: DynamicallyLoadedBodies<MirBody<'tcx>>,
 
     pure_fns: PreLoadedBodies<'tcx>,
     predicates: PreLoadedBodies<'tcx>,
     specs: PreLoadedBodies<'tcx>,
+    /// Quantifiers and triggers in predicates and specs
+    closures: PreLoadedBodies<'tcx>,
 
     /// Copies of above MIR bodies with the given substs applied.
     monomorphised_bodies: RefCell<FxHashMap<MonomorphKey<'tcx>, MirBody<'tcx>>>,
@@ -107,6 +109,7 @@ impl<'tcx> EnvBody<'tcx> {
             pure_fns: PreLoadedBodies::new(),
             predicates: PreLoadedBodies::new(),
             specs: PreLoadedBodies::new(),
+            closures: PreLoadedBodies::new(),
             monomorphised_bodies: RefCell::new(FxHashMap::default()),
         }
     }
@@ -199,11 +202,15 @@ impl<'tcx> EnvBody<'tcx> {
         self.set_monomorphised(def_id.to_def_id(), substs, None, body)
     }
 
-    fn get_closure_body_identity(&self, def_id: LocalDefId) -> MirBody<'tcx> {
+    fn get_closure_body_identity(&self, def_id: DefId) -> MirBody<'tcx> {
+        if let Some(body) = self.closures.get(def_id) {
+            return body;
+        }
+        let local_def_id = def_id.expect_local();
         let mut closures = self.local_closures.borrow_mut();
         closures
-            .entry(def_id)
-            .or_insert_with(|| Self::load_local_mir(self.tcx, def_id))
+            .entry(local_def_id)
+            .or_insert_with(|| Self::load_local_mir(self.tcx, local_def_id))
             .clone()
     }
 
@@ -211,16 +218,15 @@ impl<'tcx> EnvBody<'tcx> {
     /// monomorphised with the given type substitutions.
     pub fn get_closure_body(
         &self,
-        def_id: LocalDefId,
+        def_id: DefId,
         substs: SubstsRef<'tcx>,
         caller_def_id: DefId,
     ) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, Some(caller_def_id))
-        {
+        if let Some(body) = self.get_monomorphised(def_id, substs, Some(caller_def_id)) {
             return body;
         }
         let body = self.get_closure_body_identity(def_id);
-        self.set_monomorphised(def_id.to_def_id(), substs, Some(caller_def_id), body)
+        self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
     }
 
     /// Get the MIR body of a local or external pure function,
@@ -299,6 +305,7 @@ impl<'tcx> EnvBody<'tcx> {
             .local
             .insert(def_id, Self::load_local_mir(self.tcx, def_id));
     }
+
     pub(crate) fn load_predicate_body(&mut self, def_id: LocalDefId) {
         assert!(!self.predicates.local.contains_key(&def_id));
         self.predicates
@@ -319,11 +326,23 @@ impl<'tcx> EnvBody<'tcx> {
         }
     }
 
+    pub(crate) fn load_closure_body(&mut self, def_id: LocalDefId) {
+        // Because specs can appear multiple times (see load_spec_body),
+        // quantifiers in specs can too.
+        if self.closures.local.contains_key(&def_id) {
+            return;
+        }
+        self.closures
+            .local
+            .insert(def_id, Self::load_local_mir(self.tcx, def_id));
+    }
+
     /// Import non-local mir bodies of specs from cross-crate import.
     pub(crate) fn import_external_bodies(&mut self, bodies: CrossCrateBodies<'tcx>) {
         self.pure_fns.external.extend(bodies.pure_fns);
         self.predicates.external.extend(bodies.predicates);
         self.specs.external.extend(bodies.specs);
+        self.closures.external.extend(bodies.closures);
     }
 }
 
@@ -332,6 +351,7 @@ pub(crate) struct CrossCrateBodies<'tcx> {
     pure_fns: FxHashMap<DefId, MirBody<'tcx>>,
     predicates: FxHashMap<DefId, MirBody<'tcx>>,
     specs: FxHashMap<DefId, MirBody<'tcx>>,
+    closures: FxHashMap<DefId, MirBody<'tcx>>,
 }
 
 impl<'tcx> From<&EnvBody<'tcx>> for CrossCrateBodies<'tcx> {
@@ -345,6 +365,7 @@ impl<'tcx> From<&EnvBody<'tcx>> for CrossCrateBodies<'tcx> {
             pure_fns: clone_map(&body.pure_fns.local),
             predicates: clone_map(&body.predicates.local),
             specs: clone_map(&body.specs.local),
+            closures: clone_map(&body.closures.local),
         }
     }
 }

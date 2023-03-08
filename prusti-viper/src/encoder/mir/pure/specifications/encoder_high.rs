@@ -44,7 +44,7 @@ pub(super) fn inline_closure_high<'tcx>(
     let mir = encoder
         .env()
         .body
-        .get_closure_body(def_id.expect_local(), substs, parent_def_id);
+        .get_closure_body(def_id, substs, parent_def_id);
     assert_eq!(mir.arg_count, args.len() + 1);
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {
