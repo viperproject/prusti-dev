@@ -55,18 +55,25 @@
 | [`PRINT_DESUGARED_SPECS`](#print_desugared_specs) | `bool` | `false` | A |
 | [`PRINT_HASH`](#print_hash) | `bool` | `false` | A |
 | [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) | `bool` | `false` | A |
+| [`QUERY_METHOD_SIGNATURE`](#query_method_signature) | `Option<String>` | `None` | A |
 | [`QUIET`](#quiet) | `bool` | `false` | A* |
+| [`REPORT_VIPER_MESSAGES`](#report_viper_messages) | `bool` | `false` | A |
+| [`VERIFY_ONLY_DEFPATH`](#verify_only_defpath) | `Option<String>` | `None` | A |
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` | A |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` | A |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` | A |
+| [`SHOW_IDE_INFO`](#show_ide_info) | `bool` | `false` | A |
 | [`SIMPLIFY_ENCODING`](#simplify_encoding) | `bool` | `true` | A |
 | [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features) | `bool` | `false` | A |
+| [`SKIP_VERIFICATION`](#skip_verification) | `bool` | `false` | A |
 | [`SMT_QI_BOUND_GLOBAL`](#smt_qi_bound_global) | `Option<u64>` | `None` | A |
-[`SMT_QI_BOUND_GLOBAL_KIND`](#smt_qi_bound_global_kind) | `Option<u64>` | `None` | A |
+| [`SMT_QI_BOUND_GLOBAL_KIND`](#smt_qi_bound_global_kind) | `Option<u64>` | `None` | A |
 | [`SMT_QI_BOUND_TRACE`](#smt_qi_bound_trace) | `Option<u64>` | `None` | A |
 | [`SMT_QI_BOUND_TRACE_KIND`](#smt_qi_bound_trace_kind) | `Option<u64>` | `None` | A |
-| [`SMT_QI_IGNORE_BUILTIN`](#smt_qi_ignore_builtin) | `bool` | `true` | A |
 | [`SMT_QI_EAGER_THRESHOLD`](#smt_qi_eager_threshold) | `u64` | `1000` | A |
+| [`SMT_QI_IGNORE_BUILTIN`](#smt_qi_ignore_builtin) | `bool` | `true` | A |
+| [`SMT_QI_PROFILE`](#smt_qi_profile) | `Option<bool>` | `None` | A |
+| [`SMT_QI_PROFILE_FREQ`](#smt_qi_profile_freq) | `Option<u64>` | `None` | A |
 | [`SMT_SOLVER_PATH`](#smt_solver_path) | `Option<String>` | `env::var("Z3_EXE")` | A |
 | [`SMT_SOLVER_WRAPPER_PATH`](#smt_solver_wrapper_path) | `Option<String>` | `None` | A |
 | [`SMT_UNIQUE_TRIGGERS_BOUND`](#smt_unique_triggers_bound) | `Option<u64>` | `None` | A |
@@ -351,11 +358,23 @@ When enabled, prints the hash of a verification request (the hash is used for ca
 
 When enabled, prints the type-checked specifications.
 
+## `QUERY_METHOD_SIGNATURE`
+
+When set to a defpath, prusti will generate a template for an external specification for this method. The result is part of the CompilerInfo and will only be emitted if the `SHOW_IDE_INFO` flag is enabled too.
+
 ## `QUIET`
 
 When enabled, user messages are not printed. Otherwise, messages output into `stderr`.
 
 > **Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_QUIET=true`.
+
+## `REPORT_VIPER_MESSAGES`
+
+When enabled for both server and client, certain supported Viper messages will be reported to the user.
+
+## `VERIFY_ONLY_DEFPATH`
+
+When set to the defpath of a local method, prusti will only verify the specified method. A fake error will be generated to avoid caching of a success.
 
 ## `SERVER_ADDRESS`
 
@@ -373,6 +392,10 @@ Maximum amount of instantiated Viper verifiers the server will keep around for r
 
 > **Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
 
+## `SHOW_IDE_INFO`
+
+When enabled, we emit various json data structures containing information about the program, its encoding, and the results of the verification. This flag intended for prusti-assistant (IDE).
+
 ## `SIMPLIFY_ENCODING`
 
 When enabled, the encoded program is simplified before it is passed to the Viper backend.
@@ -380,6 +403,10 @@ When enabled, the encoded program is simplified before it is passed to the Viper
 ## `SKIP_UNSUPPORTED_FEATURES`
 
 When enabled, features not supported by Prusti will be reported as warnings rather than errors.
+
+## `SKIP_VERIFICATION`
+
+When enabled, verification will be skipped. Opposed to `NO_VERIFY`, this flag will cause fake errors to stop the compiler from caching the result. 
 
 ## `SMT_QI_BOUND_GLOBAL`
 
@@ -408,6 +435,13 @@ If not `None`, checks that the number of quantifier instantiations in each trace
 ## `SMT_QI_IGNORE_BUILTIN`
 
 When enabled, ignores the built-in quantifiers in SMT quantifier instantiation bounds checking.
+## `SMT_QI_PROFILE`
+
+When enabled, the Z3 backend periodically (and on finish) reports the number of quantifier instantiations to Viper.
+
+## `SMT_QI_PROFILE_FREQ`
+
+Frequency of the quantifier instantiation reporting of Z3 (every X instantiations, a report is issued).
 
 ## `SMT_QI_EAGER_THRESHOLD`
 

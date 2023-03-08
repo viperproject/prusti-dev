@@ -20,7 +20,7 @@ use prusti_rustc_interface::{errors::MultiSpan, span::Span};
 /// `SpannedEncodingError` and similar types to something less confusing.)
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrustiError {
-    kind: PrustiErrorKind,
+    kind: PrustiDiagnosticKind,
     /// If `true`, it should not be reported to the user. We need this in cases
     /// when the same error could be reported twice.
     ///
@@ -35,11 +35,12 @@ pub struct PrustiError {
 }
 /// Determines how a `PrustiError` is reported.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum PrustiErrorKind {
+pub enum PrustiDiagnosticKind {
     Error,
     Warning,
     /// A warning which is only shown if at least one error is emitted.
     WarningOnError,
+    Message,
 }
 
 impl PartialOrd for PrustiError {
@@ -60,7 +61,7 @@ impl PrustiError {
     /// Private constructor. Use one of the following methods.
     fn new(message: String, span: MultiSpan) -> Self {
         PrustiError {
-            kind: PrustiErrorKind::Error,
+            kind: PrustiDiagnosticKind::Error,
             is_disabled: false,
             message,
             span: Box::new(span),
@@ -114,7 +115,7 @@ impl PrustiError {
     pub fn warning<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
         let mut err = PrustiError::new(format!("[Prusti: warning] {}", message.to_string()), span);
-        err.kind = PrustiErrorKind::Warning;
+        err.kind = PrustiDiagnosticKind::Warning;
         err
     }
 
@@ -123,7 +124,7 @@ impl PrustiError {
     pub fn warning_on_error<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
         let mut err = PrustiError::new(format!("[Prusti: warning] {}", message.to_string()), span);
-        err.kind = PrustiErrorKind::WarningOnError;
+        err.kind = PrustiDiagnosticKind::WarningOnError;
         err
     }
 
@@ -146,13 +147,21 @@ impl PrustiError {
         error
     }
 
+    /// Report a message
+    pub fn message<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
+        let mut msg = PrustiError::new(message.to_string(), span);
+        msg.kind = PrustiDiagnosticKind::Message;
+        msg
+    }
+
     /// Set that this Prusti error should be reported as a warning to the user
     pub fn set_warning(&mut self) {
-        self.kind = PrustiErrorKind::Warning;
+        self.kind = PrustiDiagnosticKind::Warning;
     }
 
     pub fn is_error(&self) -> bool {
-        matches!(self.kind, PrustiErrorKind::Error)
+        matches!(self.kind, PrustiDiagnosticKind::Error)
     }
 
     // FIXME: This flag is a temporary workaround for having duplicate errors
@@ -185,24 +194,26 @@ impl PrustiError {
     pub fn emit(self, env_diagnostic: &EnvDiagnostic) {
         assert!(!self.is_disabled);
         match self.kind {
-            PrustiErrorKind::Error => env_diagnostic.span_err_with_help_and_notes(
+            PrustiDiagnosticKind::Error => env_diagnostic.span_err_with_help_and_notes(
                 *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
-            PrustiErrorKind::Warning => env_diagnostic.span_warn_with_help_and_notes(
+            PrustiDiagnosticKind::Warning => env_diagnostic.span_warn_with_help_and_notes(
                 *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
-            PrustiErrorKind::WarningOnError => env_diagnostic.span_warn_on_err_with_help_and_notes(
-                *self.span,
-                &self.message,
-                &self.help,
-                &self.notes,
-            ),
+            PrustiDiagnosticKind::WarningOnError => env_diagnostic
+                .span_warn_on_err_with_help_and_notes(
+                    *self.span,
+                    &self.message,
+                    &self.help,
+                    &self.notes,
+                ),
+            PrustiDiagnosticKind::Message => env_diagnostic.span_note(*self.span, &self.message),
         };
     }
 

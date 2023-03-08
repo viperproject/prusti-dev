@@ -78,6 +78,11 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         diagnostic.buffer(&mut self.warn_buffer.borrow_mut());
     }
 
+    /// Emits a note
+    pub fn span_note<S: Into<MultiSpan> + Clone>(&self, sp: S, msg: &str) {
+        self.tcx.sess.span_note_without_error(sp, msg);
+    }
+
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
         self.tcx.sess.has_errors().is_some()

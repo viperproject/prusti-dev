@@ -63,6 +63,7 @@ use super::mir::{
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
 use super::counterexamples::{MirProcedureMappingInterface, MirProcedureMapping};
 use super::counterexamples::DiscriminantsState;
+use crate::ide::encoding_info::SpanOfCallContracts;
 use super::high::to_typed::types::HighToTypedTypeEncoderState;
 
 pub struct Encoder<'v, 'tcx: 'v> {
@@ -104,6 +105,9 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// this requires special care when encoding array/slice accesses which may come with
     /// bound checks included in the MIR.
     pub(super) is_encoding_trigger: Cell<bool>,
+    /// When calls are being encoded, this Vec saves the spans of all items of the 
+    /// contract so they can later be passed to prusti-assistant
+    pub spans_of_call_contracts: RefCell<Vec<SpanOfCallContracts>>,
 }
 
 pub enum EncodingTask<'tcx> {
@@ -182,6 +186,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             specifications_state: SpecificationsState::new(def_spec),
             mir_procedure_mapping: Default::default(),
             discriminants_state: Default::default(),
+            spans_of_call_contracts: Default::default(),
         }
     }
 

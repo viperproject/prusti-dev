@@ -4,17 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{process_verification_request, VerificationRequest};
+use crate::VerificationRequestProcessing;
+use futures_util::{pin_mut, SinkExt, StreamExt};
 use log::info;
 use once_cell::sync::Lazy;
-use prusti_common::{config, Stopwatch};
 use std::{
     net::{Ipv4Addr, SocketAddr},
-    sync::{mpsc, Arc, Mutex},
+    sync::mpsc,
     thread,
 };
 use tokio::runtime::Builder;
-use viper::{PersistentCache, Viper};
 use warp::Filter;
 
 #[derive(Debug)]
@@ -42,61 +41,74 @@ pub fn spawn_server_thread() -> SocketAddr {
     receiver.recv().unwrap()
 }
 
+// This VerificationRequestProcessing object is starting the verification thread (for more details
+// see the file process_verification.rs).
+// It has to have a static lifetime because warp websockets need their closures to have a static
+// lifetime and we need to access this object in them.
+static VERIFICATION_REQUEST_PROCESSING: Lazy<VerificationRequestProcessing> =
+    Lazy::new(VerificationRequestProcessing::new);
+
 fn listen_on_port_with_address_callback<F>(port: u16, address_callback: F) -> !
 where
     F: FnOnce(SocketAddr),
 {
-    let stopwatch = Stopwatch::start("prusti-server", "JVM startup");
-    let viper = Arc::new(Lazy::new(|| {
-        Viper::new_with_args(&config::viper_home(), config::extra_jvm_args())
-    }));
-
-    stopwatch.finish();
-
-    let cache_data = PersistentCache::load_cache(config::cache_path());
-    let cache = Arc::new(Mutex::new(cache_data));
-    let build_verification_request_handler = |viper_arc: Arc<Lazy<Viper, _>>, cache| {
-        move |request: VerificationRequest| {
-            let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
-            let viper_thread = Lazy::new(|| viper_arc.attach_current_thread());
-            stopwatch.finish();
-            process_verification_request(&viper_thread, request, &cache)
-        }
-    };
-
     let json_verify = warp::path!("json" / "verify")
-        .and(warp::body::json())
-        .map(build_verification_request_handler(
-            viper.clone(),
-            cache.clone(),
-        ))
-        .map(|response| warp::reply::json(&response));
-
-    let bincode_verify = warp::path!("bincode" / "verify")
-        .and(warp::body::bytes())
-        .and_then(|buf: warp::hyper::body::Bytes| async move {
-            bincode::deserialize(&buf).map_err(|err| {
-                info!("request bincode body error: {}", err);
-                warp::reject::custom(BincodeReject(err))
+        .and(warp::filters::ws::ws())
+        .map(|ws: warp::filters::ws::Ws| {
+            ws.on_upgrade(|websocket| async {
+                let (mut ws_send, mut ws_recv) = websocket.split();
+                let req_msg = ws_recv.next().await.unwrap().unwrap();
+                let verification_request = req_msg
+                    .to_str()
+                    .and_then(|s: &str| serde_json::from_str(s).unwrap())
+                    .unwrap();
+                let stream = VERIFICATION_REQUEST_PROCESSING.verify(verification_request);
+                pin_mut!(stream);
+                while let Some(server_msg) = stream.next().await {
+                    ws_send
+                        .send(warp::filters::ws::Message::text(
+                            serde_json::to_string(&server_msg).unwrap(),
+                        ))
+                        .await
+                        .unwrap();
+                }
+                ws_send.close().await.unwrap();
+                // receive the client close to complete the handshake
+                ws_recv.next().await.unwrap().unwrap();
             })
-        })
-        .map(build_verification_request_handler(viper, cache.clone()))
-        .map(|result| {
-            warp::http::Response::new(
-                bincode::serialize(&result).expect("could not encode verification result"),
-            )
         });
 
+    let bincode_verify = warp::path!("bincode" / "verify")
+        .and(warp::filters::ws::ws())
+        .map(|ws: warp::filters::ws::Ws| {
+            ws.on_upgrade(|websocket| async {
+                let (mut ws_send, mut ws_recv) = websocket.split();
+                let req_msg = ws_recv.next().await.unwrap().unwrap();
+                let verification_request = bincode::deserialize(req_msg.as_bytes()).unwrap();
+                let stream = VERIFICATION_REQUEST_PROCESSING.verify(verification_request);
+                pin_mut!(stream);
+                while let Some(server_msg) = stream.next().await {
+                    ws_send
+                        .send(warp::filters::ws::Message::binary(
+                            bincode::serialize(&server_msg).unwrap(),
+                        ))
+                        .await
+                        .unwrap();
+                }
+                ws_send.close().await.unwrap();
+                // receive the client close to complete the handshake
+                ws_recv.next().await.unwrap().unwrap();
+            })
+        });
     let save_cache = warp::post()
         .and(warp::path("save"))
         .and(warp::path::end())
         .map(move || {
-            cache.lock().unwrap().save();
+            VERIFICATION_REQUEST_PROCESSING.save_cache();
             warp::reply::html("Saved")
         });
 
     let endpoints = json_verify.or(bincode_verify).or(save_cache);
-
     // Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and
     // 2. By default Silicon already uses as many cores as possible.

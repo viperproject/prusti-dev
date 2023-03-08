@@ -9,6 +9,7 @@
 mod client;
 mod process_verification;
 mod server;
+mod server_message;
 mod verification_request;
 mod backend;
 pub mod job;
@@ -17,6 +18,7 @@ pub use backend::*;
 pub use client::*;
 pub use process_verification::*;
 pub use server::*;
+pub use server_message::*;
 pub use verification_request::*;
 
 // Futures returned by `Client` need to be executed in a compatible tokio runtime.

@@ -1,10 +1,11 @@
+use futures_util::stream::StreamExt;
 use lazy_static::lazy_static;
 use prusti_common::vir::*;
 use prusti_server::{
-    spawn_server_thread, tokio::runtime::Builder, PrustiClient, VerificationRequest,
+    spawn_server_thread, tokio::runtime::Builder, PrustiClient, ServerMessage, VerificationRequest,
     ViperBackendConfig,
 };
-use viper::VerificationResult;
+use viper::VerificationResultKind;
 
 lazy_static! {
     // only start the jvm & server once
@@ -21,7 +22,7 @@ fn consistency_error() {
     });
 
     match result {
-        VerificationResult::ConsistencyErrors(errors) => assert_eq!(errors.len(), 1),
+        VerificationResultKind::ConsistencyErrors(errors) => assert_eq!(errors.len(), 1),
         other => panic!("consistency errors not identified, instead found {other:?}"),
     }
 }
@@ -31,17 +32,15 @@ fn empty_program() {
     let result = process_program(|_| ());
 
     match result {
-        VerificationResult::Success => {}
+        VerificationResultKind::Success => {}
         other => panic!("empty program not verified successfully, instead found {other:?}"),
     }
 }
 
-fn process_program<F>(configure: F) -> VerificationResult
+fn process_program<F>(configure: F) -> VerificationResultKind
 where
     F: FnOnce(&mut Program),
 {
-    let client = PrustiClient::new(SERVER_ADDRESS.clone()).expect("Could not connect to server!");
-
     let mut program = Program {
         name: "dummy".to_string(),
         backend_types: vec![],
@@ -65,6 +64,16 @@ where
         .enable_all()
         .build()
         .expect("failed to construct Tokio runtime")
-        .block_on(client.verify(request))
-        .expect("Verification request failed")
+        .block_on(async {
+            PrustiClient::verify(SERVER_ADDRESS.clone(), request)
+                .await
+                .collect::<Vec<ServerMessage>>()
+                .await
+                .into_iter()
+                .find_map(|m| match m {
+                    ServerMessage::Termination(res) => Some(res.kind),
+                    _ => None,
+                })
+                .unwrap_or_else(|| VerificationResultKind::Failure(vec![]))
+        })
 }

@@ -56,7 +56,7 @@ fn failure_with_assert_false() {
 
     let verification_result = verifier.verify(program);
 
-    if let VerificationResult::Failure(errors) = verification_result {
+    if let VerificationResultKind::Failure(errors) = verification_result {
         assert_eq!(errors.len(), 1);
         assert_eq!(
             errors[0].full_id,
@@ -204,7 +204,7 @@ fn failure_with_assign_if_and_assert() {
 
     let verification_result = verifier.verify(program);
 
-    if let VerificationResult::Failure(errors) = verification_result {
+    if let VerificationResultKind::Failure(errors) = verification_result {
         assert_eq!(errors.len(), 1);
         assert_eq!(
             errors[0].full_id,

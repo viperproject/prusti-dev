@@ -1,8 +1,13 @@
-use crate::verifier::verify;
+use crate::{
+    ide_helper::{compiler_info, fake_error::fake_error},
+    verifier::verify,
+};
 use prusti_common::config;
 use prusti_interface::{
+    data::VerificationTask,
     environment::{mir_storage, Environment},
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
+    PrustiError,
 };
 use prusti_rustc_interface::{
     driver::Compilation,
@@ -14,6 +19,7 @@ use prusti_rustc_interface::{
         TyCtxt,
     },
     session::Session,
+    span::DUMMY_SP,
 };
 
 #[derive(Default)]
@@ -130,8 +136,42 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 }
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
-            if !config::no_verify() {
-                verify(env, def_spec);
+
+            // TODO: can we replace `get_annotated_procedures` with information
+            // that is already in `def_spec`?
+            let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
+
+            if config::show_ide_info() && !config::no_verify() {
+                let compiler_info =
+                    compiler_info::IdeInfo::collect(&env, &annotated_procedures, &def_spec);
+                let out = serde_json::to_string(&compiler_info).unwrap();
+                PrustiError::message(format!("compilerInfo{out}"), DUMMY_SP.into())
+                    .emit(&env.diagnostic);
+            }
+
+            // collect and output Information used by IDE:
+            if !config::no_verify() && !config::skip_verification() {
+                if let Some(target_def_path) = config::verify_only_defpath() {
+                    let procedures = annotated_procedures
+                        .into_iter()
+                        .filter(|x| env.name.get_unique_item_name(*x) == target_def_path)
+                        .collect();
+                    let selective_task = VerificationTask { procedures, types };
+                    // fake_error because otherwise a verification-success
+                    // (for a single method for example) will cause this result
+                    // to be cached by compiler at the moment
+                    verify(&env, def_spec, selective_task);
+                    fake_error(&env);
+                } else {
+                    let verification_task = VerificationTask {
+                        procedures: annotated_procedures,
+                        types,
+                    };
+                    verify(&env, def_spec, verification_task);
+                }
+            } else if config::skip_verification() && !config::no_verify() {
+                // add a fake error, reason explained in issue #1261
+                fake_error(&env)
             }
         });
 

@@ -135,7 +135,7 @@ pub(super) fn inline_spec_item<'tcx>(
 
 pub(super) fn encode_quantifier<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
-    _span: Span,
+    span: Span,
     encoded_args: Vec<vir_crate::polymorphic::Expr>,
     is_exists: bool,
     parent_def_id: DefId,
@@ -241,6 +241,8 @@ pub(super) fn encode_quantifier<'tcx>(
         body_substs,
     )?;
 
+    let pos = encoder.error_manager().register_span(parent_def_id, span);
+
     // replace qvars with a nicer name based on quantifier depth to ensure that
     // quantifiers remain stable for caching
     let quantifier_depth = find_quantifier_depth(&encoded_body);
@@ -274,17 +276,32 @@ pub(super) fn encode_quantifier<'tcx>(
     } else {
         vir_crate::polymorphic::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
     };
+
     if is_exists {
-        Ok(vir_crate::polymorphic::Expr::exists(
+        Ok(vir_crate::polymorphic::Expr::exists_with_pos(
             fixed_qvars,
             encoded_trigger_sets,
             final_body,
+            // we encode the position ID in the line number because that is used to name the
+            // quantifiers in z3
+            vir_crate::polymorphic::Position::new(
+                i32::try_from(pos.id()).unwrap(),
+                i32::try_from(pos.id()).unwrap(),
+                pos.id(),
+            ),
         ))
     } else {
-        Ok(vir_crate::polymorphic::Expr::forall(
+        Ok(vir_crate::polymorphic::Expr::forall_with_pos(
             fixed_qvars,
             encoded_trigger_sets,
             final_body,
+            // we encode the position ID in the line number because that is used to name the
+            // quantifiers in z3
+            vir_crate::polymorphic::Position::new(
+                i32::try_from(pos.id()).unwrap(),
+                i32::try_from(pos.id()).unwrap(),
+                pos.id(),
+            ),
         ))
     }
 }

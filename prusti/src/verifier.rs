@@ -10,18 +10,15 @@ use prusti_interface::{
 use prusti_viper::verifier::Verifier;
 
 #[tracing::instrument(name = "prusti::verify", level = "debug", skip(env))]
-pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
+pub fn verify<'tcx>(
+    env: &Environment<'tcx>,
+    def_spec: typed::DefSpecificationMap,
+    verification_task: VerificationTask<'tcx>,
+) {
     if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
         debug!("Prepare verification task...");
-        // TODO: can we replace `get_annotated_procedures` with information
-        // that is already in `def_spec`?
-        let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
-        let verification_task = VerificationTask {
-            procedures: annotated_procedures,
-            types,
-        };
         debug!("Verification task: {:?}", &verification_task);
 
         user::message(format!(
@@ -50,7 +47,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                 debug!("Dump borrow checker info...");
                 env.dump_borrowck_info(&verification_task.procedures);
 
-                let mut verifier = Verifier::new(&env, def_spec);
+                let mut verifier = Verifier::new(env, def_spec);
                 let verification_result = verifier.verify(&verification_task);
                 debug!("Verifier returned {:?}", verification_result);
 

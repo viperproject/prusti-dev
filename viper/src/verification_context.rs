@@ -25,6 +25,10 @@ impl<'a> VerificationContext<'a> {
         VerificationContext { env: env_guard }
     }
 
+    pub fn env(&self) -> &AttachGuard<'a> {
+        &self.env
+    }
+
     pub fn new_ast_factory(&self) -> AstFactory {
         AstFactory::new(&self.env)
     }
