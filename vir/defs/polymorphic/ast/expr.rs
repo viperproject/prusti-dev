@@ -383,6 +383,24 @@ impl Expr {
         })
     }
 
+    pub fn exists_with_pos(
+        vars: Vec<LocalVar>,
+        triggers: Vec<Trigger>,
+        body: Expr,
+        pos: Position,
+    ) -> Self {
+        assert!(
+            !vars.is_empty(),
+            "A quantifier must have at least one variable."
+        );
+        Expr::Exists(Exists {
+            variables: vars,
+            triggers,
+            body: Box::new(body),
+            position: pos,
+        })
+    }
+
     pub fn ite(guard: Expr, left: Expr, right: Expr) -> Self {
         Expr::Cond(Cond {
             guard: Box::new(guard),

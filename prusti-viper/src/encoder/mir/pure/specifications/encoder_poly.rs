@@ -278,10 +278,17 @@ pub(super) fn encode_quantifier<'tcx>(
     };
 
     if is_exists {
-        Ok(vir_crate::polymorphic::Expr::exists(
+        Ok(vir_crate::polymorphic::Expr::exists_with_pos(
             fixed_qvars,
             encoded_trigger_sets,
             final_body,
+            // we encode the position ID in the line number because that is used to name the
+            // quantifiers in z3
+            vir_crate::polymorphic::Position::new(
+                i32::try_from(pos.id()).unwrap(),
+                i32::try_from(pos.id()).unwrap(),
+                pos.id(),
+            ),
         ))
     } else {
         Ok(vir_crate::polymorphic::Expr::forall_with_pos(
