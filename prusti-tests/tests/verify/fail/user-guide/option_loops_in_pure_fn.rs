@@ -1,4 +1,5 @@
-// The next line is only required for doctests, you can ignore/remove it
+// ignore-test: This code causes Prusti to panic
+// The next and previous line are only required for (doc)tests, you can ignore/remove it
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
