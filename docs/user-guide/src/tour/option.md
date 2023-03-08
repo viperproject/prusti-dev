@@ -22,7 +22,7 @@ Changing the `Link` type requires some adjustments of the code and specification
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:rewrite_link_impl}}
 ```
 
-Due to current [limitations of Prusti](../limitations.md#loops-in-pure-functions-unsupported), we cannot replace our `link_len` and `link_lookup` functions with loops:
+Due to current [limitations of Prusti](../capabilities/limitations.md#loops-in-pure-functions-unsupported), we cannot replace our `link_len` and `link_lookup` functions with loops:
 
 ```rust,noplaypen,ignore
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/option_loops_in_pure_fn.rs:code}}

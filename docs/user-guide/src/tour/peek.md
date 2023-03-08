@@ -3,7 +3,7 @@
 > **Recommended reading:** 
 > [3.3: Peek](https://rust-unofficial.github.io/too-many-lists/second-peek.html)
 
-Ideally, we could implement `peek` and `try_peek` like we implemented `pop` and `try_pop` before. Like `pop`, `push` can only be called if the list is non-empty, and it then always returns a reference to the element at the head of the list (type `&T`). Similarly, `try_peek` can be called on any list, but returns an `Option<&T>`. This is currently not possible in Prusti, since structures containing references are not supported at the moment (see chapter [Prusti Limitations](../limitations.md)).
+Ideally, we could implement `peek` and `try_peek` like we implemented `pop` and `try_pop` before. Like `pop`, `push` can only be called if the list is non-empty, and it then always returns a reference to the element at the head of the list (type `&T`). Similarly, `try_peek` can be called on any list, but returns an `Option<&T>`. This is currently not possible in Prusti, since structures containing references are not supported at the moment (see chapter [Prusti Limitations](../capabilities/limitations.md)).
 
 We can still implement `peek`, but we just cannot do it by using `try_peek` like before in `pop`. Instead, we can reuse th already implemented and verified `lookup` function! Since `lookup` can return a reference to any element of the list, we can just call `self.lookup(0)` inside of `peek`: 
 

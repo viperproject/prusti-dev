@@ -9,7 +9,7 @@ We will demonstrate it by implementing a function that gives you a mutable refer
 The `peek_mut` will return a mutable reference of type `T`, so the precondition of the list requires it to be non-empty.
 As a first postcondition, we want to ensure that the `result` of `peek_mut` points to the first element of the list.
 
-In the code, we need to get a mutable reference to the type inside the `Link = Option<Box<Node<T>>>`. This requires the use of the type `Option<&mut T>`, which is a structure containing a reference, so it is not yet supported by Prusti (see [limitations chapter](../limitations.md)). To still be able to verify `peek_mut`, we mark it as `trusted` for now:
+In the code, we need to get a mutable reference to the type inside the `Link = Option<Box<Node<T>>>`. This requires the use of the type `Option<&mut T>`, which is a structure containing a reference, so it is not yet supported by Prusti (see [limitations chapter](../capabilities/limitations.md)). To still be able to verify `peek_mut`, we mark it as `trusted` for now:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/peek_mut_pledges.rs:peek_mut_code}}
