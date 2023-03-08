@@ -27,10 +27,10 @@ pub fn setup() -> Option<Setup> {
 
 #[cfg(unix)]
 mod imp {
-    pub type Setup = ();
+    pub type Setup = bool;
 
-    pub(super) unsafe fn setup() -> Option<()> {
-        Some(())
+    pub(super) unsafe fn setup() -> Option<Setup> {
+        Some(false)
     }
 }
 
