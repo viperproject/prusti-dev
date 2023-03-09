@@ -135,8 +135,7 @@ fn init_loggers() -> Option<FlushGuard> {
 fn main() {
     let stopwatch = Stopwatch::start("prusti", "main");
 
-    // We assume that prusti-rustc already removed the first "rustc" argument
-    // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
+    // We assume that all command line arguments -P<arg>=<val>
     // have been filtered out.
     let original_rustc_args = config::get_filtered_args();
 
@@ -192,6 +191,13 @@ fn main() {
         ));
         user::message(format!("Prusti version: {}", get_prusti_version_info()));
         info!("Prusti version: {}", get_prusti_version_info());
+        if rustc_args.get(1).map(|s| s.as_ref()) == Some("-vV") {
+            // When cargo queries the verbose rustc version,
+            // also print the Prusti version to stdout.
+            // This ensures that the cargo build cache is
+            // invalidated when the Prusti version changes.
+            println!("Prusti version: {}", get_prusti_version_info());
+        }
 
         rustc_args.push("-Zalways-encode-mir".to_owned());
         rustc_args.push("-Zcrate-attr=feature(type_ascription)".to_owned());
