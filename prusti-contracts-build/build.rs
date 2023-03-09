@@ -47,6 +47,8 @@ fn main() {
         cmd.arg("--release");
     }
     cmd.env_remove("CARGO_MANIFEST_DIR");
+    // This is set when running clippy, but we can't run clippy and prusti at the same time.
+    cmd.env_remove("RUSTC_WORKSPACE_WRAPPER");
 
     // Not a warning but no other way to print to console
     println!("cargo:warning=Building `prusti-contracts` with {cmd:?}, please wait.",);
