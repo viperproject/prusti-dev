@@ -19,7 +19,7 @@ fn main() {
 }
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
-    let _setup = launch::job::setup().unwrap(); // Kill all subprocesses on Ctrl-C
+    let _setup = launch::job::setup().unwrap(); // Kill all subprocesses on kill or Ctrl-C
 
     let prusti_home = launch::get_current_executable_dir();
 

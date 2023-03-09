@@ -14,7 +14,7 @@ fn main() {
 }
 
 fn process(args: Vec<String>) -> Result<(), i32> {
-    let _setup = launch::job::setup().unwrap(); // Kill all subprocesses on Ctrl-C
+    let _setup = launch::job::setup().unwrap(); // Kill all subprocesses on kill or Ctrl-C
 
     let current_executable_dir = launch::get_current_executable_dir();
 
