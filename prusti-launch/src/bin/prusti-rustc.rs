@@ -126,9 +126,9 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         }
     }
 
-    let exit_status = cmd
-        .status()
-        .unwrap_or_else(|_| panic!("failed to execute prusti-driver ({prusti_driver_path:?})"));
+    let exit_status = cmd.status().unwrap_or_else(|e| {
+        panic!("failed to execute prusti-driver ({prusti_driver_path:?}): {e}")
+    });
 
     if exit_status.success() {
         Ok(())
