@@ -4,8 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#[cfg(target_family = "unix")]
-use nix::unistd::{setpgid, Pid};
 use prusti_utils::launch;
 use std::{
     env,
@@ -21,6 +19,8 @@ fn main() {
 }
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
+    let _setup = launch::job::setup().unwrap(); // Kill all subprocesses on Ctrl-C
+
     let prusti_home = launch::get_current_executable_dir();
 
     let mut prusti_driver_path = prusti_home.join("prusti-driver");
@@ -119,12 +119,6 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
-
-    // Move process to group leader if it isn't
-    #[cfg(target_family = "unix")]
-    let _ = setpgid(Pid::this(), Pid::this());
-    // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
-    ctrlc::set_handler(launch::sigint_handler).expect("Error setting Ctrl-C handler");
 
     if let Ok(path) = env::var("PRUSTI_RUSTC_LOG_ARGS") {
         let mut file = std::fs::File::create(path).unwrap();

@@ -19,6 +19,8 @@ fn process<I>(args: I) -> Result<(), i32>
 where
     I: Iterator<Item = String>,
 {
+    let _setup = launch::job::setup().unwrap(); // Kill all subprocesses on Ctrl-C
+
     let mut prusti_rustc_path = env::current_exe()
         .expect("current executable path invalid")
         .with_file_name("prusti-rustc");
