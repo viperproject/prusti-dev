@@ -137,8 +137,6 @@
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -175,24 +173,24 @@
     <span class="kw">pub fn </span>generate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
         <span class="self">self</span>.check()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
-            <span class="macro">format!</span>(
-                <span class="string">&quot;//! Automatically generated code for &#39;{}&#39;\n&quot;</span>,
-                <span class="self">self</span>.class.full_name()
-            ),
-            <span class="string">&quot;#![allow(dead_code)]\n&quot;</span>.to_string(),
-            <span class="string">&quot;#![allow(non_snake_case)]\n&quot;</span>.to_string(),
-            <span class="string">&quot;#![allow(unused_imports)]\n&quot;</span>.to_string(),
-            <span class="string">&quot;#![allow(clippy::new_ret_no_self)]\n&quot;</span>.to_string(),
-            <span class="string">&quot;#![allow(clippy::wrong_self_convention)]\n&quot;</span>.to_string(),
-            <span class="string">&quot;#![allow(clippy::too_many_arguments)]\n&quot;</span>.to_string(),
-            <span class="self">self</span>.generate_imports(),
-            <span class="self">self</span>.generate_struct(),
-            <span class="self">self</span>.generate_begin_impl(),
-            <span class="self">self</span>.generate_items()<span class="question-mark">?</span>,
-            <span class="self">self</span>.generate_end_impl(),
-        ]
-        .join(<span class="string">&quot;\n&quot;</span>))
+        <span class="kw">let </span><span class="kw-2">mut </span>code: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
+        code.push(<span class="macro">format!</span>(
+            <span class="string">&quot;//! Automatically generated code for &#39;{}&#39;\n&quot;</span>,
+            <span class="self">self</span>.class.full_name()
+        ));
+        code.push(<span class="string">&quot;#![allow(dead_code)]\n&quot;</span>.to_string());
+        code.push(<span class="string">&quot;#![allow(non_snake_case)]\n&quot;</span>.to_string());
+        code.push(<span class="string">&quot;#![allow(unused_imports)]\n&quot;</span>.to_string());
+        code.push(<span class="string">&quot;#![allow(clippy::new_ret_no_self)]\n&quot;</span>.to_string());
+        code.push(<span class="string">&quot;#![allow(clippy::wrong_self_convention)]\n&quot;</span>.to_string());
+        code.push(<span class="string">&quot;#![allow(clippy::too_many_arguments)]\n&quot;</span>.to_string());
+        code.push(<span class="self">self</span>.generate_imports());
+        code.push(<span class="self">self</span>.generate_struct());
+        code.push(<span class="self">self</span>.generate_begin_impl());
+        code.push(<span class="self">self</span>.generate_items()<span class="question-mark">?</span>);
+        code.push(<span class="self">self</span>.generate_end_impl());
+
+        <span class="prelude-val">Ok</span>(code.join(<span class="string">&quot;\n&quot;</span>) + <span class="string">&quot;\n&quot;</span>)
     }
 
     <span class="kw">fn </span>generate_imports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
@@ -216,27 +214,25 @@
     </span>}
 
     <span class="kw">fn </span>generate_struct(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-        <span class="macro">vec!</span>[
-            <span class="string">&quot;#[allow(non_camel_case_types)]&quot;</span>.to_string(),
-            <span class="macro">format!</span>(<span class="string">&quot;pub struct {}&lt;&#39;a&gt; {{&quot;</span>, <span class="self">self</span>.class.rust_name()),
-            <span class="string">&quot;    env: &amp;&#39;a JNIEnv&lt;&#39;a&gt;,&quot;</span>.to_string(),
-            <span class="string">&quot;}&quot;</span>.to_string(),
-        ]
-        .join(<span class="string">&quot;\n&quot;</span>)
-            + <span class="string">&quot;\n&quot;
-    </span>}
+        <span class="kw">let </span><span class="kw-2">mut </span>code: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
+        code.push(<span class="string">&quot;#[allow(non_camel_case_types)]&quot;</span>.to_string());
+        code.push(<span class="macro">format!</span>(<span class="string">&quot;pub struct {}&lt;&#39;a&gt; {{&quot;</span>, <span class="self">self</span>.class.rust_name()));
+        code.push(<span class="string">&quot;    env: &amp;&#39;a JNIEnv&lt;&#39;a&gt;,&quot;</span>.to_string());
+        code.push(<span class="string">&quot;}&quot;</span>.to_string());
+
+        code.join(<span class="string">&quot;\n&quot;</span>)
+    }
 
     <span class="kw">fn </span>generate_begin_impl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-        <span class="macro">vec!</span>[
-            <span class="macro">format!</span>(<span class="string">&quot;impl&lt;&#39;a&gt; {}&lt;&#39;a&gt; {{&quot;</span>, <span class="self">self</span>.class.rust_name()),
-            <span class="string">&quot;&quot;</span>.to_string(),
-            <span class="string">&quot;pub fn with(env: &amp;&#39;a JNIEnv&lt;&#39;a&gt;) -&gt; Self {&quot;</span>.to_string(),
-            <span class="macro">format!</span>(<span class="string">&quot;    {}{{ env }}&quot;</span>, <span class="self">self</span>.class.rust_name()),
-            <span class="string">&quot;}&quot;</span>.to_string(),
-        ]
-        .join(<span class="string">&quot;\n&quot;</span>)
-            + <span class="string">&quot;\n&quot;
-    </span>}
+        <span class="kw">let </span><span class="kw-2">mut </span>code: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
+        code.push(<span class="macro">format!</span>(<span class="string">&quot;impl&lt;&#39;a&gt; {}&lt;&#39;a&gt; {{&quot;</span>, <span class="self">self</span>.class.rust_name()));
+        code.push(<span class="string">&quot;&quot;</span>.to_string());
+        code.push(<span class="string">&quot;pub fn with(env: &amp;&#39;a JNIEnv&lt;&#39;a&gt;) -&gt; Self {&quot;</span>.to_string());
+        code.push(<span class="macro">format!</span>(<span class="string">&quot;    {}{{ env }}&quot;</span>, <span class="self">self</span>.class.rust_name()));
+        code.push(<span class="string">&quot;}&quot;</span>.to_string());
+
+        code.join(<span class="string">&quot;\n&quot;</span>)
+    }
 
     <span class="kw">fn </span>generate_end_impl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="macro">format!</span>(<span class="string">&quot;}} // end of impl {}\n&quot;</span>, <span class="self">self</span>.class.rust_name())

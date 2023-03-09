@@ -59,6 +59,10 @@
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -76,49 +80,53 @@
     )
     .map(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
-        <span class="macro">format!</span>(
-            <span class="string">&quot;/// Returns the unique instance of the Scala object `{}`.&quot;</span>,
-            class_name.full_name()
-        ),
-        <span class="string">&quot;///&quot;</span>.to_string(),
-        <span class="macro">format!</span>(
-            <span class="string">&quot;/// Return type and Java signature: `JObject`, `L{};`&quot;</span>,
-            class_name.path()
-        ),
-        <span class="string">&quot;pub fn singleton(&amp;self) -&gt; JNIResult&lt;JObject&lt;&#39;a&gt;&gt; {&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class_name.path()),
-        <span class="string">&quot;    let field_name = \&quot;MODULE$\&quot;;&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;    let field_signature = \&quot;L{};\&quot;;&quot;</span>, class_name.path()),
-        <span class="string">&quot;&quot;</span>.to_string(),
-        <span class="string">&quot;static CLASS: OnceCell&lt;GlobalRef&gt; = OnceCell::new();&quot;</span>.to_string(),
-        <span class="string">&quot;static STATIC_FIELD_ID: OnceCell&lt;JStaticFieldID&gt; = OnceCell::new();&quot;</span>.to_string(),
-        <span class="string">&quot;static FIELD_TYPE: OnceCell&lt;JavaType&gt; = OnceCell::new();&quot;</span>.to_string(),
-        <span class="string">&quot;let class = CLASS.get_or_try_init(|| {&quot;</span>.to_string(),
-        <span class="string">&quot;    let class = self.env.find_class(class_name)?;&quot;</span>.to_string(),
-        <span class="string">&quot;    self.env.new_global_ref(class)&quot;</span>.to_string(),
-        <span class="string">&quot;})?;&quot;</span>.to_string(),
-        <span class="string">&quot;let static_field_id = *STATIC_FIELD_ID.get_or_try_init(|| {&quot;</span>.to_string(),
-        <span class="string">&quot;    self.env.get_static_field_id(&quot;</span>.to_string(),
-        <span class="string">&quot;        class_name,&quot;</span>.to_string(),
-        <span class="string">&quot;        field_name,&quot;</span>.to_string(),
-        <span class="string">&quot;        field_signature,&quot;</span>.to_string(),
-        <span class="string">&quot;    )&quot;</span>.to_string(),
-        <span class="string">&quot;})?;&quot;</span>.to_string(),
-        <span class="string">&quot;let field_type = FIELD_TYPE.get_or_try_init(|| {&quot;</span>.to_string(),
-        <span class="string">&quot;    JavaType::from_str(field_signature)&quot;</span>.to_string(),
-        <span class="string">&quot;})?.clone();&quot;</span>.to_string(),
-        <span class="string">&quot;&quot;</span>.to_string(),
-        <span class="string">&quot;    let result = self.env.get_static_field_unchecked(&quot;</span>.to_string(),
-        <span class="string">&quot;        JClass::from(class.as_obj()),&quot;</span>.to_string(),
-        <span class="string">&quot;        static_field_id,&quot;</span>.to_string(),
-        <span class="string">&quot;        field_type,&quot;</span>.to_string(),
-        <span class="string">&quot;    ).and_then(|x| x.l());&quot;</span>.to_string(),
-        <span class="string">&quot;    result&quot;</span>.to_string(),
-        <span class="string">&quot;}&quot;</span>.to_string(),
-    ]
-    .join(<span class="string">&quot;\n&quot;</span>)
-        + <span class="string">&quot;\n&quot;</span>)
+    <span class="kw">let </span><span class="kw-2">mut </span>code: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;/// Returns the unique instance of the Scala object `{}`.&quot;</span>,
+        class_name.full_name()
+    ));
+    code.push(<span class="string">&quot;///&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;/// Return type and Java signature: `JObject`, `L{};`&quot;</span>,
+        class_name.path()
+    ));
+    code.push(<span class="string">&quot;pub fn singleton(&amp;self) -&gt; JNIResult&lt;JObject&lt;&#39;a&gt;&gt; {&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class_name.path()));
+    code.push(<span class="string">&quot;    let field_name = \&quot;MODULE$\&quot;;&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;    let field_signature = \&quot;L{};\&quot;;&quot;</span>,
+        class_name.path()
+    ));
+    code.push(<span class="string">&quot;&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    static CLASS: OnceCell&lt;GlobalRef&gt; = OnceCell::new();&quot;</span>.to_string());
+    code.push(
+        <span class="string">&quot;    static STATIC_FIELD_ID: OnceCell&lt;JStaticFieldID&gt; = OnceCell::new();&quot;</span>.to_string(),
+    );
+    code.push(<span class="string">&quot;    static FIELD_TYPE: OnceCell&lt;JavaType&gt; = OnceCell::new();&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    let class = CLASS.get_or_try_init(|| {&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        let class = self.env.find_class(class_name)?;&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        self.env.new_global_ref(class)&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    })?;&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    let static_field_id = *STATIC_FIELD_ID.get_or_try_init(|| {&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        self.env.get_static_field_id(&quot;</span>.to_string());
+    code.push(<span class="string">&quot;            class_name,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;            field_name,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;            field_signature,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        )&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    })?;&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    let field_type = FIELD_TYPE.get_or_try_init(|| {&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        JavaType::from_str(field_signature)&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    })?.clone();&quot;</span>.to_string());
+    code.push(<span class="string">&quot;&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    let result = self.env.get_static_field_unchecked(&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        JClass::from(class.as_obj()),&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        static_field_id,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        field_type,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    ).and_then(|x| x.l());&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    result&quot;</span>.to_string());
+    code.push(<span class="string">&quot;}&quot;</span>.to_string());
+
+    <span class="prelude-val">Ok</span>(code.join(<span class="string">&quot;\n&quot;</span>) + <span class="string">&quot;\n&quot;</span>)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jni_gen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

@@ -230,8 +230,6 @@
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
 <a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -395,29 +393,36 @@
 
     code.push(<span class="string">&quot;) -&gt; JNIResult&lt;JObject&lt;&#39;a&gt;&gt; {&quot;</span>.to_string());
 
-    <span class="comment">// Generate dynamic type check for the arguments
-    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..parameter_names.len() {
-        <span class="kw">let </span>par_name = <span class="kw-2">&amp;</span>parameter_names[i];
-        <span class="kw">let </span>par_sign = <span class="kw-2">&amp;</span>parameter_signatures[i];
-        <span class="kw">if </span>par_sign.starts_with(<span class="string">&#39;L&#39;</span>) {
-            <span class="kw">let </span>par_class = <span class="kw-2">&amp;</span>par_sign[<span class="number">1</span>..(par_sign.len() - <span class="number">1</span>)];
-            code.push(<span class="string">&quot;    debug_assert!(&quot;</span>.to_string());
-            code.push(<span class="macro">format!</span>(
-                <span class="string">&quot;        self.env.is_instance_of({par_name}, self.env.find_class(\&quot;{par_class}\&quot;)?)?&quot;
-            </span>));
-            code.push(<span class="string">&quot;    );&quot;</span>.to_string());
-        }
-    }
-    code.push(<span class="string">&quot;&quot;</span>.to_string());
-
     code.push(<span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class.path()));
     code.push(<span class="string">&quot;    let method_name = \&quot;&lt;init&gt;\&quot;;&quot;</span>.to_string());
     code.push(<span class="macro">format!</span>(
         <span class="string">&quot;    let method_signature = \&quot;{constructor_signature}\&quot;;&quot;
     </span>));
 
+    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..parameter_names.len() {
+        <span class="kw">let </span>par_name = <span class="kw-2">&amp;</span>parameter_names[i];
+        <span class="kw">let </span>par_sign = <span class="kw-2">&amp;</span>parameter_signatures[i];
+        <span class="kw">if </span>is_signature_of_class_type(par_sign) {
+            <span class="kw">let </span>par_class = <span class="kw-2">&amp;</span>par_sign[<span class="number">1</span>..(par_sign.len() - <span class="number">1</span>)];
+            code.push(<span class="macro">format!</span>(<span class="string">&quot;    let {par_name}_class_name = \&quot;{par_class}\&quot;;&quot;</span>));
+        }
+    }
+    code.push(<span class="string">&quot;&quot;</span>.to_string());
+
+    <span class="comment">// Generate dynamic type check for the arguments
+    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..parameter_names.len() {
+        <span class="kw">let </span>par_name = <span class="kw-2">&amp;</span>parameter_names[i];
+        <span class="kw">let </span>par_sign = <span class="kw-2">&amp;</span>parameter_signatures[i];
+        <span class="kw">if </span>is_signature_of_class_type(par_sign) {
+            code.push(generate_variable_type_check(
+                par_name,
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{par_name}_class_name&quot;</span>),
+            ));
+        }
+    }
+
     code.push(
-        <span class="string">r#&quot;static CLASS: OnceCell&lt;GlobalRef&gt; = OnceCell::new();
+        <span class="string">r#&quot;    static CLASS: OnceCell&lt;GlobalRef&gt; = OnceCell::new();
     static METHOD_ID: OnceCell&lt;JMethodID&gt; = OnceCell::new();
     let class = CLASS.get_or_try_init(|| {
         let class = self.env.find_class(class_name)?;
@@ -451,16 +456,7 @@
     code.push(<span class="string">&quot;&quot;</span>.to_string());
 
     <span class="comment">// Generate dynamic type check for the result
-    </span>code.push(<span class="string">&quot;    if let Ok(result) = result {&quot;</span>.to_string());
-    code.push(<span class="string">&quot;        debug_assert!(&quot;</span>.to_string());
-    code.push(<span class="string">&quot;            self.env.is_instance_of(&quot;</span>.to_string());
-    code.push(<span class="string">&quot;                result,&quot;</span>.to_string());
-    code.push(<span class="string">&quot;                self.env.find_class(class_name)?,&quot;</span>.to_string());
-    code.push(<span class="string">&quot;            )?&quot;</span>.to_string());
-    code.push(<span class="string">&quot;        );&quot;</span>.to_string());
-    code.push(<span class="string">&quot;    }&quot;</span>.to_string());
-    code.push(<span class="string">&quot;&quot;</span>.to_string());
-
+    </span>code.push(generate_result_type_check(<span class="string">&quot;class_name&quot;</span>));
     code.push(<span class="string">&quot;    result&quot;</span>.to_string());
     code.push(<span class="string">&quot;}&quot;</span>.to_string());
 

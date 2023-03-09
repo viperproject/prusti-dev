@@ -190,59 +190,6 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
 </pre><pre class="rust"><code><span class="comment">// © 2023, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -307,97 +254,50 @@
     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
 }
 
-<span class="doccomment">/// Generates a runtime check that the object is of the expected class - applies only to object types (starting with L)
-/// If this value is also the returned value in the setter, unwrap it first (since it is of type Result&lt;T&gt;)
-</span><span class="kw">fn </span>generate_type_check(
-    expected_variable_signature: <span class="kw-2">&amp;</span>str,
-    variable_name: <span class="kw-2">&amp;</span>str,
-    is_result: bool,
-) -&gt; String {
-    <span class="kw">if </span>!expected_variable_signature.starts_with(<span class="string">&#39;L&#39;</span>) {
-        <span class="kw">return </span><span class="string">&quot;&quot;</span>.to_string();
-    }
-
-    <span class="kw">let </span>variable_type = <span class="kw-2">&amp;</span>expected_variable_signature[<span class="number">1</span>..(expected_variable_signature.len() - <span class="number">1</span>)];
-
-    <span class="kw">let </span>type_check = <span class="macro">vec!</span>[
-        <span class="string">&quot;    debug_assert!(&quot;</span>.to_string(),
-        <span class="string">&quot;        self.env.is_instance_of(&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;            {variable_name},&quot;</span>),
-        <span class="macro">format!</span>(<span class="string">&quot;            self.env.find_class(\&quot;{variable_type}\&quot;)?,&quot;</span>),
-        <span class="string">&quot;        )?&quot;</span>.to_string(),
-        <span class="string">&quot;    );&quot;</span>.to_string(),
-    ];
-
-    <span class="kw">if </span>is_result {
-        <span class="kw">let </span>indented_type_check = type_check
-            .iter()
-            .map(|x| <span class="macro">format!</span>(<span class="string">&quot;    {x}&quot;</span>))
-            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-            .join(<span class="string">&quot;\n&quot;</span>);
-
-        <span class="macro">vec!</span>[
-            <span class="string">&quot;    if let Ok(result) = result {&quot;</span>.to_string(),
-            indented_type_check,
-            <span class="string">&quot;    }&quot;</span>.to_string(),
-        ]
-    } <span class="kw">else </span>{
-        type_check
-    }
-    .join(<span class="string">&quot;\n&quot;</span>)
-        + <span class="string">&quot;\n&quot;
-</span>}
-
-<span class="kw">fn </span>generate_result_type_check(return_signature: <span class="kw-2">&amp;</span>str) -&gt; String {
-    generate_type_check(return_signature, <span class="string">&quot;result&quot;</span>, <span class="bool-val">true</span>)
-}
-
-<span class="kw">fn </span>generate_parameter_type_check(type_signature: <span class="kw-2">&amp;</span>str, type_name: <span class="kw-2">&amp;</span>str) -&gt; String {
-    generate_type_check(type_signature, type_name, <span class="bool-val">false</span>)
-}
-
 <span class="kw">fn </span>generate_field_getter(class: <span class="kw-2">&amp;</span>ClassName, field_name: <span class="kw-2">&amp;</span>str, type_signature: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="kw">let </span>rust_getter_name = <span class="macro">format!</span>(<span class="string">&quot;get_{}&quot;</span>, java_identifier_to_rust(field_name));
     <span class="kw">let </span>parameter_type = generate_jni_type(type_signature);
 
-    <span class="macro">vec!</span>[
-        <span class="macro">format!</span>(
-            <span class="string">&quot;/// Returns the field `{}` of the scala class `{}`.&quot;</span>,
-            field_name,
-            class.full_name()
-        ),
-        <span class="string">&quot;///&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;/// Return type and Java signature: `{parameter_type}` (`{type_signature}`)&quot;</span>),
-        <span class="macro">format!</span>(<span class="string">&quot;pub fn {rust_getter_name}(&quot;</span>),
-        <span class="string">&quot;    &amp;self,&quot;</span>.to_string(),
-        <span class="string">&quot;    receiver: JObject&lt;&#39;a&gt;,&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;) -&gt; JNIResult&lt;{parameter_type}&gt; {{&quot;</span>),
-        <span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class.path()),
-        <span class="macro">format!</span>(<span class="string">&quot;    let field_name = \&quot;{field_name}\&quot;;&quot;</span>),
-        <span class="macro">format!</span>(<span class="string">&quot;    let return_signature = \&quot;{type_signature}\&quot;;&quot;</span>),
-        <span class="string">&quot;&quot;</span>.to_string(),
-        <span class="string">&quot;    debug_assert!(&quot;</span>.to_string(),
-        <span class="string">&quot;        self.env.is_instance_of(&quot;</span>.to_string(),
-        <span class="string">&quot;            receiver,&quot;</span>.to_string(),
-        <span class="string">&quot;            self.env.find_class(class_name)?,&quot;</span>.to_string(),
-        <span class="string">&quot;        )?&quot;</span>.to_string(),
-        <span class="string">&quot;    );&quot;</span>.to_string(),
-        <span class="string">&quot;&quot;</span>.to_string(),
-        <span class="string">&quot;    let result = self.env.get_field(&quot;</span>.to_string(),
-        <span class="string">&quot;        receiver,&quot;</span>.to_string(),
-        <span class="string">&quot;        field_name,&quot;</span>.to_string(),
-        <span class="string">&quot;        return_signature,&quot;</span>.to_string(),
-        <span class="macro">format!</span>(
-            <span class="string">&quot;    ).and_then(|x| x.{}());&quot;</span>,
-            generate_jni_type_char(type_signature)
-        ),
-        <span class="string">&quot;&quot;</span>.to_string(),
-        generate_result_type_check(type_signature),
-        <span class="string">&quot;    result&quot;</span>.to_string(),
-        <span class="string">&quot;}&quot;</span>.to_string(),
-    ]
-    .join(<span class="string">&quot;\n&quot;</span>)
-        + <span class="string">&quot;\n&quot;
+    <span class="kw">let </span><span class="kw-2">mut </span>code: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;/// Returns the field `{}` of the scala class `{}`.&quot;</span>,
+        field_name,
+        class.full_name()
+    ));
+    code.push(<span class="string">&quot;///&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;/// Return type and Java signature: `{parameter_type}` (`{type_signature}`)&quot;
+    </span>));
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;pub fn {rust_getter_name}(&quot;</span>));
+    code.push(<span class="string">&quot;    &amp;self,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    receiver: JObject&lt;&#39;a&gt;,&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;) -&gt; JNIResult&lt;{parameter_type}&gt; {{&quot;</span>));
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class.path()));
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let field_name = \&quot;{field_name}\&quot;;&quot;</span>));
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let return_signature = \&quot;{type_signature}\&quot;;&quot;</span>));
+    <span class="kw">if </span>is_signature_of_class_type(type_signature) {
+        <span class="kw">let </span>type_class = <span class="kw-2">&amp;</span>type_signature[<span class="number">1</span>..(type_signature.len() - <span class="number">1</span>)];
+        code.push(<span class="macro">format!</span>(<span class="string">&quot;    let return_class_name = \&quot;{type_class}\&quot;;&quot;</span>))
+    }
+    code.push(<span class="string">&quot;&quot;</span>.to_string());
+    code.push(generate_variable_type_check(<span class="string">&quot;receiver&quot;</span>, <span class="string">&quot;class_name&quot;</span>));
+    code.push(<span class="string">&quot;    let result = self.env.get_field(&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        receiver,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        field_name,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        return_signature,&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;    ).and_then(|x| x.{}());&quot;</span>,
+        generate_jni_type_char(type_signature)
+    ));
+    code.push(<span class="string">&quot;&quot;</span>.to_string());
+    <span class="kw">if </span>is_signature_of_class_type(type_signature) {
+        code.push(generate_result_type_check(<span class="string">&quot;return_class_name&quot;</span>));
+    }
+
+    code.push(<span class="string">&quot;    result&quot;</span>.to_string());
+    code.push(<span class="string">&quot;}&quot;</span>.to_string());
+
+    code.join(<span class="string">&quot;\n&quot;</span>) + <span class="string">&quot;\n&quot;
 </span>}
 
 <span class="kw">fn </span>generate_field_setter(class: <span class="kw-2">&amp;</span>ClassName, field_name: <span class="kw-2">&amp;</span>str, type_signature: <span class="kw-2">&amp;</span>str) -&gt; String {
@@ -405,45 +305,39 @@
     <span class="kw">let </span>parameter_name = <span class="macro">format!</span>(<span class="string">&quot;new_{field_name}&quot;</span>);
     <span class="kw">let </span>parameter_type = generate_jni_type(type_signature);
 
-    <span class="macro">vec!</span>[
-        <span class="macro">format!</span>(
-            <span class="string">&quot;/// Sets the field `{}` of the scala class `{}`.&quot;</span>,
-            field_name,
-            class.full_name()
-        ),
-        <span class="string">&quot;///&quot;</span>.to_string(),
-        <span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.to_string(),
-        <span class="string">&quot;///&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;/// - `{parameter_name}`: `{parameter_type}` (`{type_signature}`)&quot;</span>),
-        <span class="string">&quot;/// &quot;</span>.to_string(),
-        <span class="string">&quot;/// Return type and Java signature: `()` (`V`)&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;pub fn {rust_setter_name}(&quot;</span>),
-        <span class="string">&quot;    &amp;self,&quot;</span>.to_string(),
-        <span class="string">&quot;    receiver: JObject&lt;&#39;a&gt;,&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;    {parameter_name}: {parameter_type},&quot;</span>),
-        <span class="string">&quot;) -&gt; JNIResult&lt;()&gt; {&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class.path()),
-        <span class="macro">format!</span>(<span class="string">&quot;    let field_name = \&quot;{field_name}\&quot;;&quot;</span>),
-        <span class="macro">format!</span>(<span class="string">&quot;    let return_signature = \&quot;{type_signature}\&quot;;&quot;</span>),
-        <span class="string">&quot;&quot;</span>.to_string(),
-        <span class="string">&quot;    debug_assert!(&quot;</span>.to_string(),
-        <span class="string">&quot;        self.env.is_instance_of(&quot;</span>.to_string(),
-        <span class="string">&quot;            receiver,&quot;</span>.to_string(),
-        <span class="string">&quot;            self.env.find_class(class_name)?,&quot;</span>.to_string(),
-        <span class="string">&quot;        )?&quot;</span>.to_string(),
-        <span class="string">&quot;    );&quot;</span>.to_string(),
-        <span class="string">&quot;&quot;</span>.to_string(),
-        generate_parameter_type_check(type_signature, <span class="kw-2">&amp;</span>parameter_name),
-        <span class="string">&quot;    self.env.set_field(&quot;</span>.to_string(),
-        <span class="string">&quot;        receiver,&quot;</span>.to_string(),
-        <span class="string">&quot;        field_name,&quot;</span>.to_string(),
-        <span class="string">&quot;        return_signature,&quot;</span>.to_string(),
-        <span class="macro">format!</span>(<span class="string">&quot;        JValue::from({parameter_name})&quot;</span>),
-        <span class="string">&quot;    )&quot;</span>.to_string(),
-        <span class="string">&quot;}&quot;</span>.to_string(),
-    ]
-    .join(<span class="string">&quot;\n&quot;</span>)
-        + <span class="string">&quot;\n&quot;
+    <span class="kw">let </span><span class="kw-2">mut </span>code: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;/// Sets the field `{}` of the scala class `{}`.&quot;</span>,
+        field_name,
+        class.full_name()
+    ));
+    code.push(<span class="string">&quot;///&quot;</span>.to_string());
+    code.push(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.to_string());
+    code.push(<span class="string">&quot;///&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;/// - `{parameter_name}`: `{parameter_type}` (`{type_signature}`)&quot;
+    </span>));
+    code.push(<span class="string">&quot;/// &quot;</span>.to_string());
+    code.push(<span class="string">&quot;/// Return type and Java signature: `()` (`V`)&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;pub fn {rust_setter_name}(&quot;</span>));
+    code.push(<span class="string">&quot;    &amp;self,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;    receiver: JObject&lt;&#39;a&gt;,&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    {parameter_name}: {parameter_type},&quot;</span>));
+    code.push(<span class="string">&quot;) -&gt; JNIResult&lt;()&gt; {&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class.path()));
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let field_name = \&quot;{field_name}\&quot;;&quot;</span>));
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let return_signature = \&quot;{type_signature}\&quot;;&quot;</span>));
+    code.push(<span class="string">&quot;&quot;</span>.to_string());
+    code.push(generate_variable_type_check(<span class="string">&quot;receiver&quot;</span>, <span class="string">&quot;class_name&quot;</span>));
+    code.push(<span class="string">&quot;    self.env.set_field(&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        receiver,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        field_name,&quot;</span>.to_string());
+    code.push(<span class="string">&quot;        return_signature,&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;        JValue::from({parameter_name})&quot;</span>));
+    code.push(<span class="string">&quot;    )&quot;</span>.to_string());
+    code.push(<span class="string">&quot;}&quot;</span>.to_string());
+
+    code.join(<span class="string">&quot;\n&quot;</span>) + <span class="string">&quot;\n&quot;
 </span>}
 
 <span class="doccomment">/// Generates Rust code to both retrieve and modify a value of
