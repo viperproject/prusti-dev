@@ -83,12 +83,13 @@ pub fn java_identifier_to_rust(name: &str) -> String {
     name.replace('_', "__").replace('$', "_dollar_")
 }
 
+// Runtime checks for objects are performed only on variables of class types. Those have signature starting with 'L'.
 pub fn is_signature_of_class_type(signature: &str) -> bool {
     signature.starts_with('L')
 }
 
 /// Generates a runtime check that the object is of the expected class - applies only to object types (starting with L)
-/// If this value is also the returned value in the setter, unwrap it first (since it is of type Result<T>)
+/// If this value is also the returned value (result), unwrap it first (since it is of type Result<T>)
 fn generate_type_check(variable_name: &str, variable_type_name: &str, is_result: bool) -> String {
     let mut type_check: Vec<String> = vec![];
     type_check.push("    debug_assert!(".to_string());
@@ -116,10 +117,16 @@ fn generate_type_check(variable_name: &str, variable_type_name: &str, is_result:
         + "\n"
 }
 
-pub fn generate_result_type_check(variable_type_name: &str) -> String {
-    generate_type_check("result", variable_type_name, true)
+/// Generates dynamic type checks to assert that the result (named result and wrapped in the Result enum) object is of an expected class.
+/// Only to be called on object of java class types (having signature starting with L)
+/// class_name_variable_name - needs to be a name of a variable in the generated code that holds the '/'-separated class name
+pub fn generate_result_type_check(class_name_variable_name: &str) -> String {
+    generate_type_check("result", class_name_variable_name, true)
 }
 
-pub fn generate_variable_type_check(variable_name: &str, variable_type_name: &str) -> String {
-    generate_type_check(variable_name, variable_type_name, false)
+/// Generates dynamic type checks to assert that an object (receiver or parameter) is of an expected class.
+/// Only to be called on object of java class types (having signature starting with L)
+/// class_name_variable_name - needs to be a name of a variable in the generated code that holds the '/'-separated class name
+pub fn generate_variable_type_check(variable_name: &str, class_name_variable_name: &str) -> String {
+    generate_type_check(variable_name, class_name_variable_name, false)
 }

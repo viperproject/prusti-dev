@@ -83,6 +83,10 @@ fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &s
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push(format!("    let field_name = \"{field_name}\";"));
     code.push(format!("    let return_signature = \"{type_signature}\";"));
+    if is_signature_of_class_type(&type_signature) {
+        let type_class = &type_signature[1..(type_signature.len() - 1)];
+        code.push(format!("    let return_class_name = \"{type_class}\";"))
+    }
     code.push("".to_string());
     code.push(generate_variable_type_check("receiver", "class_name"));
     code.push("    let result = self.env.get_field(".to_string());
@@ -95,7 +99,7 @@ fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &s
     ));
     code.push("".to_string());
     if is_signature_of_class_type(type_signature) {
-        code.push(generate_result_type_check("return_signature"));
+        code.push(generate_result_type_check("return_class_name"));
     }
 
     code.push("    result".to_string());
