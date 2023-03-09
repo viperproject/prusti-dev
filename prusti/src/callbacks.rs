@@ -148,20 +148,28 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 PrustiError::message(format!("compilerInfo{out}"), DUMMY_SP.into())
                     .emit(&env.diagnostic);
             }
+            // as long as we have to throw a fake error we need to check this
+            let is_primary_package = std::env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
             // collect and output Information used by IDE:
             if !config::no_verify() && !config::skip_verification() {
                 if let Some(target_def_path) = config::verify_only_defpath() {
-                    let procedures = annotated_procedures
-                        .into_iter()
-                        .filter(|x| env.name.get_unique_item_name(*x) == target_def_path)
-                        .collect();
-                    let selective_task = VerificationTask { procedures, types };
-                    // fake_error because otherwise a verification-success
-                    // (for a single method for example) will cause this result
-                    // to be cached by compiler at the moment
-                    verify(&env, def_spec, selective_task);
-                    fake_error(&env);
+                    // if we do selective verification, then definitely only
+                    // for methods of the primary package. Check needed because
+                    // of the fake_error, otherwise verification stops early
+                    // with local dependencies
+                    if is_primary_package {
+                        let procedures = annotated_procedures
+                            .into_iter()
+                            .filter(|x| env.name.get_unique_item_name(*x) == target_def_path)
+                            .collect();
+                        let selective_task = VerificationTask { procedures, types };
+                        // fake_error because otherwise a verification-success
+                        // (for a single method for example) will cause this result
+                        // to be cached by compiler at the moment
+                        verify(&env, def_spec, selective_task);
+                        fake_error(&env);
+                    }
                 } else {
                     let verification_task = VerificationTask {
                         procedures: annotated_procedures,
@@ -169,9 +177,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                     };
                     verify(&env, def_spec, verification_task);
                 }
-            } else if config::skip_verification() && !config::no_verify() {
+            } else if config::skip_verification() && !config::no_verify() && is_primary_package {
                 // add a fake error, reason explained in issue #1261
-                fake_error(&env)
+                fake_error(&env);
             }
         });
 
