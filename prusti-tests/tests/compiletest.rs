@@ -11,7 +11,7 @@
 
 use compiletest_rs::{common::Mode, run_tests, Config};
 use log::{error, info};
-use prusti_server::{job, spawn_server_thread};
+use prusti_server::spawn_server_thread;
 use std::{env, path::PathBuf};
 
 fn find_prusti_rustc_path() -> PathBuf {
@@ -163,7 +163,6 @@ fn test_runner(_tests: &[&()]) {
     env_logger::init_from_env(env_logger::Env::new().filter_or("PRUSTI_LOG", "warn"));
 
     // Spawn server process as child (so it stays around until main function terminates)
-    let _setup = job::setup().unwrap(); // Drop handler kills server on Windows
     let server_address = spawn_server_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
     let save_verification_cache =

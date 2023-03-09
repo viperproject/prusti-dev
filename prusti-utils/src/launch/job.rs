@@ -1,6 +1,15 @@
-// FIXME: stolen from cargo/rustup (https://github.com/rust-lang/rustup/blob/affbdfe0a37d92444e7c3c111043cd336e2f7728/src/cli/job.rs)
+// Copied and modified from cargo/rustup
+// https://github.com/rust-lang/rustup/blob/affbdfe0a37d92444e7c3c111043cd336e2f7728/src/cli/job.rs
 
-//! Job management (mostly for Windows)
+// Copyright Diggory Blake, the Mozilla Corporation, and Rustup contributors.
+//
+// Licensed under either of
+//
+// Apache License, Version 2.0, (LICENSE-APACHE or https://www.apache.org/licenses/LICENSE-2.0)
+// MIT license (LICENSE-MIT or https://opensource.org/licenses/MIT)
+// at your option.
+
+//! # Job management on Windows:
 //!
 //! Most of the time when you're running cargo you expect Ctrl-C to actually
 //! terminate the entire tree of processes in play, not just the one at the top
@@ -16,6 +25,10 @@
 //! Conveniently whenever a process in the job object spawns a new process the
 //! child will be associated with the job object as well. This means if we add
 //! ourselves to the job object we create then everything will get torn down!
+//!
+//! # Job management on Unix:
+//!
+//! We register a SIGINT handler that kills the process group.
 
 #![allow(clippy::missing_safety_doc)]
 
@@ -27,10 +40,25 @@ pub fn setup() -> Option<Setup> {
 
 #[cfg(unix)]
 mod imp {
-    pub type Setup = ();
+    use nix::{
+        sys::signal::{killpg, Signal},
+        unistd::{getpgrp, setpgid, Pid},
+    };
 
-    pub(super) unsafe fn setup() -> Option<()> {
-        Some(())
+    pub type Setup = bool;
+
+    fn sigint_handler() {
+        // Killing the process group terminates the process tree
+        killpg(getpgrp(), Signal::SIGKILL).expect("Error killing process tree.");
+    }
+
+    pub(super) unsafe fn setup() -> Option<Setup> {
+        // Move process to group leader if it isn't. The only applicable error should be EPERM which
+        // can be thrown when the process is already the group leader. Thus, we ignore it.
+        let _ = setpgid(Pid::this(), Pid::this());
+        // Register the SIGINT handler
+        ctrlc::set_handler(sigint_handler).expect("Error setting Ctrl-C handler");
+        Some(false)
     }
 }
 
@@ -119,7 +147,7 @@ mod imp {
                     mem::size_of_val(&info) as DWORD,
                 );
                 if r == 0 {
-                    info!("failed to configure job object to defaults: {}", last_err());
+                    log::info!("failed to configure job object to defaults: {}", last_err());
                 }
             }
         }
