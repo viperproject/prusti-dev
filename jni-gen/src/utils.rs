@@ -82,3 +82,51 @@ pub fn java_identifier_to_rust(name: &str) -> String {
     // identifier can only be composed of [a-zA-Z&_] characters - https://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8
     name.replace('_', "__").replace('$', "_dollar_")
 }
+
+// Runtime checks for objects are performed only on variables of class types. Those have signature starting with 'L'.
+pub fn is_signature_of_class_type(signature: &str) -> bool {
+    signature.starts_with('L')
+}
+
+/// Generates a runtime check that the object is of the expected class - applies only to object types (starting with L)
+/// If this value is also the returned value (result), unwrap it first (since it is of type Result<T>)
+fn generate_type_check(variable_name: &str, variable_type_name: &str, is_result: bool) -> String {
+    let mut type_check: Vec<String> = vec![];
+    type_check.push("    debug_assert!(".to_string());
+    type_check.push(format!(
+        "        self.env.is_instance_of({variable_name}, self.env.find_class({variable_type_name})?)?"
+    ));
+    type_check.push("    );".to_string());
+
+    if is_result {
+        let indented_type_check = type_check
+            .iter()
+            .map(|x| format!("    {x}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        vec![
+            "    if let Ok(result) = result {".to_string(),
+            indented_type_check,
+            "    }".to_string(),
+        ]
+    } else {
+        type_check
+    }
+    .join("\n")
+        + "\n"
+}
+
+/// Generates dynamic type checks to assert that the result (named result and wrapped in the Result enum) object is of an expected class.
+/// Only to be called on object of java class types (having signature starting with L)
+/// class_name_variable_name - needs to be a name of a variable in the generated code that holds the '/'-separated class name
+pub fn generate_result_type_check(class_name_variable_name: &str) -> String {
+    generate_type_check("result", class_name_variable_name, true)
+}
+
+/// Generates dynamic type checks to assert that an object (receiver or parameter) is of an expected class.
+/// Only to be called on object of java class types (having signature starting with L)
+/// class_name_variable_name - needs to be a name of a variable in the generated code that holds the '/'-separated class name
+pub fn generate_variable_type_check(variable_name: &str, class_name_variable_name: &str) -> String {
+    generate_type_check(variable_name, class_name_variable_name, false)
+}
