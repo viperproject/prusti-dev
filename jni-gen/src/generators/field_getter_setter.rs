@@ -83,7 +83,7 @@ fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &s
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push(format!("    let field_name = \"{field_name}\";"));
     code.push(format!("    let return_signature = \"{type_signature}\";"));
-    if is_signature_of_class_type(&type_signature) {
+    if is_signature_of_class_type(type_signature) {
         let type_class = &type_signature[1..(type_signature.len() - 1)];
         code.push(format!("    let return_class_name = \"{type_class}\";"))
     }
