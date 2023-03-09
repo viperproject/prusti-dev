@@ -17,6 +17,7 @@ use std::mem;
 /// creating the encoding. Therefore, we fix this with an additional
 /// pass that renames all variables declared inside package statements
 /// so that they are unique.
+#[tracing::instrument(level = "trace", skip_all)]
 pub fn fix_ghost_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     let mut fixer = GhostVarFixer {
         package_stmt_count: 0,

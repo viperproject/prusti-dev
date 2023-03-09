@@ -190,6 +190,7 @@ pub fn add_folding_unfolding_to_function(
     Ok(result)
 }
 
+#[tracing::instrument(level = "debug", skip_all)]
 pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     cfg: vir::CfgMethod,
@@ -207,13 +208,13 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
             old_exprs: FxHashMap<String, Vec<vir::Expr>>,
         }
         impl vir::ExprWalker for OldExprCollector {
+            #[tracing::instrument(level = "trace", skip(self))]
             fn walk_labelled_old(
                 &mut self,
                 vir::LabelledOld {
                     label, box base, ..
                 }: &vir::LabelledOld,
             ) {
-                trace!("old expr: {:?}: {:?}", label, base);
                 self.old_exprs
                     .entry(label.to_string())
                     .or_default()
@@ -303,26 +304,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             .fallible_fold(expr.clone())
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn replace_old_expr(
         &self,
         expr: &vir::Expr,
         curr_pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Expr, FoldUnfoldError> {
-        trace!("replace_old_expr(expr={:?}, pctxt={:?})", expr, curr_pctxt);
         ExprReplacer::new(curr_pctxt.clone(), &self.pctxt_at_label, true)
             .fallible_fold(expr.clone())
     }
 
     /// Insert "unfolding in" in old expressions
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn rewrite_stmt_with_unfoldings_in_old(
         &self,
         stmt: vir::Stmt,
         pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Stmt, FoldUnfoldError> {
-        trace!("[enter] rewrite_stmt_with_unfoldings_in_old: {}", stmt);
-        let result = stmt.fallible_map_expr(|e| self.replace_old_expr(&e, pctxt))?;
-        trace!("[exit] rewrite_stmt_with_unfoldings_in_old = {}", result);
-        Ok(result)
+        stmt.fallible_map_expr(|e| self.replace_old_expr(&e, pctxt))
     }
 
     /// Insert "unfolding in" expressions
@@ -505,6 +504,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
 
     /// Replace some statements, mutating the branch context
     #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = "debug", skip(self, pctxt, new_cfg, stmt), fields(stmt = %stmt))]
     fn replace_stmt(
         &mut self,
         stmt_index: usize,
@@ -515,8 +515,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         new_cfg: &vir::CfgMethod,
         label: Option<&str>,
     ) -> Result<Vec<vir::Stmt>, Self::Error> {
-        debug!("[enter] replace_stmt: {}", stmt);
-
         if let vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) = stmt {
             let mut stmts = vec![vir::Stmt::comment(format!("{stmt}"))];
             trace!("State acc {{\n{}\n}}", pctxt.state().display_acc());
@@ -993,12 +991,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
     }
 
     /// Inject some statements and replace a successor, mutating the branch context
+    #[tracing::instrument(level = "debug", skip(self, pctxt))]
     fn replace_successor(
         &mut self,
         succ: &vir::Successor,
         pctxt: &mut PathCtxt<'p>,
     ) -> Result<(Vec<vir::Stmt>, vir::Successor), Self::Error> {
-        debug!("[enter] replace_successor: {}", succ);
         let exprs: Vec<&vir::Expr> =
             if let vir::Successor::GotoSwitch(ref guarded_targets, _) = succ {
                 guarded_targets.iter().map(|g| &g.0).collect()
@@ -1100,10 +1098,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
     }
 }
 
+#[tracing::instrument(level = "trace", skip_all, fields(bcs.len = %bcs.len()))]
 pub(super) fn prepend_join<'p>(
     bcs: Vec<&PathCtxt<'p>>,
 ) -> Result<(Vec<ActionVec>, PathCtxt<'p>), FoldUnfoldError> {
-    trace!("[enter] prepend_join(..{})", &bcs.len());
     assert!(!bcs.is_empty());
     if bcs.len() == 1 {
         Ok((vec![ActionVec(vec![])], bcs[0].clone()))
@@ -1168,9 +1166,8 @@ impl<'b, 'a: 'b> ExprReplacer<'b, 'a> {
 impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
     type Error = FoldUnfoldError;
 
+    #[tracing::instrument(level = "trace", skip_all, fields(expr = %expr))]
     fn fallible_fold(&mut self, expr: vir::Expr) -> Result<vir::Expr, Self::Error> {
-        trace!("[enter] fallible_fold {}", expr);
-
         let res = if self.wait_old_expr || !expr.is_pure() {
             vir::default_fallible_fold_expr(self, expr)?
         } else {
@@ -1218,6 +1215,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
+    #[tracing::instrument(level = "trace", skip_all)]
     fn fallible_fold_unfolding(
         &mut self,
         vir::Unfolding {
@@ -1281,6 +1279,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
+    #[tracing::instrument(level = "trace", skip_all)]
     fn fallible_fold_magic_wand(
         &mut self,
         vir::MagicWand {
@@ -1370,6 +1369,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
+    #[tracing::instrument(level = "trace", skip_all)]
     fn fallible_fold_labelled_old(
         &mut self,
         vir::LabelledOld {
@@ -1423,6 +1423,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
+    #[tracing::instrument(level = "trace", skip_all)]
     fn fallible_fold_downcast(
         &mut self,
         vir::DowncastExpr {

@@ -32,6 +32,7 @@ pub trait BackwardMirInterpreter<'tcx> {
 
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
+#[tracing::instrument(level = "debug", skip_all)]
 pub fn run_backward_interpretation<'tcx, S, E, I>(
     mir: &mir::Body<'tcx>,
     interpreter: &I,
@@ -102,10 +103,13 @@ where
 
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
+/// From final block `final_bbi`, statement `final_stmt_index` and state final_state
+/// to initial block `initial_bbi` using undef state `undef_state`
+#[tracing::instrument(level = "trace", skip(mir, interpreter), ret)]
 pub fn run_backward_interpretation_point_to_point<
     'tcx,
     S: Debug + Clone,
-    E,
+    E: Debug,
     I: BackwardMirInterpreter<'tcx, State = S, Error = E>,
 >(
     mir: &mir::Body<'tcx>,
@@ -118,15 +122,6 @@ pub fn run_backward_interpretation_point_to_point<
 ) -> Result<Option<S>, E> {
     let basic_blocks = &mir.basic_blocks;
     let mut heads: FxHashMap<mir::BasicBlock, S> = FxHashMap::default();
-    trace!(
-        "[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}",
-        final_bbi,
-        final_stmt_index,
-        final_state,
-        initial_bbi,
-        undef_state,
-    );
-
     // Find the final basic blocks
     let mut pending_blocks: Vec<mir::BasicBlock> = vec![final_bbi];
 
@@ -196,16 +191,5 @@ pub fn run_backward_interpretation_point_to_point<
     if result.is_none() {
         trace!("heads: {:?}", heads);
     }
-
-    trace!(
-        "[end] run_backward_interpretation_point_to_point:\n - from final final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}\n - resulted in state {:?}",
-        final_bbi,
-        final_stmt_index,
-        final_state,
-        initial_bbi,
-        undef_state,
-        result
-    );
-
     Ok(result)
 }

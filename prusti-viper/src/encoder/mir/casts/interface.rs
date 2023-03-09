@@ -1,4 +1,3 @@
-use log::{debug, trace};
 use prusti_rustc_interface::middle::ty;
 use vir_crate::high::{self as vir_high};
 
@@ -13,13 +12,12 @@ pub(crate) trait CastsEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> CastsEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_int_cast_high(
         &self,
         value: u128,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir_high::Expression> {
-        trace!("encode_int_cast {:?} as {:?}", value, ty);
-
         let expr = match ty.kind() {
             ty::TyKind::Bool => (value != 0).into(),
             ty::TyKind::Int(ty::IntTy::I8) => {
@@ -78,7 +76,6 @@ impl<'v, 'tcx: 'v> CastsEncoderInterface<'tcx> for super::super::super::Encoder<
                 error_unsupported!("unsupported integer cast: {:?}", kind);
             }
         };
-        debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);
         Ok(expr)
     }
 }

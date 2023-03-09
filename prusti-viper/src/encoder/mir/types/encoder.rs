@@ -65,11 +65,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         self.encoder.compute_array_len(size)
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(ty = ?self.ty))]
     pub fn encode_type(
         self,
         const_arguments: &[vir::Expression],
     ) -> SpannedEncodingResult<vir::Type> {
-        debug!("Encode type '{:?}'", self.ty);
         // self.encode_polymorphic_predicate_use()
         let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
         let result = match self.ty.kind() {
@@ -342,8 +342,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    /// Encodes a type predicate for the given type.
+    #[tracing::instrument(level = "debug", skip(self), fields(ty = ?self.ty))]
     pub fn encode_type_def_high(self) -> SpannedEncodingResult<vir::TypeDecl> {
-        debug!("Encode type predicate '{:?}'", self.ty);
         let type_decl = match self.ty.kind() {
             ty::TyKind::Bool => vir::TypeDecl::bool(),
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
@@ -722,6 +723,7 @@ fn encode_variant<'v, 'tcx: 'v>(
     Ok(variant)
 }
 
+#[tracing::instrument(level = "debug", skip(encoder))]
 pub(super) fn encode_adt_def<'v, 'tcx>(
     encoder: &Encoder<'v, 'tcx>,
     adt_def: ty::AdtDef<'tcx>,

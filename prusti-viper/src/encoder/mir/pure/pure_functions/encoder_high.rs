@@ -15,7 +15,7 @@ use crate::encoder::{
     },
     Encoder,
 };
-use log::{debug, trace};
+use log::debug;
 use prusti_common::vir_high_local;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
@@ -79,6 +79,7 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     Ok(function_decl)
 }
 
+#[tracing::instrument(level = "debug", skip(encoder))]
 pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: DefId,
@@ -158,6 +159,11 @@ pub(super) struct PureEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(
+        name = "PureEncoder::new",
+        level = "trace",
+        skip(encoder, pure_encoding_context)
+    )]
     fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
@@ -165,8 +171,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Self {
-        trace!("PureEncoder constructor: {:?}", proc_def_id);
-
         // should hold for extern specs as well (otherwise there would have
         // been an error reported earlier)
         assert_eq!(
@@ -192,8 +196,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(proc_def_id = ?self.proc_def_id))]
     fn encode_function_decl(&self) -> SpannedEncodingResult<vir_high::FunctionDecl> {
-        trace!("[enter] encode_function_decl({:?})", self.proc_def_id);
         let is_bodyless = self.encoder.is_trusted(self.proc_def_id, Some(self.substs))
             || !self.encoder.env().query.has_body(self.proc_def_id);
         let body = if is_bodyless {
@@ -226,23 +230,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 )
             })?)
         };
-        let function = self.encode_function_decl_given_body(body);
-        trace!("[exit] encode_function_decl({:?})", self.proc_def_id);
-        function
+        self.encode_function_decl_given_body(body)
     }
 
     fn encode_function_name(&self) -> String {
         self.encoder.encode_item_name(self.proc_def_id)
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(proc_def_id = ?self.proc_def_id))]
     fn encode_function_decl_given_body(
         &self,
         body: Option<vir_high::Expression>,
     ) -> SpannedEncodingResult<vir_high::FunctionDecl> {
-        trace!(
-            "[enter] encode_function_decl_given_body({:?})",
-            self.proc_def_id
-        );
         let name = self.encode_function_name();
         let parameters = self.encode_parameters()?;
         let return_type = self.encode_return_type()?;
@@ -264,10 +263,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             posts: vec![func_postcondition],
             body,
         };
-        trace!(
-            "[exit] encode_function_decl_given_body({:?})",
-            self.proc_def_id
-        );
         Ok(function)
     }
 
