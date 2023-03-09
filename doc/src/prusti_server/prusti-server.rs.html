@@ -49,22 +49,13 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
-<a href="#52" id="52">52</a>
-<a href="#53" id="53">53</a>
-<a href="#54" id="54">54</a>
-<a href="#55" id="55">55</a>
-<a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="attr">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
-</span><span class="kw">use </span>nix::unistd::{setpgid, Pid};
-<span class="kw">use </span>prusti_utils::launch;
+</span><span class="kw">use </span>prusti_utils::launch;
 <span class="kw">use </span>std::{path::PathBuf, process::Command};
 
 <span class="kw">fn </span>main() {
@@ -74,7 +65,9 @@
 }
 
 <span class="kw">fn </span>process(args: Vec&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), i32&gt; {
-    <span class="kw">let </span>current_executable_dir = launch::get_current_executable_dir();
+    <span class="kw">let </span>_setup = launch::job::setup().unwrap(); <span class="comment">// Kill all subprocesses on kill or Ctrl-C
+
+    </span><span class="kw">let </span>current_executable_dir = launch::get_current_executable_dir();
 
     <span class="kw">let </span><span class="kw-2">mut </span>prusti_server_driver_path = current_executable_dir.join(<span class="string">&quot;prusti-server-driver&quot;</span>);
     <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
@@ -98,13 +91,6 @@
     launch::add_to_loader_path(<span class="macro">vec!</span>[libjvm_path], <span class="kw-2">&amp;mut </span>cmd);
 
     launch::set_environment_settings(<span class="kw-2">&amp;mut </span>cmd, <span class="kw-2">&amp;</span>current_executable_dir, <span class="kw-2">&amp;</span>java_home);
-
-    <span class="comment">// Move process to group leader if it isn&#39;t. The only applicable error should be EPERM which
-    // can be thrown when the process is already the group leader. Thus, we ignore it.
-    </span><span class="attr">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
-    </span><span class="kw">let _ </span>= setpgid(Pid::this(), Pid::this());
-    <span class="comment">// Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
-    </span>ctrlc::set_handler(launch::sigint_handler).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
 
     <span class="kw">let </span>exit_status = cmd.status().expect(<span class="string">&quot;could not run prusti-server-driver&quot;</span>);
 

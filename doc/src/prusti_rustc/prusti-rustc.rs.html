@@ -149,21 +149,13 @@
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="attr">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
-</span><span class="kw">use </span>nix::unistd::{setpgid, Pid};
-<span class="kw">use </span>prusti_utils::launch;
+</span><span class="kw">use </span>prusti_utils::launch;
 <span class="kw">use </span>std::{
     env,
     io::Write,
@@ -178,7 +170,9 @@
 }
 
 <span class="kw">fn </span>process(<span class="kw-2">mut </span>args: Vec&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), i32&gt; {
-    <span class="kw">let </span>prusti_home = launch::get_current_executable_dir();
+    <span class="kw">let </span>_setup = launch::job::setup().unwrap(); <span class="comment">// Kill all subprocesses on kill or Ctrl-C
+
+    </span><span class="kw">let </span>prusti_home = launch::get_current_executable_dir();
 
     <span class="kw">let </span><span class="kw-2">mut </span>prusti_driver_path = prusti_home.join(<span class="string">&quot;prusti-driver&quot;</span>);
     <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
@@ -277,13 +271,7 @@
     <span class="comment">// cmd.arg(&quot;-Zreport-delayed-bugs&quot;);
     // cmd.arg(&quot;-Ztreat-err-as-bug=1&quot;);
 
-    // Move process to group leader if it isn&#39;t
-    </span><span class="attr">#[cfg(target_family = <span class="string">&quot;unix&quot;</span>)]
-    </span><span class="kw">let _ </span>= setpgid(Pid::this(), Pid::this());
-    <span class="comment">// Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
-    </span>ctrlc::set_handler(launch::sigint_handler).expect(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
-
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = env::var(<span class="string">&quot;PRUSTI_RUSTC_LOG_ARGS&quot;</span>) {
+    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = env::var(<span class="string">&quot;PRUSTI_RUSTC_LOG_ARGS&quot;</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(path).unwrap();
         <span class="kw">for </span>arg <span class="kw">in </span>cmd.get_args() {
             <span class="macro">writeln!</span>(file, <span class="string">&quot;{}&quot;</span>, arg.to_str().unwrap()).unwrap();
