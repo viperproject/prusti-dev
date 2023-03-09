@@ -11,7 +11,6 @@ mod process_verification;
 mod server;
 mod verification_request;
 mod backend;
-pub mod job;
 
 pub use backend::*;
 pub use client::*;
