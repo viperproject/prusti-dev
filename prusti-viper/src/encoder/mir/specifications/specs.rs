@@ -5,7 +5,7 @@ use crate::encoder::{
         interface::{FunctionCallEncodingQuery, SpecQuery},
     },
 };
-use log::{debug, trace};
+use log::debug;
 use prusti_interface::{
     environment::Environment,
     specs::typed::{
@@ -71,43 +71,42 @@ impl<'tcx> Specifications<'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_loop_spec(&self, def_id: &DefId) -> Option<&LoopSpecification> {
-        trace!("Get loop specs of {:?}", def_id);
         self.user_typed_specs.get_loop_spec(def_id)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_type_spec(&self, def_id: &DefId) -> Option<&TypeSpecification> {
-        trace!("Get type specs of {:?}", def_id);
         self.user_typed_specs.get_type_spec(def_id)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
-        trace!("Get assertion specs of {:?}", def_id);
         self.user_typed_specs.get_assertion(def_id)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
-        trace!("Get assumption specs of {:?}", def_id);
         self.user_typed_specs.get_assumption(def_id)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
-        trace!("Get begin ghost block specs of {:?}", def_id);
         self.user_typed_specs.get_ghost_begin(def_id)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
-        trace!("Get end ghost block specs of {:?}", def_id);
         self.user_typed_specs.get_ghost_end(def_id)
     }
 
+    #[tracing::instrument(level = "trace", skip(self, env))]
     pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a>(
         &'a mut self,
         env: &'env Environment<'tcx>,
         query: SpecQuery<'tcx>,
     ) -> Option<&'a ProcedureSpecification> {
-        trace!("Get procedure specs of {:?}", query);
-
         if self.is_refined(&query) {
             return self.get_proc_spec(env, &query);
         }
@@ -129,17 +128,13 @@ impl<'tcx> Specifications<'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self, env))]
     fn perform_proc_spec_refinement<'a, 'env: 'a>(
         &'a mut self,
         env: &'env Environment<'tcx>,
         impl_query: &SpecQuery<'tcx>,
         trait_query: &SpecQuery<'tcx>,
     ) -> Option<&'a ProcedureSpecification> {
-        debug!(
-            "Refining specs of {:?} with specs of {:?}",
-            impl_query, trait_query
-        );
-
         let impl_spec = self
             .get_proc_spec(env, impl_query)
             .cloned()

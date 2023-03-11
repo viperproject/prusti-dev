@@ -124,13 +124,13 @@ pub(in super::super) fn try_ensure_enum_discriminant_by_unfolding(
     }
 }
 
+#[tracing::instrument(level = "debug", skip(context, state, actions))]
 pub(in super::super) fn ensure_required_permission(
     context: &mut impl Context,
     state: &mut FoldUnfoldState,
     required_permission: Permission,
     actions: &mut Vec<Action>,
 ) -> SpannedEncodingResult<()> {
-    debug!("required_permission: {}", required_permission);
     state.debug_print();
 
     let (place, permission_kind) = match required_permission {
@@ -311,6 +311,7 @@ fn check_contains_place(
 
 /// Returns `true` if the state should be droped because it should be
 /// unreachable.
+#[tracing::instrument(level = "debug", skip(context, predicate_state, actions))]
 fn ensure_permission_in_state(
     context: &mut impl Context,
     predicate_state: &mut PredicateStateOnPath,

@@ -8,7 +8,11 @@ use log::debug;
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
-    hir::{self as hir, def_id::DefId, intravisit},
+    hir::{
+        self as hir,
+        def_id::{DefId, LocalDefId},
+        intravisit,
+    },
     middle::{hir::map::Map, ty::TyCtxt},
     span::Span,
 };
@@ -17,6 +21,11 @@ use prusti_rustc_interface::{
 pub struct IllegalPredicateUsagesChecker;
 
 impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
+    #[tracing::instrument(
+        name = "IllegalPredicateUsagesChecker::check",
+        level = "debug",
+        skip(self, env)
+    )]
     fn check(&self, env: &Environment<'tcx>) -> Vec<PrustiError> {
         let collected_predicates = self.collect_predicates(env.query);
         debug!("Predicate funcs: {:?}", collected_predicates.predicates);
@@ -106,16 +115,16 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
         fd: &'tcx hir::FnDecl<'tcx>,
         b: hir::BodyId,
         s: Span,
-        id: hir::HirId,
+        local_id: LocalDefId,
     ) {
         // collect this fn's DefId if predicate function
-        let attrs = self.env_query.get_local_attributes(id);
+        let attrs = self.env_query.get_local_attributes(local_id);
         if has_prusti_attr(attrs, "pred_spec_id_ref") {
-            let def_id = self.env_query.as_local_def_id(id).to_def_id();
+            let def_id = local_id.to_def_id();
             self.predicates.insert(def_id, s);
         }
 
-        intravisit::walk_fn(self, fk, fd, b, id);
+        intravisit::walk_fn(self, fk, fd, b, local_id);
     }
 
     fn visit_trait_item(&mut self, ti: &'tcx hir::TraitItem<'tcx>) {

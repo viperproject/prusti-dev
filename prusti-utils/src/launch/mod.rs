@@ -5,18 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![deny(unused_must_use)]
-
-#[cfg(target_family = "unix")]
-use nix::{
-    sys::signal::{killpg, Signal},
-    unistd::getpgrp,
-};
 use serde::Deserialize;
 use std::{
     env,
     path::{Path, PathBuf},
     process::Command,
 };
+
+pub mod job;
 
 /// Determines which crates in `./prusti-contracts` have their specs re-exported
 /// for `prusti-rustc`.
@@ -230,27 +226,6 @@ pub fn find_z3_exe(base_dir: &Path) -> Option<PathBuf> {
     }
 
     candidates.into_iter().find(|candidate| candidate.is_file())
-}
-
-#[cfg(target_family = "unix")]
-pub fn sigint_handler() {
-    // Killing the process group terminates the process tree
-    killpg(getpgrp(), Signal::SIGKILL).expect("Error killing process tree.");
-}
-
-#[cfg(target_family = "windows")]
-pub fn sigint_handler() {
-    use std::process::{self, Stdio};
-
-    // Kill process tree rooted at prusti-server.exe
-    let pid: &str = &*process::id().to_string();
-
-    Command::new("TASKKILL")
-        .args(&["/PID", pid, "/T", "/F"])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .expect("Error killing process tree.");
 }
 
 pub fn set_environment_settings(

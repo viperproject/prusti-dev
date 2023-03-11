@@ -1,6 +1,5 @@
 use crate::{environment::Environment, utils::has_trait_bounds_type_cond_spec, PrustiError};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
-use log::trace;
 use prusti_rustc_interface::{
     hir::def_id::{DefId, LocalDefId},
     macros::{TyDecodable, TyEncodable},
@@ -723,14 +722,12 @@ pub trait Refinable {
 }
 
 impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
+    #[tracing::instrument(level = "trace", ret)]
     fn refine(self, other: &Self) -> Self
     where
         Self: Sized,
     {
         use SpecificationItem::*;
-
-        trace!("Refining {:?} with {:?}", self, other);
-
         let other_val = match other {
             Empty => unreachable!("Trait spec should never be empty"),
             Inherent(val) => val,
@@ -738,15 +735,12 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
             Refined(_, _) => panic!("Can not refine with a refined item"),
         };
 
-        let refined = match self {
+        match self {
             Empty => Inherited(other_val.clone()),
             Inherent(val) | Inherited(val) => Refined(other_val.clone(), val),
             Refined(from, val) if &from == other_val => Refined(from, val),
             Refined(_, _) => panic!("Can not refine this refined item"),
-        };
-
-        trace!("\t -> {:?}", refined);
-        refined
+        }
     }
 }
 

@@ -38,8 +38,8 @@ pub struct Procedure<'tcx> {
 impl<'tcx> Procedure<'tcx> {
     /// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
+    #[tracing::instrument(name = "Procedure::new", level = "debug", skip(env))]
     pub fn new(env: &Environment<'tcx>, proc_def_id: ProcedureDefId) -> Self {
-        trace!("Encoding procedure {proc_def_id:?}");
         let mir = env
             .body
             .get_impure_fn_body_identity(proc_def_id.expect_local());
@@ -236,7 +236,7 @@ pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockDa
             Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
         )) = &stmt.kind
         {
-            if is_spec_closure(env_query, def_id.to_def_id()) {
+            if is_spec_closure(env_query, *def_id) {
                 return true;
             }
         }
@@ -257,13 +257,13 @@ pub fn get_loop_invariant<'tcx>(
             Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _),
         )) = &stmt.kind
         {
-            if is_spec_closure(env_query, def_id.to_def_id())
+            if is_spec_closure(env_query, *def_id)
                 && crate::utils::has_prusti_attr(
-                    env_query.get_attributes(def_id.to_def_id()),
+                    env_query.get_attributes(def_id),
                     "loop_body_invariant_spec",
                 )
             {
-                return Some((def_id.to_def_id(), substs));
+                return Some((*def_id, substs));
             }
         }
     }
@@ -293,8 +293,8 @@ fn is_spec_block_kind(env_query: EnvQuery, bb_data: &BasicBlockData, kind: &str)
             Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
         )) = &stmt.kind
         {
-            if is_spec_closure(env_query, def_id.to_def_id())
-                && crate::utils::has_prusti_attr(env_query.get_attributes(def_id.to_def_id()), kind)
+            if is_spec_closure(env_query, *def_id)
+                && crate::utils::has_prusti_attr(env_query.get_attributes(def_id), kind)
             {
                 return true;
             }
@@ -309,6 +309,7 @@ struct BasicBlockNode {
     predecessors: FxHashSet<BasicBlock>,
 }
 
+#[tracing::instrument(level = "debug", skip_all)]
 fn _blocks_definitely_leading_to<'a>(
     bb_graph: &'a FxHashMap<BasicBlock, BasicBlockNode>,
     target: BasicBlock,
@@ -338,13 +339,14 @@ fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> FxHashSet<BasicBloc
     let dominators = mir.basic_blocks.dominators();
     let mut blocks = FxHashSet::default();
     for bb in mir.basic_blocks.indices() {
-        if dominators.is_dominated_by(bb, dominator) {
+        if dominators.dominates(dominator, bb) {
             blocks.insert(bb);
         }
     }
     blocks
 }
 
+#[tracing::instrument(level = "trace", skip_all)]
 fn get_nonspec_basic_blocks(
     env_query: EnvQuery,
     bb_graph: FxHashMap<BasicBlock, BasicBlockNode>,
@@ -378,7 +380,7 @@ fn build_nonspec_basic_blocks(
 
     for source in mir.basic_blocks.indices() {
         for &target in real_edges.successors(source) {
-            if dominators.is_dominated_by(source, target) {
+            if dominators.dominates(target, source) {
                 loop_heads.insert(target);
             }
         }

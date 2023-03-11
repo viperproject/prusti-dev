@@ -55,10 +55,10 @@ jobs:
 
   # Build in release mode (but don't test) for macOS ARM
   # See: https://stackoverflow.com/a/66875783/2491528
-  # Blocked by: https://github.com/viperproject/prusti-dev/issues/1193
+  # Blocked by: requires jni-rs version >=0.21 to avoid linking to the JVM at compilation time
   build_macos_arm:
-    if: false
     runs-on: macos-latest
+    if: false
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -81,9 +81,11 @@ jobs:
 
       - name: Build with cargo --release for arm64
         run: |
-          SDKROOT=$(xcrun -sdk macosx --show-sdk-path) \
-          MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version) \
-          python x.py build --release --all --target=aarch64-apple-darwin
+          export SDKROOT=$(xcrun -sdk macosx --show-sdk-path)
+          export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)
+          python x.py build --release --target=aarch64-apple-darwin -p prusti-launch
+          python x.py build --release --target=aarch64-apple-darwin -p prusti-server
+          python x.py build --release --target=aarch64-apple-darwin -p prusti-contracts-build
 
       - name: Package Prusti artifact
         run: python x.py package release prusti_artifact

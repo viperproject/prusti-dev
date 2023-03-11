@@ -103,6 +103,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
+    pub fn collect_specs(&mut self, hir: Map<'tcx>) {
+        hir.walk_toplevel_module(self);
+        hir.walk_attributes(self);
+    }
+
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
@@ -310,6 +317,7 @@ pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
     read_prusti_attr("spec_id", attrs).is_some()
 }
 
+#[tracing::instrument(level = "trace")]
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRefs> {
     let mut spec_id_refs = vec![];
 
@@ -411,13 +419,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         fn_decl: &'tcx prusti_rustc_interface::hir::FnDecl,
         body_id: prusti_rustc_interface::hir::BodyId,
         span: Span,
-        id: prusti_rustc_interface::hir::hir_id::HirId,
+        local_id: LocalDefId,
     ) {
-        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, id);
+        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, local_id);
 
-        let local_id = self.env.query.as_local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = self.env.query.get_local_attributes(id);
+        let attrs = self.env.query.get_local_attributes(local_id);
 
         // Collect spec functions
         if let Some(raw_spec_id) = read_prusti_attr("spec_id", attrs) {
@@ -497,7 +504,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let attr = read_prusti_attr("extern_spec", attrs).unwrap_or_default();
                 let kind = prusti_specs::ExternSpecKind::try_from(attr).unwrap();
                 self.extern_resolver
-                    .add_extern_fn(fn_kind, fn_decl, body_id, span, id, kind);
+                    .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
             }
 
             // Collect procedure specifications

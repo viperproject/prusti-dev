@@ -21,6 +21,7 @@ pub type EncodingResult<T> = Result<T, EncodingError>;
 
 impl EncodingError {
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
+    #[tracing::instrument(level = "debug", skip(message))]
     pub fn unsupported<M: ToString>(message: M) -> Self {
         if cfg!(debug_assertions) {
             debug!("Constructing unsupported error at:\n{:?}", Backtrace::new());
@@ -29,6 +30,7 @@ impl EncodingError {
     }
 
     /// An incorrect usage of Prusti (e.g. call an impure function in a contract)
+    #[tracing::instrument(level = "debug", skip(message))]
     pub fn incorrect<M: ToString>(message: M) -> Self {
         if cfg!(debug_assertions) {
             debug!("Constructing incorrect error at:\n{:?}", Backtrace::new());
@@ -37,6 +39,7 @@ impl EncodingError {
     }
 
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
+    #[tracing::instrument(level = "error", skip(message))]
     pub fn internal<M: ToString>(message: M) -> Self {
         if cfg!(debug_assertions) {
             error!("Constructing internal error at:\n{:?}", Backtrace::new());

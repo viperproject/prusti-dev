@@ -147,8 +147,8 @@ pub fn generate_method(
     }
 
     let rust_method_name = match suffix {
-        None => format!("call_{}", java_method_to_rust(method_name)),
-        Some(s) => format!("call_{}_{}", java_method_to_rust(method_name), s),
+        None => format!("call_{}", java_identifier_to_rust(method_name)),
+        Some(s) => format!("call_{}_{}", java_identifier_to_rust(method_name), s),
     };
 
     if is_static {
@@ -190,9 +190,12 @@ fn generate(
         method_name,
         class.full_name()
     ));
-    code.push("///".to_string());
-    code.push("/// Type and Java signature of parameters:".to_string());
-    code.push("///".to_string());
+
+    if !parameter_names.is_empty() {
+        code.push("///".to_string());
+        code.push("/// Type and Java signature of parameters:".to_string());
+        code.push("///".to_string());
+    }
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -224,37 +227,39 @@ fn generate(
     code.push(format!(
         "    let method_signature = \"{method_signature}\";"
     ));
+
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if is_signature_of_class_type(par_sign) {
+            let par_class = &par_sign[1..(par_sign.len() - 1)];
+            code.push(format!("    let {par_name}_class_name = \"{par_class}\";"));
+        }
+    }
+
     code.push(format!(
         "    let return_signature = \"{return_signature}\";"
     ));
+    if is_signature_of_class_type(&return_signature) {
+        let return_class = &return_signature[1..(return_signature.len() - 1)];
+        code.push(format!("    let return_class_name = \"{return_class}\";"))
+    }
     code.push("".to_string());
 
     // Generate dynamic type check for the arguments
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        if par_sign.starts_with('L') {
-            let par_class = &par_sign[1..(par_sign.len() - 1)];
-            code.push("    debug_assert!(".to_string());
-            code.push("        self.env.is_instance_of(".to_string());
-            code.push(format!("            {par_name},"));
-            code.push(format!(
-                "            self.env.find_class(\"{par_class}\")?,"
+        if is_signature_of_class_type(par_sign) {
+            code.push(generate_variable_type_check(
+                par_name,
+                &format!("{par_name}_class_name"),
             ));
-            code.push("        )?".to_string());
-            code.push("    );".to_string());
         }
     }
-    code.push("".to_string());
 
     // Generate dynamic type check for `receiver`
-    code.push("    debug_assert!(".to_string());
-    code.push("        self.env.is_instance_of(".to_string());
-    code.push("            receiver,".to_string());
-    code.push("            self.env.find_class(class_name)?,".to_string());
-    code.push("        )?".to_string());
-    code.push("    );".to_string());
-    code.push("".to_string());
+    code.push(generate_variable_type_check("receiver", "class_name"));
 
     code.push(
         r#"    static METHOD_ID: OnceCell<JMethodID> = OnceCell::new();
@@ -294,19 +299,8 @@ fn generate(
     code.push("".to_string());
 
     // Generate dynamic type check for the result
-    if return_signature.starts_with('L') {
-        let return_class = &return_signature[1..(return_signature.len() - 1)];
-        code.push("    if let Ok(result) = result {".to_string());
-        code.push("        debug_assert!(".to_string());
-        code.push("            self.env.is_instance_of(".to_string());
-        code.push("                result,".to_string());
-        code.push(format!(
-            "                self.env.find_class(\"{return_class}\")?,"
-        ));
-        code.push("            )?".to_string());
-        code.push("        );".to_string());
-        code.push("    }".to_string());
-        code.push("".to_string());
+    if is_signature_of_class_type(&return_signature) {
+        code.push(generate_result_type_check("return_class_name"));
     }
 
     code.push("    result".to_string());
@@ -366,28 +360,36 @@ fn generate_static(
     code.push(format!(
         "    let method_signature = \"{method_signature}\";"
     ));
+
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if is_signature_of_class_type(par_sign) {
+            let par_class = &par_sign[1..(par_sign.len() - 1)];
+            code.push(format!("    let {par_name}_class_name = \"{par_class}\";"));
+        }
+    }
+
     code.push(format!(
         "    let return_signature = \"{return_signature}\";"
     ));
+    if is_signature_of_class_type(&return_signature) {
+        let return_class = &return_signature[1..(return_signature.len() - 1)];
+        code.push(format!("    let return_class_name = \"{return_class}\";"))
+    }
     code.push("".to_string());
 
     // Generate dynamic type check for the arguments
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        if par_sign.starts_with('L') {
-            let par_class = &par_sign[1..(par_sign.len() - 1)];
-            code.push("    debug_assert!(".to_string());
-            code.push("        self.env.is_instance_of(".to_string());
-            code.push(format!("            {par_name},"));
-            code.push(format!(
-                "            self.env.find_class(\"{par_class}\")?,"
+        if is_signature_of_class_type(par_sign) {
+            code.push(generate_variable_type_check(
+                par_name,
+                &format!("{par_name}_class_name"),
             ));
-            code.push("        )?".to_string());
-            code.push("    );".to_string());
         }
     }
-    code.push("".to_string());
 
     code.push(
         r#"    static CLASS: OnceCell<GlobalRef> = OnceCell::new();
@@ -410,7 +412,6 @@ fn generate_static(
 "#
         .to_string(),
     );
-    code.push("".to_string());
 
     code.push("    let result = self.env.call_static_method_unchecked(".to_string());
     code.push("        JClass::from(class.as_obj()),".to_string());
@@ -431,28 +432,13 @@ fn generate_static(
     code.push("".to_string());
 
     // Generate dynamic type check for the result
-    if return_signature.starts_with('L') {
-        let return_class = &return_signature[1..(return_signature.len() - 1)];
-        code.push("    if let Ok(result) = result {".to_string());
-        code.push("        debug_assert!(".to_string());
-        code.push("            self.env.is_instance_of(".to_string());
-        code.push("                result,".to_string());
-        code.push(format!(
-            "                self.env.find_class(\"{return_class}\")?,"
-        ));
-        code.push("            )?".to_string());
-        code.push("        );".to_string());
-        code.push("    }".to_string());
-        code.push("".to_string());
+    // Generate dynamic type check for the result
+    if is_signature_of_class_type(&return_signature) {
+        code.push(generate_result_type_check("return_class_name"));
     }
 
     code.push("    result".to_string());
     code.push("}".to_string());
 
     code.join("\n") + "\n"
-}
-
-fn java_method_to_rust(method_name: &str) -> String {
-    method_name.replace('_', "__").replace('$', "_dollar_")
-    // If needed, replace other charachters with "_{something}_"
 }

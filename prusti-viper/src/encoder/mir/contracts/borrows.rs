@@ -8,7 +8,6 @@ use crate::{
     encoder::errors::{EncodingError, EncodingResult},
     utils::type_visitor::{self, TypeVisitor},
 };
-use log::trace;
 use prusti_rustc_interface::{
     hir::{self as hir, Mutability},
     index::vec::Idx,
@@ -153,6 +152,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         EncodingError::unsupported(msg.to_string())
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_adt_variant(
         &mut self,
         adt: ty::AdtDef<'tcx>,
@@ -160,7 +160,6 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         variant: &ty::VariantDef,
         substs: ty::subst::SubstsRef<'tcx>,
     ) -> Result<(), Self::Error> {
-        trace!("visit_adt_variant({:?})", variant);
         let old_path = self.current_path.take().unwrap();
         self.current_path = Some(self.tcx.mk_place_downcast(old_path, adt, idx));
         type_visitor::walk_adt_variant(self, variant, substs)?;
@@ -168,13 +167,13 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn visit_field(
         &mut self,
         index: usize,
         field: &ty::FieldDef,
         substs: ty::subst::SubstsRef<'tcx>,
     ) -> Result<(), Self::Error> {
-        trace!("visit_field({}, {:?})", index, field);
         let old_path = self.current_path.take().unwrap();
         let ty = field.ty(self.tcx(), substs);
         let field_id = mir::Field::new(index);
@@ -186,19 +185,13 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip(self), fields(current_path = ?self.current_path))]
     fn visit_ref(
         &mut self,
         region: ty::Region<'tcx>,
         ty: ty::Ty<'tcx>,
         mutability: hir::Mutability,
     ) -> Result<(), Self::Error> {
-        trace!(
-            "visit_ref({:?}, {:?}, {:?}) current_path={:?}",
-            region,
-            ty,
-            mutability,
-            self.current_path
-        );
         let bound_region = self.extract_bound_region(region);
         let is_path_blocking = self.is_path_blocking;
         let old_path = self.current_path.take().unwrap();
@@ -229,17 +222,12 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip(self), fields(current_path = ?self.current_path))]
     fn visit_raw_ptr(
         &mut self,
         ty: ty::Ty<'tcx>,
         mutability: hir::Mutability,
     ) -> Result<(), Self::Error> {
-        trace!(
-            "visit_raw_ptr({:?}, {:?}) current_path={:?}",
-            ty,
-            mutability,
-            self.current_path
-        );
         // Do nothing.
         Ok(())
     }

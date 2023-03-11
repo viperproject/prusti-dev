@@ -32,9 +32,8 @@ use prusti_rustc_interface::{
 };
 use std::fmt;
 
+#[tracing::instrument(level = "debug", skip(tcx, body), fields(pass = "elaborate_drops", source = ?body.source, span = ?body.span))]
 pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> MirPatch<'tcx> {
-    debug!("elaborate_drops({:?} @ {:?})", body.source, body.span);
-
     let def_id = body.source.def_id();
     let param_env = tcx.param_env_reveal_all_normalized(def_id);
     let move_data = match MoveData::gather_moves(body, tcx, param_env) {
@@ -85,12 +84,12 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> 
 /// Returns the set of basic blocks whose unwind edges are known
 /// to not be reachable, because they are `drop` terminators
 /// that can't drop anything.
+#[tracing::instrument(level = "debug", skip(tcx, body, env), fields(pass = "find_dead_unwinds", span = ?body.span))]
 pub(in super::super) fn find_dead_unwinds<'tcx>(
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     env: &MoveDataParamEnv<'tcx>,
 ) -> BitSet<BasicBlock> {
-    debug!("find_dead_unwinds({:?})", body.span);
     // We only need to do this pass once, because unwind edges can only
     // reach cleanup blocks, which can't have unwind edges themselves.
     let mut dead_unwinds = BitSet::new_empty(body.basic_blocks.len());
@@ -192,6 +191,7 @@ impl<'a, 'tcx> DropElaborator<'a, 'tcx> for Elaborator<'a, '_, 'tcx> {
         self.ctxt.param_env()
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn drop_style(&self, path: Self::Path, mode: DropFlagMode) -> DropStyle {
         let ((maybe_live, maybe_dead), multipart) = match mode {
             DropFlagMode::Shallow => (self.ctxt.init_data.maybe_live_dead(path), false),
@@ -309,10 +309,10 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
         self.env.param_env
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(self_span = ?self.body.span))]
     fn create_drop_flag(&mut self, index: MovePathIndex, span: Span) {
         let tcx = self.tcx;
         let patch = &mut self.patch;
-        debug!("create_drop_flag({:?})", self.body.span);
         self.drop_flags
             .entry(index)
             .or_insert_with(|| patch.new_internal(tcx.types.bool, span));
@@ -337,6 +337,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
         self.patch
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn collect_drop_flags(&mut self) {
         for (bb, data) in self.body.basic_blocks.iter_enumerated() {
             let terminator = data.terminator();
@@ -452,6 +453,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
     /// `replace x[i] <- tmp0`). The borrow checker requires that
     /// these locations are initialized before the assignment,
     /// so we just generate an unconditional drop.
+    #[tracing::instrument(level = "debug", skip(self))]
     fn elaborate_replace(
         &mut self,
         loc: Location,
@@ -607,6 +609,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
         )
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn drop_flags_for_locs(&mut self) {
         // We intentionally iterate only over the *old* basic blocks.
         //

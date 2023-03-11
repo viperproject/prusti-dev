@@ -29,6 +29,7 @@ impl Substs {
     /// Takes the string representation of two types: `from` is the generic one; `to` is the more
     /// concrete one.
     /// This function will compute what is the type substitution needed to go from `from` to `to`.
+    #[tracing::instrument(level = "trace")]
     pub fn learn(from: &str, to: &str) -> Self {
         lazy_static::lazy_static! {
             static ref TYPARAM_RE: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();

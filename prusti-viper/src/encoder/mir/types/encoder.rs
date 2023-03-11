@@ -18,7 +18,10 @@ use prusti_common::config;
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    middle::{mir, ty},
+    middle::{
+        mir,
+        ty::{self, TypeVisitable},
+    },
 };
 use vir_crate::high::{self as vir, operations::ty::Typed};
 
@@ -62,11 +65,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         self.encoder.compute_array_len(size)
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(ty = ?self.ty))]
     pub fn encode_type(
         self,
         const_arguments: &[vir::Expression],
     ) -> SpannedEncodingResult<vir::Type> {
-        debug!("Encode type '{:?}'", self.ty);
         // self.encode_polymorphic_predicate_use()
         let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
         let result = match self.ty.kind() {
@@ -266,6 +269,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::FnPtr(_)
             | ty::TyKind::Dynamic(..)
             | ty::TyKind::GeneratorWitness(..)
+            | ty::TyKind::GeneratorWitnessMIR(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Alias(ty::AliasKind::Projection, _)
@@ -338,8 +342,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    /// Encodes a type predicate for the given type.
+    #[tracing::instrument(level = "debug", skip(self), fields(ty = ?self.ty))]
     pub fn encode_type_def_high(self) -> SpannedEncodingResult<vir::TypeDecl> {
-        debug!("Encode type predicate '{:?}'", self.ty);
         let type_decl = match self.ty.kind() {
             ty::TyKind::Bool => vir::TypeDecl::bool(),
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
@@ -702,6 +707,12 @@ fn encode_variant<'v, 'tcx: 'v>(
     for (field_index, field) in variant.fields.iter().enumerate() {
         let field_name = crate::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
         let field_ty = field.ty(tcx, substs);
+        let field_ty = if config::unsafe_core_proof() && field_ty.has_erasable_regions() {
+            field_ty
+        } else {
+            tcx.try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                .unwrap_or(field_ty)
+        };
         let field =
             vir::FieldDecl::new(field_name, field_index, encoder.encode_type_high(field_ty)?);
         fields.push(field);
@@ -712,6 +723,7 @@ fn encode_variant<'v, 'tcx: 'v>(
     Ok(variant)
 }
 
+#[tracing::instrument(level = "debug", skip(encoder))]
 pub(super) fn encode_adt_def<'v, 'tcx>(
     encoder: &Encoder<'v, 'tcx>,
     adt_def: ty::AdtDef<'tcx>,
