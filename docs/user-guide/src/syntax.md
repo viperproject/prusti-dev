@@ -199,6 +199,35 @@ and the syntax of existential ones:
 exists(|<bound variable>: <bound variable type>, ...| <expression>)
 ```
 
+## Adding specification in trait `impl` blocks
+
+Adding specifications to trait functions requires the `impl` block to be annotated with `#[refine_trait_spec]`:
+
+```rust,noplaypen,ignore
+# use prusti_contracts::*;
+# 
+trait TestTrait {
+    fn trait_fn(self) -> i64;
+}
+
+#[refine_trait_spec] // <== Add this annotation
+impl TestTrait for i64 {
+
+    // Cannot add these 2 specifications without `refine_trait_spec`:
+    #[requires(true)]
+    #[ensures(result >= 0)]
+    fn trait_fn(self) -> i64 {
+        5
+    }
+}
+```
+
+Note: Currently there is no clear error message when `#[refine_trait_spec]` is missing, you will just get an error message on the `requires` or the `ensures` like this one:
+```plain
+[E0407] method `prusti_pre_item_trait_fn_d5ce99cd719545e8adb9de778a953ec2` is not a member of trait `TestTrait`.
+```
+See [issue #625](https://github.com/viperproject/prusti-dev/issues/625) for more details.
+
 
 ## Specification entailments
 
