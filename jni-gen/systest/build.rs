@@ -44,9 +44,6 @@ fn main() {
             java_class!("java.math.BigInteger", vec![
                 method!("probablePrime"),
             ]),
-            java_class!("java.util.Random", vec![
-                constructor!("()V"),
-            ]),
         ])
         .generate(&generated_dir)
         .unwrap_or_else(|e| {
