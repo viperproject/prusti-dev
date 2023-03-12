@@ -43,6 +43,8 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
     vec![
         "//! Automatically generated code\n".to_string(),
         "#![allow(non_snake_case)]\n".to_string(),
+        "#[path = \"builtins/utils.rs\"]".to_string(),
+        "pub mod builtins;\n".to_string(),
         modules_tree,
     ]
     .join("\n")

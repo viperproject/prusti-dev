@@ -12,7 +12,11 @@ use crate::{
 };
 use jni::{InitArgsBuilder, JNIVersion, JavaVM};
 use log::debug;
-use std::{fs::create_dir_all, io::prelude::*, path::Path};
+use std::{
+    fs::{copy, create_dir_all},
+    io::prelude::*,
+    path::Path,
+};
 
 #[derive(Default)]
 pub struct WrapperGenerator {
@@ -62,6 +66,9 @@ impl WrapperGenerator {
 
         //remove_dir_all(out_dir)?;
         create_dir_all(out_dir)?;
+        create_dir_all(out_dir.join("builtins"))?;
+        let builtins_utils = Path::new("/home/simon/repo/prusti-dev/jni-gen/builtins/utils.rs");
+        copy(builtins_utils, out_dir.join("builtins/utils.rs"))?;
 
         for class in &self.classes {
             let class_name = class.get_name();

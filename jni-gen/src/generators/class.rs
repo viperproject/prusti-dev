@@ -69,6 +69,7 @@ impl<'a> ClassGenerator<'a> {
             "use jni::signature::*;",
             "use once_cell::sync::OnceCell;",
             "use std::str::FromStr;",
+            "use crate::wrappers::builtins::*;",
         ]
         .join("\n")
             + "\n"
@@ -91,6 +92,7 @@ impl<'a> ClassGenerator<'a> {
         code.push("pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_string());
         code.push(format!("    {}{{ env }}", self.class.rust_name()));
         code.push("}".to_string());
+        code.push("".to_string());
 
         code.join("\n")
     }

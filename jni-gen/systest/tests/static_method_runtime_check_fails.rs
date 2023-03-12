@@ -1,0 +1,45 @@
+use jni::objects::JObject;
+use jni::InitArgsBuilder;
+use jni::JNIVersion;
+use jni::JavaVM;
+use jni::JNIEnv;
+use jni::errors::Result as JNIResult;
+use systest::print_exception;
+use systest::wrappers::*;
+
+fn string_to_jobject<'a>(env: &JNIEnv<'a>, string: &str) -> JNIResult<JObject<'a>> {
+    Ok(JObject::from(env.new_string(string.to_owned())?))
+}
+
+#[test]
+#[should_panic(expected = "Java binding type failure. Expected object of class java/util/Random, but got java/lang/Error instead")]
+fn static_method_should_fail_on_wrong_receiver() {
+    let jvm_args = InitArgsBuilder::new()
+    .version(JNIVersion::V8)
+    .option("-Xcheck:jni")
+    .option("-Xdebug")
+    .option("-XX:+CheckJNICalls")
+    .build()
+    .unwrap_or_else(|e| {
+        panic!("{} source: {:?}", e, std::error::Error::source(&e));
+    });
+
+    let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
+        panic!("{} source: {:?}", e, std::error::Error::source(&e));
+    });
+
+    let env = jvm
+        .attach_current_thread()
+        .expect("failed to attach jvm thread");
+
+    env.with_local_frame(16, || {
+        let big_integer_wrapper = java::math::BigInteger::with(&env);
+        let error_wrapper = java::lang::Error::with(&env);
+        let error_object = error_wrapper.new(string_to_jobject(&env, "error message")?)?;
+        let _result = big_integer_wrapper.call_probablePrime(1337, error_object);
+        Ok(JObject::null())
+    }).unwrap_or_else(|e| {
+        print_exception(&env);
+        panic!("{} source: {:?}", e, std::error::Error::source(&e));
+    });
+}

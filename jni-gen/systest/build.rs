@@ -30,7 +30,8 @@ fn main() {
         .wrap_all(vec![
             java_class!("java.lang.Integer", vec![
                 constructor!("(I)V"),
-                field!("value")
+                field!("value"),
+                method!("compareTo", "(Ljava/lang/Integer;)I"),
             ]),
             java_class!("java.util.Arrays", vec![
                 method!("binarySearch", "([Ljava/lang/Object;Ljava/lang/Object;)I"),
@@ -39,6 +40,12 @@ fn main() {
                 constructor!("(Ljava/lang/String;)V"),
                 method!("getMessage"),
                 field!("detailMessage"),
+            ]),
+            java_class!("java.math.BigInteger", vec![
+                method!("probablePrime"),
+            ]),
+            java_class!("java.util.Random", vec![
+                constructor!("()V"),
             ]),
         ])
         .generate(&generated_dir)

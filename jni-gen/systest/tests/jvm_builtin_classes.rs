@@ -92,6 +92,9 @@ fn test_jvm_builtin_classes() {
         error_wrapper.set_detailMessage(error, string_to_jobject(&env, &another_message)?)?;
         assert!(jobject_to_string(&env, error_wrapper.get_detailMessage(error)?)? == another_message);
 
+        // Try calling the getMessage method to achieve the same result
+        assert!(jobject_to_string(&env, error_wrapper.call_getMessage(error)?)? == another_message);
+
         Ok(JObject::null())
     }).unwrap_or_else(|e| {
         print_exception(&env);
