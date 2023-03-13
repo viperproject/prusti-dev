@@ -6,7 +6,7 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     driver::Compilation,
-    hir::def_id::LocalDefId,
+    hir::{def::DefKind, def_id::LocalDefId},
     interface::{interface::Compiler, Config, Queries},
     middle::ty::{
         self,
@@ -27,15 +27,22 @@ pub struct PrustiCompilerCalls;
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
     // *Don't take MIR bodies with borrowck info if we won't need them*
     if !is_spec_fn(tcx, def_id.to_def_id()) {
-        let body_with_facts =
-            prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
-                tcx,
-                ty::WithOptConstParam::unknown(def_id),
-            );
-        // SAFETY: This is safe because we are feeding in the same `tcx` that is
-        // going to be used as a witness when pulling out the data.
-        unsafe {
-            mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+        let def_kind = tcx.def_kind(def_id.to_def_id());
+        let is_anon_const = matches!(def_kind, DefKind::AnonConst);
+        // Anon Const bodies have already been stolen and so will result in a crash
+        // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
+        // (anon) const bodies at all, and if so, how to get them?
+        if !is_anon_const {
+            let body_with_facts =
+                prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
+                    tcx,
+                    ty::WithOptConstParam::unknown(def_id),
+                );
+            // SAFETY: This is safe because we are feeding in the same `tcx` that is
+            // going to be used as a witness when pulling out the data.
+            unsafe {
+                mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+            }
         }
     }
     let mut providers = Providers::default();
