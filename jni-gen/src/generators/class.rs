@@ -56,7 +56,6 @@ impl<'a> ClassGenerator<'a> {
 
     fn generate_imports(&self) -> String {
         vec![
-            "use jni_gen::{class_name::*, errors::*, utils::*};",
             "use jni::JNIEnv;",
             "use jni::objects::GlobalRef;",
             "use jni::objects::JObject;",
@@ -66,7 +65,6 @@ impl<'a> ClassGenerator<'a> {
             "use jni::objects::JValue;",
             "use jni::objects::JClass;",
             "use jni::errors::Result as JNIResult;",
-            "use jni::errors::*;",
             "use jni::sys::*;",
             "use jni::signature::*;",
             "use once_cell::sync::OnceCell;",

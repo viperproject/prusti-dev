@@ -6,12 +6,12 @@
 
 #![warn(clippy::disallowed_types)]
 
-pub mod class_name;
+mod class_name;
 pub mod errors;
 mod generators;
 mod module_tree;
 mod unordered_set_eq;
-pub mod utils;
+mod utils;
 mod wrapper_generator;
 mod wrapper_spec;
 

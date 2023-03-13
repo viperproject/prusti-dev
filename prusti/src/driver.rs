@@ -48,7 +48,7 @@ fn get_prusti_version_info() -> String {
 /// Report a readable error message in case of panic, with a link to open a new Prusti issue.
 fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     // Invoke our ICE handler, which prints the actual panic message and optionally a backtrace
-    // (*ICE_HOOK)(info);
+    (*ICE_HOOK)(info);
 
     // Separate the output with an empty line
     eprintln!();

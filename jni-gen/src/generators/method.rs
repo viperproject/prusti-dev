@@ -258,29 +258,6 @@ fn generate(
         }
     }
 
-
-
-
-
-    // let reciever_class = env.get_object_class(receiver)?;
-    // let receiver_class_name = java_str_to_string(
-    //     self.env.get_string(
-    //         self.env.call_method(receiver, "getName", "()Ljava/lang/String;", &[])?
-    //             .l()?
-    //             .into(),
-    //     )?,
-    // )?;
-    // println!("Function 'call_stop', receiver is of type '{}'", receiver_class_name);
-    code.push("let reciever_class = self.env.get_object_class(receiver)?;".to_string());
-    code.push("let receiver_class_name = java_str_to_string_simple(".to_string());
-    code.push("    &self.env.get_string(".to_string());
-    code.push("        self.env.call_method(reciever_class, \"getName\", \"()Ljava/lang/String;\", &[])?".to_string());
-    code.push("             .l()?".to_string());
-    code.push("             .into(),".to_string());
-    code.push("    )?,".to_string());
-    code.push(");".to_string());
-    code.push(format!("println!(\"Function '{rust_method_name}', receiver is of type '{{}}'\", receiver_class_name);"));
-
     // Generate dynamic type check for `receiver`
     code.push(generate_variable_type_check("receiver", "class_name"));
 

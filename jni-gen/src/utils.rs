@@ -71,10 +71,6 @@ pub fn java_str_to_string(string: &JavaStr) -> Result<String> {
     unsafe { Ok(CStr::from_ptr(string.get_raw()).to_str()?.to_string()) }
 }
 
-pub fn java_str_to_string_simple(string: &JavaStr) -> String {
-    java_str_to_string(string).unwrap()
-}
-
 pub fn java_str_to_valid_rust_argument_name(string: &JavaStr) -> Result<String> {
     Ok(format!(
         "arg_{}",
