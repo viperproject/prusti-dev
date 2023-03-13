@@ -251,6 +251,12 @@
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
 <a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -388,8 +394,7 @@
 <span class="kw">fn </span>main() {
     <span class="kw">let </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti&quot;</span>, <span class="string">&quot;main&quot;</span>);
 
-    <span class="comment">// We assume that prusti-rustc already removed the first &quot;rustc&quot; argument
-    // added by RUSTC_WRAPPER and all command line arguments -P&lt;arg&gt;=&lt;val&gt;
+    <span class="comment">// We assume that all command line arguments -P&lt;arg&gt;=&lt;val&gt;
     // have been filtered out.
     </span><span class="kw">let </span>original_rustc_args = config::get_filtered_args();
 
@@ -452,6 +457,13 @@
         ));
         user::message(<span class="macro">format!</span>(<span class="string">&quot;Prusti version: {}&quot;</span>, get_prusti_version_info()));
         <span class="macro">info!</span>(<span class="string">&quot;Prusti version: {}&quot;</span>, get_prusti_version_info());
+        <span class="kw">if </span>rustc_args.get(<span class="number">1</span>).map(|s| s.as_ref()) == <span class="prelude-val">Some</span>(<span class="string">&quot;-vV&quot;</span>) {
+            <span class="comment">// When cargo queries the verbose rustc version,
+            // also print the Prusti version to stdout.
+            // This ensures that the cargo build cache is
+            // invalidated when the Prusti version changes.
+            </span><span class="macro">println!</span>(<span class="string">&quot;Prusti version: {}&quot;</span>, get_prusti_version_info());
+        }
 
         rustc_args.push(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.to_owned());
         rustc_args.push(<span class="string">&quot;-Zcrate-attr=feature(type_ascription)&quot;</span>.to_owned());

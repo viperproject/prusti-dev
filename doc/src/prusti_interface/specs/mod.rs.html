@@ -584,6 +584,43 @@
 <a href="#584" id="584">584</a>
 <a href="#585" id="585">585</a>
 <a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environment::Environment,
     utils::{
@@ -599,6 +636,7 @@
     data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
+        <span class="self">self</span>,
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
@@ -876,7 +914,7 @@
 
     <span class="kw">fn </span>ensure_local_mirs_fetched(<span class="kw-2">&amp;mut </span><span class="self">self</span>, def_spec: <span class="kw-2">&amp;</span>typed::DefSpecificationMap) {
         <span class="kw">let </span>(specs, pure_fns, predicates) = def_spec.defid_for_export();
-        <span class="kw">for </span>def_id <span class="kw">in </span>specs {
+        <span class="kw">for </span>def_id <span class="kw">in </span><span class="kw-2">&amp;</span>specs {
             <span class="self">self</span>.env.body.load_spec_body(def_id.expect_local());
         }
         <span class="kw">for </span>def_id <span class="kw">in </span>pure_fns {
@@ -884,9 +922,45 @@
                 <span class="self">self</span>.env.body.load_pure_fn_body(def_id.expect_local());
             }
         }
-        <span class="kw">for </span>def_id <span class="kw">in </span>predicates {
+        <span class="kw">for </span>def_id <span class="kw">in </span><span class="kw-2">&amp;</span>predicates {
             <span class="self">self</span>.env.body.load_predicate_body(def_id.expect_local());
         }
+
+        <span class="kw">let </span><span class="kw-2">mut </span>cl_visitor = CollectAllClosureDefsVisitor {
+            map: <span class="self">self</span>.env.query.hir(),
+            result: Vec::new(),
+        };
+        <span class="kw">for </span>def_id <span class="kw">in </span>specs.iter().chain(predicates.iter()) {
+            <span class="kw">let </span>body_id = <span class="self">self</span>.env.query.hir().body_owned_by(def_id.expect_local());
+            intravisit::Visitor::visit_nested_body(<span class="kw-2">&amp;mut </span>cl_visitor, body_id);
+        }
+        <span class="kw">for </span>def_id <span class="kw">in </span>cl_visitor.result {
+            <span class="self">self</span>.env.body.load_closure_body(def_id);
+        }
+    }
+}
+
+<span class="doccomment">/// Collects the LocalDefId of all closures. This is used to find all
+/// quantifiers/triggers inside specs and predicates, so they can be
+/// exported.
+</span><span class="kw">struct </span>CollectAllClosureDefsVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    map: Map&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    result: Vec&lt;LocalDefId&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; intravisit::Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>CollectAllClosureDefsVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">type </span>NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
+
+    <span class="kw">fn </span>nested_visit_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Map {
+        <span class="self">self</span>.map
+    }
+
+    <span class="kw">fn </span>visit_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>hir::Expr&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <span class="kw">if let </span>hir::ExprKind::Closure(hir::Closure { def_id, .. }) = expr.kind {
+            <span class="self">self</span>.result.push(<span class="kw-2">*</span>def_id);
+        }
+
+        intravisit::walk_expr(<span class="self">self</span>, expr)
     }
 }
 

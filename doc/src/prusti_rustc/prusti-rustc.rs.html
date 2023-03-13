@@ -136,19 +136,6 @@
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -156,12 +143,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span>prusti_utils::launch;
-<span class="kw">use </span>std::{
-    env,
-    io::Write,
-    path::{Path, PathBuf},
-    process::Command,
-};
+<span class="kw">use </span>std::{env, io::Write, path::PathBuf, process::Command};
 
 <span class="kw">fn </span>main() {
     <span class="kw">if let </span><span class="prelude-val">Err</span>(code) = process(std::env::args().skip(<span class="number">1</span>).collect()) {
@@ -199,15 +181,7 @@
 
     launch::set_environment_settings(<span class="kw-2">&amp;mut </span>cmd, <span class="kw-2">&amp;</span>prusti_home, <span class="kw-2">&amp;</span>java_home);
 
-    <span class="comment">// Setting RUSTC_WRAPPER causes Cargo to pass &#39;rustc&#39; as the first argument.
-    // We&#39;re invoking the compiler programmatically, so we ignore this
-    </span><span class="kw">let </span>rustc_pos = args
-        .iter()
-        .position(|arg| Path::new(arg).file_stem() == <span class="prelude-val">Some</span>(<span class="string">&quot;rustc&quot;</span>.as_ref()));
-    <span class="kw">let </span>cargo_invoked = rustc_pos.is_some();
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rustc_pos) = rustc_pos {
-        args.drain(<span class="number">0</span>..=rustc_pos);
-    }
+    <span class="kw">let </span>cargo_invoked = env::var(<span class="string">&quot;PRUSTI_CARGO&quot;</span>).is_ok();
 
     <span class="comment">// No need to check if we happen to be running on e.g. the `prusti-contracts` crate since this
     // should always be with `cargo` anyway (i.e. cargo_invoked == true)
@@ -290,9 +264,9 @@
         }
     }
 
-    <span class="kw">let </span>exit_status = cmd
-        .status()
-        .unwrap_or_else(|<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;failed to execute prusti-driver ({prusti_driver_path:?})&quot;</span>));
+    <span class="kw">let </span>exit_status = cmd.status().unwrap_or_else(|e| {
+        <span class="macro">panic!</span>(<span class="string">&quot;failed to execute prusti-driver ({prusti_driver_path:?}): {e}&quot;</span>)
+    });
 
     <span class="kw">if </span>exit_status.success() {
         <span class="prelude-val">Ok</span>(())
