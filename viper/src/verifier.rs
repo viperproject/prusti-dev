@@ -88,7 +88,7 @@ impl<'a> Verifier<'a> {
             // }
         }));
 
-        let verifier_instance = jni.unwrap_result(ast_utils.with_local_frame(128, || {
+        let verifier_instance = jni.unwrap_result(env.with_local_frame(128, || {
             let verifier_instance =
             jni.unwrap_result(frontend_wrapper.call_verifier(frontend_instance));
 
