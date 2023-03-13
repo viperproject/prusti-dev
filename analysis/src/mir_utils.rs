@@ -200,7 +200,7 @@ pub fn expand_one_level<'tcx>(
     guide_place: Place<'tcx>,
 ) -> (Place<'tcx>, Vec<Place<'tcx>>) {
     let index = current_place.projection.len();
-    let new_projection = tcx.mk_place_elems(
+    let new_projection = tcx.mk_place_elems_from_iter(
         current_place
             .projection
             .iter()
@@ -340,7 +340,7 @@ pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Plac
             | mir::ProjectionElem::Subslice { .. } => {
                 return (mir::Place {
                     local: place_ref.local,
-                    projection: tcx.intern_place_elems(place_ref.projection),
+                    projection: tcx.mk_place_elems(place_ref.projection),
                 })
                 .into();
             }
