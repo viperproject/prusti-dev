@@ -698,6 +698,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 )
             }
 
+            ("refute.failed:refutation.true", ErrorCtxt::Panic(PanicCause::Refute)) => {
+                PrustiError::verification(
+                    "the refuted expression holds in all cases or could not be reached",
+                    error_span,
+                )
+            }
+
             (full_err_id, ErrorCtxt::Unexpected) => {
                 PrustiError::internal(
                     format!(
