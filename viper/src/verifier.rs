@@ -40,8 +40,8 @@ impl<'a> Verifier<'a> {
         let ast_utils = AstUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let frontend_wrapper = silicon::SiliconFrontend::with(env);
-        // let verifier_instance = jni.unwrap_result(env.with_local_frame(16, || {
-        let frontend_instance = jni.unwrap_result(env.with_local_frame(128, || {
+        
+        let frontend_instance = jni.unwrap_result(env.with_local_frame(16, || {
             let reporter = if let Some(real_report_path) = report_path {
                 jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
                     jni.new_string("csv_reporter"),
@@ -70,24 +70,18 @@ impl<'a> Verifier<'a> {
             Ok(frontend_instance)
         }));
 
-        let verifier_instance = jni.unwrap_result(env.with_local_frame(128, || {
+        let verifier_instance = jni.unwrap_result(env.with_local_frame(16, || {
             let verifier_instance =
             jni.unwrap_result(frontend_wrapper.call_verifier(frontend_instance));
 
             let consistency_check_state = silver::frontend::DefaultStates::with(env).call_ConsistencyCheck().unwrap();
             frontend_wrapper.call_setState(frontend_instance, consistency_check_state).unwrap();
-            println!("Set state");
 
             let name = jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
             let build_version = jni.to_string(jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),);
             info!("Using backend {} version {}", name, build_version);
             Ok(verifier_instance)
         }));
-
-        let _x = verifier_wrapper.call_name(verifier_instance).expect("fail1");
-        let _y = frontend_wrapper.call___program(frontend_instance).expect("fail2");
-
-        println!("THIS IS PASSING");
 
         Verifier {
             env,
@@ -175,13 +169,10 @@ impl<'a> Verifier<'a> {
                 );
             }
 
-            // set program
-            println!("set program");
             let program_option = self.jni.new_option(Some(program.to_jobject()));
             self.jni.unwrap_result(self.frontend_wrapper.set___program(self.frontend_instance, program_option));
 
             run_timed!("Viper verification", debug,
-                println!("calling verification");
                 self.jni.unwrap_result(self.frontend_wrapper.call_verification(self.frontend_instance));
                 let viper_result_option = self.jni.unwrap_result(self.frontend_wrapper.call_getVerificationResult(self.frontend_instance));
                 let viper_result = self.jni.unwrap_result(scala::Some::with(self.env).call_get(viper_result_option));
@@ -392,7 +383,6 @@ impl<'a> Verifier<'a> {
 
 impl<'a> Drop for Verifier<'a> {
     fn drop(&mut self) {
-        println!("DROPVERIFIER");
         // Tell the verifier to stop its threads.
         self.jni
             .unwrap_result(self.verifier_wrapper.call_stop(self.verifier_instance));
