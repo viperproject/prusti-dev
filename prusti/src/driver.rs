@@ -27,13 +27,13 @@ use tracing_subscriber::{filter::EnvFilter, prelude::*};
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
 
-// lazy_static! {
-//     static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
-//         let hook = panic::take_hook();
-//         // panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
-//         hook
-//     };
-// }
+lazy_static! {
+    static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
+        let hook = panic::take_hook();
+        panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
+        hook
+    };
+}
 
 fn get_prusti_version_info() -> String {
     format!(

@@ -100,8 +100,6 @@ impl<'a> VerificationContext<'a> {
         ver.frontend_wrapper.call___program(ver.frontend_instance).expect("fail 3");
         ver.verifier_wrapper.call_name(ver.verifier_instance).expect("fail 5");
 
-        ver.parse_command_line(&verifier_args);
-        ver.start();
-        ver
+        ver.parse_command_line(&verifier_args).start()
     }
 }
