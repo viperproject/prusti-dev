@@ -7,8 +7,7 @@ use crate::ast_factory::{
     AstFactory,
 };
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::ast;
-use viper_sys::wrappers::viper::silver::plugin::standard::refute;
+use viper_sys::wrappers::viper::silver::{ast, plugin::standard::refute};
 
 impl<'a> AstFactory<'a> {
     pub fn new_stmt(&self, lhs: Expr, fields: &[Field]) -> Stmt<'a> {

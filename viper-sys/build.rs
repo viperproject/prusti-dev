@@ -130,7 +130,6 @@ fn main() {
             ]),
             java_class!("viper.silver.frontend.DefaultStates", vec![
                 method!("ConsistencyCheck"),
-                method!("Verification"),
             ]),
             java_class!("viper.silver.logger.SilentLogger$", vec![
                 object_getter!(),
@@ -142,7 +141,6 @@ fn main() {
             java_class!("viper.silicon.SiliconFrontend", vec![
                 constructor!("(Lviper/silver/reporter/Reporter;Lch/qos/logback/classic/Logger;)V"),
                 method!("setVerifier"),
-                method!("_program"),
                 method!("verification"),
                 method!("getVerificationResult"),
                 method!("setState"),

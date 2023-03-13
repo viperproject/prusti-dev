@@ -136,7 +136,7 @@ impl fmt::Display for Stmt {
                 write!(f, "assert {expr}")
             }
             Stmt::Refute(ref expr, _) => {
-                write!(f, "refute {}", expr)
+                write!(f, "refute {expr}")
             }
             Stmt::MethodCall(ref name, ref args, ref vars) => write!(
                 f,

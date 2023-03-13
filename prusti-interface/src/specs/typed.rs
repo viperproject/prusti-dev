@@ -174,7 +174,7 @@ impl DefSpecificationMap {
         let refutations: Vec<_> = self
             .prusti_refutations
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let mut values = Vec::new();
         values.extend(loop_specs);

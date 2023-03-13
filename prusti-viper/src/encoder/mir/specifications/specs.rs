@@ -11,7 +11,7 @@ use prusti_interface::{
     specs::typed::{
         DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
         ProcedureSpecificationKind, ProcedureSpecificationKindError, PrustiAssertion,
-        PrustiAssumption, Refinable, SpecificationItem, TypeSpecification, PrustiRefutation,
+        PrustiAssumption, PrustiRefutation, Refinable, SpecificationItem, TypeSpecification,
     },
     PrustiError,
 };

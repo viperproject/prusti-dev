@@ -19,14 +19,14 @@ use std::path::PathBuf;
 use viper_sys::wrappers::{scala, viper::*};
 
 pub struct Verifier<'a> {
-    pub env: &'a JNIEnv<'a>,
-    pub verifier_wrapper: silver::verifier::Verifier<'a>,
-    pub verifier_instance: JObject<'a>,
-    pub frontend_wrapper: silicon::SiliconFrontend<'a>,
-    pub frontend_instance: JObject<'a>,
-    pub jni: JniUtils<'a>,
-    pub ast_utils: AstUtils<'a>,
-    pub smt_manager: SmtManager,
+    env: &'a JNIEnv<'a>,
+    verifier_wrapper: silver::verifier::Verifier<'a>,
+    verifier_instance: JObject<'a>,
+    frontend_wrapper: silicon::SiliconFrontend<'a>,
+    frontend_instance: JObject<'a>,
+    jni: JniUtils<'a>,
+    ast_utils: AstUtils<'a>,
+    smt_manager: SmtManager,
 }
 
 impl<'a> Verifier<'a> {
@@ -40,7 +40,7 @@ impl<'a> Verifier<'a> {
         let ast_utils = AstUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let frontend_wrapper = silicon::SiliconFrontend::with(env);
-        
+
         let frontend_instance = jni.unwrap_result(env.with_local_frame(16, || {
             let reporter = if let Some(real_report_path) = report_path {
                 jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
@@ -56,29 +56,45 @@ impl<'a> Verifier<'a> {
             let backend_unwrapped = Self::instantiate_verifier(backend, env, reporter, debug_info);
             let backend_instance = jni.unwrap_result(backend_unwrapped);
 
-            let logger_singleton = jni.unwrap_result(silver::logger::SilentLogger_object::with(env).singleton());
-            let logger_factory = jni.unwrap_result(silver::logger::SilentLogger_object::with(env).call_apply(logger_singleton),);
-            let logger = jni.unwrap_result(silver::logger::ViperLogger::with(env).call_get(logger_factory));
+            let logger_singleton =
+                jni.unwrap_result(silver::logger::SilentLogger_object::with(env).singleton());
+            let logger_factory = jni.unwrap_result(
+                silver::logger::SilentLogger_object::with(env).call_apply(logger_singleton),
+            );
+            let logger =
+                jni.unwrap_result(silver::logger::ViperLogger::with(env).call_get(logger_factory));
 
-            let unwrapped_frontend_instance = silicon::SiliconFrontend::with(env).new(reporter, logger);
+            let unwrapped_frontend_instance =
+                silicon::SiliconFrontend::with(env).new(reporter, logger);
             let frontend_instance = jni.unwrap_result(unwrapped_frontend_instance);
 
-            frontend_wrapper.call_setVerifier(frontend_instance, backend_instance).unwrap();
+            frontend_wrapper
+                .call_setVerifier(frontend_instance, backend_instance)
+                .unwrap();
             let verifier_option = jni.new_option(Some(backend_instance));
-            frontend_wrapper.set___verifier(frontend_instance, verifier_option).unwrap();
+            frontend_wrapper
+                .set___verifier(frontend_instance, verifier_option)
+                .unwrap();
 
             Ok(frontend_instance)
         }));
 
         let verifier_instance = jni.unwrap_result(env.with_local_frame(16, || {
             let verifier_instance =
-            jni.unwrap_result(frontend_wrapper.call_verifier(frontend_instance));
+                jni.unwrap_result(frontend_wrapper.call_verifier(frontend_instance));
 
-            let consistency_check_state = silver::frontend::DefaultStates::with(env).call_ConsistencyCheck().unwrap();
-            frontend_wrapper.call_setState(frontend_instance, consistency_check_state).unwrap();
+            let consistency_check_state = silver::frontend::DefaultStates::with(env)
+                .call_ConsistencyCheck()
+                .unwrap();
+            frontend_wrapper
+                .call_setState(frontend_instance, consistency_check_state)
+                .unwrap();
 
-            let name = jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
-            let build_version = jni.to_string(jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),);
+            let name =
+                jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
+            let build_version = jni.to_string(
+                jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),
+            );
             info!("Using backend {} version {}", name, build_version);
             Ok(verifier_instance)
         }));
