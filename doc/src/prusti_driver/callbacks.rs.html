@@ -143,6 +143,13 @@
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::verifier::verify;
 <span class="kw">use </span>prusti_common::config;
 <span class="kw">use </span>prusti_interface::{
@@ -151,7 +158,7 @@
 };
 <span class="kw">use </span>prusti_rustc_interface::{
     driver::Compilation,
-    hir::def_id::LocalDefId,
+    hir::{def::DefKind, def_id::LocalDefId},
     interface::{interface::Compiler, Config, Queries},
     middle::ty::{
         <span class="self">self</span>,
@@ -172,15 +179,22 @@
 </span><span class="kw">fn </span>mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: LocalDefId) -&gt; mir_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="comment">// *Don&#39;t take MIR bodies with borrowck info if we won&#39;t need them*
     </span><span class="kw">if </span>!is_spec_fn(tcx, def_id.to_def_id()) {
-        <span class="kw">let </span>body_with_facts =
-            prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
-                tcx,
-                ty::WithOptConstParam::unknown(def_id),
-            );
-        <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx` that is
-        // going to be used as a witness when pulling out the data.
-        </span><span class="kw">unsafe </span>{
-            mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+        <span class="kw">let </span>def_kind = tcx.def_kind(def_id.to_def_id());
+        <span class="kw">let </span>is_anon_const = <span class="macro">matches!</span>(def_kind, DefKind::AnonConst);
+        <span class="comment">// Anon Const bodies have already been stolen and so will result in a crash
+        // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
+        // (anon) const bodies at all, and if so, how to get them?
+        </span><span class="kw">if </span>!is_anon_const {
+            <span class="kw">let </span>body_with_facts =
+                prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
+                    tcx,
+                    ty::WithOptConstParam::unknown(def_id),
+                );
+            <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx` that is
+            // going to be used as a witness when pulling out the data.
+            </span><span class="kw">unsafe </span>{
+                mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+            }
         }
     }
     <span class="kw">let </span><span class="kw-2">mut </span>providers = Providers::default();
