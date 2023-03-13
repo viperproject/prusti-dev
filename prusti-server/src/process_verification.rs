@@ -18,6 +18,7 @@ use viper::{
     smt_manager::SmtManager, Cache, VerificationBackend, VerificationContext, VerificationResult,
 };
 
+#[tracing::instrument(level = "debug", skip_all, fields(program = %request.program.get_name()))]
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v Lazy<VerificationContext<'t>, impl Fn() -> VerificationContext<'t>>,
     mut request: VerificationRequest,

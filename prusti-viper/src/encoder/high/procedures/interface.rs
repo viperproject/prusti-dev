@@ -3,7 +3,6 @@ use crate::encoder::{
     high::to_middle::HighToMiddle,
     mir::{procedures::MirProcedureEncoderInterface, types::MirTypeEncoderInterface},
 };
-use log::debug;
 use prusti_rustc_interface::{hir::def_id::DefId, middle::ty};
 use std::collections::BTreeMap;
 use vir_crate::{
@@ -71,6 +70,7 @@ impl<'v, 'tcx: 'v> Private for super::super::super::Encoder<'v, 'tcx> {
         Ok(result)
     }
 
+    #[tracing::instrument(level = "debug", skip(self, procedure_high), fields(procedure = %procedure_high))]
     fn procedure_high_to_typed(
         &mut self,
         procedure_high: vir_high::ProcedureDecl,
@@ -107,15 +107,14 @@ pub(crate) trait HighProcedureEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> HighProcedureEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_procedure_core_proof(
         &mut self,
         proc_def_id: DefId,
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<vir_mid::ProcedureDecl> {
         let procedure_high = self.encode_procedure_core_proof_high(proc_def_id, check_mode)?;
-        debug!("procedure_high:\n{}", procedure_high);
         let procedure_typed = self.procedure_high_to_typed(procedure_high)?;
-        debug!("procedure_typed:\n{}", procedure_typed);
         let procedure =
             super::inference::infer_shape_operations(self, proc_def_id, procedure_typed)?;
         Ok(procedure)

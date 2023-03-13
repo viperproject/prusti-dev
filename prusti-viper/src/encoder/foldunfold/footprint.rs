@@ -9,7 +9,6 @@ use super::{
     Predicates,
 };
 use crate::encoder::foldunfold::perm::{Perm::*, *};
-use log::trace;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use vir_crate::polymorphic::{self as vir, PermAmount};
@@ -21,9 +20,9 @@ pub trait ExprFootprintGetter {
 }
 
 impl ExprFootprintGetter for vir::Expr {
+    #[tracing::instrument(level = "trace", skip(self, predicates), fields(self = %self), ret)]
     fn get_footprint(&self, predicates: &Predicates) -> FxHashSet<Perm> {
-        trace!("get_footprint {}", self);
-        let res = match self {
+        match self {
             vir::Expr::Local(_)
             | vir::Expr::Field(_)
             | vir::Expr::Variant(_)
@@ -177,9 +176,7 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::SnapApp(vir::SnapApp { ref base, .. }) => base.get_footprint(predicates),
 
             vir::Expr::Cast(vir::Cast { ref base, .. }) => base.get_footprint(predicates),
-        };
-        trace!("get_footprint {} = {:?}", self, res);
-        res
+        }
     }
 }
 

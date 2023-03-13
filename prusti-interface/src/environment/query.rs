@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::data::ProcedureDefId;
 use log::debug;
 use prusti_rustc_interface::{
@@ -126,7 +128,11 @@ impl<'tcx> EnvQuery<'tcx> {
 
     /// If the given DefId describes an item belonging to a trait, returns the DefId
     /// of the trait that the trait item belongs to; otherwise, returns None.
-    pub fn get_trait_of_item(self, def_id: impl IntoParam<ProcedureDefId>) -> Option<DefId> {
+    #[tracing::instrument(level = "trace", skip(self))]
+    pub fn get_trait_of_item(
+        self,
+        def_id: impl IntoParam<ProcedureDefId> + Debug,
+    ) -> Option<DefId> {
         self.tcx.trait_of_item(def_id.into_param())
     }
 
@@ -266,9 +272,10 @@ impl<'tcx> EnvQuery<'tcx> {
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
     /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn find_impl_of_trait_method_call(
         self,
-        proc_def_id: impl IntoParam<ProcedureDefId>,
+        proc_def_id: impl IntoParam<ProcedureDefId> + Debug,
         substs: SubstsRef<'tcx>,
     ) -> Option<ProcedureDefId> {
         // TODO(tymap): remove this method?
@@ -418,13 +425,12 @@ impl<'tcx> EnvQuery<'tcx> {
     /// The `param_env` should be passed as a `ProcedureDefId` which is
     /// then used to calculate the param env; i.e. the set of
     /// where-clauses that are in scope at this particular point.
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn evaluate_predicate(
         self,
         predicate: ty::Predicate<'tcx>,
-        param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
+        param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>> + Debug,
     ) -> bool {
-        debug!("Evaluating predicate {:?}", predicate);
-
         let obligation = Obligation::new(
             self.tcx,
             ObligationCause::dummy(),
@@ -444,10 +450,11 @@ impl<'tcx> EnvQuery<'tcx> {
     /// The `param_env` should be passed as a `ProcedureDefId` which is
     /// then used to calculate the param env; i.e. the set of
     /// where-clauses that are in scope at this particular point.
-    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(
+    #[tracing::instrument(level = "debug", skip(self))]
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + Debug + Copy>(
         self,
         normalizable: T,
-        param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
+        param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>> + Debug,
     ) -> T {
         let param_env = param_env.into_param(self.tcx);
         let norm_res = self

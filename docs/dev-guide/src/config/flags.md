@@ -42,6 +42,7 @@
 | [`LOG_DIR`](#log_dir) | `String` | `"log"` | A* |
 | [`LOG_STYLE`](#log_style) | `String` | `"auto"` | A |
 | [`LOG_SMT_WRAPPER_INTERACTION`](#log_smt_wrapper_interaction) | `bool` | `false` | A |
+| [`LOG_TRACING`](#log_tracing) | `bool` | `true` | A |
 | [`MAX_LOG_FILE_NAME_LENGTH`](#max_log_file_name_length) | `usize` | `60` | A |
 | [`MIN_PRUSTI_VERSION`](#min_prusti_version) | `Option<String>` | `None` | A |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` | A |
@@ -257,7 +258,8 @@ When enabled, communication with the server will be encoded as JSON instead of t
 
 Log level and filters. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#enabling-logging).
 
-For example, `PRUSTI_LOG=prusti_viper=trace` enables trace logging for the prusti-viper crate.
+For example, `PRUSTI_LOG=prusti_viper=trace` enables trace logging for the prusti-viper crate, or `PRUSTI_LOG=debug` enables lighter logging everywhere. When using `trace` it is recommended to disable `jni` messages with e.g. `PRUSTI_LOG=trace,jni=warn`.
+A useful explanation of this can be found in the [rustc docs](https://rustc-dev-guide.rust-lang.org/tracing.html) (we set `PRUSTI_LOG` rather than `RUSTC_LOG`).
 Debug and trace logs are not available in release builds.
 
 ## `LOG_DIR`
@@ -268,13 +270,18 @@ Path to directory in which log files and dumped output will be stored.
 
 ## `LOG_STYLE`
 
-Log style. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#disabling-colors).
+Log style. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#disabling-colors). Has no effect when `LOG_TRACING=true`.
 
 ## `LOG_SMT_WRAPPER_INTERACTION`
 
 When enabled, logs all SMT wrapper interaction to a file.
 
 > **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `LOG_TRACING`
+
+When enabled, logs are outputted using the [`tracing_chrome` crate](https://docs.rs/tracing-chrome/0.7.0/tracing_chrome/) rather than as std output with the `env_logger`.
+You can find the file at `$LOG_DIR/trace.json` which can be opened in [ui.perfetto.dev](https://ui.perfetto.dev/). The file is only generated if [`LOG`](#log) is set.
 
 ## `MAX_LOG_FILE_NAME_LENGTH`
 

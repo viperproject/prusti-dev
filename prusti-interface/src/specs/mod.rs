@@ -105,6 +105,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
+    pub fn collect_specs(&mut self, hir: Map<'tcx>) {
+        hir.walk_toplevel_module(self);
+        hir.walk_attributes(self);
+    }
+
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
@@ -323,6 +330,7 @@ pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
     read_prusti_attr("spec_id", attrs).is_some()
 }
 
+#[tracing::instrument(level = "trace")]
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRefs> {
     let mut spec_id_refs = vec![];
 

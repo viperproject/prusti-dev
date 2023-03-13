@@ -21,7 +21,7 @@ use crate::encoder::{
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
-use log::{debug, trace};
+use log::debug;
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
 
 use prusti_rustc_interface::{
@@ -56,6 +56,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 /// Used to encode expressions in assertions
+#[tracing::instrument(level = "debug", skip(encoder))]
 pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: DefId,
@@ -67,9 +68,56 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
         .env()
         .body
         .get_expression_body(proc_def_id, substs, parent_def_id);
-    let interpreter = PureFunctionBackwardInterpreter::new(
+    encode_mir(
         encoder,
         &mir,
+        proc_def_id,
+        pure_encoding_context,
+        parent_def_id,
+    )
+}
+
+/// Used to encode unevaluated constants.
+pub(super) fn encode_promoted<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    proc_def_id: ty::WithOptConstParam<DefId>,
+    promoted_id: mir::Promoted,
+    parent_def_id: DefId,
+    substs: SubstsRef<'tcx>,
+) -> SpannedEncodingResult<vir::Expr> {
+    let tcx = encoder.env().tcx();
+    let promoted_bodies = tcx.promoted_mir_opt_const_arg(proc_def_id);
+    let param_env = tcx.param_env(parent_def_id);
+    let mir = tcx.subst_and_normalize_erasing_regions(
+        substs,
+        param_env,
+        promoted_bodies[promoted_id].clone(),
+    );
+    encode_mir(
+        encoder,
+        &mir,
+        proc_def_id.did,
+        PureEncodingContext::Code,
+        parent_def_id,
+    )
+}
+
+/// Backing implementation for `encode_body` and `encode_promoted`. The extra
+/// `mir` argument may be the MIR body identified by `proc_def_id` (when
+/// encoding a regular function), or it may be the body of a promoted constant
+/// (when encoding an unevaluated constant in the MIR). The latter does not
+/// have a `DefId` of its own, it is identified by the `DefId` of its
+/// containing function and a promoted ID.
+fn encode_mir<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    mir: &mir::Body<'tcx>,
+    proc_def_id: DefId,
+    pure_encoding_context: PureEncodingContext,
+    parent_def_id: DefId,
+) -> SpannedEncodingResult<vir::Expr> {
+    let interpreter = PureFunctionBackwardInterpreter::new(
+        encoder,
+        mir,
         proc_def_id,
         pure_encoding_context,
         parent_def_id,
@@ -78,7 +126,7 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     let function_name = encoder.env().name.get_absolute_item_name(proc_def_id);
     debug!("Encode body of pure function {}", function_name);
 
-    let state = run_backward_interpretation(&mir, &interpreter)?
+    let state = run_backward_interpretation(mir, &interpreter)?
         .unwrap_or_else(|| panic!("Procedure {proc_def_id:?} contains a loop"));
     let body_expr = state.into_expr().unwrap();
     debug!(
@@ -90,6 +138,11 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(
+        name = "PureFunctionEncoder::new",
+        level = "trace",
+        skip(encoder, pure_encoding_context)
+    )]
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
@@ -97,8 +150,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Self {
-        trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
-
         // should hold for extern specs as well (otherwise there would have
         // been an error reported earlier)
         assert_eq!(
@@ -124,6 +175,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_function(&mut self) -> SpannedEncodingResult<vir::Function> {
         let mir = self.encoder.env().body.get_pure_fn_body(
             self.proc_def_id,
@@ -187,6 +239,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(Some(body_expr))
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_bodyless_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode trusted (bodyless) pure function {}", function_name);
@@ -194,6 +247,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(None)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_predicate_function(
         &self,
         predicate_body: &DefId,
@@ -233,6 +287,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     // Private
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_function_given_body(
         &self,
         body: Option<vir::Expr>,
@@ -382,6 +437,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     /// Encode the precondition with two expressions:
     /// - one for the type encoding
     /// - one for the functional specification.
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
@@ -437,6 +493,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     /// Encode the postcondition with one expression just for the functional specification (no
     /// type encoding).
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_postcondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,

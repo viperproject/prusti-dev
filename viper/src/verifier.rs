@@ -13,7 +13,7 @@ use crate::{
     verification_backend::VerificationBackend,
     verification_result::{VerificationError, VerificationResult},
 };
-use jni::{objects::JObject, JNIEnv};
+use jni::{errors::Result, objects::JObject, JNIEnv};
 use log::{debug, error, info};
 use std::path::PathBuf;
 use viper_sys::wrappers::{scala, viper::*};
@@ -52,17 +52,8 @@ impl<'a> Verifier<'a> {
             };
 
             let debug_info = jni.new_seq(&[]);
-            let backend_unwrapped = match backend {
-                VerificationBackend::Silicon => {
-                    println!("Created a new silicon backend");
-                    silicon::Silicon::with(env).new(reporter, debug_info)
-                }
-                VerificationBackend::Carbon => {
-                    panic!("Trying to use Carbon backend - now made compatible just with Silicon");
-                } // VerificationBackend::Carbon => {
-                  //     carbon::CarbonVerifier::with(env).new(reporter, debug_info)
-                  // }
-            };
+
+            let backend_unwrapped = Self::instantiate_verifier(backend, env, reporter, debug_info);
             let backend_instance = jni.unwrap_result(backend_unwrapped);
 
             let logger_singleton = jni.unwrap_result(silver::logger::SilentLogger_object::with(env).singleton());
@@ -77,15 +68,6 @@ impl<'a> Verifier<'a> {
             frontend_wrapper.set___verifier(frontend_instance, verifier_option).unwrap();
 
             Ok(frontend_instance)
-
-            // match backend {
-            //     VerificationBackend::Silicon => {
-            //         silicon::Silicon::with(env).new(reporter, debug_info)
-            //     }
-            //     VerificationBackend::Carbon => {
-            //         carbon::CarbonVerifier::with(env).new(reporter, debug_info)
-            //     }
-            // }
         }));
 
         let verifier_instance = jni.unwrap_result(env.with_local_frame(128, || {
@@ -119,33 +101,53 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn parse_command_line(&self, args: &[String]) {
-        self.verifier_wrapper.call_name(self.verifier_instance).expect("fail 6");
-        // self.verifier_wrapper.call_parseCommandLine(self.verifier_instance, args).expect("fail 7");
-        self.ast_utils.with_local_frame(128, || {
-            self.verifier_wrapper.call_name(self.verifier_instance).expect("fail 7");
-            // let args = self.jni.new_seq(&args.iter().map(|x| self.jni.new_string(x)).collect::<Vec<JObject>>());
-            // let args = self.jni.new_seq(&args.iter().map(|x| self.jni.new_string(x)).collect::<Vec<JObject>>());
-            let a = &args.iter().map(|x| self.jni.new_string(x)).collect::<Vec<JObject>>();
-            self.verifier_wrapper.call_name(self.verifier_instance).expect("fail 8");
-            let b = self.jni.new_seq(a);
-            self.verifier_wrapper.call_name(self.verifier_instance).expect("fail 9");
-            self.jni.unwrap_result(
-                self.verifier_wrapper
-                    .call_parseCommandLine(self.verifier_instance, b),
-            );
-        });
+    #[tracing::instrument(level = "debug", skip_all)]
+    fn instantiate_verifier(
+        backend: VerificationBackend,
+        env: &'a JNIEnv,
+        reporter: JObject,
+        debug_info: JObject,
+    ) -> Result<JObject<'a>> {
+        match backend {
+            VerificationBackend::Silicon => silicon::Silicon::with(env).new(reporter, debug_info),
+            VerificationBackend::Carbon => {
+                panic!("Trying to use Carbon backend - now made compatible just with Silicon");
+            }
+        }
     }
 
-    pub fn start(&self) {
+    #[must_use]
+    #[tracing::instrument(level = "debug", skip_all)]
+    pub fn parse_command_line(self, args: &[String]) -> Self {
+        self.ast_utils.with_local_frame(16, || {
+            let args = self.jni.new_seq(
+                &args
+                    .iter()
+                    .map(|x| self.jni.new_string(x))
+                    .collect::<Vec<JObject>>(),
+            );
+            self.jni.unwrap_result(
+                self.verifier_wrapper
+                    .call_parseCommandLine(self.verifier_instance, args),
+            );
+        });
+        self
+    }
+
+    #[must_use]
+    #[tracing::instrument(level = "debug", skip_all)]
+    pub fn start(self) -> Self {
         self.ast_utils.with_local_frame(16, || {
             self.jni
                 .unwrap_result(self.verifier_wrapper.call_start(self.verifier_instance));
         });
+        self
     }
 
+    #[tracing::instrument(name = "viper::verify", level = "debug", skip_all)]
     pub fn verify(&mut self, program: Program) -> VerificationResult {
-        self.ast_utils.with_local_frame(16, || {
+        let ast_utils = self.ast_utils;
+        ast_utils.with_local_frame(16, || {
             debug!(
                 "Program to be verified:\n{}",
                 self.ast_utils.pretty_print(program)
@@ -179,14 +181,11 @@ impl<'a> Verifier<'a> {
             self.jni.unwrap_result(self.frontend_wrapper.set___program(self.frontend_instance, program_option));
 
             run_timed!("Viper verification", debug,
-                // let viper_result = self.jni.unwrap_result(
-                //     self.verifier_wrapper
-                //         .call_verify(self.verifier_instance, program.to_jobject()),
-                // );
                 println!("calling verification");
                 self.jni.unwrap_result(self.frontend_wrapper.call_verification(self.frontend_instance));
                 let viper_result_option = self.jni.unwrap_result(self.frontend_wrapper.call_getVerificationResult(self.frontend_instance));
                 let viper_result = self.jni.unwrap_result(scala::Some::with(self.env).call_get(viper_result_option));
+
             );
             debug!(
                 "Viper verification result: {}",
@@ -382,6 +381,12 @@ impl<'a> Verifier<'a> {
                 VerificationResult::Success
             }
         })
+    }
+
+    #[tracing::instrument(level = "debug", skip_all)]
+    fn call_verify(&self, program: Program) -> Result<JObject<'a>> {
+        self.verifier_wrapper
+            .call_verify(self.verifier_instance, program.to_jobject())
     }
 }
 

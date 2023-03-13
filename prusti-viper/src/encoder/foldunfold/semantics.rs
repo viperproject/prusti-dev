@@ -48,12 +48,12 @@ pub trait ApplyOnState {
 }
 
 impl ApplyOnState for vir::Stmt {
+    #[tracing::instrument(level = "trace", skip_all, fields(self = %self))]
     fn apply_on_state(
         &self,
         state: &mut State,
         predicates: &Predicates,
     ) -> Result<(), FoldUnfoldError> {
-        trace!("apply_on_state '{}'", self);
         trace!("State acc before {{\n{}\n}}", state.display_acc());
         trace!("State pred before {{\n{}\n}}", state.display_pred());
         trace!("State moved before {{\n{}\n}}", state.display_moved());

@@ -50,6 +50,7 @@ use prusti_interface::{
     PrustiError,
 };
 use std::collections::{BTreeMap};
+use std::fmt::Debug;
 use prusti_interface::utils;
 use prusti_rustc_interface::middle::mir::Mutability;
 use prusti_rustc_interface::middle::mir;
@@ -135,12 +136,11 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(name = "ProcedureEncoder::new", level = "debug", skip_all, fields(proc_def_id = ?procedure.get_id()))]
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         procedure: &'p Procedure<'tcx>
     ) -> SpannedEncodingResult<Self> {
-        debug!("ProcedureEncoder constructor");
-
         let mir = procedure.get_mir();
         let proc_def_id = procedure.get_id();
         let substs = encoder.env().query.identity_substs(proc_def_id);
@@ -195,6 +195,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    #[tracing::instrument(level = "trace", skip_all)]
     fn encode_specification_blocks(&mut self) -> SpannedEncodingResult<()> {
         // Collect the entry points into the specification blocks.
         let mut entry_points: BTreeMap<_, _> = self
@@ -397,8 +398,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.procedure_contract.as_ref().unwrap()
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(name = self.cfg_method.name()))]
     pub fn encode(mut self) -> SpannedEncodingResult<vir::CfgMethod> {
-        trace!("Encode procedure {}", self.cfg_method.name());
         let mir_span = self.mir.span;
 
         // Retrieve the contract
@@ -601,6 +602,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// * The first CFG block of the encoding.
     /// * A vector of unresolved edges.
     #[allow(clippy::type_complexity)]
+    #[tracing::instrument(level = "debug", skip_all)]
     fn encode_blocks_group(
         &mut self,
         label_prefix: &str,
@@ -817,6 +819,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// }
     /// assume !g
     /// ```
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_loop(
         &mut self,
         label_prefix: &str,
@@ -824,8 +827,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         return_block: CfgBlockIndex,
     ) -> SpannedEncodingResult<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
         let loop_info = self.loop_encoder.loops();
-        debug_assert!(loop_info.is_loop_head(loop_head));
-        trace!("encode_loop: {:?}", loop_head);
         debug_assert!(loop_info.is_loop_head(loop_head));
         let loop_label_prefix = format!("{}loop{}", label_prefix, loop_head.index());
         let loop_depth = loop_info.get_loop_head_depth(loop_head);
@@ -1229,6 +1230,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Returns:
     /// * The head of the encoded block
     /// * A vector unresolved edges
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_block(
         &mut self,
         label_prefix: &str,
@@ -1326,6 +1328,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode the statements of the block.
     /// In case of unsupported statements, this function will return `MirSuccessor::Kill`.
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_block_statements(
         &mut self,
         bbi: BasicBlockIndex,
@@ -1360,12 +1363,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the terminator of the block
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_block_terminator(
         &mut self,
         bbi: BasicBlockIndex,
         curr_block: CfgBlockIndex,
     ) -> SpannedEncodingResult<MirSuccessor> {
-        trace!("Encode terminator of {:?}", bbi);
         let bb_data = &self.mir.basic_blocks[bbi];
         let location = mir::Location {
             block: bbi,
@@ -1378,12 +1381,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode a MIR statement or terminator, encoding an `assert false` in case
     /// of usage of unsupported features.
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_statement_at(
         &mut self,
         location: mir::Location,
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, Option<MirSuccessor>)> {
-        debug!("Encode location {:?}", location);
-
         let span = self.mir_encoder.get_span_of_location(location);
         let bb_data = &self.mir[location.block];
         let index = location.statement_index;
@@ -1436,16 +1438,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Note: it's better to call `encode_statement_at` instead of this method.
+    #[tracing::instrument(level = "debug", skip(self), fields(statement = ?stmt.kind, span = ?stmt.source_info.span))]
     fn encode_statement(
         &mut self,
         stmt: &mir::Statement<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        debug!(
-            "Encode statement '{:?}', span: {:?}",
-            stmt.kind, stmt.source_info.span
-        );
-
         let mut stmts = vec![vir::Stmt::comment(format!("[mir] {stmt:?}"))];
         let span = self.mir_encoder.get_span_of_location(location);
 
@@ -1679,8 +1677,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> SpannedEncodingResult<(vir::Expr, Option<vir::Expr>, bool, Vec<vir::Stmt>)> {
-        debug!("encode_loan_places '{:?}'", loan_places);
         let location = loan_places.location;
         let span = self.mir_encoder.get_span_of_location(location);
 
@@ -1879,6 +1877,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn construct_vir_reborrowing_dag(
         &mut self,
         loans: &[facts::Loan],
@@ -1959,6 +1958,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     // will return None if not a slice borrow
     // as slicing is just a function call, we can only tell the difference upon
     // closer inspection
+    #[tracing::instrument(level = "trace", skip(self))]
     fn construct_vir_reborrowing_node_for_slice(
         &mut self,
         loan: facts::Loan,
@@ -1974,7 +1974,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .map_err(EncodingError::from)
             .with_span(span)?;
         trace!("loan_places: {:?}", loan_places);
-        trace!("node: {:?}", node);
 
         Ok(if let Some(regained) = self.slice_created_at.get(&loan_location) {
             let guard = self.construct_location_guard(loan_location);
@@ -2000,6 +1999,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    #[tracing::instrument(level = "trace", skip(self, _mir_dag))]
     fn construct_vir_reborrowing_node_for_assignment(
         &mut self,
         _mir_dag: &ReborrowingDAG,
@@ -2091,6 +2091,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ))
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn construct_vir_reborrowing_node_for_call(
         &mut self,
         _mir_dag: &ReborrowingDAG,
@@ -2210,6 +2211,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ))
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_expiration_of_loans(
         &mut self,
         loans: Vec<facts::Loan>,
@@ -2218,11 +2220,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         end_location: Option<mir::Location>,
         is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "encode_expiration_of_loans '{:?}' '{:?}'",
-            loans,
-            zombie_loans
-        );
         let mut stmts: Vec<vir::Stmt> = vec![];
         if !loans.is_empty() {
             let vir_reborrowing_dag =
@@ -2234,15 +2231,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_expiring_borrows_between(
         &mut self,
         begin_loc: mir::Location,
         end_loc: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        debug!(
-            "encode_expiring_borrows_beteewn '{:?}' '{:?}'",
-            begin_loc, end_loc
-        );
         let (all_dying_loans, zombie_loans) = self
             .polonius_info()
             .get_all_loans_dying_between(begin_loc, end_loc);
@@ -2250,25 +2244,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc), false)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_expiring_borrows_at(&mut self, location: mir::Location)
         -> SpannedEncodingResult<Vec<vir::Stmt>>
     {
-        debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
         let stmts = self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None, false)?;
         Ok(self.set_stmts_default_pos(stmts, self.mir_encoder.get_span_of_location(location)))
     }
 
     /// Note: it's better to call `encode_statement_at` instead of this method.
+    #[tracing::instrument(level = "debug", skip(self), fields(terminator = ?term.kind, span = ?term.source_info.span))]
     fn encode_terminator(
         &mut self,
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, MirSuccessor)> {
-        debug!(
-            "Encode terminator '{:?}', span: {:?}",
-            term.kind, term.source_info.span
-        );
         let mut stmts: Vec<vir::Stmt> = vec![vir::Stmt::comment(format!("[mir] {:?}", term.kind))];
         let span = self.mir_encoder.get_span_of_location(location);
 
@@ -2638,7 +2629,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "core::slice::<impl [T]>::len" => {
-                            debug!("Encoding call of slice::len");
                             stmts.extend(
                                 self.encode_slice_len_call(
                                     destination,
@@ -2668,7 +2658,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                         "core::ops::Index::index" |
                         "std::ops::Index::index" => {
-                            debug!("Encoding call of array/slice index call");
                             stmts.extend(
                                 self.encode_sequence_index_call(
                                     destination,
@@ -2814,6 +2803,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(result)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_slice_len_call(
         &mut self,
         destination: mir::Place<'tcx>,
@@ -2865,6 +2855,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_sequence_index_call(
         &mut self,
         destination: mir::Place<'tcx>,
@@ -2872,7 +2863,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         error_span: Span
     ) -> EncodingResult<Vec<vir::Stmt>> {
-        trace!("encode_sequence_index_call(destination={:?}, args={:?})", destination, args);
         // args[0] is the base array/slice, args[1] is the index
         // index is not specified exactly, as std::ops::Index::index is a trait method, so all we
         // know is there needs to be an impl Index<Idx> for T
@@ -3181,6 +3171,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_impure_function_call(
         &mut self,
         location: mir::Location,
@@ -3568,6 +3559,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_pure_function_call(
         &mut self,
         location: mir::Location,
@@ -3691,6 +3683,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok((encoded, pre_stmts))
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_pure_function_call_site(
         &mut self,
         location: mir::Location,
@@ -3850,6 +3843,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// - one for the type invariants
     /// - one for the functional specification.
     #[allow(clippy::type_complexity)]
+    #[tracing::instrument(level = "debug", skip(self, override_spans))]
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
@@ -3963,6 +3957,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ))
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_spec_refinement(
         &self,
         pre_label: &str,
@@ -4099,6 +4094,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode precondition inhale on the definition side.
+    #[tracing::instrument(level = "debug", skip_all)]
     fn encode_preconditions(
         &mut self,
         start_cfg_block: CfgBlockIndex,
@@ -4156,6 +4152,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode the magic wand used in the postcondition with its
     /// functional specification. Returns (lhs, rhs).
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_postcondition_magic_wand(
         &self,
         location: Option<mir::Location>,
@@ -4354,6 +4351,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// `function_end` – are we encoding the exhale of the postcondition
     /// at the end of the method?
     #[allow(clippy::too_many_arguments, clippy::type_complexity)]
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_postcondition_expr(
         &mut self,
         location: Option<mir::Location>,
@@ -4529,6 +4527,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// same place. Instead, we replace them with ghost variables.
     ///
     /// This method replaces all places with `label` with ghost variables.
+    #[tracing::instrument(level = "trace", skip(self))]
     fn replace_old_places_with_ghost_vars(
         &mut self,
         label: Option<&str>,
@@ -4585,13 +4584,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the package statement of magic wands at the end of the method
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_package_end_of_method(
         &mut self,
         pre_label: &str,
         post_label: &str,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        debug!("encode_package_end_of_method '{:?}'", location);
         let mut stmts = Vec::new();
         let span = self.mir.source_info(location).span;
 
@@ -4713,6 +4712,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode postcondition exhale in the `return_cfg_block` CFG block.
+    #[tracing::instrument(level = "debug", skip_all)]
     fn encode_postconditions(
         &mut self,
         return_cfg_block: CfgBlockIndex,
@@ -5038,18 +5038,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Result:
     /// * The first vector contains permissions.
     /// * The second vector contains value preserving equalities.
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_loop_invariant_permissions(
         &mut self,
         loop_head: BasicBlockIndex,
         loop_inv: BasicBlockIndex,
         drop_read_references: bool,
     ) -> EncodingResult<(Vec<vir::Expr>, Vec<vir::Expr>, Vec<vir::Expr>)> {
-        trace!(
-            "[enter] encode_loop_invariant_permissions \
-             loop_head={:?} drop_read_references={}",
-            loop_head,
-            drop_read_references
-        );
         let permissions_forest = self
             .loop_encoder
             .compute_loop_invariant(loop_head, loop_inv)
@@ -5286,6 +5281,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Get the basic blocks that encode the specification of a loop invariant
+    #[tracing::instrument(level = "debug", skip(self))]
     fn get_loop_spec_blocks(&self, loop_head: BasicBlockIndex) -> Vec<BasicBlockIndex> {
         let mut res = vec![];
         for bbi in self.procedure.get_reachable_cfg_blocks() {
@@ -5306,6 +5302,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the functional specification of a loop
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn encode_loop_invariant_specs(
         &self,
         loop_head: BasicBlockIndex,
@@ -5344,23 +5341,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
         }
-        trace!("encoded specs: {:?}", encoded_specs);
-
         Ok((encoded_specs, MultiSpan::from_spans(encoded_spec_spans)))
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_loop_invariant_exhale_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop_iteration: bool,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_loop_invariant_exhale_stmts loop_head={:?} \
-             after_loop_iteration={}",
-            loop_head,
-            after_loop_iteration
-        );
         if !after_loop_iteration {
             self.pure_var_for_preserving_value_map
                 .insert(loop_head, FxHashMap::default());
@@ -5439,17 +5429,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_loop_invariant_inhale_perm_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
     ) -> EncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_loop_invariant_inhale_perm_stmts loop_head={:?} after_loop={}",
-            loop_head,
-            after_loop
-        );
         let (permissions, equalities, invs_spec) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)?;
 
@@ -5471,17 +5457,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_loop_invariant_inhale_fnspec_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, MultiSpan)> {
-        trace!(
-            "[enter] encode_loop_invariant_inhale_fnspec_stmts loop_head={:?} after_loop={}",
-            loop_head,
-            after_loop
-        );
         let (func_spec, func_spec_span) =
             self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
 
@@ -5724,16 +5706,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Return type:
     /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`
+    #[tracing::instrument(level = "debug", skip(self), ret())]
     fn encode_assign_operand(
         &mut self,
         lhs: &vir::Expr,
         operand: &mir::Operand<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
-            lhs, operand, location
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match operand {
             mir::Operand::Move(place) => {
@@ -5856,10 +5835,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         };
         debug!(
-            "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?}) = {}",
-            lhs,
-            operand,
-            location,
+            "encode_assign_operand result: {}",
             vir::stmts_to_str(&stmts)
         );
         Ok(stmts)
@@ -5867,6 +5843,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Assignment with a binary operation on the RHS
     /// [encoded_lhs] = [left] [op] [right]
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_binary_op(
         &mut self,
         op: mir::BinOp,
@@ -5876,12 +5853,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})",
-            op,
-            left,
-            right
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let encoded_left = self.mir_encoder.encode_operand_expr(left)
             .with_span(span)?;
@@ -5912,6 +5883,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Assignment with a(n overflow-)checked binary operation on the RHS.
     /// [encoded_lhs] = [left] [op] [right]
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_checked_binary_op(
         &mut self,
         op: mir::BinOp,
@@ -5921,12 +5893,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})",
-            op,
-            left,
-            right
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let operand_ty = if let ty::TyKind::Tuple(types) = ty.kind() {
             types[0]
@@ -6010,6 +5976,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Assignment with unary op as RHS.
     /// Unary ops currently are logical and arithmetic negation
     /// [encoded_lhs] = [op] [operand]
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_unary_op(
         &mut self,
         op: mir::UnOp,
@@ -6018,11 +5985,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_unary_op(op={:?}, operand={:?})",
-            op,
-            operand
-        );
         let encoded_val = self.mir_encoder.encode_operand_expr(operand)
             .with_span(
                 self.mir_encoder.get_span_of_location(location)
@@ -6035,6 +5997,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Assignment with a nullary op on the RHS.
     /// Nullary ops currently are sizeof and alignof.
     /// [lhs] = [op] [op_ty]
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_nullary_op(
         &mut self,
         op: mir::NullOp,
@@ -6043,7 +6006,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!("[enter] encode_assign_nullary_op(op={op:?}, op_ty={op_ty:?})");
         let tcx = self.encoder.env().tcx();
         let param_env = tcx.param_env(self.proc_def_id);
         let layout = match tcx.layout_of(param_env.and(op_ty)) {
@@ -6102,6 +6064,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Assignment with the RHS being the discriminant value of an enum
     /// [lhs] = discriminant of [src]
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_assign_discriminant(
         &mut self,
         src: mir::Place<'tcx>,
@@ -6109,11 +6072,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_discriminant(src={:?}, location={:?})",
-            src,
-            location
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let (encoded_src, mut stmts, src_ty, _) = self.encode_place(src, ArrayAccessKind::Shared, location)?;
         let encode_stmts = match src_ty.kind() {
@@ -6169,6 +6127,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Assignment with the RHS being referenced
     /// [encoded_lhs] = &[mir_borrow_kind] [place]
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_assign_ref(
         &mut self,
         mir_borrow_kind: mir::BorrowKind,
@@ -6177,12 +6136,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})",
-            mir_borrow_kind,
-            place,
-            location
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let loan = self.polonius_info().get_loan_at_location(location);
         let (vir_assign_kind, array_encode_kind) = match mir_borrow_kind {
@@ -6220,6 +6173,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Assignment where the RHS is a cast operation
     /// [encoded_lhs] = [operand] as [dst_ty]
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_cast(
         &mut self,
         operand: &mir::Operand<'tcx>,
@@ -6228,11 +6182,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_cast(operand={:?}, dst_ty={:?})",
-            operand,
-            dst_ty
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span)?;
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
@@ -6240,6 +6189,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Take a slice into the RHS array
     /// (also happens for calls that you do on an array that are slice methods, like .len())
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_assign_slice(
         &mut self,
         encoded_lhs: vir::Expr,
@@ -6247,7 +6197,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!("encode_assign_slice(lhs={:?}, operand={:?}, ty={:?})", encoded_lhs, operand, ty);
         debug_assert!(ty.is_slice_ref());
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = Vec::new();
@@ -6339,6 +6288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_sequence_len(
         &mut self,
         encoded_lhs: vir::Expr,
@@ -6346,11 +6296,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst_ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_sequence_len(place={:?}, ty={:?})",
-            place,
-            dst_ty,
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let (encoded_place, mut stmts, place_ty, ..) = self.encode_place(
             place,
@@ -6447,8 +6392,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         vir::LocalVar::new(name, vir_type)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_havoc(&mut self, dst: &vir::Expr) -> EncodingResult<Vec<vir::Stmt>> {
-        debug!("Encode havoc {:?}", dst);
         let havoc_ref_method_name = self
             .encoder
             .encode_builtin_method_use(BuiltinMethodKind::HavocRef)?;
@@ -6476,9 +6421,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Havoc and assume permission on fields
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_havoc_and_initialization(&mut self, dst: &vir::Expr) -> EncodingResult<Vec<vir::Stmt>> {
-        debug!("Encode havoc and allocation {:?}", dst);
-
         let mut stmts = vec![];
         // Havoc `dst`
         stmts.extend(self.encode_havoc(dst)?);
@@ -6494,6 +6438,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Prepare the ``dst`` to be copy target:
     ///
     /// 1.  Havoc and allocate if it is not yet allocated.
+    #[tracing::instrument(level = "debug", skip(self))]
     fn prepare_assign_target(
         &mut self,
         dst: vir::Expr,
@@ -6502,12 +6447,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         vir_assign_kind: vir::AssignKind,
         can_copy_reference: bool // reference copies are allowed if the field is a constant
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
-            dst,
-            field,
-            location
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         if !self.init_info.is_vir_place_accessible(&dst, location) {
             let mut alloc_stmts = self.encode_havoc(&dst).with_span(span)?;
@@ -6647,6 +6586,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// tuples
     /// [dst] = Foo { x: [op_0], y: [op_1], .. }
     /// [dst] = [ op_0, op_1, ..];
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_assign_aggregate(
         &mut self,
         dst: &vir::Expr,
@@ -6655,10 +6595,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         operands: &[mir::Operand<'tcx>],
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        debug!(
-            "[enter] encode_assign_aggregate({:?}, {:?})",
-            aggregate, operands
-        );
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = self.encode_havoc_and_initialization(dst).with_span(span)?;
         // Initialize values
@@ -6815,6 +6751,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn get_label_after_location(&mut self, location: mir::Location) -> SpannedEncodingResult<Option<&String>> {
         let opt_label = self.label_after_location.get(&location);
         if opt_label.is_none() {
@@ -6846,6 +6783,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// A local version of encode_place
+    #[tracing::instrument(level = "trace", skip(self))]
     fn encode_place(
         &mut self,
         place: mir::Place<'tcx>,
@@ -6999,12 +6937,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok((res, stmts))
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     fn postprocess_place_encoding(
         &mut self,
         place_encoding: PlaceEncoding<'tcx>,
         array_encode_kind: ArrayAccessKind,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        trace!("postprocess_place_encoding: {:?}", place_encoding);
         Ok(match place_encoding {
             PlaceEncoding::Expr(e) => (e, vec![]),
             PlaceEncoding::FieldAccess { box base, field } => {
@@ -7031,7 +6969,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn register_error<T: Into<MultiSpan>>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
+    fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
         self.mir_encoder.register_error(span, error_ctxt)
     }
 }

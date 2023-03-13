@@ -1,5 +1,4 @@
 use crate::encoder::mir::specifications::specs::Specifications;
-use log::trace;
 use prusti_interface::{
     specs::{
         typed,
@@ -131,6 +130,7 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let kind = self.get_proc_kind(def_id, substs);
         let mut pure = matches!(
@@ -146,8 +146,6 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         {
             pure = true;
         }
-
-        trace!("is_pure {:?} = {}", def_id, pure);
         pure
     }
 
@@ -167,37 +165,34 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .unwrap_or(ProcedureSpecificationKind::Impure)
     }
 
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
         let query = SpecQuery::GetProcKind(def_id, substs);
-        let result = self
-            .specifications_state
+        self.specifications_state
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.trusted.extract_with_selective_replacement().copied())
-            .unwrap_or(false);
-        trace!("is_trusted {:?} = {}", query, result);
-        result
+            .unwrap_or(false)
     }
 
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId> {
         let query = SpecQuery::FunctionDefEncoding(def_id, substs);
         let mut specs = self.specifications_state.specs.borrow_mut();
-        let result = specs
+        specs
             .get_and_refine_proc_spec(self.env(), query)
             // In case of error -> It is emitted in get_and_refine_proc_spec
-            .map(|spec| spec.kind.get_predicate_body().unwrap_or(None))
-            .unwrap_or(None);
-        trace!("get_predicate_body {:?} = {:?}", query, result);
-        result.cloned()
+            .and_then(|spec| spec.kind.get_predicate_body().unwrap_or(None))
+            .cloned()
     }
 
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn terminates(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
         let query = SpecQuery::GetProcKind(def_id, substs);
-        let result = self
-            .specifications_state
+        self.specifications_state
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
@@ -207,9 +202,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
                     .copied()
             })
             .unwrap_or(None)
-            .is_some();
-        trace!("terminates {:?} = {}", query, result);
-        result
+            .is_some()
     }
 
     fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {
