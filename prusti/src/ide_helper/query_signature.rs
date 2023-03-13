@@ -21,6 +21,7 @@ enum ExternSpecBlock {
         name: String,
         path: String,
         generics: Vec<GenericArg>,
+        bounds: HashMap<String, Vec<TraitBound>>,
         function_sig: FunctionSignature,
     },
     Impl {
@@ -28,6 +29,7 @@ enum ExternSpecBlock {
         // the path
         trait_name: Option<String>,
         generics: Vec<GenericArg>,
+        bounds: HashMap<String, Vec<TraitBound>>,
         function_sig: FunctionSignature,
     },
 }
@@ -60,11 +62,13 @@ impl ExternSpecBlock {
                         }
                         .to_string();
                         let generics = generic_params(tcx, impl_defid);
+                        let bounds = trait_bounds(tcx, impl_defid);
 
                         Some(ExternSpecBlock::Impl {
                             name: self_ty,
                             trait_name,
                             generics,
+                            bounds,
                             function_sig: signature,
                         })
                     }
@@ -77,11 +81,13 @@ impl ExternSpecBlock {
                             let traitname = tcx.opt_item_name(parent)?.to_string();
                             let parent_defpath = get_parent_chain(parent, tcx);
                             let trait_params = generic_params(tcx, parent);
+                            let bounds = trait_bounds(tcx, parent);
 
                             Some(ExternSpecBlock::Trait {
                                 name: traitname,
                                 path: parent_defpath,
                                 generics: trait_params,
+                                bounds,
                                 function_sig: signature,
                             })
                         } else {
@@ -105,16 +111,17 @@ impl fmt::Display for ExternSpecBlock {
                 name,
                 trait_name,
                 generics,
+                bounds,
                 function_sig,
             } => {
                 let generics_str = generic_args_str(generics, false);
-                let where_block = bounds_where_block(generics);
+                let where_block = bounds_where_block(bounds);
 
                 write!(f, "#[extern_spec]\nimpl{generics_str} ")?;
                 if let Some(trait_name) = trait_name {
                     write!(f, "{trait_name} for ")?;
                 }
-                writeln!(f, "{name} {where_block}{{")?;
+                writeln!(f, "{name}{where_block}\n{{")?;
                 let fn_sig = indent(&function_sig.to_string());
                 write!(f, "{fn_sig}\n}}")
             }
@@ -122,14 +129,15 @@ impl fmt::Display for ExternSpecBlock {
                 name,
                 path,
                 generics,
+                bounds,
                 function_sig,
             } => {
                 let fn_sig = indent(&function_sig.to_string());
                 let generics_str = generic_args_str(generics, false);
-                let where_block = bounds_where_block(generics);
+                let where_block = bounds_where_block(bounds);
                 // do traits specify traitbounds too?
                 writeln!(f, "#[extern_spec({path})]")?;
-                writeln!(f, "trait {name}{generics_str} {where_block}{{")?;
+                writeln!(f, "trait {name}{generics_str}{where_block}\n{{")?;
                 writeln!(f, "{fn_sig}\n}}")
             }
             ExternSpecBlock::StandaloneFn {
@@ -146,19 +154,14 @@ impl fmt::Display for ExternSpecBlock {
 #[derive(Debug, Clone)]
 struct GenericArg {
     name: String,
-    default_value: Option<String>,
-    bounds: Vec<TraitBound>,
-    projections: HashMap<String, String>,
+    _default_value: Option<String>,
 }
 
 impl fmt::Display for GenericArg {
-    /// For a generic argument, generate a string such as
-    /// T: Add<Output=T> + Display
-    /// default formatter will include the traitbounds, otherwise just take
-    /// .name field if they should be part of a where block
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bounds_str = traitbounds_string(&self.bounds);
-        write!(f, "{}: {bounds_str}", self.name)
+        write!(f, "{}", self.name)
+        // Trait bounds will always be in where blocks since this
+        // complicates things a lot otherwise.
         // for now we ignore defaults since prusti doesnt accept them in
         // some cases..
         // if self.default_value.is_some() {
@@ -174,14 +177,13 @@ impl fmt::Display for GenericArg {
 ///     T: bound1 + bound2,
 ///     S: anotherbound,
 /// ```
-fn bounds_where_block(arglist: &[GenericArg]) -> String {
-    let bounds_vec = arglist
+fn bounds_where_block(traitbounds: &HashMap<String, Vec<TraitBound>>) -> String {
+    let bounds_vec = traitbounds
         .iter()
-        .filter(|arg| !arg.bounds.is_empty())
-        .map(|arg| format!("\t{}: {}", arg.name, traitbounds_string(&arg.bounds)))
+        .map(|(arg, bounds)| format!("\t{}: {}", arg, traitbounds_string(bounds)))
         .collect::<Vec<String>>();
     if !bounds_vec.is_empty() {
-        format!("where\n{}\n", bounds_vec.join(",\n"))
+        format!("\nwhere\n{}", bounds_vec.join(",\n"))
     } else {
         "".to_string()
     }
@@ -243,6 +245,7 @@ impl fmt::Display for TraitBound {
 struct FunctionSignature {
     name: String,
     generics: Vec<GenericArg>,
+    bounds: HashMap<String, Vec<TraitBound>>,
     arguments: Vec<(String, String)>, // (name, type)
     return_type: Option<String>,
 }
@@ -267,9 +270,11 @@ impl FunctionSignature {
             .collect();
 
         let generics = generic_params(tcx, defid);
+        let bounds = trait_bounds(tcx, defid);
         Some(Self {
             name,
             generics,
+            bounds,
             arguments,
             return_type,
         })
@@ -290,44 +295,44 @@ impl fmt::Display for FunctionSignature {
     // fn<generics>(args) -> output where
     //    bounds;
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let generics_str = generic_args_str(&self.generics, true);
-        // let where_block = bounds_where_block(&self.generics);
+        let generics_str = generic_args_str(&self.generics, false);
+        let where_block = bounds_where_block(&self.bounds);
         let args_str = self.arguments_string();
 
         write!(f, "fn {}{}{}", self.name, generics_str, args_str)?;
         if let Some(ret_ty) = self.return_type.clone() {
             write!(f, " -> {ret_ty}")?;
         }
-        write!(f, ";")
+        write!(f, "{where_block};")
     }
 }
 
 fn generic_params(tcx: TyCtxt<'_>, defid: DefId) -> Vec<GenericArg> {
     let generics = tcx.generics_of(defid);
-    let mut generic_params: HashMap<String, GenericArg> = HashMap::new();
     let substs = ty::subst::InternalSubsts::identity_for_item(tcx, defid);
 
-    // first we just collect all generic parameters
-    for param in generics.params.iter() {
-        let ident = param.name.to_string();
-        if ident == "Self" {
-            continue;
-        }
-        let mut generic_arg = GenericArg {
-            name: ident.clone(),
-            default_value: None,
-            bounds: vec![],
-            projections: HashMap::new(),
-        };
-        let default_opt = param.default_value(tcx);
-        if let Some(default_value) = default_opt {
-            generic_arg.default_value = Some(format!("{}", default_value.subst(tcx, substs)));
-        }
+    generics
+        .params
+        .iter()
+        .filter_map(|param| {
+            let ident = param.name.to_string();
+            if ident == "Self" {
+                None
+            } else {
+                let default_value = param
+                    .default_value(tcx)
+                    .map(|val| val.subst(tcx, substs).to_string());
+                Some(GenericArg {
+                    name: ident,
+                    _default_value: default_value,
+                })
+            }
+        })
+        .collect()
+}
 
-        generic_params.insert(ident, generic_arg);
-    }
-
-    // now add traitbounds and default types:
+fn trait_bounds(tcx: TyCtxt<'_>, defid: DefId) -> HashMap<String, Vec<TraitBound>> {
+    let mut traitbounds: HashMap<String, Vec<TraitBound>> = HashMap::new();
     let predicates = tcx.predicates_of(defid);
 
     for (predicate, _) in predicates.predicates {
@@ -355,44 +360,32 @@ fn generic_params(tcx: TyCtxt<'_>, defid: DefId) -> Vec<GenericArg> {
                     args: trait_args,
                 };
                 // add this bound to the given type.
-                generic_params
-                    .get_mut(&self_ty)
-                    .unwrap() // is failing appropriate?
-                    .bounds
-                    .push(bound);
+                if let Some(bounds) = traitbounds.get_mut(&self_ty) {
+                    bounds.push(bound);
+                } else {
+                    traitbounds.insert(self_ty, vec![bound]);
+                }
             }
-            // not sure if we should even handle this:
             PredicateKind::Clause(Clause::Projection(p)) => {
                 let item_id = p.projection_ty.def_id;
                 let self_ty = format!("{}", p.projection_ty.self_ty());
                 let trait_defid: DefId = p.projection_ty.trait_def_id(tcx);
                 let trait_defpath = tcx.def_path_str(trait_defid);
 
-                let item_name = tcx.item_name(item_id);
+                let item_name = tcx.item_name(item_id).to_string();
 
                 let projection_term = format!("{}={}", item_name, p.term);
-                let genarg = generic_params.get_mut(&self_ty).unwrap();
-                // not sure if this is actually completely correct.
-                // can a single generic type have the same traitbound
-                // more than once with different arguments?
-                // I would imagine yes.. may be a todo
-                genarg.projections.insert(trait_defpath, projection_term);
+                let bounds = traitbounds.get_mut(&self_ty).unwrap();
+                let mut last_bound = bounds.pop().unwrap();
+                if last_bound.name == trait_defpath {
+                    last_bound.args.push(projection_term);
+                }
+                bounds.push(last_bound);
             }
             _ => {}
         }
     }
-
-    // handling projections here is simpler than when printing:
-    // could not do this directly since projections
-    for el in generic_params.values_mut() {
-        for tb in &mut el.bounds {
-            if let Some(projection_term) = el.projections.get(&tb.name) {
-                tb.args.push(projection_term.clone());
-            }
-        }
-    }
-
-    generic_params.values().cloned().collect()
+    traitbounds
 }
 
 pub fn collect_queried_signature(tcx: TyCtxt<'_>, fncalls: &[ProcDef]) -> Option<String> {
