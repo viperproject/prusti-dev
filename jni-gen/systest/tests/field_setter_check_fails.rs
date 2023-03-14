@@ -82,4 +82,3 @@ fn field_setter_should_fail_on_wrong_argument() {
         panic!("{} source: {:?}", e, std::error::Error::source(&e));
     });
 }
-
