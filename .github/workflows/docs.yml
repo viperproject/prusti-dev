@@ -27,6 +27,36 @@ jobs:
       # - name: Spellcheck
       #  uses: rojopolis/spellcheck-github-actions@0.27.0
 
+  mdbook_test: # https://rust-lang.github.io/mdBook/continuous-integration.html
+    runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+          with:
+            path: "repo"
+
+        - name: Setup mdBook
+          uses: peaceiris/actions-mdbook@v1
+          with:
+            mdbook-version: "latest"
+
+        #  cargo should be installed (TODO: Maybe have to add a rustup toolchain file (for correct version locks))
+
+        - name: Build dummy crate to get dependencies
+          run: |
+            cd repo/docs/dummy/
+            cargo build
+
+        - name: Doctest user guide
+          run: |
+            cd repo/docs/user-guide
+            mdbook test -L "../../dummy/target/debug/deps/"
+
+        - name: Doctest dev guide
+          run: |
+            cd repo/docs/dev-guide
+            mdbook test -L "../../dummy/target/debug/deps/"
+
   deploy:
     # Only deploy on push to master
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
