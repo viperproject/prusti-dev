@@ -67,8 +67,17 @@ impl WrapperGenerator {
         //remove_dir_all(out_dir)?;
         create_dir_all(out_dir)?;
         create_dir_all(out_dir.join("builtins"))?;
-        let builtins_utils = Path::new("/home/simon/repo/prusti-dev/jni-gen/builtins/utils.rs");
-        copy(builtins_utils, out_dir.join("builtins/utils.rs"))?;
+        let jni_path = "jni-gen";
+        let utils_relative_path = "builtins/utils.rs";
+
+        let mut absolute_path_to_repository = std::env::current_dir()?;
+        while !absolute_path_to_repository.join(jni_path).join(utils_relative_path).exists() {
+            if !absolute_path_to_repository.pop() {
+                panic!("could not find jni-gen/builtins within the repository")
+            }
+        }
+        let builtins_utils_path = absolute_path_to_repository.join(jni_path).join(utils_relative_path);
+        copy(builtins_utils_path, out_dir.join(utils_relative_path))?;
 
         for class in &self.classes {
             let class_name = class.get_name();
