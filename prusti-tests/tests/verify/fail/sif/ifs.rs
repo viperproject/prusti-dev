@@ -14,6 +14,16 @@ fn choose(b: bool, h: i32, l: i32) -> i32 {
     }
 }
 
+#[requires(low(l1) && low(l2))]
+#[ensures(low(result))] //~EROOR postcondition might not hold.
+fn choose2(b: bool, l1: i32, l2: i32) -> i32 {
+    if b {
+        l1
+    } else {
+        l2
+    }
+}
+
 fn produce_high() -> i32 {
     42
 }
