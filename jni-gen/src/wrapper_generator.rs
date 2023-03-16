@@ -12,16 +12,20 @@ use crate::{
 };
 use jni::{InitArgsBuilder, JNIVersion, JavaVM};
 use log::debug;
-use std::{
-    fs::create_dir_all,
-    io::prelude::*,
-    path::Path,
-};
+use std::{fs::create_dir_all, io::prelude::*, path::Path};
 
 #[derive(Default)]
 pub struct WrapperGenerator {
     jars: Vec<String>,
     classes: Vec<ClassWrapperSpec>,
+}
+
+fn save_file_atomic(content: &str, temp_dir: &Path, file_path: &Path) -> LocalResult<()> {
+    // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
+    let mut mod_file = tempfile::NamedTempFile::new_in(temp_dir)?;
+    mod_file.write_all(content.as_bytes())?;
+    mod_file.into_temp_path().persist(file_path)?;
+    Ok(())
 }
 
 impl WrapperGenerator {
@@ -69,9 +73,7 @@ impl WrapperGenerator {
         create_dir_all(out_dir.join("builtins"))?;
 
         let utils_content = include_str!("../builtins/mod.rs");
-        let mut utils_file = tempfile::NamedTempFile::new_in(out_dir.join("builtins"))?;
-        utils_file.write_all(utils_content.as_bytes())?;
-        utils_file.into_temp_path().persist(out_dir.join("builtins/mod.rs"))?;
+        save_file_atomic(&utils_content, out_dir, &out_dir.join("builtins/mod.rs"))?;
 
         for class in &self.classes {
             let class_name = class.get_name();
@@ -93,23 +95,17 @@ impl WrapperGenerator {
             if let Some(parent_path) = class_path.parent() {
                 create_dir_all(parent_path)?;
             }
-            // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
-            let mut class_file = tempfile::NamedTempFile::new_in(out_dir)?;
+
             let class_generator =
                 ClassGenerator::new(&env, class_name.to_owned(), class.get_items().to_vec());
             let class_code = class_generator.generate()?;
-            class_file.write_all(class_code.as_bytes())?;
-            class_file.into_temp_path().persist(&class_path)?;
+            save_file_atomic(&class_code, out_dir, &class_path)?;
         }
 
         {
             let class_names: Vec<&ClassName> = self.classes.iter().map(|x| x.get_name()).collect();
             let mod_code = generate_module(class_names);
-            let mod_path = out_dir.join("mod.rs");
-            // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
-            let mut mod_file = tempfile::NamedTempFile::new_in(out_dir)?;
-            mod_file.write_all(mod_code.as_bytes())?;
-            mod_file.into_temp_path().persist(mod_path)?;
+            save_file_atomic(&mod_code, out_dir, &out_dir.join("mod.rs"))?;
         }
 
         Ok(())
