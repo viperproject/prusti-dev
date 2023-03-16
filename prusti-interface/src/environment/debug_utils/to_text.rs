@@ -180,16 +180,19 @@ impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Region<'tcx> {
                 format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
             }
             prusti_rustc_interface::middle::ty::ReFree(_) => {
-                unimplemented!("ReFree: {}", format!("{self}"));
+                unimplemented!("ReFree: {self}");
             }
             prusti_rustc_interface::middle::ty::ReStatic => String::from("lft_static"),
             prusti_rustc_interface::middle::ty::ReVar(region_vid) => {
                 format!("lft_{}", region_vid.index())
             }
             prusti_rustc_interface::middle::ty::RePlaceholder(_) => {
-                unimplemented!("RePlaceholder: {}", format!("{self}"));
+                unimplemented!("RePlaceholder: {self}");
             }
             prusti_rustc_interface::middle::ty::ReErased => String::from("lft_erased"),
+            prusti_rustc_interface::middle::ty::ReError(_) => {
+                unimplemented!("ReError: {}", format!("{self}"));
+            }
         }
     }
 }

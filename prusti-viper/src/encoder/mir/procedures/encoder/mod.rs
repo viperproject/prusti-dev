@@ -75,8 +75,11 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let tcx = encoder.env().tcx();
     let (mir, lifetimes) = self::elaborate_drops::elaborate_drops(encoder, def_id, &procedure)?;
     let mir = &mir; // Mark body as immutable.
-    let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
-    let init_data = InitializationData::new(tcx, mir, &move_env);
+    let (env, un_derefer) =
+        self::initialisation::create_move_data_param_env_and_un_derefer(tcx, mir);
+    // TODO: the clone is required so that we can remove dead unwinds
+    let mut no_dead_unwinds = mir.clone();
+    let init_data = InitializationData::new(tcx, &mut no_dead_unwinds, &env, &un_derefer);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
     let specification_blocks =
         SpecificationBlocks::build(encoder.env().query, mir, &procedure, true);

@@ -257,7 +257,7 @@ impl<'tcx> EnvQuery<'tcx> {
         let call_trait_substs =
             ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
-        let trait_method_substs = self.tcx.mk_substs(
+        let trait_method_substs = self.tcx.mk_substs_from_iter(
             call_trait_substs
                 .iter()
                 .chain(impl_method_substs.iter().skip(impl_substs.len())),
@@ -451,7 +451,7 @@ impl<'tcx> EnvQuery<'tcx> {
     /// then used to calculate the param env; i.e. the set of
     /// where-clauses that are in scope at this particular point.
     #[tracing::instrument(level = "debug", skip(self))]
-    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + Debug + Copy>(
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<TyCtxt<'tcx>> + Debug + Copy>(
         self,
         normalizable: T,
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>> + Debug,

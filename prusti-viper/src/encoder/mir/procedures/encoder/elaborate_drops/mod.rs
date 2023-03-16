@@ -53,8 +53,11 @@ pub(super) fn elaborate_drops<'v, 'tcx: 'v>(
     }
 
     validate(&input_facts, &location_table, mir);
-    let drop_patch = self::mir_transform::run_pass(tcx, mir);
-    let mir = apply_patch(drop_patch, mir, &mut input_facts, &mut location_table);
+    // FIXME: this is super awkward; `run_pass` used to take an immutable ref,
+    // but now it takes a mutable ref, so the dirty fix is to clone.
+    let mut mir = mir.clone();
+    let drop_patch = self::mir_transform::run_pass(tcx, &mut mir);
+    let mir = apply_patch(drop_patch, &mir, &mut input_facts, &mut location_table);
 
     if config::dump_debug_info() {
         let local_def_id = def_id.expect_local();

@@ -54,7 +54,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     eprintln!();
 
     let fallback_bundle = prusti_rustc_interface::errors::fallback_fluent_bundle(
-        prusti_rustc_interface::errors::DEFAULT_LOCALE_RESOURCES,
+        prusti_rustc_interface::driver::DEFAULT_LOCALE_RESOURCES.to_vec(),
         false,
     );
     let emitter = box prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
@@ -67,6 +67,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         None,
         false,
         false,
+        prusti_rustc_interface::errors::TerminalUrl::Auto,
     );
     let handler = prusti_rustc_interface::errors::Handler::with_emitter(true, None, emitter);
 

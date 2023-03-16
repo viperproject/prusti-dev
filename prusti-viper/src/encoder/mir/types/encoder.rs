@@ -20,7 +20,7 @@ use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{
         mir,
-        ty::{self, TypeVisitable},
+        ty::{self, TypeVisitableExt},
     },
 };
 use vir_crate::high::{self as vir, operations::ty::Typed};
@@ -836,7 +836,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                                 prusti_rustc_interface::middle::ty::IntTy::I128
                             }
                         };
-                        encoder.env().tcx().mk_ty(ty::TyKind::Int(int))
+                        encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Int(int))
                     } else {
                         let int = match int {
                             prusti_rustc_interface::target::abi::Integer::I8 => {
@@ -855,16 +855,16 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                                 prusti_rustc_interface::middle::ty::UintTy::U128
                             }
                         };
-                        encoder.env().tcx().mk_ty(ty::TyKind::Uint(int))
+                        encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Uint(int))
                     }
                 }
                 prusti_rustc_interface::target::abi::IntegerType::Pointer(signed) => {
                     if signed {
-                        encoder.env().tcx().mk_ty(ty::TyKind::Int(
+                        encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Int(
                             prusti_rustc_interface::middle::ty::IntTy::Isize,
                         ))
                     } else {
-                        encoder.env().tcx().mk_ty(ty::TyKind::Uint(
+                        encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Uint(
                             prusti_rustc_interface::middle::ty::UintTy::Usize,
                         ))
                     }

@@ -90,7 +90,7 @@ fn main() {
                 method!("wrapRefArray"),
             ]),
             java_class!("scala.math.BigInt", vec![
-                constructor!(),
+                constructor!("(Ljava/math/BigInteger;)V"),
             ]),
             java_class!("scala.collection.mutable.ArrayBuffer", vec![
                 constructor!("(I)V"),
