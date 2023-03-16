@@ -73,7 +73,7 @@ impl WrapperGenerator {
         create_dir_all(out_dir.join("builtins"))?;
 
         let utils_content = include_str!("../builtins/mod.rs");
-        save_file_atomic(&utils_content, out_dir, &out_dir.join("builtins/mod.rs"))?;
+        save_file_atomic(utils_content, out_dir, &out_dir.join("builtins/mod.rs"))?;
 
         for class in &self.classes {
             let class_name = class.get_name();
