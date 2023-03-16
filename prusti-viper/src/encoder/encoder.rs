@@ -617,7 +617,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Int(ty::IntTy::I32) => scalar_value.to_i32().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::I64) => scalar_value.to_i64().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::I128) => scalar_value.to_i128().unwrap().into(),
-            ty::TyKind::Int(ty::IntTy::Isize) => scalar_value.to_target_usize(&self.env.tcx()).unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::Isize) => scalar_value.to_target_isize(&self.env.tcx()).unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U8) => scalar_value.to_u8().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U16) => scalar_value.to_u16().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U32) => scalar_value.to_u32().unwrap().into(),
