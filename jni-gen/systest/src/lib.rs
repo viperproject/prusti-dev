@@ -16,6 +16,9 @@ pub fn print_exception(env: &JNIEnv) {
     }
 }
 
+// TODO: Refactor using a LazyLock<JavaVM>
+// see https://github.com/viperproject/prusti-dev/pull/1364#issuecomment-1471597370
+// for further details
 static INIT_JVM: Once = Once::new();
 static mut JVM: Option<JavaVM> = None;
 
