@@ -68,7 +68,7 @@ impl WrapperGenerator {
         create_dir_all(out_dir)?;
         create_dir_all(out_dir.join("builtins"))?;
         let jni_path = "jni-gen";
-        let utils_relative_path = "builtins/utils.rs";
+        let utils_relative_path = "builtins/mod.rs";
 
         let mut absolute_path_to_repository = std::env::current_dir()?;
         while !absolute_path_to_repository.join(jni_path).join(utils_relative_path).exists() {
