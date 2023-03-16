@@ -1,10 +1,10 @@
 use jni::{objects::JObject, JNIEnv};
 use jni::strings::JavaStr;
 use std::ffi::CStr;
-use jni_gen::errors::*;
+use jni::errors::Result;
 
 pub fn java_str_to_string(string: &JavaStr) -> Result<String> {
-    unsafe { Ok(CStr::from_ptr(string.get_raw()).to_str()?.to_string()) }
+    unsafe { Ok(CStr::from_ptr(string.get_raw()).to_str().unwrap_or_else(|err| panic!("java_str_to_string - failed to convert string: {err:?}")).to_string()) }
 }
 
 fn get_jobject_class_name_inner<'a, 'c, O>(env: &'c JNIEnv<'c>, object: O) -> Result<String>
