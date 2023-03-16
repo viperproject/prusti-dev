@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["NormalizationInfo",""]]};
+window.SIDEBAR_ITEMS = {"enum":["NormalizationInfo"]};

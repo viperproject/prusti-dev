@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BigInteger",""]]};
+window.SIDEBAR_ITEMS = {"struct":["BigInteger"]};

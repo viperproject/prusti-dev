@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["MdCtx",""],["MdCtxRef","A reference to an [`MdCtx`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["MdCtx","MdCtxRef"]};

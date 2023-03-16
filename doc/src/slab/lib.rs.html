@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/slab-0.4.7/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../slab/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/slab-0.4.8/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../slab/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1569,35 +1569,6 @@
 <a href="#1569" id="1569">1569</a>
 <a href="#1570" id="1570">1570</a>
 <a href="#1571" id="1571">1571</a>
-<a href="#1572" id="1572">1572</a>
-<a href="#1573" id="1573">1573</a>
-<a href="#1574" id="1574">1574</a>
-<a href="#1575" id="1575">1575</a>
-<a href="#1576" id="1576">1576</a>
-<a href="#1577" id="1577">1577</a>
-<a href="#1578" id="1578">1578</a>
-<a href="#1579" id="1579">1579</a>
-<a href="#1580" id="1580">1580</a>
-<a href="#1581" id="1581">1581</a>
-<a href="#1582" id="1582">1582</a>
-<a href="#1583" id="1583">1583</a>
-<a href="#1584" id="1584">1584</a>
-<a href="#1585" id="1585">1585</a>
-<a href="#1586" id="1586">1586</a>
-<a href="#1587" id="1587">1587</a>
-<a href="#1588" id="1588">1588</a>
-<a href="#1589" id="1589">1589</a>
-<a href="#1590" id="1590">1590</a>
-<a href="#1591" id="1591">1591</a>
-<a href="#1592" id="1592">1592</a>
-<a href="#1593" id="1593">1593</a>
-<a href="#1594" id="1594">1594</a>
-<a href="#1595" id="1595">1595</a>
-<a href="#1596" id="1596">1596</a>
-<a href="#1597" id="1597">1597</a>
-<a href="#1598" id="1598">1598</a>
-<a href="#1599" id="1599">1599</a>
-<a href="#1600" id="1600">1600</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 #![warn(
     missing_debug_implementations,
@@ -1717,6 +1688,8 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 </span><span class="kw">mod </span>serde;
+
+<span class="kw">mod </span>builder;
 
 <span class="kw">use </span>alloc::vec::{<span class="self">self</span>, Vec};
 <span class="kw">use </span>core::iter::{<span class="self">self</span>, FromIterator, FusedIterator};
@@ -1913,7 +1886,7 @@
     ///
     /// # Panics
     ///
-    /// Panics if the new capacity overflows `usize`.
+    /// Panics if the new capacity exceeds `isize::MAX` bytes.
     ///
     /// # Examples
     ///
@@ -1947,7 +1920,7 @@
     ///
     /// # Panics
     ///
-    /// Panics if the new capacity overflows `usize`.
+    /// Panics if the new capacity exceeds `isize::MAX` bytes.
     ///
     /// # Examples
     ///
@@ -2040,17 +2013,21 @@
         <span class="self">self</span>.next = <span class="self">self</span>.entries.len();
         <span class="comment">// We can stop once we&#39;ve found all vacant entries
         </span><span class="kw">let </span><span class="kw-2">mut </span>remaining_vacant = <span class="self">self</span>.entries.len() - <span class="self">self</span>.len;
+        <span class="kw">if </span>remaining_vacant == <span class="number">0 </span>{
+            <span class="kw">return</span>;
+        }
+
         <span class="comment">// Iterate in reverse order so that lower keys are at the start of
         // the vacant list. This way future shrinks are more likely to be
         // able to remove vacant entries.
         </span><span class="kw">for </span>(i, entry) <span class="kw">in </span><span class="self">self</span>.entries.iter_mut().enumerate().rev() {
-            <span class="kw">if </span>remaining_vacant == <span class="number">0 </span>{
-                <span class="kw">break</span>;
-            }
             <span class="kw">if let </span>Entry::Vacant(<span class="kw-2">ref mut </span>next) = <span class="kw-2">*</span>entry {
                 <span class="kw-2">*</span>next = <span class="self">self</span>.next;
                 <span class="self">self</span>.next = i;
                 remaining_vacant -= <span class="number">1</span>;
+                <span class="kw">if </span>remaining_vacant == <span class="number">0 </span>{
+                    <span class="kw">break</span>;
+                }
             }
         }
     }
@@ -2286,7 +2263,7 @@
     /// ```
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
         <span class="kw">match </span><span class="self">self</span>.entries.get(key) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Entry::Occupied(<span class="kw-2">ref </span>val)) =&gt; <span class="prelude-val">Some</span>(val),
+            <span class="prelude-val">Some</span>(Entry::Occupied(val)) =&gt; <span class="prelude-val">Some</span>(val),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2323,6 +2300,10 @@
     ///
     /// This function can be used to get two mutable references out of one slab,
     /// so that you can manipulate both of them at the same time, eg. swap them.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if `key1` and `key2` are the same.
     ///
     /// # Examples
     ///
@@ -2523,7 +2504,7 @@
     ///
     /// # Panics
     ///
-    /// Panics if the number of elements in the vector overflows a `usize`.
+    /// Panics if the new storage in the vector exceeds `isize::MAX` bytes.
     ///
     /// # Examples
     ///
@@ -2778,7 +2759,7 @@
     <span class="attr">#[cfg_attr(not(slab_no_track_caller), track_caller)]
     </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, key: usize) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw">match </span><span class="self">self</span>.entries.get(key) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Entry::Occupied(<span class="kw-2">ref </span>v)) =&gt; v,
+            <span class="prelude-val">Some</span>(Entry::Occupied(v)) =&gt; v,
             <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid key&quot;</span>),
         }
     }
@@ -2860,51 +2841,12 @@
         </span>I: IntoIterator&lt;Item = (usize, T)&gt;,
     {
         <span class="kw">let </span>iterator = iterable.into_iter();
-        <span class="kw">let </span><span class="kw-2">mut </span>slab = <span class="self">Self</span>::with_capacity(iterator.size_hint().<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = builder::Builder::with_capacity(iterator.size_hint().<span class="number">0</span>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>vacant_list_broken = <span class="bool-val">false</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>first_vacant_index = <span class="prelude-val">None</span>;
         <span class="kw">for </span>(key, value) <span class="kw">in </span>iterator {
-            <span class="kw">if </span>key &lt; slab.entries.len() {
-                <span class="comment">// iterator is not sorted, might need to recreate vacant list
-                </span><span class="kw">if let </span>Entry::Vacant(<span class="kw">_</span>) = slab.entries[key] {
-                    vacant_list_broken = <span class="bool-val">true</span>;
-                    slab.len += <span class="number">1</span>;
-                }
-                <span class="comment">// if an element with this key already exists, replace it.
-                // This is consistent with HashMap and BtreeMap
-                </span>slab.entries[key] = Entry::Occupied(value);
-            } <span class="kw">else </span>{
-                <span class="kw">if </span>first_vacant_index.is_none() &amp;&amp; slab.entries.len() &lt; key {
-                    first_vacant_index = <span class="prelude-val">Some</span>(slab.entries.len());
-                }
-                <span class="comment">// insert holes as necessary
-                </span><span class="kw">while </span>slab.entries.len() &lt; key {
-                    <span class="comment">// add the entry to the start of the vacant list
-                    </span><span class="kw">let </span>next = slab.next;
-                    slab.next = slab.entries.len();
-                    slab.entries.push(Entry::Vacant(next));
-                }
-                slab.entries.push(Entry::Occupied(value));
-                slab.len += <span class="number">1</span>;
-            }
+            builder.pair(key, value)
         }
-        <span class="kw">if </span>slab.len == slab.entries.len() {
-            <span class="comment">// no vacant entries, so next might not have been updated
-            </span>slab.next = slab.entries.len();
-        } <span class="kw">else if </span>vacant_list_broken {
-            slab.recreate_vacant_list();
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(first_vacant_index) = first_vacant_index {
-            <span class="kw">let </span>next = slab.entries.len();
-            <span class="kw">match </span><span class="kw-2">&amp;mut </span>slab.entries[first_vacant_index] {
-                Entry::Vacant(n) =&gt; <span class="kw-2">*</span>n = next,
-                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-            }
-        } <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>()
-        }
-
-        slab
+        builder.build()
     }
 }
 
@@ -3199,4 +3141,4 @@
 
 <span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["WeightedIndex",""]],"trait":[["Weight",""]]};
+window.SIDEBAR_ITEMS = {"struct":["WeightedIndex"],"trait":["Weight"]};

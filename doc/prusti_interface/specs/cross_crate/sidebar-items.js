@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CrossCrateSpecs",""]]};
+window.SIDEBAR_ITEMS = {"struct":["CrossCrateSpecs"]};

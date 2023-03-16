@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Stream",""]]};
+window.SIDEBAR_ITEMS = {"struct":["Stream"]};

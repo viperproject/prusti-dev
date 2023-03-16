@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":[["instrument",""]]};
+window.SIDEBAR_ITEMS = {"attr":["instrument"]};

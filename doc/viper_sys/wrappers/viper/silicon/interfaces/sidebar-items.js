@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["SiliconMappedCounterexample",""]]};
+window.SIDEBAR_ITEMS = {"struct":["SiliconMappedCounterexample"]};

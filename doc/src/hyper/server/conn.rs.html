@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/server/conn.rs`."><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.25/src/server/conn.rs`."><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1043,6 +1043,23 @@
 <a href="#1043" id="1043">1043</a>
 <a href="#1044" id="1044">1044</a>
 <a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Lower-level Server connection API.
 //!
 //! The types in this module are to provide a lower-level API based around a
@@ -1103,6 +1120,11 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::upgrade::Upgraded;
 
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;backports&quot;</span>, feature = <span class="string">&quot;http1&quot;</span>))]
+</span><span class="kw">pub mod </span>http1;
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;backports&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+</span><span class="kw">pub mod </span>http2;
+
 <span class="macro">cfg_feature! </span>{
     <span class="attr">#![any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)]
 
@@ -1138,6 +1160,12 @@
 </span><span class="attr">#[derive(Clone, Debug)]
 #[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))))]
+#[cfg_attr(
+    feature = <span class="string">&quot;deprecated&quot;</span>,
+    deprecated(
+        note = <span class="string">&quot;This struct will be replaced with `server::conn::http1::Builder` and `server::conn::http2::Builder` in 1.0, enable the \&quot;backports\&quot; feature to use them now.&quot;
+    </span>)
+)]
 </span><span class="kw">pub struct </span>Http&lt;E = Exec&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) exec: E,
     h1_half_close: bool,
@@ -1253,6 +1281,12 @@
 </span><span class="attr">#[derive(Debug)]
 #[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))))]
+#[cfg_attr(
+    feature = <span class="string">&quot;deprecated&quot;</span>,
+    deprecated(
+        note = <span class="string">&quot;This struct will be replaced with `server::conn::http1::Parts` in 1.0, enable the \&quot;backports\&quot; feature to use them now.&quot;
+    </span>)
+)]
 </span><span class="kw">pub struct </span>Parts&lt;T, S&gt; {
     <span class="doccomment">/// The original IO object used in the handshake.
     </span><span class="kw">pub </span>io: T,
@@ -1272,7 +1306,8 @@
 
 <span class="comment">// ===== impl Http =====
 
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
 </span><span class="kw">impl </span>Http {
     <span class="doccomment">/// Creates a new instance of the HTTP protocol, ready to spawn a server or
     /// start accepting connections.
@@ -1295,7 +1330,8 @@
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
 </span><span class="kw">impl</span>&lt;E&gt; Http&lt;E&gt; {
     <span class="doccomment">/// Sets whether HTTP1 is required.
     ///
@@ -1372,7 +1408,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Set a timeout for reading client request headers. If a client does not 
+    <span class="doccomment">/// Set a timeout for reading client request headers. If a client does not
     /// transmit the entire header within this time, the connection is closed.
     ///
     /// Default is None.
@@ -1778,6 +1814,7 @@
     ///
     /// # Panics
     /// This method will panic if this connection is using an h2 protocol.
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
     </span><span class="kw">pub fn </span>into_parts(<span class="self">self</span>) -&gt; Parts&lt;I, S&gt; {
         <span class="self">self</span>.try_into_parts()
             .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;h2 cannot into_inner&quot;</span>))
@@ -1786,6 +1823,7 @@
     <span class="doccomment">/// Return the inner IO object, and additional information, if available.
     ///
     /// This method will return a `None` if this connection is using an h2 protocol.
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
     </span><span class="kw">pub fn </span>try_into_parts(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Parts&lt;I, S&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.conn.unwrap() {
             <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
@@ -1812,12 +1850,7 @@
     /// upgrade. Once the upgrade is completed, the connection would be &quot;done&quot;,
     /// but it is not desired to actually shutdown the IO object. Instead you
     /// would take it back using `into_parts`.
-    </span><span class="kw">pub fn </span>poll_without_shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt;
-    <span class="kw">where
-        </span>S: Unpin,
-        S::Future: Unpin,
-        B: Unpin,
-    {
+    </span><span class="kw">pub fn </span>poll_without_shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.conn.as_mut().unwrap() {
                 <span class="attr">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
@@ -1853,16 +1886,17 @@
     /// # Error
     ///
     /// This errors if the underlying connection protocol is not HTTP/1.
-    </span><span class="kw">pub fn </span>without_shutdown(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="kw">crate</span>::Result&lt;Parts&lt;I, S&gt;&gt;&gt;
-    <span class="kw">where
-        </span>S: Unpin,
-        S::Future: Unpin,
-        B: Unpin,
-    {
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+    </span><span class="kw">pub fn </span>without_shutdown(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="kw">crate</span>::Result&lt;Parts&lt;I, S&gt;&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>conn = <span class="prelude-val">Some</span>(<span class="self">self</span>);
         futures_util::future::poll_fn(<span class="kw">move </span>|cx| {
             <span class="macro">ready!</span>(conn.as_mut().unwrap().poll_without_shutdown(cx))<span class="question-mark">?</span>;
-            Poll::Ready(conn.take().unwrap().try_into_parts().ok_or_else(<span class="kw">crate</span>::Error::new_without_shutdown_not_h1))
+            Poll::Ready(
+                conn.take()
+                    .unwrap()
+                    .try_into_parts()
+                    .ok_or_else(<span class="kw">crate</span>::Error::new_without_shutdown_not_h1),
+            )
         })
     }
 
@@ -1905,7 +1939,7 @@
 <span class="kw">where
     </span>S: HttpService&lt;Body, ResBody = B&gt;,
     S::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
-    I: AsyncRead + AsyncWrite + Unpin + <span class="lifetime">&#39;static</span>,
+    I: AsyncRead + AsyncWrite + Unpin,
     B: HttpBody + <span class="lifetime">&#39;static</span>,
     B::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
     E: ConnStreamExec&lt;S::Future, B&gt;,
@@ -2089,4 +2123,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

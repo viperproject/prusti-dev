@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.60/src/lifetime.rs`."><title>lifetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.66/src/lifetime.rs`."><title>lifetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -108,39 +108,30 @@
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
 </pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{Span, TokenStream};
 <span class="kw">use </span>std::mem;
 <span class="kw">use </span>syn::visit_mut::{<span class="self">self</span>, VisitMut};
 <span class="kw">use </span>syn::{
-    parse_quote_spanned, token, Expr, GenericArgument, Lifetime, Receiver, ReturnType, Type,
+    parse_quote_spanned, token, Expr, GenericArgument, Lifetime, Receiver, ReturnType, Token, Type,
     TypeBareFn, TypeImplTrait, TypeParen, TypePtr, TypeReference,
 };
 
 <span class="kw">pub struct </span>CollectLifetimes {
     <span class="kw">pub </span>elided: Vec&lt;Lifetime&gt;,
     <span class="kw">pub </span>explicit: Vec&lt;Lifetime&gt;,
-    <span class="kw">pub </span>name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-    <span class="kw">pub </span>default_span: Span,
 }
 
 <span class="kw">impl </span>CollectLifetimes {
-    <span class="kw">pub fn </span>new(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, default_span: Span) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         CollectLifetimes {
             elided: Vec::new(),
             explicit: Vec::new(),
-            name,
-            default_span,
         }
     }
 
-    <span class="kw">fn </span>visit_opt_lifetime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lifetime: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Lifetime&gt;) {
+    <span class="kw">fn </span>visit_opt_lifetime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reference: <span class="macro">Token!</span>[<span class="kw-2">&amp;</span>], lifetime: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Lifetime&gt;) {
         <span class="kw">match </span>lifetime {
-            <span class="prelude-val">None </span>=&gt; <span class="kw-2">*</span>lifetime = <span class="prelude-val">Some</span>(<span class="self">self</span>.next_lifetime(<span class="prelude-val">None</span>)),
+            <span class="prelude-val">None </span>=&gt; <span class="kw-2">*</span>lifetime = <span class="prelude-val">Some</span>(<span class="self">self</span>.next_lifetime(reference.span)),
             <span class="prelude-val">Some</span>(lifetime) =&gt; <span class="self">self</span>.visit_lifetime(lifetime),
         }
     }
@@ -153,9 +144,8 @@
         }
     }
 
-    <span class="kw">fn </span>next_lifetime&lt;S: Into&lt;<span class="prelude-ty">Option</span>&lt;Span&gt;&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: S) -&gt; Lifetime {
-        <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.elided.len());
-        <span class="kw">let </span>span = span.into().unwrap_or(<span class="self">self</span>.default_span);
+    <span class="kw">fn </span>next_lifetime(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: Span) -&gt; Lifetime {
+        <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;&#39;life{}&quot;</span>, <span class="self">self</span>.elided.len());
         <span class="kw">let </span>life = Lifetime::new(<span class="kw-2">&amp;</span>name, span);
         <span class="self">self</span>.elided.push(life.clone());
         life
@@ -164,13 +154,13 @@
 
 <span class="kw">impl </span>VisitMut <span class="kw">for </span>CollectLifetimes {
     <span class="kw">fn </span>visit_receiver_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;mut </span>Receiver) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, lifetime)) = <span class="kw-2">&amp;mut </span>arg.reference {
-            <span class="self">self</span>.visit_opt_lifetime(lifetime);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((reference, lifetime)) = <span class="kw-2">&amp;mut </span>arg.reference {
+            <span class="self">self</span>.visit_opt_lifetime(<span class="kw-2">*</span>reference, lifetime);
         }
     }
 
     <span class="kw">fn </span>visit_type_reference_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span>TypeReference) {
-        <span class="self">self</span>.visit_opt_lifetime(<span class="kw-2">&amp;mut </span>ty.lifetime);
+        <span class="self">self</span>.visit_opt_lifetime(ty.and_token, <span class="kw-2">&amp;mut </span>ty.lifetime);
         visit_mut::visit_type_reference_mut(<span class="self">self</span>, ty);
     }
 
@@ -229,4 +219,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_trait" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_trait" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

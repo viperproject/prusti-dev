@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["any","A filter that matches any route."]]};
+window.SIDEBAR_ITEMS = {"fn":["any"]};

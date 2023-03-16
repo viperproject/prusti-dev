@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/socket2-0.4.7/src/socket.rs`."><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../socket2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/socket2-0.4.9/src/socket.rs`."><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../socket2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1901,6 +1901,41 @@
 <a href="#1901" id="1901">1901</a>
 <a href="#1902" id="1902">1902</a>
 <a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2015 The Rust Project Developers.
 //
 // Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
@@ -1914,7 +1949,9 @@
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 </span><span class="kw">use </span>std::io::{IoSlice, IoSliceMut};
 <span class="kw">use </span>std::mem::MaybeUninit;
-<span class="kw">use </span>std::net::{<span class="self">self</span>, Ipv4Addr, Ipv6Addr, Shutdown};
+<span class="attr">#[cfg(not(target_os = <span class="string">&quot;nto&quot;</span>))]
+</span><span class="kw">use </span>std::net::Ipv6Addr;
+<span class="kw">use </span>std::net::{<span class="self">self</span>, Ipv4Addr, Shutdown};
 <span class="attr">#[cfg(unix)]
 </span><span class="kw">use </span>std::os::unix::io::{FromRawFd, IntoRawFd};
 <span class="attr">#[cfg(windows)]
@@ -2465,9 +2502,34 @@
     /// `peek_from` makes the same safety guarantees regarding the `buf`fer as
     /// [`recv`].
     ///
+    /// # Note: Datagram Sockets
+    /// For datagram sockets, the behavior of this method when `buf` is smaller than
+    /// the datagram at the head of the receive queue differs between Windows and
+    /// Unix-like platforms (Linux, macOS, BSDs, etc: colloquially termed &quot;*nix&quot;).
+    ///
+    /// On *nix platforms, the datagram is truncated to the length of `buf`.
+    ///
+    /// On Windows, an error corresponding to `WSAEMSGSIZE` will be returned.
+    ///
+    /// For consistency between platforms, be sure to provide a sufficiently large buffer to avoid
+    /// truncation; the exact size required depends on the underlying protocol.
+    ///
+    /// If you just want to know the sender of the data, try [`peek_sender`].
+    ///
     /// [`recv`]: Socket::recv
+    /// [`peek_sender`]: Socket::peek_sender
     </span><span class="kw">pub fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; io::Result&lt;(usize, SockAddr)&gt; {
         <span class="self">self</span>.recv_from_with_flags(buf, sys::MSG_PEEK)
+    }
+
+    <span class="doccomment">/// Retrieve the sender for the data at the head of the receive queue.
+    ///
+    /// This is equivalent to calling [`peek_from`] with a zero-sized buffer,
+    /// but suppresses the `WSAEMSGSIZE` error on Windows.
+    ///
+    /// [`peek_from`]: Socket::peek_from
+    </span><span class="kw">pub fn </span>peek_sender(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SockAddr&gt; {
+        sys::peek_sender(<span class="self">self</span>.as_raw())
     }
 
     <span class="doccomment">/// Sends data on the socket to a connected peer.
@@ -3041,6 +3103,7 @@
         target_os = <span class="string">&quot;openbsd&quot;</span>,
         target_os = <span class="string">&quot;redox&quot;</span>,
         target_os = <span class="string">&quot;solaris&quot;</span>,
+        target_os = <span class="string">&quot;nto&quot;</span>,
     )))]
     </span><span class="kw">pub fn </span>join_multicast_v4_n(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -3070,6 +3133,7 @@
         target_os = <span class="string">&quot;openbsd&quot;</span>,
         target_os = <span class="string">&quot;redox&quot;</span>,
         target_os = <span class="string">&quot;solaris&quot;</span>,
+        target_os = <span class="string">&quot;nto&quot;</span>,
     )))]
     </span><span class="kw">pub fn </span>leave_multicast_v4_n(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -3101,6 +3165,7 @@
         target_os = <span class="string">&quot;openbsd&quot;</span>,
         target_os = <span class="string">&quot;redox&quot;</span>,
         target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;nto&quot;</span>,
     )))]
     </span><span class="kw">pub fn </span>join_ssm_v4(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -3135,6 +3200,7 @@
         target_os = <span class="string">&quot;openbsd&quot;</span>,
         target_os = <span class="string">&quot;redox&quot;</span>,
         target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;nto&quot;</span>,
     )))]
     </span><span class="kw">pub fn </span>leave_ssm_v4(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -3310,6 +3376,7 @@
         target_os = <span class="string">&quot;redox&quot;</span>,
         target_os = <span class="string">&quot;solaris&quot;</span>,
         target_os = <span class="string">&quot;windows&quot;</span>,
+        target_os = <span class="string">&quot;nto&quot;</span>,
     )))]
     </span><span class="kw">pub fn </span>set_recv_tos(<span class="kw-2">&amp;</span><span class="self">self</span>, recv_tos: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>recv_tos = <span class="kw">if </span>recv_tos { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
@@ -3338,6 +3405,7 @@
         target_os = <span class="string">&quot;redox&quot;</span>,
         target_os = <span class="string">&quot;solaris&quot;</span>,
         target_os = <span class="string">&quot;windows&quot;</span>,
+        target_os = <span class="string">&quot;nto&quot;</span>,
     )))]
     </span><span class="kw">pub fn </span>recv_tos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
         <span class="kw">unsafe </span>{
@@ -3360,6 +3428,7 @@
     /// This function specifies a new multicast group for this socket to join.
     /// The address must be a valid multicast address, and `interface` is the
     /// index of the interface to join/leave (or 0 to indicate any interface).
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;nto&quot;</span>))]
     </span><span class="kw">pub fn </span>join_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr, interface: u32) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>mreq = sys::Ipv6Mreq {
             ipv6mr_multiaddr: sys::to_in6_addr(multiaddr),
@@ -3383,6 +3452,7 @@
     /// For more information about this option, see [`join_multicast_v6`].
     ///
     /// [`join_multicast_v6`]: Socket::join_multicast_v6
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;nto&quot;</span>))]
     </span><span class="kw">pub fn </span>leave_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr, interface: u32) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>mreq = sys::Ipv6Mreq {
             ipv6mr_multiaddr: sys::to_in6_addr(multiaddr),
@@ -3805,4 +3875,4 @@
 <span class="macro">from!</span>(Socket, net::TcpListener);
 <span class="macro">from!</span>(Socket, net::UdpSocket);
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

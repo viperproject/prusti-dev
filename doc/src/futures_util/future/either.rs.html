@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/future/either.rs`."><title>either.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.27/src/future/either.rs`."><title>either.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -295,6 +295,26 @@
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
 </pre><pre class="rust"><code><span class="kw">use </span>core::pin::Pin;
 <span class="kw">use </span>core::task::{Context, Poll};
 <span class="kw">use </span>futures_core::future::{FusedFuture, Future};
@@ -330,11 +350,31 @@
 }
 
 <span class="kw">impl</span>&lt;A, B&gt; Either&lt;A, B&gt; {
-    <span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Either&lt;Pin&lt;<span class="kw-2">&amp;mut </span>A&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>B&gt;&gt; {
-        <span class="kw">unsafe </span>{
-            <span class="kw">match </span><span class="self">self</span>.get_unchecked_mut() {
-                Either::Left(a) =&gt; Either::Left(Pin::new_unchecked(a)),
-                Either::Right(b) =&gt; Either::Right(Pin::new_unchecked(b)),
+    <span class="doccomment">/// Convert `Pin&lt;&amp;Either&lt;A, B&gt;&gt;` to `Either&lt;Pin&lt;&amp;A&gt;, Pin&lt;&amp;B&gt;&gt;`,
+    /// pinned projections of the inner variants.
+    </span><span class="kw">pub fn </span>as_pin_ref(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;) -&gt; Either&lt;Pin&lt;<span class="kw-2">&amp;</span>A&gt;, Pin&lt;<span class="kw-2">&amp;</span>B&gt;&gt; {
+        <span class="comment">// SAFETY: We can use `new_unchecked` because the `inner` parts are
+        // guaranteed to be pinned, as they come from `self` which is pinned.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">match </span><span class="kw-2">*</span>Pin::get_ref(<span class="self">self</span>) {
+                Either::Left(<span class="kw-2">ref </span>inner) =&gt; Either::Left(Pin::new_unchecked(inner)),
+                Either::Right(<span class="kw-2">ref </span>inner) =&gt; Either::Right(Pin::new_unchecked(inner)),
+            }
+        }
+    }
+
+    <span class="doccomment">/// Convert `Pin&lt;&amp;mut Either&lt;A, B&gt;&gt;` to `Either&lt;Pin&lt;&amp;mut A&gt;, Pin&lt;&amp;mut B&gt;&gt;`,
+    /// pinned projections of the inner variants.
+    </span><span class="kw">pub fn </span>as_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Either&lt;Pin&lt;<span class="kw-2">&amp;mut </span>A&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>B&gt;&gt; {
+        <span class="comment">// SAFETY: `get_unchecked_mut` is fine because we don&#39;t move anything.
+        // We can use `new_unchecked` because the `inner` parts are guaranteed
+        // to be pinned, as they come from `self` which is pinned, and we never
+        // offer an unpinned `&amp;mut A` or `&amp;mut B` through `Pin&lt;&amp;mut Self&gt;`. We
+        // also don&#39;t have an implementation of `Drop`, nor manual `Unpin`.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">match </span><span class="kw-2">*</span>Pin::get_unchecked_mut(<span class="self">self</span>) {
+                Either::Left(<span class="kw-2">ref mut </span>inner) =&gt; Either::Left(Pin::new_unchecked(inner)),
+                Either::Right(<span class="kw-2">ref mut </span>inner) =&gt; Either::Right(Pin::new_unchecked(inner)),
             }
         }
     }
@@ -382,7 +422,7 @@
     <span class="kw">type </span>Output = A::Output;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">match </span><span class="self">self</span>.project() {
+        <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
             Either::Left(x) =&gt; x.poll(cx),
             Either::Right(x) =&gt; x.poll(cx),
         }
@@ -410,7 +450,7 @@
     <span class="kw">type </span>Item = A::Item;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">match </span><span class="self">self</span>.project() {
+        <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
             Either::Left(x) =&gt; x.poll_next(cx),
             Either::Right(x) =&gt; x.poll_next(cx),
         }
@@ -446,28 +486,28 @@
     <span class="kw">type </span>Error = A::Error;
 
     <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">match </span><span class="self">self</span>.project() {
+        <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
             Either::Left(x) =&gt; x.poll_ready(cx),
             Either::Right(x) =&gt; x.poll_ready(cx),
         }
     }
 
     <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">match </span><span class="self">self</span>.project() {
+        <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
             Either::Left(x) =&gt; x.start_send(item),
             Either::Right(x) =&gt; x.start_send(item),
         }
     }
 
     <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">match </span><span class="self">self</span>.project() {
+        <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
             Either::Left(x) =&gt; x.poll_flush(cx),
             Either::Right(x) =&gt; x.poll_flush(cx),
         }
     }
 
     <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
-        <span class="kw">match </span><span class="self">self</span>.project() {
+        <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
             Either::Left(x) =&gt; x.poll_close(cx),
             Either::Right(x) =&gt; x.poll_close(cx),
         }
@@ -495,7 +535,7 @@
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             buf: <span class="kw-2">&amp;mut </span>[u8],
         ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_read(cx, buf),
                 Either::Right(x) =&gt; x.poll_read(cx, buf),
             }
@@ -506,7 +546,7 @@
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
         ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_read_vectored(cx, bufs),
                 Either::Right(x) =&gt; x.poll_read_vectored(cx, bufs),
             }
@@ -523,7 +563,7 @@
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             buf: <span class="kw-2">&amp;</span>[u8],
         ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_write(cx, buf),
                 Either::Right(x) =&gt; x.poll_write(cx, buf),
             }
@@ -534,21 +574,21 @@
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
         ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_write_vectored(cx, bufs),
                 Either::Right(x) =&gt; x.poll_write_vectored(cx, bufs),
             }
         }
 
         <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_flush(cx),
                 Either::Right(x) =&gt; x.poll_flush(cx),
             }
         }
 
         <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_close(cx),
                 Either::Right(x) =&gt; x.poll_close(cx),
             }
@@ -565,7 +605,7 @@
             cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
             pos: SeekFrom,
         ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;u64&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_seek(cx, pos),
                 Either::Right(x) =&gt; x.poll_seek(cx, pos),
             }
@@ -578,14 +618,14 @@
         B: AsyncBufRead,
     {
         <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.poll_fill_buf(cx),
                 Either::Right(x) =&gt; x.poll_fill_buf(cx),
             }
         }
 
         <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: usize) {
-            <span class="kw">match </span><span class="self">self</span>.project() {
+            <span class="kw">match </span><span class="self">self</span>.as_pin_mut() {
                 Either::Left(x) =&gt; x.consume(amt),
                 Either::Right(x) =&gt; x.consume(amt),
             }
@@ -593,4 +633,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

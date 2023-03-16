@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Statement",""]],"mod":[["visitors",""]],"struct":[["ApplyMagicWand",""],["Assert","Assert a pure assertion."],["Assign",""],["Assume","Assume a pure assertion."],["Comment",""],["Conditional",""],["Exhale",""],["Fold",""],["Inhale",""],["LogEvent","Log an event by assuming a (fresh) domain function."],["MethodCall",""],["Unfold",""]]};
+window.SIDEBAR_ITEMS = {"enum":["Statement"],"mod":["visitors"],"struct":["ApplyMagicWand","Assert","Assign","Assume","Comment","Conditional","Exhale","Fold","Inhale","LogEvent","MethodCall","Unfold"]};

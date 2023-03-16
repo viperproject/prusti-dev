@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["verify",""]],"static":[["CALLSITE",""],["META",""]]};
+window.SIDEBAR_ITEMS = {"fn":["verify"],"static":["CALLSITE","META"]};

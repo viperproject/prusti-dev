@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CapacityError","Indicates the specific type/cause of a capacity error."],["Error","Possible WebSocket errors."],["ProtocolError","Indicates the specific type/cause of a protocol error."],["TlsError","TLS errors."],["UrlError","Indicates the specific type/cause of URL error."]],"type":[["Result","Result type of all Tungstenite library calls."]]};
+window.SIDEBAR_ITEMS = {"enum":["CapacityError","Error","ProtocolError","TlsError","UrlError"],"type":["Result"]};

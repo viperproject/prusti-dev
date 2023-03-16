@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-channel-0.3.25/src/mpsc/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_channel/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-channel-0.3.27/src/mpsc/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../futures_channel/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1306,6 +1306,57 @@
 <a href="#1306" id="1306">1306</a>
 <a href="#1307" id="1307">1307</a>
 <a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A multi-producer, single-consumer queue for sending values across
 //! asynchronous tasks.
 //!
@@ -1402,14 +1453,12 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
 </span><span class="kw">mod </span>sink_impl;
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>UnboundedSenderInner&lt;T&gt; {
+<span class="kw">struct </span>UnboundedSenderInner&lt;T&gt; {
     <span class="comment">// Channel state shared between the sender and receiver.
     </span>inner: Arc&lt;UnboundedInner&lt;T&gt;&gt;,
 }
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>BoundedSenderInner&lt;T&gt; {
+<span class="kw">struct </span>BoundedSenderInner&lt;T&gt; {
     <span class="comment">// Channel state shared between the sender and receiver.
     </span>inner: Arc&lt;BoundedInner&lt;T&gt;&gt;,
 
@@ -1430,13 +1479,11 @@
 <span class="doccomment">/// The transmission end of a bounded mpsc channel.
 ///
 /// This value is created by the [`channel`](channel) function.
-</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Sender&lt;T&gt;(<span class="prelude-ty">Option</span>&lt;BoundedSenderInner&lt;T&gt;&gt;);
 
 <span class="doccomment">/// The transmission end of an unbounded mpsc channel.
 ///
 /// This value is created by the [`unbounded`](unbounded) function.
-</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>UnboundedSender&lt;T&gt;(<span class="prelude-ty">Option</span>&lt;UnboundedSenderInner&lt;T&gt;&gt;);
 
 <span class="kw">trait </span>AssertKinds: Send + Sync + Clone {}
@@ -1445,7 +1492,6 @@
 <span class="doccomment">/// The receiving end of a bounded mpsc channel.
 ///
 /// This value is created by the [`channel`](channel) function.
-</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Receiver&lt;T&gt; {
     inner: <span class="prelude-ty">Option</span>&lt;Arc&lt;BoundedInner&lt;T&gt;&gt;&gt;,
 }
@@ -1453,7 +1499,6 @@
 <span class="doccomment">/// The receiving end of an unbounded mpsc channel.
 ///
 /// This value is created by the [`unbounded`](unbounded) function.
-</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>UnboundedReceiver&lt;T&gt; {
     inner: <span class="prelude-ty">Option</span>&lt;Arc&lt;UnboundedInner&lt;T&gt;&gt;&gt;,
 }
@@ -1569,8 +1614,7 @@
 
 <span class="kw">impl </span>std::error::Error <span class="kw">for </span>TryRecvError {}
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>UnboundedInner&lt;T&gt; {
+<span class="kw">struct </span>UnboundedInner&lt;T&gt; {
     <span class="comment">// Internal channel state. Consists of the number of messages stored in the
     // channel as well as a flag signalling that the channel is closed.
     </span>state: AtomicUsize,
@@ -1585,8 +1629,7 @@
     </span>recv_task: AtomicWaker,
 }
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>BoundedInner&lt;T&gt; {
+<span class="kw">struct </span>BoundedInner&lt;T&gt; {
     <span class="comment">// Max buffer size of the channel. If `None` then the channel is unbounded.
     </span>buffer: usize,
 
@@ -1608,7 +1651,7 @@
 }
 
 <span class="comment">// Struct representation of `Inner::state`.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[derive(Clone, Copy)]
 </span><span class="kw">struct </span>State {
     <span class="comment">// `true` when the channel is open
     </span>is_open: bool,
@@ -1632,7 +1675,6 @@
 </span><span class="kw">const </span>MAX_BUFFER: usize = MAX_CAPACITY &gt;&gt; <span class="number">1</span>;
 
 <span class="comment">// Sent to the consumer to wake up blocked producers
-</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>SenderTask {
     task: <span class="prelude-ty">Option</span>&lt;Waker&gt;,
     is_parked: bool,
@@ -2255,6 +2297,18 @@
     }
 }
 
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Sender&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Sender&quot;</span>).field(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_closed()).finish()
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>UnboundedSender&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;UnboundedSender&quot;</span>).field(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_closed()).finish()
+    }
+}
+
 <span class="comment">/*
  *
  * ===== impl Receiver =====
@@ -2383,6 +2437,14 @@
             }
         }
     }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            decode_state(inner.state.load(SeqCst)).size_hint()
+        } <span class="kw">else </span>{
+            (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Receiver&lt;T&gt; {
@@ -2412,6 +2474,18 @@
                 }
             }
         }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Receiver&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>closed = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <span class="self">self</span>.inner {
+            decode_state(inner.state.load(SeqCst)).is_closed()
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>};
+
+        f.debug_struct(<span class="string">&quot;Receiver&quot;</span>).field(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span>closed).finish()
     }
 }
 
@@ -2515,6 +2589,14 @@
             }
         }
     }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            decode_state(inner.state.load(SeqCst)).size_hint()
+        } <span class="kw">else </span>{
+            (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>UnboundedReceiver&lt;T&gt; {
@@ -2544,6 +2626,18 @@
                 }
             }
         }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>UnboundedReceiver&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>closed = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner) = <span class="self">self</span>.inner {
+            decode_state(inner.state.load(SeqCst)).is_closed()
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>};
+
+        f.debug_struct(<span class="string">&quot;Receiver&quot;</span>).field(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span>closed).finish()
     }
 }
 
@@ -2593,6 +2687,14 @@
     <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !<span class="self">self</span>.is_open &amp;&amp; <span class="self">self</span>.num_messages == <span class="number">0
     </span>}
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">if </span><span class="self">self</span>.is_open {
+            (<span class="self">self</span>.num_messages, <span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            (<span class="self">self</span>.num_messages, <span class="prelude-val">Some</span>(<span class="self">self</span>.num_messages))
+        }
+    }
 }
 
 <span class="comment">/*
@@ -2615,4 +2717,4 @@
     num
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="futures_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

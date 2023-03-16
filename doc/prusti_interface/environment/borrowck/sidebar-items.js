@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["facts",""],["regions",""]]};
+window.SIDEBAR_ITEMS = {"mod":["facts","regions"]};

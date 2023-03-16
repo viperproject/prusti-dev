@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.31/src/mem.rs`."><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/encoding_rs-0.8.32/src/mem.rs`."><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../encoding_rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3352,8 +3352,6 @@
 <a href="#3352" id="3352">3352</a>
 <a href="#3353" id="3353">3353</a>
 <a href="#3354" id="3354">3354</a>
-<a href="#3355" id="3355">3355</a>
-<a href="#3356" id="3356">3356</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright Mozilla Foundation. See the COPYRIGHT
 // file at the top-level directory of this distribution.
 //
@@ -3406,13 +3404,11 @@
         <span class="kw">use </span>::core::intrinsics::unlikely;
     } <span class="kw">else </span>{
         <span class="attr">#[inline(always)]
-        </span><span class="comment">// Unsafe to match the intrinsic, which is needlessly unsafe.
-        </span><span class="kw">unsafe fn </span>likely(b: bool) -&gt; bool {
+        </span><span class="kw">fn </span>likely(b: bool) -&gt; bool {
             b
         }
         <span class="attr">#[inline(always)]
-        </span><span class="comment">// Unsafe to match the intrinsic, which is needlessly unsafe.
-        </span><span class="kw">unsafe fn </span>unlikely(b: bool) -&gt; bool {
+        </span><span class="kw">fn </span>unlikely(b: bool) -&gt; bool {
             b
         }
     }
@@ -4271,7 +4267,7 @@
                             </span>{
                                 <span class="kw">return </span><span class="bool-val">true</span>;
                             }
-                            <span class="kw">if unsafe </span>{ unlikely(second == <span class="number">0x90 </span>|| second == <span class="number">0x9E</span>) } {
+                            <span class="kw">if </span>unlikely(second == <span class="number">0x90 </span>|| second == <span class="number">0x9E</span>) {
                                 <span class="kw">let </span>third = src[read + <span class="number">2</span>];
                                 <span class="kw">if </span>third &gt;= <span class="number">0xA0 </span>{
                                     <span class="kw">return </span><span class="bool-val">true</span>;
@@ -4529,7 +4525,7 @@
                         <span class="comment">// Two-byte
                         // Adding `unlikely` here improved throughput on
                         // Russian plain text by 33%!
-                        </span><span class="kw">if unsafe </span>{ unlikely(byte &gt;= <span class="number">0xD6</span>) } {
+                        </span><span class="kw">if </span>unlikely(byte &gt;= <span class="number">0xD6</span>) {
                             <span class="kw">if </span>byte == <span class="number">0xD6 </span>{
                                 <span class="kw">let </span>second = bytes[read + <span class="number">1</span>];
                                 <span class="kw">if </span>second &gt; <span class="number">0x8F </span>{
@@ -4553,7 +4549,7 @@
                     }
                 } <span class="kw">else if </span>byte &lt; <span class="number">0xF0 </span>{
                     <span class="comment">// Three-byte
-                    </span><span class="kw">if unsafe </span>{ unlikely(!in_inclusive_range8(byte, <span class="number">0xE3</span>, <span class="number">0xEE</span>) &amp;&amp; byte != <span class="number">0xE1</span>) } {
+                    </span><span class="kw">if </span>unlikely(!in_inclusive_range8(byte, <span class="number">0xE3</span>, <span class="number">0xEE</span>) &amp;&amp; byte != <span class="number">0xE1</span>) {
                         <span class="kw">let </span>second = bytes[read + <span class="number">1</span>];
                         <span class="kw">if </span>byte == <span class="number">0xE0 </span>{
                             <span class="kw">if </span>second &lt; <span class="number">0xA4 </span>{
@@ -4602,7 +4598,7 @@
                 } <span class="kw">else </span>{
                     <span class="comment">// Four-byte
                     </span><span class="kw">let </span>second = bytes[read + <span class="number">1</span>];
-                    <span class="kw">if unsafe </span>{ unlikely(byte == <span class="number">0xF0 </span>&amp;&amp; (second == <span class="number">0x90 </span>|| second == <span class="number">0x9E</span>)) } {
+                    <span class="kw">if </span>unlikely(byte == <span class="number">0xF0 </span>&amp;&amp; (second == <span class="number">0x90 </span>|| second == <span class="number">0x9E</span>)) {
                         <span class="kw">let </span>third = bytes[read + <span class="number">2</span>];
                         <span class="kw">if </span>third &gt;= <span class="number">0xA0 </span>{
                             <span class="kw">return </span><span class="bool-val">true</span>;
@@ -5016,7 +5012,7 @@
     // basic blocks out-of-lined to the end of the function would wipe
     // away a quarter of Arabic encode performance on Haswell!
     </span><span class="kw">let </span>(read, written) = convert_utf16_to_utf8_partial_inner(src, dst);
-    <span class="kw">if unsafe </span>{ likely(read == src.len()) } {
+    <span class="kw">if </span>likely(read == src.len()) {
         <span class="kw">return </span>(read, written);
     }
     <span class="kw">let </span>(tail_read, tail_written) =
@@ -6711,4 +6707,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

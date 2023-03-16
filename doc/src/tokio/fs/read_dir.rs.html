@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/fs/read_dir.rs`."><title>read_dir.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.26.0/src/fs/read_dir.rs`."><title>read_dir.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -293,8 +293,64 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::fs::asyncify;
 
+<span class="kw">use </span>std::collections::VecDeque;
 <span class="kw">use </span>std::ffi::OsString;
 <span class="kw">use </span>std::fs::{FileType, Metadata};
 <span class="kw">use </span>std::future::Future;
@@ -314,6 +370,8 @@
 <span class="attr">#[cfg(not(test))]
 </span><span class="kw">use </span><span class="kw">crate</span>::blocking::JoinHandle;
 
+<span class="kw">const </span>CHUNK_SIZE: usize = <span class="number">32</span>;
+
 <span class="doccomment">/// Returns a stream over the entries within a directory.
 ///
 /// This is an async version of [`std::fs::read_dir`](std::fs::read_dir)
@@ -324,10 +382,15 @@
 /// [`spawn_blocking`]: crate::task::spawn_blocking
 </span><span class="kw">pub async fn </span>read_dir(path: <span class="kw">impl </span>AsRef&lt;Path&gt;) -&gt; io::Result&lt;ReadDir&gt; {
     <span class="kw">let </span>path = path.as_ref().to_owned();
-    <span class="kw">let </span>std = asyncify(|| std::fs::read_dir(path)).<span class="kw">await</span><span class="question-mark">?</span>;
+    asyncify(|| -&gt; io::Result&lt;ReadDir&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>std = std::fs::read_dir(path)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = VecDeque::with_capacity(CHUNK_SIZE);
+        ReadDir::next_chunk(<span class="kw-2">&amp;mut </span>buf, <span class="kw-2">&amp;mut </span>std);
 
-    <span class="prelude-val">Ok</span>(ReadDir(State::Idle(<span class="prelude-val">Some</span>(std))))
-}
+        <span class="prelude-val">Ok</span>(ReadDir(State::Idle(<span class="prelude-val">Some</span>((buf, std)))))
+    })
+    .<span class="kw">await
+</span>}
 
 <span class="doccomment">/// Reads the entries in a directory.
 ///
@@ -353,8 +416,8 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>State {
-    Idle(<span class="prelude-ty">Option</span>&lt;std::fs::ReadDir&gt;),
-    Pending(JoinHandle&lt;(<span class="prelude-ty">Option</span>&lt;io::Result&lt;std::fs::DirEntry&gt;&gt;, std::fs::ReadDir)&gt;),
+    Idle(<span class="prelude-ty">Option</span>&lt;(VecDeque&lt;io::Result&lt;DirEntry&gt;&gt;, std::fs::ReadDir)&gt;),
+    Pending(JoinHandle&lt;(VecDeque&lt;io::Result&lt;DirEntry&gt;&gt;, std::fs::ReadDir)&gt;),
 }
 
 <span class="kw">impl </span>ReadDir {
@@ -389,26 +452,54 @@
     </span><span class="kw">pub fn </span>poll_next_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="prelude-ty">Option</span>&lt;DirEntry&gt;&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
-                State::Idle(<span class="kw-2">ref mut </span>std) =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>std = std.take().unwrap();
+                State::Idle(<span class="kw-2">ref mut </span>data) =&gt; {
+                    <span class="kw">let </span>(buf, <span class="kw">_</span>) = data.as_mut().unwrap();
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ent) = buf.pop_front() {
+                        <span class="kw">return </span>Poll::Ready(ent.map(<span class="prelude-val">Some</span>));
+                    };
+
+                    <span class="kw">let </span>(<span class="kw-2">mut </span>buf, <span class="kw-2">mut </span>std) = data.take().unwrap();
 
                     <span class="self">self</span>.<span class="number">0 </span>= State::Pending(spawn_blocking(<span class="kw">move </span>|| {
-                        <span class="kw">let </span>ret = std.next();
-                        (ret, std)
+                        ReadDir::next_chunk(<span class="kw-2">&amp;mut </span>buf, <span class="kw-2">&amp;mut </span>std);
+                        (buf, std)
                     }));
                 }
                 State::Pending(<span class="kw-2">ref mut </span>rx) =&gt; {
-                    <span class="kw">let </span>(ret, std) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="number">0 </span>= State::Idle(<span class="prelude-val">Some</span>(std));
+                    <span class="kw">let </span>(<span class="kw-2">mut </span>buf, std) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
 
-                    <span class="kw">let </span>ret = <span class="kw">match </span>ret {
-                        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(std)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DirEntry(Arc::new(std)))),
+                    <span class="kw">let </span>ret = <span class="kw">match </span>buf.pop_front() {
+                        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(x)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(x)),
                         <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="prelude-val">Err</span>(e),
                         <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
                     };
 
+                    <span class="self">self</span>.<span class="number">0 </span>= State::Idle(<span class="prelude-val">Some</span>((buf, std)));
+
                     <span class="kw">return </span>Poll::Ready(ret);
                 }
+            }
+        }
+    }
+
+    <span class="kw">fn </span>next_chunk(buf: <span class="kw-2">&amp;mut </span>VecDeque&lt;io::Result&lt;DirEntry&gt;&gt;, std: <span class="kw-2">&amp;mut </span>std::fs::ReadDir) {
+        <span class="kw">for </span>ret <span class="kw">in </span>std.by_ref().take(CHUNK_SIZE) {
+            <span class="kw">let </span>success = ret.is_ok();
+
+            buf.push_back(ret.map(|std| DirEntry {
+                <span class="attr">#[cfg(not(any(
+                    target_os = <span class="string">&quot;solaris&quot;</span>,
+                    target_os = <span class="string">&quot;illumos&quot;</span>,
+                    target_os = <span class="string">&quot;haiku&quot;</span>,
+                    target_os = <span class="string">&quot;vxworks&quot;
+                </span>)))]
+                </span>file_type: std.file_type().ok(),
+                std: Arc::new(std),
+            }));
+
+            <span class="kw">if </span>!success {
+                <span class="kw">break</span>;
             }
         }
     }
@@ -455,7 +546,16 @@
 /// filesystem. Each entry can be inspected via methods to learn about the full
 /// path or possibly other metadata through per-platform extension traits.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>DirEntry(Arc&lt;std::fs::DirEntry&gt;);
+</span><span class="kw">pub struct </span>DirEntry {
+    <span class="attr">#[cfg(not(any(
+        target_os = <span class="string">&quot;solaris&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;haiku&quot;</span>,
+        target_os = <span class="string">&quot;vxworks&quot;
+    </span>)))]
+    </span>file_type: <span class="prelude-ty">Option</span>&lt;FileType&gt;,
+    std: Arc&lt;std::fs::DirEntry&gt;,
+}
 
 <span class="kw">impl </span>DirEntry {
     <span class="doccomment">/// Returns the full path to the file that this entry represents.
@@ -488,7 +588,7 @@
     ///
     /// The exact text, of course, depends on what files you have in `.`.
     </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
-        <span class="self">self</span>.<span class="number">0</span>.path()
+        <span class="self">self</span>.std.path()
     }
 
     <span class="doccomment">/// Returns the bare file name of this directory entry without any other
@@ -509,7 +609,7 @@
     /// # }
     /// ```
     </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OsString {
-        <span class="self">self</span>.<span class="number">0</span>.file_name()
+        <span class="self">self</span>.std.file_name()
     }
 
     <span class="doccomment">/// Returns the metadata for the file that this entry points at.
@@ -543,7 +643,7 @@
     /// # }
     /// ```
     </span><span class="kw">pub async fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Metadata&gt; {
-        <span class="kw">let </span>std = <span class="self">self</span>.<span class="number">0</span>.clone();
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
         asyncify(<span class="kw">move </span>|| std.metadata()).<span class="kw">await
     </span>}
 
@@ -578,15 +678,25 @@
     /// # }
     /// ```
     </span><span class="kw">pub async fn </span>file_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;FileType&gt; {
-        <span class="kw">let </span>std = <span class="self">self</span>.<span class="number">0</span>.clone();
+        <span class="attr">#[cfg(not(any(
+            target_os = <span class="string">&quot;solaris&quot;</span>,
+            target_os = <span class="string">&quot;illumos&quot;</span>,
+            target_os = <span class="string">&quot;haiku&quot;</span>,
+            target_os = <span class="string">&quot;vxworks&quot;
+        </span>)))]
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(file_type) = <span class="self">self</span>.file_type {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(file_type);
+        }
+
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
         asyncify(<span class="kw">move </span>|| std.file_type()).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Returns a reference to the underlying `std::fs::DirEntry`.
     </span><span class="attr">#[cfg(unix)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>std::fs::DirEntry {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
-    </span>}
+        <span class="kw-2">&amp;</span><span class="self">self</span>.std
+    }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

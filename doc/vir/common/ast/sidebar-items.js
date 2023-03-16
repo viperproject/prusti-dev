@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["predicate",""]]};
+window.SIDEBAR_ITEMS = {"mod":["predicate"]};

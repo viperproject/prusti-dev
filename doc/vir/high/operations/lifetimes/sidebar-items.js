@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["WithLifetimes",""]]};
+window.SIDEBAR_ITEMS = {"trait":["WithLifetimes"]};

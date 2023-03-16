@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.6.0/src/rwlock.rs`."><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.7.0/src/rwlock.rs`."><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -758,15 +758,229 @@
 <a href="#758" id="758">758</a>
 <a href="#759" id="759">759</a>
 <a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::cell::UnsafeCell;
 <span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::mem;
 <span class="kw">use </span>std::ops::{Deref, DerefMut};
+<span class="kw">use </span>std::pin::Pin;
 <span class="kw">use </span>std::process;
 <span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<span class="kw">use </span>event_listener::Event;
+<span class="kw">use </span>event_listener::{Event, EventListener};
 
+<span class="kw">use </span><span class="kw">crate</span>::futures::Lock;
 <span class="kw">use crate</span>::{Mutex, MutexGuard};
 
 <span class="kw">const </span>WRITER_BIT: usize = <span class="number">1</span>;
@@ -930,42 +1144,11 @@
     /// assert!(lock.try_read().is_some());
     /// # })
     /// ```
-    </span><span class="kw">pub async fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.state.load(Ordering::Acquire);
-
-        <span class="kw">loop </span>{
-            <span class="kw">if </span>state &amp; WRITER_BIT == <span class="number">0 </span>{
-                <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
-                </span><span class="kw">if </span>state &gt; std::isize::MAX <span class="kw">as </span>usize {
-                    process::abort();
-                }
-
-                <span class="comment">// If nobody is holding a write lock or attempting to acquire it, increment the
-                // number of readers.
-                </span><span class="kw">match </span><span class="self">self</span>.state.compare_exchange(
-                    state,
-                    state + ONE_READER,
-                    Ordering::AcqRel,
-                    Ordering::Acquire,
-                ) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>RwLockReadGuard(<span class="self">self</span>),
-                    <span class="prelude-val">Err</span>(s) =&gt; state = s,
-                }
-            } <span class="kw">else </span>{
-                <span class="comment">// Start listening for &quot;no writer&quot; events.
-                </span><span class="kw">let </span>listener = <span class="self">self</span>.no_writer.listen();
-
-                <span class="comment">// Check again if there&#39;s a writer.
-                </span><span class="kw">if </span><span class="self">self</span>.state.load(Ordering::SeqCst) &amp; WRITER_BIT != <span class="number">0 </span>{
-                    <span class="comment">// Wait until the writer is dropped.
-                    </span>listener.<span class="kw">await</span>;
-                    <span class="comment">// Notify the next reader waiting in line.
-                    </span><span class="self">self</span>.no_writer.notify(<span class="number">1</span>);
-                }
-
-                <span class="comment">// Reload the state.
-                </span>state = <span class="self">self</span>.state.load(Ordering::Acquire);
-            }
+    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Read&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        Read {
+            lock: <span class="self">self</span>,
+            state: <span class="self">self</span>.state.load(Ordering::Acquire),
+            listener: <span class="prelude-val">None</span>,
         }
     }
 
@@ -1049,33 +1232,10 @@
     /// *writer = 2;
     /// # })
     /// ```
-    </span><span class="kw">pub async fn </span>upgradable_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="comment">// First grab the mutex.
-        </span><span class="kw">let </span>lock = <span class="self">self</span>.mutex.lock().<span class="kw">await</span>;
-
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.state.load(Ordering::Acquire);
-
-        <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
-        </span><span class="kw">if </span>state &gt; std::isize::MAX <span class="kw">as </span>usize {
-            process::abort();
-        }
-
-        <span class="comment">// Increment the number of readers.
-        </span><span class="kw">loop </span>{
-            <span class="kw">match </span><span class="self">self</span>.state.compare_exchange(
-                state,
-                state + ONE_READER,
-                Ordering::AcqRel,
-                Ordering::Acquire,
-            ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span>RwLockUpgradableReadGuard {
-                        reader: RwLockReadGuard(<span class="self">self</span>),
-                        reserved: lock,
-                    }
-                }
-                <span class="prelude-val">Err</span>(s) =&gt; state = s,
-            }
+    </span><span class="kw">pub fn </span>upgradable_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; UpgradableRead&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        UpgradableRead {
+            lock: <span class="self">self</span>,
+            acquire: <span class="self">self</span>.mutex.lock(),
         }
     }
 
@@ -1132,30 +1292,11 @@
     /// assert!(lock.try_read().is_none());
     /// # })
     /// ```
-    </span><span class="kw">pub async fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="comment">// First grab the mutex.
-        </span><span class="kw">let </span>lock = <span class="self">self</span>.mutex.lock().<span class="kw">await</span>;
-
-        <span class="comment">// Set `WRITER_BIT` and create a guard that unsets it in case this future is canceled.
-        </span><span class="self">self</span>.state.fetch_or(WRITER_BIT, Ordering::SeqCst);
-        <span class="kw">let </span>guard = RwLockWriteGuard {
-            writer: RwLockWriteGuardInner(<span class="self">self</span>),
-            reserved: lock,
-        };
-
-        <span class="comment">// If there are readers, we need to wait for them to finish.
-        </span><span class="kw">while </span><span class="self">self</span>.state.load(Ordering::SeqCst) != WRITER_BIT {
-            <span class="comment">// Start listening for &quot;no readers&quot; events.
-            </span><span class="kw">let </span>listener = <span class="self">self</span>.no_readers.listen();
-
-            <span class="comment">// Check again if there are readers.
-            </span><span class="kw">if </span><span class="self">self</span>.state.load(Ordering::Acquire) != WRITER_BIT {
-                <span class="comment">// Wait for the readers to finish.
-                </span>listener.<span class="kw">await</span>;
-            }
+    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Write&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        Write {
+            lock: <span class="self">self</span>,
+            state: WriteState::Acquiring(<span class="self">self</span>.mutex.lock()),
         }
-
-        guard
     }
 
     <span class="doccomment">/// Returns a mutable reference to the inner value.
@@ -1208,7 +1349,232 @@
     }
 }
 
+<span class="doccomment">/// The future returned by [`RwLock::read`].
+</span><span class="kw">pub struct </span>Read&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// The lock that is being acquired.
+    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;,
+
+    <span class="doccomment">/// The last-observed state of the lock.
+    </span>state: usize,
+
+    <span class="doccomment">/// The listener for the &quot;no writers&quot; event.
+    </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;Read { .. }&quot;</span>)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
+
+        <span class="kw">loop </span>{
+            <span class="kw">if </span>this.state &amp; WRITER_BIT == <span class="number">0 </span>{
+                <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
+                </span><span class="kw">if </span>this.state &gt; std::isize::MAX <span class="kw">as </span>usize {
+                    process::abort();
+                }
+
+                <span class="comment">// If nobody is holding a write lock or attempting to acquire it, increment the
+                // number of readers.
+                </span><span class="kw">match </span>this.lock.state.compare_exchange(
+                    this.state,
+                    this.state + ONE_READER,
+                    Ordering::AcqRel,
+                    Ordering::Acquire,
+                ) {
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(RwLockReadGuard(this.lock)),
+                    <span class="prelude-val">Err</span>(s) =&gt; this.state = s,
+                }
+            } <span class="kw">else </span>{
+                <span class="comment">// Start listening for &quot;no writer&quot; events.
+                </span><span class="kw">let </span>load_ordering = <span class="kw">match </span><span class="kw-2">&amp;mut </span>this.listener {
+                    listener @ <span class="prelude-val">None </span>=&gt; {
+                        <span class="kw-2">*</span>listener = <span class="prelude-val">Some</span>(this.lock.no_writer.listen());
+
+                        <span class="comment">// Make sure there really is no writer.
+                        </span>Ordering::SeqCst
+                    }
+
+                    <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>listener) =&gt; {
+                        <span class="comment">// Wait for the writer to finish.
+                        </span><span class="macro">ready!</span>(Pin::new(listener).poll(cx));
+                        this.listener = <span class="prelude-val">None</span>;
+
+                        <span class="comment">// Notify the next reader waiting in list.
+                        </span>this.lock.no_writer.notify(<span class="number">1</span>);
+
+                        <span class="comment">// Check the state again.
+                        </span>Ordering::Acquire
+                    }
+                };
+
+                <span class="comment">// Reload the state.
+                </span>this.state = this.lock.state.load(load_ordering);
+            }
+        }
+    }
+}
+
+<span class="doccomment">/// The future returned by [`RwLock::upgradable_read`].
+</span><span class="kw">pub struct </span>UpgradableRead&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// The lock that is being acquired.
+    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;,
+
+    <span class="doccomment">/// The mutex we are trying to acquire.
+    </span>acquire: Lock&lt;<span class="lifetime">&#39;a</span>, ()&gt;,
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;UpgradableRead { .. }&quot;</span>)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
+
+        <span class="comment">// Acquire the mutex.
+        </span><span class="kw">let </span>mutex_guard = <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span>this.acquire).poll(cx));
+
+        <span class="kw">let </span><span class="kw-2">mut </span>state = this.lock.state.load(Ordering::Acquire);
+
+        <span class="comment">// Make sure the number of readers doesn&#39;t overflow.
+        </span><span class="kw">if </span>state &gt; std::isize::MAX <span class="kw">as </span>usize {
+            process::abort();
+        }
+
+        <span class="comment">// Increment the number of readers.
+        </span><span class="kw">loop </span>{
+            <span class="kw">match </span>this.lock.state.compare_exchange(
+                state,
+                state + ONE_READER,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            ) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">return </span>Poll::Ready(RwLockUpgradableReadGuard {
+                        reader: RwLockReadGuard(this.lock),
+                        reserved: mutex_guard,
+                    });
+                }
+                <span class="prelude-val">Err</span>(s) =&gt; state = s,
+            }
+        }
+    }
+}
+
+<span class="doccomment">/// The future returned by [`RwLock::write`].
+</span><span class="kw">pub struct </span>Write&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// The lock that is being acquired.
+    </span>lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;,
+
+    <span class="doccomment">/// Current state fof this future.
+    </span>state: WriteState&lt;<span class="lifetime">&#39;a</span>, T&gt;,
+}
+
+<span class="kw">enum </span>WriteState&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// We are currently acquiring the inner mutex.
+    </span>Acquiring(Lock&lt;<span class="lifetime">&#39;a</span>, ()&gt;),
+
+    <span class="doccomment">/// We are currently waiting for readers to finish.
+    </span>WaitingReaders {
+        <span class="doccomment">/// Our current write guard.
+        </span>guard: <span class="prelude-ty">Option</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;,
+
+        <span class="doccomment">/// The listener for the &quot;no readers&quot; event.
+        </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
+    },
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;Write { .. }&quot;</span>)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
+
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="kw-2">&amp;mut </span>this.state {
+                WriteState::Acquiring(lock) =&gt; {
+                    <span class="comment">// First grab the mutex.
+                    </span><span class="kw">let </span>mutex_guard = <span class="macro">ready!</span>(Pin::new(lock).poll(cx));
+
+                    <span class="comment">// Set `WRITER_BIT` and create a guard that unsets it in case this future is canceled.
+                    </span><span class="kw">let </span>new_state = this.lock.state.fetch_or(WRITER_BIT, Ordering::SeqCst);
+                    <span class="kw">let </span>guard = RwLockWriteGuard {
+                        writer: RwLockWriteGuardInner(this.lock),
+                        reserved: mutex_guard,
+                    };
+
+                    <span class="comment">// If we just acquired the writer lock, return it.
+                    </span><span class="kw">if </span>new_state == WRITER_BIT {
+                        <span class="kw">return </span>Poll::Ready(guard);
+                    }
+
+                    <span class="comment">// Start waiting for the readers to finish.
+                    </span>this.state = WriteState::WaitingReaders {
+                        guard: <span class="prelude-val">Some</span>(guard),
+                        listener: <span class="prelude-val">Some</span>(this.lock.no_readers.listen()),
+                    };
+                }
+
+                WriteState::WaitingReaders {
+                    guard,
+                    <span class="kw-2">ref mut </span>listener,
+                } =&gt; {
+                    <span class="kw">let </span>load_ordering = <span class="kw">if </span>listener.is_some() {
+                        Ordering::Acquire
+                    } <span class="kw">else </span>{
+                        Ordering::SeqCst
+                    };
+
+                    <span class="comment">// Check the state again.
+                    </span><span class="kw">if </span>this.lock.state.load(load_ordering) == WRITER_BIT {
+                        <span class="comment">// We are the only ones holding the lock, return it.
+                        </span><span class="kw">return </span>Poll::Ready(guard.take().unwrap());
+                    }
+
+                    <span class="comment">// Wait for the readers to finish.
+                    </span><span class="kw">match </span>listener {
+                        <span class="prelude-val">None </span>=&gt; {
+                            <span class="comment">// Register a listener.
+                            </span><span class="kw-2">*</span>listener = <span class="prelude-val">Some</span>(this.lock.no_readers.listen());
+                        }
+
+                        <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>evl) =&gt; {
+                            <span class="comment">// Wait for the readers to finish.
+                            </span><span class="macro">ready!</span>(Pin::new(evl).poll(cx));
+                            <span class="kw-2">*</span>listener = <span class="prelude-val">None</span>;
+                        }
+                    };
+                }
+            }
+        }
+    }
+}
+
 <span class="doccomment">/// A guard that releases the read lock when dropped.
+</span><span class="attr">#[clippy::has_significant_drop]
 </span><span class="kw">pub struct </span>RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;);
 
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
@@ -1245,6 +1611,7 @@
 }
 
 <span class="doccomment">/// A guard that releases the upgradable read lock when dropped.
+</span><span class="attr">#[clippy::has_significant_drop]
 </span><span class="kw">pub struct </span>RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
     reader: RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;,
     reserved: MutexGuard&lt;<span class="lifetime">&#39;a</span>, ()&gt;,
@@ -1345,7 +1712,7 @@
     /// *writer = 2;
     /// # })
     /// ```
-    </span><span class="kw">pub async fn </span>upgrade(guard: <span class="self">Self</span>) -&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    </span><span class="kw">pub fn </span>upgrade(guard: <span class="self">Self</span>) -&gt; Upgrade&lt;<span class="lifetime">&#39;a</span>, T&gt; {
         <span class="comment">// Set `WRITER_BIT` and decrement the number of readers at the same time.
         </span>guard
             .reader
@@ -1356,19 +1723,10 @@
         <span class="comment">// Convert into a write guard that unsets `WRITER_BIT` in case this future is canceled.
         </span><span class="kw">let </span>guard = guard.into_writer();
 
-        <span class="comment">// If there are readers, we need to wait for them to finish.
-        </span><span class="kw">while </span>guard.writer.<span class="number">0</span>.state.load(Ordering::SeqCst) != WRITER_BIT {
-            <span class="comment">// Start listening for &quot;no readers&quot; events.
-            </span><span class="kw">let </span>listener = guard.writer.<span class="number">0</span>.no_readers.listen();
-
-            <span class="comment">// Check again if there are readers.
-            </span><span class="kw">if </span>guard.writer.<span class="number">0</span>.state.load(Ordering::Acquire) != WRITER_BIT {
-                <span class="comment">// Wait for the readers to finish.
-                </span>listener.<span class="kw">await</span>;
-            }
+        Upgrade {
+            guard: <span class="prelude-val">Some</span>(guard),
+            listener: <span class="prelude-val">None</span>,
         }
-
-        guard
     }
 }
 
@@ -1392,6 +1750,67 @@
     }
 }
 
+<span class="doccomment">/// The future returned by [`RwLockUpgradableReadGuard::upgrade`].
+</span><span class="kw">pub struct </span>Upgrade&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// The guard that we are upgrading to.
+    </span>guard: <span class="prelude-ty">Option</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;,
+
+    <span class="doccomment">/// The event listener we are waiting on.
+    </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Upgrade&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Upgrade&quot;</span>).finish()
+    }
+}
+
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>Upgrade&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>Upgrade&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
+        <span class="kw">let </span>guard = this
+            .guard
+            .as_mut()
+            .expect(<span class="string">&quot;cannot poll future after completion&quot;</span>);
+
+        <span class="comment">// If there are readers, we need to wait for them to finish.
+        </span><span class="kw">loop </span>{
+            <span class="kw">let </span>load_ordering = <span class="kw">if </span>this.listener.is_some() {
+                Ordering::Acquire
+            } <span class="kw">else </span>{
+                Ordering::SeqCst
+            };
+
+            <span class="comment">// See if the number of readers is zero.
+            </span><span class="kw">let </span>state = guard.writer.<span class="number">0</span>.state.load(load_ordering);
+            <span class="kw">if </span>state == WRITER_BIT {
+                <span class="kw">break</span>;
+            }
+
+            <span class="comment">// If there are readers, wait for them to finish.
+            </span><span class="kw">match </span><span class="kw-2">&amp;mut </span>this.listener {
+                listener @ <span class="prelude-val">None </span>=&gt; {
+                    <span class="comment">// Start listening for &quot;no readers&quot; events.
+                    </span><span class="kw-2">*</span>listener = <span class="prelude-val">Some</span>(guard.writer.<span class="number">0</span>.no_readers.listen());
+                }
+
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>listener) =&gt; {
+                    <span class="comment">// Wait for the readers to finish.
+                    </span><span class="macro">ready!</span>(Pin::new(listener).poll(cx));
+                    this.listener = <span class="prelude-val">None</span>;
+                }
+            }
+        }
+
+        <span class="comment">// We are done.
+        </span>Poll::Ready(this.guard.take().unwrap())
+    }
+}
+
 <span class="kw">struct </span>RwLockWriteGuardInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;T&gt;);
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>RwLockWriteGuardInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {
@@ -1404,6 +1823,7 @@
 }
 
 <span class="doccomment">/// A guard that releases the write lock when dropped.
+</span><span class="attr">#[clippy::has_significant_drop]
 </span><span class="kw">pub struct </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
     writer: RwLockWriteGuardInner&lt;<span class="lifetime">&#39;a</span>, T&gt;,
     reserved: MutexGuard&lt;<span class="lifetime">&#39;a</span>, ()&gt;,
@@ -1519,4 +1939,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

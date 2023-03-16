@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.23/src/client/conn.rs`."><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.25/src/client/conn.rs`."><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1111,6 +1111,49 @@
 <a href="#1111" id="1111">1111</a>
 <a href="#1112" id="1112">1112</a>
 <a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Lower-level client connection API.
 //!
 //! The types in this module are to provide a lower-level API based around a
@@ -1167,7 +1210,12 @@
 //! # }
 //! ```
 
-</span><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;backports&quot;</span>, feature = <span class="string">&quot;http1&quot;</span>))]
+</span><span class="kw">pub mod </span>http1;
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;backports&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+</span><span class="kw">pub mod </span>http2;
+
+<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 <span class="kw">use </span>std::fmt;
 <span class="attr">#[cfg(not(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
 </span><span class="kw">use </span>std::marker::PhantomData;
@@ -1231,16 +1279,30 @@
 ///
 /// This is a shortcut for `Builder::new().handshake(io)`.
 /// See [`client::conn`](crate::client::conn) for more.
+</span><span class="attr">#[cfg_attr(
+    feature = <span class="string">&quot;deprecated&quot;</span>,
+    deprecated(
+        note = <span class="string">&quot;This function will be replaced with `client::conn::http1::handshake` and `client::conn::http2::handshake` in 1.0, enable the \&quot;backports\&quot; feature to use them now.&quot;
+    </span>)
+)]
+#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
 </span><span class="kw">pub async fn </span>handshake&lt;T&gt;(
     io: T,
 ) -&gt; <span class="kw">crate</span>::Result&lt;(SendRequest&lt;<span class="kw">crate</span>::Body&gt;, Connection&lt;T, <span class="kw">crate</span>::Body&gt;)&gt;
 <span class="kw">where
     </span>T: AsyncRead + AsyncWrite + Unpin + Send + <span class="lifetime">&#39;static</span>,
 {
-    Builder::new().handshake(io).<span class="kw">await
+    <span class="attr">#[allow(deprecated)]
+    </span>Builder::new().handshake(io).<span class="kw">await
 </span>}
 
 <span class="doccomment">/// The sender side of an established connection.
+</span><span class="attr">#[cfg_attr(
+    feature = <span class="string">&quot;deprecated&quot;</span>,
+    deprecated(
+        note = <span class="string">&quot;This type will be replaced with `client::conn::http1::SendRequest` and `client::conn::http2::SendRequest` in 1.0, enable the \&quot;backports\&quot; feature to use them now.&quot;
+    </span>)
+)]
 </span><span class="kw">pub struct </span>SendRequest&lt;B&gt; {
     dispatch: dispatch::Sender&lt;Request&lt;B&gt;, Response&lt;Body&gt;&gt;,
 }
@@ -1250,6 +1312,12 @@
 /// In most cases, this should just be spawned into an executor, so that it
 /// can process incoming and outgoing messages, notice hangups, and the like.
 </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
+#[cfg_attr(
+    feature = <span class="string">&quot;deprecated&quot;</span>,
+    deprecated(
+        note = <span class="string">&quot;This type will be replaced with `client::conn::http1::Connection` and `client::conn::http2::Connection` in 1.0, enable the \&quot;backports\&quot; feature to use them now.&quot;
+    </span>)
+)]
 </span><span class="kw">pub struct </span>Connection&lt;T, B&gt;
 <span class="kw">where
     </span>T: AsyncRead + AsyncWrite + Send + <span class="lifetime">&#39;static</span>,
@@ -1262,6 +1330,12 @@
 ///
 /// After setting options, the builder is used to create a handshake future.
 </span><span class="attr">#[derive(Clone, Debug)]
+#[cfg_attr(
+    feature = <span class="string">&quot;deprecated&quot;</span>,
+    deprecated(
+        note = <span class="string">&quot;This type will be replaced with `client::conn::http1::Builder` and `client::conn::http2::Builder` in 1.0, enable the \&quot;backports\&quot; feature to use them now.&quot;
+    </span>)
+)]
 </span><span class="kw">pub struct </span>Builder {
     <span class="kw">pub</span>(<span class="kw">super</span>) exec: Exec,
     h09_responses: bool,
@@ -1334,6 +1408,7 @@
 
 <span class="comment">// ===== impl SendRequest
 
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
 </span><span class="kw">impl</span>&lt;B&gt; SendRequest&lt;B&gt; {
     <span class="doccomment">/// Polls to determine whether this sender can be used yet for a request.
     ///
@@ -1367,7 +1442,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;B&gt; SendRequest&lt;B&gt;
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+</span><span class="kw">impl</span>&lt;B&gt; SendRequest&lt;B&gt;
 <span class="kw">where
     </span>B: HttpBody + <span class="lifetime">&#39;static</span>,
 {
@@ -1452,7 +1528,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;B&gt; Service&lt;Request&lt;B&gt;&gt; <span class="kw">for </span>SendRequest&lt;B&gt;
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+</span><span class="kw">impl</span>&lt;B&gt; Service&lt;Request&lt;B&gt;&gt; <span class="kw">for </span>SendRequest&lt;B&gt;
 <span class="kw">where
     </span>B: HttpBody + <span class="lifetime">&#39;static</span>,
 {
@@ -1469,7 +1546,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;B&gt; fmt::Debug <span class="kw">for </span>SendRequest&lt;B&gt; {
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+</span><span class="kw">impl</span>&lt;B&gt; fmt::Debug <span class="kw">for </span>SendRequest&lt;B&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;SendRequest&quot;</span>).finish()
     }
@@ -1538,6 +1616,7 @@
 
 <span class="comment">// ===== impl Connection
 
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
 </span><span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, B&gt;
 <span class="kw">where
     </span>T: AsyncRead + AsyncWrite + Unpin + Send + <span class="lifetime">&#39;static</span>,
@@ -1621,9 +1700,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; Future <span class="kw">for </span>Connection&lt;T, B&gt;
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+</span><span class="kw">impl</span>&lt;T, B&gt; Future <span class="kw">for </span>Connection&lt;T, B&gt;
 <span class="kw">where
-    </span>T: AsyncRead + AsyncWrite + Unpin + Send + <span class="lifetime">&#39;static</span>,
+    </span>T: AsyncRead + AsyncWrite + Unpin + Send,
     B: HttpBody + Send + <span class="lifetime">&#39;static</span>,
     B::Data: Send,
     B::Error: Into&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
@@ -1649,7 +1729,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, B&gt; fmt::Debug <span class="kw">for </span>Connection&lt;T, B&gt;
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+</span><span class="kw">impl</span>&lt;T, B&gt; fmt::Debug <span class="kw">for </span>Connection&lt;T, B&gt;
 <span class="kw">where
     </span>T: AsyncRead + AsyncWrite + fmt::Debug + Send + <span class="lifetime">&#39;static</span>,
     B: HttpBody + <span class="lifetime">&#39;static</span>,
@@ -1661,6 +1742,7 @@
 
 <span class="comment">// ===== impl Builder
 
+</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
 </span><span class="kw">impl </span>Builder {
     <span class="doccomment">/// Creates a new connection builder.
     </span><span class="attr">#[inline]
@@ -2198,10 +2280,12 @@
 </span><span class="kw">trait </span>AssertSend: Send {}
 <span class="kw">trait </span>AssertSendSync: Send + Sync {}
 
-<span class="attr">#[doc(hidden)]
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+#[doc(hidden)]
 </span><span class="kw">impl</span>&lt;B: Send&gt; AssertSendSync <span class="kw">for </span>SendRequest&lt;B&gt; {}
 
-<span class="attr">#[doc(hidden)]
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+#[doc(hidden)]
 </span><span class="kw">impl</span>&lt;T: Send, B: Send&gt; AssertSend <span class="kw">for </span>Connection&lt;T, B&gt;
 <span class="kw">where
     </span>T: AsyncRead + AsyncWrite + Send + <span class="lifetime">&#39;static</span>,
@@ -2210,7 +2294,8 @@
 {
 }
 
-<span class="attr">#[doc(hidden)]
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+#[doc(hidden)]
 </span><span class="kw">impl</span>&lt;T: Send + Sync, B: Send + Sync&gt; AssertSendSync <span class="kw">for </span>Connection&lt;T, B&gt;
 <span class="kw">where
     </span>T: AsyncRead + AsyncWrite + Send + <span class="lifetime">&#39;static</span>,
@@ -2219,10 +2304,11 @@
 {
 }
 
-<span class="attr">#[doc(hidden)]
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, allow(deprecated))]
+#[doc(hidden)]
 </span><span class="kw">impl </span>AssertSendSync <span class="kw">for </span>Builder {}
 
 <span class="attr">#[doc(hidden)]
 </span><span class="kw">impl </span>AssertSend <span class="kw">for </span>ResponseFuture {}
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="hyper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

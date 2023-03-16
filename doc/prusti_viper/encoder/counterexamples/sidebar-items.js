@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["counterexample",""],["counterexample_refactored",""],["counterexample_translation",""],["counterexample_translation_refactored",""]]};
+window.SIDEBAR_ITEMS = {"mod":["counterexample","counterexample_refactored","counterexample_translation","counterexample_translation_refactored"]};

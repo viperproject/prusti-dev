@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["FoldingOptimizer",""]]};
+window.SIDEBAR_ITEMS = {"trait":["FoldingOptimizer"]};

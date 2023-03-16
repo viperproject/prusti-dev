@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["unblock","Runs blocking code on a thread pool."]],"struct":[["Unblock","Runs blocking I/O on a thread pool."]]};
+window.SIDEBAR_ITEMS = {"fn":["unblock"],"struct":["Unblock"]};

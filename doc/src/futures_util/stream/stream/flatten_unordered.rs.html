@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/stream/flatten_unordered.rs`."><title>flatten_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.27/src/stream/stream/flatten_unordered.rs`."><title>flatten_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -507,11 +507,41 @@
 <a href="#507" id="507">507</a>
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
 </pre><pre class="rust"><code><span class="kw">use </span>alloc::sync::Arc;
 <span class="kw">use </span>core::{
     cell::UnsafeCell,
     convert::identity,
     fmt,
+    marker::PhantomData,
     num::NonZeroUsize,
     pin::Pin,
     sync::atomic::{AtomicU8, Ordering},
@@ -531,8 +561,11 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::stream::FuturesUnordered;
 
-<span class="doccomment">/// There is nothing to poll and stream isn&#39;t being
-/// polled or waking at the moment.
+<span class="doccomment">/// Stream for the [`flatten_unordered`](super::StreamExt::flatten_unordered)
+/// method.
+</span><span class="kw">pub type </span>FlattenUnordered&lt;St&gt; = FlattenUnorderedWithFlowController&lt;St, ()&gt;;
+
+<span class="doccomment">/// There is nothing to poll and stream isn&#39;t being polled/waking/woken at the moment.
 </span><span class="kw">const </span>NONE: u8 = <span class="number">0</span>;
 
 <span class="doccomment">/// Inner streams need to be polled.
@@ -541,26 +574,19 @@
 <span class="doccomment">/// The base stream needs to be polled.
 </span><span class="kw">const </span>NEED_TO_POLL_STREAM: u8 = <span class="number">0b10</span>;
 
-<span class="doccomment">/// It needs to poll base stream and inner streams.
+<span class="doccomment">/// Both base stream and inner streams need to be polled.
 </span><span class="kw">const </span>NEED_TO_POLL_ALL: u8 = NEED_TO_POLL_INNER_STREAMS | NEED_TO_POLL_STREAM;
 
 <span class="doccomment">/// The current stream is being polled at the moment.
 </span><span class="kw">const </span>POLLING: u8 = <span class="number">0b100</span>;
 
-<span class="doccomment">/// Inner streams are being woken at the moment.
-</span><span class="kw">const </span>WAKING_INNER_STREAMS: u8 = <span class="number">0b1000</span>;
-
-<span class="doccomment">/// The base stream is being woken at the moment.
-</span><span class="kw">const </span>WAKING_STREAM: u8 = <span class="number">0b10000</span>;
-
-<span class="doccomment">/// The base stream and inner streams are being woken at the moment.
-</span><span class="kw">const </span>WAKING_ALL: u8 = WAKING_STREAM | WAKING_INNER_STREAMS;
+<span class="doccomment">/// Stream is being woken at the moment.
+</span><span class="kw">const </span>WAKING: u8 = <span class="number">0b1000</span>;
 
 <span class="doccomment">/// The stream was waked and will be polled.
-</span><span class="kw">const </span>WOKEN: u8 = <span class="number">0b100000</span>;
+</span><span class="kw">const </span>WOKEN: u8 = <span class="number">0b10000</span>;
 
-<span class="doccomment">/// Determines what needs to be polled, and is stream being polled at the
-/// moment or not.
+<span class="doccomment">/// Internal polling state of the stream.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>SharedPollState {
     state: Arc&lt;AtomicU8&gt;,
@@ -573,14 +599,14 @@
     }
 
     <span class="doccomment">/// Attempts to start polling, returning stored state in case of success.
-    /// Returns `None` if some waker is waking at the moment.
+    /// Returns `None` if either waker is waking at the moment or state is empty.
     </span><span class="kw">fn </span>start_polling(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(u8, PollStateBomb&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>SharedPollState) -&gt; u8&gt;)&gt; {
         <span class="kw">let </span>value = <span class="self">self
             </span>.state
             .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
-                <span class="kw">if </span>value &amp; WAKING_ALL == NONE {
+                <span class="kw">if </span>value &amp; WAKING == NONE &amp;&amp; value &amp; NEED_TO_POLL_ALL != NONE {
                     <span class="prelude-val">Some</span>(POLLING)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
@@ -592,23 +618,20 @@
         <span class="prelude-val">Some</span>((value, bomb))
     }
 
-    <span class="doccomment">/// Starts the waking process and performs bitwise or with the given value.
+    <span class="doccomment">/// Attempts to start the waking process and performs bitwise or with the given value.
+    ///
+    /// If some waker is already in progress or stream is already woken/being polled, waking process won&#39;t start, however
+    /// state will be disjuncted with the given value.
     </span><span class="kw">fn </span>start_waking(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         to_poll: u8,
-        waking: u8,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(u8, PollStateBomb&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>SharedPollState) -&gt; u8&gt;)&gt; {
         <span class="kw">let </span>value = <span class="self">self
             </span>.state
             .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
-                <span class="comment">// Waking process for this waker already started
-                </span><span class="kw">if </span>value &amp; waking != NONE {
-                    <span class="kw">return </span><span class="prelude-val">None</span>;
-                }
                 <span class="kw">let </span><span class="kw-2">mut </span>next_value = value | to_poll;
-                <span class="comment">// Only start the waking process if we&#39;re not in the polling phase and the stream isn&#39;t woken already
-                </span><span class="kw">if </span>value &amp; (WOKEN | POLLING) == NONE {
-                    next_value |= waking;
+                <span class="kw">if </span>value &amp; (WOKEN | POLLING) == NONE {
+                    next_value |= WAKING;
                 }
 
                 <span class="kw">if </span>next_value != value {
@@ -619,8 +642,9 @@
             })
             .ok()<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>value &amp; (WOKEN | POLLING) == NONE {
-            <span class="kw">let </span>bomb = PollStateBomb::new(<span class="self">self</span>, <span class="kw">move </span>|state| state.stop_waking(waking));
+        <span class="comment">// Only start the waking process if we&#39;re not in the polling/waking phase and the stream isn&#39;t woken already
+        </span><span class="kw">if </span>value &amp; (WOKEN | POLLING | WAKING) == NONE {
+            <span class="kw">let </span>bomb = PollStateBomb::new(<span class="self">self</span>, SharedPollState::stop_waking);
 
             <span class="prelude-val">Some</span>((value, bomb))
         } <span class="kw">else </span>{
@@ -632,7 +656,7 @@
     /// - `!POLLING` allowing to use wakers
     /// - `WOKEN` if the state was changed during `POLLING` phase as waker will be called,
     ///   or `will_be_woken` flag supplied
-    /// - `!WAKING_ALL` as
+    /// - `!WAKING` as
     ///   * Wakers called during the `POLLING` phase won&#39;t propagate their calls
     ///   * `POLLING` phase can&#39;t start if some of the wakers are active
     ///   So no wrapped waker can touch the inner waker&#39;s cell, it&#39;s safe to poll again.
@@ -647,20 +671,17 @@
                 }
                 next_value |= value;
 
-                <span class="prelude-val">Some</span>(next_value &amp; !POLLING &amp; !WAKING_ALL)
+                <span class="prelude-val">Some</span>(next_value &amp; !POLLING &amp; !WAKING)
             })
             .unwrap()
     }
 
     <span class="doccomment">/// Toggles state to non-waking, allowing to start polling.
-    </span><span class="kw">fn </span>stop_waking(<span class="kw-2">&amp;</span><span class="self">self</span>, waking: u8) -&gt; u8 {
-        <span class="self">self</span>.state
+    </span><span class="kw">fn </span>stop_waking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="kw">let </span>value = <span class="self">self
+            </span>.state
             .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
-                <span class="kw">let </span><span class="kw-2">mut </span>next_value = value &amp; !waking;
-                <span class="comment">// Waker will be called only if the current waking state is the same as the specified waker state
-                </span><span class="kw">if </span>value &amp; WAKING_ALL == waking {
-                    next_value |= WOKEN;
-                }
+                <span class="kw">let </span>next_value = value &amp; !WAKING | WOKEN;
 
                 <span class="kw">if </span>next_value != value {
                     <span class="prelude-val">Some</span>(next_value)
@@ -668,12 +689,15 @@
                     <span class="prelude-val">None
                 </span>}
             })
-            .unwrap_or_else(identity)
+            .unwrap_or_else(identity);
+
+        <span class="macro">debug_assert!</span>(value &amp; (WOKEN | POLLING | WAKING) == WAKING);
+        value
     }
 
     <span class="doccomment">/// Resets current state allowing to poll the stream and wake up wakers.
     </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
-        <span class="self">self</span>.state.swap(NEED_TO_POLL_ALL, Ordering::AcqRel)
+        <span class="self">self</span>.state.swap(NEED_TO_POLL_ALL, Ordering::SeqCst)
     }
 }
 
@@ -693,11 +717,6 @@
     </span><span class="kw">fn </span>deactivate(<span class="kw-2">mut </span><span class="self">self</span>) {
         <span class="self">self</span>.drop.take();
     }
-
-    <span class="doccomment">/// Manually fires the bomb, returning supplied state.
-    </span><span class="kw">fn </span>fire(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
-        <span class="self">self</span>.drop.take().map(|drop| (drop)(<span class="self">self</span>.state))
-    }
 }
 
 <span class="kw">impl</span>&lt;F: FnOnce(<span class="kw-2">&amp;</span>SharedPollState) -&gt; u8&gt; Drop <span class="kw">for </span>PollStateBomb&lt;<span class="lifetime">&#39;_</span>, F&gt; {
@@ -710,16 +729,16 @@
 
 <span class="doccomment">/// Will update state with the provided value on `wake_by_ref` call
 /// and then, if there is a need, call `inner_waker`.
-</span><span class="kw">struct </span>InnerWaker {
+</span><span class="kw">struct </span>WrappedWaker {
     inner_waker: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Waker&gt;&gt;,
     poll_state: SharedPollState,
     need_to_poll: u8,
 }
 
-<span class="kw">unsafe impl </span>Send <span class="kw">for </span>InnerWaker {}
-<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>InnerWaker {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>WrappedWaker {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>WrappedWaker {}
 
-<span class="kw">impl </span>InnerWaker {
+<span class="kw">impl </span>WrappedWaker {
     <span class="doccomment">/// Replaces given waker&#39;s inner_waker for polling stream/futures which will
     /// update poll state on `wake_by_ref` call. Use only if you need several
     /// contexts.
@@ -727,7 +746,7 @@
     /// ## Safety
     ///
     /// This function will modify waker&#39;s `inner_waker` via `UnsafeCell`, so
-    /// it should be used only during `POLLING` phase.
+    /// it should be used only during `POLLING` phase by one thread at the time.
     </span><span class="kw">unsafe fn </span>replace_waker(self_arc: <span class="kw-2">&amp;mut </span>Arc&lt;<span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Waker {
         <span class="kw-2">*</span>self_arc.inner_waker.get() = cx.waker().clone().into();
         waker(self_arc.clone())
@@ -736,16 +755,11 @@
     <span class="doccomment">/// Attempts to start the waking process for the waker with the given value.
     /// If succeeded, then the stream isn&#39;t yet woken and not being polled at the moment.
     </span><span class="kw">fn </span>start_waking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(u8, PollStateBomb&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>SharedPollState) -&gt; u8&gt;)&gt; {
-        <span class="self">self</span>.poll_state.start_waking(<span class="self">self</span>.need_to_poll, <span class="self">self</span>.waking_state())
+        <span class="self">self</span>.poll_state.start_waking(<span class="self">self</span>.need_to_poll)
     }
-
-    <span class="doccomment">/// Returns the corresponding waking state toggled by this waker.
-    </span><span class="kw">fn </span>waking_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
-        <span class="self">self</span>.need_to_poll &lt;&lt; <span class="number">3
-    </span>}
 }
 
-<span class="kw">impl </span>ArcWake <span class="kw">for </span>InnerWaker {
+<span class="kw">impl </span>ArcWake <span class="kw">for </span>WrappedWaker {
     <span class="kw">fn </span>wake_by_ref(self_arc: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, state_bomb)) = self_arc.start_waking() {
             <span class="comment">// Safety: now state is not `POLLING`
@@ -753,24 +767,17 @@
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(inner_waker) = waker_opt.clone() {
                 <span class="comment">// Stop waking to allow polling stream
-                </span><span class="kw">let </span>poll_state_value = state_bomb.fire().unwrap();
+                </span>drop(state_bomb);
 
-                <span class="comment">// Here we want to call waker only if stream isn&#39;t woken yet and
-                // also to optimize the case when two wakers are called at the same time.
-                //
-                // In this case the best strategy will be to propagate only the latest waker&#39;s awake,
-                // and then poll both entities in a single `poll_next` call
-                </span><span class="kw">if </span>poll_state_value &amp; (WOKEN | WAKING_ALL) == self_arc.waking_state() {
-                    <span class="comment">// Wake up inner waker
-                    </span>inner_waker.wake();
-                }
+                <span class="comment">// Wake up inner waker
+                </span>inner_waker.wake();
             }
         }
     }
 }
 
 <span class="macro">pin_project! </span>{
-    <span class="doccomment">/// Future which contains optional stream.
+    <span class="doccomment">/// Future which polls optional inner stream.
     ///
     /// If it&#39;s `Some`, it will attempt to call `poll_next` on it,
     /// returning `Some((item, next_item_fut))` in case of `Poll::Ready(Some(...))`
@@ -812,10 +819,10 @@
 
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`flatten_unordered`](super::StreamExt::flatten_unordered)
-    /// method.
-    </span><span class="attr">#[project = FlattenUnorderedProj]
+    /// method with ability to specify flow controller.
+    </span><span class="attr">#[project = FlattenUnorderedWithFlowControllerProj]
     #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
-    </span><span class="kw">pub struct </span>FlattenUnordered&lt;St&gt; <span class="kw">where </span>St: Stream {
+    </span><span class="kw">pub struct </span>FlattenUnorderedWithFlowController&lt;St, Fc&gt; <span class="kw">where </span>St: Stream {
         <span class="attr">#[pin]
         </span>inner_streams: FuturesUnordered&lt;PollStreamFut&lt;St::Item&gt;&gt;,
         <span class="attr">#[pin]
@@ -823,80 +830,110 @@
         poll_state: SharedPollState,
         limit: <span class="prelude-ty">Option</span>&lt;NonZeroUsize&gt;,
         is_stream_done: bool,
-        inner_streams_waker: Arc&lt;InnerWaker&gt;,
-        stream_waker: Arc&lt;InnerWaker&gt;,
+        inner_streams_waker: Arc&lt;WrappedWaker&gt;,
+        stream_waker: Arc&lt;WrappedWaker&gt;,
+        flow_controller: PhantomData&lt;Fc&gt;
     }
 }
 
-<span class="kw">impl</span>&lt;St&gt; fmt::Debug <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+<span class="kw">impl</span>&lt;St, Fc&gt; fmt::Debug <span class="kw">for </span>FlattenUnorderedWithFlowController&lt;St, Fc&gt;
 <span class="kw">where
     </span>St: Stream + fmt::Debug,
     St::Item: Stream + fmt::Debug,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;FlattenUnordered&quot;</span>)
+        f.debug_struct(<span class="string">&quot;FlattenUnorderedWithFlowController&quot;</span>)
             .field(<span class="string">&quot;poll_state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.poll_state)
             .field(<span class="string">&quot;inner_streams&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner_streams)
             .field(<span class="string">&quot;limit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.limit)
             .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.stream)
             .field(<span class="string">&quot;is_stream_done&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_stream_done)
+            .field(<span class="string">&quot;flow_controller&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flow_controller)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;St&gt; FlattenUnordered&lt;St&gt;
+<span class="kw">impl</span>&lt;St, Fc&gt; FlattenUnorderedWithFlowController&lt;St, Fc&gt;
 <span class="kw">where
     </span>St: Stream,
+    Fc: FlowController&lt;St::Item, &lt;St::Item <span class="kw">as </span>Stream&gt;::Item&gt;,
     St::Item: Stream + Unpin,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, limit: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; FlattenUnordered&lt;St&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        stream: St,
+        limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    ) -&gt; FlattenUnorderedWithFlowController&lt;St, Fc&gt; {
         <span class="kw">let </span>poll_state = SharedPollState::new(NEED_TO_POLL_STREAM);
 
-        FlattenUnordered {
+        FlattenUnorderedWithFlowController {
             inner_streams: FuturesUnordered::new(),
             stream,
             is_stream_done: <span class="bool-val">false</span>,
             limit: limit.and_then(NonZeroUsize::new),
-            inner_streams_waker: Arc::new(InnerWaker {
+            inner_streams_waker: Arc::new(WrappedWaker {
                 inner_waker: UnsafeCell::new(<span class="prelude-val">None</span>),
                 poll_state: poll_state.clone(),
                 need_to_poll: NEED_TO_POLL_INNER_STREAMS,
             }),
-            stream_waker: Arc::new(InnerWaker {
+            stream_waker: Arc::new(WrappedWaker {
                 inner_waker: UnsafeCell::new(<span class="prelude-val">None</span>),
                 poll_state: poll_state.clone(),
                 need_to_poll: NEED_TO_POLL_STREAM,
             }),
             poll_state,
+            flow_controller: PhantomData,
         }
     }
 
     <span class="macro">delegate_access_inner!</span>(stream, St, ());
 }
 
-<span class="kw">impl</span>&lt;St&gt; FlattenUnorderedProj&lt;<span class="lifetime">&#39;_</span>, St&gt;
+<span class="doccomment">/// Returns the next flow step based on the received item.
+</span><span class="kw">pub trait </span>FlowController&lt;I, O&gt; {
+    <span class="doccomment">/// Handles an item producing `FlowStep` describing the next flow step.
+    </span><span class="kw">fn </span>next_step(item: I) -&gt; FlowStep&lt;I, O&gt;;
+}
+
+<span class="kw">impl</span>&lt;I, O&gt; FlowController&lt;I, O&gt; <span class="kw">for </span>() {
+    <span class="kw">fn </span>next_step(item: I) -&gt; FlowStep&lt;I, O&gt; {
+        FlowStep::Continue(item)
+    }
+}
+
+<span class="doccomment">/// Describes the next flow step.
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>FlowStep&lt;C, R&gt; {
+    <span class="doccomment">/// Just yields an item and continues standard flow.
+    </span>Continue(C),
+    <span class="doccomment">/// Immediately returns an underlying item from the function.
+    </span>Return(R),
+}
+
+<span class="kw">impl</span>&lt;St, Fc&gt; FlattenUnorderedWithFlowControllerProj&lt;<span class="lifetime">&#39;_</span>, St, Fc&gt;
 <span class="kw">where
     </span>St: Stream,
 {
-    <span class="doccomment">/// Checks if current `inner_streams` size is less than optional limit.
+    <span class="doccomment">/// Checks if current `inner_streams` bucket size is greater than optional limit.
     </span><span class="kw">fn </span>is_exceeded_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.limit.map_or(<span class="bool-val">false</span>, |limit| <span class="self">self</span>.inner_streams.len() &gt;= limit.get())
     }
 }
 
-<span class="kw">impl</span>&lt;St&gt; FusedStream <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+<span class="kw">impl</span>&lt;St, Fc&gt; FusedStream <span class="kw">for </span>FlattenUnorderedWithFlowController&lt;St, Fc&gt;
 <span class="kw">where
     </span>St: FusedStream,
-    St::Item: FusedStream + Unpin,
+    Fc: FlowController&lt;St::Item, &lt;St::Item <span class="kw">as </span>Stream&gt;::Item&gt;,
+    St::Item: Stream + Unpin,
 {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.stream.is_terminated() &amp;&amp; <span class="self">self</span>.inner_streams.is_empty()
     }
 }
 
-<span class="kw">impl</span>&lt;St&gt; Stream <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+<span class="kw">impl</span>&lt;St, Fc&gt; Stream <span class="kw">for </span>FlattenUnorderedWithFlowController&lt;St, Fc&gt;
 <span class="kw">where
     </span>St: Stream,
+    Fc: FlowController&lt;St::Item, &lt;St::Item <span class="kw">as </span>Stream&gt;::Item&gt;,
     St::Item: Stream + Unpin,
 {
     <span class="kw">type </span>Item = &lt;St::Item <span class="kw">as </span>Stream&gt;::Item;
@@ -916,8 +953,7 @@
         };
 
         <span class="kw">if </span>poll_state_value &amp; NEED_TO_POLL_STREAM != NONE {
-            <span class="comment">// Safety: now state is `POLLING`.
-            </span><span class="kw">let </span>stream_waker = <span class="kw">unsafe </span>{ InnerWaker::replace_waker(this.stream_waker, cx) };
+            <span class="kw">let </span><span class="kw-2">mut </span>stream_waker = <span class="prelude-val">None</span>;
 
             <span class="comment">// Here we need to poll the base stream.
             //
@@ -933,15 +969,39 @@
 
                     <span class="kw">break</span>;
                 } <span class="kw">else </span>{
-                    <span class="kw">match </span>this.stream.as_mut().poll_next(<span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span>stream_waker)) {
-                        Poll::Ready(<span class="prelude-val">Some</span>(inner_stream)) =&gt; {
+                    <span class="comment">// Initialize base stream waker if it&#39;s not yet initialized
+                    </span><span class="kw">if </span>stream_waker.is_none() {
+                        <span class="comment">// Safety: now state is `POLLING`.
+                        </span>stream_waker
+                            .replace(<span class="kw">unsafe </span>{ WrappedWaker::replace_waker(this.stream_waker, cx) });
+                    }
+                    <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(stream_waker.as_ref().unwrap());
+
+                    <span class="kw">match </span>this.stream.as_mut().poll_next(<span class="kw-2">&amp;mut </span>cx) {
+                        Poll::Ready(<span class="prelude-val">Some</span>(item)) =&gt; {
+                            <span class="kw">let </span>next_item_fut = <span class="kw">match </span>Fc::next_step(item) {
+                                <span class="comment">// Propagates an item immediately (the main use-case is for errors)
+                                </span>FlowStep::Return(item) =&gt; {
+                                    need_to_poll_next |= NEED_TO_POLL_STREAM
+                                        | (poll_state_value &amp; NEED_TO_POLL_INNER_STREAMS);
+                                    poll_state_value &amp;= !NEED_TO_POLL_INNER_STREAMS;
+
+                                    next_item = <span class="prelude-val">Some</span>(item);
+
+                                    <span class="kw">break</span>;
+                                }
+                                <span class="comment">// Yields an item and continues processing (normal case)
+                                </span>FlowStep::Continue(inner_stream) =&gt; {
+                                    PollStreamFut::new(inner_stream)
+                                }
+                            };
                             <span class="comment">// Add new stream to the inner streams bucket
-                            </span>this.inner_streams.as_mut().push(PollStreamFut::new(inner_stream));
+                            </span>this.inner_streams.as_mut().push(next_item_fut);
                             <span class="comment">// Inner streams must be polled afterward
                             </span>poll_state_value |= NEED_TO_POLL_INNER_STREAMS;
                         }
                         Poll::Ready(<span class="prelude-val">None</span>) =&gt; {
-                            <span class="comment">// Mark the stream as done
+                            <span class="comment">// Mark the base stream as done
                             </span><span class="kw-2">*</span>this.is_stream_done = <span class="bool-val">true</span>;
                         }
                         Poll::Pending =&gt; {
@@ -955,13 +1015,10 @@
         <span class="kw">if </span>poll_state_value &amp; NEED_TO_POLL_INNER_STREAMS != NONE {
             <span class="comment">// Safety: now state is `POLLING`.
             </span><span class="kw">let </span>inner_streams_waker =
-                <span class="kw">unsafe </span>{ InnerWaker::replace_waker(this.inner_streams_waker, cx) };
+                <span class="kw">unsafe </span>{ WrappedWaker::replace_waker(this.inner_streams_waker, cx) };
+            <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span>inner_streams_waker);
 
-            <span class="kw">match </span>this
-                .inner_streams
-                .as_mut()
-                .poll_next(<span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span>inner_streams_waker))
-            {
+            <span class="kw">match </span>this.inner_streams.as_mut().poll_next(<span class="kw-2">&amp;mut </span>cx) {
                 Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>((item, next_item_fut)))) =&gt; {
                     <span class="comment">// Push next inner stream item future to the list of inner streams futures
                     </span>this.inner_streams.as_mut().push(next_item_fut);
@@ -981,15 +1038,16 @@
         <span class="comment">// We didn&#39;t have any `poll_next` panic, so it&#39;s time to deactivate the bomb
         </span>state_bomb.deactivate();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>force_wake =
+        <span class="comment">// Call the waker at the end of polling if
+        </span><span class="kw">let </span><span class="kw-2">mut </span>force_wake =
             <span class="comment">// we need to poll the stream and didn&#39;t reach the limit yet
             </span>need_to_poll_next &amp; NEED_TO_POLL_STREAM != NONE &amp;&amp; !this.is_exceeded_limit()
-            <span class="comment">// or we need to poll inner streams again
+            <span class="comment">// or we need to poll the inner streams again
             </span>|| need_to_poll_next &amp; NEED_TO_POLL_INNER_STREAMS != NONE;
 
         <span class="comment">// Stop polling and swap the latest state
         </span>poll_state_value = this.poll_state.stop_polling(need_to_poll_next, force_wake);
-        <span class="comment">// If state was changed during `POLLING` phase, need to manually call a waker
+        <span class="comment">// If state was changed during `POLLING` phase, we also need to manually call a waker
         </span>force_wake |= poll_state_value &amp; NEED_TO_POLL_ALL != NONE;
 
         <span class="kw">let </span>is_done = <span class="kw-2">*</span>this.is_stream_done &amp;&amp; this.inner_streams.is_empty();
@@ -1008,7 +1066,7 @@
 
 <span class="comment">// Forwarding impl of Sink from the underlying stream
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
-</span><span class="kw">impl</span>&lt;St, Item&gt; Sink&lt;Item&gt; <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+</span><span class="kw">impl</span>&lt;St, Item, Fc&gt; Sink&lt;Item&gt; <span class="kw">for </span>FlattenUnorderedWithFlowController&lt;St, Fc&gt;
 <span class="kw">where
     </span>St: Stream + Sink&lt;Item&gt;,
 {
@@ -1017,4 +1075,4 @@
     <span class="macro">delegate_sink!</span>(stream, Item);
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

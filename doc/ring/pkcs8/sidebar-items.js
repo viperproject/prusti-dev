@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Document","A generated PKCS#8 document."]]};
+window.SIDEBAR_ITEMS = {"struct":["Document"]};

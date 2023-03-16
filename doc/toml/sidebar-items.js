@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["de","Deserializing TOML into Rust structures."],["map","A map of String to toml::Value."],["ser","Serializing Rust structures into TOML."],["value","Definition of a TOML value"]],"struct":[["Spanned","A spanned value, indicating the range at which it is defined in the source."]]};
+window.SIDEBAR_ITEMS = {"enum":["Value"],"fn":["from_str","to_string","to_string_pretty"],"macro":["toml"],"mod":["de","map","ser","value"],"struct":["Deserializer","Serializer","Spanned"],"type":["Table"]};

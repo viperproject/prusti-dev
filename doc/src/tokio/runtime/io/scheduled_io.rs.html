@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/io/scheduled_io.rs`."><title>scheduled_io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.26.0/src/runtime/io/scheduled_io.rs`."><title>scheduled_io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -551,6 +551,11 @@
 <a href="#551" id="551">551</a>
 <a href="#552" id="552">552</a>
 <a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{ReadyEvent, Tick};
 <span class="kw">use </span><span class="kw">crate</span>::io::interest::Interest;
 <span class="kw">use </span><span class="kw">crate</span>::io::ready::Ready;
@@ -599,9 +604,6 @@
 
     <span class="doccomment">/// Waker used for AsyncWrite.
     </span>writer: <span class="prelude-ty">Option</span>&lt;Waker&gt;,
-
-    <span class="doccomment">/// True if this ScheduledIo has been killed due to IO driver shutdown.
-    </span>is_shutdown: bool,
 }
 
 <span class="macro">cfg_io_readiness! </span>{
@@ -648,7 +650,7 @@
 
 <span class="comment">// The `ScheduledIo::readiness` (`AtomicUsize`) is packed full of goodness.
 //
-// | reserved | generation |  driver tick | readiness |
+// | shutdown | generation |  driver tick | readiness |
 // |----------+------------+--------------+-----------|
 // |   1 bit  |   7 bits   +    8 bits    +   16 bits |
 
@@ -657,6 +659,8 @@
 <span class="kw">const </span>TICK: bit::Pack = READINESS.then(<span class="number">8</span>);
 
 <span class="kw">const </span>GENERATION: bit::Pack = TICK.then(<span class="number">7</span>);
+
+<span class="kw">const </span>SHUTDOWN: bit::Pack = GENERATION.then(<span class="number">1</span>);
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_generations_assert_same() {
@@ -691,9 +695,11 @@
     }
 
     <span class="doccomment">/// Invoked when the IO driver is shut down; forces this ScheduledIo into a
-    /// permanently ready state.
+    /// permanently shutdown state.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.wake0(Ready::ALL, <span class="bool-val">true</span>)
+        <span class="kw">let </span>mask = SHUTDOWN.pack(<span class="number">1</span>, <span class="number">0</span>);
+        <span class="self">self</span>.readiness.fetch_or(mask, AcqRel);
+        <span class="self">self</span>.wake(Ready::ALL);
     }
 
     <span class="doccomment">/// Sets the readiness on this `ScheduledIo` by invoking the given closure on
@@ -772,15 +778,9 @@
     /// than 32 wakers to notify, if the stack array fills up, the lock is
     /// released, the array is cleared, and the iteration continues.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wake(<span class="kw-2">&amp;</span><span class="self">self</span>, ready: Ready) {
-        <span class="self">self</span>.wake0(ready, <span class="bool-val">false</span>);
-    }
-
-    <span class="kw">fn </span>wake0(<span class="kw-2">&amp;</span><span class="self">self</span>, ready: Ready, shutdown: bool) {
         <span class="kw">let </span><span class="kw-2">mut </span>wakers = WakeList::new();
 
         <span class="kw">let </span><span class="kw-2">mut </span>waiters = <span class="self">self</span>.waiters.lock();
-
-        waiters.is_shutdown |= shutdown;
 
         <span class="comment">// check for AsyncRead slot
         </span><span class="kw">if </span>ready.is_readable() {
@@ -836,6 +836,7 @@
         ReadyEvent {
             tick: TICK.unpack(curr) <span class="kw">as </span>u8,
             ready: interest.mask() &amp; Ready::from_usize(READINESS.unpack(curr)),
+            is_shutdown: SHUTDOWN.unpack(curr) != <span class="number">0</span>,
         }
     }
 
@@ -852,8 +853,9 @@
         <span class="kw">let </span>curr = <span class="self">self</span>.readiness.load(Acquire);
 
         <span class="kw">let </span>ready = direction.mask() &amp; Ready::from_usize(READINESS.unpack(curr));
+        <span class="kw">let </span>is_shutdown = SHUTDOWN.unpack(curr) != <span class="number">0</span>;
 
-        <span class="kw">if </span>ready.is_empty() {
+        <span class="kw">if </span>ready.is_empty() &amp;&amp; !is_shutdown {
             <span class="comment">// Update the task info
             </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <span class="self">self</span>.waiters.lock();
             <span class="kw">let </span>slot = <span class="kw">match </span>direction {
@@ -878,10 +880,12 @@
             // taking the waiters lock
             </span><span class="kw">let </span>curr = <span class="self">self</span>.readiness.load(Acquire);
             <span class="kw">let </span>ready = direction.mask() &amp; Ready::from_usize(READINESS.unpack(curr));
-            <span class="kw">if </span>waiters.is_shutdown {
+            <span class="kw">let </span>is_shutdown = SHUTDOWN.unpack(curr) != <span class="number">0</span>;
+            <span class="kw">if </span>is_shutdown {
                 Poll::Ready(ReadyEvent {
                     tick: TICK.unpack(curr) <span class="kw">as </span>u8,
                     ready: direction.mask(),
+                    is_shutdown,
                 })
             } <span class="kw">else if </span>ready.is_empty() {
                 Poll::Pending
@@ -889,12 +893,14 @@
                 Poll::Ready(ReadyEvent {
                     tick: TICK.unpack(curr) <span class="kw">as </span>u8,
                     ready,
+                    is_shutdown,
                 })
             }
         } <span class="kw">else </span>{
             Poll::Ready(ReadyEvent {
                 tick: TICK.unpack(curr) <span class="kw">as </span>u8,
                 ready,
+                is_shutdown,
             })
         }
     }
@@ -986,16 +992,17 @@
                         <span class="comment">// Optimistically check existing readiness
                         </span><span class="kw">let </span>curr = scheduled_io.readiness.load(SeqCst);
                         <span class="kw">let </span>ready = Ready::from_usize(READINESS.unpack(curr));
+                        <span class="kw">let </span>is_shutdown = SHUTDOWN.unpack(curr) != <span class="number">0</span>;
 
                         <span class="comment">// Safety: `waiter.interest` never changes
                         </span><span class="kw">let </span>interest = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>waiter.get()).interest };
                         <span class="kw">let </span>ready = ready.intersection(interest);
 
-                        <span class="kw">if </span>!ready.is_empty() {
+                        <span class="kw">if </span>!ready.is_empty() || is_shutdown {
                             <span class="comment">// Currently ready!
                             </span><span class="kw">let </span>tick = TICK.unpack(curr) <span class="kw">as </span>u8;
                             <span class="kw-2">*</span>state = State::Done;
-                            <span class="kw">return </span>Poll::Ready(ReadyEvent { tick, ready });
+                            <span class="kw">return </span>Poll::Ready(ReadyEvent { tick, ready, is_shutdown });
                         }
 
                         <span class="comment">// Wasn&#39;t ready, take the lock (and check again while locked).
@@ -1003,18 +1010,19 @@
 
                         <span class="kw">let </span>curr = scheduled_io.readiness.load(SeqCst);
                         <span class="kw">let </span><span class="kw-2">mut </span>ready = Ready::from_usize(READINESS.unpack(curr));
+                        <span class="kw">let </span>is_shutdown = SHUTDOWN.unpack(curr) != <span class="number">0</span>;
 
-                        <span class="kw">if </span>waiters.is_shutdown {
+                        <span class="kw">if </span>is_shutdown {
                             ready = Ready::ALL;
                         }
 
                         <span class="kw">let </span>ready = ready.intersection(interest);
 
-                        <span class="kw">if </span>!ready.is_empty() {
+                        <span class="kw">if </span>!ready.is_empty() || is_shutdown {
                             <span class="comment">// Currently ready!
                             </span><span class="kw">let </span>tick = TICK.unpack(curr) <span class="kw">as </span>u8;
                             <span class="kw-2">*</span>state = State::Done;
-                            <span class="kw">return </span>Poll::Ready(ReadyEvent { tick, ready });
+                            <span class="kw">return </span>Poll::Ready(ReadyEvent { tick, ready, is_shutdown });
                         }
 
                         <span class="comment">// Not ready even after locked, insert into list...
@@ -1067,6 +1075,7 @@
                         </span><span class="kw">let </span>w = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>waiter.get() };
 
                         <span class="kw">let </span>curr = scheduled_io.readiness.load(Acquire);
+                        <span class="kw">let </span>is_shutdown = SHUTDOWN.unpack(curr) != <span class="number">0</span>;
 
                         <span class="comment">// The returned tick might be newer than the event
                         // which notified our waker. This is ok because the future
@@ -1081,6 +1090,7 @@
                         <span class="kw">return </span>Poll::Ready(ReadyEvent {
                             tick,
                             ready,
+                            is_shutdown,
                         });
                     }
                 }
@@ -1105,4 +1115,4 @@
     <span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Readiness&lt;<span class="lifetime">&#39;_</span>&gt; {}
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

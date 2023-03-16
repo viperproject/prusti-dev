@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.20.7/src/conn.rs`."><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustls/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.20.8/src/conn.rs`."><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustls/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1449,6 +1449,21 @@
 <a href="#1449" id="1449">1449</a>
 <a href="#1450" id="1450">1450</a>
 <a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::enums::ProtocolVersion;
 <span class="kw">use </span><span class="kw">crate</span>::error::Error;
 <span class="kw">use </span><span class="kw">crate</span>::key;
@@ -1461,7 +1476,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::msgs::enums::{AlertDescription, AlertLevel, ContentType};
 <span class="kw">use </span><span class="kw">crate</span>::msgs::fragmenter::MessageFragmenter;
 <span class="kw">use </span><span class="kw">crate</span>::msgs::handshake::Random;
-<span class="kw">use </span><span class="kw">crate</span>::msgs::hsjoiner::HandshakeJoiner;
+<span class="kw">use </span><span class="kw">crate</span>::msgs::hsjoiner::{HandshakeJoiner, JoinerError};
 <span class="kw">use </span><span class="kw">crate</span>::msgs::message::{
     BorrowedPlainMessage, Message, MessagePayload, OpaqueMessage, PlainMessage,
 };
@@ -1989,32 +2004,23 @@
     /// This is a shortcut to the `process_new_packets()` -&gt; `process_msg()` -&gt;
     /// `process_handshake_messages()` path, specialized for the first handshake message.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>first_handshake_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, Error&gt; {
-        <span class="kw">if </span><span class="self">self</span>.message_deframer.desynced {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessage);
-        }
-
-        <span class="kw">let </span>msg = <span class="kw">match </span><span class="self">self</span>.message_deframer.frames.pop_front() {
+        <span class="kw">let </span>msg = <span class="kw">match </span><span class="self">self</span>.message_deframer.pop()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>(msg) =&gt; msg,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
         <span class="kw">let </span>msg = msg.into_plain_message();
-        <span class="kw">if </span>!<span class="self">self</span>.handshake_joiner.want_message(<span class="kw-2">&amp;</span>msg) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessagePayload(ContentType::Handshake));
-        }
-
-        <span class="kw">if </span><span class="self">self
-            </span>.handshake_joiner
-            .take_message(msg)
-            .is_none()
-        {
-            <span class="self">self</span>.common_state
-                .send_fatal_alert(AlertDescription::DecodeError);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessagePayload(ContentType::Handshake));
-        }
-
-        <span class="self">self</span>.common_state.aligned_handshake = <span class="self">self</span>.handshake_joiner.is_empty();
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.handshake_joiner.frames.pop_front())
+        <span class="self">self</span>.handshake_joiner
+            .push(msg)
+            .and_then(|aligned| {
+                <span class="self">self</span>.common_state.aligned_handshake = aligned;
+                <span class="self">self</span>.handshake_joiner.pop()
+            })
+            .map_err(|<span class="kw">_</span>| {
+                <span class="self">self</span>.common_state
+                    .send_fatal_alert(AlertDescription::DecodeError);
+                Error::CorruptMessagePayload(ContentType::Handshake)
+            })
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>replace_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new: Box&lt;<span class="kw">dyn </span>State&lt;Data&gt;&gt;) {
@@ -2070,23 +2076,28 @@
             <span class="bool-val">false </span>=&gt; msg.into_plain_message(),
         };
 
-        <span class="comment">// For handshake messages, we need to join them before parsing
-        // and processing.
-        </span><span class="kw">if </span><span class="self">self</span>.handshake_joiner.want_message(<span class="kw-2">&amp;</span>msg) {
-            <span class="comment">// First decryptable handshake message concludes trial decryption
-            </span><span class="self">self</span>.common_state
-                .record_layer
-                .finish_trial_decryption();
+        <span class="comment">// For handshake messages, we need to join them before parsing and processing.
+        </span><span class="kw">let </span>msg = <span class="kw">match </span><span class="self">self</span>.handshake_joiner.push(msg) {
+            <span class="comment">// Handshake message, we handle these in another method.
+            </span><span class="prelude-val">Ok</span>(aligned) =&gt; {
+                <span class="self">self</span>.common_state.aligned_handshake = aligned;
 
-            <span class="self">self</span>.handshake_joiner
-                .take_message(msg)
-                .ok_or_else(|| {
-                    <span class="self">self</span>.common_state
-                        .send_fatal_alert(AlertDescription::DecodeError);
-                    Error::CorruptMessagePayload(ContentType::Handshake)
-                })<span class="question-mark">?</span>;
-            <span class="kw">return </span><span class="self">self</span>.process_new_handshake_messages(state);
-        }
+                <span class="comment">// First decryptable handshake message concludes trial decryption
+                </span><span class="self">self</span>.common_state
+                    .record_layer
+                    .finish_trial_decryption();
+
+                <span class="kw">return </span><span class="self">self</span>.process_new_handshake_messages(state);
+            }
+            <span class="comment">// Not a handshake message, continue to handle it here.
+            </span><span class="prelude-val">Err</span>(JoinerError::Unwanted(msg)) =&gt; msg,
+            <span class="comment">// Decoding the handshake message failed, yield an error.
+            </span><span class="prelude-val">Err</span>(JoinerError::Decode) =&gt; {
+                <span class="self">self</span>.common_state
+                    .send_fatal_alert(AlertDescription::DecodeError);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessagePayload(ContentType::Handshake));
+            }
+        };
 
         <span class="comment">// Now we can fully parse the message payload.
         </span><span class="kw">let </span>msg = Message::try_from(msg)<span class="question-mark">?</span>;
@@ -2128,11 +2139,7 @@
             }
         };
 
-        <span class="kw">if </span><span class="self">self</span>.message_deframer.desynced {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessage);
-        }
-
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(msg) = <span class="self">self</span>.message_deframer.frames.pop_front() {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(msg) = <span class="self">self</span>.message_deframer.pop()<span class="question-mark">? </span>{
             <span class="kw">match </span><span class="self">self</span>.process_msg(msg, state) {
                 <span class="prelude-val">Ok</span>(new) =&gt; state = new,
                 <span class="prelude-val">Err</span>(e) =&gt; {
@@ -2150,14 +2157,29 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>state: Box&lt;<span class="kw">dyn </span>State&lt;Data&gt;&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>State&lt;Data&gt;&gt;, Error&gt; {
-        <span class="self">self</span>.common_state.aligned_handshake = <span class="self">self</span>.handshake_joiner.is_empty();
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(msg) = <span class="self">self</span>.handshake_joiner.frames.pop_front() {
-            state = <span class="self">self
-                </span>.common_state
-                .process_main_protocol(msg, state, <span class="kw-2">&amp;mut </span><span class="self">self</span>.data)<span class="question-mark">?</span>;
-        }
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="self">self</span>.handshake_joiner.pop() {
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(msg)) =&gt; {
+                    state = <span class="self">self
+                        </span>.common_state
+                        .process_main_protocol(msg, state, <span class="kw-2">&amp;mut </span><span class="self">self</span>.data)<span class="question-mark">?</span>;
+                }
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(state),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;quic&quot;</span>)]
+                    </span><span class="kw">if </span><span class="self">self</span>.common_state.is_quic() {
+                        <span class="self">self</span>.common_state.quic.alert = <span class="prelude-val">Some</span>(AlertDescription::DecodeError);
+                    }
 
-        <span class="prelude-val">Ok</span>(state)
+                    <span class="kw">if </span>!<span class="self">self</span>.common_state.is_quic() {
+                        <span class="self">self</span>.common_state
+                            .send_fatal_alert(AlertDescription::DecodeError);
+                    }
+
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessagePayload(ContentType::Handshake));
+                }
+            }
+        }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_some_plaintext(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
@@ -2168,22 +2190,33 @@
             .send_some_plaintext(buf)
     }
 
-    <span class="doccomment">/// Read TLS content from `rd`.  This method does internal
-    /// buffering, so `rd` can supply TLS messages in arbitrary-
-    /// sized chunks (like a socket or pipe might).
+    <span class="doccomment">/// Read TLS content from `rd` into the internal buffer.
     ///
-    /// You should call [`process_new_packets`] each time a call to
-    /// this function succeeds.
+    /// Due to the internal buffering, `rd` can supply TLS messages in arbitrary-sized chunks (like
+    /// a socket or pipe might).
     ///
-    /// The returned error only relates to IO on `rd`.  TLS-level
-    /// errors are emitted from [`process_new_packets`].
+    /// You should call [`process_new_packets()`] each time a call to this function succeeds in order
+    /// to empty the incoming TLS data buffer.
     ///
-    /// This function returns `Ok(0)` when the underlying `rd` does
-    /// so.  This typically happens when a socket is cleanly closed,
-    /// or a file is at EOF.
+    /// This function returns `Ok(0)` when the underlying `rd` does so. This typically happens when
+    /// a socket is cleanly closed, or a file is at EOF. Errors may result from the IO done through
+    /// `rd`; additionally, errors of `ErrorKind::Other` are emitted to signal backpressure:
     ///
-    /// [`process_new_packets`]: Connection::process_new_packets
+    /// * In order to empty the incoming TLS data buffer, you should call [`process_new_packets()`]
+    ///   each time a call to this function succeeds.
+    /// * In order to empty the incoming plaintext data buffer, you should empty it through
+    ///   the [`reader()`] after the call to [`process_new_packets()`].
+    ///
+    /// [`process_new_packets()`]: ConnectionCommon::process_new_packets
+    /// [`reader()`]: ConnectionCommon::reader
     </span><span class="kw">pub fn </span>read_tls(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rd: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Read) -&gt; <span class="prelude-ty">Result</span>&lt;usize, io::Error&gt; {
+        <span class="kw">if </span><span class="self">self</span>.received_plaintext.is_full() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                io::ErrorKind::Other,
+                <span class="string">&quot;received plaintext buffer full&quot;</span>,
+            ));
+        }
+
         <span class="kw">let </span>res = <span class="self">self</span>.message_deframer.read(rd);
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="number">0</span>) = res {
             <span class="self">self</span>.common_state.has_seen_eof = <span class="bool-val">true</span>;
@@ -2251,11 +2284,7 @@
             payload: Payload::new(plaintext.to_vec()),
         };
 
-        <span class="kw">if </span><span class="self">self
-            </span>.handshake_joiner
-            .take_message(msg)
-            .is_none()
-        {
+        <span class="kw">if </span><span class="self">self</span>.handshake_joiner.push(msg).is_err() {
             <span class="self">self</span>.common_state.quic.alert = <span class="prelude-val">Some</span>(AlertDescription::DecodeError);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessage);
         }
@@ -2327,7 +2356,7 @@
             received_middlebox_ccs: <span class="number">0</span>,
             peer_certificates: <span class="prelude-val">None</span>,
             message_fragmenter: MessageFragmenter::default(),
-            received_plaintext: ChunkVecBuffer::new(<span class="prelude-val">Some</span>(<span class="number">0</span>)),
+            received_plaintext: ChunkVecBuffer::new(<span class="prelude-val">Some</span>(DEFAULT_RECEIVED_PLAINTEXT_LIMIT)),
             sendable_plaintext: ChunkVecBuffer::new(<span class="prelude-val">Some</span>(DEFAULT_BUFFER_LIMIT)),
             sendable_tls: ChunkVecBuffer::new(<span class="prelude-val">Some</span>(DEFAULT_BUFFER_LIMIT)),
 
@@ -2899,6 +2928,7 @@
 <span class="doccomment">/// Data specific to the peer&#39;s side (client or server).
 </span><span class="kw">pub trait </span>SideData {}
 
+<span class="kw">const </span>DEFAULT_RECEIVED_PLAINTEXT_LIMIT: usize = <span class="number">16 </span>* <span class="number">1024</span>;
 <span class="kw">const </span>DEFAULT_BUFFER_LIMIT: usize = <span class="number">64 </span>* <span class="number">1024</span>;
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustls" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustls" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

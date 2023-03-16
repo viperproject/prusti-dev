@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["LibCtx",""],["LibCtxRef",""]]};
+window.SIDEBAR_ITEMS = {"struct":["LibCtx","LibCtxRef"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CheckMode",""]]};
+window.SIDEBAR_ITEMS = {"enum":["CheckMode"]};

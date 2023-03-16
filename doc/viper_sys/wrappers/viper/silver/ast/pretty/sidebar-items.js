@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FastPrettyPrinter_object",""]]};
+window.SIDEBAR_ITEMS = {"struct":["FastPrettyPrinter_object"]};

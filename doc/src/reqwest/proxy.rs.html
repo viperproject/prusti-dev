@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.13/src/proxy.rs`."><title>proxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.14/src/proxy.rs`."><title>proxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1749,6 +1749,112 @@
 <a href="#1749" id="1749">1749</a>
 <a href="#1750" id="1750">1750</a>
 <a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a>
+<a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
 <span class="attr">#[cfg(feature = <span class="string">&quot;socks&quot;</span>)]
 </span><span class="kw">use </span>std::net::SocketAddr;
@@ -1826,7 +1932,7 @@
 
 <span class="doccomment">/// A configuration for filtering out requests that shouldn&#39;t be proxied
 </span><span class="attr">#[derive(Clone, Debug, Default)]
-</span><span class="kw">struct </span>NoProxy {
+</span><span class="kw">pub struct </span>NoProxy {
     ips: IpMatcher,
     domains: DomainMatcher,
 }
@@ -2025,7 +2131,7 @@
         } <span class="kw">else </span>{
             Proxy::new(Intercept::System(SYS_PROXIES.clone()))
         };
-        proxy.no_proxy = NoProxy::new();
+        proxy.no_proxy = NoProxy::from_env();
         proxy
     }
 
@@ -2051,6 +2157,24 @@
     /// ```
     </span><span class="kw">pub fn </span>basic_auth(<span class="kw-2">mut </span><span class="self">self</span>, username: <span class="kw-2">&amp;</span>str, password: <span class="kw-2">&amp;</span>str) -&gt; Proxy {
         <span class="self">self</span>.intercept.set_basic_auth(username, password);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Adds a `No Proxy` exclusion list to this Proxy
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate reqwest;
+    /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// let proxy = reqwest::Proxy::https(&quot;http://localhost:1234&quot;)?
+    ///     .no_proxy(reqwest::NoProxy::from_string(&quot;direct.tld, sub.direct2.tld&quot;));
+    /// # Ok(())
+    /// # }
+    /// # fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>no_proxy(<span class="kw-2">mut </span><span class="self">self</span>, no_proxy: <span class="prelude-ty">Option</span>&lt;NoProxy&gt;) -&gt; Proxy {
+        <span class="self">self</span>.no_proxy = no_proxy;
         <span class="self">self
     </span>}
 
@@ -2081,34 +2205,46 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>intercept&lt;D: Dst&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span>D) -&gt; <span class="prelude-ty">Option</span>&lt;ProxyScheme&gt; {
+        <span class="kw">let </span>in_no_proxy = <span class="self">self
+            </span>.no_proxy
+            .as_ref()
+            .map_or(<span class="bool-val">false</span>, |np| np.contains(uri.host()));
         <span class="kw">match </span><span class="self">self</span>.intercept {
-            Intercept::All(<span class="kw-2">ref </span>u) =&gt; <span class="prelude-val">Some</span>(u.clone()),
+            Intercept::All(<span class="kw-2">ref </span>u) =&gt; {
+                <span class="kw">if </span>!in_no_proxy {
+                    <span class="prelude-val">Some</span>(u.clone())
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
+            }
             Intercept::Http(<span class="kw-2">ref </span>u) =&gt; {
-                <span class="kw">if </span>uri.scheme() == <span class="string">&quot;http&quot; </span>{
+                <span class="kw">if </span>!in_no_proxy &amp;&amp; uri.scheme() == <span class="string">&quot;http&quot; </span>{
                     <span class="prelude-val">Some</span>(u.clone())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
             }
             Intercept::Https(<span class="kw-2">ref </span>u) =&gt; {
-                <span class="kw">if </span>uri.scheme() == <span class="string">&quot;https&quot; </span>{
+                <span class="kw">if </span>!in_no_proxy &amp;&amp; uri.scheme() == <span class="string">&quot;https&quot; </span>{
                     <span class="prelude-val">Some</span>(u.clone())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
             }
             Intercept::System(<span class="kw-2">ref </span>map) =&gt; {
-                <span class="kw">let </span>in_no_proxy = <span class="self">self
-                    </span>.no_proxy
-                    .as_ref()
-                    .map_or(<span class="bool-val">false</span>, |np| np.contains(uri.host()));
                 <span class="kw">if </span>in_no_proxy {
                     <span class="prelude-val">None
                 </span>} <span class="kw">else </span>{
                     map.get(uri.scheme()).cloned()
                 }
             }
-            Intercept::Custom(<span class="kw-2">ref </span>custom) =&gt; custom.call(uri),
+            Intercept::Custom(<span class="kw-2">ref </span>custom) =&gt; {
+                <span class="kw">if </span>!in_no_proxy {
+                    custom.call(uri)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
+            }
         }
     }
 
@@ -2134,7 +2270,17 @@
 
 <span class="kw">impl </span>NoProxy {
     <span class="doccomment">/// Returns a new no-proxy configuration based on environment variables (or `None` if no variables are set)
-    ///
+    /// see [self::NoProxy::from_string()] for the string format
+    </span><span class="kw">pub fn </span>from_env() -&gt; <span class="prelude-ty">Option</span>&lt;NoProxy&gt; {
+        <span class="kw">let </span>raw = env::var(<span class="string">&quot;NO_PROXY&quot;</span>)
+            .or_else(|<span class="kw">_</span>| env::var(<span class="string">&quot;no_proxy&quot;</span>))
+            .unwrap_or_default();
+
+        <span class="self">Self</span>::from_string(<span class="kw-2">&amp;</span>raw)
+    }
+
+    <span class="doccomment">/// Returns a new no-proxy configuration based on a no_proxy string (or `None` if no variables
+    /// are set)
     /// The rules are as follows:
     /// * The environment variable `NO_PROXY` is checked, if it is not set, `no_proxy` is checked
     /// * If neither environment variable is set, `None` is returned
@@ -2152,17 +2298,13 @@
     /// * `http://192.168.1.42/`
     ///
     /// The URL `http://notgoogle.com/` would not match.
-    ///
-    </span><span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>raw = env::var(<span class="string">&quot;NO_PROXY&quot;</span>)
-            .or_else(|<span class="kw">_</span>| env::var(<span class="string">&quot;no_proxy&quot;</span>))
-            .unwrap_or_default();
-        <span class="kw">if </span>raw.is_empty() {
+    </span><span class="kw">pub fn </span>from_string(no_proxy_list: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>no_proxy_list.is_empty() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">let </span><span class="kw-2">mut </span>ips = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>domains = Vec::new();
-        <span class="kw">let </span>parts = raw.split(<span class="string">&#39;,&#39;</span>).map(str::trim);
+        <span class="kw">let </span>parts = no_proxy_list.split(<span class="string">&#39;,&#39;</span>).map(str::trim);
         <span class="kw">for </span>part <span class="kw">in </span>parts {
             <span class="kw">match </span>part.parse::&lt;IpNet&gt;() {
                 <span class="comment">// If we can parse an IP net or address, then use it, otherwise, assume it is a domain
@@ -2223,14 +2365,14 @@
     </span><span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str) -&gt; bool {
         <span class="kw">let </span>domain_len = domain.len();
         <span class="kw">for </span>d <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter() {
-            <span class="kw">if </span>d == domain || (d.starts_with(<span class="string">&#39;.&#39;</span>) &amp;&amp; <span class="kw-2">&amp;</span>d[<span class="number">1</span>..] == domain) {
+            <span class="kw">if </span>d == domain || d.strip_prefix(<span class="string">&#39;.&#39;</span>) == <span class="prelude-val">Some</span>(domain) {
                 <span class="kw">return </span><span class="bool-val">true</span>;
             } <span class="kw">else if </span>domain.ends_with(d) {
                 <span class="kw">if </span>d.starts_with(<span class="string">&#39;.&#39;</span>) {
                     <span class="comment">// If the first character of d is a dot, that means the first character of domain
                     // must also be a dot, so we are looking at a subdomain of d and that matches
                     </span><span class="kw">return </span><span class="bool-val">true</span>;
-                } <span class="kw">else if </span>domain.as_bytes()[domain_len - d.len() - <span class="number">1</span>] == <span class="string">b&#39;.&#39; </span>{
+                } <span class="kw">else if </span>domain.as_bytes().get(domain_len - d.len() - <span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;.&#39;</span>) {
                     <span class="comment">// Given that d is a prefix of domain, if the prior character in domain is a dot
                     // then that means we must be matching a subdomain of d, and that matches
                     </span><span class="kw">return </span><span class="bool-val">true</span>;
@@ -2477,12 +2619,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_basic_auth(username: <span class="kw-2">&amp;</span>str, password: <span class="kw-2">&amp;</span>str) -&gt; HeaderValue {
-    <span class="kw">let </span>val = <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, username, password);
-    <span class="kw">let </span><span class="kw-2">mut </span>header = <span class="macro">format!</span>(<span class="string">&quot;Basic {}&quot;</span>, base64::encode(<span class="kw-2">&amp;</span>val))
-        .parse::&lt;HeaderValue&gt;()
-        .expect(<span class="string">&quot;base64 is always valid HeaderValue&quot;</span>);
-    header.set_sensitive(<span class="bool-val">true</span>);
-    header
+    <span class="kw">crate</span>::util::basic_auth(username, <span class="prelude-val">Some</span>(password))
 }
 
 <span class="doccomment">/// A helper trait to allow testing `Proxy::intercept` without having to
@@ -2823,6 +2960,26 @@
         }
     }
 
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_domain_matcher() {
+        <span class="kw">let </span>domains = <span class="macro">vec!</span>[<span class="string">&quot;.foo.bar&quot;</span>.into(), <span class="string">&quot;bar.foo&quot;</span>.into()];
+        <span class="kw">let </span>matcher = DomainMatcher(domains);
+
+        <span class="comment">// domains match with leading `.`
+        </span><span class="macro">assert!</span>(matcher.contains(<span class="string">&quot;foo.bar&quot;</span>));
+        <span class="comment">// subdomains match with leading `.`
+        </span><span class="macro">assert!</span>(matcher.contains(<span class="string">&quot;www.foo.bar&quot;</span>));
+
+        <span class="comment">// domains match with no leading `.`
+        </span><span class="macro">assert!</span>(matcher.contains(<span class="string">&quot;bar.foo&quot;</span>));
+        <span class="comment">// subdomains match with no leading `.`
+        </span><span class="macro">assert!</span>(matcher.contains(<span class="string">&quot;www.bar.foo&quot;</span>));
+
+        <span class="comment">// non-subdomain string prefixes don&#39;t match
+        </span><span class="macro">assert!</span>(!matcher.contains(<span class="string">&quot;notfoo.bar&quot;</span>));
+        <span class="macro">assert!</span>(!matcher.contains(<span class="string">&quot;notbar.foo&quot;</span>));
+    }
+
     <span class="comment">// Smallest possible content for a mutex
     </span><span class="kw">struct </span>MutexInner;
 
@@ -2978,7 +3135,7 @@
 
         <span class="comment">// Manually construct this so we aren&#39;t use the cache
         </span><span class="kw">let </span><span class="kw-2">mut </span>p = Proxy::new(Intercept::System(Arc::new(get_sys_proxies(<span class="prelude-val">None</span>))));
-        p.no_proxy = NoProxy::new();
+        p.no_proxy = NoProxy::from_env();
 
         <span class="comment">// random url, not in no_proxy
         </span><span class="macro">assert_eq!</span>(intercepted_uri(<span class="kw-2">&amp;</span>p, <span class="string">&quot;http://hyper.rs&quot;</span>), target);
@@ -3022,6 +3179,61 @@
     }
 
     <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_proxy_no_proxy_interception_for_proxy_types() {
+        <span class="kw">let </span>proxy_url = <span class="string">&quot;http://example.domain/&quot;</span>;
+        <span class="kw">let </span>no_proxy = <span class="string">&quot;.no.proxy.tld&quot;</span>;
+
+        <span class="comment">// test all proxy interception
+        </span><span class="kw">let </span>p = Proxy::all(proxy_url)
+            .unwrap()
+            .no_proxy(NoProxy::from_string(no_proxy));
+
+        <span class="comment">// random url, not in no_proxy
+        </span><span class="macro">assert_eq!</span>(intercepted_uri(<span class="kw-2">&amp;</span>p, <span class="string">&quot;http://hyper.rs&quot;</span>), proxy_url);
+
+        <span class="comment">// positive match for no proxy
+        </span><span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;https://hello.no.proxy.tld&quot;</span>)).is_none());
+
+        <span class="comment">// test http proxy interception
+        </span><span class="kw">let </span>p = Proxy::http(proxy_url)
+            .unwrap()
+            .no_proxy(NoProxy::from_string(no_proxy));
+
+        <span class="comment">// random url, not in no_proxy
+        </span><span class="macro">assert_eq!</span>(intercepted_uri(<span class="kw-2">&amp;</span>p, <span class="string">&quot;http://hyper.rs&quot;</span>), proxy_url);
+
+        <span class="comment">// positive match for no proxy
+        </span><span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;http://hello.no.proxy.tld&quot;</span>)).is_none());
+
+        <span class="comment">// should not be intercepted due to scheme
+        </span><span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;https://hyper.rs&quot;</span>)).is_none());
+
+        <span class="comment">// test https proxy interception
+        </span><span class="kw">let </span>p = Proxy::https(proxy_url)
+            .unwrap()
+            .no_proxy(NoProxy::from_string(no_proxy));
+
+        <span class="comment">// random url, not in no_proxy
+        </span><span class="macro">assert_eq!</span>(intercepted_uri(<span class="kw-2">&amp;</span>p, <span class="string">&quot;https://hyper.rs&quot;</span>), proxy_url);
+
+        <span class="comment">// positive match for no proxy
+        </span><span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;https://hello.no.proxy.tld&quot;</span>)).is_none());
+
+        <span class="comment">// should not be intercepted due to scheme
+        </span><span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;http://hyper.rs&quot;</span>)).is_none());
+
+        <span class="comment">// test custom proxy interception
+        </span><span class="kw">let </span>p = Proxy::custom(<span class="kw">move </span>|_url| <span class="prelude-val">Some</span>(proxy_url)).no_proxy(NoProxy::from_string(no_proxy));
+
+        <span class="comment">// random url, not in no_proxy
+        </span><span class="macro">assert_eq!</span>(intercepted_uri(<span class="kw-2">&amp;</span>p, <span class="string">&quot;https://hyper.rs&quot;</span>), proxy_url);
+
+        <span class="comment">// positive match for no proxy
+        </span><span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;https://hello.no.proxy.tld&quot;</span>)).is_none());
+        <span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;http://hello.no.proxy.tld&quot;</span>)).is_none());
+    }
+
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>test_wildcard_sys_no_proxy() {
         <span class="comment">// Stop other threads from modifying process-global ENV while we are.
         </span><span class="kw">let </span>_lock = ENVLOCK.lock();
@@ -3036,7 +3248,7 @@
 
         <span class="comment">// Manually construct this so we aren&#39;t use the cache
         </span><span class="kw">let </span><span class="kw-2">mut </span>p = Proxy::new(Intercept::System(Arc::new(get_sys_proxies(<span class="prelude-val">None</span>))));
-        p.no_proxy = NoProxy::new();
+        p.no_proxy = NoProxy::from_env();
 
         <span class="macro">assert!</span>(p.intercept(<span class="kw-2">&amp;</span>url(<span class="string">&quot;http://foo.bar&quot;</span>)).is_none());
 
@@ -3062,7 +3274,7 @@
 
         <span class="comment">// Manually construct this so we aren&#39;t use the cache
         </span><span class="kw">let </span><span class="kw-2">mut </span>p = Proxy::new(Intercept::System(Arc::new(get_sys_proxies(<span class="prelude-val">None</span>))));
-        p.no_proxy = NoProxy::new();
+        p.no_proxy = NoProxy::from_env();
 
         <span class="comment">// everything should go through proxy, &quot;effectively&quot; nothing is in no_proxy
         </span><span class="macro">assert_eq!</span>(intercepted_uri(<span class="kw-2">&amp;</span>p, <span class="string">&quot;http://hyper.rs&quot;</span>), target);
@@ -3084,7 +3296,7 @@
         env::set_var(<span class="string">&quot;no_proxy&quot;</span>, domain);
         <span class="comment">// Manually construct this so we aren&#39;t use the cache
         </span><span class="kw">let </span><span class="kw-2">mut </span>p = Proxy::new(Intercept::System(Arc::new(get_sys_proxies(<span class="prelude-val">None</span>))));
-        p.no_proxy = NoProxy::new();
+        p.no_proxy = NoProxy::from_env();
         <span class="macro">assert_eq!</span>(
             p.no_proxy.expect(<span class="string">&quot;should have a no proxy set&quot;</span>).domains.<span class="number">0</span>[<span class="number">0</span>],
             domain
@@ -3096,7 +3308,7 @@
         env::set_var(<span class="string">&quot;NO_PROXY&quot;</span>, domain);
         <span class="comment">// Manually construct this so we aren&#39;t use the cache
         </span><span class="kw">let </span><span class="kw-2">mut </span>p = Proxy::new(Intercept::System(Arc::new(get_sys_proxies(<span class="prelude-val">None</span>))));
-        p.no_proxy = NoProxy::new();
+        p.no_proxy = NoProxy::from_env();
         <span class="macro">assert_eq!</span>(
             p.no_proxy.expect(<span class="string">&quot;should have a no proxy set&quot;</span>).domains.<span class="number">0</span>[<span class="number">0</span>],
             domain
@@ -3110,7 +3322,7 @@
 
         <span class="comment">// Manually construct this so we aren&#39;t use the cache
         </span><span class="kw">let </span><span class="kw-2">mut </span>p = Proxy::new(Intercept::System(Arc::new(get_sys_proxies(<span class="prelude-val">None</span>))));
-        p.no_proxy = NoProxy::new();
+        p.no_proxy = NoProxy::from_env();
         <span class="macro">assert!</span>(p.no_proxy.is_none(), <span class="string">&quot;NoProxy shouldn&#39;t have been created&quot;</span>);
 
         <span class="macro">assert_eq!</span>(intercepted_uri(<span class="kw-2">&amp;</span>p, <span class="string">&quot;http://hyper.rs&quot;</span>), target);
@@ -3501,4 +3713,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

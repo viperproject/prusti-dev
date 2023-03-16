@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/sync/mpsc/block.rs`."><title>block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.26.0/src/sync/mpsc/block.rs`."><title>block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -383,9 +383,73 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
 <span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::{AtomicPtr, AtomicUsize};
 
+<span class="kw">use </span>std::alloc::Layout;
 <span class="kw">use </span>std::mem::MaybeUninit;
 <span class="kw">use </span>std::ops;
 <span class="kw">use </span>std::ptr::{<span class="self">self</span>, NonNull};
@@ -395,6 +459,17 @@
 ///
 /// Each block in the list can hold up to `BLOCK_CAP` messages.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Block&lt;T&gt; {
+    <span class="doccomment">/// The header fields.
+    </span>header: BlockHeader&lt;T&gt;,
+
+    <span class="doccomment">/// Array containing values pushed into the block. Values are stored in a
+    /// continuous array in order to improve cache line behavior when reading.
+    /// The values must be manually dropped.
+    </span>values: Values&lt;T&gt;,
+}
+
+<span class="doccomment">/// Extra fields for a `Block&lt;T&gt;`.
+</span><span class="kw">struct </span>BlockHeader&lt;T&gt; {
     <span class="doccomment">/// The start index of this block.
     ///
     /// Slots in this block have indices in `start_index .. start_index + BLOCK_CAP`.
@@ -409,11 +484,6 @@
     <span class="doccomment">/// The observed `tail_position` value *after* the block has been passed by
     /// `block_tail`.
     </span>observed_tail_position: UnsafeCell&lt;usize&gt;,
-
-    <span class="doccomment">/// Array containing values pushed into the block. Values are stored in a
-    /// continuous array in order to improve cache line behavior when reading.
-    /// The values must be manually dropped.
-    </span>values: Values&lt;T&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Read&lt;T&gt; {
@@ -421,7 +491,8 @@
     Closed,
 }
 
-<span class="kw">struct </span>Values&lt;T&gt;([UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;; BLOCK_CAP]);
+<span class="attr">#[repr(transparent)]
+</span><span class="kw">struct </span>Values&lt;T&gt;([UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;; BLOCK_CAP]);
 
 <span class="kw">use </span><span class="kw">super</span>::BLOCK_CAP;
 
@@ -456,28 +527,56 @@
     SLOT_MASK &amp; slot_index
 }
 
+<span class="macro">generate_addr_of_methods! </span>{
+    <span class="kw">impl</span>&lt;T&gt; Block&lt;T&gt; {
+        <span class="kw">unsafe fn </span>addr_of_header(<span class="self">self</span>: NonNull&lt;<span class="self">Self</span>&gt;) -&gt; NonNull&lt;BlockHeader&lt;T&gt;&gt; {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.header
+        }
+
+        <span class="kw">unsafe fn </span>addr_of_values(<span class="self">self</span>: NonNull&lt;<span class="self">Self</span>&gt;) -&gt; NonNull&lt;Values&lt;T&gt;&gt; {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.values
+        }
+    }
+}
+
 <span class="kw">impl</span>&lt;T&gt; Block&lt;T&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(start_index: usize) -&gt; Block&lt;T&gt; {
-        Block {
-            <span class="comment">// The absolute index in the channel of the first slot in the block.
-            </span>start_index,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(start_index: usize) -&gt; Box&lt;Block&lt;T&gt;&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="comment">// Allocate the block on the heap.
+            // SAFETY: The size of the Block&lt;T&gt; is non-zero, since it is at least the size of the header.
+            </span><span class="kw">let </span>block = std::alloc::alloc(Layout::new::&lt;Block&lt;T&gt;&gt;()) <span class="kw">as </span><span class="kw-2">*mut </span>Block&lt;T&gt;;
+            <span class="kw">let </span>block = <span class="kw">match </span>NonNull::new(block) {
+                <span class="prelude-val">Some</span>(block) =&gt; block,
+                <span class="prelude-val">None </span>=&gt; std::alloc::handle_alloc_error(Layout::new::&lt;Block&lt;T&gt;&gt;()),
+            };
 
-            <span class="comment">// Pointer to the next block in the linked list.
-            </span>next: AtomicPtr::new(ptr::null_mut()),
+            <span class="comment">// Write the header to the block.
+            </span>Block::addr_of_header(block).as_ptr().write(BlockHeader {
+                <span class="comment">// The absolute index in the channel of the first slot in the block.
+                </span>start_index,
 
-            ready_slots: AtomicUsize::new(<span class="number">0</span>),
+                <span class="comment">// Pointer to the next block in the linked list.
+                </span>next: AtomicPtr::new(ptr::null_mut()),
 
-            observed_tail_position: UnsafeCell::new(<span class="number">0</span>),
+                ready_slots: AtomicUsize::new(<span class="number">0</span>),
 
-            <span class="comment">// Value storage
-            </span>values: <span class="kw">unsafe </span>{ Values::uninitialized() },
+                observed_tail_position: UnsafeCell::new(<span class="number">0</span>),
+            });
+
+            <span class="comment">// Initialize the values array.
+            </span>Values::initialize(Block::addr_of_values(block));
+
+            <span class="comment">// Convert the pointer to a `Box`.
+            // Safety: The raw pointer was allocated using the global allocator, and with
+            // the layout for a `Block&lt;T&gt;`, so it&#39;s valid to convert it to box.
+            </span>Box::from_raw(block.as_ptr())
         }
     }
 
     <span class="doccomment">/// Returns `true` if the block matches the given index.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_at_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; bool {
         <span class="macro">debug_assert!</span>(offset(index) == <span class="number">0</span>);
-        <span class="self">self</span>.start_index == index
+        <span class="self">self</span>.header.start_index == index
     }
 
     <span class="doccomment">/// Returns the number of blocks between `self` and the block at the
@@ -486,7 +585,7 @@
     /// `start_index` must represent a block *after* `self`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>distance(<span class="kw-2">&amp;</span><span class="self">self</span>, other_index: usize) -&gt; usize {
         <span class="macro">debug_assert!</span>(offset(other_index) == <span class="number">0</span>);
-        other_index.wrapping_sub(<span class="self">self</span>.start_index) / BLOCK_CAP
+        other_index.wrapping_sub(<span class="self">self</span>.header.start_index) / BLOCK_CAP
     }
 
     <span class="doccomment">/// Reads the value at the given offset.
@@ -501,7 +600,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>, slot_index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Read&lt;T&gt;&gt; {
         <span class="kw">let </span>offset = offset(slot_index);
 
-        <span class="kw">let </span>ready_bits = <span class="self">self</span>.ready_slots.load(Acquire);
+        <span class="kw">let </span>ready_bits = <span class="self">self</span>.header.ready_slots.load(Acquire);
 
         <span class="kw">if </span>!is_ready(ready_bits, offset) {
             <span class="kw">if </span>is_tx_closed(ready_bits) {
@@ -541,7 +640,7 @@
 
     <span class="doccomment">/// Signal to the receiver that the sender half of the list is closed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>tx_close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.ready_slots.fetch_or(TX_CLOSED, Release);
+        <span class="self">self</span>.header.ready_slots.fetch_or(TX_CLOSED, Release);
     }
 
     <span class="doccomment">/// Resets the block to a blank state. This enables reusing blocks in the
@@ -554,9 +653,9 @@
     /// * All slots are empty.
     /// * The caller holds a unique pointer to the block.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>reclaim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.start_index = <span class="number">0</span>;
-        <span class="self">self</span>.next = AtomicPtr::new(ptr::null_mut());
-        <span class="self">self</span>.ready_slots = AtomicUsize::new(<span class="number">0</span>);
+        <span class="self">self</span>.header.start_index = <span class="number">0</span>;
+        <span class="self">self</span>.header.next = AtomicPtr::new(ptr::null_mut());
+        <span class="self">self</span>.header.ready_slots = AtomicUsize::new(<span class="number">0</span>);
     }
 
     <span class="doccomment">/// Releases the block to the rx half for freeing.
@@ -572,19 +671,20 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>tx_release(<span class="kw-2">&amp;</span><span class="self">self</span>, tail_position: usize) {
         <span class="comment">// Track the observed tail_position. Any sender targeting a greater
         // tail_position is guaranteed to not access this block.
-        </span><span class="self">self</span>.observed_tail_position
+        </span><span class="self">self</span>.header
+            .observed_tail_position
             .with_mut(|ptr| <span class="kw-2">*</span>ptr = tail_position);
 
         <span class="comment">// Set the released bit, signalling to the receiver that it is safe to
         // free the block&#39;s memory as soon as all slots **prior** to
         // `observed_tail_position` have been filled.
-        </span><span class="self">self</span>.ready_slots.fetch_or(RELEASED, Release);
+        </span><span class="self">self</span>.header.ready_slots.fetch_or(RELEASED, Release);
     }
 
     <span class="doccomment">/// Mark a slot as ready
     </span><span class="kw">fn </span>set_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: usize) {
         <span class="kw">let </span>mask = <span class="number">1 </span>&lt;&lt; slot;
-        <span class="self">self</span>.ready_slots.fetch_or(mask, Release);
+        <span class="self">self</span>.header.ready_slots.fetch_or(mask, Release);
     }
 
     <span class="doccomment">/// Returns `true` when all slots have their `ready` bits set.
@@ -599,25 +699,31 @@
     /// single atomic cell. However, this could have negative impact on cache
     /// behavior as there would be many more mutations to a single slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_final(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.ready_slots.load(Acquire) &amp; READY_MASK == READY_MASK
+        <span class="self">self</span>.header.ready_slots.load(Acquire) &amp; READY_MASK == READY_MASK
     }
 
     <span class="doccomment">/// Returns the `observed_tail_position` value, if set
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>observed_tail_position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        <span class="kw">if </span><span class="number">0 </span>== RELEASED &amp; <span class="self">self</span>.ready_slots.load(Acquire) {
+        <span class="kw">if </span><span class="number">0 </span>== RELEASED &amp; <span class="self">self</span>.header.ready_slots.load(Acquire) {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.observed_tail_position.with(|ptr| <span class="kw">unsafe </span>{ <span class="kw-2">*</span>ptr }))
+            <span class="prelude-val">Some</span>(
+                <span class="self">self</span>.header
+                    .observed_tail_position
+                    .with(|ptr| <span class="kw">unsafe </span>{ <span class="kw-2">*</span>ptr }),
+            )
         }
     }
 
     <span class="doccomment">/// Loads the next block
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_next(<span class="kw-2">&amp;</span><span class="self">self</span>, ordering: Ordering) -&gt; <span class="prelude-ty">Option</span>&lt;NonNull&lt;Block&lt;T&gt;&gt;&gt; {
-        <span class="kw">let </span>ret = NonNull::new(<span class="self">self</span>.next.load(ordering));
+        <span class="kw">let </span>ret = NonNull::new(<span class="self">self</span>.header.next.load(ordering));
 
         <span class="macro">debug_assert!</span>(<span class="kw">unsafe </span>{
-            ret.map(|block| block.as_ref().start_index == <span class="self">self</span>.start_index.wrapping_add(BLOCK_CAP))
-                .unwrap_or(<span class="bool-val">true</span>)
+            ret.map(|block| {
+                block.as_ref().header.start_index == <span class="self">self</span>.header.start_index.wrapping_add(BLOCK_CAP)
+            })
+            .unwrap_or(<span class="bool-val">true</span>)
         });
 
         ret
@@ -645,10 +751,11 @@
         success: Ordering,
         failure: Ordering,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), NonNull&lt;Block&lt;T&gt;&gt;&gt; {
-        block.as_mut().start_index = <span class="self">self</span>.start_index.wrapping_add(BLOCK_CAP);
+        block.as_mut().header.start_index = <span class="self">self</span>.header.start_index.wrapping_add(BLOCK_CAP);
 
         <span class="kw">let </span>next_ptr = <span class="self">self
-            </span>.next
+            </span>.header
+            .next
             .compare_exchange(ptr::null_mut(), block.as_ptr(), success, failure)
             .unwrap_or_else(|x| x);
 
@@ -676,7 +783,7 @@
         <span class="comment">// Create the new block. It is assumed that the block will become the
         // next one after `&amp;self`. If this turns out to not be the case,
         // `start_index` is updated accordingly.
-        </span><span class="kw">let </span>new_block = Box::new(Block::new(<span class="self">self</span>.start_index + BLOCK_CAP));
+        </span><span class="kw">let </span>new_block = Block::new(<span class="self">self</span>.header.start_index + BLOCK_CAP);
 
         <span class="kw">let </span><span class="kw-2">mut </span>new_block = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(new_block)) };
 
@@ -693,7 +800,8 @@
         // `Release` ensures that the newly allocated block is available to
         // other threads acquiring the next pointer.
         </span><span class="kw">let </span>next = NonNull::new(
-            <span class="self">self</span>.next
+            <span class="self">self</span>.header
+                .next
                 .compare_exchange(ptr::null_mut(), new_block.as_ptr(), AcqRel, Acquire)
                 .unwrap_or_else(|x| x),
         );
@@ -745,19 +853,20 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; Values&lt;T&gt; {
-    <span class="kw">unsafe fn </span>uninitialized() -&gt; Values&lt;T&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>vals = MaybeUninit::uninit();
-
+    <span class="doccomment">/// Initialize a `Values` struct from a pointer.
+    ///
+    /// # Safety
+    ///
+    /// The raw pointer must be valid for writing a `Values&lt;T&gt;`.
+    </span><span class="kw">unsafe fn </span>initialize(_value: NonNull&lt;Values&lt;T&gt;&gt;) {
         <span class="comment">// When fuzzing, `UnsafeCell` needs to be initialized.
         </span><span class="macro">if_loom! </span>{
-            <span class="kw">let </span>p = vals.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;;
+            <span class="kw">let </span>p = _value.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;;
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..BLOCK_CAP {
                 p.add(i)
                     .write(UnsafeCell::new(MaybeUninit::uninit()));
             }
         }
-
-        Values(vals.assume_init())
     }
 }
 
@@ -768,5 +877,22 @@
         <span class="self">self</span>.<span class="number">0</span>.index(index)
     }
 }
+
+<span class="attr">#[cfg(all(test, not(loom)))]
+#[test]
+</span><span class="kw">fn </span>assert_no_stack_overflow() {
+    <span class="comment">// https://github.com/tokio-rs/tokio/issues/5293
+
+    </span><span class="kw">struct </span>Foo {
+        _a: [u8; <span class="number">2_000_000</span>],
+    }
+
+    <span class="macro">assert_eq!</span>(
+        Layout::new::&lt;MaybeUninit&lt;Block&lt;Foo&gt;&gt;&gt;(),
+        Layout::new::&lt;Block&lt;Foo&gt;&gt;()
+    );
+
+    <span class="kw">let </span>_block = Block::&lt;Foo&gt;::new(<span class="number">0</span>);
+}
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

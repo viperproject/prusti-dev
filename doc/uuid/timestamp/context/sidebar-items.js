@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["NoContext","An empty counter that will always return the value `0`."]]};
+window.SIDEBAR_ITEMS = {"struct":["NoContext"]};

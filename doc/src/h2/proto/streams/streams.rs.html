@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.15/src/proto/streams/streams.rs`."><title>streams.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.16/src/proto/streams/streams.rs`."><title>streams.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1574,6 +1574,10 @@
 <a href="#1574" id="1574">1574</a>
 <a href="#1575" id="1575">1575</a>
 <a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::recv::RecvHeaderBlockError;
 <span class="kw">use </span><span class="kw">super</span>::store::{<span class="self">self</span>, Entry, Resolve, Store};
 <span class="kw">use super</span>::{Buffer, Config, Counts, Prioritized, Recv, Send, Stream, StreamId};
@@ -1888,29 +1892,29 @@
     <span class="kw">pub fn </span>recv_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: frame::Headers) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
 
-        me.recv_headers(<span class="self">self</span>.peer, <span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, frame)
+        me.recv_headers(<span class="self">self</span>.peer, <span class="self">self</span>.send_buffer, frame)
     }
 
     <span class="kw">pub fn </span>recv_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: frame::Data) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
-        me.recv_data(<span class="self">self</span>.peer, <span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, frame)
+        me.recv_data(<span class="self">self</span>.peer, <span class="self">self</span>.send_buffer, frame)
     }
 
     <span class="kw">pub fn </span>recv_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: frame::Reset) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
 
-        me.recv_reset(<span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, frame)
+        me.recv_reset(<span class="self">self</span>.send_buffer, frame)
     }
 
     <span class="doccomment">/// Notify all streams that a connection-level error happened.
     </span><span class="kw">pub fn </span>handle_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: proto::Error) -&gt; StreamId {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
-        me.handle_error(<span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, err)
+        me.handle_error(<span class="self">self</span>.send_buffer, err)
     }
 
     <span class="kw">pub fn </span>recv_go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="kw-2">&amp;</span>frame::GoAway) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
-        me.recv_go_away(<span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, frame)
+        me.recv_go_away(<span class="self">self</span>.send_buffer, frame)
     }
 
     <span class="kw">pub fn </span>last_processed_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StreamId {
@@ -1919,22 +1923,22 @@
 
     <span class="kw">pub fn </span>recv_window_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: frame::WindowUpdate) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
-        me.recv_window_update(<span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, frame)
+        me.recv_window_update(<span class="self">self</span>.send_buffer, frame)
     }
 
     <span class="kw">pub fn </span>recv_push_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: frame::PushPromise) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
-        me.recv_push_promise(<span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, frame)
+        me.recv_push_promise(<span class="self">self</span>.send_buffer, frame)
     }
 
     <span class="kw">pub fn </span>recv_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, clear_pending_accept: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
-        me.recv_eof(<span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, clear_pending_accept)
+        me.recv_eof(<span class="self">self</span>.send_buffer, clear_pending_accept)
     }
 
     <span class="kw">pub fn </span>send_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: StreamId, reason: Reason) {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
-        me.send_reset(<span class="kw-2">&amp;</span><span class="self">self</span>.send_buffer, id, reason)
+        me.send_reset(<span class="self">self</span>.send_buffer, id, reason)
     }
 
     <span class="kw">pub fn </span>send_go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, last_processed_id: StreamId) {
@@ -2301,7 +2305,7 @@
             }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="macro">proto_err!</span>(conn: <span class="string">&quot;recv_push_promise: initiating stream is in an invalid state&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR).into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR));
             }
         };
 
@@ -2382,7 +2386,13 @@
         <span class="kw">let </span>send_buffer = <span class="kw-2">&amp;mut *</span>send_buffer;
 
         <span class="kw">if </span>actions.conn_error.is_none() {
-            actions.conn_error = <span class="prelude-val">Some</span>(io::Error::from(io::ErrorKind::BrokenPipe).into());
+            actions.conn_error = <span class="prelude-val">Some</span>(
+                io::Error::new(
+                    io::ErrorKind::BrokenPipe,
+                    <span class="string">&quot;connection closed because of a broken pipe&quot;</span>,
+                )
+                .into(),
+            );
         }
 
         <span class="macro">tracing::trace!</span>(<span class="string">&quot;Streams::recv_eof&quot;</span>);
@@ -2722,7 +2732,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>child_stream = me.store.resolve(child_key);
             child_stream.unlink();
             child_stream.remove();
-            <span class="kw">return </span><span class="prelude-val">Err</span>(err.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(err);
         }
 
         me.refs += <span class="number">1</span>;
@@ -2805,10 +2815,7 @@
             .map_err(From::from)
     }
 
-    <span class="kw">pub fn </span>clone_to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OpaqueStreamRef
-    <span class="kw">where
-        </span>B: <span class="lifetime">&#39;static</span>,
-    {
+    <span class="kw">pub fn </span>clone_to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OpaqueStreamRef {
         <span class="self">self</span>.opaque.clone()
     }
 
@@ -2921,12 +2928,13 @@
             .release_capacity(capacity, <span class="kw-2">&amp;mut </span>stream, <span class="kw-2">&amp;mut </span>me.actions.task)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear_recv_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="doccomment">/// Clear the receive queue and set the status to no longer receive data frames.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear_recv_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>me = <span class="self">self</span>.inner.lock().unwrap();
         <span class="kw">let </span>me = <span class="kw-2">&amp;mut *</span>me;
 
         <span class="kw">let </span><span class="kw-2">mut </span>stream = me.store.resolve(<span class="self">self</span>.key);
-
+        stream.is_recv = <span class="bool-val">false</span>;
         me.actions.recv.clear_recv_buffer(<span class="kw-2">&amp;mut </span>stream);
     }
 
@@ -2968,7 +2976,7 @@
 
         OpaqueStreamRef {
             inner: <span class="self">self</span>.inner.clone(),
-            key: <span class="self">self</span>.key.clone(),
+            key: <span class="self">self</span>.key,
         }
     }
 }
@@ -3151,4 +3159,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="h2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

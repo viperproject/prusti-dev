@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/task/harness.rs`."><title>harness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.26.0/src/runtime/task/harness.rs`."><title>harness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -499,11 +499,6 @@
 <a href="#499" id="499">499</a>
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
-<a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
-<a href="#505" id="505">505</a>
-<a href="#506" id="506">506</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::Future;
 <span class="kw">use </span><span class="kw">crate</span>::runtime::task::core::{Cell, Core, Header, Trailer};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::task::state::{Snapshot, State};
@@ -700,7 +695,7 @@
             TransitionToRunning::Success =&gt; {
                 <span class="kw">let </span>header_ptr = <span class="self">self</span>.header_ptr();
                 <span class="kw">let </span>waker_ref = waker_ref::&lt;T, S&gt;(<span class="kw-2">&amp;</span>header_ptr);
-                <span class="kw">let </span>cx = Context::from_waker(<span class="kw-2">&amp;*</span>waker_ref);
+                <span class="kw">let </span>cx = Context::from_waker(<span class="kw-2">&amp;</span>waker_ref);
                 <span class="kw">let </span>res = poll_future(<span class="self">self</span>.core(), cx);
 
                 <span class="kw">if </span>res == Poll::Ready(()) {
@@ -821,9 +816,10 @@
                 // this task. It is our responsibility to drop the
                 // output.
                 </span><span class="self">self</span>.core().drop_future_or_output();
-            } <span class="kw">else if </span>snapshot.has_join_waker() {
-                <span class="comment">// Notify the join handle. The previous transition obtains the
-                // lock on the waker cell.
+            } <span class="kw">else if </span>snapshot.is_join_waker_set() {
+                <span class="comment">// Notify the waker. Reading the waker field is safe per rule 4
+                // in task/mod.rs, since the JOIN_WAKER bit is set and the call
+                // to transition_to_complete() above set the COMPLETE bit.
                 </span><span class="self">self</span>.trailer().wake_join();
             }
         }));
@@ -873,37 +869,31 @@
     <span class="macro">debug_assert!</span>(snapshot.is_join_interested());
 
     <span class="kw">if </span>!snapshot.is_complete() {
-        <span class="comment">// The waker must be stored in the task struct.
-        </span><span class="kw">let </span>res = <span class="kw">if </span>snapshot.has_join_waker() {
-            <span class="comment">// There already is a waker stored in the struct. If it matches
-            // the provided waker, then there is no further work to do.
-            // Otherwise, the waker must be swapped.
-            </span><span class="kw">let </span>will_wake = <span class="kw">unsafe </span>{
-                <span class="comment">// Safety: when `JOIN_INTEREST` is set, only `JOIN_HANDLE`
-                // may mutate the `waker` field.
-                </span>trailer.will_wake(waker)
-            };
+        <span class="comment">// If the task is not complete, try storing the provided waker in the
+        // task&#39;s waker field.
 
-            <span class="kw">if </span>will_wake {
-                <span class="comment">// The task is not complete **and** the waker is up to date,
-                // there is nothing further that needs to be done.
-                </span><span class="kw">return </span><span class="bool-val">false</span>;
+        </span><span class="kw">let </span>res = <span class="kw">if </span>snapshot.is_join_waker_set() {
+            <span class="comment">// If JOIN_WAKER is set, then JoinHandle has previously stored a
+            // waker in the waker field per step (iii) of rule 5 in task/mod.rs.
+
+            // Optimization: if the stored waker and the provided waker wake the
+            // same task, then return without touching the waker field. (Reading
+            // the waker field below is safe per rule 3 in task/mod.rs.)
+            </span><span class="kw">if unsafe </span>{ trailer.will_wake(waker) } {
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
 
-            <span class="comment">// Unset the `JOIN_WAKER` to gain mutable access to the `waker`
-            // field then update the field with the new join worker.
-            //
-            // This requires two atomic operations, unsetting the bit and
-            // then resetting it. If the task transitions to complete
-            // concurrently to either one of those operations, then setting
-            // the join waker fails and we proceed to reading the task
-            // output.
+            <span class="comment">// Otherwise swap the stored waker with the provided waker by
+            // following the rule 5 in task/mod.rs.
             </span>header
                 .state
                 .unset_waker()
                 .and_then(|snapshot| set_join_waker(header, trailer, waker.clone(), snapshot))
         } <span class="kw">else </span>{
-            set_join_waker(header, trailer, waker.clone(), snapshot)
+            <span class="comment">// If JOIN_WAKER is unset, then JoinHandle has mutable access to the
+            // waker field per rule 2 in task/mod.rs; therefore, skip step (i)
+            // of rule 5 and try to store the provided waker in the waker field.
+            </span>set_join_waker(header, trailer, waker.clone(), snapshot)
         };
 
         <span class="kw">match </span>res {
@@ -923,7 +913,7 @@
     snapshot: Snapshot,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Snapshot, Snapshot&gt; {
     <span class="macro">assert!</span>(snapshot.is_join_interested());
-    <span class="macro">assert!</span>(!snapshot.has_join_waker());
+    <span class="macro">assert!</span>(!snapshot.is_join_waker_set());
 
     <span class="comment">// Safety: Only the `JoinHandle` may set the `waker` field. When
     // `JOIN_INTEREST` is **not** set, nothing else will touch the field.
@@ -1011,4 +1001,4 @@
     Poll::Ready(())
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

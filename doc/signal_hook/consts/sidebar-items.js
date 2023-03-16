@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["FORBIDDEN","List of forbidden signals."],["TERM_SIGNALS","Various signals commonly requesting shutdown of an application."]],"mod":[["signal","The signal constants."]]};
+window.SIDEBAR_ITEMS = {"constant":["FORBIDDEN","TERM_SIGNALS"],"mod":["signal"]};

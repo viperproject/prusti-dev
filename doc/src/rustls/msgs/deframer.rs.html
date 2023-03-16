@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.20.7/src/msgs/deframer.rs`."><title>deframer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustls/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.20.8/src/msgs/deframer.rs`."><title>deframer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustls/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -414,23 +414,33 @@
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
 <span class="kw">use </span>std::io;
 
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
 <span class="kw">use </span><span class="kw">crate</span>::msgs::codec;
 <span class="kw">use </span><span class="kw">crate</span>::msgs::message::{MessageError, OpaqueMessage};
 
 <span class="doccomment">/// This deframer works to reconstruct TLS messages
 /// from arbitrary-sized reads, buffering as necessary.
-/// The input is `read()`, the output is the `frames` deque.
+/// The input is `read()`, get the output from `pop()`.
 </span><span class="kw">pub struct </span>MessageDeframer {
     <span class="doccomment">/// Completed frames for output.
-    </span><span class="kw">pub </span>frames: VecDeque&lt;OpaqueMessage&gt;,
+    </span>frames: VecDeque&lt;OpaqueMessage&gt;,
 
     <span class="doccomment">/// Set to true if the peer is not talking TLS, but some other
     /// protocol.  The caller should abort the connection, because
     /// the deframer cannot recover.
-    </span><span class="kw">pub </span>desynced: bool,
+    </span>desynced: bool,
 
     <span class="doccomment">/// A fixed-size buffer containing the currently-accumulating
     /// TLS message.
@@ -438,18 +448,6 @@
 
     <span class="doccomment">/// What size prefix of `buf` is used.
     </span>used: usize,
-}
-
-<span class="kw">enum </span>BufferContents {
-    <span class="doccomment">/// Contains an invalid message as a header.
-    </span>Invalid,
-
-    <span class="doccomment">/// Might contain a valid message if we receive more.
-    /// Perhaps totally empty!
-    </span>Partial,
-
-    <span class="doccomment">/// Contains a valid frame as a prefix.
-    </span>Valid,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>MessageDeframer {
@@ -468,64 +466,38 @@
         }
     }
 
-    <span class="doccomment">/// Read some bytes from `rd`, and add them to our internal
-    /// buffer.  If this means our internal buffer contains
-    /// full messages, decode them all.
-    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rd: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Read) -&gt; io::Result&lt;usize&gt; {
-        <span class="comment">// Try to do the largest reads possible.  Note that if
-        // we get a message with a length field out of range here,
-        // we do a zero length read.  That looks like an EOF to
-        // the next layer up, which is fine.
-        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.used &lt;= OpaqueMessage::MAX_WIRE_SIZE);
-        <span class="kw">let </span>new_bytes = rd.read(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buf[<span class="self">self</span>.used..])<span class="question-mark">?</span>;
+    <span class="doccomment">/// Return any complete messages that the deframer has been able to parse.
+    ///
+    /// Returns an `Error` if the deframer failed to parse some message contents,
+    /// `Ok(None)` if no full message is buffered, and `Ok(Some(_))` if a valid message was found.
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;OpaqueMessage&gt;, Error&gt; {
+        <span class="kw">if </span><span class="self">self</span>.desynced {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessage);
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(msg) = <span class="self">self</span>.frames.pop_front() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(msg));
+        }
 
-        <span class="self">self</span>.used += new_bytes;
-
+        <span class="kw">let </span><span class="kw-2">mut </span>taken = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="self">self</span>.try_deframe_one() {
-                BufferContents::Invalid =&gt; {
+            <span class="comment">// Does our `buf` contain a full message?  It does if it is big enough to
+            // contain a header, and that header has a length which falls within `buf`.
+            // If so, deframe it and place the message onto the frames output queue.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>rd = codec::Reader::init(<span class="kw-2">&amp;</span><span class="self">self</span>.buf[taken..<span class="self">self</span>.used]);
+            <span class="kw">let </span>m = <span class="kw">match </span>OpaqueMessage::read(<span class="kw-2">&amp;mut </span>rd) {
+                <span class="prelude-val">Ok</span>(m) =&gt; m,
+                <span class="prelude-val">Err</span>(MessageError::TooShortForHeader | MessageError::TooShortForLength) =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                     <span class="self">self</span>.desynced = <span class="bool-val">true</span>;
-                    <span class="kw">break</span>;
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CorruptMessage);
                 }
-                BufferContents::Valid =&gt; <span class="kw">continue</span>,
-                BufferContents::Partial =&gt; <span class="kw">break</span>,
-            }
+            };
+
+            taken += rd.used();
+            <span class="self">self</span>.frames.push_back(m);
         }
 
-        <span class="prelude-val">Ok</span>(new_bytes)
-    }
-
-    <span class="doccomment">/// Returns true if we have messages for the caller
-    /// to process, either whole messages in our output
-    /// queue or partial messages in our buffer.
-    </span><span class="kw">pub fn </span>has_pending(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        !<span class="self">self</span>.frames.is_empty() || <span class="self">self</span>.used &gt; <span class="number">0
-    </span>}
-
-    <span class="doccomment">/// Does our `buf` contain a full message?  It does if it is big enough to
-    /// contain a header, and that header has a length which falls within `buf`.
-    /// If so, deframe it and place the message onto the frames output queue.
-    </span><span class="kw">fn </span>try_deframe_one(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; BufferContents {
-        <span class="comment">// Try to decode a message off the front of buf.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>rd = codec::Reader::init(<span class="kw-2">&amp;</span><span class="self">self</span>.buf[..<span class="self">self</span>.used]);
-
-        <span class="kw">match </span>OpaqueMessage::read(<span class="kw-2">&amp;mut </span>rd) {
-            <span class="prelude-val">Ok</span>(m) =&gt; {
-                <span class="kw">let </span>used = rd.used();
-                <span class="self">self</span>.frames.push_back(m);
-                <span class="self">self</span>.buf_consume(used);
-                BufferContents::Valid
-            }
-            <span class="prelude-val">Err</span>(MessageError::TooShortForHeader) | <span class="prelude-val">Err</span>(MessageError::TooShortForLength) =&gt; {
-                BufferContents::Partial
-            }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; BufferContents::Invalid,
-        }
-    }
-
-    <span class="attr">#[allow(clippy::comparison_chain)]
-    </span><span class="kw">fn </span>buf_consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, taken: usize) {
-        <span class="kw">if </span>taken &lt; <span class="self">self</span>.used {
+        <span class="attr">#[allow(clippy::comparison_chain)]
+        </span><span class="kw">if </span>taken &lt; <span class="self">self</span>.used {
             <span class="comment">/* Before:
              * +----------+----------+----------+
              * | taken    | pending  |xxxxxxxxxx|
@@ -545,14 +517,40 @@
         } <span class="kw">else if </span>taken == <span class="self">self</span>.used {
             <span class="self">self</span>.used = <span class="number">0</span>;
         }
+
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.frames.pop_front())
     }
+
+    <span class="doccomment">/// Read some bytes from `rd`, and add them to our internal buffer.
+    </span><span class="attr">#[allow(clippy::comparison_chain)]
+    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rd: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Read) -&gt; io::Result&lt;usize&gt; {
+        <span class="kw">if </span><span class="self">self</span>.used == OpaqueMessage::MAX_WIRE_SIZE {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, <span class="string">&quot;message buffer full&quot;</span>));
+        }
+
+        <span class="comment">// Try to do the largest reads possible.  Note that if
+        // we get a message with a length field out of range here,
+        // we do a zero length read.  That looks like an EOF to
+        // the next layer up, which is fine.
+        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.used &lt;= OpaqueMessage::MAX_WIRE_SIZE);
+        <span class="kw">let </span>new_bytes = rd.read(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buf[<span class="self">self</span>.used..])<span class="question-mark">?</span>;
+        <span class="self">self</span>.used += new_bytes;
+        <span class="prelude-val">Ok</span>(new_bytes)
+    }
+
+    <span class="doccomment">/// Returns true if we have messages for the caller
+    /// to process, either whole messages in our output
+    /// queue or partial messages in our buffer.
+    </span><span class="kw">pub fn </span>has_pending(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.frames.is_empty() || <span class="self">self</span>.used &gt; <span class="number">0
+    </span>}
 }
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">super</span>::MessageDeframer;
-    <span class="kw">use </span><span class="kw">crate</span>::msgs;
-    <span class="kw">use </span><span class="kw">crate</span>::msgs::message::Message;
+    <span class="kw">use </span><span class="kw">crate</span>::msgs::message::{Message, OpaqueMessage};
+    <span class="kw">use crate</span>::{msgs, Error};
     <span class="kw">use </span>std::convert::TryFrom;
     <span class="kw">use </span>std::io;
 
@@ -644,18 +642,14 @@
     }
 
     <span class="kw">fn </span>input_whole_incremental(d: <span class="kw-2">&amp;mut </span>MessageDeframer, bytes: <span class="kw-2">&amp;</span>[u8]) {
-        <span class="kw">let </span>frames_before = d.frames.len();
+        <span class="kw">let </span>before = d.used;
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..bytes.len() {
             assert_len(<span class="number">1</span>, input_bytes(d, <span class="kw-2">&amp;</span>bytes[i..i + <span class="number">1</span>]));
             <span class="macro">assert!</span>(d.has_pending());
-
-            <span class="kw">if </span>i &lt; bytes.len() - <span class="number">1 </span>{
-                <span class="macro">assert_eq!</span>(frames_before, d.frames.len());
-            }
         }
 
-        <span class="macro">assert_eq!</span>(frames_before + <span class="number">1</span>, d.frames.len());
+        <span class="macro">assert_eq!</span>(before + bytes.len(), d.used);
     }
 
     <span class="kw">fn </span>assert_len(want: usize, got: io::Result&lt;usize&gt;) {
@@ -667,13 +661,13 @@
     }
 
     <span class="kw">fn </span>pop_first(d: <span class="kw-2">&amp;mut </span>MessageDeframer) {
-        <span class="kw">let </span>m = d.frames.pop_front().unwrap();
+        <span class="kw">let </span>m = d.pop().unwrap().unwrap();
         <span class="macro">assert_eq!</span>(m.typ, msgs::enums::ContentType::Handshake);
         Message::try_from(m.into_plain_message()).unwrap();
     }
 
     <span class="kw">fn </span>pop_second(d: <span class="kw-2">&amp;mut </span>MessageDeframer) {
-        <span class="kw">let </span>m = d.frames.pop_front().unwrap();
+        <span class="kw">let </span>m = d.pop().unwrap().unwrap();
         <span class="macro">assert_eq!</span>(m.typ, msgs::enums::ContentType::Alert);
         Message::try_from(m.into_plain_message()).unwrap();
     }
@@ -684,7 +678,7 @@
         <span class="macro">assert!</span>(!d.has_pending());
         input_whole_incremental(<span class="kw-2">&amp;mut </span>d, FIRST_MESSAGE);
         <span class="macro">assert!</span>(d.has_pending());
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, d.frames.len());
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, d.frames.len());
         pop_first(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(!d.has_pending());
         <span class="macro">assert!</span>(!d.desynced);
@@ -698,9 +692,10 @@
         <span class="macro">assert!</span>(d.has_pending());
         input_whole_incremental(<span class="kw-2">&amp;mut </span>d, SECOND_MESSAGE);
         <span class="macro">assert!</span>(d.has_pending());
-        <span class="macro">assert_eq!</span>(<span class="number">2</span>, d.frames.len());
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, d.frames.len());
         pop_first(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(d.has_pending());
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, d.frames.len());
         pop_second(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(!d.has_pending());
         <span class="macro">assert!</span>(!d.desynced);
@@ -712,7 +707,7 @@
         <span class="macro">assert!</span>(!d.has_pending());
         assert_len(FIRST_MESSAGE.len(), input_bytes(<span class="kw-2">&amp;mut </span>d, FIRST_MESSAGE));
         <span class="macro">assert!</span>(d.has_pending());
-        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">0</span>);
         pop_first(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(!d.has_pending());
         <span class="macro">assert!</span>(!d.desynced);
@@ -724,8 +719,9 @@
         <span class="macro">assert!</span>(!d.has_pending());
         assert_len(FIRST_MESSAGE.len(), input_bytes(<span class="kw-2">&amp;mut </span>d, FIRST_MESSAGE));
         assert_len(SECOND_MESSAGE.len(), input_bytes(<span class="kw-2">&amp;mut </span>d, SECOND_MESSAGE));
-        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">0</span>);
         pop_first(<span class="kw-2">&amp;mut </span>d);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">1</span>);
         pop_second(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(!d.has_pending());
         <span class="macro">assert!</span>(!d.desynced);
@@ -739,8 +735,9 @@
             FIRST_MESSAGE.len() + SECOND_MESSAGE.len(),
             input_bytes_concat(<span class="kw-2">&amp;mut </span>d, FIRST_MESSAGE, SECOND_MESSAGE),
         );
-        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">0</span>);
         pop_first(<span class="kw-2">&amp;mut </span>d);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">1</span>);
         pop_second(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(!d.has_pending());
         <span class="macro">assert!</span>(!d.desynced);
@@ -754,8 +751,9 @@
             FIRST_MESSAGE.len() + SECOND_MESSAGE.len(),
             input_bytes_concat(<span class="kw-2">&amp;mut </span>d, SECOND_MESSAGE, FIRST_MESSAGE),
         );
-        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">0</span>);
         pop_second(<span class="kw-2">&amp;mut </span>d);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">1</span>);
         pop_first(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(!d.has_pending());
         <span class="macro">assert!</span>(!d.desynced);
@@ -770,7 +768,7 @@
             FIRST_MESSAGE.len() - <span class="number">3</span>,
             input_bytes(<span class="kw-2">&amp;mut </span>d, <span class="kw-2">&amp;</span>FIRST_MESSAGE[<span class="number">3</span>..]),
         );
-        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(d.frames.len(), <span class="number">0</span>);
         pop_first(<span class="kw-2">&amp;mut </span>d);
         <span class="macro">assert!</span>(!d.has_pending());
         <span class="macro">assert!</span>(!d.desynced);
@@ -783,7 +781,7 @@
             INVALID_CONTENTTYPE_MESSAGE.len(),
             input_bytes(<span class="kw-2">&amp;mut </span>d, INVALID_CONTENTTYPE_MESSAGE),
         );
-        <span class="macro">assert!</span>(d.desynced);
+        <span class="macro">assert_eq!</span>(d.pop().unwrap_err(), Error::CorruptMessage);
     }
 
     <span class="attr">#[test]
@@ -793,7 +791,7 @@
             INVALID_VERSION_MESSAGE.len(),
             input_bytes(<span class="kw-2">&amp;mut </span>d, INVALID_VERSION_MESSAGE),
         );
-        <span class="macro">assert!</span>(d.desynced);
+        <span class="macro">assert_eq!</span>(d.pop().unwrap_err(), Error::CorruptMessage);
     }
 
     <span class="attr">#[test]
@@ -803,7 +801,7 @@
             INVALID_LENGTH_MESSAGE.len(),
             input_bytes(<span class="kw-2">&amp;mut </span>d, INVALID_LENGTH_MESSAGE),
         );
-        <span class="macro">assert!</span>(d.desynced);
+        <span class="macro">assert_eq!</span>(d.pop().unwrap_err(), Error::CorruptMessage);
     }
 
     <span class="attr">#[test]
@@ -813,7 +811,7 @@
             EMPTY_APPLICATIONDATA_MESSAGE.len(),
             input_bytes(<span class="kw-2">&amp;mut </span>d, EMPTY_APPLICATIONDATA_MESSAGE),
         );
-        <span class="kw">let </span>m = d.frames.pop_front().unwrap();
+        <span class="kw">let </span>m = d.pop().unwrap().unwrap();
         <span class="macro">assert_eq!</span>(m.typ, msgs::enums::ContentType::ApplicationData);
         <span class="macro">assert_eq!</span>(m.payload.<span class="number">0</span>.len(), <span class="number">0</span>);
         <span class="macro">assert!</span>(!d.has_pending());
@@ -827,8 +825,28 @@
             INVALID_EMPTY_MESSAGE.len(),
             input_bytes(<span class="kw-2">&amp;mut </span>d, INVALID_EMPTY_MESSAGE),
         );
-        <span class="macro">assert!</span>(d.desynced);
+        <span class="macro">assert_eq!</span>(d.pop().unwrap_err(), Error::CorruptMessage);
+        <span class="comment">// CorruptMessage has been fused
+        </span><span class="macro">assert_eq!</span>(d.pop().unwrap_err(), Error::CorruptMessage);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_limited_buffer() {
+        <span class="kw">const </span>PAYLOAD_LEN: usize = <span class="number">16_384</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>message = Vec::with_capacity(<span class="number">8192</span>);
+        message.push(<span class="number">0x17</span>); <span class="comment">// ApplicationData
+        </span>message.extend(<span class="kw-2">&amp;</span>[<span class="number">0x03</span>, <span class="number">0x04</span>]); <span class="comment">// ProtocolVersion
+        </span>message.extend((PAYLOAD_LEN <span class="kw">as </span>u16).to_be_bytes()); <span class="comment">// payload length
+        </span>message.extend(<span class="kw-2">&amp;</span>[<span class="number">0</span>; PAYLOAD_LEN]);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>d = MessageDeframer::new();
+        assert_len(message.len(), input_bytes(<span class="kw-2">&amp;mut </span>d, <span class="kw-2">&amp;</span>message));
+        assert_len(
+            OpaqueMessage::MAX_WIRE_SIZE - <span class="number">16_389</span>,
+            input_bytes(<span class="kw-2">&amp;mut </span>d, <span class="kw-2">&amp;</span>message),
+        );
+        <span class="macro">assert!</span>(input_bytes(<span class="kw-2">&amp;mut </span>d, <span class="kw-2">&amp;</span>message).is_err());
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustls" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustls" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

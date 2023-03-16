@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["EcdsaSig","A low level interface to ECDSA."],["EcdsaSigRef","A reference to an [`EcdsaSig`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["EcdsaSig","EcdsaSigRef"]};

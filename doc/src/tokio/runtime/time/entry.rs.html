@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/runtime/time/entry.rs`."><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.26.0/src/runtime/time/entry.rs`."><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -636,87 +636,6 @@
 <a href="#636" id="636">636</a>
 <a href="#637" id="637">637</a>
 <a href="#638" id="638">638</a>
-<a href="#639" id="639">639</a>
-<a href="#640" id="640">640</a>
-<a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-<a href="#686" id="686">686</a>
-<a href="#687" id="687">687</a>
-<a href="#688" id="688">688</a>
-<a href="#689" id="689">689</a>
-<a href="#690" id="690">690</a>
-<a href="#691" id="691">691</a>
-<a href="#692" id="692">692</a>
-<a href="#693" id="693">693</a>
-<a href="#694" id="694">694</a>
-<a href="#695" id="695">695</a>
-<a href="#696" id="696">696</a>
-<a href="#697" id="697">697</a>
-<a href="#698" id="698">698</a>
-<a href="#699" id="699">699</a>
-<a href="#700" id="700">700</a>
-<a href="#701" id="701">701</a>
-<a href="#702" id="702">702</a>
-<a href="#703" id="703">703</a>
-<a href="#704" id="704">704</a>
-<a href="#705" id="705">705</a>
-<a href="#706" id="706">706</a>
-<a href="#707" id="707">707</a>
-<a href="#708" id="708">708</a>
-<a href="#709" id="709">709</a>
-<a href="#710" id="710">710</a>
-<a href="#711" id="711">711</a>
-<a href="#712" id="712">712</a>
-<a href="#713" id="713">713</a>
-<a href="#714" id="714">714</a>
-<a href="#715" id="715">715</a>
-<a href="#716" id="716">716</a>
-<a href="#717" id="717">717</a>
-<a href="#718" id="718">718</a>
-<a href="#719" id="719">719</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Timer state structures.
 //!
 //! This module contains the heart of the intrusive timer implementation, and as
@@ -813,7 +732,7 @@
     /// without holding the driver lock is undefined behavior.
     </span>result: UnsafeCell&lt;TimerResult&gt;,
     <span class="doccomment">/// The currently-registered waker
-    </span>waker: CachePadded&lt;AtomicWaker&gt;,
+    </span>waker: AtomicWaker,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>StateCell {
@@ -833,7 +752,7 @@
         <span class="self">Self </span>{
             state: AtomicU64::new(STATE_DEREGISTERED),
             result: UnsafeCell::new(<span class="prelude-val">Ok</span>(())),
-            waker: CachePadded(AtomicWaker::new()),
+            waker: AtomicWaker::new(),
         }
     }
 
@@ -858,7 +777,7 @@
         <span class="comment">// We must register first. This ensures that either `fire` will
         // observe the new waker, or we will observe a racing fire to have set
         // the state, or both.
-        </span><span class="self">self</span>.waker.<span class="number">0</span>.register_by_ref(waker);
+        </span><span class="self">self</span>.waker.register_by_ref(waker);
 
         <span class="self">self</span>.read_state()
     }
@@ -946,7 +865,7 @@
 
         <span class="self">self</span>.state.store(STATE_DEREGISTERED, Ordering::Release);
 
-        <span class="self">self</span>.waker.<span class="number">0</span>.take_waker()
+        <span class="self">self</span>.waker.take_waker()
     }
 
     <span class="doccomment">/// Marks the timer as registered (poll will return None) and sets the
@@ -1017,9 +936,11 @@
     /// This is manipulated only under the inner mutex. TODO: Can we use loom
     /// cells for this?
     </span>inner: StdUnsafeCell&lt;TimerShared&gt;,
-    <span class="doccomment">/// Initial deadline for the timer. This is used to register on the first
+    <span class="doccomment">/// Deadline for the timer. This is used to register on the first
     /// poll, as we can&#39;t register prior to being pinned.
-    </span>initial_deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+    </span>deadline: Instant,
+    <span class="doccomment">/// Whether the deadline has been registered.
+    </span>registered: bool,
     <span class="doccomment">/// Ensure the type is !Unpin
     </span>_m: std::marker::PhantomPinned,
 }
@@ -1048,11 +969,20 @@
 /// frontend (`Entry`) and driver backend.
 ///
 /// Note that this structure is located inside the `TimerEntry` structure.
-</span><span class="attr">#[derive(Debug)]
-#[repr(C)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TimerShared {
-    <span class="doccomment">/// Data manipulated by the driver thread itself, only.
-    </span>driver_state: CachePadded&lt;TimerSharedPadded&gt;,
+    <span class="doccomment">/// A link within the doubly-linked list of timers on a particular level and
+    /// slot. Valid only if state is equal to Registered.
+    ///
+    /// Only accessed under the entry lock.
+    </span>pointers: linked_list::Pointers&lt;TimerShared&gt;,
+
+    <span class="doccomment">/// The expiration time for which this entry is currently registered.
+    /// Generally owned by the driver, but is accessed by the entry when not
+    /// registered.
+    </span>cached_when: AtomicU64,
+
+    <span class="doccomment">/// The true expiration time. Set by the timer future, read by the driver.
+    </span>true_when: AtomicU64,
 
     <span class="doccomment">/// Current state. This records whether the timer entry is currently under
     /// the ownership of the driver, and if not, its current state (not
@@ -1062,10 +992,23 @@
     _p: PhantomPinned,
 }
 
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>TimerShared {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>TimerShared {}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>TimerShared {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;TimerShared&quot;</span>)
+            .field(<span class="string">&quot;when&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.true_when.load(Ordering::Relaxed))
+            .field(<span class="string">&quot;cached_when&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cached_when.load(Ordering::Relaxed))
+            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state)
+            .finish()
+    }
+}
+
 <span class="macro">generate_addr_of_methods! </span>{
     <span class="kw">impl</span>&lt;&gt; TimerShared {
         <span class="kw">unsafe fn </span>addr_of_pointers(<span class="self">self</span>: NonNull&lt;<span class="self">Self</span>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;TimerShared&gt;&gt; {
-            <span class="kw-2">&amp;</span><span class="self">self</span>.driver_state.<span class="number">0</span>.pointers
+            <span class="kw-2">&amp;</span><span class="self">self</span>.pointers
         }
     }
 }
@@ -1073,8 +1016,10 @@
 <span class="kw">impl </span>TimerShared {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
+            cached_when: AtomicU64::new(<span class="number">0</span>),
+            true_when: AtomicU64::new(<span class="number">0</span>),
+            pointers: linked_list::Pointers::new(),
             state: StateCell::default(),
-            driver_state: CachePadded(TimerSharedPadded::new()),
             _p: PhantomPinned,
         }
     }
@@ -1082,7 +1027,7 @@
     <span class="doccomment">/// Gets the cached time-of-expiration value.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>cached_when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="comment">// Cached-when is only accessed under the driver lock, so we can use relaxed
-        </span><span class="self">self</span>.driver_state.<span class="number">0</span>.cached_when.load(Ordering::Relaxed)
+        </span><span class="self">self</span>.cached_when.load(Ordering::Relaxed)
     }
 
     <span class="doccomment">/// Gets the true time-of-expiration value, and copies it into the cached
@@ -1093,10 +1038,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>sync_when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="kw">let </span>true_when = <span class="self">self</span>.true_when();
 
-        <span class="self">self</span>.driver_state
-            .<span class="number">0
-            </span>.cached_when
-            .store(true_when, Ordering::Relaxed);
+        <span class="self">self</span>.cached_when.store(true_when, Ordering::Relaxed);
 
         true_when
     }
@@ -1106,10 +1048,7 @@
     /// SAFETY: Must be called with the driver lock held, and when this entry is
     /// not in any timer wheel lists.
     </span><span class="kw">unsafe fn </span>set_cached_when(<span class="kw-2">&amp;</span><span class="self">self</span>, when: u64) {
-        <span class="self">self</span>.driver_state
-            .<span class="number">0
-            </span>.cached_when
-            .store(when, Ordering::Relaxed);
+        <span class="self">self</span>.cached_when.store(when, Ordering::Relaxed);
     }
 
     <span class="doccomment">/// Returns the true time-of-expiration value, with relaxed memory ordering.
@@ -1124,7 +1063,7 @@
     /// in the timer wheel.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set_expiration(<span class="kw-2">&amp;</span><span class="self">self</span>, t: u64) {
         <span class="self">self</span>.state.set_expiration(t);
-        <span class="self">self</span>.driver_state.<span class="number">0</span>.cached_when.store(t, Ordering::Relaxed);
+        <span class="self">self</span>.cached_when.store(t, Ordering::Relaxed);
     }
 
     <span class="doccomment">/// Sets the true time-of-expiration only if it is after the current.
@@ -1147,48 +1086,6 @@
         <span class="self">self</span>.state.might_be_registered()
     }
 }
-
-<span class="doccomment">/// Additional shared state between the driver and the timer which is cache
-/// padded. This contains the information that the driver thread accesses most
-/// frequently to minimize contention. In particular, we move it away from the
-/// waker, as the waker is updated on every poll.
-</span><span class="kw">struct </span>TimerSharedPadded {
-    <span class="doccomment">/// A link within the doubly-linked list of timers on a particular level and
-    /// slot. Valid only if state is equal to Registered.
-    ///
-    /// Only accessed under the entry lock.
-    </span>pointers: linked_list::Pointers&lt;TimerShared&gt;,
-
-    <span class="doccomment">/// The expiration time for which this entry is currently registered.
-    /// Generally owned by the driver, but is accessed by the entry when not
-    /// registered.
-    </span>cached_when: AtomicU64,
-
-    <span class="doccomment">/// The true expiration time. Set by the timer future, read by the driver.
-    </span>true_when: AtomicU64,
-}
-
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>TimerSharedPadded {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;TimerSharedPadded&quot;</span>)
-            .field(<span class="string">&quot;when&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.true_when.load(Ordering::Relaxed))
-            .field(<span class="string">&quot;cached_when&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cached_when.load(Ordering::Relaxed))
-            .finish()
-    }
-}
-
-<span class="kw">impl </span>TimerSharedPadded {
-    <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            cached_when: AtomicU64::new(<span class="number">0</span>),
-            true_when: AtomicU64::new(<span class="number">0</span>),
-            pointers: linked_list::Pointers::new(),
-        }
-    }
-}
-
-<span class="kw">unsafe impl </span>Send <span class="kw">for </span>TimerShared {}
-<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>TimerShared {}
 
 <span class="kw">unsafe impl </span>linked_list::Link <span class="kw">for </span>TimerShared {
     <span class="kw">type </span>Handle = TimerHandle;
@@ -1223,7 +1120,8 @@
         <span class="self">Self </span>{
             driver,
             inner: StdUnsafeCell::new(TimerShared::new()),
-            initial_deadline: <span class="prelude-val">Some</span>(deadline),
+            deadline,
+            registered: <span class="bool-val">false</span>,
             _m: std::marker::PhantomPinned,
         }
     }
@@ -1232,8 +1130,12 @@
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.get() }
     }
 
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deadline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Instant {
+        <span class="self">self</span>.deadline
+    }
+
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        !<span class="self">self</span>.inner().state.might_be_registered() &amp;&amp; <span class="self">self</span>.initial_deadline.is_none()
+        !<span class="self">self</span>.inner().state.might_be_registered() &amp;&amp; <span class="self">self</span>.registered
     }
 
     <span class="doccomment">/// Cancels and deregisters the timer. This operation is irreversible.
@@ -1264,7 +1166,8 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, new_time: Instant) {
-        <span class="kw">unsafe </span>{ <span class="self">self</span>.as_mut().get_unchecked_mut() }.initial_deadline = <span class="prelude-val">None</span>;
+        <span class="kw">unsafe </span>{ <span class="self">self</span>.as_mut().get_unchecked_mut() }.deadline = new_time;
+        <span class="kw">unsafe </span>{ <span class="self">self</span>.as_mut().get_unchecked_mut() }.registered = <span class="bool-val">true</span>;
 
         <span class="kw">let </span>tick = <span class="self">self</span>.driver().time_source().deadline_to_tick(new_time);
 
@@ -1286,7 +1189,8 @@
             <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::RUNTIME_SHUTTING_DOWN_ERROR);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(deadline) = <span class="self">self</span>.initial_deadline {
+        <span class="kw">if </span>!<span class="self">self</span>.registered {
+            <span class="kw">let </span>deadline = <span class="self">self</span>.deadline;
             <span class="self">self</span>.as_mut().reset(deadline);
         }
 
@@ -1297,6 +1201,11 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>driver(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">super</span>::Handle {
         <span class="self">self</span>.driver.driver().time()
+    }
+
+    <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">super</span>::Clock {
+        <span class="self">self</span>.driver.driver().clock()
     }
 }
 
@@ -1365,76 +1274,5 @@
         <span class="kw">unsafe </span>{ Pin::new_unchecked(<span class="self">self</span>) }.as_mut().cancel()
     }
 }
-
-<span class="comment">// Copied from [crossbeam/cache_padded](https://github.com/crossbeam-rs/crossbeam/blob/fa35346b7c789bba045ad789e894c68c466d1779/crossbeam-utils/src/cache_padded.rs#L62-L127)
-//
-// Starting from Intel&#39;s Sandy Bridge, spatial prefetcher is now pulling pairs of 64-byte cache
-// lines at a time, so we have to align to 128 bytes rather than 64.
-//
-// Sources:
-// - https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-optimization-manual.pdf
-// - https://github.com/facebook/folly/blob/1b5288e6eea6df074758f877c849b6e73bbb9fbb/folly/lang/Align.h#L107
-//
-// ARM&#39;s big.LITTLE architecture has asymmetric cores and &quot;big&quot; cores have 128-byte cache line size.
-//
-// Sources:
-// - https://www.mono-project.com/news/2016/09/12/arm64-icache/
-//
-// powerpc64 has 128-byte cache line size.
-//
-// Sources:
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_ppc64x.go#L9
-</span><span class="attr">#[cfg_attr(
-    any(
-        target_arch = <span class="string">&quot;x86_64&quot;</span>,
-        target_arch = <span class="string">&quot;aarch64&quot;</span>,
-        target_arch = <span class="string">&quot;powerpc64&quot;</span>,
-    ),
-    repr(align(<span class="number">128</span>))
-)]
-</span><span class="comment">// arm, mips, mips64, and riscv64 have 32-byte cache line size.
-//
-// Sources:
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_arm.go#L7
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_mips.go#L7
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_mipsle.go#L7
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_mips64x.go#L9
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_riscv64.go#L7
-</span><span class="attr">#[cfg_attr(
-    any(
-        target_arch = <span class="string">&quot;arm&quot;</span>,
-        target_arch = <span class="string">&quot;mips&quot;</span>,
-        target_arch = <span class="string">&quot;mips64&quot;</span>,
-        target_arch = <span class="string">&quot;riscv64&quot;</span>,
-    ),
-    repr(align(<span class="number">32</span>))
-)]
-</span><span class="comment">// s390x has 256-byte cache line size.
-//
-// Sources:
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_s390x.go#L7
-</span><span class="attr">#[cfg_attr(target_arch = <span class="string">&quot;s390x&quot;</span>, repr(align(<span class="number">256</span>)))]
-</span><span class="comment">// x86 and wasm have 64-byte cache line size.
-//
-// Sources:
-// - https://github.com/golang/go/blob/dda2991c2ea0c5914714469c4defc2562a907230/src/internal/cpu/cpu_x86.go#L9
-// - https://github.com/golang/go/blob/3dd58676054223962cd915bb0934d1f9f489d4d2/src/internal/cpu/cpu_wasm.go#L7
-//
-// All others are assumed to have 64-byte cache line size.
-</span><span class="attr">#[cfg_attr(
-    not(any(
-        target_arch = <span class="string">&quot;x86_64&quot;</span>,
-        target_arch = <span class="string">&quot;aarch64&quot;</span>,
-        target_arch = <span class="string">&quot;powerpc64&quot;</span>,
-        target_arch = <span class="string">&quot;arm&quot;</span>,
-        target_arch = <span class="string">&quot;mips&quot;</span>,
-        target_arch = <span class="string">&quot;mips64&quot;</span>,
-        target_arch = <span class="string">&quot;riscv64&quot;</span>,
-        target_arch = <span class="string">&quot;s390x&quot;</span>,
-    )),
-    repr(align(<span class="number">64</span>))
-)]
-#[derive(Debug, Default)]
-</span><span class="kw">struct </span>CachePadded&lt;T&gt;(T);
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

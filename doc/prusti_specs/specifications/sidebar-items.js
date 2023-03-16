@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["common","Data structures for storing information about specifications."],["preparser",""],["untyped",""]]};
+window.SIDEBAR_ITEMS = {"mod":["common","preparser","untyped"]};

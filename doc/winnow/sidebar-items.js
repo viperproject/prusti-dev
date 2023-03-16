@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["dispatch","error_node_position","error_position"],"mod":["bits","branch","bytes","character","combinator","error","multi","number","prelude","sequence","stream","trace"],"trait":["Parser"]};

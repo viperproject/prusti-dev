@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["WithConstArguments",""]]};
+window.SIDEBAR_ITEMS = {"trait":["WithConstArguments"]};

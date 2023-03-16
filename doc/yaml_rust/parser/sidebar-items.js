@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Event","`Event` is used with the low-level event base parsing API, see `EventReceiver` trait."]],"struct":[["Parser",""]],"trait":[["EventReceiver",""],["MarkedEventReceiver",""]],"type":[["ParseResult",""]]};
+window.SIDEBAR_ITEMS = {"enum":["Event"],"struct":["Parser"],"trait":["EventReceiver","MarkedEventReceiver"],"type":["ParseResult"]};

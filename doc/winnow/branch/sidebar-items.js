@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["alt","permutation"],"macro":["dispatch"],"trait":["Alt","Permutation"]};

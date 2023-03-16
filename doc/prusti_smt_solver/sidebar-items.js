@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""]],"mod":[["context",""],["subprocess",""]],"opaque":[["",""]]};
+window.SIDEBAR_ITEMS = {"fn":["main"],"mod":["context","subprocess"],"opaque":[""]};

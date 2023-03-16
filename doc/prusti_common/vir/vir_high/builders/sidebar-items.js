@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["procedure",""]]};
+window.SIDEBAR_ITEMS = {"mod":["procedure"]};

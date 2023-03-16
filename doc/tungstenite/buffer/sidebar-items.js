@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ReadBuffer","A FIFO buffer for reading packets from the network."]]};
+window.SIDEBAR_ITEMS = {"struct":["ReadBuffer"]};

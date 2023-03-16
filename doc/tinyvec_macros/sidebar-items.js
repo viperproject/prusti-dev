@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":[["impl_mirrored",""]]};
+window.SIDEBAR_ITEMS = {"macro":["impl_mirrored"]};

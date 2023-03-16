@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["mir_borrowck",""]],"static":[["CALLSITE",""],["META",""]],"struct":[["PrustiCompilerCalls",""]]};
+window.SIDEBAR_ITEMS = {"fn":["mir_borrowck"],"static":["CALLSITE","META"],"struct":["PrustiCompilerCalls"]};

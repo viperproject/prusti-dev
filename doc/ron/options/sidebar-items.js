@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Options","Roundtrip serde options."]]};
+window.SIDEBAR_ITEMS = {"struct":["Options"]};

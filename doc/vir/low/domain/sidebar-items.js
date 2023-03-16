@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DomainAxiomDecl",""],["DomainDecl",""],["DomainFunctionDecl",""]]};
+window.SIDEBAR_ITEMS = {"struct":["DomainAxiomDecl","DomainDecl","DomainFunctionDecl"]};

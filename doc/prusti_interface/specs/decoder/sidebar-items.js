@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DefSpecsDecoder",""]]};
+window.SIDEBAR_ITEMS = {"struct":["DefSpecsDecoder"]};

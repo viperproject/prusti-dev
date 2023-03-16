@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["delete_module","Unloads the kernel module with the given name."],["finit_module","Loads a kernel module from a given file descriptor."],["init_module","Loads a kernel module from a buffer."]],"struct":[["DeleteModuleFlags","Flags used by `delete_module`."],["ModuleInitFlags","Flags used by the `finit_module` function."]]};
+window.SIDEBAR_ITEMS = {"fn":["delete_module","finit_module","init_module"],"struct":["DeleteModuleFlags","ModuleInitFlags"]};

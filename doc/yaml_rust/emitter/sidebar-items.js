@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["EmitError",""]],"struct":[["YamlEmitter",""]],"type":[["EmitResult",""]]};
+window.SIDEBAR_ITEMS = {"enum":["EmitError"],"struct":["YamlEmitter"],"type":["EmitResult"]};

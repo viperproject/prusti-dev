@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["MessageError",""],["MessagePayload",""]],"struct":[["BorrowedPlainMessage","A TLS frame, named TLSPlaintext in the standard."],["Message","A message with decoded payload"],["OpaqueMessage","A TLS frame, named TLSPlaintext in the standard."],["PlainMessage","A decrypted TLS frame"]]};
+window.SIDEBAR_ITEMS = {"enum":["MessageError","MessagePayload"],"struct":["BorrowedPlainMessage","Message","OpaqueMessage","PlainMessage"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CfgBasicBlockIterator",""],["CfgStatementIterator",""]],"trait":[["Cfg",""]]};
+window.SIDEBAR_ITEMS = {"struct":["CfgBasicBlockIterator","CfgStatementIterator"],"trait":["Cfg"]};

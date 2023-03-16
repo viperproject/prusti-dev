@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["ToString",""]]};
+window.SIDEBAR_ITEMS = {"trait":["ToString"]};

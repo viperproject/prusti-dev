@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["common",""],["ty",""]],"trait":[["WithConstArguments",""]]};
+window.SIDEBAR_ITEMS = {"mod":["common","ty"],"trait":["WithConstArguments"]};

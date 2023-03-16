@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["read_integer",""]],"opaque":[["",""]],"struct":[["Context",""]]};
+window.SIDEBAR_ITEMS = {"fn":["read_integer"],"opaque":[""],"struct":["Context"]};

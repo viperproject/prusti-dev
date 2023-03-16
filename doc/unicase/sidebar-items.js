@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["eq","Compare two string-like types for case-less equality, using unicode folding."],["eq_ascii","Compare two string-like types for case-less equality, ignoring ASCII case."]],"struct":[["Ascii","Case Insensitive wrapper of Ascii strings."],["UniCase","Case Insensitive wrapper of strings."]]};
+window.SIDEBAR_ITEMS = {"fn":["eq","eq_ascii"],"struct":["Ascii","UniCase"]};

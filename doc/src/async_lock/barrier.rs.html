@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.6.0/src/barrier.rs`."><title>barrier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.7.0/src/barrier.rs`."><title>barrier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -131,8 +131,99 @@
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
-</pre><pre class="rust"><code><span class="kw">use </span>event_listener::Event;
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+</pre><pre class="rust"><code><span class="kw">use </span>event_listener::{Event, EventListener};
 
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::task::{Context, Poll};
+
+<span class="kw">use </span><span class="kw">crate</span>::futures::Lock;
 <span class="kw">use </span><span class="kw">crate</span>::Mutex;
 
 <span class="doccomment">/// A counter to synchronize multiple tasks at the same time.
@@ -205,24 +296,103 @@
     ///     });
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BarrierWaitResult {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.state.lock().<span class="kw">await</span>;
-        <span class="kw">let </span>local_gen = state.generation_id;
-        state.count += <span class="number">1</span>;
+    </span><span class="kw">pub fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BarrierWait&lt;<span class="lifetime">&#39;_</span>&gt; {
+        BarrierWait {
+            barrier: <span class="self">self</span>,
+            lock: <span class="prelude-val">Some</span>(<span class="self">self</span>.state.lock()),
+            state: WaitState::Initial,
+        }
+    }
+}
 
-        <span class="kw">if </span>state.count &lt; <span class="self">self</span>.n {
-            <span class="kw">while </span>local_gen == state.generation_id &amp;&amp; state.count &lt; <span class="self">self</span>.n {
-                <span class="kw">let </span>listener = <span class="self">self</span>.event.listen();
-                drop(state);
-                listener.<span class="kw">await</span>;
-                state = <span class="self">self</span>.state.lock().<span class="kw">await</span>;
+<span class="doccomment">/// The future returned by [`Barrier::wait()`].
+</span><span class="kw">pub struct </span>BarrierWait&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// The barrier to wait on.
+    </span>barrier: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Barrier,
+
+    <span class="doccomment">/// The ongoing mutex lock operation we are blocking on.
+    </span>lock: <span class="prelude-ty">Option</span>&lt;Lock&lt;<span class="lifetime">&#39;a</span>, State&gt;&gt;,
+
+    <span class="doccomment">/// The current state of the future.
+    </span>state: WaitState,
+}
+
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>BarrierWait&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">&quot;BarrierWait { .. }&quot;</span>)
+    }
+}
+
+<span class="kw">enum </span>WaitState {
+    <span class="doccomment">/// We are getting the original values of the state.
+    </span>Initial,
+
+    <span class="doccomment">/// We are waiting for the listener to complete.
+    </span>Waiting { evl: EventListener, local_gen: u64 },
+
+    <span class="doccomment">/// Waiting to re-acquire the lock to check the state again.
+    </span>Reacquiring(u64),
+}
+
+<span class="kw">impl </span>Future <span class="kw">for </span>BarrierWait&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Output = BarrierWaitResult;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
+
+        <span class="kw">loop </span>{
+            <span class="kw">match </span>this.state {
+                WaitState::Initial =&gt; {
+                    <span class="comment">// See if the lock is ready yet.
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>state = <span class="macro">ready!</span>(Pin::new(this.lock.as_mut().unwrap()).poll(cx));
+                    this.lock = <span class="prelude-val">None</span>;
+
+                    <span class="kw">let </span>local_gen = state.generation_id;
+                    state.count += <span class="number">1</span>;
+
+                    <span class="kw">if </span>state.count &lt; this.barrier.n {
+                        <span class="comment">// We need to wait for the event.
+                        </span>this.state = WaitState::Waiting {
+                            evl: this.barrier.event.listen(),
+                            local_gen,
+                        };
+                    } <span class="kw">else </span>{
+                        <span class="comment">// We are the last one.
+                        </span>state.count = <span class="number">0</span>;
+                        state.generation_id = state.generation_id.wrapping_add(<span class="number">1</span>);
+                        this.barrier.event.notify(std::usize::MAX);
+                        <span class="kw">return </span>Poll::Ready(BarrierWaitResult { is_leader: <span class="bool-val">true </span>});
+                    }
+                }
+
+                WaitState::Waiting {
+                    <span class="kw-2">ref mut </span>evl,
+                    local_gen,
+                } =&gt; {
+                    <span class="macro">ready!</span>(Pin::new(evl).poll(cx));
+
+                    <span class="comment">// We are now re-acquiring the mutex.
+                    </span>this.lock = <span class="prelude-val">Some</span>(this.barrier.state.lock());
+                    this.state = WaitState::Reacquiring(local_gen);
+                }
+
+                WaitState::Reacquiring(local_gen) =&gt; {
+                    <span class="comment">// Acquire the local state again.
+                    </span><span class="kw">let </span>state = <span class="macro">ready!</span>(Pin::new(this.lock.as_mut().unwrap()).poll(cx));
+                    this.lock = <span class="prelude-val">None</span>;
+
+                    <span class="kw">if </span>local_gen == state.generation_id &amp;&amp; state.count &lt; this.barrier.n {
+                        <span class="comment">// We need to wait for the event again.
+                        </span>this.state = WaitState::Waiting {
+                            evl: this.barrier.event.listen(),
+                            local_gen,
+                        };
+                    } <span class="kw">else </span>{
+                        <span class="comment">// We are ready, but not the leader.
+                        </span><span class="kw">return </span>Poll::Ready(BarrierWaitResult { is_leader: <span class="bool-val">false </span>});
+                    }
+                }
             }
-            BarrierWaitResult { is_leader: <span class="bool-val">false </span>}
-        } <span class="kw">else </span>{
-            state.count = <span class="number">0</span>;
-            state.generation_id = state.generation_id.wrapping_add(<span class="number">1</span>);
-            <span class="self">self</span>.event.notify(std::usize::MAX);
-            BarrierWaitResult { is_leader: <span class="bool-val">true </span>}
         }
     }
 }
@@ -265,4 +435,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

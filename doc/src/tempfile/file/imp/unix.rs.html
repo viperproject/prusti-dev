@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tempfile-3.3.0/src/file/imp/unix.rs`."><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tempfile/index.html">
-                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tempfile-3.4.0/src/file/imp/unix.rs`."><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tempfile/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -144,27 +143,14 @@
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::env;
-<span class="kw">use </span>std::ffi::{CString, OsStr};
+<span class="kw">use </span>std::ffi::OsStr;
 <span class="kw">use </span>std::fs::{<span class="self">self</span>, File, OpenOptions};
 <span class="kw">use </span>std::io;
 <span class="macro">cfg_if::cfg_if! </span>{
     <span class="kw">if </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;wasi&quot;</span>))] </span>{
-        <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
         <span class="kw">use </span>std::os::unix::fs::{MetadataExt, OpenOptionsExt};
     } <span class="kw">else </span>{
-        <span class="kw">use </span>std::os::wasi::ffi::OsStrExt;
         <span class="attr">#[cfg(feature = <span class="string">&quot;nightly&quot;</span>)]
         </span><span class="kw">use </span>std::os::wasi::fs::MetadataExt;
     }
@@ -173,29 +159,7 @@
 <span class="kw">use </span>std::path::Path;
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">use </span>libc::{c_char, c_int, link, rename, unlink};
-
-<span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-#[inline(always)]
-</span><span class="kw">pub fn </span>cvt_err(result: c_int) -&gt; io::Result&lt;c_int&gt; {
-    <span class="kw">if </span>result == -<span class="number">1 </span>{
-        <span class="prelude-val">Err</span>(io::Error::last_os_error())
-    } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(result)
-    }
-}
-
-<span class="attr">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
-#[inline(always)]
-</span><span class="kw">pub fn </span>cvt_err(result: <span class="prelude-ty">Result</span>&lt;usize, syscall::Error&gt;) -&gt; io::Result&lt;usize&gt; {
-    result.map_err(|err| io::Error::from_raw_os_error(err.errno))
-}
-
-<span class="comment">// Stolen from std.
-</span><span class="kw">pub fn </span>cstr(path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;CString&gt; {
-    CString::new(path.as_os_str().as_bytes())
-        .map_err(|<span class="kw">_</span>| io::Error::new(io::ErrorKind::InvalidInput, <span class="string">&quot;path contained a null&quot;</span>))
-}
+</span><span class="kw">use </span>rustix::fs::{cwd, linkat, renameat, unlinkat, AtFlags};
 
 <span class="kw">pub fn </span>create_named(path: <span class="kw-2">&amp;</span>Path, open_options: <span class="kw-2">&amp;mut </span>OpenOptions) -&gt; io::Result&lt;File&gt; {
     open_options.read(<span class="bool-val">true</span>).write(<span class="bool-val">true</span>).create_new(<span class="bool-val">true</span>);
@@ -227,16 +191,18 @@
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
 </span><span class="kw">pub fn </span>create(dir: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;File&gt; {
-    <span class="kw">use </span>libc::{EISDIR, ENOENT, EOPNOTSUPP, O_TMPFILE};
+    <span class="kw">use </span>rustix::{fs::OFlags, io::Errno};
     OpenOptions::new()
         .read(<span class="bool-val">true</span>)
         .write(<span class="bool-val">true</span>)
-        .custom_flags(O_TMPFILE) <span class="comment">// do not mix with `create_new(true)`
+        .custom_flags(OFlags::TMPFILE.bits() <span class="kw">as </span>i32) <span class="comment">// do not mix with `create_new(true)`
         </span>.open(dir)
         .or_else(|e| {
-            <span class="kw">match </span>e.raw_os_error() {
+            <span class="kw">match </span>Errno::from_io_error(<span class="kw-2">&amp;</span>e) {
                 <span class="comment">// These are the three &quot;not supported&quot; error codes for O_TMPFILE.
-                </span><span class="prelude-val">Some</span>(EOPNOTSUPP) | <span class="prelude-val">Some</span>(EISDIR) | <span class="prelude-val">Some</span>(ENOENT) =&gt; create_unix(dir),
+                </span><span class="prelude-val">Some</span>(Errno::OPNOTSUPP) | <span class="prelude-val">Some</span>(Errno::ISDIR) | <span class="prelude-val">Some</span>(Errno::NOENT) =&gt; {
+                    create_unix(dir)
+                }
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(e),
             }
         })
@@ -281,25 +247,36 @@
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
 </span><span class="kw">pub fn </span>persist(old_path: <span class="kw-2">&amp;</span>Path, new_path: <span class="kw-2">&amp;</span>Path, overwrite: bool) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">unsafe </span>{
-        <span class="kw">let </span>old_path = cstr(old_path)<span class="question-mark">?</span>;
-        <span class="kw">let </span>new_path = cstr(new_path)<span class="question-mark">?</span>;
-        <span class="kw">if </span>overwrite {
-            cvt_err(rename(
-                old_path.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char,
-                new_path.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char,
-            ))<span class="question-mark">?</span>;
-        } <span class="kw">else </span>{
-            cvt_err(link(
-                old_path.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char,
-                new_path.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char,
-            ))<span class="question-mark">?</span>;
-            <span class="comment">// Ignore unlink errors. Can we do better?
-            // On recent linux, we can use renameat2 to do this atomically.
-            </span><span class="kw">let _ </span>= unlink(old_path.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char);
+    <span class="kw">if </span>overwrite {
+        renameat(cwd(), old_path, cwd(), new_path)<span class="question-mark">?</span>;
+    } <span class="kw">else </span>{
+        <span class="comment">// On Linux, use `renameat_with` to avoid overwriting an existing name,
+        // if the kernel and the filesystem support it.
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        </span>{
+            <span class="kw">use </span>rustix::fs::{renameat_with, RenameFlags};
+            <span class="kw">use </span>rustix::io::Errno;
+            <span class="kw">use </span>std::sync::atomic::{AtomicBool, Ordering::Relaxed};
+
+            <span class="kw">static </span>NOSYS: AtomicBool = AtomicBool::new(<span class="bool-val">false</span>);
+            <span class="kw">if </span>!NOSYS.load(Relaxed) {
+                <span class="kw">match </span>renameat_with(cwd(), old_path, cwd(), new_path, RenameFlags::NOREPLACE) {
+                    <span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+                    <span class="prelude-val">Err</span>(Errno::NOSYS) =&gt; NOSYS.store(<span class="bool-val">true</span>, Relaxed),
+                    <span class="prelude-val">Err</span>(Errno::INVAL) =&gt; {}
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e.into()),
+                }
+            }
         }
-        <span class="prelude-val">Ok</span>(())
+
+        <span class="comment">// Otherwise use `linkat` to create the new filesystem name, which
+        // will fail if the name already exists, and then `unlinkat` to remove
+        // the old name.
+        </span>linkat(cwd(), old_path, cwd(), new_path, AtFlags::empty())<span class="question-mark">?</span>;
+        <span class="comment">// Ignore unlink errors. Can we do better?
+        </span><span class="kw">let _ </span>= unlinkat(cwd(), old_path, AtFlags::empty());
     }
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
@@ -312,4 +289,4 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tempfile" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tempfile" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

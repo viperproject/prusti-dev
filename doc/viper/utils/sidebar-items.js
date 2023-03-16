@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["ExprIterator",""]]};
+window.SIDEBAR_ITEMS = {"trait":["ExprIterator"]};

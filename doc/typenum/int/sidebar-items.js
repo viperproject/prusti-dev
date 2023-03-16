@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["NInt","Type-level signed integers with negative sign."],["PInt","Type-level signed integers with positive sign."],["Z0","The type-level signed integer 0."]]};
+window.SIDEBAR_ITEMS = {"struct":["NInt","PInt","Z0"]};

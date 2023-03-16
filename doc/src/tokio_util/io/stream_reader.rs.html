@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/io/stream_reader.rs`."><title>stream_reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.7/src/io/stream_reader.rs`."><title>stream_reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -250,116 +250,239 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
 </pre><pre class="rust"><code><span class="kw">use </span>bytes::Buf;
 <span class="kw">use </span>futures_core::stream::Stream;
-<span class="kw">use </span>pin_project_lite::pin_project;
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::pin::Pin;
 <span class="kw">use </span>std::task::{Context, Poll};
 <span class="kw">use </span>tokio::io::{AsyncBufRead, AsyncRead, ReadBuf};
 
-<span class="macro">pin_project! </span>{
-    <span class="doccomment">/// Convert a [`Stream`] of byte chunks into an [`AsyncRead`].
-    ///
-    /// This type performs the inverse operation of [`ReaderStream`].
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use bytes::Bytes;
-    /// use tokio::io::{AsyncReadExt, Result};
-    /// use tokio_util::io::StreamReader;
-    /// # #[tokio::main]
-    /// # async fn main() -&gt; std::io::Result&lt;()&gt; {
-    ///
-    /// // Create a stream from an iterator.
-    /// let stream = tokio_stream::iter(vec![
-    ///     Result::Ok(Bytes::from_static(&amp;[0, 1, 2, 3])),
-    ///     Result::Ok(Bytes::from_static(&amp;[4, 5, 6, 7])),
-    ///     Result::Ok(Bytes::from_static(&amp;[8, 9, 10, 11])),
-    /// ]);
-    ///
-    /// // Convert it to an AsyncRead.
-    /// let mut read = StreamReader::new(stream);
-    ///
-    /// // Read five bytes from the stream.
-    /// let mut buf = [0; 5];
-    /// read.read_exact(&amp;mut buf).await?;
-    /// assert_eq!(buf, [0, 1, 2, 3, 4]);
-    ///
-    /// // Read the rest of the current chunk.
-    /// assert_eq!(read.read(&amp;mut buf).await?, 3);
-    /// assert_eq!(&amp;buf[..3], [5, 6, 7]);
-    ///
-    /// // Read the next chunk.
-    /// assert_eq!(read.read(&amp;mut buf).await?, 4);
-    /// assert_eq!(&amp;buf[..4], [8, 9, 10, 11]);
-    ///
-    /// // We have now reached the end.
-    /// assert_eq!(read.read(&amp;mut buf).await?, 0);
-    ///
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
-    /// If the stream produces errors which are not [std::io::Error],
-    /// the errors can be converted using [`StreamExt`] to map each
-    /// element.
-    ///
-    /// ```
-    /// use bytes::Bytes;
-    /// use tokio::io::AsyncReadExt;
-    /// use tokio_util::io::StreamReader;
-    /// use tokio_stream::StreamExt;
-    /// # #[tokio::main]
-    /// # async fn main() -&gt; std::io::Result&lt;()&gt; {
-    ///
-    /// // Create a stream from an iterator, including an error.
-    /// let stream = tokio_stream::iter(vec![
-    ///     Result::Ok(Bytes::from_static(&amp;[0, 1, 2, 3])),
-    ///     Result::Ok(Bytes::from_static(&amp;[4, 5, 6, 7])),
-    ///     Result::Err(&quot;Something bad happened!&quot;)
-    /// ]);
-    ///
-    /// // Use StreamExt to map the stream and error to a std::io::Error
-    /// let stream = stream.map(|result| result.map_err(|err| {
-    ///     std::io::Error::new(std::io::ErrorKind::Other, err)
-    /// }));
-    ///
-    /// // Convert it to an AsyncRead.
-    /// let mut read = StreamReader::new(stream);
-    ///
-    /// // Read five bytes from the stream.
-    /// let mut buf = [0; 5];
-    /// read.read_exact(&amp;mut buf).await?;
-    /// assert_eq!(buf, [0, 1, 2, 3, 4]);
-    ///
-    /// // Read the rest of the current chunk.
-    /// assert_eq!(read.read(&amp;mut buf).await?, 3);
-    /// assert_eq!(&amp;buf[..3], [5, 6, 7]);
-    ///
-    /// // Reading the next chunk will produce an error
-    /// let error = read.read(&amp;mut buf).await.unwrap_err();
-    /// assert_eq!(error.kind(), std::io::ErrorKind::Other);
-    /// assert_eq!(error.into_inner().unwrap().to_string(), &quot;Something bad happened!&quot;);
-    ///
-    /// // We have now reached the end.
-    /// assert_eq!(read.read(&amp;mut buf).await?, 0);
-    ///
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
-    /// [`AsyncRead`]: tokio::io::AsyncRead
-    /// [`Stream`]: futures_core::Stream
-    /// [`ReaderStream`]: crate::io::ReaderStream
-    /// [`StreamExt`]: tokio_stream::StreamExt
-    </span><span class="attr">#[derive(Debug)]
-    </span><span class="kw">pub struct </span>StreamReader&lt;S, B&gt; {
-        <span class="attr">#[pin]
-        </span>inner: S,
-        chunk: <span class="prelude-ty">Option</span>&lt;B&gt;,
-    }
+<span class="doccomment">/// Convert a [`Stream`] of byte chunks into an [`AsyncRead`].
+///
+/// This type performs the inverse operation of [`ReaderStream`].
+///
+/// This type also implements the [`AsyncBufRead`] trait, so you can use it
+/// to read a `Stream` of byte chunks line-by-line. See the examples below.
+///
+/// # Example
+///
+/// ```
+/// use bytes::Bytes;
+/// use tokio::io::{AsyncReadExt, Result};
+/// use tokio_util::io::StreamReader;
+/// # #[tokio::main(flavor = &quot;current_thread&quot;)]
+/// # async fn main() -&gt; std::io::Result&lt;()&gt; {
+///
+/// // Create a stream from an iterator.
+/// let stream = tokio_stream::iter(vec![
+///     Result::Ok(Bytes::from_static(&amp;[0, 1, 2, 3])),
+///     Result::Ok(Bytes::from_static(&amp;[4, 5, 6, 7])),
+///     Result::Ok(Bytes::from_static(&amp;[8, 9, 10, 11])),
+/// ]);
+///
+/// // Convert it to an AsyncRead.
+/// let mut read = StreamReader::new(stream);
+///
+/// // Read five bytes from the stream.
+/// let mut buf = [0; 5];
+/// read.read_exact(&amp;mut buf).await?;
+/// assert_eq!(buf, [0, 1, 2, 3, 4]);
+///
+/// // Read the rest of the current chunk.
+/// assert_eq!(read.read(&amp;mut buf).await?, 3);
+/// assert_eq!(&amp;buf[..3], [5, 6, 7]);
+///
+/// // Read the next chunk.
+/// assert_eq!(read.read(&amp;mut buf).await?, 4);
+/// assert_eq!(&amp;buf[..4], [8, 9, 10, 11]);
+///
+/// // We have now reached the end.
+/// assert_eq!(read.read(&amp;mut buf).await?, 0);
+///
+/// # Ok(())
+/// # }
+/// ```
+///
+/// If the stream produces errors which are not [`std::io::Error`],
+/// the errors can be converted using [`StreamExt`] to map each
+/// element.
+///
+/// ```
+/// use bytes::Bytes;
+/// use tokio::io::AsyncReadExt;
+/// use tokio_util::io::StreamReader;
+/// use tokio_stream::StreamExt;
+/// # #[tokio::main(flavor = &quot;current_thread&quot;)]
+/// # async fn main() -&gt; std::io::Result&lt;()&gt; {
+///
+/// // Create a stream from an iterator, including an error.
+/// let stream = tokio_stream::iter(vec![
+///     Result::Ok(Bytes::from_static(&amp;[0, 1, 2, 3])),
+///     Result::Ok(Bytes::from_static(&amp;[4, 5, 6, 7])),
+///     Result::Err(&quot;Something bad happened!&quot;)
+/// ]);
+///
+/// // Use StreamExt to map the stream and error to a std::io::Error
+/// let stream = stream.map(|result| result.map_err(|err| {
+///     std::io::Error::new(std::io::ErrorKind::Other, err)
+/// }));
+///
+/// // Convert it to an AsyncRead.
+/// let mut read = StreamReader::new(stream);
+///
+/// // Read five bytes from the stream.
+/// let mut buf = [0; 5];
+/// read.read_exact(&amp;mut buf).await?;
+/// assert_eq!(buf, [0, 1, 2, 3, 4]);
+///
+/// // Read the rest of the current chunk.
+/// assert_eq!(read.read(&amp;mut buf).await?, 3);
+/// assert_eq!(&amp;buf[..3], [5, 6, 7]);
+///
+/// // Reading the next chunk will produce an error
+/// let error = read.read(&amp;mut buf).await.unwrap_err();
+/// assert_eq!(error.kind(), std::io::ErrorKind::Other);
+/// assert_eq!(error.into_inner().unwrap().to_string(), &quot;Something bad happened!&quot;);
+///
+/// // We have now reached the end.
+/// assert_eq!(read.read(&amp;mut buf).await?, 0);
+///
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Using the [`AsyncBufRead`] impl, you can read a `Stream` of byte chunks
+/// line-by-line. Note that you will usually also need to convert the error
+/// type when doing this. See the second example for an explanation of how
+/// to do this.
+///
+/// ```
+/// use tokio::io::{Result, AsyncBufReadExt};
+/// use tokio_util::io::StreamReader;
+/// # #[tokio::main(flavor = &quot;current_thread&quot;)]
+/// # async fn main() -&gt; std::io::Result&lt;()&gt; {
+///
+/// // Create a stream of byte chunks.
+/// let stream = tokio_stream::iter(vec![
+///     Result::Ok(b&quot;The first line.\n&quot;.as_slice()),
+///     Result::Ok(b&quot;The second line.&quot;.as_slice()),
+///     Result::Ok(b&quot;\nThe third&quot;.as_slice()),
+///     Result::Ok(b&quot; line.\nThe fourth line.\nThe fifth line.\n&quot;.as_slice()),
+/// ]);
+///
+/// // Convert it to an AsyncRead.
+/// let mut read = StreamReader::new(stream);
+///
+/// // Loop through the lines from the `StreamReader`.
+/// let mut line = String::new();
+/// let mut lines = Vec::new();
+/// loop {
+///     line.clear();
+///     let len = read.read_line(&amp;mut line).await?;
+///     if len == 0 { break; }
+///     lines.push(line.clone());
+/// }
+///
+/// // Verify that we got the lines we expected.
+/// assert_eq!(
+///     lines,
+///     vec![
+///         &quot;The first line.\n&quot;,
+///         &quot;The second line.\n&quot;,
+///         &quot;The third line.\n&quot;,
+///         &quot;The fourth line.\n&quot;,
+///         &quot;The fifth line.\n&quot;,
+///     ]
+/// );
+/// # Ok(())
+/// # }
+/// ```
+///
+/// [`AsyncRead`]: tokio::io::AsyncRead
+/// [`AsyncBufRead`]: tokio::io::AsyncBufRead
+/// [`Stream`]: futures_core::Stream
+/// [`ReaderStream`]: crate::io::ReaderStream
+/// [`StreamExt`]: https://docs.rs/tokio-stream/latest/tokio_stream/trait.StreamExt.html
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>StreamReader&lt;S, B&gt; {
+    <span class="comment">// This field is pinned.
+    </span>inner: S,
+    <span class="comment">// This field is not pinned.
+    </span>chunk: <span class="prelude-ty">Option</span>&lt;B&gt;,
 }
 
 <span class="kw">impl</span>&lt;S, B, E&gt; StreamReader&lt;S, B&gt;
@@ -502,5 +625,30 @@
         }
     }
 }
+
+<span class="comment">// The code below is a manual expansion of the code that pin-project-lite would
+// generate. This is done because pin-project-lite fails by hitting the recusion
+// limit on this struct. (Every line of documentation is handled recursively by
+// the macro.)
+
+</span><span class="kw">impl</span>&lt;S: Unpin, B&gt; Unpin <span class="kw">for </span>StreamReader&lt;S, B&gt; {}
+
+<span class="kw">struct </span>StreamReaderProject&lt;<span class="lifetime">&#39;a</span>, S, B&gt; {
+    inner: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S&gt;,
+    chunk: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;B&gt;,
+}
+
+<span class="kw">impl</span>&lt;S, B&gt; StreamReader&lt;S, B&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; StreamReaderProject&lt;<span class="lifetime">&#39;_</span>, S, B&gt; {
+        <span class="comment">// SAFETY: We define that only `inner` should be pinned when `Self` is
+        // and have an appropriate `impl Unpin` for this.
+        </span><span class="kw">let </span>me = <span class="kw">unsafe </span>{ Pin::into_inner_unchecked(<span class="self">self</span>) };
+        StreamReaderProject {
+            inner: <span class="kw">unsafe </span>{ Pin::new_unchecked(<span class="kw-2">&amp;mut </span>me.inner) },
+            chunk: <span class="kw-2">&amp;mut </span>me.chunk,
+        }
+    }
+}
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["UContext",""]]};
+window.SIDEBAR_ITEMS = {"struct":["UContext"]};

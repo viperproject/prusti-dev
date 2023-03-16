@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["common",""],["expression",""],["function",""],["predicate",""],["rvalue",""],["ty",""]]};
+window.SIDEBAR_ITEMS = {"mod":["common","expression","function","predicate","rvalue","ty"]};

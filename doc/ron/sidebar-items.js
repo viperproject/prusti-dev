@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["de",""],["error",""],["extensions",""],["options","Roundtrip serde Options module."],["ser",""],["value","Value module."]]};
+window.SIDEBAR_ITEMS = {"mod":["de","error","extensions","options","ser","value"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["setup",""]],"type":[["Setup",""]]};
+window.SIDEBAR_ITEMS = {"fn":["setup"],"type":["Setup"]};

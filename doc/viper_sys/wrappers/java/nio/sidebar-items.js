@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["file",""]]};
+window.SIDEBAR_ITEMS = {"mod":["file"]};

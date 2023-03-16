@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["borrowck",""],["graphviz",""],["patch",""]]};
+window.SIDEBAR_ITEMS = {"mod":["borrowck","graphviz","patch"]};

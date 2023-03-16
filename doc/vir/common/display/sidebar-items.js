@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["cjoin",""]]};
+window.SIDEBAR_ITEMS = {"fn":["cjoin"]};

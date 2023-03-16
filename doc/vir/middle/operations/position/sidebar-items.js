@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["expressions",""]]};
+window.SIDEBAR_ITEMS = {"mod":["expressions"]};

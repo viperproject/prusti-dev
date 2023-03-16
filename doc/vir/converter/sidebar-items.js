@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["polymorphic_to_legacy",""],["positions",""],["type_substitution",""]]};
+window.SIDEBAR_ITEMS = {"mod":["polymorphic_to_legacy","positions","type_substitution"]};

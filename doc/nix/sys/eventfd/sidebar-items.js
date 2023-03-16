@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["eventfd",""]],"struct":[["EfdFlags",""]]};
+window.SIDEBAR_ITEMS = {"fn":["eventfd"],"struct":["EfdFlags"]};

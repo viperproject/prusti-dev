@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["common",""]],"trait":[["WithLifetimes",""]]};
+window.SIDEBAR_ITEMS = {"mod":["common"],"trait":["WithLifetimes"]};

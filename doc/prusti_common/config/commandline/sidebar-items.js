@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CommandLine",""]]};
+window.SIDEBAR_ITEMS = {"struct":["CommandLine"]};

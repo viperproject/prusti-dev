@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["std","internal std exports for no_std compatibility"]]};
+window.SIDEBAR_ITEMS = {"mod":["std"]};

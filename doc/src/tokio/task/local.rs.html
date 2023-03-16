@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.23.0/src/task/local.rs`."><title>local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.26.0/src/task/local.rs`."><title>local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1173,30 +1173,11 @@
 <a href="#1173" id="1173">1173</a>
 <a href="#1174" id="1174">1174</a>
 <a href="#1175" id="1175">1175</a>
-<a href="#1176" id="1176">1176</a>
-<a href="#1177" id="1177">1177</a>
-<a href="#1178" id="1178">1178</a>
-<a href="#1179" id="1179">1179</a>
-<a href="#1180" id="1180">1180</a>
-<a href="#1181" id="1181">1181</a>
-<a href="#1182" id="1182">1182</a>
-<a href="#1183" id="1183">1183</a>
-<a href="#1184" id="1184">1184</a>
-<a href="#1185" id="1185">1185</a>
-<a href="#1186" id="1186">1186</a>
-<a href="#1187" id="1187">1187</a>
-<a href="#1188" id="1188">1188</a>
-<a href="#1189" id="1189">1189</a>
-<a href="#1190" id="1190">1190</a>
-<a href="#1191" id="1191">1191</a>
-<a href="#1192" id="1192">1192</a>
-<a href="#1193" id="1193">1193</a>
-<a href="#1194" id="1194">1194</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Runs `!Send` futures on the current thread.
 </span><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
 <span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Arc, Mutex};
-<span class="kw">use </span><span class="kw">crate</span>::loom::thread::{<span class="self">self</span>, ThreadId};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<span class="self">self</span>, JoinHandle, LocalOwnedTasks, Task};
+<span class="kw">use </span><span class="kw">crate</span>::runtime::{context, ThreadId};
 <span class="kw">use </span><span class="kw">crate</span>::sync::AtomicWaker;
 <span class="kw">use </span><span class="kw">crate</span>::util::RcCell;
 
@@ -1228,14 +1209,14 @@
     /// async fn main() {
     ///     // `Rc` does not implement `Send`, and thus may not be sent between
     ///     // threads safely.
-    ///     let unsend_data = Rc::new(&quot;my unsend data...&quot;);
+    ///     let nonsend_data = Rc::new(&quot;my nonsend data...&quot;);
     ///
-    ///     let unsend_data = unsend_data.clone();
-    ///     // Because the `async` block here moves `unsend_data`, the future is `!Send`.
+    ///     let nonsend_data = nonsend_data.clone();
+    ///     // Because the `async` block here moves `nonsend_data`, the future is `!Send`.
     ///     // Since `tokio::spawn` requires the spawned future to implement `Send`, this
     ///     // will not compile.
     ///     tokio::spawn(async move {
-    ///         println!(&quot;{}&quot;, unsend_data);
+    ///         println!(&quot;{}&quot;, nonsend_data);
     ///         // ...
     ///     }).await.unwrap();
     /// }
@@ -1254,18 +1235,18 @@
     ///
     /// #[tokio::main]
     /// async fn main() {
-    ///     let unsend_data = Rc::new(&quot;my unsend data...&quot;);
+    ///     let nonsend_data = Rc::new(&quot;my nonsend data...&quot;);
     ///
     ///     // Construct a local task set that can run `!Send` futures.
     ///     let local = task::LocalSet::new();
     ///
     ///     // Run the local task set.
     ///     local.run_until(async move {
-    ///         let unsend_data = unsend_data.clone();
+    ///         let nonsend_data = nonsend_data.clone();
     ///         // `spawn_local` ensures that the future is spawned on the local
     ///         // task set.
     ///         task::spawn_local(async move {
-    ///             println!(&quot;{}&quot;, unsend_data);
+    ///             println!(&quot;{}&quot;, nonsend_data);
     ///             // ...
     ///         }).await.unwrap();
     ///     }).await;
@@ -1288,18 +1269,18 @@
     ///
     /// #[tokio::main]
     /// async fn main() {
-    ///     let unsend_data = Rc::new(&quot;world&quot;);
+    ///     let nonsend_data = Rc::new(&quot;world&quot;);
     ///     let local = task::LocalSet::new();
     ///
-    ///     let unsend_data2 = unsend_data.clone();
+    ///     let nonsend_data2 = nonsend_data.clone();
     ///     local.spawn_local(async move {
     ///         // ...
-    ///         println!(&quot;hello {}&quot;, unsend_data2)
+    ///         println!(&quot;hello {}&quot;, nonsend_data2)
     ///     });
     ///
     ///     local.spawn_local(async move {
     ///         time::sleep(time::Duration::from_millis(100)).await;
-    ///         println!(&quot;goodbye {}&quot;, unsend_data)
+    ///         println!(&quot;goodbye {}&quot;, nonsend_data)
     ///     });
     ///
     ///     // ...
@@ -1471,12 +1452,10 @@
 }
 
 <span class="macro">tokio_thread_local!</span>(<span class="kw">static </span>CURRENT: LocalData = <span class="kw">const </span>{ LocalData {
-    thread_id: Cell::new(<span class="prelude-val">None</span>),
     ctx: RcCell::new(),
 } });
 
 <span class="kw">struct </span>LocalData {
-    thread_id: Cell&lt;<span class="prelude-ty">Option</span>&lt;ThreadId&gt;&gt;,
     ctx: RcCell&lt;Context&gt;,
 }
 
@@ -1485,9 +1464,9 @@
     ///
     /// The spawned future will run on the same thread that called `spawn_local`.
     ///
-    /// You do not have to `.await` the returned `JoinHandle` to make the
-    /// provided future start execution. It will start running in the background
-    /// immediately when `spawn_local` is called.
+    /// The provided future will start running in the background immediately
+    /// when `spawn_local` is called, even if you don&#39;t await the returned
+    /// `JoinHandle`.
     ///
     /// # Panics
     ///
@@ -1505,15 +1484,15 @@
     ///
     /// #[tokio::main]
     /// async fn main() {
-    ///     let unsend_data = Rc::new(&quot;my unsend data...&quot;);
+    ///     let nonsend_data = Rc::new(&quot;my nonsend data...&quot;);
     ///
     ///     let local = task::LocalSet::new();
     ///
     ///     // Run the local task set.
     ///     local.run_until(async move {
-    ///         let unsend_data = unsend_data.clone();
+    ///         let nonsend_data = nonsend_data.clone();
     ///         task::spawn_local(async move {
-    ///             println!(&quot;{}&quot;, unsend_data);
+    ///             println!(&quot;{}&quot;, nonsend_data);
     ///             // ...
     ///         }).await.unwrap();
     ///     }).await;
@@ -1573,12 +1552,14 @@
 <span class="kw">impl </span>LocalSet {
     <span class="doccomment">/// Returns a new local task set.
     </span><span class="kw">pub fn </span>new() -&gt; LocalSet {
+        <span class="kw">let </span>owner = context::thread_id().expect(<span class="string">&quot;cannot create LocalSet during thread shutdown&quot;</span>);
+
         LocalSet {
             tick: Cell::new(<span class="number">0</span>),
             context: Rc::new(Context {
                 shared: Arc::new(Shared {
                     local_state: LocalState {
-                        owner: thread_id().expect(<span class="string">&quot;cannot create LocalSet during thread shutdown&quot;</span>),
+                        owner,
                         owned: LocalOwnedTasks::new(),
                         local_queue: UnsafeCell::new(VecDeque::with_capacity(INITIAL_CAPACITY)),
                     },
@@ -1611,10 +1592,9 @@
     /// This task is guaranteed to be run on the current thread.
     ///
     /// Unlike the free function [`spawn_local`], this method may be used to
-    /// spawn local tasks when the `LocalSet` is _not_ running. You do not have
-    /// to `.await` the returned `JoinHandle` to make the provided future start
-    /// execution. It will start running immediately whenever the `LocalSet` is
-    /// next started.
+    /// spawn local tasks when the `LocalSet` is _not_ running. The provided
+    /// future will start running once the `LocalSet` is next started, even if
+    /// you don&#39;t await the returned `JoinHandle`.
     ///
     /// # Examples
     ///
@@ -2143,7 +2123,7 @@
 
                 <span class="comment">// We are on the thread that owns the `LocalSet`, so we can
                 // wake to the local queue.
-                </span><span class="kw">_ if </span>localdata.get_id() == <span class="prelude-val">Some</span>(<span class="self">self</span>.local_state.owner) =&gt; {
+                </span><span class="kw">_ if </span>context::thread_id().ok() == <span class="prelude-val">Some</span>(<span class="self">self</span>.local_state.owner) =&gt; {
                     <span class="kw">unsafe </span>{
                         <span class="comment">// Safety: we just checked that the thread ID matches
                         // the localset&#39;s owner, so this is safe.
@@ -2287,7 +2267,9 @@
             <span class="comment">// if we couldn&#39;t get the thread ID because we&#39;re dropping the local
             // data, skip the assertion --- the `Drop` impl is not going to be
             // called from another thread, because `LocalSet` is `!Send`
-            </span>thread_id().map(|id| id == <span class="self">self</span>.owner).unwrap_or(<span class="bool-val">true</span>),
+            </span>context::thread_id()
+                .map(|id| id == <span class="self">self</span>.owner)
+                .unwrap_or(<span class="bool-val">true</span>),
             <span class="string">&quot;`LocalSet`&#39;s local run queue must not be accessed by another thread!&quot;
         </span>);
     }
@@ -2296,26 +2278,6 @@
 <span class="comment">// This is `Send` because it is stored in `Shared`. It is up to the caller to
 // ensure they are on the same thread that owns the `LocalSet`.
 </span><span class="kw">unsafe impl </span>Send <span class="kw">for </span>LocalState {}
-
-<span class="kw">impl </span>LocalData {
-    <span class="kw">fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ThreadId&gt; {
-        <span class="self">self</span>.thread_id.get()
-    }
-
-    <span class="kw">fn </span>get_or_insert_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ThreadId {
-        <span class="self">self</span>.thread_id.get().unwrap_or_else(|| {
-            <span class="kw">let </span>id = thread::current().id();
-            <span class="self">self</span>.thread_id.set(<span class="prelude-val">Some</span>(id));
-            id
-        })
-    }
-}
-
-<span class="kw">fn </span>thread_id() -&gt; <span class="prelude-ty">Option</span>&lt;ThreadId&gt; {
-    CURRENT
-        .try_with(|localdata| localdata.get_or_insert_id())
-        .ok()
-}
 
 <span class="attr">#[cfg(all(test, not(loom)))]
 </span><span class="kw">mod </span>tests {
@@ -2387,4 +2349,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

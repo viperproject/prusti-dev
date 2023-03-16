@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"type":[["DiscriminantValue",""]]};
+window.SIDEBAR_ITEMS = {"type":["DiscriminantValue"]};

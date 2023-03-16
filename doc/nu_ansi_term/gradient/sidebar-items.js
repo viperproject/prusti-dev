@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["TargetGround",""]],"fn":[["build_all_gradient_text",""]],"struct":[["Gradient","Linear color gradient between two color stops"]],"trait":[["ANSIColorCode",""]]};
+window.SIDEBAR_ITEMS = {"enum":["TargetGround"],"fn":["build_all_gradient_text"],"struct":["Gradient"],"trait":["ANSIColorCode"]};

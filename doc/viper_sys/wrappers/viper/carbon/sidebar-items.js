@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CarbonVerifier",""]]};
+window.SIDEBAR_ITEMS = {"struct":["CarbonVerifier"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FieldDecl",""]]};
+window.SIDEBAR_ITEMS = {"struct":["FieldDecl"]};

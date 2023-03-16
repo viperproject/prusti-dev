@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Successor",""]],"struct":[["BasicBlock",""],["BasicBlockId",""],["ProcedureDecl",""]]};
+window.SIDEBAR_ITEMS = {"enum":["Successor"],"struct":["BasicBlock","BasicBlockId","ProcedureDecl"]};

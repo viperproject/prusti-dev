@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["config",""],["launch",""],["report",""],["utils",""]],"struct":[["Stopwatch",""]]};
+window.SIDEBAR_ITEMS = {"mod":["config","launch","report","utils"],"struct":["Stopwatch"]};

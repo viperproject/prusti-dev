@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Dsa","Object representing DSA keys."],["DsaRef","Reference to `Dsa`."],["DsaSig","Object representing DSA signature."],["DsaSigRef","Reference to a [`DsaSig`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["Dsa","DsaRef","DsaSig","DsaSigRef"]};

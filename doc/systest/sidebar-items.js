@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["print_exception",""]],"mod":[["wrappers","Automatically generated code"]]};
+window.SIDEBAR_ITEMS = {"fn":["print_exception"],"mod":["wrappers"]};

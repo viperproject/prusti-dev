@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.4/src/sync/poll_semaphore.rs`."><title>poll_semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.7/src/sync/poll_semaphore.rs`."><title>poll_semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -134,6 +134,41 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
 </pre><pre class="rust"><code><span class="kw">use </span>futures_core::{ready, Stream};
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::pin::Pin;
@@ -148,7 +183,10 @@
 /// [`Semaphore`]: tokio::sync::Semaphore
 </span><span class="kw">pub struct </span>PollSemaphore {
     semaphore: Arc&lt;Semaphore&gt;,
-    permit_fut: <span class="prelude-ty">Option</span>&lt;ReusableBoxFuture&lt;<span class="lifetime">&#39;static</span>, <span class="prelude-ty">Result</span>&lt;OwnedSemaphorePermit, AcquireError&gt;&gt;&gt;,
+    permit_fut: <span class="prelude-ty">Option</span>&lt;(
+        u32, <span class="comment">// The number of permits requested.
+        </span>ReusableBoxFuture&lt;<span class="lifetime">&#39;static</span>, <span class="prelude-ty">Result</span>&lt;OwnedSemaphorePermit, AcquireError&gt;&gt;,
+    )&gt;,
 }
 
 <span class="kw">impl </span>PollSemaphore {
@@ -189,25 +227,57 @@
     /// the `Waker` from the `Context` passed to the most recent call is
     /// scheduled to receive a wakeup.
     </span><span class="kw">pub fn </span>poll_acquire(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;OwnedSemaphorePermit&gt;&gt; {
+        <span class="self">self</span>.poll_acquire_many(cx, <span class="number">1</span>)
+    }
+
+    <span class="doccomment">/// Poll to acquire many permits from the semaphore.
+    ///
+    /// This can return the following values:
+    ///
+    ///  - `Poll::Pending` if a permit is not currently available.
+    ///  - `Poll::Ready(Some(permit))` if a permit was acquired.
+    ///  - `Poll::Ready(None)` if the semaphore has been closed.
+    ///
+    /// When this method returns `Poll::Pending`, the current task is scheduled
+    /// to receive a wakeup when the permits become available, or when the
+    /// semaphore is closed. Note that on multiple calls to `poll_acquire`, only
+    /// the `Waker` from the `Context` passed to the most recent call is
+    /// scheduled to receive a wakeup.
+    </span><span class="kw">pub fn </span>poll_acquire_many(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        permits: u32,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;OwnedSemaphorePermit&gt;&gt; {
         <span class="kw">let </span>permit_future = <span class="kw">match </span><span class="self">self</span>.permit_fut.as_mut() {
-            <span class="prelude-val">Some</span>(fut) =&gt; fut,
+            <span class="prelude-val">Some</span>((prev_permits, fut)) <span class="kw">if </span><span class="kw-2">*</span>prev_permits == permits =&gt; fut,
+            <span class="prelude-val">Some</span>((old_permits, fut_box)) =&gt; {
+                <span class="comment">// We&#39;re requesting a different number of permits, so replace the future
+                // and record the new amount.
+                </span><span class="kw">let </span>fut = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.semaphore).acquire_many_owned(permits);
+                fut_box.set(fut);
+                <span class="kw-2">*</span>old_permits = permits;
+                fut_box
+            }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// avoid allocations completely if we can grab a permit immediately
-                </span><span class="kw">match </span>Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.semaphore).try_acquire_owned() {
+                </span><span class="kw">match </span>Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.semaphore).try_acquire_many_owned(permits) {
                     <span class="prelude-val">Ok</span>(permit) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(permit)),
                     <span class="prelude-val">Err</span>(TryAcquireError::Closed) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>),
                     <span class="prelude-val">Err</span>(TryAcquireError::NoPermits) =&gt; {}
                 }
 
-                <span class="kw">let </span>next_fut = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.semaphore).acquire_owned();
-                <span class="self">self</span>.permit_fut
-                    .get_or_insert(ReusableBoxFuture::new(next_fut))
-            }
+                <span class="kw">let </span>next_fut = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.semaphore).acquire_many_owned(permits);
+                <span class="kw-2">&amp;mut </span><span class="self">self
+                    </span>.permit_fut
+                    .get_or_insert((permits, ReusableBoxFuture::new(next_fut)))
+                    .<span class="number">1
+            </span>}
         };
 
         <span class="kw">let </span>result = <span class="macro">ready!</span>(permit_future.poll(cx));
 
-        <span class="kw">let </span>next_fut = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.semaphore).acquire_owned();
+        <span class="comment">// Assume we&#39;ll request the same amount of permits in a subsequent call.
+        </span><span class="kw">let </span>next_fut = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.semaphore).acquire_many_owned(permits);
         permit_future.set(next_fut);
 
         <span class="kw">match </span>result {
@@ -231,7 +301,7 @@
 
     <span class="doccomment">/// Adds `n` new permits to the semaphore.
     ///
-    /// The maximum number of permits is `usize::MAX &gt;&gt; 3`, and this function
+    /// The maximum number of permits is [`Semaphore::MAX_PERMITS`], and this function
     /// will panic if the limit is exceeded.
     ///
     /// This is equivalent to the [`Semaphore::add_permits`] method on the
@@ -267,8 +337,8 @@
 
 <span class="kw">impl </span>AsRef&lt;Semaphore&gt; <span class="kw">for </span>PollSemaphore {
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Semaphore {
-        <span class="kw-2">&amp;*</span><span class="self">self</span>.semaphore
+        <span class="kw-2">&amp;</span><span class="self">self</span>.semaphore
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

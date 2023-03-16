@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.5.2/src/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pest_meta/index.html">
-                        <img src="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.5.6/src/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pest_meta/index.html"><img src="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1620,6 +1619,53 @@
 <a href="#1619" id="1619">1619</a>
 <a href="#1620" id="1620">1620</a>
 <a href="#1621" id="1621">1621</a>
+<a href="#1622" id="1622">1622</a>
+<a href="#1623" id="1623">1623</a>
+<a href="#1624" id="1624">1624</a>
+<a href="#1625" id="1625">1625</a>
+<a href="#1626" id="1626">1626</a>
+<a href="#1627" id="1627">1627</a>
+<a href="#1628" id="1628">1628</a>
+<a href="#1629" id="1629">1629</a>
+<a href="#1630" id="1630">1630</a>
+<a href="#1631" id="1631">1631</a>
+<a href="#1632" id="1632">1632</a>
+<a href="#1633" id="1633">1633</a>
+<a href="#1634" id="1634">1634</a>
+<a href="#1635" id="1635">1635</a>
+<a href="#1636" id="1636">1636</a>
+<a href="#1637" id="1637">1637</a>
+<a href="#1638" id="1638">1638</a>
+<a href="#1639" id="1639">1639</a>
+<a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
 </pre><pre class="rust"><code><span class="comment">// pest. The Elegant Parser
 // Copyright (c) 2018 Dragoș Tiselice
 //
@@ -1865,6 +1911,8 @@
         Rule::insensitive_string =&gt; <span class="string">&quot;`^`&quot;</span>.to_owned(),
         Rule::range_operator =&gt; <span class="string">&quot;`..`&quot;</span>.to_owned(),
         Rule::single_quote =&gt; <span class="string">&quot;`&#39;`&quot;</span>.to_owned(),
+        Rule::grammar_doc =&gt; <span class="string">&quot;//!&quot;</span>.to_owned(),
+        Rule::line_doc =&gt; <span class="string">&quot;///&quot;</span>.to_owned(),
         other_rule =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, other_rule),
     }
 }
@@ -1878,6 +1926,13 @@
 
     pairs
         .filter(|pair| pair.as_rule() == Rule::grammar_rule)
+        .filter(|pair| {
+            <span class="comment">// To ignore `grammar_rule &gt; line_doc` pairs
+            </span><span class="kw">let </span><span class="kw-2">mut </span>pairs = pair.clone().into_inner();
+            <span class="kw">let </span>pair = pairs.next().unwrap();
+
+            pair.as_rule() != Rule::line_doc
+        })
         .map(|pair| {
             <span class="kw">let </span><span class="kw-2">mut </span>pairs = pair.into_inner().peekable();
 
@@ -2716,12 +2771,47 @@
     }
 
     <span class="attr">#[test]
+    </span><span class="kw">fn </span>grammar_doc_and_line_doc() {
+        <span class="kw">let </span>input = <span class="string">&quot;//! hello\n/// world\na = { \&quot;a\&quot; }&quot;</span>;
+        <span class="macro">parses_to! </span>{
+            parser: PestParser,
+            input: input,
+            rule: Rule::grammar_rules,
+            tokens: [
+                grammar_doc(<span class="number">0</span>, <span class="number">9</span>, [
+                    inner_doc(<span class="number">4</span>, <span class="number">9</span>),
+                ]),
+                grammar_rule(<span class="number">10</span>, <span class="number">19</span>, [
+                    line_doc(<span class="number">10</span>, <span class="number">19</span>, [
+                        inner_doc(<span class="number">14</span>, <span class="number">19</span>),
+                    ]),
+                ]),
+                grammar_rule(<span class="number">20</span>, <span class="number">31</span>, [
+                    identifier(<span class="number">20</span>, <span class="number">21</span>),
+                    assignment_operator(<span class="number">22</span>, <span class="number">23</span>),
+                    opening_brace(<span class="number">24</span>, <span class="number">25</span>),
+                    expression(<span class="number">26</span>, <span class="number">30</span>, [
+                        term(<span class="number">26</span>, <span class="number">30</span>, [
+                            string(<span class="number">26</span>, <span class="number">29</span>, [
+                                quote(<span class="number">26</span>, <span class="number">27</span>),
+                                inner_str(<span class="number">27</span>, <span class="number">28</span>),
+                                quote(<span class="number">28</span>, <span class="number">29</span>)
+                            ])
+                        ])
+                    ]),
+                    closing_brace(<span class="number">30</span>, <span class="number">31</span>),
+                ])
+            ]
+        };
+    }
+
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>wrong_identifier() {
         <span class="macro">fails_with! </span>{
             parser: PestParser,
             input: <span class="string">&quot;0&quot;</span>,
             rule: Rule::grammar_rules,
-            positives: <span class="macro">vec!</span>[Rule::identifier],
+            positives: <span class="macro">vec!</span>[Rule::grammar_rule, Rule::grammar_doc],
             negatives: <span class="macro">vec!</span>[],
             pos: <span class="number">0
         </span>};
@@ -2937,8 +3027,11 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ast() {
-        <span class="kw">let </span>input =
-            <span class="string">&quot;rule = _{ a{1} ~ \&quot;a\&quot;{3,} ~ b{, 2} ~ \&quot;b\&quot;{1, 2} | !(^\&quot;c\&quot; | PUSH(&#39;d&#39;..&#39;e&#39;))?* }&quot;</span>;
+        <span class="kw">let </span>input = <span class="string">r##&quot;
+        /// This is line comment
+        /// This is rule
+        rule = _{ a{1} ~ &quot;a&quot;{3,} ~ b{, 2} ~ &quot;b&quot;{1, 2} | !(^&quot;c&quot; | PUSH(&#39;d&#39;..&#39;e&#39;))?* }
+        &quot;##</span>;
 
         <span class="kw">let </span>pairs = PestParser::parse(Rule::grammar_rules, input).unwrap();
         <span class="kw">let </span>ast = consume_rules_with_spans(pairs).unwrap();
@@ -2990,7 +3083,7 @@
                 expr: Expr::Seq(
                     Box::new(Expr::PeekSlice(-<span class="number">4</span>, <span class="prelude-val">None</span>)),
                     Box::new(Expr::PeekSlice(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">3</span>))),
-                )
+                ),
             }],
         );
     }
@@ -3242,4 +3335,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest_meta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest_meta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

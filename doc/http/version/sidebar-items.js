@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Version","Represents a version of the HTTP spec."]]};
+window.SIDEBAR_ITEMS = {"struct":["Version"]};

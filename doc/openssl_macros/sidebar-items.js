@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":[["corresponds",""]]};
+window.SIDEBAR_ITEMS = {"attr":["corresponds"]};

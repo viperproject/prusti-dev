@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.32/src/error/format.rs`."><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.1.8/src/error/format.rs`."><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -439,6 +438,34 @@
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
 <a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
 </pre><pre class="rust"><code><span class="attr">#![allow(missing_copy_implementations)]
 #![allow(missing_debug_implementations)]
 #![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(dead_code))]
@@ -477,7 +504,7 @@
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(source) = error.inner.source.as_ref() {
             styled.none(source.to_string());
         } <span class="kw">else </span>{
-            styled.none(<span class="string">&quot;Unknown cause&quot;</span>);
+            styled.none(<span class="string">&quot;unknown cause&quot;</span>);
         }
         styled.none(<span class="string">&quot;\n&quot;</span>);
         styled
@@ -485,6 +512,8 @@
 }
 
 <span class="doccomment">/// Richly formatted error context
+///
+/// This follows the [rustc diagnostic style guide](https://rustc-dev-guide.rust-lang.org/diagnostics.html#suggestion-style-guide).
 </span><span class="attr">#[non_exhaustive]
 #[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
 </span><span class="kw">pub struct </span>RichFormatter;
@@ -501,27 +530,44 @@
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(source) = error.inner.source.as_ref() {
                 styled.none(source.to_string());
             } <span class="kw">else </span>{
-                styled.none(<span class="string">&quot;Unknown cause&quot;</span>);
+                styled.none(<span class="string">&quot;unknown cause&quot;</span>);
             }
         }
 
+        <span class="kw">let </span><span class="kw-2">mut </span>suggested = <span class="bool-val">false</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = error.get(ContextKind::SuggestedSubcommand) {
-            styled.none(<span class="string">&quot;\n\n&quot;</span>);
-            did_you_mean(<span class="kw-2">&amp;mut </span>styled, valid);
+            styled.none(<span class="string">&quot;\n&quot;</span>);
+            <span class="kw">if </span>!suggested {
+                styled.none(<span class="string">&quot;\n&quot;</span>);
+                suggested = <span class="bool-val">true</span>;
+            }
+            did_you_mean(<span class="kw-2">&amp;mut </span>styled, <span class="string">&quot;subcommand&quot;</span>, valid);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = error.get(ContextKind::SuggestedArg) {
-            styled.none(<span class="string">&quot;\n\n&quot;</span>);
-            did_you_mean(<span class="kw-2">&amp;mut </span>styled, valid);
+            styled.none(<span class="string">&quot;\n&quot;</span>);
+            <span class="kw">if </span>!suggested {
+                styled.none(<span class="string">&quot;\n&quot;</span>);
+                suggested = <span class="bool-val">true</span>;
+            }
+            did_you_mean(<span class="kw-2">&amp;mut </span>styled, <span class="string">&quot;argument&quot;</span>, valid);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = error.get(ContextKind::SuggestedValue) {
-            styled.none(<span class="string">&quot;\n\n&quot;</span>);
-            did_you_mean(<span class="kw-2">&amp;mut </span>styled, valid);
+            styled.none(<span class="string">&quot;\n&quot;</span>);
+            <span class="kw">if </span>!suggested {
+                styled.none(<span class="string">&quot;\n&quot;</span>);
+                suggested = <span class="bool-val">true</span>;
+            }
+            did_you_mean(<span class="kw-2">&amp;mut </span>styled, <span class="string">&quot;value&quot;</span>, valid);
         }
         <span class="kw">let </span>suggestions = error.get(ContextKind::Suggested);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::StyledStrs(suggestions)) = suggestions {
+            <span class="kw">if </span>!suggested {
+                styled.none(<span class="string">&quot;\n&quot;</span>);
+            }
             <span class="kw">for </span>suggestion <span class="kw">in </span>suggestions {
-                styled.none(<span class="string">&quot;\n\n&quot;</span>);
+                styled.none(<span class="string">&quot;\n&quot;</span>);
                 styled.none(TAB);
+                styled.good(<span class="string">&quot;note: &quot;</span>);
                 styled.extend(suggestion.iter());
             }
         }
@@ -553,11 +599,11 @@
                 (invalid_arg, prior_arg)
             {
                 <span class="kw">if </span>ContextValue::String(invalid_arg.clone()) == <span class="kw-2">*</span>prior_arg {
-                    styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    styled.none(<span class="string">&quot;the argument &#39;&quot;</span>);
                     styled.warning(invalid_arg);
-                    styled.none(<span class="string">&quot;&#39; was provided more than once, but cannot be used multiple times&quot;</span>);
+                    styled.none(<span class="string">&quot;&#39; cannot be used multiple times&quot;</span>);
                 } <span class="kw">else </span>{
-                    styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    styled.none(<span class="string">&quot;the argument &#39;&quot;</span>);
                     styled.warning(invalid_arg);
                     styled.none(<span class="string">&quot;&#39; cannot be used with&quot;</span>);
 
@@ -588,7 +634,7 @@
         ErrorKind::NoEquals =&gt; {
             <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
-                styled.none(<span class="string">&quot;Equal sign is needed when assigning values to &#39;&quot;</span>);
+                styled.none(<span class="string">&quot;equal sign is needed when assigning values to &#39;&quot;</span>);
                 styled.warning(invalid_arg);
                 styled.none(<span class="string">&quot;&#39;&quot;</span>);
                 <span class="bool-val">true
@@ -605,13 +651,13 @@
             ) = (invalid_arg, invalid_value)
             {
                 <span class="kw">if </span>invalid_value.is_empty() {
-                    styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    styled.none(<span class="string">&quot;a value is required for &#39;&quot;</span>);
                     styled.warning(invalid_arg);
-                    styled.none(<span class="string">&quot;&#39; requires a value but none was supplied&quot;</span>);
+                    styled.none(<span class="string">&quot;&#39; but none was supplied&quot;</span>);
                 } <span class="kw">else </span>{
-                    styled.none(<span class="string">&quot;&#39;&quot;</span>);
+                    styled.none(<span class="string">&quot;invalid value &#39;&quot;</span>);
                     styled.none(invalid_value);
-                    styled.none(<span class="string">&quot;&#39; isn&#39;t a valid value for &#39;&quot;</span>);
+                    styled.none(<span class="string">&quot;&#39; for &#39;&quot;</span>);
                     styled.warning(invalid_arg);
                     styled.none(<span class="string">&quot;&#39;&quot;</span>);
                 }
@@ -640,9 +686,9 @@
         ErrorKind::InvalidSubcommand =&gt; {
             <span class="kw">let </span>invalid_sub = error.get(ContextKind::InvalidSubcommand);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_sub)) = invalid_sub {
-                styled.none(<span class="string">&quot;The subcommand &#39;&quot;</span>);
+                styled.none(<span class="string">&quot;unrecognized subcommand &#39;&quot;</span>);
                 styled.warning(invalid_sub);
-                styled.none(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
+                styled.none(<span class="string">&quot;&#39;&quot;</span>);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
@@ -651,7 +697,7 @@
         ErrorKind::MissingRequiredArgument =&gt; {
             <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::Strings(invalid_arg)) = invalid_arg {
-                styled.none(<span class="string">&quot;The following required arguments were not provided:&quot;</span>);
+                styled.none(<span class="string">&quot;the following required arguments were not provided:&quot;</span>);
                 <span class="kw">for </span>v <span class="kw">in </span>invalid_arg {
                     styled.none(<span class="string">&quot;\n&quot;</span>);
                     styled.none(TAB);
@@ -700,11 +746,11 @@
                 <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
             ) = (invalid_arg, invalid_value)
             {
-                styled.none(<span class="string">&quot;The value &#39;&quot;</span>);
+                styled.none(<span class="string">&quot;unexpected value &#39;&quot;</span>);
                 styled.warning(invalid_value);
-                styled.none(<span class="string">&quot;&#39; was provided to &#39;&quot;</span>);
+                styled.none(<span class="string">&quot;&#39; for &#39;&quot;</span>);
                 styled.warning(invalid_arg);
-                styled.none(<span class="string">&quot;&#39; but it wasn&#39;t expecting any more values&quot;</span>);
+                styled.none(<span class="string">&quot;&#39; found; no more were expected&quot;</span>);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
@@ -721,11 +767,10 @@
             ) = (invalid_arg, actual_num_values, min_values)
             {
                 <span class="kw">let </span>were_provided = singular_or_plural(<span class="kw-2">*</span>actual_num_values <span class="kw">as </span>usize);
-                styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
-                styled.warning(invalid_arg);
-                styled.none(<span class="string">&quot;&#39; requires at least &quot;</span>);
                 styled.warning(min_values.to_string());
-                styled.none(<span class="string">&quot; values but only &quot;</span>);
+                styled.none(<span class="string">&quot; more values required by &#39;&quot;</span>);
+                styled.warning(invalid_arg);
+                styled.none(<span class="string">&quot;&#39;; only &quot;</span>);
                 styled.warning(actual_num_values.to_string());
                 styled.none(were_provided);
                 <span class="bool-val">true
@@ -741,7 +786,7 @@
                 <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
             ) = (invalid_arg, invalid_value)
             {
-                styled.none(<span class="string">&quot;Invalid value &#39;&quot;</span>);
+                styled.none(<span class="string">&quot;invalid value &#39;&quot;</span>);
                 styled.warning(invalid_value);
                 styled.none(<span class="string">&quot;&#39; for &#39;&quot;</span>);
                 styled.warning(invalid_arg);
@@ -767,11 +812,10 @@
             ) = (invalid_arg, actual_num_values, num_values)
             {
                 <span class="kw">let </span>were_provided = singular_or_plural(<span class="kw-2">*</span>actual_num_values <span class="kw">as </span>usize);
-                styled.none(<span class="string">&quot;The argument &#39;&quot;</span>);
-                styled.warning(invalid_arg);
-                styled.none(<span class="string">&quot;&#39; requires &quot;</span>);
                 styled.warning(num_values.to_string());
-                styled.none(<span class="string">&quot; values, but &quot;</span>);
+                styled.none(<span class="string">&quot; values required for &#39;&quot;</span>);
+                styled.warning(invalid_arg);
+                styled.none(<span class="string">&quot;&#39; but &quot;</span>);
                 styled.warning(actual_num_values.to_string());
                 styled.none(were_provided);
                 <span class="bool-val">true
@@ -782,9 +826,9 @@
         ErrorKind::UnknownArgument =&gt; {
             <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
-                styled.none(<span class="string">&quot;Found argument &#39;&quot;</span>);
+                styled.none(<span class="string">&quot;unexpected argument &#39;&quot;</span>);
                 styled.warning(invalid_arg.to_string());
-                styled.none(<span class="string">&quot;&#39; which wasn&#39;t expected, or isn&#39;t valid in this context&quot;</span>);
+                styled.none(<span class="string">&quot;&#39; found&quot;</span>);
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
@@ -841,24 +885,31 @@
 
 <span class="kw">fn </span>try_help(styled: <span class="kw-2">&amp;mut </span>StyledStr, help: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(help) = help {
-        styled.none(<span class="string">&quot;\n\nFor more information try &#39;&quot;</span>);
+        styled.none(<span class="string">&quot;\n\nFor more information, try &#39;&quot;</span>);
         styled.literal(help.to_owned());
-        styled.none(<span class="string">&quot;&#39;\n&quot;</span>);
+        styled.none(<span class="string">&quot;&#39;.\n&quot;</span>);
     } <span class="kw">else </span>{
         styled.none(<span class="string">&quot;\n&quot;</span>);
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
-</span><span class="kw">fn </span>did_you_mean(styled: <span class="kw-2">&amp;mut </span>StyledStr, valid: <span class="kw-2">&amp;</span>ContextValue) {
+</span><span class="kw">fn </span>did_you_mean(styled: <span class="kw-2">&amp;mut </span>StyledStr, context: <span class="kw-2">&amp;</span>str, valid: <span class="kw-2">&amp;</span>ContextValue) {
     <span class="kw">if let </span>ContextValue::String(valid) = valid {
         styled.none(TAB);
-        styled.none(<span class="string">&quot;Did you mean &#39;&quot;</span>);
+        styled.good(<span class="string">&quot;note: &quot;</span>);
+        styled.none(context);
+        styled.none(<span class="string">&quot; &#39;&quot;</span>);
         styled.good(valid);
-        styled.none(<span class="string">&quot;&#39;?&quot;</span>);
+        styled.none(<span class="string">&quot;&#39; exists&quot;</span>);
     } <span class="kw">else if let </span>ContextValue::Strings(valid) = valid {
         styled.none(TAB);
-        styled.none(<span class="string">&quot;Did you mean &quot;</span>);
+        styled.good(<span class="string">&quot;note: &quot;</span>);
+        styled.none(context);
+        <span class="kw">if </span>valid.len() &gt; <span class="number">1 </span>{
+            styled.none(<span class="string">&quot;s&quot;</span>);
+        }
+        styled.none(<span class="string">&quot; &quot;</span>);
         <span class="kw">for </span>(i, valid) <span class="kw">in </span>valid.iter().enumerate() {
             <span class="kw">if </span>i != <span class="number">0 </span>{
                 styled.none(<span class="string">&quot;, &quot;</span>);
@@ -867,17 +918,21 @@
             styled.good(valid);
             styled.none(<span class="string">&quot;&#39;&quot;</span>);
         }
-        styled.none(<span class="string">&quot;?&quot;</span>);
+        <span class="kw">if </span>valid.len() == <span class="number">1 </span>{
+            styled.none(<span class="string">&quot; exists&quot;</span>);
+        } <span class="kw">else </span>{
+            styled.none(<span class="string">&quot; exist&quot;</span>);
+        }
     }
 }
 
 <span class="kw">fn </span>escape(s: <span class="kw">impl </span>AsRef&lt;str&gt;) -&gt; String {
     <span class="kw">let </span>s = s.as_ref();
     <span class="kw">if </span>s.contains(char::is_whitespace) {
-        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, s)
+        <span class="macro">format!</span>(<span class="string">&quot;{s:?}&quot;</span>)
     } <span class="kw">else </span>{
         s.to_owned()
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

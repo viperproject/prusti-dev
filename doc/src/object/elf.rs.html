@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.1/src/elf.rs`."><title>elf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../object/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.30.3/src/elf.rs`."><title>elf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../object/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -6633,6 +6633,122 @@
 <a href="#6633" id="6633">6633</a>
 <a href="#6634" id="6634">6634</a>
 <a href="#6635" id="6635">6635</a>
+<a href="#6636" id="6636">6636</a>
+<a href="#6637" id="6637">6637</a>
+<a href="#6638" id="6638">6638</a>
+<a href="#6639" id="6639">6639</a>
+<a href="#6640" id="6640">6640</a>
+<a href="#6641" id="6641">6641</a>
+<a href="#6642" id="6642">6642</a>
+<a href="#6643" id="6643">6643</a>
+<a href="#6644" id="6644">6644</a>
+<a href="#6645" id="6645">6645</a>
+<a href="#6646" id="6646">6646</a>
+<a href="#6647" id="6647">6647</a>
+<a href="#6648" id="6648">6648</a>
+<a href="#6649" id="6649">6649</a>
+<a href="#6650" id="6650">6650</a>
+<a href="#6651" id="6651">6651</a>
+<a href="#6652" id="6652">6652</a>
+<a href="#6653" id="6653">6653</a>
+<a href="#6654" id="6654">6654</a>
+<a href="#6655" id="6655">6655</a>
+<a href="#6656" id="6656">6656</a>
+<a href="#6657" id="6657">6657</a>
+<a href="#6658" id="6658">6658</a>
+<a href="#6659" id="6659">6659</a>
+<a href="#6660" id="6660">6660</a>
+<a href="#6661" id="6661">6661</a>
+<a href="#6662" id="6662">6662</a>
+<a href="#6663" id="6663">6663</a>
+<a href="#6664" id="6664">6664</a>
+<a href="#6665" id="6665">6665</a>
+<a href="#6666" id="6666">6666</a>
+<a href="#6667" id="6667">6667</a>
+<a href="#6668" id="6668">6668</a>
+<a href="#6669" id="6669">6669</a>
+<a href="#6670" id="6670">6670</a>
+<a href="#6671" id="6671">6671</a>
+<a href="#6672" id="6672">6672</a>
+<a href="#6673" id="6673">6673</a>
+<a href="#6674" id="6674">6674</a>
+<a href="#6675" id="6675">6675</a>
+<a href="#6676" id="6676">6676</a>
+<a href="#6677" id="6677">6677</a>
+<a href="#6678" id="6678">6678</a>
+<a href="#6679" id="6679">6679</a>
+<a href="#6680" id="6680">6680</a>
+<a href="#6681" id="6681">6681</a>
+<a href="#6682" id="6682">6682</a>
+<a href="#6683" id="6683">6683</a>
+<a href="#6684" id="6684">6684</a>
+<a href="#6685" id="6685">6685</a>
+<a href="#6686" id="6686">6686</a>
+<a href="#6687" id="6687">6687</a>
+<a href="#6688" id="6688">6688</a>
+<a href="#6689" id="6689">6689</a>
+<a href="#6690" id="6690">6690</a>
+<a href="#6691" id="6691">6691</a>
+<a href="#6692" id="6692">6692</a>
+<a href="#6693" id="6693">6693</a>
+<a href="#6694" id="6694">6694</a>
+<a href="#6695" id="6695">6695</a>
+<a href="#6696" id="6696">6696</a>
+<a href="#6697" id="6697">6697</a>
+<a href="#6698" id="6698">6698</a>
+<a href="#6699" id="6699">6699</a>
+<a href="#6700" id="6700">6700</a>
+<a href="#6701" id="6701">6701</a>
+<a href="#6702" id="6702">6702</a>
+<a href="#6703" id="6703">6703</a>
+<a href="#6704" id="6704">6704</a>
+<a href="#6705" id="6705">6705</a>
+<a href="#6706" id="6706">6706</a>
+<a href="#6707" id="6707">6707</a>
+<a href="#6708" id="6708">6708</a>
+<a href="#6709" id="6709">6709</a>
+<a href="#6710" id="6710">6710</a>
+<a href="#6711" id="6711">6711</a>
+<a href="#6712" id="6712">6712</a>
+<a href="#6713" id="6713">6713</a>
+<a href="#6714" id="6714">6714</a>
+<a href="#6715" id="6715">6715</a>
+<a href="#6716" id="6716">6716</a>
+<a href="#6717" id="6717">6717</a>
+<a href="#6718" id="6718">6718</a>
+<a href="#6719" id="6719">6719</a>
+<a href="#6720" id="6720">6720</a>
+<a href="#6721" id="6721">6721</a>
+<a href="#6722" id="6722">6722</a>
+<a href="#6723" id="6723">6723</a>
+<a href="#6724" id="6724">6724</a>
+<a href="#6725" id="6725">6725</a>
+<a href="#6726" id="6726">6726</a>
+<a href="#6727" id="6727">6727</a>
+<a href="#6728" id="6728">6728</a>
+<a href="#6729" id="6729">6729</a>
+<a href="#6730" id="6730">6730</a>
+<a href="#6731" id="6731">6731</a>
+<a href="#6732" id="6732">6732</a>
+<a href="#6733" id="6733">6733</a>
+<a href="#6734" id="6734">6734</a>
+<a href="#6735" id="6735">6735</a>
+<a href="#6736" id="6736">6736</a>
+<a href="#6737" id="6737">6737</a>
+<a href="#6738" id="6738">6738</a>
+<a href="#6739" id="6739">6739</a>
+<a href="#6740" id="6740">6740</a>
+<a href="#6741" id="6741">6741</a>
+<a href="#6742" id="6742">6742</a>
+<a href="#6743" id="6743">6743</a>
+<a href="#6744" id="6744">6744</a>
+<a href="#6745" id="6745">6745</a>
+<a href="#6746" id="6746">6746</a>
+<a href="#6747" id="6747">6747</a>
+<a href="#6748" id="6748">6748</a>
+<a href="#6749" id="6749">6749</a>
+<a href="#6750" id="6750">6750</a>
+<a href="#6751" id="6751">6751</a>
 </pre><pre class="rust"><code><span class="doccomment">//! ELF definitions.
 //!
 //! These definitions are independent of read/write support, although we do implement
@@ -10873,12 +10989,128 @@
 <span class="doccomment">/// STT_GNU_IFUNC relocation.
 </span><span class="kw">pub const </span>R_AARCH64_IRELATIVE: u32 = <span class="number">1032</span>;
 
+<span class="comment">// AVR values for `FileHeader*::e_flags`.
+
+</span><span class="doccomment">/// Bitmask for `EF_AVR_ARCH_*`.
+</span><span class="kw">pub const </span>EF_AVR_ARCH: u32 = <span class="number">0x7F</span>;
+
+<span class="doccomment">/// If set, it is assumed that the elf file uses local symbols as reference
+/// for the relocations so that linker relaxation is possible.
+</span><span class="kw">pub const </span>EF_AVR_LINKRELAX_PREPARED: u32 = <span class="number">0x80</span>;
+
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR1: u32 = <span class="number">1</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR2: u32 = <span class="number">2</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR25: u32 = <span class="number">25</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR3: u32 = <span class="number">3</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR31: u32 = <span class="number">31</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR35: u32 = <span class="number">35</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR4: u32 = <span class="number">4</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR5: u32 = <span class="number">5</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR51: u32 = <span class="number">51</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVR6: u32 = <span class="number">6</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_AVRTINY: u32 = <span class="number">100</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_XMEGA1: u32 = <span class="number">101</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_XMEGA2: u32 = <span class="number">102</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_XMEGA3: u32 = <span class="number">103</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_XMEGA4: u32 = <span class="number">104</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_XMEGA5: u32 = <span class="number">105</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_XMEGA6: u32 = <span class="number">106</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>EF_AVR_ARCH_XMEGA7: u32 = <span class="number">107</span>;
+
 <span class="comment">// AVR values for `Rel*::r_type`.
 
-</span><span class="doccomment">/// Direct 32 bit
+</span><span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_NONE: u32 = <span class="number">0</span>;
+<span class="doccomment">/// Direct 32 bit
 </span><span class="kw">pub const </span>R_AVR_32: u32 = <span class="number">1</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_7_PCREL: u32 = <span class="number">2</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_13_PCREL: u32 = <span class="number">3</span>;
 <span class="doccomment">/// Direct 16 bit
 </span><span class="kw">pub const </span>R_AVR_16: u32 = <span class="number">4</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_16_PM: u32 = <span class="number">5</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_LO8_LDI: u32 = <span class="number">6</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HI8_LDI: u32 = <span class="number">7</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HH8_LDI: u32 = <span class="number">8</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_LO8_LDI_NEG: u32 = <span class="number">9</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HI8_LDI_NEG: u32 = <span class="number">10</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HH8_LDI_NEG: u32 = <span class="number">11</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_LO8_LDI_PM: u32 = <span class="number">12</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HI8_LDI_PM: u32 = <span class="number">13</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HH8_LDI_PM: u32 = <span class="number">14</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_LO8_LDI_PM_NEG: u32 = <span class="number">15</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HI8_LDI_PM_NEG: u32 = <span class="number">16</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HH8_LDI_PM_NEG: u32 = <span class="number">17</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_CALL: u32 = <span class="number">18</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_LDI: u32 = <span class="number">19</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_6: u32 = <span class="number">20</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_6_ADIW: u32 = <span class="number">21</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_MS8_LDI: u32 = <span class="number">22</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_MS8_LDI_NEG: u32 = <span class="number">23</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_LO8_LDI_GS: u32 = <span class="number">24</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_HI8_LDI_GS: u32 = <span class="number">25</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_8: u32 = <span class="number">26</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_8_LO8: u32 = <span class="number">27</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_8_HI8: u32 = <span class="number">28</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_8_HLO8: u32 = <span class="number">29</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_DIFF8: u32 = <span class="number">30</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_DIFF16: u32 = <span class="number">31</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_DIFF32: u32 = <span class="number">32</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_LDS_STS_16: u32 = <span class="number">33</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_PORT6: u32 = <span class="number">34</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_PORT5: u32 = <span class="number">35</span>;
+<span class="attr">#[allow(missing_docs)]
+</span><span class="kw">pub const </span>R_AVR_32_PCREL: u32 = <span class="number">36</span>;
 
 <span class="comment">// MSP430 values for `Rel*::r_type`.
 
@@ -13269,4 +13501,4 @@
     GnuHashHeader,
 );
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="object" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ClassTag_object",""]]};
+window.SIDEBAR_ITEMS = {"struct":["ClassTag_object"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.60/src/expand.rs`."><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.66/src/expand.rs`."><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -471,6 +471,28 @@
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::bound::{has_bound, InferredBound, Supertraits};
 <span class="kw">use </span><span class="kw">crate</span>::lifetime::{AddLifetimeToImplTrait, CollectLifetimes};
 <span class="kw">use </span><span class="kw">crate</span>::parse::Item;
@@ -553,13 +575,6 @@
             }
         }
         Item::Impl(input) =&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = CollectLifetimes::new(<span class="string">&quot;&#39;impl&quot;</span>, input.impl_token.span);
-            lifetimes.visit_type_mut(<span class="kw-2">&amp;mut *</span>input.self_ty);
-            lifetimes.visit_path_mut(<span class="kw-2">&amp;mut </span>input.trait_.as_mut().unwrap().<span class="number">1</span>);
-            <span class="kw">let </span>params = <span class="kw-2">&amp;</span>input.generics.params;
-            <span class="kw">let </span>elided = lifetimes.elided;
-            input.generics.params = <span class="macro">parse_quote!</span>(#(#elided,)* #params);
-
             <span class="kw">let </span><span class="kw-2">mut </span>associated_type_impl_traits = Set::new();
             <span class="kw">for </span>inner <span class="kw">in </span><span class="kw-2">&amp;</span>input.items {
                 <span class="kw">if let </span>ImplItem::Type(assoc) = inner {
@@ -592,6 +607,7 @@
 <span class="kw">fn </span>lint_suppress_with_body() -&gt; Attribute {
     <span class="macro">parse_quote! </span>{
         <span class="attr">#[allow(
+            clippy::async_yields_async,
             clippy::let_unit_value,
             clippy::no_effect_underscore_binding,
             clippy::shadow_same,
@@ -639,7 +655,7 @@
         ReturnType::Type(arrow, ret) =&gt; (<span class="kw-2">*</span>arrow, <span class="macro">quote!</span>(#ret)),
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = CollectLifetimes::new(<span class="string">&quot;&#39;life&quot;</span>, default_span);
+    <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = CollectLifetimes::new();
     <span class="kw">for </span>arg <span class="kw">in </span>sig.inputs.iter_mut() {
         <span class="kw">match </span>arg {
             FnArg::Receiver(arg) =&gt; lifetimes.visit_receiver_mut(arg),
@@ -770,10 +786,16 @@
             }) =&gt; {}
             FnArg::Receiver(arg) =&gt; arg.mutability = <span class="prelude-val">None</span>,
             FnArg::Typed(arg) =&gt; {
-                <span class="kw">if let </span>Pat::Ident(ident) = <span class="kw-2">&amp;mut *</span>arg.pat {
-                    ident.by_ref = <span class="prelude-val">None</span>;
-                    ident.mutability = <span class="prelude-val">None</span>;
-                } <span class="kw">else </span>{
+                <span class="kw">let </span>type_is_reference = <span class="kw">match </span><span class="kw-2">*</span>arg.ty {
+                    Type::Reference(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+                };
+                <span class="kw">if let </span>Pat::Ident(pat) = <span class="kw-2">&amp;mut *</span>arg.pat {
+                    <span class="kw">if </span>pat.ident == <span class="string">&quot;self&quot; </span>|| !type_is_reference {
+                        pat.by_ref = <span class="prelude-val">None</span>;
+                        pat.mutability = <span class="prelude-val">None</span>;
+                    }
+                } <span class="kw">else if </span>!type_is_reference {
                     <span class="kw">let </span>positional = positional_arg(i, <span class="kw-2">&amp;</span>arg.pat);
                     <span class="kw">let </span>m = mut_pat(<span class="kw-2">&amp;mut </span>arg.pat);
                     arg.pat = <span class="macro">parse_quote!</span>(#m #positional);
@@ -835,6 +857,12 @@
                 <span class="macro">quote!</span>(<span class="kw">let </span>#mutability #ident = #self_token;)
             }
             FnArg::Typed(arg) =&gt; {
+                <span class="comment">// If there is a #[cfg(...)] attribute that selectively enables
+                // the parameter, forward it to the variable.
+                //
+                // This is currently not applied to the `self` parameter.
+                </span><span class="kw">let </span>attrs = arg.attrs.iter().filter(|attr| attr.path.is_ident(<span class="string">&quot;cfg&quot;</span>));
+
                 <span class="kw">if let </span>Pat::Ident(PatIdent {
                     ident, mutability, ..
                 }) = <span class="kw-2">&amp;*</span>arg.pat
@@ -843,16 +871,32 @@
                         self_span = <span class="prelude-val">Some</span>(ident.span());
                         <span class="kw">let </span>prefixed = Ident::new(<span class="string">&quot;__self&quot;</span>, ident.span());
                         <span class="macro">quote!</span>(<span class="kw">let </span>#mutability #prefixed = #ident;)
+                    } <span class="kw">else if let </span>Type::Reference(<span class="kw">_</span>) = <span class="kw-2">*</span>arg.ty {
+                        <span class="macro">quote!</span>()
                     } <span class="kw">else </span>{
-                        <span class="macro">quote!</span>(<span class="kw">let </span>#mutability #ident = #ident;)
+                        <span class="macro">quote! </span>{
+                            #(#attrs)*
+                            <span class="kw">let </span>#mutability #ident = #ident;
+                        }
                     }
+                } <span class="kw">else if let </span>Type::Reference(<span class="kw">_</span>) = <span class="kw-2">*</span>arg.ty {
+                    <span class="macro">quote!</span>()
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>pat = <span class="kw-2">&amp;</span>arg.pat;
                     <span class="kw">let </span>ident = positional_arg(i, pat);
                     <span class="kw">if let </span>Pat::Wild(<span class="kw">_</span>) = <span class="kw-2">**</span>pat {
-                        <span class="macro">quote!</span>(<span class="kw">let </span>#ident = #ident;)
+                        <span class="macro">quote! </span>{
+                            #(#attrs)*
+                            <span class="kw">let </span>#ident = #ident;
+                        }
                     } <span class="kw">else </span>{
-                        <span class="macro">quote!</span>(<span class="kw">let </span>#pat = #ident;)
+                        <span class="macro">quote! </span>{
+                            #(#attrs)*
+                            <span class="kw">let </span>#pat = {
+                                <span class="kw">let </span>#ident = #ident;
+                                #ident
+                            };
+                        }
                     }
                 }
             }
@@ -945,4 +989,4 @@
     })
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_trait" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_trait" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

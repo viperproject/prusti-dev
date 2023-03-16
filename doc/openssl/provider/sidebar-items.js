@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Provider",""],["ProviderRef","A reference to a [`Provider`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["Provider","ProviderRef"]};

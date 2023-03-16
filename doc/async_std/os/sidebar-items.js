@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["unix","Platform-specific extensions for Unix platforms."]]};
+window.SIDEBAR_ITEMS = {"mod":["unix"]};

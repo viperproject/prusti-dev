@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["sysinfo","Returns system information."]],"struct":[["SysInfo","System info structure returned by `sysinfo`."]]};
+window.SIDEBAR_ITEMS = {"fn":["sysinfo"],"struct":["SysInfo"]};

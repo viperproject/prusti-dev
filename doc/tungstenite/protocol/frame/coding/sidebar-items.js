@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CloseCode","Status code used to indicate why an endpoint is closing the WebSocket connection."],["Control","Control opcodes as in RFC 6455"],["Data","Data opcodes as in RFC 6455"],["OpCode","WebSocket message opcode as in RFC 6455."]]};
+window.SIDEBAR_ITEMS = {"enum":["CloseCode","Control","Data","OpCode"]};
