@@ -13,7 +13,7 @@ use crate::{
 use jni::{InitArgsBuilder, JNIVersion, JavaVM};
 use log::debug;
 use std::{
-    fs::{copy, create_dir_all},
+    fs::create_dir_all,
     io::prelude::*,
     path::Path,
 };
@@ -67,17 +67,11 @@ impl WrapperGenerator {
         //remove_dir_all(out_dir)?;
         create_dir_all(out_dir)?;
         create_dir_all(out_dir.join("builtins"))?;
-        let jni_path = "jni-gen";
-        let utils_relative_path = "builtins/mod.rs";
 
-        let mut absolute_path_to_repository = std::env::current_dir()?;
-        while !absolute_path_to_repository.join(jni_path).join(utils_relative_path).exists() {
-            if !absolute_path_to_repository.pop() {
-                panic!("could not find jni-gen/builtins within the repository")
-            }
-        }
-        let builtins_utils_path = absolute_path_to_repository.join(jni_path).join(utils_relative_path);
-        copy(builtins_utils_path, out_dir.join(utils_relative_path))?;
+        let utils_content = include_str!("../builtins/mod.rs");
+        let mut utils_file = tempfile::NamedTempFile::new_in(out_dir.join("builtins"))?;
+        utils_file.write_all(utils_content.as_bytes())?;
+        utils_file.into_temp_path().persist(out_dir.join("builtins/mod.rs"))?;
 
         for class in &self.classes {
             let class_name = class.get_name();
