@@ -69,7 +69,7 @@ impl<'a> ClassGenerator<'a> {
             "use jni::signature::*;",
             "use once_cell::sync::OnceCell;",
             "use std::str::FromStr;",
-            "use crate::wrappers::builtins::*;",
+            "use super::builtins::*;",
         ]
         .join("\n")
             + "\n"
