@@ -1,9 +1,7 @@
 use jni::objects::JObject;
-use jni::InitArgsBuilder;
-use jni::JNIVersion;
-use jni::JavaVM;
 use jni::JNIEnv;
 use jni::errors::Result as JNIResult;
+use systest::get_jvm;
 use systest::print_exception;
 use systest::wrappers::*;
 
@@ -14,19 +12,7 @@ fn string_to_jobject<'a>(env: &JNIEnv<'a>, string: &str) -> JNIResult<JObject<'a
 #[test]
 #[should_panic(expected = "Java binding type failure. Expected object of class java/util/Random, but got java/lang/Error instead")]
 fn static_method_should_fail_on_wrong_receiver() {
-    let jvm_args = InitArgsBuilder::new()
-    .version(JNIVersion::V8)
-    .option("-Xcheck:jni")
-    .option("-Xdebug")
-    .option("-XX:+CheckJNICalls")
-    .build()
-    .unwrap_or_else(|e| {
-        panic!("{} source: {:?}", e, std::error::Error::source(&e));
-    });
-
-    let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-        panic!("{} source: {:?}", e, std::error::Error::source(&e));
-    });
+    let jvm = get_jvm().expect("failed go get jvm reference");
 
     let env = jvm
         .attach_current_thread()

@@ -1,10 +1,8 @@
 use jni::objects::JObject;
-use jni::InitArgsBuilder;
-use jni::JNIVersion;
-use jni::JavaVM;
 use jni::JNIEnv;
 use jni::objects::JString;
 use jni::errors::Result as JNIResult;
+use systest::get_jvm;
 use systest::print_exception;
 use systest::wrappers::*;
 
@@ -18,21 +16,7 @@ fn jobject_to_string<'a>(env: &JNIEnv<'a>, obj: JObject) -> JNIResult<String> {
 
 #[test]
 fn test_jvm_builtin_classes() {
-    let jvm_args = InitArgsBuilder::new()
-        .version(JNIVersion::V8)
-        .option("-Xcheck:jni")
-        .option("-Xdebug")
-        .option("-XX:+CheckJNICalls")
-        //.option("-verbose:jni")
-        //.option("-XX:+TraceJNICalls")
-        .build()
-        .unwrap_or_else(|e| {
-            panic!("{} source: {:?}", e, std::error::Error::source(&e));
-        });
-
-    let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-        panic!("{} source: {:?}", e, std::error::Error::source(&e));
-    });
+    let jvm = get_jvm().expect("failed go get jvm reference");
 
     let env = jvm
         .attach_current_thread()

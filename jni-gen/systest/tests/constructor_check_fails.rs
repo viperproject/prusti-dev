@@ -1,28 +1,12 @@
 use jni::objects::JObject;
-use jni::InitArgsBuilder;
-use jni::JNIVersion;
-use jni::JavaVM;
+use systest::get_jvm;
 use systest::print_exception;
 use systest::wrappers::*;
 
 #[test]
 #[should_panic(expected = "Java binding type failure. Expected object of class java/lang/String, but got java/lang/Integer instead")]
 fn constructor_should_fail_on_wrong_argument() {
-    let jvm_args = InitArgsBuilder::new()
-        .version(JNIVersion::V8)
-        .option("-Xcheck:jni")
-        .option("-Xdebug")
-        .option("-XX:+CheckJNICalls")
-        //.option("-verbose:jni")
-        //.option("-XX:+TraceJNICalls")
-        .build()
-        .unwrap_or_else(|e| {
-            panic!("{} source: {:?}", e, std::error::Error::source(&e));
-        });
-
-    let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-        panic!("{} source: {:?}", e, std::error::Error::source(&e));
-    });
+    let jvm = get_jvm().expect("failed go get jvm reference");
 
     let env = jvm
         .attach_current_thread()
