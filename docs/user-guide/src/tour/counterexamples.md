@@ -1,6 +1,6 @@
 # Counterexamples
 
-Let's take the summation function from the last chapter, which adds up all the numbers from 1 to `x`. Let's suppose we forgot to add the non-negative postcondition for `x`:
+Let's take the summation function from the [Loop invariants](loop_invariants.md) chapter, which adds up all the numbers from 1 to `x`. Let's suppose we forgot to add the non-negativity postcondition for `x`:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/counterexample.rs:code}}
