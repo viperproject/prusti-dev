@@ -25,5 +25,5 @@ pub fn get_jobject_class_name<'a, O>(env: &'a JNIEnv<'a>, object: O) -> String
 where
     O: Into<JObject<'a>>
 {
-    get_jobject_class_name_inner(env, object).unwrap_or("Cannot be determined".to_string()).replace('.', "/")
+    get_jobject_class_name_inner(env, object).unwrap_or("<unknown>".to_string()).replace('.', "/")
 }
