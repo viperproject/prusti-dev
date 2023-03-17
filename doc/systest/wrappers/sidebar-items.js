@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["java"]};
+window.SIDEBAR_ITEMS = {"mod":["builtins","java"]};

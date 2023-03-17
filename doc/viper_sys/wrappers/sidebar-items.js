@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["java","scala","viper"]};
+window.SIDEBAR_ITEMS = {"mod":["builtins","java","scala","viper"]};

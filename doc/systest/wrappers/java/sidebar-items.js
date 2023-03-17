@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["lang","util"]};
+window.SIDEBAR_ITEMS = {"mod":["lang","math","util"]};

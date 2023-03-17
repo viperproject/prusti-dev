@@ -190,6 +190,20 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
 </pre><pre class="rust"><code><span class="comment">// © 2023, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -326,13 +340,27 @@
     code.push(<span class="string">&quot;) -&gt; JNIResult&lt;()&gt; {&quot;</span>.to_string());
     code.push(<span class="macro">format!</span>(<span class="string">&quot;    let class_name = \&quot;{}\&quot;;&quot;</span>, class.path()));
     code.push(<span class="macro">format!</span>(<span class="string">&quot;    let field_name = \&quot;{field_name}\&quot;;&quot;</span>));
-    code.push(<span class="macro">format!</span>(<span class="string">&quot;    let return_signature = \&quot;{type_signature}\&quot;;&quot;</span>));
+    code.push(<span class="macro">format!</span>(
+        <span class="string">&quot;    let {parameter_name}_signature = \&quot;{type_signature}\&quot;;&quot;
+    </span>));
+    <span class="kw">if </span>is_signature_of_class_type(type_signature) {
+        <span class="kw">let </span>parameter_class = <span class="kw-2">&amp;</span>type_signature[<span class="number">1</span>..(type_signature.len() - <span class="number">1</span>)];
+        code.push(<span class="macro">format!</span>(
+            <span class="string">&quot;    let {parameter_name}_class_name = \&quot;{parameter_class}\&quot;;&quot;
+        </span>));
+    }
     code.push(<span class="string">&quot;&quot;</span>.to_string());
     code.push(generate_variable_type_check(<span class="string">&quot;receiver&quot;</span>, <span class="string">&quot;class_name&quot;</span>));
+    <span class="kw">if </span>is_signature_of_class_type(type_signature) {
+        code.push(generate_variable_type_check(
+            <span class="kw-2">&amp;</span>parameter_name,
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{parameter_name}_class_name&quot;</span>),
+        ));
+    }
     code.push(<span class="string">&quot;    self.env.set_field(&quot;</span>.to_string());
     code.push(<span class="string">&quot;        receiver,&quot;</span>.to_string());
     code.push(<span class="string">&quot;        field_name,&quot;</span>.to_string());
-    code.push(<span class="string">&quot;        return_signature,&quot;</span>.to_string());
+    code.push(<span class="macro">format!</span>(<span class="string">&quot;        {parameter_name}_signature,&quot;</span>));
     code.push(<span class="macro">format!</span>(<span class="string">&quot;        JValue::from({parameter_name})&quot;</span>));
     code.push(<span class="string">&quot;    )&quot;</span>.to_string());
     code.push(<span class="string">&quot;}&quot;</span>.to_string());

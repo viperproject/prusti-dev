@@ -105,6 +105,12 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -125,6 +131,14 @@
 </span><span class="kw">pub struct </span>WrapperGenerator {
     jars: Vec&lt;String&gt;,
     classes: Vec&lt;ClassWrapperSpec&gt;,
+}
+
+<span class="kw">fn </span>save_file_atomic(content: <span class="kw-2">&amp;</span>str, temp_dir: <span class="kw-2">&amp;</span>Path, file_path: <span class="kw-2">&amp;</span>Path) -&gt; LocalResult&lt;()&gt; {
+    <span class="comment">// Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>mod_file = tempfile::NamedTempFile::new_in(temp_dir)<span class="question-mark">?</span>;
+    mod_file.write_all(content.as_bytes())<span class="question-mark">?</span>;
+    mod_file.into_temp_path().persist(file_path)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">impl </span>WrapperGenerator {
@@ -169,6 +183,10 @@
 
         <span class="comment">//remove_dir_all(out_dir)?;
         </span>create_dir_all(out_dir)<span class="question-mark">?</span>;
+        create_dir_all(out_dir.join(<span class="string">&quot;builtins&quot;</span>))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>utils_content = <span class="macro">include_str!</span>(<span class="string">&quot;../builtins/mod.rs&quot;</span>);
+        save_file_atomic(utils_content, out_dir, <span class="kw-2">&amp;</span>out_dir.join(<span class="string">&quot;builtins/mod.rs&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">for </span>class <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.classes {
             <span class="kw">let </span>class_name = class.get_name();
@@ -190,23 +208,17 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(parent_path) = class_path.parent() {
                 create_dir_all(parent_path)<span class="question-mark">?</span>;
             }
-            <span class="comment">// Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>class_file = tempfile::NamedTempFile::new_in(out_dir)<span class="question-mark">?</span>;
+
             <span class="kw">let </span>class_generator =
                 ClassGenerator::new(<span class="kw-2">&amp;</span>env, class_name.to_owned(), class.get_items().to_vec());
             <span class="kw">let </span>class_code = class_generator.generate()<span class="question-mark">?</span>;
-            class_file.write_all(class_code.as_bytes())<span class="question-mark">?</span>;
-            class_file.into_temp_path().persist(<span class="kw-2">&amp;</span>class_path)<span class="question-mark">?</span>;
+            save_file_atomic(<span class="kw-2">&amp;</span>class_code, out_dir, <span class="kw-2">&amp;</span>class_path)<span class="question-mark">?</span>;
         }
 
         {
             <span class="kw">let </span>class_names: Vec&lt;<span class="kw-2">&amp;</span>ClassName&gt; = <span class="self">self</span>.classes.iter().map(|x| x.get_name()).collect();
             <span class="kw">let </span>mod_code = generate_module(class_names);
-            <span class="kw">let </span>mod_path = out_dir.join(<span class="string">&quot;mod.rs&quot;</span>);
-            <span class="comment">// Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>mod_file = tempfile::NamedTempFile::new_in(out_dir)<span class="question-mark">?</span>;
-            mod_file.write_all(mod_code.as_bytes())<span class="question-mark">?</span>;
-            mod_file.into_temp_path().persist(mod_path)<span class="question-mark">?</span>;
+            save_file_atomic(<span class="kw-2">&amp;</span>mod_code, out_dir, <span class="kw-2">&amp;</span>out_dir.join(<span class="string">&quot;mod.rs&quot;</span>))<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
