@@ -5,14 +5,15 @@ use prusti_contracts::*;
 fn main() {}
 
 //// ANCHOR: code
-#[ensures(result == x * x * x)]
-fn square(x: i32) -> i32 {
-    x * x * x
+#[pure]
+// Note that a postcondition is not actually needed here, since `abs` is #[pure]
+#[ensures(x >= 0 ==> result == x)]
+pub fn abs(x: i32) -> i32 {
+    x
 }
 
-fn test() {
-    let x = 10;
-    let x_squared = square(x);
-    prusti_assert!(x_squared == 100); //~ ERROR the asserted expression might not hold
+fn test_abs() {
+    prusti_assert!(abs(8) == 8); // Works
+    prusti_assert!(abs(-10) == 10); //~ ERROR the asserted expression might not hold
 }
 //// ANCHOR_END: code

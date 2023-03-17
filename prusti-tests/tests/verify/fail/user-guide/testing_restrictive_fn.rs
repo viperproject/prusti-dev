@@ -5,17 +5,14 @@ use prusti_contracts::*;
 fn main() {}
 
 //// ANCHOR: code
-#[requires(x == 10)]
+#[requires(x == 10)] // Restrictive precondition
 #[ensures(result == x * x)]
-fn restrictive_square(x: i32) -> i32 {
+pub fn restrictive_square(x: i32) -> i32 {
     x * x
 }
 
 fn test() {
-    let x = 10;
-    let x_squared = restrictive_square(x);
-
-    let y = 5;
-    let y_squared = restrictive_square(y); //~ ERROR precondition might not hold.
+    assert!(restrictive_square(10) == 100); // Works
+    assert!(restrictive_square(5) == 25); //~ ERROR precondition might not hold.
 }
 //// ANCHOR_END: code
