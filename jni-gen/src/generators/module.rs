@@ -31,6 +31,7 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
                     }
                     Some(rec_result) => {
                         res.push(format!("pub mod {name} {{\n"));
+                        res.push("use super::builtins;\n".to_string());
                         res.push(rec_result.to_string());
                         res.push(format!("}} // end of mod {name}\n"));
                     }
@@ -43,6 +44,7 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
     vec![
         "//! Automatically generated code\n".to_string(),
         "#![allow(non_snake_case)]\n".to_string(),
+        "pub mod builtins;\n".to_string(),
         modules_tree,
     ]
     .join("\n")
