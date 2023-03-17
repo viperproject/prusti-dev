@@ -22,11 +22,13 @@ pub struct Verifier<'a> {
     env: &'a JNIEnv<'a>,
     verifier_wrapper: silver::verifier::Verifier<'a>,
     verifier_instance: JObject<'a>,
-    frontend_wrapper: silicon::SiliconFrontend<'a>,
+    frontend_silicon_wrapper: silicon::SiliconFrontend<'a>,
+    frontend_carbon_wrapper: carbon::CarbonFrontend<'a>,
     frontend_instance: JObject<'a>,
     jni: JniUtils<'a>,
     ast_utils: AstUtils<'a>,
     smt_manager: SmtManager,
+    backend: VerificationBackend,
 }
 
 impl<'a> Verifier<'a> {
@@ -39,7 +41,8 @@ impl<'a> Verifier<'a> {
         let jni = JniUtils::new(env);
         let ast_utils = AstUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
-        let frontend_wrapper = silicon::SiliconFrontend::with(env);
+        let frontend_silicon_wrapper = silicon::SiliconFrontend::with(env);
+        let frontend_carbon_wrapper = carbon::CarbonFrontend::with(env);
 
         let frontend_instance = jni.unwrap_result(env.with_local_frame(16, || {
             let reporter = if let Some(real_report_path) = report_path {
@@ -64,31 +67,42 @@ impl<'a> Verifier<'a> {
             let logger =
                 jni.unwrap_result(silver::logger::ViperLogger::with(env).call_get(logger_factory));
 
-            let unwrapped_frontend_instance =
-                silicon::SiliconFrontend::with(env).new(reporter, logger);
+            let unwrapped_frontend_instance = {
+                match backend {
+                    VerificationBackend::Silicon => silicon::SiliconFrontend::with(env).new(reporter, logger),
+                    VerificationBackend::Carbon => carbon::CarbonFrontend::with(env).new(reporter, logger),
+                }
+            };
             let frontend_instance = jni.unwrap_result(unwrapped_frontend_instance);
 
-            frontend_wrapper
-                .call_setVerifier(frontend_instance, backend_instance)
-                .unwrap();
+            match backend {
+                VerificationBackend::Silicon => frontend_silicon_wrapper.call_setVerifier(frontend_instance, backend_instance).unwrap(),
+                VerificationBackend::Carbon => frontend_carbon_wrapper.call_setVerifier(frontend_instance, backend_instance).unwrap(),
+            }
             let verifier_option = jni.new_option(Some(backend_instance));
-            frontend_wrapper
-                .set___verifier(frontend_instance, verifier_option)
-                .unwrap();
+
+            match backend {
+                VerificationBackend::Silicon => frontend_silicon_wrapper.set___verifier(frontend_instance, verifier_option).unwrap(),
+                VerificationBackend::Carbon => frontend_carbon_wrapper.set___verifier(frontend_instance, verifier_option).unwrap(),
+            }
 
             Ok(frontend_instance)
         }));
 
         let verifier_instance = jni.unwrap_result(env.with_local_frame(16, || {
-            let verifier_instance =
-                jni.unwrap_result(frontend_wrapper.call_verifier(frontend_instance));
+            let verifier_instance = match backend {
+                VerificationBackend::Silicon => jni.unwrap_result(frontend_silicon_wrapper.call_verifier(frontend_instance)),
+                VerificationBackend::Carbon => jni.unwrap_result(frontend_carbon_wrapper.call_verifier(frontend_instance)),
+            };
 
             let consistency_check_state = silver::frontend::DefaultStates::with(env)
                 .call_ConsistencyCheck()
                 .unwrap();
-            frontend_wrapper
-                .call_setState(frontend_instance, consistency_check_state)
-                .unwrap();
+
+            match backend {
+                VerificationBackend::Silicon => frontend_silicon_wrapper.call_setState(frontend_instance, consistency_check_state).unwrap(),
+                VerificationBackend::Carbon => frontend_carbon_wrapper.call_setState(frontend_instance, consistency_check_state).unwrap(),
+            }
 
             let name =
                 jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
@@ -103,11 +117,13 @@ impl<'a> Verifier<'a> {
             env,
             verifier_wrapper,
             verifier_instance,
-            frontend_wrapper,
+            frontend_silicon_wrapper,
+            frontend_carbon_wrapper,
             frontend_instance,
             jni,
             ast_utils,
             smt_manager,
+            backend,
         }
     }
 
@@ -120,9 +136,7 @@ impl<'a> Verifier<'a> {
     ) -> Result<JObject<'a>> {
         match backend {
             VerificationBackend::Silicon => silicon::Silicon::with(env).new(reporter, debug_info),
-            VerificationBackend::Carbon => {
-                panic!("Trying to use Carbon backend - now made compatible just with Silicon");
-            }
+            VerificationBackend::Carbon => carbon::CarbonVerifier::with(env).new(reporter, debug_info)
         }
     }
 
@@ -156,6 +170,7 @@ impl<'a> Verifier<'a> {
 
     #[tracing::instrument(name = "viper::verify", level = "debug", skip_all)]
     pub fn verify(&mut self, program: Program) -> VerificationResult {
+
         let ast_utils = self.ast_utils;
         ast_utils.with_local_frame(16, || {
             debug!(
@@ -186,11 +201,20 @@ impl<'a> Verifier<'a> {
             }
 
             let program_option = self.jni.new_option(Some(program.to_jobject()));
-            self.jni.unwrap_result(self.frontend_wrapper.set___program(self.frontend_instance, program_option));
+            match self.backend {
+                VerificationBackend::Silicon => self.jni.unwrap_result(self.frontend_silicon_wrapper.set___program(self.frontend_instance, program_option)),
+                VerificationBackend::Carbon => self.jni.unwrap_result(self.frontend_carbon_wrapper.set___program(self.frontend_instance, program_option)),
+            };
 
             run_timed!("Viper verification", debug,
-                self.jni.unwrap_result(self.frontend_wrapper.call_verification(self.frontend_instance));
-                let viper_result_option = self.jni.unwrap_result(self.frontend_wrapper.call_getVerificationResult(self.frontend_instance));
+                 match self.backend {
+                    VerificationBackend::Silicon => self.jni.unwrap_result(self.frontend_silicon_wrapper.call_verification(self.frontend_instance)),
+                    VerificationBackend::Carbon => self.jni.unwrap_result(self.frontend_carbon_wrapper.call_verification(self.frontend_instance)),
+                };
+                let viper_result_option = match self.backend {
+                    VerificationBackend::Silicon => self.jni.unwrap_result(self.frontend_silicon_wrapper.call_getVerificationResult(self.frontend_instance)),
+                    VerificationBackend::Carbon => self.jni.unwrap_result(self.frontend_carbon_wrapper.call_getVerificationResult(self.frontend_instance)),
+                };
                 let viper_result = self.jni.unwrap_result(scala::Some::with(self.env).call_get(viper_result_option));
 
             );
