@@ -7,22 +7,31 @@
 use crate::smt_lib::*;
 use backend_common::{VerificationError, VerificationResult};
 use core::panic;
+use lazy_static::lazy_static;
 use log::{self, debug};
 use prusti_common::vir::program::Program;
 use prusti_utils::{report::log::report_with_writer, run_timed};
+use regex::Regex;
 use std::{
     error::Error,
     io::Write,
     process::{Command, Stdio},
 };
 
+// lazy regex for parsing z3 output
+lazy_static! {
+    static ref POSITION_REGEX: Regex = Regex::new(r#"^"?position: (\d+)"?"#).unwrap();
+}
+
 pub struct Verifier {
-    z3_exe: String,
+    smt_solver_exe: String,
 }
 
 impl Verifier {
     pub fn new(z3_exe: String) -> Self {
-        Self { z3_exe }
+        Self {
+            smt_solver_exe: z3_exe,
+        }
     }
 
     pub fn verify(&mut self, program: &Program) -> VerificationResult {
@@ -30,8 +39,10 @@ impl Verifier {
             panic!("Lithium backend only supports low programs");
         };
 
+        let is_z3 = self.smt_solver_exe.ends_with("z3");
+
         run_timed!("Translation to SMT-LIB", debug,
-            let mut smt = SMTLib::new();
+            let mut smt = SMTLib::new(is_z3);
             program.build_smt(&mut smt);
             let smt_program = smt.to_string();
 
@@ -44,11 +55,17 @@ impl Verifier {
             );
         );
 
-        run_timed!("SMT verification", debug,
+        run_timed!(format!("SMT verification with {}", if is_z3 {"Z3"} else {"CVC5"}), debug,
             let result: Result<String, Box<dyn Error>> = try {
-                let mut child = Command::new(self.z3_exe.clone())
-                    .args(["-smt2", "-in"])
-                    .stdin(Stdio::piped())
+                let mut command = Command::new(self.smt_solver_exe.clone());
+
+                if is_z3 {
+                    command.args(&["-smt2", "-in"]);
+                } else {
+                    command.args(&["--incremental"]);
+                }
+
+                let mut child = command.stdin(Stdio::piped())
                     .stderr(Stdio::piped())
                     .stdout(Stdio::piped())
                     .spawn()?;
@@ -87,9 +104,8 @@ impl Verifier {
 
         let mut last_pos: i32 = 0;
         for line in result.unwrap().lines() {
-            if line.starts_with("position: ") {
-                let position_id = line.split("position: ").nth(1).unwrap();
-                last_pos = position_id.parse().unwrap();
+            if let Some(caps) = POSITION_REGEX.captures(line) {
+                last_pos = caps[1].parse().unwrap();
             } else if line == "sat" || line == "unknown" {
                 errors.push(VerificationError::new(
                     "assert.failed:assertion.false".to_string(),

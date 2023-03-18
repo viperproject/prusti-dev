@@ -20,7 +20,8 @@ lazy_static! {
     static ref TWO_PARAM_RE: Regex = Regex::new(r"Map<([^>]+)\s*,\s*([^>]+)>").unwrap();
 }
 
-const SMT_PREAMBLE: &str = include_str!("theories/Preamble.smt2");
+const NO_Z3_PREAMBLE: &str = include_str!("theories/Preamble.smt2");
+const Z3_PREAMBLE: &str = include_str!("theories/PreambleZ3.smt2");
 
 pub struct SMTLib {
     sort_decls: Vec<String>,
@@ -28,16 +29,18 @@ pub struct SMTLib {
     code: Vec<String>,
     methods: HashMap<String, MethodDecl>,
     blocks: HashMap<String, BasicBlock>,
+    using_z3: bool,
 }
 
 impl SMTLib {
-    pub fn new() -> Self {
+    pub fn new(using_z3: bool) -> Self {
         Self {
             sort_decls: Vec::new(),
             func_decls: Vec::new(),
             code: Vec::new(),
             methods: HashMap::new(),
             blocks: Default::default(),
+            using_z3,
         }
     }
     fn add_sort_decl(&mut self, sort_decl: String) {
@@ -192,7 +195,11 @@ impl SMTLib {
 impl ToString for SMTLib {
     fn to_string(&self) -> String {
         let mut result = String::new();
-        result.push_str(SMT_PREAMBLE);
+        result.push_str(if self.using_z3 {
+            Z3_PREAMBLE
+        } else {
+            NO_Z3_PREAMBLE
+        });
         result.push_str("\n\n");
         result.push_str(&self.sort_decls.join("\n"));
         result.push_str("\n\n");
@@ -492,8 +499,8 @@ impl SMTTranslatable for Expression {
                 format!("({} {})", op_smt, unary_op.argument.to_smt())
             }
             Expression::BinaryOp(binary_op) => {
-                let op_smt = if binary_op.left.get_type().is_float() {
-                    FloatBinaryOpKind(binary_op.op_kind).to_smt()
+                let op_smt = if let Type::Float(fsize) = binary_op.left.get_type() {
+                    FloatBinaryOpKind(binary_op.op_kind, *fsize).to_smt()
                 } else {
                     IntBinaryOpKind(binary_op.op_kind).to_smt()
                 };
@@ -585,7 +592,7 @@ impl SMTTranslatable for Expression {
 }
 
 struct IntBinaryOpKind(BinaryOpKind);
-struct FloatBinaryOpKind(BinaryOpKind);
+struct FloatBinaryOpKind(BinaryOpKind, Float);
 
 impl SMTTranslatable for IntBinaryOpKind {
     fn to_smt(&self) -> String {
@@ -611,22 +618,21 @@ impl SMTTranslatable for IntBinaryOpKind {
 
 impl SMTTranslatable for FloatBinaryOpKind {
     fn to_smt(&self) -> String {
-        match self.0 {
+        match (self.0, self.1) {
             // BinaryOpKind::EqCmp => "fp.eq", // TODO: = in axioms, fp.eq in arithmetic?
-            BinaryOpKind::EqCmp => "=",
-            BinaryOpKind::NeCmp => "fp.neq", // Not in SMT-LIB 2.6 standard, part of static preamble
-            BinaryOpKind::GtCmp => "fp.gt",
-            BinaryOpKind::GeCmp => "fp.geq",
-            BinaryOpKind::LtCmp => "fp.lt",
-            BinaryOpKind::LeCmp => "fp.leq",
-            BinaryOpKind::Add => "fp.add roundNearestTiesToAway",
-            BinaryOpKind::Sub => "fp.sub roundNearestTiesToAway",
-            BinaryOpKind::Mul => "fp.mul roundNearestTiesToAway",
-            BinaryOpKind::Div => "fp.div roundNearestTiesToAway",
-            BinaryOpKind::Mod => "fp.rem",
-            BinaryOpKind::And => unreachable!("FP and"),
-            BinaryOpKind::Or => unreachable!("FP or"),
-            BinaryOpKind::Implies => unreachable!("FP implication"),
+            (BinaryOpKind::EqCmp, _) => "=",
+            (BinaryOpKind::NeCmp, Float::F32) => "fp.neq32", // Not in SMT-LIB 2.6 standard, part of static preamble
+            (BinaryOpKind::NeCmp, Float::F64) => "fp.neq64", // Not in SMT-LIB 2.6 standard, part of static preamble
+            (BinaryOpKind::GtCmp, _) => "fp.gt",
+            (BinaryOpKind::GeCmp, _) => "fp.geq",
+            (BinaryOpKind::LtCmp, _) => "fp.lt",
+            (BinaryOpKind::LeCmp, _) => "fp.leq",
+            (BinaryOpKind::Add, _) => "fp.add roundNearestTiesToAway",
+            (BinaryOpKind::Sub, _) => "fp.sub roundNearestTiesToAway",
+            (BinaryOpKind::Mul, _) => "fp.mul roundNearestTiesToAway",
+            (BinaryOpKind::Div, _) => "fp.div roundNearestTiesToAway",
+            (BinaryOpKind::Mod, _) => "fp.rem",
+            (other, _) => unreachable!("FP {}", other),
         }
         .to_string()
     }
