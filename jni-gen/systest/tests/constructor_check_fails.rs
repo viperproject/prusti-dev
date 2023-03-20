@@ -4,6 +4,7 @@ use systest::print_exception;
 use systest::wrappers::*;
 
 #[test]
+#[cfg(debug_assertions)]
 #[should_panic(expected = "Java binding type failure. Expected object of class java/lang/String, but got java/lang/Integer instead")]
 fn constructor_should_fail_on_wrong_argument() {
     let jvm = get_jvm().expect("failed go get jvm reference");
