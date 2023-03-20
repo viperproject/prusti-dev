@@ -27,6 +27,11 @@ fn hierarchy_field_lookup<'a>(
     Ok(None)
 }
 
+fn is_interface<'a>(env: &JNIEnv<'a>, class: &ClassName) -> Result<bool> {
+    let clazz = env.find_class(class.path())?;
+    Ok(env.call_method(clazz, "isInterface", "()Z", &[])?.z()?)
+}
+
 fn class_field_lookup<'a>(
     env: &JNIEnv<'a>,
     clazz: JClass<'a>,
@@ -163,26 +168,30 @@ pub fn generate_field_getter_setter(
     class: &ClassName,
     field_name: &str,
 ) -> Result<String> {
-    let field_signature = match hierarchy_field_lookup(env, class, field_name)? {
-        Some(field) => {
-            let field_type = env
-                .call_method(field, "getType", "()Ljava/lang/Class;", &[])?
-                .l()?;
+    let field_signature = if is_interface(env, class)? {
+        "xx".to_string()
+    } else {
+        match hierarchy_field_lookup(env, class, field_name)? {
+            Some(field) => {
+                let field_type = env
+                    .call_method(field, "getType", "()Ljava/lang/Class;", &[])?
+                    .l()?;
 
-            java_str_to_string(
-                &env.get_string(
-                    env.call_static_method(
-                        "org/objectweb/asm/Type",
-                        "getDescriptor",
-                        "(Ljava/lang/Class;)Ljava/lang/String;",
-                        &[JValue::Object(field_type)],
-                    )?
-                    .l()?
-                    .into(),
-                )?,
-            )?
+                java_str_to_string(
+                    &env.get_string(
+                        env.call_static_method(
+                            "org/objectweb/asm/Type",
+                            "getDescriptor",
+                            "(Ljava/lang/Class;)Ljava/lang/String;",
+                            &[JValue::Object(field_type)],
+                        )?
+                        .l()?
+                        .into(),
+                    )?,
+                )?
+            }
+            _ => return Err(ErrorKind::NoField(class.full_name(), field_name.into()).into()),
         }
-        _ => return Err(ErrorKind::NoField(class.full_name(), field_name.into()).into()),
     };
 
     let setter_code = generate_field_getter(class, field_name, &field_signature);
