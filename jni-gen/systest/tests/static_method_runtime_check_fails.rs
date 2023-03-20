@@ -10,6 +10,7 @@ fn string_to_jobject<'a>(env: &JNIEnv<'a>, string: &str) -> JNIResult<JObject<'a
 }
 
 #[test]
+#[cfg(debug_assertions)]
 #[should_panic(expected = "Java binding type failure. Expected object of class java/util/Random, but got java/lang/Error instead")]
 fn static_method_should_fail_on_wrong_receiver() {
     let jvm = get_jvm().expect("failed go get jvm reference");
