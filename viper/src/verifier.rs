@@ -166,7 +166,6 @@ impl<'a> Verifier<'a> {
 
     #[tracing::instrument(name = "viper::verify", level = "debug", skip_all)]
     pub fn verify(&mut self, program: Program) -> VerificationResult {
-
         let ast_utils = self.ast_utils;
         ast_utils.with_local_frame(16, || {
             debug!(
