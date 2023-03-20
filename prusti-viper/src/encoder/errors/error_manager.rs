@@ -6,6 +6,7 @@
 
 use super::PositionManager;
 use backend_common::VerificationError;
+use core::fmt::Debug;
 use log::debug;
 use prusti_interface::{data::ProcedureDefId, PrustiError};
 use prusti_rustc_interface::{errors::MultiSpan, span::source_map::SourceMap};

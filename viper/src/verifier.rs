@@ -70,6 +70,22 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
+    fn instantiate_verifier(
+        backend: VerificationBackend,
+        env: &'a JNIEnv,
+        reporter: JObject,
+        debug_info: JObject,
+    ) -> Result<JObject<'a>> {
+        match backend {
+            VerificationBackend::Silicon => silicon::Silicon::with(env).new(reporter, debug_info),
+            VerificationBackend::Carbon => {
+                carbon::CarbonVerifier::with(env).new(reporter, debug_info)
+            }
+            other => unreachable!("{:?} is not a Viper backend", other),
+        }
+    }
+
     #[must_use]
     #[tracing::instrument(level = "debug", skip_all)]
     pub fn initialize(self, args: &[String]) -> Self {
