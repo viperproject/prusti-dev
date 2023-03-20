@@ -10,6 +10,7 @@ fn string_to_jobject<'a>(env: &JNIEnv<'a>, string: &str) -> JNIResult<JObject<'a
 }
 
 #[test]
+#[cfg(debug_assertions)]
 #[should_panic(expected = "Java binding type failure. Expected object of class java/lang/Error, but got java/lang/Integer instead")]
 fn method_should_fail_on_wrong_receiver() {
     let jvm = get_jvm().expect("failed go get jvm reference");
@@ -30,6 +31,7 @@ fn method_should_fail_on_wrong_receiver() {
 }
 
 #[test]
+#[cfg(debug_assertions)]
 #[should_panic(expected = "Java binding type failure. Expected object of class java/lang/Integer, but got java/lang/Error instead")]
 fn method_should_fail_on_wrong_argument() {
     let jvm = get_jvm().expect("failed go get jvm reference");
