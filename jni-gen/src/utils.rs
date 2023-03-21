@@ -131,163 +131,163 @@ pub fn generate_variable_type_check(variable_name: &str, class_name_variable_nam
     generate_type_check(variable_name, class_name_variable_name, false)
 }
 
-pub fn generate_method(
-    env: &JNIEnv,
-    class: &ClassName,
-    method_name: &str,
-    target_signature: Option<String>,
-    suffix: Option<String>,
-) -> Result<String> {
-    let clazz = env.find_class(class.path())?;
+// pub fn generate_method(
+//     env: &JNIEnv,
+//     class: &ClassName,
+//     method_name: &str,
+//     target_signature: Option<String>,
+//     suffix: Option<String>,
+// ) -> Result<String> {
+//     let clazz = env.find_class(class.path())?;
 
-    let methods = env
-        .call_method(clazz, "getMethods", "()[Ljava/lang/reflect/Method;", &[])?
-        .l()?;
-    let num_methods = env.get_array_length(*methods)?;
+//     let methods = env
+//         .call_method(clazz, "getMethods", "()[Ljava/lang/reflect/Method;", &[])?
+//         .l()?;
+//     let num_methods = env.get_array_length(*methods)?;
 
-    let mut indexed_methods = BTreeMap::new();
+//     let mut indexed_methods = BTreeMap::new();
 
-    for method_index in 0..num_methods {
-        let method = env.get_object_array_element(*methods, method_index)?;
+//     for method_index in 0..num_methods {
+//         let method = env.get_object_array_element(*methods, method_index)?;
 
-        let method_name = java_str_to_string(
-            &env.get_string(
-                env.call_method(method, "getName", "()Ljava/lang/String;", &[])?
-                    .l()?
-                    .into(),
-            )?,
-        )?;
+//         let method_name = java_str_to_string(
+//             &env.get_string(
+//                 env.call_method(method, "getName", "()Ljava/lang/String;", &[])?
+//                     .l()?
+//                     .into(),
+//             )?,
+//         )?;
 
-        let method_signature = java_str_to_string(
-            &env.get_string(
-                env.call_static_method(
-                    "org/objectweb/asm/Type",
-                    "getMethodDescriptor",
-                    "(Ljava/lang/reflect/Method;)Ljava/lang/String;",
-                    &[JValue::Object(method)],
-                )?
-                .l()?
-                .into(),
-            )?,
-        )?;
+//         let method_signature = java_str_to_string(
+//             &env.get_string(
+//                 env.call_static_method(
+//                     "org/objectweb/asm/Type",
+//                     "getMethodDescriptor",
+//                     "(Ljava/lang/reflect/Method;)Ljava/lang/String;",
+//                     &[JValue::Object(method)],
+//                 )?
+//                 .l()?
+//                 .into(),
+//             )?,
+//         )?;
 
-        match indexed_methods.remove(&method_name) {
-            None => {
-                let mut signature_map = BTreeMap::new();
-                signature_map.insert(method_signature, method);
-                indexed_methods.insert(method_name, signature_map);
-            }
-            Some(mut signature_map) => {
-                signature_map.insert(method_signature, method);
-                indexed_methods.insert(method_name, signature_map);
-            }
-        }
-    }
+//         match indexed_methods.remove(&method_name) {
+//             None => {
+//                 let mut signature_map = BTreeMap::new();
+//                 signature_map.insert(method_signature, method);
+//                 indexed_methods.insert(method_name, signature_map);
+//             }
+//             Some(mut signature_map) => {
+//                 signature_map.insert(method_signature, method);
+//                 indexed_methods.insert(method_name, signature_map);
+//             }
+//         }
+//     }
 
-    let matching_methods = match indexed_methods.get_mut(method_name) {
-        None => return Err(ErrorKind::NoMethod(class.full_name(), method_name.into()).into()),
-        Some(mm) => mm,
-    };
+//     let matching_methods = match indexed_methods.get_mut(method_name) {
+//         None => return Err(ErrorKind::NoMethod(class.full_name(), method_name.into()).into()),
+//         Some(mm) => mm,
+//     };
 
-    let (method_signature, method): (String, JObject) = match target_signature {
-        None => {
-            if matching_methods.is_empty() {
-                unreachable!();
-            }
-            if matching_methods.len() > 1 {
-                return Err(ErrorKind::AmbiguousMethod(
-                    class.full_name(),
-                    method_name.into(),
-                    matching_methods.keys().map(|k| k.to_string()).collect(),
-                )
-                .into());
-            }
-            matching_methods.pop_first().unwrap()
-        }
-        Some(sign) => match matching_methods.get(&sign) {
-            Some(constr) => (sign, *constr),
-            None => {
-                return Err(ErrorKind::NoMatchingMethod(
-                    class.full_name(),
-                    method_name.into(),
-                    sign,
-                )
-                .into())
-            }
-        },
-    };
+//     let (method_signature, method): (String, JObject) = match target_signature {
+//         None => {
+//             if matching_methods.is_empty() {
+//                 unreachable!();
+//             }
+//             if matching_methods.len() > 1 {
+//                 return Err(ErrorKind::AmbiguousMethod(
+//                     class.full_name(),
+//                     method_name.into(),
+//                     matching_methods.keys().map(|k| k.to_string()).collect(),
+//                 )
+//                 .into());
+//             }
+//             matching_methods.pop_first().unwrap()
+//         }
+//         Some(sign) => match matching_methods.get(&sign) {
+//             Some(constr) => (sign, *constr),
+//             None => {
+//                 return Err(ErrorKind::NoMatchingMethod(
+//                     class.full_name(),
+//                     method_name.into(),
+//                     sign,
+//                 )
+//                 .into())
+//             }
+//         },
+//     };
 
-    let method_modifier = env.call_method(method, "getModifiers", "()I", &[])?.i()?;
+//     let method_modifier = env.call_method(method, "getModifiers", "()I", &[])?.i()?;
 
-    let is_static = env
-        .call_static_method(
-            "java/lang/reflect/Modifier",
-            "isStatic",
-            "(I)Z",
-            &[JValue::Int(method_modifier)],
-        )?
-        .z()?;
+//     let is_static = env
+//         .call_static_method(
+//             "java/lang/reflect/Modifier",
+//             "isStatic",
+//             "(I)Z",
+//             &[JValue::Int(method_modifier)],
+//         )?
+//         .z()?;
 
-    let parameters = env
-        .call_method(
-            method,
-            "getParameters",
-            "()[Ljava/lang/reflect/Parameter;",
-            &[],
-        )?
-        .l()?;
-    let num_parameters = env.get_array_length(*parameters)?;
+//     let parameters = env
+//         .call_method(
+//             method,
+//             "getParameters",
+//             "()[Ljava/lang/reflect/Parameter;",
+//             &[],
+//         )?
+//         .l()?;
+//     let num_parameters = env.get_array_length(*parameters)?;
 
-    let mut parameter_names: Vec<String> = Vec::with_capacity(num_parameters as usize);
-    let mut parameter_signatures: Vec<String> = Vec::with_capacity(num_parameters as usize);
+//     let mut parameter_names: Vec<String> = Vec::with_capacity(num_parameters as usize);
+//     let mut parameter_signatures: Vec<String> = Vec::with_capacity(num_parameters as usize);
 
-    for parameter_index in 0..num_parameters {
-        let parameter = env.get_object_array_element(*parameters, parameter_index)?;
-        let parameter_name = env.get_string(
-            env.call_method(parameter, "getName", "()Ljava/lang/String;", &[])?
-                .l()?
-                .into(),
-        )?;
-        let parameter_type = env
-            .call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
-            .l()?;
-        let parameter_signature = env.get_string(
-            env.call_static_method(
-                "org/objectweb/asm/Type",
-                "getDescriptor",
-                "(Ljava/lang/Class;)Ljava/lang/String;",
-                &[JValue::Object(parameter_type)],
-            )?
-            .l()?
-            .into(),
-        )?;
+//     for parameter_index in 0..num_parameters {
+//         let parameter = env.get_object_array_element(*parameters, parameter_index)?;
+//         let parameter_name = env.get_string(
+//             env.call_method(parameter, "getName", "()Ljava/lang/String;", &[])?
+//                 .l()?
+//                 .into(),
+//         )?;
+//         let parameter_type = env
+//             .call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
+//             .l()?;
+//         let parameter_signature = env.get_string(
+//             env.call_static_method(
+//                 "org/objectweb/asm/Type",
+//                 "getDescriptor",
+//                 "(Ljava/lang/Class;)Ljava/lang/String;",
+//                 &[JValue::Object(parameter_type)],
+//             )?
+//             .l()?
+//             .into(),
+//         )?;
 
-        parameter_names.push(java_str_to_valid_rust_argument_name(&parameter_name)?);
-        parameter_signatures.push(java_str_to_string(&parameter_signature)?);
-    }
+//         parameter_names.push(java_str_to_valid_rust_argument_name(&parameter_name)?);
+//         parameter_signatures.push(java_str_to_string(&parameter_signature)?);
+//     }
 
-    let rust_method_name = match suffix {
-        None => format!("call_{}", java_identifier_to_rust(method_name)),
-        Some(s) => format!("call_{}_{}", java_identifier_to_rust(method_name), s),
-    };
+//     let rust_method_name = match suffix {
+//         None => format!("call_{}", java_identifier_to_rust(method_name)),
+//         Some(s) => format!("call_{}_{}", java_identifier_to_rust(method_name), s),
+//     };
 
-    if is_static {
-        Ok(generate_static(
-            class,
-            method_name,
-            &rust_method_name,
-            &method_signature,
-            &parameter_names,
-            &parameter_signatures,
-        ))
-    } else {
-        Ok(generate(
-            class,
-            method_name,
-            &rust_method_name,
-            &method_signature,
-            &parameter_names,
-            &parameter_signatures,
-        ))
-    }
-}
+//     if is_static {
+//         Ok(generate_static(
+//             class,
+//             method_name,
+//             &rust_method_name,
+//             &method_signature,
+//             &parameter_names,
+//             &parameter_signatures,
+//         ))
+//     } else {
+//         Ok(generate(
+//             class,
+//             method_name,
+//             &rust_method_name,
+//             &method_signature,
+//             &parameter_names,
+//             &parameter_signatures,
+//         ))
+//     }
+// }

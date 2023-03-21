@@ -18,95 +18,7 @@ pub fn generate_method(
     target_signature: Option<String>,
     suffix: Option<String>,
 ) -> Result<String> {
-    let clazz = env.find_class(class.path())?;
-
-    let methods = env
-        .call_method(clazz, "getMethods", "()[Ljava/lang/reflect/Method;", &[])?
-        .l()?;
-    let num_methods = env.get_array_length(*methods)?;
-
-    let mut indexed_methods = BTreeMap::new();
-
-    for method_index in 0..num_methods {
-        let method = env.get_object_array_element(*methods, method_index)?;
-
-        let method_name = java_str_to_string(
-            &env.get_string(
-                env.call_method(method, "getName", "()Ljava/lang/String;", &[])?
-                    .l()?
-                    .into(),
-            )?,
-        )?;
-
-        let method_signature = java_str_to_string(
-            &env.get_string(
-                env.call_static_method(
-                    "org/objectweb/asm/Type",
-                    "getMethodDescriptor",
-                    "(Ljava/lang/reflect/Method;)Ljava/lang/String;",
-                    &[JValue::Object(method)],
-                )?
-                .l()?
-                .into(),
-            )?,
-        )?;
-
-        match indexed_methods.remove(&method_name) {
-            None => {
-                let mut signature_map = BTreeMap::new();
-                signature_map.insert(method_signature, method);
-                indexed_methods.insert(method_name, signature_map);
-            }
-            Some(mut signature_map) => {
-                signature_map.insert(method_signature, method);
-                indexed_methods.insert(method_name, signature_map);
-            }
-        }
-    }
-
-    let matching_methods = match indexed_methods.get_mut(method_name) {
-        None => return Err(ErrorKind::NoMethod(class.full_name(), method_name.into()).into()),
-        Some(mm) => mm,
-    };
-
-    let (method_signature, method): (String, JObject) = match target_signature {
-        None => {
-            if matching_methods.is_empty() {
-                unreachable!();
-            }
-            if matching_methods.len() > 1 {
-                return Err(ErrorKind::AmbiguousMethod(
-                    class.full_name(),
-                    method_name.into(),
-                    matching_methods.keys().map(|k| k.to_string()).collect(),
-                )
-                .into());
-            }
-            matching_methods.pop_first().unwrap()
-        }
-        Some(sign) => match matching_methods.get(&sign) {
-            Some(constr) => (sign, *constr),
-            None => {
-                return Err(ErrorKind::NoMatchingMethod(
-                    class.full_name(),
-                    method_name.into(),
-                    sign,
-                )
-                .into())
-            }
-        },
-    };
-
-    let method_modifier = env.call_method(method, "getModifiers", "()I", &[])?.i()?;
-
-    let is_static = env
-        .call_static_method(
-            "java/lang/reflect/Modifier",
-            "isStatic",
-            "(I)Z",
-            &[JValue::Int(method_modifier)],
-        )?
-        .z()?;
+    let MethodInfo { method_signature, method, is_static } = find_method(env, class, method_name, target_signature)?;
 
     let parameters = env
         .call_method(
@@ -172,7 +84,7 @@ pub fn generate_method(
     }
 }
 
-fn generate(
+pub fn generate(
     class: &ClassName,
     method_name: &str,
     rust_method_name: &str,
@@ -441,4 +353,110 @@ fn generate_static(
     code.push("}".to_string());
 
     code.join("\n") + "\n"
+}
+
+
+pub struct MethodInfo<'a> {
+    pub method_signature: String,
+    pub method: JObject<'a>,
+    pub is_static: bool,
+}
+
+pub fn find_method<'a>(
+    env: &'a JNIEnv<'a>,
+    class: &'a ClassName,
+    method_name: &'a str,
+    target_signature: Option<String>,
+) -> Result<MethodInfo<'a>> {
+    let clazz = env.find_class(class.path())?;
+
+    let methods = env
+        .call_method(clazz, "getMethods", "()[Ljava/lang/reflect/Method;", &[])?
+        .l()?;
+    let num_methods = env.get_array_length(*methods)?;
+
+    let mut indexed_methods = BTreeMap::new();
+
+    for method_index in 0..num_methods {
+        let method = env.get_object_array_element(*methods, method_index)?;
+
+        let method_name = java_str_to_string(
+            &env.get_string(
+                env.call_method(method, "getName", "()Ljava/lang/String;", &[])?
+                    .l()?
+                    .into(),
+            )?,
+        )?;
+
+        let method_signature = java_str_to_string(
+            &env.get_string(
+                env.call_static_method(
+                    "org/objectweb/asm/Type",
+                    "getMethodDescriptor",
+                    "(Ljava/lang/reflect/Method;)Ljava/lang/String;",
+                    &[JValue::Object(method)],
+                )?
+                .l()?
+                .into(),
+            )?,
+        )?;
+
+        match indexed_methods.remove(&method_name) {
+            None => {
+                let mut signature_map = BTreeMap::new();
+                signature_map.insert(method_signature, method);
+                indexed_methods.insert(method_name, signature_map);
+            }
+            Some(mut signature_map) => {
+                signature_map.insert(method_signature, method);
+                indexed_methods.insert(method_name, signature_map);
+            }
+        }
+    }
+
+    let matching_methods = match indexed_methods.get_mut(method_name) {
+        None => return Err(ErrorKind::NoMethod(class.full_name(), method_name.into()).into()),
+        Some(mm) => mm,
+    };
+
+    let (method_signature, method): (String, JObject) = match target_signature {
+        None => {
+            if matching_methods.is_empty() {
+                unreachable!();
+            }
+            if matching_methods.len() > 1 {
+                return Err(ErrorKind::AmbiguousMethod(
+                    class.full_name(),
+                    method_name.into(),
+                    matching_methods.keys().map(|k| k.to_string()).collect(),
+                )
+                .into());
+            }
+            matching_methods.pop_first().unwrap()
+        }
+        Some(sign) => match matching_methods.get(&sign) {
+            Some(constr) => (sign, *constr),
+            None => {
+                return Err(ErrorKind::NoMatchingMethod(
+                    class.full_name(),
+                    method_name.into(),
+                    sign,
+                )
+                .into())
+            }
+        },
+    };
+
+    let method_modifier = env.call_method(method, "getModifiers", "()I", &[])?.i()?;
+
+    let is_static = env
+        .call_static_method(
+            "java/lang/reflect/Modifier",
+            "isStatic",
+            "(I)Z",
+            &[JValue::Int(method_modifier)],
+        )?
+        .z()?;
+
+    Ok(MethodInfo{method_signature, method, is_static})
 }
