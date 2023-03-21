@@ -163,7 +163,7 @@ mod prusti_tests {
         prusti_assert!(x == 10); // pop returns the value that was added last
 
         match list.try_pop() {
-            Some(y) => prusti_assert!(y == 5),
+            Some(y) => assert!(y == 5),
             None => unreachable!()
         }
 
