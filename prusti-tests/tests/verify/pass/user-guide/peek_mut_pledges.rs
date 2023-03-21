@@ -180,98 +180,61 @@ fn link_len<T>(link: &Link<T>) -> usize {
 mod prusti_tests {
     use super::*;
 
-    fn test_1(){
-        let mut list = List::new(); 
-        prusti_assert!(list.is_empty() && list.len() == 0);
+    fn _test_list(){
+        let mut list = List::new(); // create an new, empty list
+        prusti_assert!(list.is_empty() && list.len() == 0); // list should be empty
 
         list.push(5);
-        prusti_assert!(!list.is_empty() && list.len() == 1);
-        prusti_assert!(*list.lookup(0) == 5); // Here we can dereference the lookup, since `i32` is `Copy`
-
         list.push(10);
         prusti_assert!(!list.is_empty() && list.len() == 2); // length correct
+
         prusti_assert!(*list.lookup(0) == 10); // head is 10
         prusti_assert!(*list.lookup(1) == 5); // 5 got pushed back correctly
 
         let x = list.pop();
-        prusti_assert!(!list.is_empty() && list.len() == 1); // length correct
-        prusti_assert!(*list.lookup(0) == 5); // 5 should be at the head again
         prusti_assert!(x == 10); // pop returns the value that was added last
 
-        if let Some(y) = list.try_pop() {
-            prusti_assert!(list.is_empty() && list.len() == 0); // length correct
-            prusti_assert!(y == 5); // correct value inside the `Some`
-        } else {
-            unreachable!() // This should not happen, since `try_pop` never returns `None`
+        match list.try_pop() {
+            Some(y) => prusti_assert!(y == 5),
+            None => unreachable!()
         }
 
         let z = list.try_pop();
         prusti_assert!(list.is_empty() && list.len() == 0); // length correct
-        prusti_assert!(z.is_none()); // trying to pop from an empty list should return `None`
+        prusti_assert!(z.is_none()); // `try_pop` on an empty list should return `None`
     }
 
-    #[requires(list_0.len() >= 4)]
-    #[requires(!list_1.is_empty())]
-    #[requires(*list_0.lookup(1) == 42)]
-    #[requires(list_0.lookup(3) == list_1.lookup(0))]
-    fn test_2(list_0: &mut List<i32>, list_1: &mut List<i32>) {
-        let x0 = list_0.pop();
-
-        list_0.push(10);
-        prusti_assert!(list_0.len() >= 4);
-        prusti_assert!(*list_0.lookup(1) == 42);
-        prusti_assert!(list_0.lookup(1) == old(snap(list_0)).lookup(1));
-        prusti_assert!(list_0.lookup(2) == old(snap(list_0)).lookup(2));
-        prusti_assert!(list_0.lookup(3) == old(snap(list_0)).lookup(3));
-        assert!(list_0.pop() == 10); // Cannot be `prusti_assert`, `pop` changes the list
-
-        let x1 = list_0.pop();
-        let x2 = list_0.pop();
-        let x3 = list_0.pop();
-        prusti_assert!(x0 == old(snap(list_0.lookup(0))));
-        prusti_assert!(x1 == old(snap(list_0.lookup(1))) && x1 == 42);
-        prusti_assert!(x2 == old(snap(list_0.lookup(2))));
-        prusti_assert!(x3 == old(snap(list_0.lookup(3))));
-        
-        let y0 = list_1.pop();
-        prusti_assert!(y0 == old(snap(list_1.lookup(0))));
-        prusti_assert!(y0 == x3);
-    }
-
-    fn test_3() {
+    fn _test_peek() {
         let mut list = List::new();
         list.push(16);
         prusti_assert!(list.peek() === list.lookup(0));
         prusti_assert!(*list.peek() == 16);
         
         list.push(5);
-        prusti_assert!(list.peek() === list.lookup(0));
         prusti_assert!(*list.peek() == 5);
 
         list.pop();
-        prusti_assert!(list.peek() === list.lookup(0));
         prusti_assert!(*list.peek() == 16);
     }
 
-    fn test_4() {
+    fn _test_peek_mut() {
         let mut list = List::new();
         list.push(8);
         list.push(16);
-        prusti_assert!(*list.lookup(0) == 16);
-        prusti_assert!(*list.lookup(1) == 8);
-        prusti_assert!(list.len() == 2);
 
+        // Open a new scope using an opening bracket `{`
+        // `first` will get dropped at the closing bracket `}`
         {
             let first = list.peek_mut();
             // `first` is a mutable reference to the first element of the list
-            // for as long as `first` is live, `list` cannot be accessed
+            // for as long as `first` is exists, `list` cannot be accessed
             prusti_assert!(*first == 16);
-            *first = 5;
+            *first = 5; // Write 5 to the first slot of the list
             prusti_assert!(*first == 5);
             // `first` gets dropped here, `list` can be accessed again
         }
         prusti_assert!(list.len() == 2);
-        prusti_assert!(*list.lookup(0) == 5);
-        prusti_assert!(*list.lookup(1) == 8); 
+        prusti_assert!(*list.lookup(0) == 5); // slot 0 is now `5`
+        prusti_assert!(*list.lookup(1) == 8); // slot 1 is unchanged
     }
 }

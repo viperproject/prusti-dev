@@ -41,7 +41,7 @@ are as follows:
 3. [New](new.md): Postconditions, pure functions
 4. [Push](push.md): Preconditions, external specifications, trusted functions, old expressions, quantifiers, snapshots, structural/snapshot equality
 5. [Pop](pop.md): Similar concepts as in [Push](push.md), predicates
-6. [Testing](testing.md): Testing specifications, differences to normal tests
+6. [Testing](testing.md): Showing guarantees of verification vs running tests, and how to test specifications
 7. [Option](option.md): Changing `Link` to use `Option` type
 8. [Generics](generics.md): Prusti and generics
 9.  [Peek](peek.md): Verifying a `peek` function

@@ -22,6 +22,10 @@ These files will be automatically tested by the Prusti test-suite.
 
 Code blocks that are not supposed to be run by a user, please add `noplaypen` to the code block.
 
+To test all code imported into the documentation (in this case the user guide tutorial), you can run this command:
+- `./x.py test -p prusti-tests --test compiletest -- user-guide`
+This will attempt to verify all the Prusti examples in the `prusti-tests` directory that have the string "user-guide" in their path.
+
 
 ## Doctests
 
@@ -44,4 +48,3 @@ To run the doctests (in this case for the user guide):
 - `cargo build`
 - `cd ../user-guide/`
 - `mdbook test -L ../dummy/target/debug/deps/`
-

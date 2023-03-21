@@ -175,61 +175,26 @@ fn link_len(link: &Link) -> usize {
 mod prusti_tests {
     use super::*;
 
-    fn test_1(){
+    fn _test_list(){
         let mut list = List::new(); // create an new, empty list
         prusti_assert!(list.is_empty() && list.len() == 0); // list should be empty
 
         list.push(5);
-        prusti_assert!(!list.is_empty() && list.len() == 1); // the list should have a length of 1
-        prusti_assert!(list.lookup(0) == 5); // the head of the list should be 5
-
         list.push(10);
         prusti_assert!(!list.is_empty() && list.len() == 2); // length correct
         prusti_assert!(list.lookup(0) == 10); // head is 10
         prusti_assert!(list.lookup(1) == 5); // 5 got pushed back correctly
 
         let x = list.pop();
-        prusti_assert!(!list.is_empty() && list.len() == 1); // length correct
-        prusti_assert!(list.lookup(0) == 5); // 5 should be at the head again
         prusti_assert!(x == 10); // pop returns the value that was added last
 
-        if let Some(y) = list.try_pop() {
-            prusti_assert!(list.is_empty() && list.len() == 0); // length correct
-            prusti_assert!(y == 5); // correct value inside the `Some`
-        } else {
-            unreachable!() // This should not happen, since `try_pop` never returns `None`
+        match list.try_pop() {
+            Some(y) => prusti_assert!(y == 5),
+            None => unreachable!()
         }
 
         let z = list.try_pop();
         prusti_assert!(list.is_empty() && list.len() == 0); // length correct
-        prusti_assert!(z.is_none()); // trying to pop from an empty list should return `None`
-    }
-
-    #[requires(list_0.len() >= 4)]
-    #[requires(!list_1.is_empty())]
-    #[requires(list_0.lookup(1) == 42)]
-    #[requires(list_0.lookup(3) == list_1.lookup(0))]
-    fn test_2(list_0: &mut List, list_1: &mut List) {
-        let x0 = list_0.pop();
-
-        list_0.push(10);
-        prusti_assert!(list_0.len() >= 4);
-        prusti_assert!(list_0.lookup(1) == 42);
-        prusti_assert!(list_0.lookup(1) == old(snap(list_0)).lookup(1));
-        prusti_assert!(list_0.lookup(2) == old(snap(list_0)).lookup(2));
-        prusti_assert!(list_0.lookup(3) == old(snap(list_0)).lookup(3));
-        assert!(list_0.pop() == 10); // Cannot be `prusti_assert`, `pop` changes the list
-
-        let x1 = list_0.pop();
-        let x2 = list_0.pop();
-        let x3 = list_0.pop();
-        prusti_assert!(x0 == old(snap(list_0)).lookup(0));
-        prusti_assert!(x1 == old(snap(list_0)).lookup(1) && x1 == 42);
-        prusti_assert!(x2 == old(snap(list_0)).lookup(2));
-        prusti_assert!(x3 == old(snap(list_0)).lookup(3));
-        
-        let y0 = list_1.pop();
-        prusti_assert!(y0 == old(snap(list_1)).lookup(0));
-        prusti_assert!(y0 == x3);
+        prusti_assert!(z.is_none()); // `try_pop` on an empty list should return `None`
     }
 }
