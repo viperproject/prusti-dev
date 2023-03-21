@@ -12,7 +12,7 @@ pub fn restrictive_square(x: i32) -> i32 {
 }
 
 fn test() {
-    prusti_assert!(restrictive_square(10) == 100); // Works
-    prusti_assert!(restrictive_square(5) == 25); //~ ERROR precondition might not hold.
+    assert!(restrictive_square(10) == 100); // Works
+    assert!(restrictive_square(5) == 25); //~ ERROR precondition might not hold.
 }
 //// ANCHOR_END: code

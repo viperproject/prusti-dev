@@ -36,7 +36,7 @@ devices.
 As a quick reference, the main steps of this tour and the involved Prusti features
 are as follows:
 
-1. [Setup](setup.md) How to add Prusti to a Rust project
+1. [Setup](setup.md): Adding Prusti to a Rust project
 2. [Getting Started](getting-started.md): Simple runtime errors caught by Prusti
 3. [New](new.md): Postconditions, pure functions
 4. [Push](push.md): Preconditions, external specifications, trusted functions, old expressions, quantifiers, snapshots, structural/snapshot equality
@@ -45,7 +45,7 @@ are as follows:
 7. [Option](option.md): Changing `Link` to use `Option` type
 8. [Generics](generics.md): Prusti and generics
 9.  [Peek](peek.md): Verifying a `peek` function
-10. [Pledges (mutable peek)](pledges.md): Demonstrate Prusti's pledges for functions returning mutable references
+10. [Pledges (mutable peek)](pledges.md): Demonstrating Prusti's pledges for functions returning mutable references
 11.  [Final Code](final.md): Final code for the verified linked list
 12.  [Loop Invariants](loop_invariants.md): Verifying code containing loops by writing loop invariants
-13.  [Counterexamples](counterexamples.md): Get a counterexample for a failing assertions
+13.  [Counterexamples](counterexamples.md): Getting counterexamples for failing assertions

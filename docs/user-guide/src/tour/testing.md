@@ -20,6 +20,8 @@ When verification succeeds, you are guaranteed to not have a bug like a crash, o
 This assumes that you have manually verified any `#[trusted]` functions and have checked for correct termination of all functions.
 If the verification fails, you may have a bug, or your specifications are not strong enough.
 
+In other words: Testing can show the *presence* of bugs, verification can show the *absence* of bugs.
+
 The guarantees of testing are different. If a test fails, you know that you have a bug (either in the code or the test), but if all your tests pass, you might still have some bugs, just not with the specific inputs used in the tests.
 
 It might still be worth writing (and running) some unit tests even for verified code, as they can serve as documentation on using a function. If you made some mistake in both the code and the specification, you may notice it if you write a test for it or use that function in another verified function.
@@ -66,7 +68,7 @@ To check our specifications and code, we could write a function that relies on t
 // Prusti: verifies
 ``` -->
 
-Note, the function `test_list` would still be available when the program is compiled normally. There may be a possibility to do have something similar to the `#[cfg(test)]` annotation in Prusti. This would allow you to only have `test_list` during verification, see [this section](../capabilities/limitations.md#conditional-compilation-for-verification-vs-normal-compilation) of the limitations chapter.
+Note, the function `test_list` would still be available when the program is compiled normally. There may be a possibility to have something similar to the `#[cfg(test)]` annotation in Prusti. This would allow you to only have `test_list` during verification, see [this section](../capabilities/limitations.md#conditional-compilation-for-verification-vs-normal-compilation) of the limitations chapter.
 
 
 Our test code can be verified, so it appears that our specification is not too restrictive or incomplete.
