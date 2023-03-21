@@ -1,4 +1,4 @@
-# Assertions and Assumptions 
+# Assertions, Refutations and Assumptions 
 
 You can use Prusti to verify that a certain property holds at a certain point
 within the body of a function (via an assertion). It is also possible to
@@ -34,6 +34,39 @@ prusti_assert!(map.insert(5)); // error
 `prusti_assert_eq!` and `prusti_assert_ne!` are the Prusti counterparts to
 `assert_eq!` and `assert_ne!`, but the check is made for
 [snapshot equality](../syntax.md#snapshot-equality), resp. snapshot inequality.
+
+## Refutations
+
+The `prusti_refute!` macro is similar to `prusti_assert!` in its format, conditions of use and what expressions it accepts. It instructs Prusti to verify that a certain property at a specific point within the body of a function might hold in some, but not all cases. For example the following code will verify:
+
+```rust,noplaypen
+#[ensures(val < 0 ==> result == -1)]
+#[ensures(val == 0 ==> result == 0)]
+#[ensures(val > 0 ==> result == 1)]
+fn sign(val: i32) -> i32 {
+  prusti_refute!(val <= 0);
+  prusti_refute!(val >= 0);
+  if val < 0 {
+    -1
+  } else if val > 0 {
+    1
+  } else {
+    prusti_refute!(false);
+    0
+  }
+}
+```
+
+But the following function would not:
+
+```rust,noplaypen
+#[requires(val < 0 && val > 0)]
+#[ensures(result == val/2)]
+fn half(val: i32) -> i32 {
+  prusti_refute!(false);
+  val/2
+}
+```
 
 ## Assumptions
 

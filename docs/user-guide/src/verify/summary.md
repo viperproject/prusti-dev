@@ -10,7 +10,7 @@ More intricate properties require users to write suitable [specifications](../sy
 The following features are either currently supported or planned to be supported in Prusti:
 
 - [Pre- and postconditions](prepost.md)
-- [Assertions and assumptions](assert_assume.md)
+- [Assertions, refutations and assumptions](assert_refute_assume.md)
 - [Trusted functions](trusted.md)
 - [Pure functions](pure.md)
 - [Predicates](predicate.md)
