@@ -54,7 +54,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     eprintln!();
 
     let fallback_bundle = prusti_rustc_interface::errors::fallback_fluent_bundle(
-        prusti_rustc_interface::errors::DEFAULT_LOCALE_RESOURCES,
+        prusti_rustc_interface::driver::DEFAULT_LOCALE_RESOURCES.to_vec(),
         false,
     );
     let emitter = box prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
@@ -67,6 +67,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         None,
         false,
         false,
+        prusti_rustc_interface::errors::TerminalUrl::Auto,
     );
     let handler = prusti_rustc_interface::errors::Handler::with_emitter(true, None, emitter);
 
@@ -135,13 +136,19 @@ fn init_loggers() -> Option<FlushGuard> {
 fn main() {
     let stopwatch = Stopwatch::start("prusti", "main");
 
-    // We assume that prusti-rustc already removed the first "rustc" argument
-    // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
+    // We assume that all command line arguments -P<arg>=<val>
     // have been filtered out.
     let original_rustc_args = config::get_filtered_args();
 
-    // If the environment asks us to actually be rustc, then run `rustc` instead of Prusti.
-    if config::be_rustc() {
+    // Are we building a build script?
+    let build_script_build = arg_value(&original_rustc_args, "--crate-name", |val| {
+        val == "build_script_build"
+    })
+    .is_some();
+
+    // If the environment asks us to actually be rustc, then run `rustc` instead of Prusti,
+    // or if we're building a build script where we can't retrieve MIR bodies.
+    if config::be_rustc() || build_script_build {
         prusti_rustc_interface::driver::main();
     }
 
@@ -192,6 +199,13 @@ fn main() {
         ));
         user::message(format!("Prusti version: {}", get_prusti_version_info()));
         info!("Prusti version: {}", get_prusti_version_info());
+        if rustc_args.get(1).map(|s| s.as_ref()) == Some("-vV") {
+            // When cargo queries the verbose rustc version,
+            // also print the Prusti version to stdout.
+            // This ensures that the cargo build cache is
+            // invalidated when the Prusti version changes.
+            println!("Prusti version: {}", get_prusti_version_info());
+        }
 
         rustc_args.push("-Zalways-encode-mir".to_owned());
         rustc_args.push("-Zcrate-attr=feature(type_ascription)".to_owned());
