@@ -1,5 +1,13 @@
 use prusti_contracts::*;
 
+extern "C" {
+    fn max(a: i32, b: i32) -> i32;
+
+    fn unannotated();
+
+    fn abs(a: i32) -> i32;
+}
+
 #[extern_spec]
 extern "C" {
     #[ensures(a >= b ==> result == a)]
