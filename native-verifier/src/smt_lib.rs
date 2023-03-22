@@ -18,6 +18,7 @@ use vir::{
 lazy_static! {
     static ref ONE_PARAM_RE: Regex = Regex::new(r"(Set|Seq|MultiSet)<([^>]+)>").unwrap();
     static ref TWO_PARAM_RE: Regex = Regex::new(r"Map<([^>]+)\s*,\s*([^>]+)>").unwrap();
+    static ref MARKER_RE: Regex = Regex::new(r"label.*\$marker\b\s").unwrap();
 }
 
 const NO_Z3_PREAMBLE: &str = include_str!("theories/Preamble.smt2");
@@ -67,7 +68,6 @@ impl SMTLib {
                 // check if just asserting true
                 // TODO: Optimization module
                 if let Expression::Constant(Constant {
-                    ty: Type::Bool,
                     value: ConstantValue::Bool(true),
                     ..
                 }) = expression
@@ -118,6 +118,7 @@ impl SMTLib {
 
         // assume precond if any
         if let Some(precond) = precond {
+            // TODO: Location of the call site
             self.add_code("; Branch precond:".to_string());
             self.add_code(format!("(assert {})", precond.to_smt()));
         }
@@ -140,7 +141,6 @@ impl SMTLib {
                 let (last_expr, last_label) = mapping.iter().last().unwrap();
 
                 if let Expression::Constant(Constant {
-                    ty: Type::Bool,
                     value: ConstantValue::Bool(true),
                     ..
                 }) = last_expr
@@ -263,7 +263,7 @@ impl ToString for SMTLib {
 
         result
             .lines()
-            .filter(|&line| !line.contains("$marker")) // TODO: SSO form for marker variables?
+            .filter(|&line| !MARKER_RE.is_match(line)) // TODO: SSO form for marker variables?
             .filter(|&line| line != "(assert true)") // TODO: Optimization module
             .collect::<Vec<_>>()
             .join("\n")
@@ -471,8 +471,16 @@ impl SMTTranslatable for Expression {
                 ConstantValue::BigInt(s) => s.clone(),
             },
             Expression::MagicWand(wand) => {
-                warn!("MagicWand not supported: {}", wand);
-                format!("(=> {} {})", wand.left.to_smt(), wand.right.to_smt())
+                // if left is just constant true, we can ignore it
+                if let Expression::Constant(Constant {
+                    value: ConstantValue::Bool(true),
+                    ..
+                }) = *wand.left
+                {
+                    format!("(=> {} {})", wand.left.to_smt(), wand.right.to_smt())
+                } else {
+                    unimplemented!("Non-trivial MagicWand not supported: {}", wand);
+                }
             }
             Expression::PredicateAccessPredicate(_access) => {
                 warn!("PredicateAccessPredicate not supported: {}", _access);

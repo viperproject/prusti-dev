@@ -33,10 +33,43 @@ fn vir_statement_to_fol_statements(
             vec![FolStatement::Assume(eq)]
         }
         Statement::Conditional(cond) => {
+            // handle trivial cases where the guard is constant true or false, emit the branches instead
+            if let Expression::Constant(Constant {
+                value: ConstantValue::Bool(true),
+                ..
+            }) = cond.guard
+            {
+                return cond
+                    .then_branch
+                    .iter()
+                    .flat_map(|s| vir_statement_to_fol_statements(s, known_methods))
+                    .collect();
+            } else if let Expression::Constant(Constant {
+                value: ConstantValue::Bool(false),
+                ..
+            }) = cond.guard
+            {
+                return cond
+                    .else_branch
+                    .iter()
+                    .flat_map(|s| vir_statement_to_fol_statements(s, known_methods))
+                    .collect();
+            }
+
             if !(cond.then_branch.is_empty() && cond.else_branch.is_empty()) {
-                log::warn!(
-                    "Conditional statement with non-empty branches, guard: {:?}",
-                    cond.guard
+                unimplemented!(
+                    "Non-trivial conditional statements not supported!!\nGuard: {}\n\nThen-branch:\n{}\n\nElse-branch:\n{}",
+                    cond.guard,
+                    cond.then_branch
+                        .iter()
+                        .map(|s| format!("{}", s))
+                        .collect::<Vec<_>>()
+                        .join(";\n"),
+                    cond.else_branch
+                        .iter()
+                        .map(|s| format!("{}", s))
+                        .collect::<Vec<_>>()
+                        .join(";\n")
                 );
             }
             vec![]

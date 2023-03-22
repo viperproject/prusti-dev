@@ -75,7 +75,9 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Expression::Conditional(expression) => {
                 self.conditional_to_snapshot(lowerer, expression, expect_math_bool)
             }
-            // vir_mid::Expression::Quantifier(expression) => self.quantifier_to_snapshot(lowerer, expression, expect_math_bool),
+            vir_mid::Expression::Quantifier(expression) => {
+                self.quantifier_to_snapshot(lowerer, expression, expect_math_bool)
+            }
             // vir_mid::Expression::LetExpr(expression) => self.letexpr_to_snapshot(lowerer, expression, expect_math_bool),
             vir_mid::Expression::FuncApp(expression) => {
                 self.func_app_to_snapshot(lowerer, expression, expect_math_bool)
@@ -101,6 +103,58 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         } else {
             Ok(expression)
         }
+    }
+
+    fn quantifier_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        quantifier: &vir_mid::Quantifier,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let vir_mid::Quantifier {
+            kind,
+            variables,
+            triggers,
+            body,
+            position,
+        } = quantifier;
+
+        let vars = variables
+            .iter()
+            .map(|variable| self.variable_to_snapshot(lowerer, variable))
+            .collect::<SpannedEncodingResult<Vec<_>>>()?;
+
+        let trigs = triggers
+            .iter()
+            .map(|trigger| {
+                let trig = self
+                    .expression_vec_to_snapshot(lowerer, &trigger.terms, expect_math_bool)
+                    .unwrap();
+                vir_low::Trigger { terms: trig }
+            })
+            .collect();
+
+        let body = self.expression_to_snapshot(lowerer, body, expect_math_bool)?;
+
+        let kind = match kind {
+            vir_mid::expression::QuantifierKind::ForAll => {
+                vir_low::expression::QuantifierKind::ForAll
+            }
+            vir_mid::expression::QuantifierKind::Exists => {
+                vir_low::expression::QuantifierKind::Exists
+            }
+        };
+
+        // no call to ensure_bool_expression since quantifiers are always math bool and forall is built-in to SMT solvers
+        Ok(vir_low::Expression::Quantifier(
+            vir_low::expression::Quantifier {
+                kind,
+                variables: vars,
+                triggers: trigs,
+                body: Box::new(body),
+                position: *position,
+            },
+        ))
     }
 
     fn variable_to_snapshot(
