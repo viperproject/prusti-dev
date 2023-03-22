@@ -173,6 +173,7 @@ fn link_len<T>(link: &Link<T>) -> usize {
 
 //// ANCHOR: generic_types
 //// ANCHOR: lookup_reference
+#[cfg(prusti)]
 mod prusti_tests {
     use super::*;
 
