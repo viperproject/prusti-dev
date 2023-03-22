@@ -3,8 +3,23 @@
 - Good integration with standard Rust tooling, invokation of Prusti works in the same way as invoking Cargo or rustc
 - Error messages are provided in the same way as in normal Rust compilation
   - Messages shown inlined in source code with Prusti-Assistant VSCode extension
-- Code with Prusti annotations can still be compiled with normal rustc
-  - Prusti annotations are automatically removed at compile time using the Rust macro system
 - Prusti can verify either individual Rust files, entire Cargo projects and also Cargo workspaces containing multiple crates
 - Can verify generic and non-generic functions and types
-- Pre- and postconditions and `prusti_assert`s support using quantifiers (`forall`, `exists`)
+- Prusti can check any assertion either never fails or is unreachable
+- Prusti can check if any integer operation might overflow
+- Additional verification syntax usable in specifications (Pre-/Postconditions, `prusti_assert`, `prusti_assert_eq`, `prusti_assert_ne` macros):
+  - Quantifiers (forall, exists)
+  - `old` to refer to state of a variable before a function call
+  - `snap` to take snapshots of references to work around the borrow checker inside specifications
+  - snapshot equality `===` and inequality `!==` to compare values that do not implement `PartialEq`
+  - left, right and two-sided implication operators: `<==`, `==>`, `<==>`
+- Code with Prusti annotations can still be compiled directly with normal rustc
+  - Prusti annotations are automatically removed at compile time using the Rust macro system
+- Can get counterexample printed for failing assertions
+- External code can still be used in verification by writing an `extern_spec` for it
+- Can verify functions returning mutable references using `pledges`
+- TODO: type_cond_spec.md
+- TODO: type_models.md
+- TODO: prusti_assume
+- TODO: spec_ent.md
+- TODO: partial verification for big projects
