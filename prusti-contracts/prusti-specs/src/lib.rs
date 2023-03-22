@@ -780,11 +780,14 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
                 extern_spec_rewriter::mods::rewrite_mod(&item_mod, mod_path)
             }
             syn::Item::ForeignMod(item_foreign_mod) => {
-                extern_spec_rewriter::foreign_mods::rewrite_extern_spec(&item_foreign_mod)
+                extern_spec_rewriter::foreign_mods::rewrite_extern_spec(
+                    &item_foreign_mod,
+                    &mod_path,
+                )
             }
             // we're expecting function stubs, so they aren't represented as Item::Fn
             syn::Item::Verbatim(stub_tokens) => {
-                extern_spec_rewriter::functions::rewrite_stub(&stub_tokens, &mod_path)
+                extern_spec_rewriter::functions::rewrite_stub(&stub_tokens, &mod_path, false)
             }
             _ => Err(syn::Error::new(
                 Span::call_site(), // this covers the entire macro invocation, unlike attr.span() which changes to only cover arguments if possible

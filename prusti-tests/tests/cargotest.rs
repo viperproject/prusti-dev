@@ -186,6 +186,11 @@ fn test_failing_stable_toolchain() {
 }
 
 #[cargo_test]
+fn test_foreign_mods() {
+    test_local_project("foreign_mods");
+}
+
+#[cargo_test]
 fn test_library_contracts_test() {
     test_local_project("library_contracts_test");
 }
