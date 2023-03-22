@@ -155,6 +155,7 @@ fn link_len<T>(link: &Link<T>) -> usize {
 }
 
 //// ANCHOR: test_peek
+#[cfg(prusti)]
 mod prusti_tests {
     use super::*;
 

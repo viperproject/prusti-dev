@@ -177,6 +177,7 @@ fn link_len<T>(link: &Link<T>) -> usize {
     }
 }
 
+#[cfg(prusti)]
 mod prusti_tests {
     use super::*;
 

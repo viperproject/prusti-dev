@@ -145,6 +145,7 @@ impl Link {
 
 //// ANCHOR: test_1
 //// ANCHOR: test_2
+#[cfg(prusti)]
 mod prusti_tests {
     use super::*;
 
