@@ -436,20 +436,6 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         self.env.query.hir()
     }
 
-    fn visit_foreign_item(&mut self, fi: &'tcx prusti_rustc_interface::hir::ForeignItem) {
-        intravisit::walk_foreign_item(self, fi);
-
-        let id = fi.hir_id();
-        let local_id = self.env.query.as_local_def_id(id);
-        let def_id = local_id.to_def_id();
-        let attrs = self.env.query.get_local_attributes(fi.owner_id.def_id);
-
-        // Collect procedure specifications
-        if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
-            self.procedure_specs.insert(local_id, procedure_spec_ref);
-        }
-    }
-
     fn visit_trait_item(&mut self, ti: &'tcx prusti_rustc_interface::hir::TraitItem) {
         intravisit::walk_trait_item(self, ti);
 

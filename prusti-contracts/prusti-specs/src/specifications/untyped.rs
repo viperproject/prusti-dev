@@ -71,7 +71,7 @@ impl AnyFnItem {
             _ => unreachable!(),
         }
     }
-    
+
     pub fn expect_foreign_item_fn(self) -> syn::ForeignItemFn {
         match self {
             AnyFnItem::ForeignFn(f) => f,
