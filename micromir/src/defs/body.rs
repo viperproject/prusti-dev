@@ -18,7 +18,7 @@ use std::{
 };
 
 use crate::{
-    FreeState, MicroStatement, MicroTerminator, TermDebug, TerminatorPlaceCapabilitySummary,
+    permission::FreeState, MicroStatement, MicroTerminator, TermDebug, TerminatorPlaceCapabilitySummary,
 };
 
 #[derive(Clone, Debug, Deref, DerefMut)]
@@ -31,6 +31,7 @@ pub struct MicroBody<'tcx> {
 }
 impl<'tcx> MicroBody<'tcx> {
     pub fn new(body: Rc<Body<'tcx>>, tcx: TyCtxt<'tcx>) -> Self {
+        crate::free_pcs::engine::test(&*body, tcx);
         let mut body = Self::from(body);
         body.calculate_repacking(tcx);
         body

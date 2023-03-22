@@ -15,11 +15,11 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    check::checker, FreeState, MicroBasicBlockData, MicroBasicBlocks, MicroBody, MicroStatement,
-    MicroTerminator, PermissionKind, TerminatorPlaceCapabilitySummary,
+    check::checker, repack::permission::FreeState, MicroBasicBlockData, MicroBasicBlocks, MicroBody, MicroStatement,
+    MicroTerminator, repack::permission::PermissionKind, TerminatorPlaceCapabilitySummary, utils::PlaceRepacker,
 };
 
-use super::{place::PlaceRepacker, triple::ModifiesFreeState};
+use super::triple::ModifiesFreeState;
 
 impl<'tcx> MicroBody<'tcx> {
     fn initial_free_state(&self) -> FreeState<'tcx> {

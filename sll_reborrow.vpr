@@ -1,0 +1,63 @@
+field f: Ref
+field n: Ref
+
+define field_T(a) (T(a))
+
+predicate SLL_T(l:Ref) {
+    acc(l.f) && T(l.f)
+    && acc(l.n) && (l.n != null ==> SLL_T(l.n))
+}
+predicate SLL_ref_T(l:Ref) {
+    acc(l.f) && acc(l.f.f) && T(l.f.f)
+    && acc(l.n) && (l.n != null ==> SLL_ref_T(l.n))
+}
+predicate T(l:Ref)
+
+function get_refs(x:Ref): Seq[Ref]
+    requires SLL_ref_T(x)
+{
+    unfolding SLL_ref_T(x) in Seq(x.f.f) ++ (x.n == null ? Seq() : get_refs(x.n))
+}
+
+method sll_reborrow(l:Ref) returns (res:Ref, refs:Seq[Ref])
+    requires SLL_T(l)
+    ensures SLL_ref_T(res) && refs == get_refs(res) && ((forall i:Ref :: i in refs ==> field_T(i)) --* SLL_T(l))
+{
+    unfold SLL_T(l)
+
+    inhale SLL_ref_T(res)
+    unfold SLL_ref_T(res)
+    res.f.f := l.f
+    res.n := null
+    fold SLL_ref_T(res)
+
+    var tmp: Ref := l.n
+    refs := get_refs(res)
+    package (tmp != null ==> SLL_T(tmp)) && (forall i:Ref :: i in refs ==> field_T(i)) --* SLL_T(l) {
+        fold SLL_T(l)
+    }
+
+    while (tmp != null)
+        invariant tmp != null ==> SLL_T(tmp)
+        invariant SLL_ref_T(res) && refs == get_refs(res) && ((tmp != null ==> SLL_T(tmp)) && (forall i:Ref :: i in refs ==> field_T(i)) --* SLL_T(l))
+    {
+        unfold SLL_T(tmp)
+
+        var newRes: Ref
+        inhale SLL_ref_T(newRes)
+        unfold SLL_ref_T(newRes)
+        newRes.f.f := tmp.f
+        newRes.n := res
+        res := newRes
+        fold SLL_ref_T(res)
+
+        tmp := tmp.n
+        refs := get_refs(res)
+        package (tmp != null ==> SLL_T(tmp)) && (forall i:Ref :: i in refs ==> field_T(i)) --* SLL_T(l) {
+            assume false
+        }
+    }
+    package (forall i:Ref :: i in refs ==> field_T(i)) --* SLL_T(l) {
+        apply (tmp != null ==> SLL_T(tmp)) && (forall i:Ref :: i in refs ==> field_T(i)) --* SLL_T(l)
+    }
+}

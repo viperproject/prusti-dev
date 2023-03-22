@@ -12,7 +12,7 @@ use prusti_rustc_interface::{
 use std::{borrow::Cow, iter};
 
 use crate::{
-    FreeState, MicroOperand, Operands, Place, PlaceCapabilitySummary,
+    permission::FreeState, MicroOperand, Operands, Place, PlaceCapabilitySummary,
     TerminatorPlaceCapabilitySummary,
 };
 

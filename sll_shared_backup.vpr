@@ -1,0 +1,388 @@
+field f: Ref
+field n: Ref
+
+field ref: Ref
+field g: Ref
+
+
+predicate SLL_T(res:Ref) {
+    acc(res.f) && acc(res.f.g)
+    && acc(res.n) && (res.n != null ==> SLL_T(res.n))
+}
+
+// `perms_g[res.f := 0/0]` might not be necessary, could do just `perms_g` instead.
+// It gives use that all `res.f` are unique, but we'd already get that from holding
+// `acc(SLL_T(res), >0/1)` alongside `acc(SLL_T_Map(res, ...), 1/1)`
+predicate SLL_T_Map(res:Ref, perms_g: Map[Ref, Perm], other: Perm) {
+    other > 0/1 && acc(res.f, other) &&
+    res.f in perms_g && perms_g[res.f] > 0/1 && acc(res.f.g, perms_g[res.f]) &&
+    acc(res.n, other) &&
+    (res.n != null ==> SLL_T_Map(res.n, perms_g[res.f := 0/1], other))
+    && (res.n == null ==> forall r: Ref :: r in perms_g && (r != res.f ==> perms_g[r] == 0/1))
+}
+
+predicate SLL_ref_T(res:Ref) {
+    acc(res.f)
+    && acc(res.n) && (res.n != null ==> SLL_ref_T(res.n))
+}
+
+function get_refs(x:Ref): Seq[Ref]
+    requires SLL_ref_T(x)
+{
+    unfolding SLL_ref_T(x) in Seq(x.f) ++ (x.n == null ? Seq() : get_refs(x.n))
+}
+
+function get_refs_2(x:Ref, other: Perm): Seq[Ref]
+    requires other > 0/1 && acc(SLL_T(x), other)
+{
+    unfolding acc(SLL_T(x), other) in Seq(x.f) ++ (x.n == null ? Seq() : get_refs_2(x.n, other))
+}
+
+method split(x:Ref, a: Perm) returns (perms_g: Map[Ref, Perm])
+    requires x != null && a > 0/1 && acc(SLL_T(x), a)
+    ensures acc(SLL_T(x), a/2)
+    ensures forall r: Ref :: r in perms_g
+    ensures forall r: Ref :: r in get_refs_2(x, a/2) ==> perms_g[r] == a/2
+    ensures forall r: Ref :: !(r in get_refs_2(x, a/2)) ==> perms_g[r] == 0/1
+    ensures forall r: Ref :: r in get_refs_2(x, a/2) ==> acc(r.g, perms_g[r])
+{
+    unfold acc(SLL_T(x), a)
+    if (x.n == null) {
+        assume forall r: Ref :: r in perms_g && perms_g[r] == 0/1
+        perms_g := perms_g[x.f := a/2]
+        fold acc(SLL_T(x), a/2)
+    } else {
+        perms_g := split(x.n, a)
+        var old_perms_g: Map[Ref, Perm] := perms_g
+
+        assume perms_g[x.f] == 0/1
+
+        var tmp: Ref := x.f
+        perms_g := perms_g[x.f := a/2]
+        // var oldSeq: Seq[Ref] := get_refs_2(x.n, oldPremsG, a/2)
+
+        // assume old_perms_g == perms_g[x.f := 0/1]
+
+        // assume get_refs_2(x, perms_g, a/2) == Seq(x.f) ++ oldSeq // TODO
+        fold acc(SLL_T(x), a/2)
+    }
+}
+
+// function sum(x:Ref, perms:Map[Ref, Perm]): Perm
+//     requires SLL_ref_T(x)
+// {
+//     unfolding SLL_ref_T(x) in perms[x.f] + (x.n == null ? 0/1 : sum(x.n, perms))
+// }
+
+method foo(y: Ref) returns (res:Ref, perms:Map[Ref, Perm])
+    requires y != null && acc(SLL_T(y), 1/2)
+{
+    var a: Ref
+    inhale acc(a.g, 1/1)
+
+    inhale acc(res.f) && acc(res.n)
+    res.f := a
+    res.n := null
+
+    assume forall r: Ref :: r in perms && perms[r] == 0/1
+    perms := perms[res.f := 1/2]
+    var a_perm: Perm := 1/2
+
+    fold SLL_ref_T(res)
+
+    // assert forall r: Ref :: r in get_refs(res) ==> acc(r.g, perms[r])
+
+    var y_perm: Perm := 1/2
+    var perms_g: Map[Ref, Perm]
+    perms_g := split(y, y_perm)
+    y_perm := y_perm/2
+    // assume !(a in get_refs_2(y, perms_g, y_perm))
+
+    var nd: Bool
+    nd := nondet()
+    while (nd)
+        invariant res != null && SLL_ref_T(res)
+        invariant forall r: Ref :: r in perms
+        invariant forall r: Ref :: r in get_refs(res) ==> perms[r] > 0/1
+        invariant forall r: Ref :: !(r in get_refs(res)) ==> perms[r] == 0/1
+        invariant forall r: Ref :: r in get_refs(res) ==> acc(r.g, perms[r])
+        invariant a_perm > 0/1
+        invariant acc(a.g, a_perm)
+        invariant perms[a] + a_perm == 1/1
+
+        invariant y_perm > 0/1
+        invariant acc(SLL_T(y), y_perm)
+
+        invariant forall r: Ref :: r in perms_g
+        invariant forall r: Ref :: r in get_refs_2(y, y_perm) ==> perms_g[r] > 0/1
+        invariant forall r: Ref :: !(r in get_refs_2(y, y_perm)) ==> perms_g[r] == 0/1
+        invariant forall r: Ref :: r in get_refs_2(y, y_perm) ==> acc(r.g, perms_g[r])
+
+        invariant forall r: Ref :: r in get_refs_2(y, y_perm) ==> perms_g[r] + perms[r] == y_perm
+    {
+        nd := nondet()
+        if (nd) {
+            var newRes: Ref
+            inhale acc(newRes.f) && acc(newRes.n)
+            newRes.f := a
+            newRes.n := res
+            res := newRes
+
+            // perms := perms
+            a_perm := a_perm / 2
+            perms := perms[res.f := a_perm + perms[res.f]]
+
+            fold SLL_ref_T(res)
+        } else {
+            var newRes: Ref
+            inhale acc(newRes.f) && acc(newRes.n)
+
+            unfold acc(SLL_T(y), y_perm)
+            newRes.f := y.f
+            assert y.f != a
+            assert perms_g[y.f] + perms[y.f] == y_perm
+            assert perm(newRes.f.g) == perms_g[y.f] + perms[y.f] + y_perm
+
+            perms_g := perms_g[y.f := perms_g[y.f]/2]
+            assert acc(newRes.f, 2*perms_g[y.f])
+            perms := perms[y.f := perms[y.f] + perms_g[y.f]]
+            fold acc(SLL_T(y), y_perm)
+
+            assert perm(newRes.f.g) == perms_g[newRes.f] + perms[newRes.f]
+
+            newRes.n := res
+            res := newRes
+
+            fold SLL_ref_T(res)
+        }
+
+        // assert Seq(unfolding SLL_ref_T(res) in res.f) ++ oldGetRefs == get_refs(res)
+
+        // assert forall r: Ref :: r in oldGetRefs ==> r in get_refs(res)
+
+        // assert (unfolding SLL_ref_T(res) in res.f) in get_refs(res)
+
+        // assert forall r: Ref :: r in get_refs(res) ==> acc(r.g, perms[r])
+
+        nd := nondet()
+    }
+
+    assert acc(a.g, 1/1)
+}
+
+// method foo(y: Ref) returns (res:Ref, res2:Ref)
+//     requires acc(SLL_T(y), 1/2)
+// {
+
+//     // unfold acc(SLL_T(y), 1/2)
+
+//     var a: Ref
+//     inhale acc(a.g, 1/2)
+//     var b: Ref
+//     inhale acc(b.g, 1/2)
+
+//     inhale acc(res.f) && acc(res.n)
+//     res.f := a
+//     res.n := null
+//     fold SLL_ref_T(res)
+
+//     inhale acc(res2.f) && acc(res2.n)
+//     res2.f := y
+//     res2.n := null
+//     fold SLL_ref_T(res2)
+
+//     var refs: Seq[Ref] := get_refs(res)
+//     var refs2: Seq[Ref] := get_refs(res2)
+
+//     var nd: Bool
+//     nd := nondet()
+//     while (nd)
+//         invariant SLL_ref_T(res) && refs == get_refs(res)
+//         invariant SLL_ref_T(res2) && refs2 == get_refs(res2)
+//         invariant forall r: Ref :: r in refs ==> acc(r.g, perms_in_refs[r])
+//         // invariant forall r: Ref :: r in refs2 ==> acc(SLL_T(r), 1/2)
+//         invariant acc(a.g, perm_in_a)
+//         invariant acc(b.g, perm_in_b)
+//         invariant acc(SLL_T(y, perm_in_y))
+
+
+//         invariant sum(perms_in_refs) + perm_in_a + perm_in_b + perm_in_y == 1
+//     {
+
+//         unfold acc(SLL_T(y), perm_in_y)
+        
+//         var newRes: Ref
+//         inhale acc(newRes.f) && acc(newRes.n)
+//         newRes.f := y.f
+//         res := newRes
+//         fold SLL_ref_T(res)
+
+//         perm_in_y := perm_in_y / 2
+//         perms_in_refs := Seq(perm_in_y) ++ perms_in_refs
+
+//         unfold acc(SLL_T(y), perm_in_y)
+
+//         // fold acc(SLL_T(y), 1/2)
+//         // nd := nondet()
+//         // if (nd) {
+//         //     var newRes: Ref
+//         //     inhale acc(newRes.f) && acc(newRes.n)
+//         //     newRes.f := b
+//         //     newRes.n := res
+//         //     res := newRes
+//         //     fold SLL_ref_T(res)
+//         // } else {
+//         //     var newRes: Ref
+//         //     inhale acc(newRes.f) && acc(newRes.n)
+
+//         //     unfold acc(SLL_T(y), 1/2)
+//         //     assert acc(y.f, 1/2) && acc(y.f.g, 1/2)
+//         //     newRes.f := y.f
+//         //     fold acc(SLL_T(y), 1/2)
+
+//         //     newRes2.f := y
+
+//         //     newRes.n := res
+//         //     res := newRes
+//         //     fold SLL_ref_T(res)
+//         // }
+//         refs := get_refs(res)
+//         nd := nondet()
+//     }
+// }
+
+// domain Pair[A, B] {
+//     function fst(p: Pair[A, B]): A
+//     function snd(p: Pair[A, B]): B
+//     function pair(a: A, b: B): Pair[A, B]
+
+//     axiom ax_First {
+//         forall a: A, b: B :: 
+//             { fst(pair(a, b)) }
+//                 fst(pair(a, b)) == a
+//     }
+//     axiom ax_Second {
+//         forall a: A, b: B :: 
+//             { snd(pair(a, b)) }
+//                 snd(pair(a, b)) == b
+//     }
+// }
+
+// predicate SLL_ref_T(res:Ref, p:Seq[Perm]) {
+//     acc(res.f) && acc(res.f.ref) && |p| > 0 && p[0] > 0/1 && acc(res.f.g, p[0])
+//     && acc(res.n) && (res.n != null ==> SLL_ref_T(res.n, p[1..]))
+// }
+
+// function get_perms(res: Ref, p:Seq[Perm]): Seq[Pair[Ref, Perm]]
+//     requires SLL_ref_T(res, p)
+//     ensures forall i: Int :: 0 <= i && i < |result| ==> snd(result[i]) > 0/1
+// {
+//     unfolding SLL_ref_T(res, p) in Seq(pair(res.f, p[0])) ++ (res.n == null ? Seq() : get_perms(res.n, p[1..]))
+// }
+
+// method foo(x: Ref) returns (res:Ref, p:Seq[Perm])
+//     requires acc(x.g)
+// {
+//     inhale acc(res.f) && acc(res.n)
+//     res.f := x
+//     res.n := null
+//     p := Seq(1/2)
+//     fold SLL_ref_T(res, p)
+
+//     var perms: Seq[Pair[Ref, Perm]] := get_perms(res, p)
+//     var x_perm: Perm := 1/2
+//     // exhale acc(x.g, x_perm)
+//     package (forall i: Pair[Ref, Perm] :: i in perms ==> acc(fst(i).g, snd(i))) && acc(x.g, x_perm) --* acc(x.g) {
+//         // assert snd(perms[0]) == 1/2
+//         // assert x_perm == 1/2
+//         assert acc(fst(perms[0]).g, snd(perms[0]))
+//     }
+//     // inhale acc(x.g, x_perm)
+
+//     while (nondet())
+//         invariant res != null && SLL_ref_T(res, p) && perms == get_perms(res, p)
+//         invariant x_perm > 0/1
+//         invariant acc(x.g, x_perm)
+//         invariant (forall i: Pair[Ref, Perm] :: i in perms ==> acc(fst(i).g, snd(i))) && acc(x.g, x_perm) --* acc(x.g)
+//     {
+//         var oldPerms: Seq[Pair[Ref, Perm]] := perms
+//         var oldXPerm: Perm := x_perm
+//         var newRes: Ref
+//         inhale acc(newRes.f) && acc(newRes.n)
+//         newRes.f := x
+//         newRes.n := res
+//         p := Seq(x_perm/2) ++ p
+//         x_perm := x_perm/2
+//         res := newRes
+//         fold SLL_ref_T(res, p)
+//         perms := get_perms(res, p)
+//         package (forall i: Pair[Ref, Perm] :: i in perms ==> acc(fst(i).g, snd(i))) && acc(x.g, x_perm) --* acc(x.g) {
+//             apply (forall i: Pair[Ref, Perm] :: i in oldPerms ==> acc(fst(i).g, snd(i))) && acc(x.g, oldXPerm) --* acc(x.g)
+//         }
+//     }
+// }
+
+
+// predicate T(l:Ref)
+// define field_T(a, p) (acc(a.g) && acc(T(a.g), p))
+// define owned_T(a, p) (acc(T(a), p))
+
+// predicate SLL_ref_T(l:Ref) {
+//     acc(l.f)
+//     && acc(l.n) && (l.n != null ==> SLL_ref_T(l.n))
+// }
+
+
+// function get_refs(x:Ref): Seq[Ref]
+//     requires SLL_ref_T(x)
+// {
+//     unfolding SLL_ref_T(x) in Seq(x.f) ++ (x.n == null ? Seq() : get_refs(x.n))
+// }
+
+// method sll_reborrow(l:Ref) returns (res:Ref, refs:Seq[Ref], ps:Map[Ref, Perm])
+//     requires owned_T(l, 1/1)
+//     // ensures acc(T(l), 1/2)
+// {
+//     inhale SLL_ref_T(res)
+//     unfold SLL_ref_T(res)
+//     res.f := l
+//     refs := Seq(res.f)
+//     ps := Map(res.f := 1/2)
+//     res.n := null
+//     fold SLL_ref_T(res)
+
+//     var l_p: Perm := 1/2
+//     // assert forall i:Ref :: i in refs ==> acc(i.g, ps[i])
+//     package ((forall i:Ref :: i in refs ==> field_T(i, ps[i])) && owned_T(l.g, l_p)) --* owned_T(l.g, 1/1) {}
+
+
+//     while (nondet())
+//         invariant res != null && SLL_ref_T(res) && refs == get_refs(res)
+//         invariant forall i:Ref :: i in refs ==> ps[i] > 0/1
+//         invariant l_p > 0/1
+//         invariant forall i:Ref :: i in refs ==> acc(i.g, ps[i])
+//         invariant acc(l.g, l_p)
+//         // invariant (forall i:Ref :: i in refs ==> field_T(i, 1/(|refs|+1))) && acc(T(l), 1/(|refs|+1)) --* T(l)
+//     {
+//         // var oldRefs:Seq[Ref] := refs
+
+//         var newRes: Ref
+//         inhale SLL_ref_T(newRes)
+//         unfold SLL_ref_T(newRes)
+//         newRes.f := l
+//         newRes.n := res
+//         refs := Seq(res.f) ++ refs
+//         ps := Map(res.f := 1/2)
+//         res := newRes
+//         fold SLL_ref_T(res)
+
+//         // refs := get_refs(res)
+
+//         // package (forall i:Ref :: i in refs ==> field_T(i, 1/(|refs|+1))) && acc(T(l), 1/(|refs|+1)) --* T(l) {
+//         //     apply (forall i:Ref :: i in oldRefs ==> field_T(i, 1/(|oldRefs|+1))) && acc(T(l), 1/(|oldRefs|+1)) --* T(l)
+//         // }
+//     }
+//     // apply (forall i:Ref :: i in refs ==> field_T(i, 1/(|refs|+1))) && acc(T(l), 1/(|refs|+1)) --* T(l)
+// }
+
+method nondet() returns (res: Bool)

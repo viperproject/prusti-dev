@@ -9,6 +9,9 @@
 #![feature(drain_filter, hash_drain_filter)]
 #![feature(type_alias_impl_trait)]
 
+#[macro_use]
+extern crate tracing;
+
 mod check;
 mod defs;
 mod repack;
@@ -20,6 +23,7 @@ pub use free_pcs::*;
 pub use repack::*;
 pub use utils::place::*;
 
+use prusti_rustc_interface::dataflow::Analysis;
 use prusti_interface::environment::Environment;
 
 pub fn test_free_pcs(env: &Environment) {
@@ -31,6 +35,8 @@ pub fn test_free_pcs(env: &Environment) {
         println!("id: {name}");
         let current_procedure = env.get_procedure(*proc_id);
         let mir = current_procedure.get_mir_rc();
-        let _ = MicroBody::new(mir, env.tcx());
+        let fpcs = free_pcs::engine::FreePlaceCapabilitySummary::new(env.tcx(), &*mir);
+        let analysis = fpcs.into_engine(env.tcx(), &*mir).pass_name("free_pcs").iterate_to_fixpoint();
+        // let _ = MicroBody::new(mir, env.tcx());
     }
 }

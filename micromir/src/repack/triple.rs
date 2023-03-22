@@ -7,8 +7,8 @@
 use prusti_rustc_interface::middle::mir::RETURN_PLACE;
 
 use crate::{
-    FreeStateUpdate, MicroFullOperand, MicroStatement, MicroStatementKind, MicroTerminator,
-    MicroTerminatorKind, Operands, PermissionKind,
+    repack::permission::FreeStateUpdate, MicroFullOperand, MicroStatement, MicroStatementKind, MicroTerminator,
+    MicroTerminatorKind, Operands, repack::permission::PermissionKind,
 };
 
 pub(crate) trait ModifiesFreeState<'tcx> {

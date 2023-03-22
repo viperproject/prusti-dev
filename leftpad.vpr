@@ -1,0 +1,28 @@
+define max(a, b) (a > b ? a : b)
+
+function leftpad_rec(c:Int, n:Int, str:Seq[Int]): Seq[Int]
+    ensures |result| == max(n, |str|)
+    ensures forall i: Int :: 0 <= i && i < |result|
+        ==> result[i] == (i >= |result| - |str| ? str[i - |result| + |str|] : c)
+{
+    n > |str| ? Seq(c) ++ leftpad_rec(c, n-1, str) : str
+}
+
+method leftpad_iter(c:Int, n:Int, str:Seq[Int]) returns (res:Seq[Int])
+    ensures |res| == max(n, |str|)
+    ensures forall i: Int :: 0 <= i && i < |res|
+        ==> res[i] == (i >= |res| - |str| ? str[i - |res| + |str|] : c)
+{
+    res := str
+    var i: Int := |str|
+    if (i < n) {
+        while (i < n)
+            invariant |str| <= i && i <= n && i == |res|
+            invariant forall j: Int :: 0 <= j && j < i
+                ==> res[j] == (j >= i - |str| ? str[j - i + |str|] : c)
+        {
+            res := Seq(c) ++ res
+            i := i + 1
+        }
+    }
+}

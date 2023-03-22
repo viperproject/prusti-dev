@@ -7,8 +7,8 @@
 use prusti_rustc_interface::data_structures::fx::FxHashMap;
 
 use crate::{
-    repack::triple::ModifiesFreeState, FreeState, MicroBasicBlocks, PermissionKind,
-    PermissionLocal, PlaceOrdering, PlaceRepacker, RepackOp, Repacks,
+    repack::triple::ModifiesFreeState, permission::FreeState, MicroBasicBlocks, permission::PermissionKind,
+    permission::PermissionLocal, PlaceOrdering, RepackOp, Repacks, utils::PlaceRepacker,
 };
 
 pub(crate) fn check<'tcx>(bbs: &MicroBasicBlocks<'tcx>, rp: PlaceRepacker<'_, 'tcx>) {

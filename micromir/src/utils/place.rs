@@ -18,6 +18,35 @@ use prusti_rustc_interface::middle::{
     ty::List,
 };
 
+use super::PlaceRepacker;
+
+#[derive(Clone, Copy, Deref, DerefMut, Hash, PartialEq, Eq)]
+pub struct RootPlace<'tcx>(Place<'tcx>);
+impl<'tcx> RootPlace<'tcx> {
+    pub(super) fn new(place: Place<'tcx>) -> Self {
+        assert!(place.projection.last().copied().map(Self::is_indirect).unwrap_or(true));
+        Self(place)
+    }
+
+    pub fn is_indirect<V, T>(p: ProjectionElem<V, T>) -> bool {
+        match p {
+            ProjectionElem::Deref => true,
+
+            ProjectionElem::Field(_, _)
+            | ProjectionElem::Index(_)
+            | ProjectionElem::OpaqueCast(_)
+            | ProjectionElem::ConstantIndex { .. }
+            | ProjectionElem::Subslice { .. }
+            | ProjectionElem::Downcast(_, _) => false,
+        }
+    }
+}
+impl Debug for RootPlace<'_> {
+    fn fmt(&self, fmt: &mut Formatter) -> Result {
+        self.0.fmt(fmt)
+    }
+}
+
 fn elem_eq<'tcx>(to_cmp: (PlaceElem<'tcx>, PlaceElem<'tcx>)) -> bool {
     use ProjectionElem::*;
     match to_cmp {
@@ -144,8 +173,67 @@ impl<'tcx> Place<'tcx> {
 }
 
 impl Debug for Place<'_> {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        self.0.fmt(f)
+    fn fmt(&self, fmt: &mut Formatter) -> Result {
+        for elem in self.projection.iter().rev() {
+            match elem {
+                ProjectionElem::OpaqueCast(_)
+                | ProjectionElem::Downcast(_, _) => {
+                    write!(fmt, "(").unwrap();
+                }
+                ProjectionElem::Deref => {
+                    write!(fmt, "(*").unwrap();
+                }
+                ProjectionElem::Field(_, _)
+                | ProjectionElem::Index(_)
+                | ProjectionElem::ConstantIndex { .. }
+                | ProjectionElem::Subslice { .. } => {}
+            }
+        }
+
+        write!(fmt, "{:?}", self.local)?;
+
+        for elem in self.projection.iter() {
+            match elem {
+                ProjectionElem::OpaqueCast(ty) => {
+                    write!(fmt, " as {})", ty)?;
+                }
+                ProjectionElem::Downcast(Some(name), _index) => {
+                    write!(fmt, " as {})", name)?;
+                }
+                ProjectionElem::Downcast(None, index) => {
+                    write!(fmt, " as variant#{:?})", index)?;
+                }
+                ProjectionElem::Deref => {
+                    write!(fmt, ")")?;
+                }
+                ProjectionElem::Field(field, ty) => {
+                    write!(fmt, ".{:?}", field.index())?;
+                }
+                ProjectionElem::Index(ref index) => {
+                    write!(fmt, "[{:?}]", index)?;
+                }
+                ProjectionElem::ConstantIndex { offset, min_length, from_end: false } => {
+                    write!(fmt, "[{:?} of {:?}]", offset, min_length)?;
+                }
+                ProjectionElem::ConstantIndex { offset, min_length, from_end: true } => {
+                    write!(fmt, "[-{:?} of {:?}]", offset, min_length)?;
+                }
+                ProjectionElem::Subslice { from, to, from_end: true } if to == 0 => {
+                    write!(fmt, "[{:?}:]", from)?;
+                }
+                ProjectionElem::Subslice { from, to, from_end: true } if from == 0 => {
+                    write!(fmt, "[:-{:?}]", to)?;
+                }
+                ProjectionElem::Subslice { from, to, from_end: true } => {
+                    write!(fmt, "[{:?}:-{:?}]", from, to)?;
+                }
+                ProjectionElem::Subslice { from, to, from_end: false } => {
+                    write!(fmt, "[{:?}..{:?}]", from, to)?;
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -212,6 +300,21 @@ pub enum PlaceOrdering {
     Suffix,
     // For example `x[a]` and `x[b]` or `x as None` and `x as Some`.
     Both,
+}
+
+impl PlaceOrdering {
+    pub fn is_eq(self) -> bool {
+        matches!(self, PlaceOrdering::Equal)
+    }
+    pub fn is_prefix(self) -> bool {
+        matches!(self, PlaceOrdering::Prefix)
+    }
+    pub fn is_suffix(self) -> bool {
+        matches!(self, PlaceOrdering::Suffix)
+    }
+    pub fn is_both(self) -> bool {
+        matches!(self, PlaceOrdering::Both)
+    }
 }
 
 impl From<Ordering> for PlaceOrdering {

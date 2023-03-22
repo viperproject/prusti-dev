@@ -1,0 +1,106 @@
+field f: Ref
+field n: Ref
+
+define good_map(set, map) (
+        (forall r: Ref :: r in map)
+        && (forall r: Ref :: r in set ==> map[r] > 0/1)
+        && (forall r: Ref :: !(r in set) ==> map[r] == 0/1)
+        && (forall r: Ref :: acc(T(r), map[r])))
+
+define good_map_exact(set, map, p) (
+        (forall r: Ref :: r in map)
+        && (forall r: Ref :: r in set ==> map[r] == p)
+        && (forall r: Ref :: !(r in set) ==> map[r] == 0/1)
+        && (forall r: Ref :: acc(T(r), map[r])))
+
+// This field models permissions to the generic Rust `T` type
+predicate T(x: Ref)
+
+predicate Node_T(y: Ref) {
+    acc(y.f) && T(y.f)
+    && acc(y.n) && (y.n != null ==> Node_T(y.n))
+}
+
+predicate Node_ref_T(res: Ref) {
+    acc(res.f)
+    && acc(res.n) && (res.n != null ==> Node_ref_T(res.n))
+}
+
+function get_refs_res(res: Ref): Seq[Ref]
+    requires Node_ref_T(res)
+{
+    unfolding Node_ref_T(res) in Seq(res.f) ++ (res.n == null ? Seq() : get_refs_res(res.n))
+}
+
+function get_refs_y(y: Ref, y_perm: Perm): Seq[Ref]
+    requires y_perm > 0/1 && acc(Node_T(y), y_perm)
+{
+    unfolding acc(Node_T(y), y_perm) in Seq(y.f) ++ (y.n == null ? Seq() : get_refs_y(y.n, y_perm))
+}
+
+method split(y: Ref, y_perm: Perm) returns (perms_g: Map[Ref, Perm])
+    requires y_perm > 0/1 && acc(Node_T(y), 2*y_perm)
+    ensures acc(Node_T(y), y_perm)
+    ensures good_map_exact(get_refs_y(y, y_perm), perms_g, y_perm)
+{
+    unfold acc(Node_T(y), 2*y_perm)
+    if (y.n == null) {
+        assume forall r: Ref :: r in perms_g && perms_g[r] == 0/1
+        perms_g := perms_g[y.f := y_perm]
+        fold acc(Node_T(y), y_perm)
+    } else {
+        perms_g := split(y.n, y_perm)
+        perms_g := perms_g[y.f := y_perm]
+        fold acc(Node_T(y), y_perm)
+    }
+}
+
+function test(a: Ref, p: Perm): Int
+    requires p > 0/1 && acc(T(a), p)
+
+method foo(a: Ref, b: Ref, c: Ref, perms: Map[Ref, Perm])
+        returns (res: Ref)
+    requires a in perms && perms[a] > 0/1
+    requires b in perms && perms[b] > 0/1
+    requires c in perms && perms[c] > 0/1
+    requires forall r: Ref :: r in perms && perms[r] >= 0/1
+    // requires forall r: Ref :: r != a && r != b && r != c ==> perms[r] == 0/1
+    requires forall r: Ref :: r in perms ==> acc(T(r), perms[r])
+
+    ensures Node_ref_T(res)
+    ensures forall r: Ref :: r in get_refs_res(res) ==> acc(T(r), perms[r])
+{
+    res := null
+
+    var i: Int
+    i := test(a, perms[a])
+
+    var newRes: Ref
+    inhale acc(newRes.f) && acc(newRes.n)
+    newRes.f := a
+    newRes.n := res
+    res := newRes
+    newRes := nondet_ref()
+    fold Node_ref_T(res)
+
+    inhale acc(newRes.f) && acc(newRes.n)
+    newRes.f := b
+    newRes.n := res
+    res := newRes
+    newRes := nondet_ref()
+    fold Node_ref_T(res)
+
+    inhale acc(newRes.f) && acc(newRes.n)
+    newRes.f := c
+    newRes.n := res
+    res := newRes
+    newRes := nondet_ref()
+    fold Node_ref_T(res)
+
+    var j: Int
+    j := test(a, perms[a])
+    assert i == j
+}
+
+method nondet() returns (res: Bool)
+method nondet_ref() returns (res: Ref)

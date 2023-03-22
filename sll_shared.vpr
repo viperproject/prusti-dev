@@ -1,0 +1,286 @@
+field f: Ref
+field n: Ref
+field _0: Ref
+field _1: Ref
+
+define tpT 0
+define tpNodeT 1
+
+define is_lft(lft, tp, pred) (tp in lft && forall r: Ref :: r in lft[tp] ==> lft[tp][r] > 0/1 && acc(pred(r), lft[tp][r]))
+define with_read(call, p) (trigger(p) ? call : call)
+
+// `T` type
+predicate T(x: Ref)
+
+// `Node<T>` type
+predicate Node_T(y: Ref) {
+    acc(y.f) && T(y.f)
+    && acc(y.n) && (y.n != null ==> Node_T(y.n))
+}
+function get_Ts(x: Ref): Seq[Ref]
+    requires acc(Node_T(x), read())
+{
+    unfolding acc(Node_T(x), read()) in Seq(x.f) ++ (x.n == null ? Seq() : get_Ts(x.n))
+}
+function get_Node_Ts(x: Ref): Seq[Ref]
+    requires acc(Node_T(x), read())
+{
+    Seq(x) ++ unfolding acc(Node_T(x), read()) in x.n == null ? Seq() : get_Node_Ts(x.n)
+}
+
+// `Node<&_>` type
+predicate Node_ref(res: Ref) {
+    acc(res.f)
+    && acc(res.n) && (res.n != null ==> Node_ref(res.n))
+}
+function get_fs(x: Ref): Seq[Ref]
+    requires Node_ref(x)
+{
+    unfolding Node_ref(x) in Seq(x.f) ++ (x.n == null ? Seq() : get_fs(x.n))
+}
+
+// `Node<(&_, &_)>` type
+predicate Node_ref_pair(res: Ref) {
+    acc(res.f) && acc(res.f._0) && acc(res.f._1)
+    && acc(res.n) && (res.n != null ==> Node_ref_pair(res.n))
+}
+function get_0s(x: Ref): Seq[Ref]
+    requires Node_ref_pair(x)
+{
+    unfolding Node_ref_pair(x) in Seq(x.f._0) ++ (x.n == null ? Seq() : get_0s(x.n))
+}
+function get_1s(x: Ref): Seq[Ref]
+    requires Node_ref_pair(x)
+{
+    unfolding Node_ref_pair(x) in Seq(x.f._1) ++ (x.n == null ? Seq() : get_1s(x.n))
+}
+
+predicate lifetime(lft: Map[Int, Map[Ref, Perm]]) {
+    is_lft(lft, tpT, T) && is_lft(lft, tpNodeT, Node_T)
+}
+function is_T_ref(x: Ref, lft: Map[Int, Map[Ref, Perm]]): Bool
+    requires lifetime(lft)
+{
+    // States that `x` is a shared ref with `lft` pointing to `T`
+    unfolding lifetime(lft) in (x in lft[tpT])
+}
+function is_Node_T_ref(x: Ref, lft: Map[Int, Map[Ref, Perm]]): Bool
+    requires lifetime(lft)
+{
+    // States that `x` is a shared ref with `lft` pointing to `Node<T>`
+    unfolding lifetime(lft) in ((x in lft[tpNodeT]) && (
+        // States that all fields of type `T` in `x` can be used
+        // as shared refs with `lft`, e.g. by reborrowing as so `&x.f`
+        (forall t: Ref :: t in with_read(get_Ts(x), lft[tpNodeT][x]) ==> t in lft[tpT]) &&
+        // States that all fields of type `Node<T>` in `x` can be used as shared refs with `lft`
+        (forall t: Ref :: t in with_read(get_Node_Ts(x), lft[tpNodeT][x]) ==> t in lft[tpNodeT])
+    ))
+}
+function is_Node_T_ref_simp(x: Ref, lft: Map[Int, Map[Ref, Perm]]): Bool
+    requires lifetime(lft)
+{
+    // States that `x` is a shared ref with `lft` pointing to `Node<T>`
+    unfolding lifetime(lft) in (x in lft[tpNodeT])
+}
+
+
+method foo(a: Ref, b: Ref, c: Ref, lft_a: Map[Int, Map[Ref, Perm]]) returns (res: Ref)
+    // States that the `lft_a` map is a valid lifetime-permission map for the `T` and `Node<T>` types,
+    // This is a QP containing the permissions to all borrowed things.
+    requires lifetime(lft_a)
+    requires is_T_ref(a, lft_a)
+    requires is_Node_T_ref(b, lft_a)
+    requires Node_ref(c)
+    // States that fields of type `&'a Node<T>` in `c` are shared refs with `lft_a` pointing to `Node<T>`
+    requires forall fd: Ref :: fd in get_fs(c) ==> is_Node_T_ref(fd, lft_a)
+
+    // Returns the exact same permissions that we got in
+    ensures lifetime(lft_a)
+    // States that `res` is an owned `Node<(&_, &_)>`
+    ensures Node_ref_pair(res)
+    // States that fields of type `&'a T` in `res` are shared refs with `lft_a` pointing to `T`
+    ensures forall fd: Ref :: fd in get_0s(res) ==> is_T_ref(fd, lft_a)
+    // States that fields of type `&'a Node<T>` in `res` are shared refs with `lft_a` pointing to `Node<T>`
+    ensures forall fd: Ref :: fd in get_1s(res) ==> is_Node_T_ref(fd, lft_a)
+{
+    inhale acc(res.f) && acc(res.f._0) && acc(res.f._1) && acc(res.n)
+    res.f._0 := a
+    res.f._1 := b
+    res.n := null
+    fold Node_ref_pair(res)
+
+    var nd: Bool
+    nd := nondet()
+    while (nd)
+        invariant lifetime(lft_a)
+        invariant is_T_ref(a, lft_a)
+        invariant is_Node_T_ref(b, lft_a)
+        invariant Node_ref(c)
+        invariant forall fd: Ref :: fd in get_fs(c) ==> is_Node_T_ref(fd, lft_a)
+
+        invariant Node_ref_pair(res)
+        invariant forall fd: Ref :: fd in get_0s(res) ==> is_T_ref(fd, lft_a)
+        invariant forall fd: Ref :: fd in get_1s(res) ==> is_Node_T_ref(fd, lft_a)
+    {
+        var new_res: Ref
+        inhale acc(new_res.f) && acc(new_res.f._0) && acc(new_res.f._1) && acc(new_res.n)
+        new_res.n := res
+
+        nd := nondet()
+        if (nd) {
+            nd := nondet()
+            if (nd) {
+                new_res.f._0 := a
+                new_res.f._1 := b
+            } else {
+                unfold lifetime(lft_a)
+                unfold acc(Node_T(b), lft_a[tpNodeT][b])
+                new_res.f._0 := b.f
+                fold acc(Node_T(b), lft_a[tpNodeT][b])
+                fold lifetime(lft_a)
+                new_res.f._1 := b
+            }
+        } else {
+            nd := nondet()
+            if (nd) {
+                new_res.f._0 := a
+                unfold Node_ref(c)
+                new_res.f._1 := c.f
+                fold Node_ref(c)
+            } else {
+                unfold Node_ref(c)
+                assert is_Node_T_ref(c.f, lft_a)
+                unfold lifetime(lft_a)
+                unfold acc(Node_T(c.f), lft_a[tpNodeT][c.f])
+                new_res.f._0 := c.f.f
+                fold acc(Node_T(c.f), lft_a[tpNodeT][c.f])
+                fold lifetime(lft_a)
+                fold Node_ref(c)
+                new_res.f._1 := b
+            }
+        }
+        res := new_res
+        fold Node_ref_pair(res)
+
+        nd := nondet()
+    }
+}
+
+method nondet() returns (res: Bool)
+
+method main() {
+    var x: Ref
+    inhale acc(x.f) && T(x.f) && acc(x.n)
+    x.n := null
+    fold Node_T(x)
+
+    var b: Ref := x
+    var lft_a: Map[Int, Map[Ref, Perm]]
+    lft_a := borrow(b, 1/1)
+    unfold lifetime(lft_a)
+
+    unfold acc(Node_T(b), lft_a[tpNodeT][b])
+    var a: Ref := b.f
+    fold acc(Node_T(b), lft_a[tpNodeT][b])
+
+    var c: Ref
+    inhale acc(c.f) && acc(c.n)
+    c.f := b
+    c.n := null
+    fold Node_ref(c)
+
+    fold lifetime(lft_a)
+    var res: Ref
+    res := foo(a, b, c, lft_a)
+
+    apply lifetime(lft_a) --* acc(Node_T(x), 1/2)
+    unfold Node_T(x)
+    x.n := null
+    fold Node_T(x)
+}
+
+// Hacks
+domain Trigger {
+    function trigger(p: Perm): Bool
+    axiom ax_trigger {
+        forall p:Perm :: { trigger(p) } trigger(p)
+    }
+}
+function read(): Perm
+  ensures 0/1 < result && result < 1/1
+  ensures forall p: Perm :: { trigger(p) } p >= result
+
+// Lemma
+method borrow_simpler(x: Ref, p: Perm) returns (lft: Map[Int, Map[Ref, Perm]])
+    requires p > 0/1 && acc(Node_T(x), p)
+    ensures acc(Node_T(x), p/2)
+    ensures lifetime(lft)
+    ensures lifetime(lft) --* acc(Node_T(x), p/2)
+    ensures is_Node_T_ref_simp(x, lft)
+{
+    lft := Map(tpT := Map(), tpNodeT := Map(x := p/2))
+    fold lifetime(lft)
+    package lifetime(lft) --* acc(Node_T(x), p/2) {
+        unfold lifetime(lft)
+    }
+}
+method reborrow(olft: Map[Int, Map[Ref, Perm]], p: Perm) returns (lft: Map[Int, Map[Ref, Perm]])
+    requires p > 0/1 && acc(lifetime(olft), p)
+    ensures acc(lifetime(olft), p/2)
+    ensures lifetime(lft)
+    ensures lifetime(lft) --* acc(lifetime(olft), p/2)
+    ensures unfolding lifetime(lft) in (
+        unfolding acc(lifetime(olft), p/2) in (
+            (forall x: Ref :: x in olft[tpNodeT] == x in lft[tpNodeT]) &&
+            (forall x: Ref :: x in olft[tpT] == x in lft[tpT])
+        )
+    )
+{
+    unfold acc(lifetime(olft), p/2)
+    assert forall x: Ref :: x in olft[tpNodeT] ==> acc(Node_T(x), olft[tpNodeT][x]/2)
+    assume tpT in lft && tpNodeT in lft
+    assume forall x: Ref :: x in olft[tpNodeT] == x in lft[tpNodeT]
+    assume forall x: Ref :: x in olft[tpT] == x in lft[tpT]
+    assume forall x: Ref :: x in lft[tpNodeT] ==> lft[tpNodeT][x] == olft[tpNodeT][x]/2
+    assume forall x: Ref :: x in lft[tpT] ==> lft[tpT][x] == olft[tpT][x]/2
+    fold lifetime(lft)
+}
+
+method borrow(x: Ref, p: Perm) returns (lft: Map[Int, Map[Ref, Perm]])
+    requires p > 0/1 && acc(Node_T(x), p)
+    ensures acc(Node_T(x), p/2)
+    ensures lifetime(lft)
+    ensures lifetime(lft) --* acc(Node_T(x), p/2)
+    ensures unfolding lifetime(lft) in (x in lft[tpNodeT])
+    ensures unfolding lifetime(lft) in (forall t: Ref :: t in get_Ts(x) ==> t in lft[tpT])
+    ensures unfolding lifetime(lft) in (forall t: Ref :: t in get_Node_Ts(x) ==> t in lft[tpNodeT])
+    ensures is_Node_T_ref(x, lft)
+{
+    unfold acc(Node_T(x), p/4)
+    if (x.n == null) {
+        lft := Map(tpT := Map(x.f := p/4), tpNodeT := Map(x := p/4))
+        fold lifetime(lft)
+        package lifetime(lft) --* acc(Node_T(x), p/2) {
+            unfold lifetime(lft)
+            fold acc(Node_T(x), p/4)
+        }
+    } else {
+        var tmp: Ref
+        var ilft: Map[Int, Map[Ref, Perm]]
+        ilft := borrow(x.n, p/4)
+        unfold lifetime(ilft)
+
+        lft := ilft[tpT := ilft[tpT][x.f := p/4]]
+                [tpNodeT := ilft[tpNodeT][x := p/4]]
+        fold lifetime(lft)
+        
+        // Will require non-aliasing
+        package lifetime(lft) --* acc(Node_T(x), p/2) {
+            assume false
+            unfold lifetime(lft)
+            // fold lifetime(ilft)
+            apply lifetime(ilft) --* acc(Node_T(x), p/8)
+            fold acc(Node_T(x), p/4)
+        }
+    }
+}
