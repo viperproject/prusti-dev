@@ -17,7 +17,7 @@ use prusti_rustc_interface::{
     middle::mir::Local,
 };
 
-use crate::{Place, PlaceOrdering, PlaceRepacker};
+use crate::{Place, PlaceOrdering, utils::PlaceRepacker};
 
 pub type FreeStateUpdate<'tcx> = LocalsState<LocalUpdate<'tcx>>;
 #[derive(Clone, Debug, PartialEq, Eq, Deref, DerefMut, Default)]
@@ -310,7 +310,7 @@ impl<'tcx> PermissionProjections<'tcx> {
     /// For example: find_all_related(x.f.g) = [(Less, x.f.g.h), (Greater, x.f)]
     /// It also checks that the ordering conforms to the expected ordering (the above would
     /// fail in any situation since all orderings need to be the same)
-    #[tracing::instrument(level = "trace", ret)]
+    #[instrument(level = "debug", skip(self))]
     pub(crate) fn find_all_related(
         &self,
         to: Place<'tcx>,

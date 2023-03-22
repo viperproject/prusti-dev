@@ -1,0 +1,187 @@
+field ref: Ref
+
+field f: Ref
+field n: Ref
+
+define tpT 0
+define tpNodeT 1
+define tpTmut 10
+define tpNodeTmut 11
+
+define Lifetime(lft) (valid_lft(lft) && LifetimeP(lft))
+
+predicate T(x: Ref)
+predicate mutT(x: Ref) {
+    acc(x.ref) && T(x.ref)
+}
+
+predicate SLL_T(x: Ref) {
+    acc(x.f) && T(x.f) && acc(x.n) && (x.n != null ==> SLL_T(x.n))
+}
+
+predicate SLL_ref(x: Ref, lft: Map[Int, Map[Ref, Perm]]) {
+    acc(x.f) && tpTmut in lft && x.f in lft[tpTmut]
+    && acc(x.n) && (x.n != null ==> SLL_ref(x.n, lft))
+}
+
+predicate LifetimeP(lft: Map[Int, Map[Ref, Perm]]) {
+    tpT in lft && tpNodeT in lft && tpTmut in lft && tpNodeTmut in lft &&
+    (forall x: Ref :: x in lft[tpT] ==> lft[tpT][x] > 0/1 && acc(T(x), lft[tpT][x])) &&
+    (forall x: Ref :: x in lft[tpNodeT] ==> lft[tpNodeT][x] > 0/1 && acc(SLL_T(x), lft[tpNodeT][x])) &&
+    (forall x: Ref :: x in lft[tpTmut] ==> lft[tpTmut][x] == 1/1 && acc(mutT(x), lft[tpTmut][x])) &&
+    (forall x: Ref :: x in lft[tpNodeTmut] ==> lft[tpNodeTmut][x] == 1/1 && acc(SLL_T(x), lft[tpNodeTmut][x]))
+}
+
+method foo(a: Ref, b: Ref, c: Ref, d: Ref)
+    requires acc(a.ref) && T(a.ref)
+    requires acc(b.ref) && T(b.ref)
+    requires acc(c.ref) && T(c.ref)
+    requires acc(d.ref) && T(d.ref)
+{
+    var x: Ref
+    inhale acc(x.ref)
+    var bwx: Ref
+    bwx := borrow(a)
+    x.ref := bwx
+    var lft_a: Map[Int, Map[Ref, Perm]] := new_lifetime()
+    lft_a := lft_a[tpTmut := lft_a[tpTmut][x.ref := 1/1]]
+    fold mutT(x.ref)
+    fold LifetimeP(lft_a)
+    package Lifetime(lft_a) --* acc(a.ref) && T(a.ref) && a.ref == old[lhs](unfolding LifetimeP(lft_a) in unfolding mutT(bwx) in bwx.ref) {
+        unfold LifetimeP(lft_a)
+        unfold mutT(bwx)
+        apply acc(bwx.ref) --* acc(a.ref) && a.ref == old[lhs](bwx.ref)
+    }
+
+    var node: Ref
+    inhale acc(node.ref) && acc(node.ref.f) && acc(node.ref.n)
+    node.ref.f := x.ref
+    exhale acc(x.ref)
+    node.ref.n := null
+    fold SLL_ref(node.ref, lft_a)
+    package acc(node.ref) && Lifetime(lft_a) --* acc(a.ref) && T(a.ref) && a.ref == old[lhs](unfolding LifetimeP(lft_a) in unfolding mutT(bwx) in bwx.ref) {
+        apply Lifetime(lft_a) --* acc(a.ref) && T(a.ref) && a.ref == old[lhs](unfolding LifetimeP(lft_a) in unfolding mutT(bwx) in bwx.ref)
+    }
+
+    var y: Ref
+    inhale acc(y.ref)
+    var bwy: Ref
+    bwy := borrow(b)
+    y.ref := bwy
+    var lft_b: Map[Int, Map[Ref, Perm]] := new_lifetime()
+    lft_b := lft_b[tpTmut := lft_b[tpTmut][y.ref := 1/1]]
+    fold mutT(y.ref)
+    fold LifetimeP(lft_b)
+    package Lifetime(lft_b) --* acc(b.ref) && T(b.ref) && b.ref == old[lhs](unfolding LifetimeP(lft_b) in unfolding mutT(bwy) in bwy.ref) {
+        unfold LifetimeP(lft_b)
+        unfold mutT(bwy)
+        apply acc(bwy.ref) --* acc(b.ref) && b.ref == old[lhs](bwy.ref)
+    }
+
+    var lft_c: Map[Int, Map[Ref, Perm]]
+    lft_c := merge_lfts(lft_a, lft_b)
+
+    var new_node: Ref
+    inhale acc(new_node.ref) && acc(new_node.ref.f) && acc(new_node.ref.n)
+    new_node.ref.f := y.ref
+    exhale acc(y.ref)
+    change_lft(node.ref, lft_a, lft_c)
+    new_node.ref.n := node.ref
+    fold SLL_ref(new_node.ref, lft_c)
+    node.ref := new_node.ref
+    exhale acc(new_node.ref)
+
+    package acc(node.ref) && Lifetime(lft_c) --*
+        acc(a.ref) && T(a.ref) && a.ref == old[lhs](unfolding LifetimeP(lft_c) in unfolding mutT(bwx) in bwx.ref) &&
+        acc(b.ref) && T(b.ref) && b.ref == old[lhs](unfolding LifetimeP(lft_c) in unfolding mutT(bwy) in bwy.ref) {
+        var bwxr: Ref := unfolding LifetimeP(lft_c) in unfolding mutT(bwx) in bwx.ref
+        var bwyr: Ref := unfolding LifetimeP(lft_c) in unfolding mutT(bwy) in bwy.ref
+        apply Lifetime(lft_c) --* Lifetime(lft_a) && Lifetime(lft_b)
+        assume bwxr == unfolding LifetimeP(lft_a) in unfolding mutT(bwx) in bwx.ref
+        assume bwyr == unfolding LifetimeP(lft_b) in unfolding mutT(bwy) in bwy.ref
+        apply Lifetime(lft_b) --* acc(b.ref) && T(b.ref) && b.ref == old[lhs](unfolding LifetimeP(lft_b) in unfolding mutT(bwy) in bwy.ref)
+        apply acc(node.ref) && Lifetime(lft_a) --* acc(a.ref) && T(a.ref) && a.ref == old[lhs](unfolding LifetimeP(lft_a) in unfolding mutT(bwx) in bwx.ref)
+    }
+
+    // unfold Lifetime(lft_a)
+    // unfold mutT(x.ref)
+    // var yderef: Ref := x.ref
+    // var z: Ref
+    // var tmp2: Ref
+    // z, tmp2 := borrow(yderef)
+
+    // unfold Lifetime(lft_a)
+    // exhale T(z.ref.ref)
+    // var oldVal: Ref := z.ref.ref
+    // z.ref.ref := a.ref
+    // lft_a := lft_a[tpTmut := Map(z.ref.ref := 1/1)]
+    // fold Lifetime(lft_a)
+    // exhale acc(a.ref)
+
+    // apply acc(tmp2.ref) --* acc(yderef.ref) && yderef.ref == old[lhs](tmp2.ref)
+
+        // var rp: Ref
+        // inhale acc(rp.ref)
+        // rp.ref := y.ref
+
+        // exhale T(rp.ref.ref)
+        // rp.ref.ref := a.ref
+        // exhale acc(a.ref)
+
+        // label l1
+        // exhale acc(y.ref.ref) && acc(y.ref)
+        // inhale acc(y.ref) && acc(y.ref.ref) && y.ref.ref == old[l1](y.ref.ref)
+        // exhale T(y.ref.ref)
+        // y.ref.ref := b.ref
+        // exhale acc(b.ref)
+
+    // apply acc(list.ref) && Lifetime(lft_a) --* acc(x.ref) && T(x.ref) && x.ref == old[lhs](unfolding Lifetime(lft_a) in unfolding mutT(tmp) in tmp.ref)
+
+    // exhale T(x.ref)
+    // x.ref := d.ref
+    // exhale acc(d.ref)
+
+    // exhale T(rp.ref.ref)
+    // rp.ref.ref := c.ref
+    // exhale acc(c.ref)
+    // rp.ref := 42
+}
+method borrow(a: Ref) returns (x: Ref)
+    requires acc(a.ref)
+    ensures acc(x.ref) && x.ref == old(a.ref)
+    ensures acc(x.ref) --* acc(a.ref) && a.ref == old[lhs](x.ref)
+{
+    inhale acc(x.ref)
+    x.ref := a.ref
+    package acc(x.ref) --* acc(a.ref) && a.ref == old[lhs](x.ref) {
+        assert acc(a.ref)
+        assume a.ref == x.ref // TODO
+    }
+}
+function new_lifetime(): Map[Int, Map[Ref, Perm]] {
+    Map(tpT := Map(), tpNodeT := Map(), tpTmut := Map(), tpNodeTmut := Map())
+}
+function valid_lft(lft: Map[Int, Map[Ref, Perm]]): Bool {
+    tpT in lft && tpNodeT in lft && tpTmut in lft && tpNodeTmut in lft
+}
+function lft_subset(lft1: Map[Int, Map[Ref, Perm]], lft2: Map[Int, Map[Ref, Perm]]): Bool
+    requires valid_lft(lft1) && valid_lft(lft2)
+{
+    domain(lft1[tpT]) subset domain(lft2[tpT]) &&
+    domain(lft1[tpNodeT]) subset domain(lft2[tpNodeT]) &&
+    domain(lft1[tpTmut]) subset domain(lft2[tpTmut]) &&
+    domain(lft1[tpNodeTmut]) subset domain(lft2[tpNodeTmut])
+}
+
+method merge_lfts(lft1: Map[Int, Map[Ref, Perm]], lft2: Map[Int, Map[Ref, Perm]]) returns (lft: Map[Int, Map[Ref, Perm]])
+    requires Lifetime(lft1) && Lifetime(lft2)
+    ensures Lifetime(lft) && (Lifetime(lft) --* Lifetime(lft1) && Lifetime(lft2))
+    ensures lft_subset(lft1, lft)
+    ensures lft_subset(lft2, lft)
+
+method change_lft(node: Ref, lft1: Map[Int, Map[Ref, Perm]], lft2: Map[Int, Map[Ref, Perm]])
+    requires SLL_ref(node, lft1)
+    requires valid_lft(lft1) && Lifetime(lft2)
+    requires lft_subset(lft1, lft2)
+    ensures SLL_ref(node, lft2)
+    ensures Lifetime(lft2)

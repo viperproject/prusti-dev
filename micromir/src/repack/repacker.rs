@@ -13,8 +13,8 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    repack::place::PlaceRepacker, FreeState, FreeStateUpdate, PermissionKind, PermissionLocal,
-    PermissionProjections, Place, PlaceOrdering, RelatedSet,
+    utils::PlaceRepacker, repack::permission::FreeState, repack::permission::FreeStateUpdate, repack::permission::PermissionKind, repack::permission::PermissionLocal,
+    repack::permission::PermissionProjections, Place, PlaceOrdering, repack::permission::RelatedSet, RepackOp,
 };
 
 #[derive(Clone, Default, Deref, DerefMut)]
@@ -281,14 +281,14 @@ impl<'tcx> PermissionProjections<'tcx> {
     }
 }
 
-#[derive(Clone, Debug)]
-pub enum RepackOp<'tcx> {
-    Weaken(Place<'tcx>, PermissionKind, PermissionKind),
-    // TODO: figure out when and why this happens
-    DeallocUnknown(Local),
-    DeallocForCleanup(Local),
-    // First place is packed up, second is guide place to pack up from
-    Pack(Place<'tcx>, Place<'tcx>, PermissionKind),
-    // First place is packed up, second is guide place to unpack to
-    Unpack(Place<'tcx>, Place<'tcx>, PermissionKind),
-}
+// #[derive(Clone, Debug)]
+// pub enum RepackOp<'tcx> {
+//     Weaken(Place<'tcx>, PermissionKind, PermissionKind),
+//     // TODO: figure out when and why this happens
+//     DeallocUnknown(Local),
+//     DeallocForCleanup(Local),
+//     // First place is packed up, second is guide place to pack up from
+//     Pack(Place<'tcx>, Place<'tcx>, PermissionKind),
+//     // First place is packed up, second is guide place to unpack to
+//     Unpack(Place<'tcx>, Place<'tcx>, PermissionKind),
+// }
