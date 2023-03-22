@@ -19,11 +19,9 @@ impl Simplifier for ast::Function {
     /// <https://github.com/viperproject/silicon/issues/387>
     #[tracing::instrument(level = "debug", skip(self), fields(self = %self), ret(Display))]
     fn simplify(mut self) -> Self {
-        trace!("[enter] simplify = {}", self);
         self.body = self.body.map(|b| b.simplify());
         self.posts = self.posts.into_iter().map(|p| p.simplify()).collect();
         self.pres = self.pres.into_iter().map(|p| p.simplify()).collect();
-        trace!("[exit] simplify = {}", self);
         self
     }
 }
@@ -31,10 +29,8 @@ impl Simplifier for ast::Function {
 impl Simplifier for ast::Expr {
     #[must_use]
     fn simplify(self) -> Self {
-        trace!("[enter] simplify = {:?}", self);
         let mut folder = ExprSimplifier {};
         let res = folder.fold(self);
-        trace!("[exit] simplify = {:?}", res);
         res
     }
 }

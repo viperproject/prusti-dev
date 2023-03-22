@@ -75,7 +75,7 @@ use prusti_rustc_interface::{
     target::abi::Integer,
 };
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{collections::BTreeMap, convert::TryInto};
+use std::{collections::BTreeMap, convert::TryInto, fmt::Debug};
 use vir_crate::polymorphic::{
     self as vir, borrows::Borrow, collect_assigned_vars, compute_identifier, CfgBlockIndex,
     ExprIterator, Float, Successor, Type,
@@ -237,11 +237,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                if self
-                    .encoder
-                    .get_prusti_assumption(cl_def_id.to_def_id())
-                    .is_none()
-                {
+                if self.encoder.get_prusti_assumption(cl_def_id).is_none() {
                     return Ok(false);
                 }
                 let assume_expr =
@@ -5554,10 +5550,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
         }
-        if encoded_specs.iter().any(|e| e.is_relational()) {
-            encoded_specs.push(vir::Expr::LowEvent);
-        }
-
         Ok((encoded_specs, MultiSpan::from_spans(encoded_spec_spans)))
     }
 
