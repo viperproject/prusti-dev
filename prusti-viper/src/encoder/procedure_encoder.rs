@@ -2069,7 +2069,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Get the borrow information.
         if !self.procedure_contracts.contains_key(&loan_location) {
             return Err(SpannedEncodingError::internal(
-                format!("There is no procedure contract for loan {loan:?}. This could happen if you \
+                format!("there is no procedure contract for loan {loan:?}. This could happen if you \
                          are chaining pure functions, which is not fully supported."),
                 span
             ));
@@ -2085,7 +2085,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         match borrow_infos.len().cmp(&1) {
             std::cmp::Ordering::Less => (),
             std::cmp::Ordering::Greater => return Err(SpannedEncodingError::internal(
-                format!("We require at most one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
+                format!("we require at most one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
                 span,
             )),
             std::cmp::Ordering::Equal => {
