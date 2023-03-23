@@ -38,6 +38,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     let compiler_lib = prusti_sysroot.join("lib");
 
     let mut cmd = Command::new(&prusti_driver_path);
+    cmd.arg("--cfg=prusti");
 
     launch::add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
 
