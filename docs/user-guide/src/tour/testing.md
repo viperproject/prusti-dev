@@ -68,7 +68,7 @@ To check our specifications and code, we could write a function that relies on t
 // Prusti: verifies
 ``` -->
 
-Note, the function `test_list` would still be available when the program is compiled normally. There may be a possibility to have something similar to the `#[cfg(test)]` annotation in Prusti. This would allow you to only have `test_list` during verification, see [this section](../capabilities/limitations.md#conditional-compilation-for-verification-vs-normal-compilation) of the limitations chapter.
+Note the `#[cfg(prusti)]` on the module `prusti_tests`. This makes the module only available during verification, with no effect during normal compilation, similar to `#[cfg(test)]` for unit tests.
 
 
 Our test code can be verified, so it appears that our specification is not too restrictive or incomplete.

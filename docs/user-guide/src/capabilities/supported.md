@@ -4,6 +4,7 @@
 - Error messages are provided in the same way as in normal Rust compilation
   - Messages shown inlined in source code with Prusti-Assistant VSCode extension
 - Prusti can verify either individual Rust files, entire Cargo projects and also Cargo workspaces containing multiple crates
+- Prusti can use Rusts strong type system, ownership model and powerful compile time guarantees to aid in verification, reducing annotation overhead for programmers
 - Can verify generic and non-generic functions and types
 - Prusti can check any assertion either never fails or is unreachable
 - Prusti can check if any integer operation might overflow

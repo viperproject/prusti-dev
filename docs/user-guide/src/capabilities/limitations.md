@@ -256,23 +256,3 @@ By removing `#[cfg(test)]` and `#[test]` from a test, Prusti will be able to ver
 
 Prusti cannot verify code that uses [trait objects and the `dyn` keyword](https://doc.rust-lang.org/reference/types/trait-object.html).
 
-
-## Conditional compilation for verification vs normal compilation
-
-There is currently no way of detecting if your code is currently getting compiled normally or verified by Prusti.
-If there was a way, the programmer could have code that only exists during verification, like a test of the specification that should not actually be compiled into an executable:
-
-```rust,noplaypen
-# // The next line is only required for doctests, you can ignore/remove it
-# extern crate prusti_contracts;
-use prusti_contracts::*;
-
-// #[cfg(feature = "prusti")] // Not currently possible
-fn prusti_test() {
-    // Write some code that should be verified,
-    // but not compiled
-    // ...
-}
-```
-
-See issue [#1295](https://github.com/viperproject/prusti-dev/issues/1295).

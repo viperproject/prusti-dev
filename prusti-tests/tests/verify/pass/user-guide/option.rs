@@ -172,6 +172,7 @@ fn link_len(link: &Link) -> usize {
 }
 //// ANCHOR_END: rewrite_link_impl
 
+#[cfg(prusti)]
 mod prusti_tests {
     use super::*;
 
