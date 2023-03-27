@@ -66,7 +66,7 @@ use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use std::convert::TryInto;
 use prusti_interface::specs::typed::{Pledge, SpecificationItem};
-use vir_crate::polymorphic::Float;
+use vir_crate::polymorphic::{Float, Position, Stmt, Expr};
 use crate::utils::is_reference;
 use crate::encoder::mir::{
     sequences::MirSequencesEncoderInterface,
@@ -133,6 +133,78 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Type substitutions inside this procedure. Most likely identity for the
     /// given proc_def_id.
     substs: SubstsRef<'tcx>,
+}
+
+fn get_first_position(statements: &Vec<Stmt>) -> Option<Position> {
+    for statement in statements {
+        match statement {
+            Stmt::Comment(_) => (),
+            Stmt::Label(_) => (),
+            Stmt::Inhale(inhale) => return Some(inhale.expr.pos()),
+            Stmt::Exhale(exhale) => return Some(exhale.position),
+            Stmt::Assert(assert) => return Some(assert.position),
+            Stmt::Refute(refute) => return Some(refute.position),
+            // Stmt::MethodCall(method_call) => {
+            //     for expression in method_call.arguments {
+            //         if expression.pos() != Position::default() {
+            //             return Some(expression.pos());
+            //         }
+            //     }
+            //     None
+            // },
+            Stmt::Assign(assign) => return Some(assign.target.pos()),
+            Stmt::Fold(fold) => return Some(fold.position),
+            // Stmt::Unfold(_) => todo!(),
+            // Stmt::Obtain(_) => todo!(),
+            // Stmt::BeginFrame(_) => todo!(),
+            // Stmt::EndFrame(_) => todo!(),
+            // Stmt::TransferPerm(_) => todo!(),
+            // Stmt::PackageMagicWand(_) => todo!(),
+            // Stmt::ApplyMagicWand(_) => todo!(),
+            // Stmt::ExpireBorrows(_) => todo!(),
+            // Stmt::If(_) => todo!(),
+            // Stmt::Downcast(_) => todo!(),
+            _ => (),
+        }
+    }
+    None
+}
+
+// fn add_unreachable_code_check(&mut self) {
+fn add_unreachable_code_check(mut method: vir::CfgMethod, encoder: &Encoder, mir_encorder: &MirEncoder) -> vir::CfgMethod {
+    for block in method.basic_blocks.iter_mut() {
+        if let Some(position) = get_first_position(&block.stmts) {
+            // let span: Span = encoder.error_manager().position_manager().get_span(position).unwrap().primary_span().unwrap();
+            // let position = Position::new(4, 17, 11);
+            let position = encoder.error_manager().duplicate_position(position);
+            encoder.error_manager().set_error(position, ErrorCtxt::Panic(PanicCause::Refute));
+            // let a = self.encoder.error_manager();
+            // let b = a.position_manager();
+            // let c = b.duplicate(position);
+            // let position_copy =  self.encoder.error_manager().position_manager().duplicate(position);
+            
+            // let position = mir_encorder.register_error(span, ErrorCtxt::Panic(PanicCause::Refute));
+            let refute_expr = vir::ast::Expr::Const(vir::ast::expr::ConstExpr{
+                value: vir::ast::expr::Const::Bool(false),
+                position,
+            });
+
+            let refute_stmt = vir::Stmt::Refute(
+                vir::Refute {
+                    expr: refute_expr,
+                    position,
+                }
+            );
+ 
+            block.stmts.reverse();
+            let comment = block.stmts.pop().unwrap();
+            block.stmts.push(refute_stmt);
+            block.stmts.push(comment);
+            block.stmts.reverse();
+            println!("After reverse {:?}\n", block.stmts);
+        }
+    }
+    method  
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -584,6 +656,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Fix variable declarations.
         let method_with_fold_unfold = fix_ghost_vars(method_with_fold_unfold);
 
+        let method_with_fold_unfold = add_unreachable_code_check(method_with_fold_unfold, &self.encoder, &self.mir_encoder);
         // Dump final CFG
         if config::dump_debug_info() {
             prusti_common::report::log::report_with_writer(
