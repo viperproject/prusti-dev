@@ -6,7 +6,10 @@ use crate::encoder::{
         lifetimes::*,
         lowerer::DomainsLowererInterface,
         references::ReferencesInterface,
-        snapshots::{IntoSnapshot, SnapshotDomainsInterface, SnapshotValuesInterface},
+        snapshots::{
+            IntoSnapshot, SnapshotDomainsInterface, SnapshotValidityInterface,
+            SnapshotValuesInterface,
+        },
         types::TypesInterface,
     },
 };
@@ -136,6 +139,50 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
 
         let body = self.expression_to_snapshot(lowerer, body, expect_math_bool)?;
 
+        // generate validity calls for all variables we quantify over
+        // this is needed to ensure that the quantifier is well-formed
+        // because most axioms assume valid arguments
+        // for some reason they are added in the outer scope as assertions, as if the program thought that these are global variables
+        // TODO: Find a way to make this less cursed
+        // TODO: do not generate the validity calls for variables outside the quantifier
+        let mut validity_calls = Vec::new();
+        for variable in vars.iter() {
+            let call = lowerer.encode_snapshot_valid_call(
+                &variable.ty.to_string(),
+                vir_low::Expression::Local(vir_low::expression::Local {
+                    variable: variable.clone(),
+                    position: quantifier.position(),
+                }),
+            )?;
+            validity_calls.push(call);
+        }
+
+        let recursive_apply_and = |mut exprs: Vec<vir_low::Expression>| {
+            let mut result = exprs.pop().unwrap();
+            for expr in exprs.into_iter().rev() {
+                result = vir_low::Expression::BinaryOp(
+                    vir_low::expression::BinaryOp {
+                        left: Box::new(expr),
+                        right: Box::new(result),
+                        position: *position,
+                        op_kind: vir_low::expression::BinaryOpKind::And,
+                    }
+                    .into(),
+                );
+            }
+            result
+        };
+
+        let validity_call_imply_body = vir_low::Expression::BinaryOp(
+            vir_low::expression::BinaryOp {
+                left: Box::new(recursive_apply_and(validity_calls)),
+                right: Box::new(body),
+                position: *position,
+                op_kind: vir_low::expression::BinaryOpKind::Implies,
+            }
+            .into(),
+        );
+
         let kind = match kind {
             vir_mid::expression::QuantifierKind::ForAll => {
                 vir_low::expression::QuantifierKind::ForAll
@@ -151,7 +198,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 kind,
                 variables: vars,
                 triggers: trigs,
-                body: Box::new(body),
+                body: Box::new(validity_call_imply_body),
                 position: *position,
             },
         ))
