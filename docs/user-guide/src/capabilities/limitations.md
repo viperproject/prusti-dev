@@ -256,3 +256,20 @@ By removing `#[cfg(test)]` and `#[test]` from a test, Prusti will be able to ver
 
 Prusti cannot verify code that uses [trait objects and the `dyn` keyword](https://doc.rust-lang.org/reference/types/trait-object.html).
 
+
+## Match guards and shallow borrows
+
+Using a match guard in a match statement on a reference causes a shallow borrow, which is not supported by Prusti:
+
+```rust,noplaypen,ignore
+# use prusti_contracts::*;
+# 
+struct Example {x: i32}
+
+fn test(t: &Example) {
+    match t {
+        Example{ x } if x % 2 == 0 => {/* do something */},
+        Example{ x } => {/* do something else */}
+    }
+}
+```
