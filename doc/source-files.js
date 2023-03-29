@@ -249,7 +249,7 @@ var sourcesIndex = JSON.parse('{\
 "untrusted":["",[],["untrusted.rs"]],\
 "url":["",[],["host.rs","lib.rs","origin.rs","parser.rs","path_segments.rs","quirks.rs","slicing.rs"]],\
 "utf8":["",[],["lib.rs","lossy.rs","read.rs"]],\
-"uuid":["",[["external",[],["serde_support.rs"]]],["builder.rs","error.rs","external.rs","fmt.rs","lib.rs","macros.rs","parser.rs","rng.rs","timestamp.rs","v4.rs"]],\
+"uuid":["",[],["builder.rs","error.rs","external.rs","fmt.rs","lib.rs","macros.rs","parser.rs","rng.rs","timestamp.rs","v4.rs"]],\
 "value_bag":["",[["internal",[["cast",[],["mod.rs","primitive.rs"]]],["fill.rs","fmt.rs","mod.rs"]]],["error.rs","fill.rs","impls.rs","lib.rs","visit.rs"]],\
 "version_compare":["",[],["cmp.rs","compare.rs","lib.rs","manifest.rs","part.rs","version.rs"]],\
 "viper":["",[["ast_factory",[],["ast_type.rs","expression.rs","macros.rs","mod.rs","position.rs","program.rs","statement.rs","structs.rs"]]],["ast_utils.rs","cache.rs","errors.rs","java_exception.rs","jni_utils.rs","lib.rs","silicon_counterexample.rs","smt_manager.rs","utils.rs","verification_backend.rs","verification_context.rs","verification_result.rs","verifier.rs","viper.rs"]],\
