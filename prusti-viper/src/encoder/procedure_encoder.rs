@@ -550,9 +550,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method)
             .with_span(mir_span)?;
 
-        // let method_with_fold_unfold = self.add_unreachable_code_check(method_with_fold_unfold);
-        // add_unreachable_code_check(&mut self.cfg_method, &self.encoder, &self.mir_encoder);
-
         // Add fold/unfold
         let loan_locations = self
             .polonius_info()
@@ -588,17 +585,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Fix variable declarations.
         let method_with_fold_unfold = fix_ghost_vars(method_with_fold_unfold);
-
-        // let method_with_fold_unfold = add_unreachable_code_check(method_with_fold_unfold, &self.encoder, &self.mir_encoder);
-
-        // let x = self.add_unreachable_code_check(method_with_fold_unfold);
-        // let method_with_fold_unfold = if config::detect_unreachable_code() {
-        //     method_with_fold_unfold
-        // } else {
-        //     self.add_unreachable_code_check(method_with_fold_unfold)
-        // };
-
-        // let method_with_fold_unfold = insert_refutes(method_with_fold_unfold);
 
         // Dump final CFG
         if config::dump_debug_info() {
