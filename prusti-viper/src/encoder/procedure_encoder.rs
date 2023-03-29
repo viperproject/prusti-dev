@@ -66,7 +66,7 @@ use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use std::convert::TryInto;
 use prusti_interface::specs::typed::{Pledge, SpecificationItem};
-use vir_crate::polymorphic::{Float, Position, Stmt, Expr};
+use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
 use crate::encoder::mir::{
     sequences::MirSequencesEncoderInterface,
@@ -133,190 +133,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Type substitutions inside this procedure. Most likely identity for the
     /// given proc_def_id.
     substs: SubstsRef<'tcx>,
+    reachibility_used_positions: FxHashSet<(i32, i32)>,
 }
-
-// fn statement_position(statement: &Stmt) -> Option<Position> {
-//     match statement {
-//         vir::Stmt::Comment(_) => None,
-//         vir::Stmt::Label(_) => None,
-//         vir::Stmt::Inhale(inhale) => Some(inhale.expr.pos()),
-//         vir::Stmt::Exhale(exhale) => Some(exhale.position),
-//         vir::Stmt::Assert(assert) => Some(assert.position),
-//         vir::Stmt::Refute(refute) => Some(refute.position),
-//         // vir::Stmt::MethodCall(method_call) => {
-//         //     for expression in method_call.arguments {
-//         //         if expression.pos() != Position::default() {
-//         //             return Some(expression.pos());
-//         //         }
-//         //     }
-//         //     None
-//         // },
-//         vir::Stmt::Assign(assign) => Some(assign.target.pos()),
-//         vir::Stmt::Fold(fold) => Some(fold.position),
-//         // vir::Stmt::Unfold(_) => todo!(),
-//         // vir::Stmt::Obtain(_) => todo!(),
-//         // vir::Stmt::BeginFrame(_) => todo!(),
-//         // vir::Stmt::EndFrame(_) => todo!(),
-//         // vir::Stmt::TransferPerm(_) => todo!(),
-//         // vir::Stmt::PackageMagicWand(_) => todo!(),
-//         // vir::Stmt::ApplyMagicWand(_) => todo!(),
-//         // vir::Stmt::ExpireBorrows(_) => todo!(),
-//         // vir::Stmt::If(_) => todo!(),
-//         // vir::Stmt::Downcast(_) => todo!(),
-//         _ => None,
-//     }
-// }
-
-
-// let span = self
-// .encoder
-// .get_definition_span(refutation.refutation.to_def_id());
-
-// let refute_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-// println!("refute expression: {:?}", refute_expr);
-
-// let refute_stmt = vir::Stmt::Refute(
-// vir::Refute {
-//     expr: refute_expr,
-//     position: self.register_error(span, ErrorCtxt::Panic(PanicCause::Refute))
-// }
-// );
-
-// encoded_statements.push(refute_stmt);
-
-// return Ok(true);
-
-// pub fn insert_refutes(mut method: vir::CfgMethod) -> vir::CfgMethod {
-//     let mut first_position: Option<Position> = None;
-//     for block in method.basic_blocks.iter_mut() {
-//         // for statement in block.stmts {
-//         //     if let Some(pos) = statement_position(&statement) {
-//         //         first_position = Some(pos);
-//         //     }
-//         // }
-//         // if first_position == None {
-//         //     continue;
-//         // }
-//         // let first_position = first_position.unwrap();
-
-//         println!("Before reverse {:?}", block.stmts);
-//         block.stmts.reverse();
-
-//         let comment = block.stmts.pop().unwrap();
-        
-//         // let xxx :vir_crate::polymorphic::ast::Stmt  = vir_crate::polymorphic::ast::Stmt::Refute();
-//         // let yyy: vir::Expr::Const() 
-//         // let zzz:
-//         let expr = vir::ast::Expr::Const(vir::ast::expr::ConstExpr{
-//             value: vir::ast::expr::Const::Bool(false),
-//             position: vir::ast::common::Position::new(23, 17, 61),
-//             // position: vir::ast::common::Position::default(),
-//         });
-
-
-        
-//         // Expr::Const(ConstExpr {
-//         //     value: val.into(),
-//         //     position: Position::default(),
-//         // })
-//         let refute_stmt = vir::Stmt::Refute(
-//             vir::Refute {
-//                 expr,
-//                 position: vir::ast::common::Position::new(23, 17, 61),
-//                 // position: vir::ast::common::Position::default(),
-//             }
-//         );
-
-//         // refute_stmt.
-//         block.stmts.push(refute_stmt);
-//         // let mut vvv = vec![refute_stmt];
-//         // block.stmts.append(&mut vvv);
-//         block.stmts.push(comment);
-//         // println!("After append {:?}", block.stmts);
-
-        
-//         block.stmts.reverse();
-//         // println!("Dereversed {:?}", block.stmts);
-
-//         // let vir_create::gen::polymorphic::ast::stmt::Stmt x = ;
-//         // vir::gen::polymorphic::ast::stmt::Stmt
-//         // vir::gen::polymorphic::ast::stmt
-//         // block.stmts.append(other)
-//     }
-//     method
-// }
-
-// fn get_first_position(statements: &Vec<Stmt>) -> Option<Position> {
-//     for statement in statements {
-//         match statement {
-//             Stmt::Comment(_) => (),
-//             Stmt::Label(_) => (),
-//             Stmt::Inhale(inhale) => return Some(inhale.expr.pos()),
-//             Stmt::Exhale(exhale) => return Some(exhale.position),
-//             Stmt::Assert(assert) => return Some(assert.position),
-//             Stmt::Refute(refute) => return Some(refute.position),
-//             // Stmt::MethodCall(method_call) => {
-//             //     for expression in method_call.arguments {
-//             //         if expression.pos() != Position::default() {
-//             //             return Some(expression.pos());
-//             //         }
-//             //     }
-//             //     None
-//             // },
-//             Stmt::Assign(assign) => return Some(assign.target.pos()),
-//             Stmt::Fold(fold) => return Some(fold.position),
-//             // Stmt::Unfold(_) => todo!(),
-//             // Stmt::Obtain(_) => todo!(),
-//             // Stmt::BeginFrame(_) => todo!(),
-//             // Stmt::EndFrame(_) => todo!(),
-//             // Stmt::TransferPerm(_) => todo!(),
-//             // Stmt::PackageMagicWand(_) => todo!(),
-//             // Stmt::ApplyMagicWand(_) => todo!(),
-//             // Stmt::ExpireBorrows(_) => todo!(),
-//             // Stmt::If(_) => todo!(),
-//             // Stmt::Downcast(_) => todo!(),
-//             _ => (),
-//         }
-//     }
-//     None
-// }
-
-// // fn add_unreachable_code_check(&mut self) {
-// fn add_unreachable_code_check(mut method: vir::CfgMethod, encoder: &Encoder, mir_encorder: &MirEncoder) -> vir::CfgMethod {
-//     for block in method.basic_blocks.iter_mut() {
-//         if let Some(position) = get_first_position(&block.stmts) {
-//             // let span: Span = encoder.error_manager().position_manager().get_span(position).unwrap().primary_span().unwrap();
-//             // let position = Position::new(4, 17, 11);
-//             let position = encoder.error_manager().duplicate_position(position);
-//             encoder.error_manager().set_error(position, ErrorCtxt::Panic(PanicCause::Refute));
-//             // let a = self.encoder.error_manager();
-//             // let b = a.position_manager();
-//             // let c = b.duplicate(position);
-//             // let position_copy =  self.encoder.error_manager().position_manager().duplicate(position);
-            
-//             // let position = mir_encorder.register_error(span, ErrorCtxt::Panic(PanicCause::Refute));
-//             let refute_expr = vir::ast::Expr::Const(vir::ast::expr::ConstExpr{
-//                 value: vir::ast::expr::Const::Bool(false),
-//                 position,
-//             });
-
-//             let refute_stmt = vir::Stmt::Refute(
-//                 vir::Refute {
-//                     expr: refute_expr,
-//                     position,
-//                 }
-//             );
- 
-//             block.stmts.reverse();
-//             let comment = block.stmts.pop().unwrap();
-//             block.stmts.push(refute_stmt);
-//             block.stmts.push(comment);
-//             block.stmts.reverse();
-//             println!("After reverse {:?}\n", block.stmts);
-//         }
-//     }
-//     method  
-// }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     #[tracing::instrument(name = "ProcedureEncoder::new", level = "debug", skip_all, fields(proc_def_id = ?procedure.get_id()))]
@@ -375,6 +193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             old_ghost_vars: FxHashMap::default(),
             cached_loop_invariant_block: FxHashMap::default(),
             substs,
+            reachibility_used_positions: FxHashSet::default(),
         })
     }
 
@@ -680,28 +499,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ),
                 mir_span,
             ));
-        }
-
-        if config::detect_unreachable_code() {
-            for bbi in self.procedure.get_reachable_nonspec_cfg_blocks() {
-                let cfg_block_indices = &self.cfg_blocks_map[&bbi];
-                for cfg_block_index in cfg_block_indices {
-                    let span = self.mir_encoder.get_span_of_basic_block(bbi);
-                    // let bb_pos_expr = self.mir_encoder.register_span(span);
-                    let bb_pos_expr = self.register_error(span, ErrorCtxt::UnreachableCode("Err 1".to_string()));
-                    let bb_pos_stmt = self.register_error(span, ErrorCtxt::UnreachableCode("Err 2".to_string()));
-                    // let bb_pos_stmt = self.mir_encoder.register_span();
-
-                    let refute_expr = vir::ast::Expr::Const(vir::ast::expr::ConstExpr{value: vir::ast::expr::Const::Bool(false), position: bb_pos_expr});
-                    let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: bb_pos_stmt});
-                    
-                    self.cfg_method.basic_blocks[cfg_block_index.block_index].stmts.reverse();
-                    let comment = self.cfg_method.basic_blocks[cfg_block_index.block_index].stmts.pop().unwrap();
-                    self.cfg_method.add_stmt(*cfg_block_index, refute_stmt);
-                    self.cfg_method.basic_blocks[cfg_block_index.block_index].stmts.push(comment);
-                    self.cfg_method.basic_blocks[cfg_block_index.block_index].stmts.reverse();
-                }
-            }
         }
 
         // Set the first CFG block
@@ -1474,6 +1271,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 curr_block,
                 vir::Stmt::comment("This is a loop head"),
             );
+        }
+
+        if config::detect_unreachable_code() {
+            let bb_data = &self.mir.basic_blocks[bbi];
+            let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
+            if !statements.is_empty() {
+                let location = mir::Location {
+                    block: bbi,
+                    statement_index: 0,
+                };
+                let span = self.mir_encoder.get_span_of_location(location);
+                let bb_pos_expr = self.mir_encoder.register_span(span);
+                if !self.reachibility_used_positions.contains(&(bb_pos_expr.line(), bb_pos_expr.column())) {
+                    self.reachibility_used_positions.insert((bb_pos_expr.line(), bb_pos_expr.column()));
+                    let bb_pos_stmt = self.register_error(span, ErrorCtxt::UnreachableCode);
+                    let refute_expr = vir::ast::Expr::Const(vir::ast::expr::ConstExpr{value: vir::ast::expr::Const::Bool(false), position: bb_pos_expr});
+                    let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: bb_pos_stmt});
+                    self.cfg_method.add_stmt(curr_block, refute_stmt);
+                }
+            }
         }
 
         self.encode_execution_flag(bbi, curr_block)?;

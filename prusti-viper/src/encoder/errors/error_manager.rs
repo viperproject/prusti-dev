@@ -188,6 +188,8 @@ pub enum ErrorCtxt {
     /// The state that fold-unfold algorithm deduced as unreachable, is actually
     /// reachable.
     UnreachableFoldingState,
+    /// Raised when DETECT_UNREACHABLE_CODE is enabled and an code is determined as unreachable.
+    UnreachableCode,
 }
 
 /// The error manager
@@ -710,6 +712,10 @@ impl<'tcx> ErrorManager<'tcx> {
                     "the refuted expression holds in all cases or could not be reached",
                     error_span,
                 )
+            }
+
+            ("refute.failed:refutation.true", ErrorCtxt::UnreachableCode) => {
+                PrustiError::verification("Detected unreachable code", error_span)
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {
