@@ -23,4 +23,4 @@
 - TODO: type_models.md
 - TODO: prusti_assume
 - TODO: spec_ent.md
-- TODO: partial verification for big projects
+- TODO: partial verification for big projects // https://github.com/viperproject/prusti-dev/pull/1303

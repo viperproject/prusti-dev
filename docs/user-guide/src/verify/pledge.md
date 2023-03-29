@@ -51,3 +51,11 @@ reference fields) and `condition` is a [Prusti specification](../syntax.md) that
 structure will look once the borrow expires. To refer in the condition to the state that
 a memory location pointed at by the reference has just before expiring,
 use `before_expiry(*reference)`.
+
+## Run assertions when reference expires
+
+In some cases, a condition must be checked at the point of expiry, like for example a type invariant.
+The syntax for this is `#[assert_on_expiry(condition, invariant)]`.
+This means that the `invariant` holds, given that `condition` is true when the reference expires.
+
+Note that for some condition `A`, `after_expiry(A)` is equal to `assert_one_expiry(true, A)`.
