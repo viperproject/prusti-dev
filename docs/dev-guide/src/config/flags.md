@@ -260,7 +260,8 @@ Log level and filters. See [`env_logger` documentation](https://docs.rs/env_logg
 
 For example, `PRUSTI_LOG=prusti_viper=trace` enables trace logging for the prusti-viper crate, or `PRUSTI_LOG=debug` enables lighter logging everywhere. When using `trace` it is recommended to disable `jni` messages with e.g. `PRUSTI_LOG=trace,jni=warn`.
 A useful explanation of this can be found in the [rustc docs](https://rustc-dev-guide.rust-lang.org/tracing.html) (we set `PRUSTI_LOG` rather than `RUSTC_LOG`).
-Debug and trace logs are not available in release builds.
+When running `prusti-rustc` and `prusti-server`, it is possible to report log messages to stderr, however in release builds all trace and most debug logs are not available.
+
 
 ## `LOG_DIR`
 
