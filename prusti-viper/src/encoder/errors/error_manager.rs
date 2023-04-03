@@ -715,7 +715,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
 
             ("refute.failed:refutation.true", ErrorCtxt::UnreachableCode) => {
-                PrustiError::verification("Detected unreachable code", error_span)
+                PrustiError::warning("Detected unreachable code", error_span)
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {
