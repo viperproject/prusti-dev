@@ -59,5 +59,10 @@ error_chain::error_chain! {
             description("no field")
             display("no field '{}' in class '{}'", field, class)
         }
+
+        TraitField(class: String, field: String, actually_trait: bool) {
+            description("no field")
+            display("no field '{}' in class '{}', try using `{}field!` instead", field, class, if *actually_trait { "trait_" } else { "" })
+        }
     }
 }

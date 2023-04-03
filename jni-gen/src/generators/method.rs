@@ -18,7 +18,11 @@ pub fn generate_method(
     target_signature: Option<String>,
     suffix: Option<String>,
 ) -> Result<String> {
-    let MethodInfo { method_signature, method, is_static } = find_method(env, class, method_name, target_signature)?;
+    let MethodInfo {
+        method_signature,
+        method,
+        is_static,
+    } = find_method(env, class, method_name, target_signature)?;
 
     let parameters = env
         .call_method(
@@ -355,7 +359,6 @@ fn generate_static(
     code.join("\n") + "\n"
 }
 
-
 pub struct MethodInfo<'a> {
     pub method_signature: String,
     pub method: JObject<'a>,
@@ -458,5 +461,9 @@ pub fn find_method<'a>(
         )?
         .z()?;
 
-    Ok(MethodInfo{method_signature, method, is_static})
+    Ok(MethodInfo {
+        method_signature,
+        method,
+        is_static,
+    })
 }
