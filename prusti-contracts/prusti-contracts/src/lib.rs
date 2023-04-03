@@ -33,6 +33,9 @@ pub use prusti_contracts_proc_macros::prusti_assert;
 /// A macro for writing assumptions using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_assume;
 
+/// A macro for writing refutations using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_refute;
+
 /// A macro for impl blocks that refine trait specifications.
 pub use prusti_contracts_proc_macros::refine_trait_spec;
 

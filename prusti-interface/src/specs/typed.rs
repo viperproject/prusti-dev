@@ -17,6 +17,7 @@ pub struct DefSpecificationMap {
     pub type_specs: FxHashMap<DefId, TypeSpecification>,
     pub prusti_assertions: FxHashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: FxHashMap<DefId, PrustiAssumption>,
+    pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
 }
@@ -44,6 +45,10 @@ impl DefSpecificationMap {
 
     pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.prusti_assumptions.get(def_id)
+    }
+
+    pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
+        self.prusti_refutations.get(def_id)
     }
 
     pub fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
@@ -166,12 +171,18 @@ impl DefSpecificationMap {
             .values()
             .map(|spec| format!("{spec:?}"))
             .collect();
+        let refutations: Vec<_> = self
+            .prusti_refutations
+            .values()
+            .map(|spec| format!("{spec:?}"))
+            .collect();
         let mut values = Vec::new();
         values.extend(loop_specs);
         values.extend(proc_specs);
         values.extend(type_specs);
         values.extend(asserts);
         values.extend(assumptions);
+        values.extend(refutations);
         if hide_uuids {
             let uuid =
                 Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}").unwrap();
@@ -290,6 +301,11 @@ pub struct PrustiAssertion {
 #[derive(Debug, Clone)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiRefutation {
+    pub refutation: LocalDefId,
 }
 
 #[derive(Debug, Clone)]

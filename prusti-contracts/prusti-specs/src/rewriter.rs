@@ -255,6 +255,15 @@ impl AstRewriter {
         self.process_prusti_expression(quote! {prusti_assumption}, spec_id, tokens)
     }
 
+    /// Parse a prusti refute into a Rust expression
+    pub fn process_prusti_refutation(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.process_prusti_expression(quote! {prusti_refutation}, spec_id, tokens)
+    }
+
     fn process_prusti_expression(
         &mut self,
         kind: TokenStream,

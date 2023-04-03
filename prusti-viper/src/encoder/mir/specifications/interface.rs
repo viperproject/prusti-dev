@@ -97,6 +97,9 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the prusti assumption
     fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption>;
 
+    /// Get the prusti refutation
+    fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation>;
+
     /// Get the begin marker of the ghost block
     fn get_ghost_begin(&self, def_id: DefId) -> Option<typed::GhostBegin>;
 
@@ -231,6 +234,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow()
             .get_assumption(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_refutation(&def_id)
             .cloned()
     }
 
