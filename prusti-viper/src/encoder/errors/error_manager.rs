@@ -30,6 +30,8 @@ pub enum PanicCause {
     Panic,
     /// Caused by an assert!()
     Assert,
+    /// Caused by an refute!()
+    Refute,
     /// Caused by an debug_assert!()
     DebugAssert,
     /// Caused by an unreachable!()
@@ -693,6 +695,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 PrustiError::verification(
                     "The loop variant might go below zero while the loop continues".to_string(),
                     error_span
+                )
+            }
+
+            ("refute.failed:refutation.true", ErrorCtxt::Panic(PanicCause::Refute)) => {
+                PrustiError::verification(
+                    "the refuted expression holds in all cases or could not be reached",
+                    error_span,
                 )
             }
 

@@ -11,7 +11,7 @@ use prusti_interface::{
     specs::typed::{
         DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
         ProcedureSpecificationKind, ProcedureSpecificationKindError, PrustiAssertion,
-        PrustiAssumption, Refinable, SpecificationItem, TypeSpecification,
+        PrustiAssumption, PrustiRefutation, Refinable, SpecificationItem, TypeSpecification,
     },
     PrustiError,
 };
@@ -89,6 +89,11 @@ impl<'tcx> Specifications<'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.user_typed_specs.get_assumption(def_id)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self))]
+    pub(super) fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
+        self.user_typed_specs.get_refutation(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
