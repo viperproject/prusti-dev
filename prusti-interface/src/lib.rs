@@ -8,6 +8,7 @@
 
 #![deny(unused_must_use)]
 #![deny(unsafe_op_in_unsafe_fn)]
+#![warn(clippy::disallowed_types)]
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]

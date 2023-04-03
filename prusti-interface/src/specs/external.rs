@@ -1,7 +1,7 @@
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::{
-        def_id::DefId,
+        def_id::{DefId, LocalDefId},
         intravisit::{self, Visitor},
     },
     middle::hir::map::Map,
@@ -12,12 +12,9 @@ use crate::{
     environment::{EnvDiagnostic, EnvName, EnvQuery, Environment},
     PrustiError,
 };
-use prusti_rustc_interface::middle::ty::subst::SubstsRef;
+use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::ty::subst::SubstsRef};
 use prusti_specs::ExternSpecKind;
-use std::{
-    cmp::{Eq, PartialEq},
-    collections::HashMap,
-};
+use std::cmp::{Eq, PartialEq};
 
 pub enum ExternSpecResolverError {
     /// Occurs when the user declares an extern spec in an impl block but the
@@ -99,11 +96,11 @@ pub struct ExternSpecResolver<'tcx> {
     env_query: EnvQuery<'tcx>,
 
     /// Maps real functions to Prusti-generated fake functions with specifications.
-    pub extern_fn_map: HashMap<ExternSpecDeclaration, DefId>,
+    pub extern_fn_map: FxHashMap<ExternSpecDeclaration, DefId>,
 
     /// Duplicate specifications detected, keyed by the `DefId` of the function
     /// to be specified.
-    spec_duplicates: HashMap<DefId, Vec<(DefId, Span)>>,
+    spec_duplicates: FxHashMap<DefId, Vec<(DefId, Span)>>,
 
     /// Encountered errors while resolving external specs.
     errors: Vec<ExternSpecResolverError>,
@@ -114,8 +111,8 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         Self {
             env_name: env.name,
             env_query: env.query,
-            extern_fn_map: HashMap::new(),
-            spec_duplicates: HashMap::new(),
+            extern_fn_map: FxHashMap::default(),
+            spec_duplicates: FxHashMap::default(),
             errors: vec![],
         }
     }
@@ -133,15 +130,15 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         fn_decl: &'tcx prusti_rustc_interface::hir::FnDecl,
         body_id: prusti_rustc_interface::hir::BodyId,
         span: Span,
-        id: prusti_rustc_interface::hir::hir_id::HirId,
+        local_id: LocalDefId,
         extern_spec_kind: ExternSpecKind,
     ) {
         let mut visitor = ExternSpecVisitor {
             env_query: self.env_query,
             spec_found: None,
         };
-        visitor.visit_fn(fn_kind, fn_decl, body_id, span, id);
-        let current_def_id = self.env_query.as_local_def_id(id).to_def_id();
+        visitor.visit_fn(fn_kind, fn_decl, body_id, span, local_id);
+        let current_def_id = local_id.to_def_id();
         if let Some((target_def_id, substs, span)) = visitor.spec_found {
             let extern_spec_decl =
                 ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env_query);

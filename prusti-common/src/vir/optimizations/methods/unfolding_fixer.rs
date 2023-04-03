@@ -1,6 +1,6 @@
 use crate::vir::polymorphic_vir as vir;
-use fxhash::FxHasher;
 use log::debug;
+use rustc_hash::FxHasher;
 use std::{
     hash::{Hash, Hasher},
     mem,
@@ -76,6 +76,7 @@ impl vir::StmtFolder for Optimizer {
 }
 
 impl vir::ExprFolder for Optimizer {
+    #[tracing::instrument(level = "debug", skip(self, unfolding))]
     fn fold_unfolding(&mut self, unfolding: vir::Unfolding) -> vir::Expr {
         let is_nested_duplicate = self
             .stack

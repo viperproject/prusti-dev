@@ -17,11 +17,13 @@ use super::{decoder::DefSpecsDecoder, encoder::DefSpecsEncoder};
 pub struct CrossCrateSpecs;
 
 impl CrossCrateSpecs {
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn import_export_cross_crate(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
         Self::export_specs(env, def_spec);
         Self::import_specs(env, def_spec);
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn export_specs(env: &Environment, def_spec: &DefSpecificationMap) {
         let outputs = env.tcx().output_filenames(());
         // If we run `rustc` without the `--out-dir` flag set, then don't export specs
@@ -44,6 +46,7 @@ impl CrossCrateSpecs {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn import_specs(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
         let cstore = CStore::from_tcx(env.tcx());
         // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
@@ -54,11 +57,14 @@ impl CrossCrateSpecs {
         for crate_num in env.tcx().crates(()) {
             if let Some(extern_crate) = env.tcx().extern_crate(crate_num.as_def_id()) {
                 if extern_crate.is_direct() {
+                    let crate_name = env.tcx().crate_name(*crate_num);
                     let cs = cstore.crate_source_untracked(*crate_num);
                     let mut source = cs.paths().next().unwrap().clone();
                     source.set_extension("specs");
                     if source.is_file() {
-                        if let Err(e) = Self::import_from_file(env, def_spec, &source) {
+                        if let Err(e) =
+                            Self::import_from_file(env, def_spec, &source, crate_name.as_str())
+                        {
                             PrustiError::internal(
                                 format!(
                                     "error importing specs from file \"{}\": {}",
@@ -92,16 +98,18 @@ impl CrossCrateSpecs {
         file.write(&encoder.into_inner())
     }
 
+    #[tracing::instrument(level = "debug", skip(env, def_spec))]
     fn import_from_file(
         env: &mut Environment,
         def_spec: &mut DefSpecificationMap,
         path: &path::PathBuf,
+        crate_name: &str,
     ) -> io::Result<()> {
         use std::io::Read;
         let mut data = Vec::new();
         let mut file = fs::File::open(path)?;
         file.read_to_end(&mut data)?;
-        let mut decoder = DefSpecsDecoder::new(env.tcx(), &data);
+        let mut decoder = DefSpecsDecoder::new(env.tcx(), &data, path.clone(), crate_name);
 
         let proc_specs = FxHashMap::decode(&mut decoder);
         let type_specs = FxHashMap::decode(&mut decoder);

@@ -12,7 +12,7 @@ use vir_crate::polymorphic as vir;
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::ty::subst::SubstsRef;
 use prusti_rustc_interface::middle::mir;
-use log::{trace, debug};
+use log::debug;
 
 use crate::encoder::errors::WithSpan;
 
@@ -27,13 +27,13 @@ pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
+    #[tracing::instrument(name = "StubFunctionEncoder::new", level = "trace", skip(encoder, mir))]
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
         mir: &'p mir::Body<'tcx>,
         substs: SubstsRef<'tcx>,
     ) -> Self {
-        trace!("StubFunctionEncoder constructor: {:?}", proc_def_id);
         StubFunctionEncoder {
             encoder,
             mir,
@@ -43,6 +43,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);

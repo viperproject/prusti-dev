@@ -13,7 +13,7 @@ use crate::{
     config,
     vir::polymorphic_vir::{ast, cfg},
 };
-use fxhash::{FxHashMap, FxHashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{self, mem};
 
 /// Purify vars.
@@ -300,7 +300,11 @@ impl VarPurifier {
                 _ => unreachable!(),
             }
         } else if config::encode_unsigned_num_constraint() {
-            ast::Expr::ge_cmp(replacement, 0.into())
+            match predicate.name().as_ref() {
+                "usize" => ast::Expr::ge_cmp(replacement, 0.into()),
+                "isize" => true.into(),
+                _ => unreachable!(),
+            }
         } else {
             true.into()
         }

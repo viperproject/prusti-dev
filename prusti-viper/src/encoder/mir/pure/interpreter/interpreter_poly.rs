@@ -134,9 +134,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             &mir::Operand::Move(place) | &mir::Operand::Copy(place) => {
                 Ok((self.encode_place(place)?.0, false))
             }
-            mir::Operand::Constant(constant) => {
-                Ok((self.encoder.encode_snapshot_constant(constant)?, true))
-            }
+            mir::Operand::Constant(constant) => match constant.literal {
+                mir::ConstantKind::Unevaluated(c, _cty) => {
+                    Ok((self.encoder.encode_uneval_const(c)?, true))
+                }
+                _ => Ok((self.encoder.encode_snapshot_constant(constant)?, true)),
+            },
         }
     }
 
@@ -198,13 +201,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     type State = ExprBackwardInterpreterState;
     type Error = SpannedEncodingError;
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn apply_terminator(
         &self,
         bb: mir::BasicBlock,
         term: &mir::Terminator<'tcx>,
         states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
-        trace!("apply_terminator {:?}, states: {:?}", term, states);
         use prusti_rustc_interface::middle::mir::TerminatorKind;
         let span = term.source_info.span;
         let location = self.mir.terminator_loc(bb);
@@ -426,7 +429,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                         match full_func_proc_name {
                             "prusti_contracts::old" => {
-                                trace!("Encoding old expression {:?}", args[0]);
                                 assert_eq!(args.len(), 1);
 
                                 // Return an error for unsupported old(..) types
@@ -517,7 +519,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // manually re-do them here when we probably just encoded the type and the
                                 // construction of the fields..
                                 // Also, duplication with procedure_encoder.rs
-                                let usize_ty = tcx.mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+                                let usize_ty =
+                                    tcx.mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize));
                                 let start = match &*idx_ident {
                                     "std::ops::Range" | "core::ops::Range" |
                                     "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
@@ -749,9 +752,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         // We are encoding a trigger, so all panic branches must be stripped.
                         states[target].clone()
                     }
-                    PureEncodingContext::Assertion => {
+                    PureEncodingContext::Assertion
+                        if matches!(self.mir.return_ty().kind(), ty::TyKind::Bool) =>
+                    {
                         // We are encoding an assertion, so all failures should be equivalent to false.
-                        debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
+                        // Predicates are also encoded as assertions, but non-Boolean predicates should
+                        // use the other arm.
                         ExprBackwardInterpreterState::new(states[target].expr().map(
                             |target_expr| {
                                 vir::Expr::ite(
@@ -762,7 +768,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             },
                         ))
                     }
-                    PureEncodingContext::Code => {
+                    PureEncodingContext::Assertion | PureEncodingContext::Code => {
                         // We are encoding a pure function, so all failures should be unreachable.
                         let failure_encoding =
                             unreachable_expr(pos).with_span(term.source_info.span)?;
@@ -805,6 +811,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         Ok(state)
     }
 
+    #[tracing::instrument(level = "debug", skip(self, state), fields(state = %state))]
     fn apply_statement(
         &self,
         bb: mir::BasicBlock,
@@ -812,7 +819,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         stmt: &mir::Statement<'tcx>,
         state: &mut Self::State,
     ) -> Result<(), Self::Error> {
-        trace!("apply_statement {:?}, state: {}", stmt, state);
         let span = stmt.source_info.span;
         let location = mir::Location {
             block: bb,

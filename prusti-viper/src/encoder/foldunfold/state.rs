@@ -44,6 +44,7 @@ impl State {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn check_consistency(&self) {
         // Skip consistency checks in release mode
         if cfg!(not(debug_assertions)) {
@@ -316,7 +317,7 @@ impl State {
             .iter()
             .map(|(p, f)| format!("  {p}: {f}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
@@ -326,7 +327,7 @@ impl State {
             .iter()
             .map(|(p, f)| format!("  {p}: {f}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
@@ -336,16 +337,16 @@ impl State {
             .iter()
             .map(|x| format!("  {x}"))
             .collect::<Vec<String>>();
-        info.sort();
+        info.sort_unstable();
         info.join(",\n")
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(place = %place, perm = %perm))]
     pub fn insert_acc(
         &mut self,
         place: vir::Expr,
         perm: PermAmount,
     ) -> Result<(), FoldUnfoldError> {
-        trace!("insert_acc {}, {}", place, perm);
         if self.acc.contains_key(&place) {
             let new_perm = self.acc[&place].add(perm)?;
             assert!(
@@ -371,12 +372,12 @@ impl State {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(place = %place, perm = %perm))]
     pub fn insert_pred(
         &mut self,
         place: vir::Expr,
         perm: PermAmount,
     ) -> Result<(), FoldUnfoldError> {
-        trace!("insert_pred {}, {}", place, perm);
         if self.pred.contains_key(&place) {
             let new_perm = self.pred[&place].add(perm)?;
             assert!(
@@ -461,12 +462,12 @@ impl State {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(place = %place, perm = %perm))]
     pub fn remove_pred(
         &mut self,
         place: &vir::Expr,
         perm: PermAmount,
     ) -> Result<(), FoldUnfoldError> {
-        trace!("remove_pred {}, {}", place, perm);
         if !self.pred.contains_key(place) {
             return Err(FoldUnfoldError::FailedToRemovePred(place.clone(), perm));
         }
@@ -514,31 +515,29 @@ impl State {
     /// ```
     /// In such a case, the function keeps the most generic variant of
     /// permissions.
+    #[tracing::instrument(level = "trace", skip_all, fields(item = %item))]
     pub fn restore_dropped_perm(&mut self, item: Perm) -> Result<(), FoldUnfoldError> {
-        trace!("[enter] restore_dropped_perm item={}", item);
         for moved_place in &self.moved {
             trace!("  moved_place={}", moved_place);
         }
         match item {
             Perm::Acc(place, perm) => {
                 self.remove_moved_matching(|p| place.has_prefix(p));
-                self.restore_acc(place, perm)?;
+                self.restore_acc(place, perm)
             }
             Perm::Pred(place, perm) => {
                 self.remove_moved_matching(|p| place.has_prefix(p));
-                self.restore_pred(place, perm)?;
+                self.restore_pred(place, perm)
             }
-        };
-        trace!("[exit] restore_dropped_perm");
-        Ok(())
+        }
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(acc_place = %acc_place, perm = %perm))]
     fn restore_acc(
         &mut self,
         acc_place: vir::Expr,
         mut perm: PermAmount,
     ) -> Result<(), FoldUnfoldError> {
-        trace!("restore_acc {}, {}", acc_place, perm);
         if let Some(curr_perm_amount) = self.acc.get(&acc_place) {
             perm = perm.add(*curr_perm_amount)?;
         }
@@ -558,12 +557,12 @@ impl State {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip_all, fields(pred_place = %pred_place, perm = %perm))]
     fn restore_pred(
         &mut self,
         pred_place: vir::Expr,
         mut perm: PermAmount,
     ) -> Result<(), FoldUnfoldError> {
-        trace!("restore_pred {}, {}", pred_place, perm);
         if let Some(curr_perm_amount) = self.pred.get(&pred_place) {
             perm = perm.add(*curr_perm_amount)?;
             //trace!("restore_pred {}: ignored (state already contains place)", pred_place);
@@ -587,16 +586,15 @@ impl State {
         Ok(())
     }
 
+    #[tracing::instrument(level = "trace", skip_all)]
     pub fn restore_dropped_perms<I>(&mut self, items: I) -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = Perm>,
     {
-        trace!("[enter] restore_dropped_perms");
         for item in items {
             self.restore_dropped_perm(item)?;
         }
         self.check_consistency();
-        trace!("[exit] restore_dropped_perms");
         Ok(())
     }
 
@@ -620,8 +618,8 @@ impl State {
         exprs.into_iter().conjoin()
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     pub fn begin_frame(&mut self) {
-        trace!("begin_frame");
         trace!(
             "Before: {} frames are on the stack",
             self.framing_stack.len()
@@ -644,8 +642,8 @@ impl State {
         );
     }
 
+    #[tracing::instrument(level = "debug")]
     pub fn end_frame(&mut self) -> Result<(), FoldUnfoldError> {
-        trace!("end_frame");
         trace!(
             "Before: {} frames are on the stack",
             self.framing_stack.len()

@@ -75,8 +75,11 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let tcx = encoder.env().tcx();
     let (mir, lifetimes) = self::elaborate_drops::elaborate_drops(encoder, def_id, &procedure)?;
     let mir = &mir; // Mark body as immutable.
-    let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
-    let init_data = InitializationData::new(tcx, mir, &move_env);
+    let (env, un_derefer) =
+        self::initialisation::create_move_data_param_env_and_un_derefer(tcx, mir);
+    // TODO: the clone is required so that we can remove dead unwinds
+    let mut no_dead_unwinds = mir.clone();
+    let init_data = InitializationData::new(tcx, &mut no_dead_unwinds, &env, &un_derefer);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
     let specification_blocks =
         SpecificationBlocks::build(encoder.env().query, mir, &procedure, true);
@@ -1281,6 +1284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     fn encode_terminator_switch_int(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
@@ -1967,7 +1971,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                let assertion = match self.encoder.get_prusti_assertion(cl_def_id.to_def_id()) {
+                let assertion = match self.encoder.get_prusti_assertion(cl_def_id) {
                     Some(spec) => spec,
                     None => return Ok(false),
                 };
@@ -2016,7 +2020,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                let assumption = match self.encoder.get_prusti_assumption(cl_def_id.to_def_id()) {
+                let assumption = match self.encoder.get_prusti_assumption(cl_def_id) {
                     Some(spec) => spec,
                     None => return Ok(false),
                 };
@@ -2063,11 +2067,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
             )) = stmt.kind
             {
-                let is_begin = self
-                    .encoder
-                    .get_ghost_begin(cl_def_id.to_def_id())
-                    .is_some();
-                let is_end = self.encoder.get_ghost_end(cl_def_id.to_def_id()).is_some();
+                let is_begin = self.encoder.get_ghost_begin(cl_def_id).is_some();
+                let is_end = self.encoder.get_ghost_end(cl_def_id).is_some();
                 return Ok(is_begin || is_end);
             }
         }

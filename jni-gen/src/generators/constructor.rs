@@ -67,9 +67,6 @@ pub fn generate_constructor(
         },
     };
 
-    let mut parameter_names: Vec<String> = vec![];
-    let mut parameter_signatures: Vec<String> = vec![];
-
     let parameters = env
         .call_method(
             constructor,
@@ -79,6 +76,9 @@ pub fn generate_constructor(
         )?
         .l()?;
     let num_parameters = env.get_array_length(*parameters)?;
+
+    let mut parameter_names: Vec<String> = Vec::with_capacity(num_parameters as usize);
+    let mut parameter_signatures: Vec<String> = Vec::with_capacity(num_parameters as usize);
 
     for parameter_index in 0..num_parameters {
         let parameter = env.get_object_array_element(*parameters, parameter_index)?;
@@ -161,29 +161,36 @@ fn generate(
 
     code.push(") -> JNIResult<JObject<'a>> {".to_string());
 
-    // Generate dynamic type check for the arguments
-    for i in 0..parameter_names.len() {
-        let par_name = &parameter_names[i];
-        let par_sign = &parameter_signatures[i];
-        if par_sign.starts_with('L') {
-            let par_class = &par_sign[1..(par_sign.len() - 1)];
-            code.push("    debug_assert!(".to_string());
-            code.push(format!(
-                "        self.env.is_instance_of({par_name}, self.env.find_class(\"{par_class}\")?)?"
-            ));
-            code.push("    );".to_string());
-        }
-    }
-    code.push("".to_string());
-
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push("    let method_name = \"<init>\";".to_string());
     code.push(format!(
         "    let method_signature = \"{constructor_signature}\";"
     ));
 
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if is_signature_of_class_type(par_sign) {
+            let par_class = &par_sign[1..(par_sign.len() - 1)];
+            code.push(format!("    let {par_name}_class_name = \"{par_class}\";"));
+        }
+    }
+    code.push("".to_string());
+
+    // Generate dynamic type check for the arguments
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if is_signature_of_class_type(par_sign) {
+            code.push(generate_variable_type_check(
+                par_name,
+                &format!("{par_name}_class_name"),
+            ));
+        }
+    }
+
     code.push(
-        r#"static CLASS: OnceCell<GlobalRef> = OnceCell::new();
+        r#"    static CLASS: OnceCell<GlobalRef> = OnceCell::new();
     static METHOD_ID: OnceCell<JMethodID> = OnceCell::new();
     let class = CLASS.get_or_try_init(|| {
         let class = self.env.find_class(class_name)?;
@@ -217,16 +224,7 @@ fn generate(
     code.push("".to_string());
 
     // Generate dynamic type check for the result
-    code.push("    if let Ok(result) = result {".to_string());
-    code.push("        debug_assert!(".to_string());
-    code.push("            self.env.is_instance_of(".to_string());
-    code.push("                result,".to_string());
-    code.push("                self.env.find_class(class_name)?,".to_string());
-    code.push("            )?".to_string());
-    code.push("        );".to_string());
-    code.push("    }".to_string());
-    code.push("".to_string());
-
+    code.push(generate_result_type_check("class_name"));
     code.push("    result".to_string());
     code.push("}".to_string());
 

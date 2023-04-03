@@ -17,7 +17,6 @@ use crate::{
     },
     error_internal,
 };
-use log::debug;
 use prusti_common::{vir_expr, vir_local};
 
 use prusti_rustc_interface::{
@@ -140,12 +139,12 @@ impl SnapshotEncoder {
     }
 
     /// Patches snapshots in a method.
+    #[tracing::instrument(level = "debug", skip_all, fields(method = %method.name()))]
     pub fn patch_snapshots_method<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         method: vir::CfgMethod,
     ) -> EncodingResult<vir::CfgMethod> {
-        debug!("[snap] method: {:?}", method.name());
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
@@ -154,12 +153,12 @@ impl SnapshotEncoder {
     }
 
     /// Patches snapshots in a function.
+    #[tracing::instrument(level = "debug", skip(self, encoder), fields(function = %function.name))]
     pub fn patch_snapshots_function<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         mut function: vir::Function,
     ) -> EncodingResult<vir::Function> {
-        debug!("[snap] function: {:?}", function.name);
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
@@ -181,12 +180,12 @@ impl SnapshotEncoder {
     }
 
     /// Patches snapshots in an expression.
+    #[tracing::instrument(level = "debug", skip(self, encoder))]
     pub fn patch_snapshots_expr<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
     ) -> EncodingResult<Expr> {
-        debug!("[snap] expr: {:?}", expr);
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
@@ -717,6 +716,9 @@ impl SnapshotEncoder {
                 for field in adt_def.all_fields() {
                     // or adt_def.variants[0].fields ?
                     let field_ty = field.ty(tcx, substs);
+                    let field_ty = tcx
+                        .try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                        .unwrap_or(field_ty);
                     fields.push(SnapshotField {
                         name: encode_field_name(&field.ident(tcx).to_string()),
                         access: self.snap_app(
@@ -762,6 +764,9 @@ impl SnapshotEncoder {
                     };
                     for field in &variant.fields {
                         let field_ty = field.ty(tcx, substs);
+                        let field_ty = tcx
+                            .try_normalize_erasing_regions(ty::ParamEnv::reveal_all(), field_ty)
+                            .unwrap_or(field_ty);
                         fields.push(SnapshotField {
                             name: encode_field_name(&field.ident(tcx).to_string()),
                             access: self.snap_app(

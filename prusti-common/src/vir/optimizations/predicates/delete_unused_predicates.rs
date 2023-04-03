@@ -9,8 +9,8 @@ use crate::vir::polymorphic_vir::{
     cfg::CfgMethod,
     utils::{walk_functions, walk_methods},
 };
-use fxhash::{FxHashMap, FxHashSet};
 use log::debug;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 fn collect_info_from_methods_and_functions(
     methods: &[CfgMethod],
@@ -104,6 +104,7 @@ fn visit_predicate(
 }
 
 /// Delete all unused predicates and eliminate bodies of predicates that are never folded or unfolded
+#[tracing::instrument(level = "debug", skip(methods, functions, predicates))]
 pub fn delete_unused_predicates(
     methods: &[CfgMethod],
     functions: &[Function],

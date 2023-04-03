@@ -1,4 +1,3 @@
-use log::debug;
 use prusti_rustc_interface::middle::{mir, ty};
 use vir_crate::high::{self as vir_high};
 
@@ -17,6 +16,7 @@ pub(crate) trait ConstantsEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_constant_high(
         &self,
         constant: &mir::Constant<'tcx>,
@@ -36,7 +36,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
             ty::TyKind::Int(ty::IntTy::I128) => scalar_value()?.to_i128().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::Isize) => {
                 let number: isize = scalar_value()?
-                    .to_machine_isize(&self.env().tcx())
+                    .to_target_isize(&self.env().tcx())
                     .unwrap()
                     .try_into()
                     .unwrap();
@@ -49,7 +49,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
             ty::TyKind::Uint(ty::UintTy::U128) => scalar_value()?.to_u128().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::Usize) => {
                 let number: usize = scalar_value()?
-                    .to_machine_usize(&self.env().tcx())
+                    .to_target_usize(&self.env().tcx())
                     .unwrap()
                     .try_into()
                     .unwrap();
@@ -70,7 +70,6 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                 error_unsupported!("unsupported constant type {:?}", mir_type.kind());
             }
         };
-        debug!("encode_const_expr {:?} --> {:?}", constant.literal, expr);
         Ok(expr)
     }
 

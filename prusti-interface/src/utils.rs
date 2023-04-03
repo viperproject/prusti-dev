@@ -6,7 +6,6 @@
 
 //! Various helper functions for working with `mir::Place`.
 
-use log::trace;
 use prusti_rustc_interface::{
     ast::ast,
     data_structures::fx::FxHashSet,
@@ -59,7 +58,7 @@ pub fn try_pop_one_level<'tcx>(
         let last_index = place.projection.len() - 1;
         let new_place = mir::Place {
             local: place.local,
-            projection: tcx.intern_place_elems(&place.projection[..last_index]),
+            projection: tcx.mk_place_elems(&place.projection[..last_index]),
         };
         Some((place.projection[last_index], new_place))
     } else {
@@ -86,6 +85,7 @@ pub fn try_pop_deref<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option
 /// `{x.g, x.h, x.f.f, x.f.h, x.f.g.f, x.f.g.g, x.f.g.h}` and
 /// subtracting `{x.f.g.h}` from it, which results into `{x.g, x.h,
 /// x.f.f, x.f.h, x.f.g.f, x.f.g.g}`.
+#[tracing::instrument(level = "debug", skip(mir, tcx), ret)]
 pub fn expand<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
@@ -96,23 +96,12 @@ pub fn expand<'tcx>(
         is_prefix(subtrahend, minuend),
         "The minuend must be the prefix of the subtrahend."
     );
-    trace!(
-        "[enter] expand minuend={:?} subtrahend={:?}",
-        minuend,
-        subtrahend
-    );
     let mut place_set = Vec::new();
     while minuend.projection.len() < subtrahend.projection.len() {
         let (new_minuend, places) = expand_one_level(mir, tcx, minuend, subtrahend);
         minuend = new_minuend;
         place_set.extend(places);
     }
-    trace!(
-        "[exit] expand minuend={:?} subtrahend={:?} place_set={:?}",
-        minuend,
-        subtrahend,
-        place_set
-    );
     place_set
 }
 

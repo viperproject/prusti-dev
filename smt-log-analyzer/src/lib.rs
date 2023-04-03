@@ -1,4 +1,5 @@
 #![deny(unused_must_use)]
+#![warn(clippy::disallowed_types)]
 
 //! The Z3 log format is documented
 //! [here](https://github.com/viperproject/axiom-profiler/blob/master/LogDocumentation.pdf).

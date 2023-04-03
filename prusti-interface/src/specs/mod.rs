@@ -7,17 +7,20 @@ use crate::{
     PrustiError,
 };
 use log::debug;
+use prusti_common::config;
 use prusti_rustc_interface::{
     ast::ast,
+    data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
+        self,
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
     middle::{hir::map::Map, ty},
     span::Span,
 };
-use std::{collections::HashMap, convert::TryInto, fmt::Debug};
+use std::{convert::TryInto, fmt::Debug};
 
 pub mod checker;
 pub mod cross_crate;
@@ -71,13 +74,13 @@ pub struct SpecCollector<'a, 'tcx> {
     extern_resolver: ExternSpecResolver<'tcx>,
 
     /// Map from specification IDs to their typed expressions.
-    spec_functions: HashMap<SpecificationId, LocalDefId>,
+    spec_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
-    procedure_specs: HashMap<LocalDefId, ProcedureSpecRefs>,
+    procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
-    type_specs: HashMap<LocalDefId, TypeSpecRefs>,
+    type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
     prusti_assertions: Vec<LocalDefId>,
     prusti_assumptions: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
@@ -89,11 +92,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         Self {
             extern_resolver: ExternSpecResolver::new(env),
             env,
-            spec_functions: HashMap::new(),
-            procedure_specs: HashMap::new(),
+            spec_functions: FxHashMap::default(),
+            procedure_specs: FxHashMap::default(),
             loop_specs: vec![],
             loop_variants: vec![],
-            type_specs: HashMap::new(),
+            type_specs: FxHashMap::default(),
             prusti_assertions: vec![],
             prusti_assumptions: vec![],
             ghost_begin: vec![],
@@ -101,6 +104,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
+    pub fn collect_specs(&mut self, hir: Map<'tcx>) {
+        hir.walk_toplevel_module(self);
+        hir.walk_attributes(self);
+    }
+
+    #[tracing::instrument(level = "debug", skip_all)]
     pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
@@ -281,7 +291,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn ensure_local_mirs_fetched(&mut self, def_spec: &typed::DefSpecificationMap) {
         let (specs, pure_fns, predicates) = def_spec.defid_for_export();
-        for def_id in specs {
+        for def_id in &specs {
             self.env.body.load_spec_body(def_id.expect_local());
         }
         for def_id in pure_fns {
@@ -289,9 +299,45 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 self.env.body.load_pure_fn_body(def_id.expect_local());
             }
         }
-        for def_id in predicates {
+        for def_id in &predicates {
             self.env.body.load_predicate_body(def_id.expect_local());
         }
+
+        let mut cl_visitor = CollectAllClosureDefsVisitor {
+            map: self.env.query.hir(),
+            result: Vec::new(),
+        };
+        for def_id in specs.iter().chain(predicates.iter()) {
+            let body_id = self.env.query.hir().body_owned_by(def_id.expect_local());
+            intravisit::Visitor::visit_nested_body(&mut cl_visitor, body_id);
+        }
+        for def_id in cl_visitor.result {
+            self.env.body.load_closure_body(def_id);
+        }
+    }
+}
+
+/// Collects the LocalDefId of all closures. This is used to find all
+/// quantifiers/triggers inside specs and predicates, so they can be
+/// exported.
+struct CollectAllClosureDefsVisitor<'tcx> {
+    map: Map<'tcx>,
+    result: Vec<LocalDefId>,
+}
+
+impl<'tcx> intravisit::Visitor<'tcx> for CollectAllClosureDefsVisitor<'tcx> {
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
+
+    fn nested_visit_map(&mut self) -> Self::Map {
+        self.map
+    }
+
+    fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
+        if let hir::ExprKind::Closure(hir::Closure { def_id, .. }) = expr.kind {
+            self.result.push(*def_id);
+        }
+
+        intravisit::walk_expr(self, expr)
     }
 }
 
@@ -308,6 +354,7 @@ pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
     read_prusti_attr("spec_id", attrs).is_some()
 }
 
+#[tracing::instrument(level = "trace")]
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRefs> {
     let mut spec_id_refs = vec![];
 
@@ -358,13 +405,15 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
         read_prusti_attr("pred_spec_id_ref", attrs)
             .map(|raw_spec_id| SpecIdRef::Predicate(parse_spec_id(raw_spec_id, def_id))),
     );
+    let is_predicate = matches!(spec_id_refs.last(), Some(SpecIdRef::Predicate(..)));
     debug!(
         "Function {:?} has specification ids {:?}",
         def_id, spec_id_refs
     );
 
     let pure = has_prusti_attr(attrs, "pure");
-    let trusted = has_prusti_attr(attrs, "trusted");
+    let trusted = has_prusti_attr(attrs, "trusted")
+        || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
 
     if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
@@ -407,13 +456,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         fn_decl: &'tcx prusti_rustc_interface::hir::FnDecl,
         body_id: prusti_rustc_interface::hir::BodyId,
         span: Span,
-        id: prusti_rustc_interface::hir::hir_id::HirId,
+        local_id: LocalDefId,
     ) {
-        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, id);
+        intravisit::walk_fn(self, fn_kind, fn_decl, body_id, local_id);
 
-        let local_id = self.env.query.as_local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = self.env.query.get_local_attributes(id);
+        let attrs = self.env.query.get_local_attributes(local_id);
 
         // Collect spec functions
         if let Some(raw_spec_id) = read_prusti_attr("spec_id", attrs) {
@@ -493,7 +541,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let attr = read_prusti_attr("extern_spec", attrs).unwrap_or_default();
                 let kind = prusti_specs::ExternSpecKind::try_from(attr).unwrap();
                 self.extern_resolver
-                    .add_extern_fn(fn_kind, fn_decl, body_id, span, id, kind);
+                    .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
             }
 
             // Collect procedure specifications

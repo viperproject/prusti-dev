@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::vir::{program::Program, Position};
-use fxhash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
+use rustc_hash::{FxHashMap, FxHashSet};
 use viper::VerificationResult;
 
 pub enum NormalizationInfo {
@@ -16,6 +16,7 @@ pub enum NormalizationInfo {
 
 impl NormalizationInfo {
     /// Normalize a vir::legacy program. Do nothing for vir::low programs.
+    #[tracing::instrument(level = "debug", skip(program))]
     pub fn normalize_program(program: &mut Program) -> Self {
         match program {
             Program::Low(_) => {
@@ -30,7 +31,7 @@ impl NormalizationInfo {
                     position_ids.insert(p.id());
                 });
                 let mut original_position_ids: Vec<u64> = position_ids.into_iter().collect();
-                original_position_ids.sort();
+                original_position_ids.sort_unstable();
 
                 // Remap positions ids to be consecutive starting from zero.
                 // TODO: line and columns are not modified; we could remove them from the Position struct.
@@ -81,6 +82,7 @@ impl NormalizationInfo {
     }
 
     /// Denormalize the verification result.
+    #[tracing::instrument(level = "debug", skip(self, program))]
     pub fn denormalize_program(&self, program: &mut Program) {
         match program {
             Program::Low(_) => debug!("No denormalization is done for vir::low programs."),

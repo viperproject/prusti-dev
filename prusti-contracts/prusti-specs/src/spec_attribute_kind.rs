@@ -17,6 +17,7 @@ pub enum SpecAttributeKind {
     RefineSpec = 9,
     Terminates = 10,
     PrintCounterexample = 11,
+    Verified = 12,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -35,6 +36,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "refine_spec" => Ok(SpecAttributeKind::RefineSpec),
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
+            "verified" => Ok(SpecAttributeKind::Verified),
             _ => Err(name),
         }
     }

@@ -5,12 +5,15 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::environment::borrowck::facts;
-use log::{debug, trace};
-use prusti_rustc_interface::middle::{mir, ty};
-use std::{collections::HashMap, io};
+use log::debug;
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashMap,
+    middle::{mir, ty},
+};
+use std::io;
 
 #[derive(Debug)]
-pub struct PlaceRegions(HashMap<(mir::Local, Vec<usize>), facts::Region>);
+pub struct PlaceRegions(FxHashMap<(mir::Local, Vec<usize>), facts::Region>);
 
 #[derive(Clone, Debug)]
 pub enum PlaceRegionsError {
@@ -19,7 +22,7 @@ pub enum PlaceRegionsError {
 
 impl PlaceRegions {
     fn new() -> Self {
-        PlaceRegions(HashMap::new())
+        PlaceRegions(FxHashMap::default())
     }
 
     fn add_local(&mut self, local: mir::Local, rvid: facts::Region) {
@@ -90,6 +93,7 @@ fn extract_region_id(region: &ty::RegionKind) -> facts::Region {
     }
 }
 
+#[tracing::instrument(level = "trace", skip(place_regions))]
 fn extract_region(place_regions: &mut PlaceRegions, local: mir::Local, ty: ty::Ty<'_>) {
     match ty.kind() {
         ty::TyKind::Ref(region, _, _) => {
@@ -125,16 +129,13 @@ fn extract_region(place_regions: &mut PlaceRegions, local: mir::Local, ty: ty::T
     }
 }
 
+#[tracing::instrument(level = "debug", skip(body))]
 pub fn load_place_regions(body: &mir::Body<'_>) -> io::Result<PlaceRegions> {
-    trace!("[enter] load_place_regions()");
     let mut place_regions = PlaceRegions::new();
-
     for (local, local_decl) in body.local_decls.iter_enumerated() {
         let ty = local_decl.ty;
         debug!("local: {:?} {:?}", local, ty);
         extract_region(&mut place_regions, local, ty);
     }
-
-    trace!("[exit] load_place_regions");
     Ok(place_regions)
 }

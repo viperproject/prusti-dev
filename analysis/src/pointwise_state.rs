@@ -39,7 +39,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> Serialize for PointwiseState<'mir, 'tcx, S>
 
         for bb in self.mir.basic_blocks.indices() {
             let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
-            let mut stmt_vec: Vec<_> = Vec::new();
+            let mut stmt_vec: Vec<_> = Vec::with_capacity(statements.len());
             for (statement_index, stmt) in statements.iter().enumerate() {
                 let location = mir::Location {
                     block: bb,

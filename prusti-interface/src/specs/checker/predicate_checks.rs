@@ -6,17 +6,26 @@ use crate::{
 };
 use log::debug;
 use prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
-    hir::{self as hir, def_id::DefId, intravisit},
+    hir::{
+        self as hir,
+        def_id::{DefId, LocalDefId},
+        intravisit,
+    },
     middle::{hir::map::Map, ty::TyCtxt},
     span::Span,
 };
-use std::collections::{HashMap, HashSet};
 
 /// Checks for illegal predicate usages
 pub struct IllegalPredicateUsagesChecker;
 
 impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
+    #[tracing::instrument(
+        name = "IllegalPredicateUsagesChecker::check",
+        level = "debug",
+        skip(self, env)
+    )]
     fn check(&self, env: &Environment<'tcx>) -> Vec<PrustiError> {
         let collected_predicates = self.collect_predicates(env.query);
         debug!("Predicate funcs: {:?}", collected_predicates.predicates);
@@ -55,8 +64,8 @@ impl IllegalPredicateUsagesChecker {
     ) -> CollectPredicatesVisitor<'tcx> {
         let mut collect = CollectPredicatesVisitor {
             env_query,
-            predicates: HashMap::new(),
-            abstract_predicate_with_bodies: HashSet::new(),
+            predicates: FxHashMap::default(),
+            abstract_predicate_with_bodies: FxHashSet::default(),
         };
         env_query.hir().walk_toplevel_module(&mut collect);
         env_query.hir().walk_attributes(&mut collect);
@@ -67,7 +76,7 @@ impl IllegalPredicateUsagesChecker {
     /// Span of use and definition of predicates used outside of specifications, collected in the second pass.
     fn collect_illegal_predicate_usages(
         &self,
-        predicates: HashMap<DefId, Span>,
+        predicates: FxHashMap<DefId, Span>,
         env_query: EnvQuery,
     ) -> Vec<(Span, Span)> {
         let mut visit = CheckPredicatesVisitor {
@@ -88,8 +97,8 @@ impl IllegalPredicateUsagesChecker {
 /// from predicates
 struct CollectPredicatesVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
-    predicates: HashMap<DefId, Span>,
-    abstract_predicate_with_bodies: HashSet<DefId>,
+    predicates: FxHashMap<DefId, Span>,
+    abstract_predicate_with_bodies: FxHashSet<DefId>,
 }
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
@@ -106,16 +115,16 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
         fd: &'tcx hir::FnDecl<'tcx>,
         b: hir::BodyId,
         s: Span,
-        id: hir::HirId,
+        local_id: LocalDefId,
     ) {
         // collect this fn's DefId if predicate function
-        let attrs = self.env_query.get_local_attributes(id);
+        let attrs = self.env_query.get_local_attributes(local_id);
         if has_prusti_attr(attrs, "pred_spec_id_ref") {
-            let def_id = self.env_query.as_local_def_id(id).to_def_id();
+            let def_id = local_id.to_def_id();
             self.predicates.insert(def_id, s);
         }
 
-        intravisit::walk_fn(self, fk, fd, b, id);
+        intravisit::walk_fn(self, fk, fd, b, local_id);
     }
 
     fn visit_trait_item(&mut self, ti: &'tcx hir::TraitItem<'tcx>) {
@@ -140,7 +149,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
 struct CheckPredicatesVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
 
-    predicates: HashMap<DefId, Span>,
+    predicates: FxHashMap<DefId, Span>,
     pred_usages: Vec<(Span, Span)>,
 }
 

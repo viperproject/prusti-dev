@@ -6,11 +6,11 @@
 
 use log::trace;
 use regex::Regex;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 pub struct Substs {
     regex: Regex,
-    repls: HashMap<String, String>,
+    repls: FxHashMap<String, String>,
 }
 
 impl std::fmt::Debug for Substs {
@@ -29,6 +29,7 @@ impl Substs {
     /// Takes the string representation of two types: `from` is the generic one; `to` is the more
     /// concrete one.
     /// This function will compute what is the type substitution needed to go from `from` to `to`.
+    #[tracing::instrument(level = "trace")]
     pub fn learn(from: &str, to: &str) -> Self {
         lazy_static::lazy_static! {
             static ref TYPARAM_RE: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
@@ -61,8 +62,8 @@ impl Substs {
         }
 
         // Use `repls_regex` to find typaram replacements
-        let mut repls = HashMap::new();
-        trace!("regex {:?} from {:?} to {:?}", repls_regex, from, to);
+        let mut repls = FxHashMap::default();
+        trace!("regex {repls_regex:?} from {from:?} to {to:?}");
         let captures = repls_regex.captures(to).unwrap();
         for i in 1..captures.len() {
             let from_typaram = found_typarams[i - 1].to_string();

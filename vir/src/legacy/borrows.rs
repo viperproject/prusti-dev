@@ -6,10 +6,8 @@
 
 use super::ast::{Expr, ExprIterator, Stmt};
 use log::{debug, trace};
-use std::{
-    collections::{HashMap, VecDeque},
-    fmt,
-};
+use rustc_hash::FxHashMap;
+use std::{collections::VecDeque, fmt};
 
 /// The method-unique borrow identifier.
 #[derive(
@@ -98,7 +96,7 @@ impl fmt::Debug for Node {
 pub struct DAG {
     /// Mapping from borrows to their node indices.
     #[serde(skip)]
-    pub(crate) borrow_indices: HashMap<Borrow, usize>,
+    pub(crate) borrow_indices: FxHashMap<Borrow, usize>,
     #[serde(skip)]
     pub(crate) nodes: Vec<Node>,
     #[serde(skip)]
@@ -109,8 +107,8 @@ impl DAG {
     pub fn iter(&self) -> impl Iterator<Item = &Node> {
         self.nodes.iter()
     }
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn get_borrow_index(&self, borrow: Borrow) -> usize {
-        trace!("get_borrow_index(borrow={:?})", borrow);
         self.borrow_indices[&borrow]
     }
     pub fn in_borrowed_places(&self, place: &Expr) -> bool {
@@ -118,8 +116,8 @@ impl DAG {
             .iter()
             .any(|borrowed_place| place.has_prefix(borrowed_place))
     }
+    #[tracing::instrument(level = "debug")]
     pub fn check_integrity(&self) {
-        trace!("[enter] check_integrity dag=[{:?}]", self);
         if let Some(first) = self.nodes.first() {
             assert!(first.reborrowing_nodes.is_empty());
         }
@@ -139,7 +137,6 @@ impl DAG {
                 debug!("{:?}: {}", node.borrow, place);
             }
         }
-        trace!("[exit] check_integrity dag=[{:?}]", self);
     }
     /// Get the complete guard for the given node.
     pub fn guard(&self, expiring_borrow: Borrow) -> Expr {

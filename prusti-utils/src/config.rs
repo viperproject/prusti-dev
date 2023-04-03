@@ -11,8 +11,9 @@ use self::commandline::CommandLine;
 use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
+use rustc_hash::FxHashSet;
 use serde::Deserialize;
-use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
+use std::{env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -85,6 +86,7 @@ lazy_static::lazy_static! {
         settings.set_default("log", "").unwrap();
         settings.set_default("log_style", "auto").unwrap();
         settings.set_default("log_dir", "log").unwrap();
+        settings.set_default("log_tracing", true).unwrap();
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
@@ -107,6 +109,7 @@ lazy_static::lazy_static! {
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
+        settings.set_default("opt_in_verification", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations", "all").unwrap();
@@ -221,7 +224,7 @@ lazy_static::lazy_static! {
     });
 }
 
-fn get_keys(settings: &Config) -> HashSet<String> {
+fn get_keys(settings: &Config) -> FxHashSet<String> {
     settings
         .cache
         .clone()
@@ -231,7 +234,7 @@ fn get_keys(settings: &Config) -> HashSet<String> {
         .collect()
 }
 
-fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
+fn check_keys(settings: &Config, allowed_keys: &FxHashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
         assert!(
             allowed_keys.contains(key),
@@ -435,6 +438,11 @@ pub fn log_style() -> String {
 /// Path to directory in which log files and dumped output will be stored.
 pub fn log_dir() -> PathBuf {
     PathBuf::from(read_setting::<String>("log_dir"))
+}
+
+/// When enabled, trace using tracing_chrome crate.
+pub fn log_tracing() -> bool {
+    read_setting("log_tracing")
 }
 
 /// Path to a cache file, where verification cache will be loaded from and
@@ -979,6 +987,12 @@ pub fn set_no_verify(value: bool) {
 /// When enabled, verification is skipped for dependencies.
 pub fn no_verify_deps() -> bool {
     read_setting("no_verify_deps")
+}
+
+/// When enabled, verification is skipped for functions
+/// that do not have the `#[verified]` attribute.
+pub fn opt_in_verification() -> bool {
+    read_setting("opt_in_verification")
 }
 
 /// When enabled, compilation will continue and a binary will be generated

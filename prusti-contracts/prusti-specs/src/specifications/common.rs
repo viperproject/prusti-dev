@@ -46,19 +46,7 @@ impl<'a> TryFrom<&'a str> for SpecType {
     }
 }
 
-#[derive(
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    Hash,
-    Clone,
-    Copy,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialOrd,
-    Ord,
-)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
 pub struct SpecificationId(Uuid);

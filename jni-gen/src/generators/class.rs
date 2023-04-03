@@ -7,7 +7,7 @@
 use crate::{
     class_name::*,
     errors::*,
-    generators::{constructor::*, method::*, scala_object_getter::*},
+    generators::{constructor::*, field_getter_setter::*, method::*, scala_object_getter::*},
     wrapper_spec::*,
 };
 use jni::JNIEnv;
@@ -34,24 +34,24 @@ impl<'a> ClassGenerator<'a> {
     pub fn generate(&self) -> Result<String> {
         self.check()?;
 
-        Ok(vec![
-            format!(
-                "//! Automatically generated code for '{}'\n",
-                self.class.full_name()
-            ),
-            "#![allow(dead_code)]\n".to_string(),
-            "#![allow(non_snake_case)]\n".to_string(),
-            "#![allow(unused_imports)]\n".to_string(),
-            "#![allow(clippy::new_ret_no_self)]\n".to_string(),
-            "#![allow(clippy::wrong_self_convention)]\n".to_string(),
-            "#![allow(clippy::too_many_arguments)]\n".to_string(),
-            self.generate_imports(),
-            self.generate_struct(),
-            self.generate_begin_impl(),
-            self.generate_items()?,
-            self.generate_end_impl(),
-        ]
-        .join("\n"))
+        let mut code: Vec<String> = vec![];
+        code.push(format!(
+            "//! Automatically generated code for '{}'\n",
+            self.class.full_name()
+        ));
+        code.push("#![allow(dead_code)]\n".to_string());
+        code.push("#![allow(non_snake_case)]\n".to_string());
+        code.push("#![allow(unused_imports)]\n".to_string());
+        code.push("#![allow(clippy::new_ret_no_self)]\n".to_string());
+        code.push("#![allow(clippy::wrong_self_convention)]\n".to_string());
+        code.push("#![allow(clippy::too_many_arguments)]\n".to_string());
+        code.push(self.generate_imports());
+        code.push(self.generate_struct());
+        code.push(self.generate_begin_impl());
+        code.push(self.generate_items()?);
+        code.push(self.generate_end_impl());
+
+        Ok(code.join("\n") + "\n")
     }
 
     fn generate_imports(&self) -> String {
@@ -69,32 +69,32 @@ impl<'a> ClassGenerator<'a> {
             "use jni::signature::*;",
             "use once_cell::sync::OnceCell;",
             "use std::str::FromStr;",
+            "use super::builtins::*;",
         ]
         .join("\n")
             + "\n"
     }
 
     fn generate_struct(&self) -> String {
-        vec![
-            "#[allow(non_camel_case_types)]".to_string(),
-            format!("pub struct {}<'a> {{", self.class.rust_name()),
-            "    env: &'a JNIEnv<'a>,".to_string(),
-            "}".to_string(),
-        ]
-        .join("\n")
-            + "\n"
+        let mut code: Vec<String> = vec![];
+        code.push("#[allow(non_camel_case_types)]".to_string());
+        code.push(format!("pub struct {}<'a> {{", self.class.rust_name()));
+        code.push("    env: &'a JNIEnv<'a>,".to_string());
+        code.push("}".to_string());
+
+        code.join("\n")
     }
 
     fn generate_begin_impl(&self) -> String {
-        vec![
-            format!("impl<'a> {}<'a> {{", self.class.rust_name()),
-            "".to_string(),
-            "pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_string(),
-            format!("    {}{{ env }}", self.class.rust_name()),
-            "}".to_string(),
-        ]
-        .join("\n")
-            + "\n"
+        let mut code: Vec<String> = vec![];
+        code.push(format!("impl<'a> {}<'a> {{", self.class.rust_name()));
+        code.push("".to_string());
+        code.push("pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_string());
+        code.push(format!("    {}{{ env }}", self.class.rust_name()));
+        code.push("}".to_string());
+        code.push("".to_string());
+
+        code.join("\n")
     }
 
     fn generate_end_impl(&self) -> String {
@@ -130,6 +130,9 @@ impl<'a> ClassGenerator<'a> {
                     signature.clone(),
                     suffix.clone(),
                 )?,
+                ItemWrapperSpec::FieldGetterSetter { ref field_name } => {
+                    generate_field_getter_setter(self.env, &self.class, field_name)?
+                }
             };
             gen_items.push(gen)
         }

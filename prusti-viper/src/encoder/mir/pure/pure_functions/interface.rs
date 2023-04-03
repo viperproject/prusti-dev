@@ -10,7 +10,7 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
-use prusti_rustc_interface::middle::{ty, ty::subst::SubstsRef};
+use prusti_rustc_interface::middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use prusti_interface::specs::typed::ProcedureSpecificationKind;
@@ -69,7 +69,7 @@ type FunctionConstructor<'v, 'tcx> = Box<
 
 /// Depending on the context of the pure encoding,
 /// panics will be encoded slightly differently.
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub(crate) enum PureEncodingContext {
     /// Panics will be encoded as calls to unreachable functions
     /// (which have a `requires false` pre-condition).
@@ -123,6 +123,11 @@ pub(crate) struct FunctionDescription<'tcx> {
 }
 
 pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
+    fn encode_uneval_const(
+        &self,
+        c: mir::UnevaluatedConst<'tcx>,
+    ) -> SpannedEncodingResult<vir_poly::Expr>;
+
     fn encode_pure_expression(
         &self,
         proc_def_id: ProcedureDefId,
@@ -239,6 +244,18 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         Ok(self.pure_function_encoder_state.bodies_high.borrow()[&key].clone())
     }
 
+    fn encode_uneval_const(
+        &self,
+        mir::UnevaluatedConst {
+            def,
+            substs,
+            promoted,
+        }: mir::UnevaluatedConst<'tcx>,
+    ) -> SpannedEncodingResult<vir_poly::Expr> {
+        let promoted_id = promoted.expect("unevaluated const should have a promoted ID");
+        super::encoder_poly::encode_promoted(self, def, promoted_id, def.did, substs)
+    }
+
     // FIXME: This should be refactored to depend on encode_pure_expression_high
     // and moved to prusti-viper/src/encoder/high/pure_functions/interface.rs
     fn encode_pure_expression(
@@ -274,13 +291,13 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         Ok(self.pure_function_encoder_state.bodies_poly.borrow()[&key].clone())
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     fn encode_pure_function_def(
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<()> {
-        trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {proc_def_id:?}"
@@ -392,8 +409,6 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 }
             }
         }
-
-        trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
         Ok(())
     }
 

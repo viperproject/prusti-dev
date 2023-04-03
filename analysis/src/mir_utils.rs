@@ -7,7 +7,6 @@
 //! Various helper functions for working with `mir` types.
 //! copied from prusti-interface/utils
 
-use log::trace;
 use prusti_rustc_interface::{
     data_structures::fx::FxHashSet,
     infer::infer::TyCtxtInferExt,
@@ -126,67 +125,55 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
 ) -> Vec<P> {
     let mut places: Vec<P> = Vec::new();
     let typ = place.to_mir_place().ty(mir, tcx);
-    if typ.variant_index.is_some() {
-        // Downcast is a no-op.
-    } else {
-        match typ.ty.kind() {
-            ty::Adt(def, substs) => {
-                assert!(
-                    def.is_struct(),
-                    "Only structs can be expanded. Got def={def:?}."
-                );
-                let variant = def.non_enum_variant();
-                for (index, field_def) in variant.fields.iter().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(
-                            place.to_mir_place(),
-                            field,
-                            field_def.ty(tcx, substs),
-                        );
-                        places.push(P::from_mir_place(field_place));
-                    }
+    if !matches!(typ.ty.kind(), ty::Adt(..)) {
+        assert!(
+            typ.variant_index.is_none(),
+            "We have assumed that only enums can have variant_index set. Got {typ:?}."
+        );
+    }
+    match typ.ty.kind() {
+        ty::Adt(def, substs) => {
+            let variant = typ
+                .variant_index
+                .map(|i| def.variant(i))
+                .unwrap_or_else(|| def.non_enum_variant());
+            for (index, field_def) in variant.fields.iter().enumerate() {
+                if Some(index) != without_field {
+                    let field = mir::Field::from_usize(index);
+                    let field_place =
+                        tcx.mk_place_field(place.to_mir_place(), field, field_def.ty(tcx, substs));
+                    places.push(P::from_mir_place(field_place));
                 }
-            }
-            ty::Tuple(slice) => {
-                for (index, arg) in slice.iter().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(place.to_mir_place(), field, arg);
-                        places.push(P::from_mir_place(field_place));
-                    }
-                }
-            }
-            ty::Ref(_region, _ty, _) => match without_field {
-                Some(without_field) => {
-                    assert_eq!(without_field, 0, "References have only a single “field”.");
-                }
-                None => {
-                    places.push(P::from_mir_place(tcx.mk_place_deref(place.to_mir_place())));
-                }
-            },
-            ty::Closure(_, substs) => {
-                for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
-                        places.push(P::from_mir_place(field_place));
-                    }
-                }
-            }
-            ty::Generator(_, substs, _) => {
-                for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
-                        places.push(P::from_mir_place(field_place));
-                    }
-                }
-            }
-            ref ty => {
-                unimplemented!("ty={:?}", ty);
             }
         }
+        ty::Tuple(slice) => {
+            for (index, arg) in slice.iter().enumerate() {
+                if Some(index) != without_field {
+                    let field = mir::Field::from_usize(index);
+                    let field_place = tcx.mk_place_field(place.to_mir_place(), field, arg);
+                    places.push(P::from_mir_place(field_place));
+                }
+            }
+        }
+        ty::Closure(_, substs) => {
+            for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
+                if Some(index) != without_field {
+                    let field = mir::Field::from_usize(index);
+                    let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
+                    places.push(P::from_mir_place(field_place));
+                }
+            }
+        }
+        ty::Generator(_, substs, _) => {
+            for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
+                if Some(index) != without_field {
+                    let field = mir::Field::from_usize(index);
+                    let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
+                    places.push(P::from_mir_place(field_place));
+                }
+            }
+        }
+        ty => unreachable!("ty={:?}", ty),
     }
     places
 }
@@ -201,7 +188,7 @@ pub fn expand_one_level<'tcx>(
     guide_place: Place<'tcx>,
 ) -> (Place<'tcx>, Vec<Place<'tcx>>) {
     let index = current_place.projection.len();
-    let new_projection = tcx.mk_place_elems(
+    let new_projection = tcx.mk_place_elems_from_iter(
         current_place
             .projection
             .iter()
@@ -233,6 +220,7 @@ pub fn expand_one_level<'tcx>(
 /// `{x.g, x.h, x.f.f, x.f.h, x.f.g.f, x.f.g.g, x.f.g.h}` and
 /// subtracting `{x.f.g.h}` from it, which results into `{x.g, x.h,
 /// x.f.f, x.f.h, x.f.g.f, x.f.g.g}`.
+#[tracing::instrument(level = "trace", skip(mir, tcx), ret)]
 pub(crate) fn expand<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
@@ -243,23 +231,12 @@ pub(crate) fn expand<'tcx>(
         is_prefix(subtrahend, minuend),
         "The minuend must be the prefix of the subtrahend."
     );
-    trace!(
-        "[enter] expand minuend={:?} subtrahend={:?}",
-        minuend,
-        subtrahend
-    );
     let mut place_set = Vec::new();
     while minuend.projection.len() < subtrahend.projection.len() {
         let (new_minuend, places) = expand_one_level(mir, tcx, minuend, subtrahend);
         minuend = new_minuend;
         place_set.extend(places);
     }
-    trace!(
-        "[exit] expand minuend={:?} subtrahend={:?} place_set={:?}",
-        minuend,
-        subtrahend,
-        place_set
-    );
     place_set
 }
 
@@ -351,7 +328,7 @@ pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Plac
             | mir::ProjectionElem::Subslice { .. } => {
                 return (mir::Place {
                     local: place_ref.local,
-                    projection: tcx.intern_place_elems(place_ref.projection),
+                    projection: tcx.mk_place_elems(place_ref.projection),
                 })
                 .into();
             }

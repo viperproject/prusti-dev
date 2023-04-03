@@ -25,6 +25,9 @@ pub use prusti_contracts_proc_macros::pure;
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 
+/// A macro for marking a function as opted into verification.
+pub use prusti_contracts_proc_macros::verified;
+
 /// A macro for type invariants.
 pub use prusti_contracts_proc_macros::invariant;
 
@@ -84,6 +87,16 @@ mod private {
         ($($tail:tt)*) => {
             $($tail)*
         };
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_eq {
+        ($left:expr, $right:expr $(,)?) => {};
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_ne {
+        ($left:expr, $right:expr $(,)?) => {};
     }
 
     /// A sequence type
@@ -155,6 +168,20 @@ mod private {
     }
 
     __int_dummy_trait_impls__!(Add add, Sub sub, Mul mul, Div div, Rem rem);
+
+    #[macro_export]
+    macro_rules! prusti_assert_eq {
+        ($left:expr, $right:expr $(,)?) => {
+            $crate::prusti_assert!($crate::snapshot_equality($left, $right))
+        };
+    }
+
+    #[macro_export]
+    macro_rules! prusti_assert_ne {
+        ($left:expr, $right:expr $(,)?) => {
+            $crate::prusti_assert!(!$crate::snapshot_equality($left, $right))
+        };
+    }
 
     impl Neg for Int {
         type Output = Self;

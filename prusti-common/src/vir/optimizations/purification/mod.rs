@@ -1,11 +1,12 @@
 use crate::vir::polymorphic_vir::{
     ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
-use fxhash::FxHashSet;
 use log::debug;
+use rustc_hash::FxHashSet;
 use std::collections::BTreeSet;
 
 /// This purifies local variables in a method body
+#[tracing::instrument(level = "debug", skip_all)]
 pub fn purify_methods(
     mut methods: Vec<cfg::CfgMethod>,
     predicates: &[ast::Predicate],
@@ -36,6 +37,7 @@ fn translate_type(typ: &Type) -> Type {
 
 static SUPPORTED_TYPES: &[&str] = &["bool", "i32", "isize", "usize", "u32"];
 
+#[tracing::instrument(level = "debug", skip(method, predicates))]
 fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
     let mut candidates = FxHashSet::default();
     for var in &method.local_vars {
@@ -116,6 +118,7 @@ impl PurifiableVariableCollector {
 }
 
 impl ast::ExprWalker for PurifiableVariableCollector {
+    #[tracing::instrument(level = "debug", skip(self, variable))]
     fn walk_local(&mut self, ast::Local { variable, .. }: &ast::Local) {
         if self.vars.remove(&variable.name) {
             debug!("Will not purify the variable {:?} ", variable)

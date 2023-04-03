@@ -10,7 +10,6 @@ use std::{
     mem,
 };
 
-use log::trace;
 use vir_crate::high::{self as vir_high, Generic};
 
 #[derive(Clone, Debug)]
@@ -57,12 +56,12 @@ impl ExprBackwardInterpreterState {
         self.expr
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn substitute_value(
         &mut self,
         target: &vir_high::Expression,
         replacement: vir_high::Expression,
     ) {
-        trace!("substitute_value {:?} --> {:?}", target, replacement);
         let mut target = target.clone().substitute_types(&self.substs);
         let mut replacement = replacement.substitute_types(&self.substs);
 
@@ -76,8 +75,8 @@ impl ExprBackwardInterpreterState {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     pub(super) fn uses_place(&self, sub_target: &vir_high::Expression) -> bool {
-        trace!("use_place {:?}", sub_target);
         let sub_target = sub_target.clone().substitute_types(&self.substs);
         self.expr
             .as_ref()

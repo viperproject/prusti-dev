@@ -112,7 +112,7 @@ pub fn backtranslate(
 
     // sort by span so we can compare output in tests
     let mut sorted_entries = entries.into_iter().collect::<Vec<_>>();
-    sorted_entries.sort_by(|a, b| a.0 .1.cmp(&b.0 .1));
+    sorted_entries.sort_unstable_by(|a, b| a.0 .1.cmp(&b.0 .1));
 
     // add counterexample notes for arguments and locals
     for (place, entry) in sorted_entries.into_iter() {
