@@ -76,7 +76,7 @@ impl MirrorEncoder {
         // add postcondition to the original function
         // [result == mirror(args), true]
         function.posts.push(vir::Expr::InhaleExhale( vir::InhaleExhale {
-            inhale_expr: box vir::Expr::eq_cmp(
+            inhale_expr: Box::new(vir::Expr::eq_cmp(
                 vir::Expr::local(
                     vir::LocalVar::new("__result", function.return_type.clone()),
                 ),
@@ -87,8 +87,8 @@ impl MirrorEncoder {
                         .map(vir::Expr::local)
                         .collect(),
                 ),
-            ),
-            exhale_expr: box true.into(),
+            )),
+            exhale_expr: Box::new(true.into()),
             position: vir::Position::default(),
         }));
 

@@ -101,7 +101,7 @@ pub trait ExprFolder: Sized {
 
     #[allow(clippy::boxed_local)]
     fn fold_boxed(&mut self, e: Box<Expr>) -> Box<Expr> {
-        box self.fold(*e)
+        Box::new(self.fold(*e))
     }
 
     fn fold_local(&mut self, v: LocalVar, p: Position) -> Expr {
@@ -653,7 +653,7 @@ pub trait FallibleExprFolder: Sized {
 
     #[allow(clippy::boxed_local)]
     fn fallible_fold_boxed(&mut self, e: Box<Expr>) -> Result<Box<Expr>, Self::Error> {
-        Ok(box self.fallible_fold(*e)?)
+        Ok(Box::new(self.fallible_fold(*e)?))
     }
 
     fn fallible_fold_local(&mut self, v: LocalVar, p: Position) -> Result<Expr, Self::Error> {

@@ -882,7 +882,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 }
                 if perm_amount == vir::PermAmount::Write {
                     let access = vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
-                        base: box place.clone(),
+                        base: Box::new(place.clone()),
                         permission: vir::PermAmount::Remaining,
                         position: vir::Position::default(),
                     });
@@ -899,7 +899,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 let new_place = place.replace_place(source, target);
                 trace!("    new place: {}", new_place);
                 let lhs_read_access = vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
-                    base: box new_place,
+                    base: Box::new(new_place),
                     permission: vir::PermAmount::Read,
                     position: vir::Position::default(),
                 });
@@ -931,7 +931,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     let access =
                         vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
                             predicate_type: predicate_type.clone(),
-                            argument: box place.clone(),
+                            argument: Box::new(place.clone()),
                             permission: vir::PermAmount::Remaining,
                             position: place.pos(),
                         });
@@ -950,7 +950,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 let lhs_read_access =
                     vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
                         predicate_type,
-                        argument: box new_place,
+                        argument: Box::new(new_place),
                         permission: vir::PermAmount::Read,
                         position: vir::Position::default(),
                     });

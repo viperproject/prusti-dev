@@ -10,7 +10,6 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![warn(clippy::disallowed_types)]
 #![feature(rustc_private)]
-#![feature(box_syntax)]
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
 #![feature(min_specialization)]

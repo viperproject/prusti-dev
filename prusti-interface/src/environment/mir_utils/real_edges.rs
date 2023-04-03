@@ -58,8 +58,7 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
         | TerminatorKind::GeneratorDrop
         | TerminatorKind::Unreachable => vec![],
 
-        TerminatorKind::DropAndReplace { ref target, .. }
-        | TerminatorKind::Drop { ref target, .. } => vec![*target],
+        TerminatorKind::Drop { ref target, .. } => vec![*target],
 
         TerminatorKind::Call { target, .. } => match target {
             Some(target) => vec![target],

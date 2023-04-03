@@ -9,8 +9,8 @@ use crate::{
     utils::type_visitor::{self, TypeVisitor},
 };
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     hir::{self as hir, Mutability},
-    index::vec::Idx,
     middle::{
         mir,
         ty::{self, Ty, TyCtxt, TyKind},
@@ -176,7 +176,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
     ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         let ty = field.ty(self.tcx(), substs);
-        let field_id = mir::Field::new(index);
+        let field_id = FieldIdx::from_usize(index);
         let new_path = self.tcx.mk_place_field(old_path, field_id, ty);
         self.current_path = Some(new_path);
         // self.current_path = Some(old_path.clone().field(field_id, ty));
@@ -214,7 +214,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
     fn visit_tuple(&mut self, types: &'tcx ty::List<ty::Ty<'tcx>>) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         for (i, ty) in types.into_iter().enumerate() {
-            let field = mir::Field::new(i);
+            let field = FieldIdx::from_usize(i);
             self.current_path = Some(self.tcx().mk_place_field(old_path, field, ty));
             self.visit_ty(ty)?;
         }

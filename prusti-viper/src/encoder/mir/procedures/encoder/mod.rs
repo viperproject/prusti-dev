@@ -857,7 +857,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     assert!(ty.is_union());
                     let adt_def = tcx.adt_def(*adt_did);
                     let variant_def = adt_def.non_enum_variant();
-                    let field_name = variant_def.fields[*active_field_index]
+                    let field_name = variant_def.fields[(*active_field_index).into()]
                         .ident(tcx)
                         .to_string();
                     ty = ty.variant(field_name.into());
