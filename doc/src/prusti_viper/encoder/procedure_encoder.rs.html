@@ -6970,6 +6970,45 @@
 <a href="#6970" id="6970">6970</a>
 <a href="#6971" id="6971">6971</a>
 <a href="#6972" id="6972">6972</a>
+<a href="#6973" id="6973">6973</a>
+<a href="#6974" id="6974">6974</a>
+<a href="#6975" id="6975">6975</a>
+<a href="#6976" id="6976">6976</a>
+<a href="#6977" id="6977">6977</a>
+<a href="#6978" id="6978">6978</a>
+<a href="#6979" id="6979">6979</a>
+<a href="#6980" id="6980">6980</a>
+<a href="#6981" id="6981">6981</a>
+<a href="#6982" id="6982">6982</a>
+<a href="#6983" id="6983">6983</a>
+<a href="#6984" id="6984">6984</a>
+<a href="#6985" id="6985">6985</a>
+<a href="#6986" id="6986">6986</a>
+<a href="#6987" id="6987">6987</a>
+<a href="#6988" id="6988">6988</a>
+<a href="#6989" id="6989">6989</a>
+<a href="#6990" id="6990">6990</a>
+<a href="#6991" id="6991">6991</a>
+<a href="#6992" id="6992">6992</a>
+<a href="#6993" id="6993">6993</a>
+<a href="#6994" id="6994">6994</a>
+<a href="#6995" id="6995">6995</a>
+<a href="#6996" id="6996">6996</a>
+<a href="#6997" id="6997">6997</a>
+<a href="#6998" id="6998">6998</a>
+<a href="#6999" id="6999">6999</a>
+<a href="#7000" id="7000">7000</a>
+<a href="#7001" id="7001">7001</a>
+<a href="#7002" id="7002">7002</a>
+<a href="#7003" id="7003">7003</a>
+<a href="#7004" id="7004">7004</a>
+<a href="#7005" id="7005">7005</a>
+<a href="#7006" id="7006">7006</a>
+<a href="#7007" id="7007">7007</a>
+<a href="#7008" id="7008">7008</a>
+<a href="#7009" id="7009">7009</a>
+<a href="#7010" id="7010">7010</a>
+<a href="#7011" id="7011">7011</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -7194,7 +7233,8 @@
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">let </span>block = <span class="kw-2">&amp;</span><span class="self">self</span>.mir[bb];
         <span class="kw">let _ </span>= <span class="self">self</span>.try_encode_assert(bb, block, encoded_statements)<span class="question-mark">?
-        </span>|| <span class="self">self</span>.try_encode_assume(bb, block, encoded_statements)<span class="question-mark">?</span>;
+        </span>|| <span class="self">self</span>.try_encode_assume(bb, block, encoded_statements)<span class="question-mark">?
+        </span>|| <span class="self">self</span>.try_encode_refute(bb, block, encoded_statements)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -7260,6 +7300,44 @@
                 );
 
                 encoded_statements.push(assert_stmt);
+
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+            }
+        }
+        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
+    }
+
+    <span class="kw">fn </span>try_encode_refute(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        bb: mir::BasicBlock,
+        block: <span class="kw-2">&amp;</span>mir::BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        encoded_statements: <span class="kw-2">&amp;mut </span>Vec&lt;vir::Stmt&gt;,
+    ) -&gt; SpannedEncodingResult&lt;bool&gt; {
+        <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;</span>block.statements {
+            <span class="kw">if let </span>mir::StatementKind::Assign(<span class="kw">box </span>(
+                <span class="kw">_</span>,
+                mir::Rvalue::Aggregate(<span class="kw">box </span>mir::AggregateKind::Closure(cl_def_id, cl_substs), <span class="kw">_</span>),
+            )) = stmt.kind
+            {
+                <span class="kw">let </span>refutation = <span class="kw">match </span><span class="self">self</span>.encoder.get_prusti_refutation(cl_def_id) {
+                    <span class="prelude-val">Some</span>(spec) =&gt; spec,
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+                };
+
+                <span class="kw">let </span>span = <span class="self">self
+                    </span>.encoder
+                    .get_definition_span(refutation.refutation.to_def_id());
+
+                <span class="kw">let </span>refute_expr = <span class="self">self</span>.encoder.encode_invariant(<span class="self">self</span>.mir, bb, <span class="self">self</span>.proc_def_id, cl_substs)<span class="question-mark">?</span>;
+
+                <span class="kw">let </span>refute_stmt = vir::Stmt::Refute(
+                    vir::Refute {
+                        expr: refute_expr,
+                        position: <span class="self">self</span>.register_error(span, ErrorCtxt::Panic(PanicCause::Refute))
+                    }
+                );
+
+                encoded_statements.push(refute_stmt);
 
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
             }

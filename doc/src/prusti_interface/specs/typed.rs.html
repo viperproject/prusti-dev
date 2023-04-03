@@ -1034,6 +1034,22 @@
 <a href="#1034" id="1034">1034</a>
 <a href="#1035" id="1035">1035</a>
 <a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{environment::Environment, utils::has_trait_bounds_type_cond_spec, PrustiError};
 <span class="kw">pub use </span>common::{SpecIdRef, SpecType, SpecificationId};
 <span class="kw">use </span>prusti_rustc_interface::{
@@ -1053,6 +1069,7 @@
     <span class="kw">pub </span>type_specs: FxHashMap&lt;DefId, TypeSpecification&gt;,
     <span class="kw">pub </span>prusti_assertions: FxHashMap&lt;DefId, PrustiAssertion&gt;,
     <span class="kw">pub </span>prusti_assumptions: FxHashMap&lt;DefId, PrustiAssumption&gt;,
+    <span class="kw">pub </span>prusti_refutations: FxHashMap&lt;DefId, PrustiRefutation&gt;,
     <span class="kw">pub </span>ghost_begin: FxHashMap&lt;DefId, GhostBegin&gt;,
     <span class="kw">pub </span>ghost_end: FxHashMap&lt;DefId, GhostEnd&gt;,
 }
@@ -1080,6 +1097,10 @@
 
     <span class="kw">pub fn </span>get_assumption(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span>DefId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PrustiAssumption&gt; {
         <span class="self">self</span>.prusti_assumptions.get(def_id)
+    }
+
+    <span class="kw">pub fn </span>get_refutation(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span>DefId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PrustiRefutation&gt; {
+        <span class="self">self</span>.prusti_refutations.get(def_id)
     }
 
     <span class="kw">pub fn </span>get_ghost_begin(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span>DefId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GhostBegin&gt; {
@@ -1202,12 +1223,18 @@
             .values()
             .map(|spec| <span class="macro">format!</span>(<span class="string">&quot;{spec:?}&quot;</span>))
             .collect();
+        <span class="kw">let </span>refutations: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+            </span>.prusti_refutations
+            .values()
+            .map(|spec| <span class="macro">format!</span>(<span class="string">&quot;{spec:?}&quot;</span>))
+            .collect();
         <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
         values.extend(loop_specs);
         values.extend(proc_specs);
         values.extend(type_specs);
         values.extend(asserts);
         values.extend(assumptions);
+        values.extend(refutations);
         <span class="kw">if </span>hide_uuids {
             <span class="kw">let </span>uuid =
                 Regex::new(<span class="string">&quot;[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}&quot;</span>).unwrap();
@@ -1326,6 +1353,11 @@
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>PrustiAssumption {
     <span class="kw">pub </span>assumption: LocalDefId,
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>PrustiRefutation {
+    <span class="kw">pub </span>refutation: LocalDefId,
 }
 
 <span class="attr">#[derive(Debug, Clone)]

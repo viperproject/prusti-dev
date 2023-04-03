@@ -859,6 +859,28 @@
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
 <a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -884,6 +906,7 @@
     Inhale(Expr),
     Exhale(Expr, Position),
     Assert(Expr, Position),
+    Refute(Expr, Position),
     <span class="doccomment">/// MethodCall: method_name, args, targets
     </span>MethodCall(String, Vec&lt;Expr&gt;, Vec&lt;LocalVar&gt;),
     <span class="doccomment">/// Target, source, kind
@@ -945,6 +968,7 @@
             Stmt::Inhale(e) =&gt; e.hash(state),
             Stmt::Exhale(e, p) =&gt; (e, p).hash(state),
             Stmt::Assert(e, p) =&gt; (e, p).hash(state),
+            Stmt::Refute(e, p) =&gt; (e, p).hash(state),
             Stmt::MethodCall(s, v1, v2) =&gt; (s, v1, v2).hash(state),
             Stmt::Assign(e1, e2, ak) =&gt; (e1, e2, ak).hash(state),
             Stmt::Fold(s, v, pa, mevi, p) =&gt; (s, v, pa, mevi, p).hash(state),
@@ -993,6 +1017,9 @@
             Stmt::Exhale(<span class="kw-2">ref </span>expr, <span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;exhale {expr}&quot;</span>),
             Stmt::Assert(<span class="kw-2">ref </span>expr, <span class="kw">_</span>) =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">&quot;assert {expr}&quot;</span>)
+            }
+            Stmt::Refute(<span class="kw-2">ref </span>expr, <span class="kw">_</span>) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;refute {expr}&quot;</span>)
             }
             Stmt::MethodCall(<span class="kw-2">ref </span>name, <span class="kw-2">ref </span>args, <span class="kw-2">ref </span>vars) =&gt; <span class="macro">write!</span>(
                 f,
@@ -1159,6 +1186,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             Stmt::Exhale(<span class="kw">_</span>, <span class="kw-2">ref </span>p)
             | Stmt::Assert(<span class="kw">_</span>, <span class="kw-2">ref </span>p)
+            | Stmt::Refute(<span class="kw">_</span>, <span class="kw-2">ref </span>p)
             | Stmt::Fold(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref </span>p)
             | Stmt::Obtain(<span class="kw">_</span>, <span class="kw-2">ref </span>p)
             | Stmt::PackageMagicWand(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref </span>p)
@@ -1171,6 +1199,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             Stmt::Exhale(<span class="kw">_</span>, <span class="kw-2">ref mut </span>p)
             | Stmt::Assert(<span class="kw">_</span>, <span class="kw-2">ref mut </span>p)
+            | Stmt::Refute(<span class="kw">_</span>, <span class="kw-2">ref mut </span>p)
             | Stmt::Fold(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref mut </span>p)
             | Stmt::Obtain(<span class="kw">_</span>, <span class="kw-2">ref mut </span>p)
             | Stmt::PackageMagicWand(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref mut </span>p)
@@ -1240,6 +1269,7 @@
             Stmt::Inhale(expr) =&gt; <span class="self">self</span>.fold_inhale(expr),
             Stmt::Exhale(e, p) =&gt; <span class="self">self</span>.fold_exhale(e, p),
             Stmt::Assert(expr, pos) =&gt; <span class="self">self</span>.fold_assert(expr, pos),
+            Stmt::Refute(expr, pos) =&gt; <span class="self">self</span>.fold_refute(expr, pos),
             Stmt::MethodCall(s, ve, vv) =&gt; <span class="self">self</span>.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) =&gt; <span class="self">self</span>.fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, p) =&gt; <span class="self">self</span>.fold_fold(s, ve, perm, variant, p),
@@ -1278,6 +1308,10 @@
 
     <span class="kw">fn </span>fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; Stmt {
         Stmt::Assert(<span class="self">self</span>.fold_expr(expr), pos)
+    }
+
+    <span class="kw">fn </span>fold_refute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; Stmt {
+        Stmt::Refute(<span class="self">self</span>.fold_expr(expr), pos)
     }
 
     <span class="kw">fn </span>fold_method_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: String, args: Vec&lt;Expr&gt;, targets: Vec&lt;LocalVar&gt;) -&gt; Stmt {
@@ -1388,6 +1422,7 @@
             Stmt::Inhale(expr) =&gt; <span class="self">self</span>.fallible_fold_inhale(expr),
             Stmt::Exhale(e, p) =&gt; <span class="self">self</span>.fallible_fold_exhale(e, p),
             Stmt::Assert(expr, pos) =&gt; <span class="self">self</span>.fallible_fold_assert(expr, pos),
+            Stmt::Refute(expr, pos) =&gt; <span class="self">self</span>.fallible_fold_refute(expr, pos),
             Stmt::MethodCall(s, ve, vv) =&gt; <span class="self">self</span>.fallible_fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) =&gt; <span class="self">self</span>.fallible_fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, p) =&gt; <span class="self">self</span>.fallible_fold_fold(s, ve, perm, variant, p),
@@ -1428,6 +1463,10 @@
 
     <span class="kw">fn </span>fallible_fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; <span class="prelude-ty">Result</span>&lt;Stmt, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(Stmt::Assert(<span class="self">self</span>.fallible_fold_expr(expr)<span class="question-mark">?</span>, pos))
+    }
+
+    <span class="kw">fn </span>fallible_fold_refute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: Expr, pos: Position) -&gt; <span class="prelude-ty">Result</span>&lt;Stmt, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Stmt::Refute(<span class="self">self</span>.fallible_fold_expr(expr)<span class="question-mark">?</span>, pos))
     }
 
     <span class="kw">fn </span>fallible_fold_method_call(
@@ -1580,6 +1619,7 @@
             Stmt::Inhale(expr) =&gt; <span class="self">self</span>.walk_inhale(expr),
             Stmt::Exhale(e, p) =&gt; <span class="self">self</span>.walk_exhale(e, p),
             Stmt::Assert(expr, pos) =&gt; <span class="self">self</span>.walk_assert(expr, pos),
+            Stmt::Refute(expr, pos) =&gt; <span class="self">self</span>.walk_refute(expr, pos),
             Stmt::MethodCall(s, ve, vv) =&gt; <span class="self">self</span>.walk_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) =&gt; <span class="self">self</span>.walk_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, pos) =&gt; <span class="self">self</span>.walk_fold(s, ve, perm, variant, pos),
@@ -1613,6 +1653,10 @@
     }
 
     <span class="kw">fn </span>walk_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expr, _pos: <span class="kw-2">&amp;</span>Position) {
+        <span class="self">self</span>.walk_expr(expr);
+    }
+
+    <span class="kw">fn </span>walk_refute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expr, _pos: <span class="kw-2">&amp;</span>Position) {
         <span class="self">self</span>.walk_expr(expr);
     }
 

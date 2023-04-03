@@ -621,6 +621,23 @@
 <a href="#621" id="621">621</a>
 <a href="#622" id="622">622</a>
 <a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environment::Environment,
     utils::{
@@ -706,6 +723,7 @@
     type_specs: FxHashMap&lt;LocalDefId, TypeSpecRefs&gt;,
     prusti_assertions: Vec&lt;LocalDefId&gt;,
     prusti_assumptions: Vec&lt;LocalDefId&gt;,
+    prusti_refutations: Vec&lt;LocalDefId&gt;,
     ghost_begin: Vec&lt;LocalDefId&gt;,
     ghost_end: Vec&lt;LocalDefId&gt;,
 }
@@ -722,6 +740,7 @@
             type_specs: FxHashMap::default(),
             prusti_assertions: <span class="macro">vec!</span>[],
             prusti_assumptions: <span class="macro">vec!</span>[],
+            prusti_refutations: <span class="macro">vec!</span>[],
             ghost_begin: <span class="macro">vec!</span>[],
             ghost_end: <span class="macro">vec!</span>[],
         }
@@ -742,6 +761,7 @@
         <span class="self">self</span>.determine_type_specs(<span class="kw-2">&amp;mut </span>def_spec);
         <span class="self">self</span>.determine_prusti_assertions(<span class="kw-2">&amp;mut </span>def_spec);
         <span class="self">self</span>.determine_prusti_assumptions(<span class="kw-2">&amp;mut </span>def_spec);
+        <span class="self">self</span>.determine_prusti_refutations(<span class="kw-2">&amp;mut </span>def_spec);
         <span class="self">self</span>.determine_ghost_begin_ends(<span class="kw-2">&amp;mut </span>def_spec);
         <span class="comment">// TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
@@ -894,6 +914,16 @@
                 local_id.to_def_id(),
                 typed::PrustiAssumption {
                     assumption: <span class="kw-2">*</span>local_id,
+                },
+            );
+        }
+    }
+    <span class="kw">fn </span>determine_prusti_refutations(<span class="kw-2">&amp;</span><span class="self">self</span>, def_spec: <span class="kw-2">&amp;mut </span>typed::DefSpecificationMap) {
+        <span class="kw">for </span>local_id <span class="kw">in </span><span class="self">self</span>.prusti_refutations.iter() {
+            def_spec.prusti_refutations.insert(
+                local_id.to_def_id(),
+                typed::PrustiRefutation {
+                    refutation: <span class="kw-2">*</span>local_id,
                 },
             );
         }
@@ -1147,6 +1177,10 @@
 
             <span class="kw">if </span>has_prusti_attr(attrs, <span class="string">&quot;prusti_assumption&quot;</span>) {
                 <span class="self">self</span>.prusti_assumptions.push(local_id);
+            }
+
+            <span class="kw">if </span>has_prusti_attr(attrs, <span class="string">&quot;prusti_refutation&quot;</span>) {
+                <span class="self">self</span>.prusti_refutations.push(local_id);
             }
 
             <span class="kw">if </span>has_prusti_attr(attrs, <span class="string">&quot;ghost_begin&quot;</span>) {
