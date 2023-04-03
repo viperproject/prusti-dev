@@ -16,7 +16,7 @@ fn unreachable_branch_sign(val: i32) -> i32 {
     } else if val >= 0 {
         1
     } else {
-	   	prusti_refute!(false); //~ ERROR
+        prusti_refute!(false); //~ ERROR
         0
     }
 }
