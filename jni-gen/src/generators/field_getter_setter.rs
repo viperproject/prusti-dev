@@ -141,13 +141,27 @@ fn generate_field_setter(class: &ClassName, field_name: &str, type_signature: &s
     code.push(") -> JNIResult<()> {".to_string());
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push(format!("    let field_name = \"{field_name}\";"));
-    code.push(format!("    let return_signature = \"{type_signature}\";"));
+    code.push(format!(
+        "    let {parameter_name}_signature = \"{type_signature}\";"
+    ));
+    if is_signature_of_class_type(type_signature) {
+        let parameter_class = &type_signature[1..(type_signature.len() - 1)];
+        code.push(format!(
+            "    let {parameter_name}_class_name = \"{parameter_class}\";"
+        ));
+    }
     code.push("".to_string());
     code.push(generate_variable_type_check("receiver", "class_name"));
+    if is_signature_of_class_type(type_signature) {
+        code.push(generate_variable_type_check(
+            &parameter_name,
+            &format!("{parameter_name}_class_name"),
+        ));
+    }
     code.push("    self.env.set_field(".to_string());
     code.push("        receiver,".to_string());
     code.push("        field_name,".to_string());
-    code.push("        return_signature,".to_string());
+    code.push(format!("        {parameter_name}_signature,"));
     code.push(format!("        JValue::from({parameter_name})"));
     code.push("    )".to_string());
     code.push("}".to_string());

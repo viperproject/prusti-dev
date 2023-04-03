@@ -300,7 +300,11 @@ impl VarPurifier {
                 _ => unreachable!(),
             }
         } else if config::encode_unsigned_num_constraint() {
-            ast::Expr::ge_cmp(replacement, 0.into())
+            match predicate.name().as_ref() {
+                "usize" => ast::Expr::ge_cmp(replacement, 0.into()),
+                "isize" => true.into(),
+                _ => unreachable!(),
+            }
         } else {
             true.into()
         }

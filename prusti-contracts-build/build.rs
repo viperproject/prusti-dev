@@ -47,6 +47,8 @@ fn main() {
         cmd.arg("--release");
     }
     cmd.env_remove("CARGO_MANIFEST_DIR");
+    // This is set when running clippy, but we can't run clippy and prusti at the same time.
+    cmd.env_remove("RUSTC_WORKSPACE_WRAPPER");
 
     // Not a warning but no other way to print to console
     println!("cargo:warning=Building `prusti-contracts` with {cmd:?}, please wait.",);
@@ -59,7 +61,12 @@ fn main() {
 /// reexport specs if any of the `cargo-prusti`/`prusti-{rustc,driver}` changed, and so
 /// we manually force that here by deleting the `PRUSTI_LIBS` files.
 fn force_reexport_specs(target: &std::path::Path) {
-    if let Ok(files) = std::fs::read_dir(target.join("release").join("deps")) {
+    let deps_dir = if cfg!(debug_assertions) {
+        target.join("debug").join("deps")
+    } else {
+        target.join("release").join("deps")
+    };
+    if let Ok(files) = std::fs::read_dir(deps_dir) {
         let libs =
             prusti_utils::launch::PRUSTI_LIBS.map(|lib| format!("lib{}-", lib.replace('-', "_")));
         for file in files {

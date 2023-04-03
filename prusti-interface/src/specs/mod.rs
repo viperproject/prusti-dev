@@ -13,6 +13,7 @@ use prusti_rustc_interface::{
     data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
+        self,
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
@@ -303,7 +304,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn ensure_local_mirs_fetched(&mut self, def_spec: &typed::DefSpecificationMap) {
         let (specs, pure_fns, predicates) = def_spec.defid_for_export();
-        for def_id in specs {
+        for def_id in &specs {
             self.env.body.load_spec_body(def_id.expect_local());
         }
         for def_id in pure_fns {
@@ -311,9 +312,45 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 self.env.body.load_pure_fn_body(def_id.expect_local());
             }
         }
-        for def_id in predicates {
+        for def_id in &predicates {
             self.env.body.load_predicate_body(def_id.expect_local());
         }
+
+        let mut cl_visitor = CollectAllClosureDefsVisitor {
+            map: self.env.query.hir(),
+            result: Vec::new(),
+        };
+        for def_id in specs.iter().chain(predicates.iter()) {
+            let body_id = self.env.query.hir().body_owned_by(def_id.expect_local());
+            intravisit::Visitor::visit_nested_body(&mut cl_visitor, body_id);
+        }
+        for def_id in cl_visitor.result {
+            self.env.body.load_closure_body(def_id);
+        }
+    }
+}
+
+/// Collects the LocalDefId of all closures. This is used to find all
+/// quantifiers/triggers inside specs and predicates, so they can be
+/// exported.
+struct CollectAllClosureDefsVisitor<'tcx> {
+    map: Map<'tcx>,
+    result: Vec<LocalDefId>,
+}
+
+impl<'tcx> intravisit::Visitor<'tcx> for CollectAllClosureDefsVisitor<'tcx> {
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
+
+    fn nested_visit_map(&mut self) -> Self::Map {
+        self.map
+    }
+
+    fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
+        if let hir::ExprKind::Closure(hir::Closure { def_id, .. }) = expr.kind {
+            self.result.push(*def_id);
+        }
+
+        intravisit::walk_expr(self, expr)
     }
 }
 
