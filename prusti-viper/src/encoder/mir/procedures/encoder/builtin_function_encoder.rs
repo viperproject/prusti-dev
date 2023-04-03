@@ -269,7 +269,8 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 if matches!(
                     lhs.get_type(),
                     vir_high::Type::Reference(vir_high::ty::Reference {
-                        target_type: box vir_high::Type::Int(vir_high::ty::Int::Unbounded)
+                        target_type:
+                            box vir_high::Type::Int(vir_high::ty::Int::Unbounded)
                             | box vir_high::Type::Sequence(..)
                             | box vir_high::Type::Map(..),
                         ..

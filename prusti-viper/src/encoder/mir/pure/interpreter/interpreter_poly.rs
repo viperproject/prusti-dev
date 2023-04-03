@@ -156,7 +156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             PlaceEncoding::Variant { box base, field } => {
                 let postprocessed_base = self.postprocess_place_encoding(base)?;
                 vir::Expr::Variant(vir::Variant {
-                    base: box postprocessed_base,
+                    base: Box::new(postprocessed_base),
                     variant_index: field,
                     position: vir::Position::default(),
                 })
@@ -785,8 +785,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 }
             }
 
-            TerminatorKind::DropAndReplace { .. }
-            | TerminatorKind::Yield { .. }
+            TerminatorKind::Yield { .. }
             | TerminatorKind::GeneratorDrop
             | TerminatorKind::InlineAsm { .. } => {
                 return Err(SpannedEncodingError::internal(
@@ -832,6 +831,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             // | mir::StatementKind::ReadForMatch(..)
             // | mir::StatementKind::EndRegion(..)
             | mir::StatementKind::AscribeUserType(..)
+            | mir::StatementKind::PlaceMention(..)
              => {
                 // Nothing to do
             }
@@ -1023,7 +1023,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty)
                                     .with_span(span)?;
                                 let elems = vir::Expr::Seq( vir::Seq {
-                                    typ: vir::Type::Seq( vir::SeqType {typ: box encoded_elem_ty} ),
+                                    typ: vir::Type::Seq( vir::SeqType {typ: Box::new(encoded_elem_ty)} ),
                                     elements: encoded_operands,
                                     position: vir::Position::default(),
                                 });
@@ -1256,7 +1256,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty)
                             .with_span(span)?;
                         let elems = vir::Expr::Seq(vir::Seq {
-                            typ: vir::Type::Seq(vir::SeqType{ typ: box encoded_elem_ty }),
+                            typ: vir::Type::Seq(vir::SeqType{ typ: Box::new(encoded_elem_ty) }),
                             elements: (0..len).map(|_| encoded_operand.clone()).collect(),
                             position: vir::Position::default(),
                         });

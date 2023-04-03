@@ -142,7 +142,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         } else {
                             encoded_base
                         };
-                        let field = &variant_def.fields[field.index()];
+                        let field = &variant_def.fields[*field];
                         let field_ty = *proj_field_ty;
                         if utils::is_reference(field_ty) {
                             error_unsupported!("access to reference-typed fields is not supported");
@@ -245,7 +245,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     ty::TyKind::Array(elem_ty, _) => {
                         (
                             PlaceEncoding::ArrayAccess {
-                                base: box encoded_base,
+                                base: Box::new(encoded_base),
                                 index,
                                 encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_array_ty: base_ty,
@@ -257,7 +257,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     ty::TyKind::Slice(elem_ty) => {
                         (
                             PlaceEncoding::SliceAccess {
-                                base: box encoded_base,
+                                base: Box::new(encoded_base),
                                 index,
                                 encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_slice_ty: base_ty,
@@ -552,7 +552,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir::Expr> {
-        if !op.is_checkable() || !config::check_overflows() {
+        if !matches!(op, mir::BinOp::Add | mir::BinOp::Sub | mir::BinOp::Mul | mir::BinOp::Shl | mir::BinOp::Shr) || !config::check_overflows() {
             Ok(false.into())
         } else {
             let result = self.encode_bin_op_expr(op, left, right.clone(), ty)?;

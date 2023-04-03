@@ -111,7 +111,7 @@ impl ExprOptimizer {
 }
 
 fn restore_unfoldings_boxed(unfolding_map: UnfoldingMap, expr: Box<ast::Expr>) -> Box<ast::Expr> {
-    box restore_unfoldings(unfolding_map, *expr)
+    Box::new(restore_unfoldings(unfolding_map, *expr))
 }
 
 /// Restore unfoldings on a given expression.

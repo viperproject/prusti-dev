@@ -523,8 +523,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let slice_cons = self.encode_snapshot(dst_ty, None, vec![array_uncons.clone()])?;
             let data_len = vir::Expr::ContainerOp(vir::ContainerOp {
                 op_kind: vir::ContainerOpKind::SeqLen,
-                left: box array_uncons,
-                right: box true.into(), // unused
+                left: Box::new(array_uncons),
+                right: Box::new(true.into()), // unused
                 position: vir::Position::default(),
             });
             let result = vir::Expr::from(vir_local!{ __result: {dst_snap_ty.clone()} });

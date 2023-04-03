@@ -115,11 +115,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                         field,
                     ),
                     _ => Ok(vir::Expr::Field(vir::FieldExpr {
-                        base: box vir::Expr::Variant(vir::Variant {
+                        base: Box::new(vir::Expr::Variant(vir::Variant {
                             base: receiver,
                             variant_index: variant,
                             position: pos2,
-                        }),
+                        })),
                         field,
                         position,
                     })),
@@ -163,7 +163,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
         Ok(vir::Expr::ForAll(vir::ForAll {
             variables: patched_vars,
             triggers,
-            body: box expr,
+            body: Box::new(expr),
             position,
         }))
     }
@@ -181,7 +181,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
         Ok(vir::Expr::Exists(vir::Exists {
             variables: patched_vars,
             triggers,
-            body: box expr,
+            body: Box::new(expr),
             position,
         }))
     }
@@ -200,8 +200,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
             Ok(base)
         } else {
             Ok(vir::Expr::Downcast(vir::DowncastExpr {
-                base: box base,
-                enum_place: box enum_expr,
+                base: Box::new(base),
+                enum_place: Box::new(enum_expr),
                 field,
             }))
         }

@@ -940,8 +940,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 self.apply_switch_int_terminator(switch_ty, discr, targets, states, span)?
             }
 
-            TerminatorKind::DropAndReplace { .. } => unimplemented!(),
-
             TerminatorKind::Call {
                 args,
                 destination,
@@ -1054,7 +1052,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         match &statement.kind {
             mir::StatementKind::StorageLive(..)
             | mir::StatementKind::StorageDead(..)
-            | mir::StatementKind::FakeRead(..) => {
+            | mir::StatementKind::FakeRead(..)
+            | mir::StatementKind::PlaceMention(..) => {
                 // Nothing to do
             }
             mir::StatementKind::Assign(box (lhs, rhs)) => {

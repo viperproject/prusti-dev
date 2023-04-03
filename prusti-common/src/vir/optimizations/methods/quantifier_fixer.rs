@@ -111,8 +111,8 @@ impl vir::ExprFolder for Optimizer {
             for (expr, variable) in replacer.map.into_iter().sorted_unstable() {
                 forall = vir::Expr::LetExpr(vir::LetExpr {
                     variable,
-                    def: box expr,
-                    body: box forall,
+                    def: Box::new(expr),
+                    body: Box::new(forall),
                     position,
                 });
             }
@@ -335,7 +335,7 @@ impl vir::ExprFolder for UnfoldingExtractor {
             forall = vir::Expr::Unfolding(vir::Unfolding {
                 predicate: typ,
                 arguments: args,
-                base: box forall,
+                base: Box::new(forall),
                 permission: perm_amount,
                 variant,
                 position,
