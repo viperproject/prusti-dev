@@ -1112,6 +1112,12 @@
 <a href="#1112" id="1112">1112</a>
 <a href="#1113" id="1113">1113</a>
 <a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(unused_must_use)]
 #![feature(drain_filter)]
 #![feature(box_patterns)]
@@ -1893,9 +1899,15 @@
             syn::Item::Mod(item_mod) =&gt; {
                 extern_spec_rewriter::mods::rewrite_mod(<span class="kw-2">&amp;</span>item_mod, mod_path)
             }
+            syn::Item::ForeignMod(item_foreign_mod) =&gt; {
+                extern_spec_rewriter::foreign_mods::rewrite_extern_spec(
+                    <span class="kw-2">&amp;</span>item_foreign_mod,
+                    <span class="kw-2">&amp;</span>mod_path,
+                )
+            }
             <span class="comment">// we&#39;re expecting function stubs, so they aren&#39;t represented as Item::Fn
             </span>syn::Item::Verbatim(stub_tokens) =&gt; {
-                extern_spec_rewriter::functions::rewrite_stub(<span class="kw-2">&amp;</span>stub_tokens, <span class="kw-2">&amp;</span>mod_path)
+                extern_spec_rewriter::functions::rewrite_stub(<span class="kw-2">&amp;</span>stub_tokens, <span class="kw-2">&amp;</span>mod_path, <span class="bool-val">false</span>)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(syn::Error::new(
                 Span::call_site(), <span class="comment">// this covers the entire macro invocation, unlike attr.span() which changes to only cover arguments if possible

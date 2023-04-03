@@ -62,10 +62,10 @@
         <span class="kw">match </span>item {
             syn::Item::Fn(<span class="kw-2">ref </span>item_fn) =&gt; {
                 check_is_stub(<span class="kw-2">&amp;</span>item_fn.block)<span class="question-mark">?</span>;
-                rewritten_fns.extend(rewrite_fn(item_fn, <span class="kw-2">&amp;</span>path));
+                rewritten_fns.extend(rewrite_fn(item_fn, <span class="kw-2">&amp;</span>path, <span class="bool-val">false</span>));
             }
             syn::Item::Mod(<span class="kw-2">ref </span>inner_mod) =&gt; rewritten_fns.extend(rewrite_mod(inner_mod, path.clone())<span class="question-mark">?</span>),
-            syn::Item::Verbatim(<span class="kw-2">ref </span>tokens) =&gt; rewritten_fns.extend(rewrite_stub(tokens, <span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>),
+            syn::Item::Verbatim(<span class="kw-2">ref </span>tokens) =&gt; rewritten_fns.extend(rewrite_stub(tokens, <span class="kw-2">&amp;</span>path, <span class="bool-val">false</span>)<span class="question-mark">?</span>),
             syn::Item::Use(<span class="kw">_</span>) =&gt; rewritten_fns.extend(syn::Error::new(
                 item.span(),
                 <span class="string">&quot;`use` statements have no effect in #[extern_spec] modules; module contents share the outer scope.&quot;</span>,

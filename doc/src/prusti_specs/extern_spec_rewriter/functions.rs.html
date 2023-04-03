@@ -49,6 +49,10 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Process external specifications on free functions.
 //! In practice, these will be combined with a module argument to extern_spec
 //! e.g. `#[extern_spec(core::mem)] fn swap`
@@ -59,7 +63,11 @@
 <span class="kw">use </span>quote::{quote, ToTokens};
 <span class="kw">use </span>syn::{parse_quote_spanned, spanned::Spanned};
 
-<span class="kw">pub fn </span>rewrite_stub(stub_tokens: <span class="kw-2">&amp;</span>TokenStream, path: <span class="kw-2">&amp;</span>syn::Path) -&gt; syn::Result&lt;TokenStream&gt; {
+<span class="kw">pub fn </span>rewrite_stub(
+    stub_tokens: <span class="kw-2">&amp;</span>TokenStream,
+    path: <span class="kw-2">&amp;</span>syn::Path,
+    is_unsafe: bool,
+) -&gt; syn::Result&lt;TokenStream&gt; {
     <span class="comment">// Transforms function stubs (functions with a `;` after the
     // signature instead of the body) into functions, then
     // processes them.
@@ -85,7 +93,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>item = res.unwrap();
     <span class="kw">if let </span>syn::Item::Fn(item_fn) = <span class="kw-2">&amp;mut </span>item {
-        <span class="prelude-val">Ok</span>(rewrite_fn(item_fn, path))
+        <span class="prelude-val">Ok</span>(rewrite_fn(item_fn, path, is_unsafe))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(<span class="macro">quote!</span>(#item))
     }
@@ -93,12 +101,12 @@
 
 <span class="doccomment">/// Rewrite a specification function to a call to the specified function.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-</span><span class="kw">pub fn </span>rewrite_fn(item_fn: <span class="kw-2">&amp;</span>syn::ItemFn, path: <span class="kw-2">&amp;</span>syn::Path) -&gt; TokenStream {
+</span><span class="kw">pub fn </span>rewrite_fn(item_fn: <span class="kw-2">&amp;</span>syn::ItemFn, path: <span class="kw-2">&amp;</span>syn::Path, is_unsafe: bool) -&gt; TokenStream {
     <span class="kw">let </span>ident = <span class="kw-2">&amp;</span>item_fn.sig.ident;
     <span class="kw">let </span>path_span = item_fn.sig.ident.span();
     <span class="kw">let </span>path = <span class="macro">parse_quote_spanned!</span>(path_span=&gt; #path :: #ident);
 
-    generate_extern_spec_function_stub(item_fn, <span class="kw-2">&amp;</span>path, ExternSpecKind::Method, <span class="bool-val">true</span>)
+    generate_extern_spec_function_stub(item_fn, <span class="kw-2">&amp;</span>path, ExternSpecKind::Method, <span class="bool-val">true</span>, is_unsafe)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_specs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
