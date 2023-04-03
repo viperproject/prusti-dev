@@ -705,7 +705,6 @@ impl<'tcx> ErrorManager<'tcx> {
                 )
             }
 
-
             (full_err_id, ErrorCtxt::Unexpected) => {
                 PrustiError::internal(
                     format!(
