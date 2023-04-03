@@ -5,6 +5,7 @@ use crate::encoder::{
     mir::types::interface::ty::SubstsRef,
 };
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     errors::MultiSpan,
     middle::{mir, ty},
     span::Span,
@@ -33,7 +34,7 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     fn encode_field(
         &self,
         ty: &vir_high::Type,
-        index: mir::Field,
+        index: FieldIdx,
         use_span: Option<Span>,
         declaration_span: Span,
     ) -> SpannedEncodingResult<vir_high::FieldDecl>;
@@ -119,7 +120,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     fn encode_field(
         &self,
         ty: &vir_high::Type,
-        field: mir::Field,
+        field: FieldIdx,
         use_span: Option<Span>,
         declaration_span: Span,
     ) -> SpannedEncodingResult<vir_high::FieldDecl> {

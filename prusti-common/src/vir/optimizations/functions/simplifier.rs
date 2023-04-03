@@ -63,8 +63,8 @@ impl ExprSimplifier {
                 position: pos,
             }) => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::NeCmp,
-                left: box left,
-                right: box right,
+                left: Box::new(left),
+                right: Box::new(right),
                 position: pos,
             }),
             ast::Expr::BinOp(ast::BinOp {
@@ -179,8 +179,8 @@ impl ExprSimplifier {
                 position: pos,
             }) => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
-                left: box Self::apply_rules(op1),
-                right: box Self::apply_rules(op2),
+                left: Box::new(Self::apply_rules(op1)),
+                right: Box::new(Self::apply_rules(op2)),
                 position: pos,
             }),
             r => r,
@@ -208,22 +208,22 @@ impl ExprFolder for ExprSimplifier {
         let result = if simplified_then.is_bool() || simplified_else.is_bool() {
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
-                left: box ast::Expr::BinOp(ast::BinOp {
+                left: Box::new(ast::Expr::BinOp(ast::BinOp {
                     op_kind: ast::BinaryOpKind::Implies,
                     left: simplified_guard.clone(),
                     right: simplified_then,
                     position,
-                }),
-                right: box ast::Expr::BinOp(ast::BinOp {
+                })),
+                right: Box::new(ast::Expr::BinOp(ast::BinOp {
                     op_kind: ast::BinaryOpKind::Implies,
-                    left: box ast::Expr::UnaryOp(ast::UnaryOp {
+                    left: Box::new(ast::Expr::UnaryOp(ast::UnaryOp {
                         op_kind: ast::UnaryOpKind::Not,
                         argument: simplified_guard,
                         position,
-                    }),
+                    })),
                     right: simplified_else,
                     position,
-                }),
+                })),
                 position,
             })
         } else {

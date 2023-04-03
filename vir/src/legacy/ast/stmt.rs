@@ -287,7 +287,7 @@ impl Stmt {
         pos: Position,
     ) -> Self {
         Stmt::PackageMagicWand(
-            Expr::MagicWand(box lhs, box rhs, None, pos),
+            Expr::MagicWand(Box::new(lhs), Box::new(rhs), None, pos),
             stmts,
             label,
             vars,

@@ -270,22 +270,6 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                     res_vec.push((bb, Self::new_top(self.def_id, self.mir, self.tcx)));
                 }
             }
-            mir::TerminatorKind::DropAndReplace {
-                place,
-                ref value,
-                target,
-                unwind,
-            } => {
-                new_state.set_place_uninitialised(place);
-                new_state.apply_operand_effect(value, move_out_copy_types);
-                new_state.set_place_initialised(place);
-                res_vec.push((target, new_state));
-
-                if let Some(bb) = unwind {
-                    // imprecision for error states
-                    res_vec.push((bb, Self::new_top(self.def_id, self.mir, self.tcx)));
-                }
-            }
             mir::TerminatorKind::Call {
                 ref func,
                 ref args,

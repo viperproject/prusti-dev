@@ -80,7 +80,7 @@ impl<'tcx> PlaceEncoding<'tcx> {
             PlaceEncoding::Variant { base, field } => {
                 match base.into_array_base() {
                     ExprOrArrayBase::Expr(e) => ExprOrArrayBase::Expr(
-                        vir::Expr::Variant( vir::Variant {base: box e, variant_index: field, position: vir::Position::default()} )
+                        vir::Expr::Variant( vir::Variant {base: Box::new(e), variant_index: field, position: vir::Position::default()} )
                     ),
                     base@ExprOrArrayBase::ArrayBase(_) => base,
                     base@ExprOrArrayBase::SliceBase(_) => base,
@@ -106,7 +106,7 @@ impl<'tcx> PlaceEncoding<'tcx> {
     }
 
     pub fn field(self, field: vir::Field) -> Self {
-        PlaceEncoding::FieldAccess { base: box self, field }
+        PlaceEncoding::FieldAccess { base: Box::new(self), field }
     }
 
     pub fn get_type(&self) -> &vir::Type {
@@ -124,7 +124,7 @@ impl<'tcx> PlaceEncoding<'tcx> {
         let field_name = format!("enum_{index}");
         let field = vir::Field::new(field_name, self.get_type().clone().variant(index));
 
-        PlaceEncoding::Variant { base: box self, field }
+        PlaceEncoding::Variant { base: Box::new(self), field }
     }
 }
 

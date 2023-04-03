@@ -355,13 +355,13 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     .get(domain_name)
                     .unwrap();
                 let sil_fn_name = format!("destructor${domain_name}$$target_current");
-                Entry::Ref(box self.extract_field_value(
+                Entry::Ref(Box::new(self.extract_field_value(
                     &sil_fn_name,
                     Some(*typ),
                     model_entry,
                     sil_domain,
                     model,
-                ))
+                )))
             }
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
                 let sil_domain = self
@@ -400,13 +400,13 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     .unwrap();
                 let sil_fn_name = format!("destructor${domain_name}$$val_ref");
                 let new_typ = subst.type_at(0);
-                Entry::Box(box self.extract_field_value(
+                Entry::Box(Box::new(self.extract_field_value(
                     &sil_fn_name,
                     Some(new_typ),
                     model_entry,
                     sil_domain,
                     model,
-                ))
+                )))
             }
 
             (
@@ -423,7 +423,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                         .unwrap();
                     let sil_fn_name = format!("destructor${domain_name}$$value");
                     let variant = adt_def.variants().iter().next().unwrap();
-                    let int_typ = Some(variant.fields[0].ty(self.tcx, subst));
+                    let int_typ = Some(variant.fields[0usize.into()].ty(self.tcx, subst));
                     return self.extract_field_value(
                         &sil_fn_name,
                         int_typ,
@@ -491,11 +491,12 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                         let super_name = format!("{adt_def:?}");
                         let disc_value_int = disc_value.parse::<usize>().unwrap();
                         let variant = adt_def.variants().iter().next().unwrap();
-                        let variant_name = variant.fields[disc_value_int]
+                        let variant_name = variant.fields[disc_value_int.into()]
                             .ident(self.tcx)
                             .name
                             .to_ident_string();
-                        let field_typ = Some(variant.fields[disc_value_int].ty(self.tcx, subst));
+                        let field_typ =
+                            Some(variant.fields[disc_value_int.into()].ty(self.tcx, subst));
 
                         let destructor_sil_name =
                             format!("destructor${}${}$value", domain_name, &variant_name);
@@ -521,19 +522,19 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                                 );
                                 return Entry::Union {
                                     name: super_name,
-                                    field_entry: (variant_name, box field_entry),
+                                    field_entry: (variant_name, Box::new(field_entry)),
                                 };
                             }
                             return Entry::Union {
                                 name: super_name,
-                                field_entry: (variant_name, box Entry::Unknown),
+                                field_entry: (variant_name, Box::new(Entry::Unknown)),
                             };
                         }
                     }
                 }
                 Entry::Union {
                     name: format!("{adt_def:?}"),
-                    field_entry: ("?".to_string(), box Entry::Unknown),
+                    field_entry: ("?".to_string(), Box::new(Entry::Unknown)),
                 }
             }
             (

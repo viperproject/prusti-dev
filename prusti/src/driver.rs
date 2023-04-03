@@ -7,7 +7,6 @@
 #![feature(rustc_private)]
 #![feature(proc_macro_internals)]
 #![feature(decl_macro)]
-#![feature(box_syntax)]
 #![deny(unused_must_use)]
 
 mod arg_value;
@@ -30,7 +29,7 @@ const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/
 lazy_static! {
     static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
         let hook = panic::take_hook();
-        panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
+        panic::set_hook(Box::new(|info| report_prusti_ice(info, BUG_REPORT_URL)));
         hook
     };
 }
@@ -57,17 +56,19 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         prusti_rustc_interface::driver::DEFAULT_LOCALE_RESOURCES.to_vec(),
         false,
     );
-    let emitter = box prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
-        prusti_rustc_interface::errors::ColorConfig::Auto,
-        None,
-        None,
-        fallback_bundle,
-        false,
-        false,
-        None,
-        false,
-        false,
-        prusti_rustc_interface::errors::TerminalUrl::Auto,
+    let emitter = Box::new(
+        prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
+            prusti_rustc_interface::errors::ColorConfig::Auto,
+            None,
+            None,
+            fallback_bundle,
+            false,
+            false,
+            None,
+            false,
+            false,
+            prusti_rustc_interface::errors::TerminalUrl::Auto,
+        ),
     );
     let handler = prusti_rustc_interface::errors::Handler::with_emitter(true, None, emitter);
 

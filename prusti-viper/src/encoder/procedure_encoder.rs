@@ -1453,6 +1453,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | mir::StatementKind::FakeRead(..)
             | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::Coverage(..)
+            | mir::StatementKind::PlaceMention(..)
             | mir::StatementKind::Nop => vec![],
 
             mir::StatementKind::Assign(box (lhs, ref rhs)) => {
@@ -2182,8 +2183,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
                 // Inhale the magic wand.
                 let magic_wand = vir::Expr::MagicWand( vir::MagicWand {
-                    left: box lhs.clone(),
-                    right: box rhs.clone(),
+                    left: Box::new(lhs.clone()),
+                    right: Box::new(rhs.clone()),
                     borrow: Some(loan.index().into()),
                     position: pos,
                 });
@@ -2452,20 +2453,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             TerminatorKind::FalseUnwind { real_target, .. } => {
                 (stmts, MirSuccessor::Goto(real_target))
-            }
-
-            TerminatorKind::DropAndReplace {
-                target,
-                place: lhs,
-                ref value,
-                ..
-            } => {
-                let (encoded_lhs, pre_stmts, _, _) = self.encode_place(lhs, ArrayAccessKind::Mutable(None, location), location)?;
-                stmts.extend(pre_stmts);
-                stmts.extend(
-                    self.encode_assign_operand(&encoded_lhs, value, location)?
-                );
-                (stmts, MirSuccessor::Goto(target))
             }
 
             TerminatorKind::Call {
@@ -5003,8 +4990,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tmp_var = self.get_pure_var_for_preserving_value(loop_head, place);
         vir::Expr::BinOp ( vir::BinOp {
             op_kind: vir::BinaryOpKind::EqCmp,
-            left: box tmp_var.into(),
-            right: box place.clone(),
+            left: Box::new(tmp_var.into()),
+            right: Box::new(place.clone()),
             position: vir::Position::default(),
         })
     }
@@ -6215,14 +6202,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let val_ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
         let slice_expr = encoded_lhs.field(val_ref_field);
         stmts.push(vir_stmt!{ inhale [vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
-            base: box slice_expr.clone(),
+            base: Box::new(slice_expr.clone()),
             permission: vir::PermAmount::Write,
             position: vir::Position::default(),
         })]});
 
         let slice_perm = vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {
             predicate_type: slice_types.sequence_pred_type.clone(),
-            argument: box slice_expr.clone(),
+            argument: Box::new(slice_expr.clone()),
             permission: if is_mut { vir::PermAmount::Write } else { vir::PermAmount::Read },
             position: vir::Position::default(),
         });
@@ -6960,7 +6947,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             PlaceEncoding::Variant { box base, field } => {
                 let (expr, stmts) = self.postprocess_place_encoding(base, array_encode_kind)?;
                 (vir::Expr::Variant( vir::Variant {
-                    base: box expr,
+                    base: Box::new(expr),
                     variant_index: field,
                     position: vir::Position::default(),
                 }),

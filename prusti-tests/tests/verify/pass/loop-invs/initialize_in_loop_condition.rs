@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 use prusti_contracts::*;
 
 #[trusted]
@@ -11,7 +9,7 @@ fn test() {
     let mut x: Box<u32>;
 
     'myloop: while {
-        x = box random();
+        x = Box::new(random());
         if *x == 0 {
             break 'myloop;
         }

@@ -10,6 +10,7 @@ use crate::{
 };
 use log::info;
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     data_structures::fx::{FxHashMap, FxHashSet},
     middle::{mir, ty, ty::TyCtxt},
     span::source_map::SourceMap,
@@ -237,7 +238,7 @@ fn pretty_print_place<'tcx>(
 fn describe_field_from_ty(
     tcx: TyCtxt<'_>,
     ty: ty::Ty<'_>,
-    field: mir::Field,
+    field: FieldIdx,
     variant_index: Option<VariantIdx>,
 ) -> Option<String> {
     if ty.is_box() {
@@ -252,7 +253,7 @@ fn describe_field_from_ty(
                 } else {
                     def.non_enum_variant()
                 };
-                Some(variant.fields[field.index()].ident(tcx).to_string())
+                Some(variant.fields[field].ident(tcx).to_string())
             }
             ty::TyKind::Tuple(_) => Some(field.index().to_string()),
             ty::TyKind::Ref(_, ty, _) | ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) => {

@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 use prusti_contracts::*;
 
 #[trusted]
@@ -21,7 +19,7 @@ fn test() {
             break;
         }
 
-        let y = box x;
+        let y = Box::new(x);
     }
 
     assert!(x == 123);
@@ -44,7 +42,7 @@ fn test2() {
             break;
         }
 
-        let y = box x;
+        let y = Box::new(x);
     }
 
     assert!(x == 123);
@@ -69,7 +67,7 @@ fn test3() {
 
         x = 567;
 
-        let y = box x;
+        let y = Box::new(x);
     }
 
     assert!(x == 123);

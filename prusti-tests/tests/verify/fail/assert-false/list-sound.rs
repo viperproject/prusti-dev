@@ -1,6 +1,5 @@
 #![feature(nll)]
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 use prusti_contracts::*;
 
@@ -8,7 +7,7 @@ enum List {
     Nil,
     Const {
         val: i32,
-        next: Box<List>
+        next: Box<List>,
     },
 }
 
@@ -59,7 +58,7 @@ fn empty_list(val: i32) -> List {
 fn singleton_list(val: i32) -> List {
     let ret = List::Const {
         val,
-        next: box List::Nil
+        next: Box::new(List::Nil),
     };
     assert!(false);  //~ ERROR the asserted expression might not hold
     ret
@@ -68,7 +67,7 @@ fn singleton_list(val: i32) -> List {
 fn prepend(val: i32, list: List) -> List {
     let ret = List::Const {
         val,
-        next: box list
+        next: Box::new(list),
     };
     assert!(false);  //~ ERROR the asserted expression might not hold
     ret
@@ -78,11 +77,11 @@ fn append(new_val: i32, list: List) -> List {
     let ret = match list {
         List::Nil => List::Const {
             val: new_val,
-            next: box List::Nil
+            next: Box::new(List::Nil),
         },
         List::Const { val, box next } => List::Const {
             val: val,
-            next: box append(new_val, next)
+            next: Box::new(append(new_val, next)),
         },
     };
     assert!(false);  //~ ERROR the asserted expression might not hold
@@ -92,7 +91,7 @@ fn append(new_val: i32, list: List) -> List {
 fn revert(list: List) -> List {
     let ret = match list {
         List::Nil => List::Nil,
-        List::Const { val, box next } => append(val, revert(next))
+        List::Const { val, box next } => append(val, revert(next)),
     };
     assert!(false);  //~ ERROR the asserted expression might not hold
     ret

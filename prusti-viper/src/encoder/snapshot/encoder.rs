@@ -812,7 +812,7 @@ impl SnapshotEncoder {
                 let domain_name = format!("Snap${}", &array_types.sequence_pred_type.name());
                 let snap_type = array_types.sequence_pred_type.convert_to_snapshot();
                 let seq_type = Type::Seq(vir::SeqType {
-                    typ: box elem_snap_ty.clone(),
+                    typ: Box::new(elem_snap_ty.clone()),
                 });
 
                 let cons = vir::DomainFunc {
@@ -963,8 +963,8 @@ impl SnapshotEncoder {
 
                     let seq_lookup = Expr::ContainerOp(vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqIndex,
-                        left: box data.clone().into(),
-                        right: box idx.clone().into(),
+                        left: Box::new(data.clone().into()),
+                        right: Box::new(idx.clone().into()),
                         position: vir::Position::default(),
                     });
                     vir::DomainAxiom {
@@ -1042,7 +1042,7 @@ impl SnapshotEncoder {
                 let slice_snap_ty = slice_types.sequence_pred_type.convert_to_snapshot();
                 let elem_snap_ty = self.encode_type(encoder, *elem_ty)?;
                 let seq_type = Type::Seq(vir::SeqType {
-                    typ: box elem_snap_ty.clone(),
+                    typ: Box::new(elem_snap_ty.clone()),
                 });
 
                 let cons = vir::DomainFunc {
@@ -1132,13 +1132,13 @@ impl SnapshotEncoder {
                     )],
                     posts: vec![
                         Expr::InhaleExhale(vir::InhaleExhale {
-                            inhale_expr: box read_eq_lookup,
-                            exhale_expr: box true.into(),
+                            inhale_expr: Box::new(read_eq_lookup),
+                            exhale_expr: Box::new(true.into()),
                             position: vir::Position::default(),
                         }),
                         Expr::InhaleExhale(vir::InhaleExhale {
-                            inhale_expr: box snap_len_eq_call_len,
-                            exhale_expr: box true.into(),
+                            inhale_expr: Box::new(snap_len_eq_call_len),
+                            exhale_expr: Box::new(true.into()),
                             position: vir::Position::default(),
                         }),
                     ],
@@ -1218,8 +1218,8 @@ impl SnapshotEncoder {
 
                     let seq_lookup = Expr::ContainerOp(vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqIndex,
-                        left: box data.clone().into(),
-                        right: box idx.clone().into(),
+                        left: Box::new(data.clone().into()),
+                        right: Box::new(idx.clone().into()),
                         position: vir::Position::default(),
                     });
 
@@ -1242,8 +1242,8 @@ impl SnapshotEncoder {
                     let len_call = len.apply(vec![cons_call]);
                     let seq_len = Expr::ContainerOp(vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqLen,
-                        left: box data.into(),
-                        right: box true.into(), // unused
+                        left: Box::new(data.into()),
+                        right: Box::new(true.into()), // unused
                         position: vir::Position::default(),
                     });
 
@@ -1374,7 +1374,7 @@ impl SnapshotEncoder {
 
         let self_expr: Expr = vir_local! { self: {seq_pred_ty.clone()} }.into();
         let seq_type = Type::Seq(vir::SeqType {
-            typ: box elem_snap_ty.clone(),
+            typ: Box::new(elem_snap_ty.clone()),
         });
         let start = vir_local! { start: Int };
         let start_expr: Expr = start.clone().into();
@@ -1392,20 +1392,20 @@ impl SnapshotEncoder {
         let start_lt_len = vir_expr! { [start_expr] < [seq_len] };
         let result_len = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqLen,
-            left: box result_expr.clone(),
-            right: box Expr::from(0),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(0)),
             position: vir::Position::default(),
         });
         let result_0 = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: box result_expr.clone(),
-            right: box Expr::from(0),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(0)),
             position: vir::Position::default(),
         });
         let result_j = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: box result_expr.clone(),
-            right: box j_expr.clone(),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(j_expr.clone()),
             position: vir::Position::default(),
         });
         let slice_lookup_i = lookup_pure(self_expr.clone(), i_expr.clone(), elem_snap_ty.clone());
@@ -1456,7 +1456,7 @@ impl SnapshotEncoder {
                 }),
                 Expr::ContainerOp(vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqConcat,
-                    left: box Expr::Seq(vir::Seq {
+                    left: Box::new(Expr::Seq(vir::Seq {
                         typ: seq_type.clone(),
                         elements: vec![lookup_pure(
                             self_expr.clone(),
@@ -1464,15 +1464,15 @@ impl SnapshotEncoder {
                             elem_snap_ty,
                         )],
                         position: vir::Position::default(),
-                    }),
-                    right: box Expr::func_app(
+                    })),
+                    right: Box::new(Expr::func_app(
                         seq_collect_funcname,
                         Vec::new(), // FIXME: This is most likely wrong.
                         vec![self_expr, vir_expr! { [start_expr] + [Expr::from(1)] }],
                         vec![vir_local! { slice: {seq_pred_ty} }, start],
                         seq_type,
                         vir::Position::default(),
-                    ),
+                    )),
                     position: vir::Position::default(),
                 }),
             )),
@@ -1490,7 +1490,7 @@ impl SnapshotEncoder {
 
         let self_expr: Expr = vir_local! { self: {self_snap_ty.clone()} }.into();
         let seq_type = Type::Seq(vir::SeqType {
-            typ: box elem_snap_ty.clone(),
+            typ: Box::new(elem_snap_ty),
         });
 
         let lo = vir_local! { lo: Int };
@@ -1506,20 +1506,20 @@ impl SnapshotEncoder {
 
         let result_len = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqLen,
-            left: box result_expr.clone(),
-            right: box Expr::from(0),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(0)),
             position: vir::Position::default(),
         });
         let result_0 = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: box result_expr.clone(),
-            right: box Expr::from(0),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(0)),
             position: vir::Position::default(),
         });
         let result_j = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: box result_expr.clone(),
-            right: box j_expr.clone(),
+            left: Box::new(result_expr),
+            right: Box::new(j_expr.clone()),
             position: vir::Position::default(),
         });
 
@@ -1566,12 +1566,12 @@ impl SnapshotEncoder {
                 }),
                 Expr::ContainerOp(vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqConcat,
-                    left: box Expr::Seq(vir::Seq {
+                    left: Box::new(Expr::Seq(vir::Seq {
                         typ: seq_type.clone(),
                         elements: vec![read_lo],
                         position: vir::Position::default(),
-                    }),
-                    right: box Expr::func_app(
+                    })),
+                    right: Box::new(Expr::func_app(
                         slice_helper_name,
                         vec![self_snap_ty.clone()],
                         vec![
@@ -1582,7 +1582,7 @@ impl SnapshotEncoder {
                         vec![vir_local! { slice: {self_snap_ty} }, lo, hi],
                         seq_type,
                         vir::Position::default(),
-                    ),
+                    )),
                     position: vir::Position::default(),
                 }),
             )),

@@ -14,6 +14,7 @@
 use log::debug;
 use prusti_interface::environment::mir_body::patch::MirPatch;
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     dataflow::elaborate_drops::{DropFlagMode, DropStyle, Unwind},
     hir,
     hir::lang_items::LangItem,
@@ -95,7 +96,7 @@ pub trait DropElaborator<'a, 'tcx>: fmt::Debug {
     /// Returns the subpath of a field of `path` (or `None` if there is no dedicated subpath).
     ///
     /// If this returns `None`, `field` will not get a dedicated drop flag.
-    fn field_subpath(&self, path: Self::Path, field: Field) -> Option<Self::Path>;
+    fn field_subpath(&self, path: Self::Path, field: FieldIdx) -> Option<Self::Path>;
 
     /// Returns the subpath of a dereference of `path` (or `None` if there is no dedicated subpath).
     ///
@@ -243,7 +244,7 @@ where
             .iter()
             .enumerate()
             .map(|(i, f)| {
-                let field = Field::new(i);
+                let field = FieldIdx::from_usize(i);
                 let subpath = self.elaborator.field_subpath(variant_path, field);
                 let tcx = self.tcx();
 
@@ -383,8 +384,10 @@ where
             .enumerate()
             .map(|(i, &ty)| {
                 (
-                    self.tcx().mk_place_field(self.place, Field::new(i), ty),
-                    self.elaborator.field_subpath(self.path, Field::new(i)),
+                    self.tcx()
+                        .mk_place_field(self.place, FieldIdx::from_usize(i), ty),
+                    self.elaborator
+                        .field_subpath(self.path, FieldIdx::from_usize(i)),
                 )
             })
             .collect();
@@ -981,7 +984,7 @@ where
             .iter()
             .enumerate()
             .map(|(i, f)| {
-                let field = Field::new(i);
+                let field = FieldIdx::from_usize(i);
                 let field_ty = f.ty(tcx, substs);
                 Operand::Move(tcx.mk_place_field(self.place, field, field_ty))
             })

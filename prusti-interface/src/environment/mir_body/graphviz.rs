@@ -185,8 +185,7 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
         TerminatorKind::Unreachable => {
             graph.add_exit_edge(bb.to_text(), "unreachable".to_text());
         }
-        TerminatorKind::DropAndReplace { target, unwind, .. }
-        | TerminatorKind::Drop { target, unwind, .. } => {
+        TerminatorKind::Drop { target, unwind, .. } => {
             graph.add_regular_edge(bb.to_text(), target.to_text());
             if let Some(target) = unwind {
                 graph.add_unwind_edge(bb.to_text(), target.to_text());
