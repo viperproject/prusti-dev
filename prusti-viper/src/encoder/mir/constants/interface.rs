@@ -36,7 +36,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
             ty::TyKind::Int(ty::IntTy::I128) => scalar_value()?.to_i128().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::Isize) => {
                 let number: isize = scalar_value()?
-                    .to_machine_isize(&self.env().tcx())
+                    .to_target_isize(&self.env().tcx())
                     .unwrap()
                     .try_into()
                     .unwrap();
@@ -49,7 +49,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
             ty::TyKind::Uint(ty::UintTy::U128) => scalar_value()?.to_u128().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::Usize) => {
                 let number: usize = scalar_value()?
-                    .to_machine_usize(&self.env().tcx())
+                    .to_target_usize(&self.env().tcx())
                     .unwrap()
                     .try_into()
                     .unwrap();

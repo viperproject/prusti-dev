@@ -110,6 +110,7 @@ fn test() {
     let mut i = 0;
     while i < 10 {
         v.push(i);
+        i += 1;
     }
 
     print_vector_before(&mut v);
