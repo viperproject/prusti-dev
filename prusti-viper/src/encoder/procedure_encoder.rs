@@ -1262,7 +1262,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if config::detect_unreachable_code() {
             let bb_data = &self.mir.basic_blocks[bbi];
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
-            if !statements.is_empty() {
+
+            let panic_free = match &bb_data.terminator().kind {
+                TerminatorKind::Unreachable => false,
+                TerminatorKind::Assert { .. } => false,
+                TerminatorKind::Call {
+                    func:
+                        mir::Operand::Constant(box mir::Constant {
+                            literal,
+                            ..
+                        }),
+                    ..
+                } => {
+                    if let ty::TyKind::FnDef(called_def_id, _call_substs) = literal.ty().kind() {
+                        let full_func_proc_name: &str =
+                            &self.encoder.env().name.get_absolute_item_name(*called_def_id);
+        
+                        !matches!(full_func_proc_name, "std::rt::begin_panic" | "core::panicking::panic" | "core::panicking::panic_fmt")
+                    } else {
+                        true
+                    }
+                }
+                _ => true,
+            };
+
+            if !statements.is_empty() && panic_free {
                 let location = mir::Location {
                     block: bbi,
                     statement_index: 0,
@@ -1272,7 +1296,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 if !self.reachibility_used_positions.contains(&(bb_pos_expr.line(), bb_pos_expr.column())) {
                     self.reachibility_used_positions.insert((bb_pos_expr.line(), bb_pos_expr.column()));
                     let bb_pos_stmt = self.register_error(span, ErrorCtxt::UnreachableCode);
-                    let refute_expr = vir::ast::Expr::Const(vir::ast::expr::ConstExpr{value: vir::ast::expr::Const::Bool(false), position: bb_pos_expr});
+                    let refute_expr = vir::ast::Expr::Const(vir_crate::polymorphic::ConstExpr{value: vir_crate::polymorphic::Const::Bool(false), position: bb_pos_expr});
                     let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: bb_pos_stmt});
                     self.cfg_method.add_stmt(curr_block, refute_stmt);
                 }
