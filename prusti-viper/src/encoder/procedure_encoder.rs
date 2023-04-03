@@ -2931,7 +2931,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // TODO: there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
         // manually re-do and hardcode them here when we probably just encoded the type
         // and the construction of the fields.
-        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+        let usize_ty = self.encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize));
         let start = match &*idx_ident {
             "std::ops::Range" | "core::ops::Range" |
             "std::ops::RangeFrom" | "core::ops::RangeFrom" => {
@@ -3244,7 +3244,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             // TODO: weird fix for closure call substitutions, we need to
             // prepend the identity substs of the containing method ...
-            substs = self.encoder.env().tcx().mk_substs(self.substs.iter().chain(substs));
+            substs = self.encoder.env().tcx().mk_substs_from_iter(self.substs.iter().chain(substs));
         } else {
             for (arg, encoded_operand) in mir_args.iter().zip(encoded_operands.iter_mut()) {
                 let arg_ty = self.mir_encoder.get_operand_ty(arg);
@@ -3365,7 +3365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     expr: false.into()
                 }));
                 // Return a dummy local variable
-                let never_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Never);
+                let never_ty = self.encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Never);
                 (self.locals.get_fresh(never_ty), None)
             }
         };

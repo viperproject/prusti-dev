@@ -94,8 +94,9 @@ fn generate_type_check(variable_name: &str, variable_type_name: &str, is_result:
     let mut type_check: Vec<String> = vec![];
     type_check.push("    debug_assert!(".to_string());
     type_check.push(format!(
-        "        self.env.is_instance_of({variable_name}, self.env.find_class({variable_type_name})?)?"
+        "        self.env.is_instance_of({variable_name}, self.env.find_class({variable_type_name})?)?,"
     ));
+    type_check.push(format!("        \"Java binding type failure. Expected object of class {{{variable_type_name}}}, but got {{}} instead\", get_jobject_class_name(self.env, {variable_name})"));
     type_check.push("    );".to_string());
 
     if is_result {

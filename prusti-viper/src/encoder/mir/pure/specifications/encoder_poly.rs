@@ -42,7 +42,7 @@ pub(super) fn inline_closure<'tcx>(
     let mir = encoder
         .env()
         .body
-        .get_closure_body(def_id.expect_local(), substs, parent_def_id);
+        .get_closure_body(def_id, substs, parent_def_id);
     assert_eq!(mir.arg_count, args.len() + 1);
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];

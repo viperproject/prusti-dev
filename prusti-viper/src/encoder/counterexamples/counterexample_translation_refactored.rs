@@ -724,7 +724,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     .get(&sil_to_model_fn_name)
                 {
                     let sil_model = sil_to_model_fn.get_function_value(&sil_ref_fn_param);
-                    let model_typ = self.tcx.type_of(model_id);
+                    let model_typ = self.tcx.type_of(model_id).subst_identity();
                     let entry =
                         self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), false);
                     return entry;
