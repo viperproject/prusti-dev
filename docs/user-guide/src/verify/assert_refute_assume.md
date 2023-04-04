@@ -37,6 +37,8 @@ prusti_assert!(map.insert(5)); // error
 
 ## Refutations
 
+> Refutation **should not be relied upon for soundness** as it may succeed even when it should fail; Prusti may not be able to prove the property being refuted and thus won't complain even though the property actually holds (e.g. if the property is difficult to prove).
+
 The `prusti_refute!` macro is similar to `prusti_assert!` in its format, conditions of use and what expressions it accepts. It instructs Prusti to verify that a certain property at a specific point within the body of a function might hold in some, but not all cases. For example the following code will verify:
 
 ```rust,noplaypen

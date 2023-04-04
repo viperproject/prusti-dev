@@ -58,7 +58,7 @@ pub fn try_pop_one_level<'tcx>(
         let last_index = place.projection.len() - 1;
         let new_place = mir::Place {
             local: place.local,
-            projection: tcx.intern_place_elems(&place.projection[..last_index]),
+            projection: tcx.mk_place_elems(&place.projection[..last_index]),
         };
         Some((place.projection[last_index], new_place))
     } else {
