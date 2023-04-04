@@ -31,6 +31,7 @@ use prusti_common::{
 };
 use vir_crate::{
     polymorphic::{
+        Position,
         self as vir,
         compute_identifier,
         borrows::Borrow,
@@ -133,7 +134,9 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Type substitutions inside this procedure. Most likely identity for the
     /// given proc_def_id.
     substs: SubstsRef<'tcx>,
-    reachibility_used_positions: FxHashSet<(i32, i32)>,
+    /// Used in unreachable code detecetion to get positions without
+    /// colliding line/column numbers
+    uniquie_line_column_number: i32,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -193,8 +196,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             old_ghost_vars: FxHashMap::default(),
             cached_loop_invariant_block: FxHashMap::default(),
             substs,
-            reachibility_used_positions: FxHashSet::default(),
+            uniquie_line_column_number: 0,
         })
+    }
+
+    fn generate_unique_line_column_number(&mut self) -> i32 {
+        self.uniquie_line_column_number -= 1;
+        self.uniquie_line_column_number
     }
 
     #[tracing::instrument(level = "trace", skip_all)]
@@ -1292,14 +1300,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     statement_index: 0,
                 };
                 let span = self.mir_encoder.get_span_of_location(location);
-                let bb_pos_expr = self.mir_encoder.register_span(span);
-                if !self.reachibility_used_positions.contains(&(bb_pos_expr.line(), bb_pos_expr.column())) {
-                    self.reachibility_used_positions.insert((bb_pos_expr.line(), bb_pos_expr.column()));
-                    let bb_pos_stmt = self.register_error(span, ErrorCtxt::UnreachableCode);
-                    let refute_expr = vir::ast::Expr::Const(vir_crate::polymorphic::ConstExpr{value: vir_crate::polymorphic::Const::Bool(false), position: bb_pos_expr});
-                    let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: bb_pos_stmt});
-                    self.cfg_method.add_stmt(curr_block, refute_stmt);
-                }
+                let bb_pos_expr_id = self.mir_encoder.register_span(span).id();
+                let bb_pos_expr = Position::new(self.generate_unique_line_column_number(), self.generate_unique_line_column_number(), bb_pos_expr_id);
+                let bb_pos_stmt_id = self.register_error(span, ErrorCtxt::UnreachableCode).id();
+                let bb_pos_stmt = Position::new(self.generate_unique_line_column_number(), self.generate_unique_line_column_number(), bb_pos_stmt_id);
+                let refute_expr = vir::ast::Expr::Const(vir_crate::polymorphic::ConstExpr{value: vir_crate::polymorphic::Const::Bool(false), position: bb_pos_expr});
+                let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: bb_pos_stmt});
+                self.cfg_method.add_stmt(curr_block, refute_stmt);
             }
         }
 
