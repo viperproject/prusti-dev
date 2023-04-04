@@ -202,7 +202,6 @@ impl<'a> Verifier<'a> {
                 self.jni.unwrap_result(self.frontend_wrapper.call_verification(self.frontend_instance));
                 let viper_result_option = self.jni.unwrap_result(self.frontend_wrapper.call_getVerificationResult(self.frontend_instance));
                 let viper_result = self.jni.unwrap_result(scala::Some::with(self.env).call_get(viper_result_option));
-
             );
             debug!(
                 "Viper verification result: {}",

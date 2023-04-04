@@ -8,7 +8,11 @@ use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{parse_quote_spanned, spanned::Spanned};
 
-pub fn rewrite_stub(stub_tokens: &TokenStream, path: &syn::Path) -> syn::Result<TokenStream> {
+pub fn rewrite_stub(
+    stub_tokens: &TokenStream,
+    path: &syn::Path,
+    is_unsafe: bool,
+) -> syn::Result<TokenStream> {
     // Transforms function stubs (functions with a `;` after the
     // signature instead of the body) into functions, then
     // processes them.
@@ -34,7 +38,7 @@ pub fn rewrite_stub(stub_tokens: &TokenStream, path: &syn::Path) -> syn::Result<
 
     let mut item = res.unwrap();
     if let syn::Item::Fn(item_fn) = &mut item {
-        Ok(rewrite_fn(item_fn, path))
+        Ok(rewrite_fn(item_fn, path, is_unsafe))
     } else {
         Ok(quote!(#item))
     }
@@ -42,10 +46,10 @@ pub fn rewrite_stub(stub_tokens: &TokenStream, path: &syn::Path) -> syn::Result<
 
 /// Rewrite a specification function to a call to the specified function.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-pub fn rewrite_fn(item_fn: &syn::ItemFn, path: &syn::Path) -> TokenStream {
+pub fn rewrite_fn(item_fn: &syn::ItemFn, path: &syn::Path, is_unsafe: bool) -> TokenStream {
     let ident = &item_fn.sig.ident;
     let path_span = item_fn.sig.ident.span();
     let path = parse_quote_spanned!(path_span=> #path :: #ident);
 
-    generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method, true)
+    generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method, true, is_unsafe)
 }
