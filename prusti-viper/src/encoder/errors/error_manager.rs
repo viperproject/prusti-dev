@@ -8,7 +8,6 @@ use std::fmt::Debug;
 
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
-use prusti_rustc_interface::span::source_map::SourceMap;
 use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
@@ -193,22 +192,14 @@ pub enum ErrorCtxt {
 }
 
 /// The error manager
-#[derive(Clone)]
-pub struct ErrorManager<'tcx> {
-    position_manager: PositionManager<'tcx>,
+#[derive(Clone, Default)]
+pub struct ErrorManager {
+    position_manager: PositionManager,
     error_contexts: FxHashMap<u64, ErrorCtxt>,
     inner_positions: FxHashMap<u64, Position>,
 }
 
-impl<'tcx> ErrorManager<'tcx> {
-    pub fn new(codemap: &'tcx SourceMap) -> Self {
-        ErrorManager {
-            position_manager: PositionManager::new(codemap),
-            error_contexts: FxHashMap::default(),
-            inner_positions: FxHashMap::default(),
-        }
-    }
-
+impl ErrorManager {
     pub fn position_manager(&self) -> &PositionManager {
         &self.position_manager
     }

@@ -31,7 +31,6 @@ use prusti_common::{
 };
 use vir_crate::{
     polymorphic::{
-        Position,
         self as vir,
         compute_identifier,
         borrows::Borrow,
