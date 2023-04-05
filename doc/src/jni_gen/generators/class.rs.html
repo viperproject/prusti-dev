@@ -139,6 +139,12 @@
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -148,7 +154,10 @@
 </span><span class="kw">use crate</span>::{
     class_name::<span class="kw-2">*</span>,
     errors::<span class="kw-2">*</span>,
-    generators::{constructor::<span class="kw-2">*</span>, field_getter_setter::<span class="kw-2">*</span>, method::<span class="kw-2">*</span>, scala_object_getter::<span class="kw-2">*</span>},
+    generators::{
+        constructor::<span class="kw-2">*</span>, field_getter_setter::<span class="kw-2">*</span>, method::<span class="kw-2">*</span>, scala_object_getter::<span class="kw-2">*</span>,
+        trait_field_getter_setter::<span class="kw-2">*</span>,
+    },
     wrapper_spec::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>jni::JNIEnv;
@@ -272,7 +281,10 @@
                     suffix.clone(),
                 )<span class="question-mark">?</span>,
                 ItemWrapperSpec::FieldGetterSetter { <span class="kw-2">ref </span>field_name } =&gt; {
-                    generate_field_getter_setter(<span class="self">self</span>.env, <span class="kw-2">&amp;</span><span class="self">self</span>.class, field_name)<span class="question-mark">?
+                    generate_field_getter_setter_for_class(<span class="self">self</span>.env, <span class="kw-2">&amp;</span><span class="self">self</span>.class, field_name)<span class="question-mark">?
+                </span>}
+                ItemWrapperSpec::TraitFieldGetterSetter { <span class="kw-2">ref </span>field_name } =&gt; {
+                    generate_field_getter_setter_for_trait(<span class="self">self</span>.env, <span class="kw-2">&amp;</span><span class="self">self</span>.class, field_name)<span class="question-mark">?
                 </span>}
             };
             gen_items.push(gen)

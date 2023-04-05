@@ -413,10 +413,6 @@
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -501,7 +497,7 @@
             <span class="kw">let </span>verifier_option = jni.new_option(<span class="prelude-val">Some</span>(backend_instance));
 
             frontend_wrapper
-                .call___verifier___dollar_eq(frontend_instance, verifier_option)
+                .set___verifier(frontend_instance, verifier_option)
                 .unwrap();
 
             <span class="prelude-val">Ok</span>(frontend_instance)
@@ -615,7 +611,7 @@
             }
 
             <span class="kw">let </span>program_option = <span class="self">self</span>.jni.new_option(<span class="prelude-val">Some</span>(program.to_jobject()));
-            <span class="self">self</span>.jni.unwrap_result(<span class="self">self</span>.frontend_wrapper.call___program___dollar_eq(<span class="self">self</span>.frontend_instance, program_option));
+            <span class="self">self</span>.jni.unwrap_result(<span class="self">self</span>.frontend_wrapper.set___program(<span class="self">self</span>.frontend_instance, program_option));
 
             <span class="macro">run_timed!</span>(<span class="string">&quot;Viper verification&quot;</span>, debug,
                 <span class="self">self</span>.jni.unwrap_result(<span class="self">self</span>.frontend_wrapper.call_verification(<span class="self">self</span>.frontend_instance));
@@ -817,12 +813,6 @@
             }
         })
     }
-
-    <span class="attr">#[tracing::instrument(level = <span class="string">&quot;debug&quot;</span>, skip_all)]
-    </span><span class="kw">fn </span>call_verify(<span class="kw-2">&amp;</span><span class="self">self</span>, program: Program) -&gt; <span class="prelude-ty">Result</span>&lt;JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="self">self</span>.verifier_wrapper
-            .call_verify(<span class="self">self</span>.verifier_instance, program.to_jobject())
-    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -834,6 +824,8 @@
         // so that the JVM garbage collector can clean it up.
         </span><span class="self">self</span>.jni
             .unwrap_result(<span class="self">self</span>.env.delete_local_ref(<span class="self">self</span>.verifier_instance));
+        <span class="self">self</span>.jni
+            .unwrap_result(<span class="self">self</span>.env.delete_local_ref(<span class="self">self</span>.frontend_instance));
     }
 }
 </code></pre></div>

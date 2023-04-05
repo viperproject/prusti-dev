@@ -204,6 +204,11 @@
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
 </pre><pre class="rust"><code><span class="comment">// © 2023, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -216,18 +221,20 @@
     JNIEnv,
 };
 
+<span class="kw">use </span><span class="kw">super</span>::trait_field_getter_setter;
+
 <span class="kw">fn </span>hierarchy_field_lookup&lt;<span class="lifetime">&#39;a</span>&gt;(
     env: <span class="kw-2">&amp;</span>JNIEnv&lt;<span class="lifetime">&#39;a</span>&gt;,
     class: <span class="kw-2">&amp;</span>ClassName,
     lookup_name: <span class="kw-2">&amp;</span>str,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>clazz = env.find_class(class.path())<span class="question-mark">?</span>;
-    <span class="kw">while </span>!clazz.is_null() {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = class_field_lookup(env, clazz, lookup_name)<span class="question-mark">? </span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>class = env.find_class(class.path())<span class="question-mark">?</span>;
+    <span class="kw">while </span>!class.is_null() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(field) = class_field_lookup(env, class, lookup_name)<span class="question-mark">? </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(field));
         }
 
-        clazz = env.get_superclass(clazz)<span class="question-mark">?</span>;
+        class = env.get_superclass(class)<span class="question-mark">?</span>;
     }
 
     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
@@ -235,12 +242,12 @@
 
 <span class="kw">fn </span>class_field_lookup&lt;<span class="lifetime">&#39;a</span>&gt;(
     env: <span class="kw-2">&amp;</span>JNIEnv&lt;<span class="lifetime">&#39;a</span>&gt;,
-    clazz: JClass&lt;<span class="lifetime">&#39;a</span>&gt;,
+    class: JClass&lt;<span class="lifetime">&#39;a</span>&gt;,
     lookup_name: <span class="kw-2">&amp;</span>str,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;JObject&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt; {
     <span class="kw">let </span>fields = env
         .call_method(
-            clazz,
+            class,
             <span class="string">&quot;getDeclaredFields&quot;</span>,
             <span class="string">&quot;()[Ljava/lang/reflect/Field;&quot;</span>,
             <span class="kw-2">&amp;</span>[],
@@ -376,13 +383,16 @@
 /// It determines the type of the field by iterating over the
 /// inheritance hierarchy and checking for a field with the matching name
 ///
-/// For class type fields it also generates runtime checks verifying
+/// It also generates runtime checks verifying
 /// that the given object is of the specified class (or its descendant)
-</span><span class="kw">pub fn </span>generate_field_getter_setter(
+</span><span class="kw">pub fn </span>generate_field_getter_setter_for_class(
     env: <span class="kw-2">&amp;</span>JNIEnv,
     class: <span class="kw-2">&amp;</span>ClassName,
     field_name: <span class="kw-2">&amp;</span>str,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
+    <span class="kw">if </span>trait_field_getter_setter::is_interface(env, class)<span class="question-mark">? </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::TraitField(class.full_name(), field_name.into(), <span class="bool-val">true</span>).into());
+    }
     <span class="kw">let </span>field_signature = <span class="kw">match </span>hierarchy_field_lookup(env, class, field_name)<span class="question-mark">? </span>{
         <span class="prelude-val">Some</span>(field) =&gt; {
             <span class="kw">let </span>field_type = env
