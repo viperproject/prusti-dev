@@ -44,6 +44,9 @@ pub enum ItemWrapperSpec {
     FieldGetterSetter {
         field_name: String,
     },
+    TraitFieldGetterSetter {
+        field_name: String,
+    },
 }
 
 #[macro_export]
@@ -114,6 +117,15 @@ macro_rules! method {
 macro_rules! field {
     ($name:expr) => {
         ItemWrapperSpec::FieldGetterSetter {
+            field_name: $name.into(),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! trait_field {
+    ($name:expr) => {
+        ItemWrapperSpec::TraitFieldGetterSetter {
             field_name: $name.into(),
         }
     };

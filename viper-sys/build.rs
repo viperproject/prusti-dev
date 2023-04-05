@@ -149,8 +149,8 @@ fn main() {
                 method!("getVerificationResult"),
                 method!("setState"),
                 method!("verifier"),
-                method!("_verifier_$eq"),
-                method!("_program_$eq"),
+                trait_field!("_verifier"),
+                trait_field!("_program"),
             ]),
             java_class!("viper.silver.reporter.CSVReporter", vec![
                 constructor!("(Ljava/lang/String;Ljava/lang/String;)V"),
