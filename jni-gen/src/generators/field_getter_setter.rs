@@ -10,18 +10,20 @@ use jni::{
     JNIEnv,
 };
 
+use super::trait_field_getter_setter;
+
 fn hierarchy_field_lookup<'a>(
     env: &JNIEnv<'a>,
     class: &ClassName,
     lookup_name: &str,
 ) -> Result<Option<JObject<'a>>> {
-    let mut clazz = env.find_class(class.path())?;
-    while !clazz.is_null() {
-        if let Some(field) = class_field_lookup(env, clazz, lookup_name)? {
+    let mut class = env.find_class(class.path())?;
+    while !class.is_null() {
+        if let Some(field) = class_field_lookup(env, class, lookup_name)? {
             return Ok(Some(field));
         }
 
-        clazz = env.get_superclass(clazz)?;
+        class = env.get_superclass(class)?;
     }
 
     Ok(None)
@@ -29,12 +31,12 @@ fn hierarchy_field_lookup<'a>(
 
 fn class_field_lookup<'a>(
     env: &JNIEnv<'a>,
-    clazz: JClass<'a>,
+    class: JClass<'a>,
     lookup_name: &str,
 ) -> Result<Option<JObject<'a>>> {
     let fields = env
         .call_method(
-            clazz,
+            class,
             "getDeclaredFields",
             "()[Ljava/lang/reflect/Field;",
             &[],
@@ -170,13 +172,16 @@ fn generate_field_setter(class: &ClassName, field_name: &str, type_signature: &s
 /// It determines the type of the field by iterating over the
 /// inheritance hierarchy and checking for a field with the matching name
 ///
-/// For class type fields it also generates runtime checks verifying
+/// It also generates runtime checks verifying
 /// that the given object is of the specified class (or its descendant)
-pub fn generate_field_getter_setter(
+pub fn generate_field_getter_setter_for_class(
     env: &JNIEnv,
     class: &ClassName,
     field_name: &str,
 ) -> Result<String> {
+    if trait_field_getter_setter::is_interface(env, class)? {
+        return Err(ErrorKind::TraitField(class.full_name(), field_name.into(), true).into());
+    }
     let field_signature = match hierarchy_field_lookup(env, class, field_name)? {
         Some(field) => {
             let field_type = env

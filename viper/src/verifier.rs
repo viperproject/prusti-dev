@@ -82,7 +82,7 @@ impl<'a> Verifier<'a> {
             let verifier_option = jni.new_option(Some(backend_instance));
 
             frontend_wrapper
-                .call___verifier___dollar_eq(frontend_instance, verifier_option)
+                .set___verifier(frontend_instance, verifier_option)
                 .unwrap();
 
             Ok(frontend_instance)
@@ -196,7 +196,7 @@ impl<'a> Verifier<'a> {
             }
 
             let program_option = self.jni.new_option(Some(program.to_jobject()));
-            self.jni.unwrap_result(self.frontend_wrapper.call___program___dollar_eq(self.frontend_instance, program_option));
+            self.jni.unwrap_result(self.frontend_wrapper.set___program(self.frontend_instance, program_option));
 
             run_timed!("Viper verification", debug,
                 self.jni.unwrap_result(self.frontend_wrapper.call_verification(self.frontend_instance));
@@ -398,12 +398,6 @@ impl<'a> Verifier<'a> {
             }
         })
     }
-
-    #[tracing::instrument(level = "debug", skip_all)]
-    fn call_verify(&self, program: Program) -> Result<JObject<'a>> {
-        self.verifier_wrapper
-            .call_verify(self.verifier_instance, program.to_jobject())
-    }
 }
 
 impl<'a> Drop for Verifier<'a> {
@@ -415,5 +409,7 @@ impl<'a> Drop for Verifier<'a> {
         // so that the JVM garbage collector can clean it up.
         self.jni
             .unwrap_result(self.env.delete_local_ref(self.verifier_instance));
+        self.jni
+            .unwrap_result(self.env.delete_local_ref(self.frontend_instance));
     }
 }
