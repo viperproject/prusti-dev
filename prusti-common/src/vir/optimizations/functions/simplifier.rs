@@ -205,7 +205,14 @@ impl ExprFolder for ExprSimplifier {
         let simplified_guard = self.fold_boxed(guard);
         let simplified_then = self.fold_boxed(then_expr);
         let simplified_else = self.fold_boxed(else_expr);
-        let result = if simplified_then.is_bool() || simplified_else.is_bool() {
+        let result = if *simplified_else == true.into() {
+            ast::Expr::BinOp(ast::BinOp {
+                op_kind: ast::BinaryOpKind::Implies,
+                left: simplified_guard,
+                right: simplified_then,
+                position
+            })
+        } else if simplified_then.is_bool() || simplified_else.is_bool() {
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left: box ast::Expr::BinOp(ast::BinOp {
