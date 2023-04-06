@@ -6,7 +6,7 @@ use prusti_rustc_interface::{
 };
 use prusti_specs::specifications::common;
 use regex::Regex;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt::{Debug, Display, Formatter};
 
 /// A map of specifications keyed by crate-local DefIds.
@@ -18,8 +18,11 @@ pub struct DefSpecificationMap {
     pub prusti_assertions: FxHashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: FxHashMap<DefId, PrustiAssumption>,
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
+    pub prusti_inhales: FxHashMap<DefId, PrustiInhale>,
+    pub prusti_exhales: FxHashMap<DefId, PrustiExhale>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
+    pub resources: FxHashSet<DefId>
 }
 
 impl DefSpecificationMap {
@@ -49,6 +52,14 @@ impl DefSpecificationMap {
 
     pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
         self.prusti_refutations.get(def_id)
+    }
+
+    pub fn get_exhale(&self, def_id: &DefId) -> Option<&PrustiExhale> {
+        self.prusti_exhales.get(def_id)
+    }
+
+    pub fn get_inhale(&self, def_id: &DefId) -> Option<&PrustiInhale> {
+        self.prusti_inhales.get(def_id)
     }
 
     pub fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
@@ -104,6 +115,9 @@ impl DefSpecificationMap {
         }
         for spec in self.type_specs.values() {
             if let Some(invariants) = spec.invariant.extract_with_selective_replacement() {
+                specs.extend(invariants);
+            }
+            if let Some(invariants) = spec.twostate_invariant.extract_with_selective_replacement() {
                 specs.extend(invariants);
             }
         }
@@ -276,6 +290,7 @@ pub struct TypeSpecification {
     // `extern_spec` for type invs is supported it could differ.
     pub source: DefId,
     pub invariant: SpecificationItem<Vec<DefId>>,
+    pub twostate_invariant: SpecificationItem<Vec<DefId>>,
     pub trusted: SpecificationItem<bool>,
     pub model: Option<(String, LocalDefId)>,
     pub counterexample_print: Vec<(Option<String>, LocalDefId)>,
@@ -286,6 +301,7 @@ impl TypeSpecification {
         TypeSpecification {
             source,
             invariant: SpecificationItem::Empty,
+            twostate_invariant: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
             model: None,
             counterexample_print: vec![],
@@ -306,6 +322,16 @@ pub struct PrustiAssumption {
 #[derive(Debug, Clone)]
 pub struct PrustiRefutation {
     pub refutation: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiInhale {
+    pub inhale: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiExhale {
+    pub exhale: LocalDefId,
 }
 
 #[derive(Debug, Clone)]

@@ -31,6 +31,7 @@ pub enum Expr {
     MagicWand(Box<Expr>, Box<Expr>, Option<Borrow>, Position),
     /// PredicateAccessPredicate: predicate_name, arg, permission amount
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
+    Acc(String, Box<Expr>, Box<Expr>, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
@@ -75,6 +76,8 @@ pub enum Expr {
     /// Snapshot call to convert from a Ref to a snapshot value
     SnapApp(Box<Expr>, Position),
     Cast(CastKind, Box<Expr>, Position),
+    Frac(Box<Expr>, Box<Expr>, Position),
+    Perm(String, Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -129,6 +132,7 @@ pub enum ContainerOpKind {
 pub enum CastKind {
     BVIntoInt(BitVector),
     IntIntoBV(BitVector),
+    ToViperInt
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
@@ -192,6 +196,9 @@ impl fmt::Display for Expr {
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{op}({expr})"),
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
                 write!(f, "acc({pred_name}({arg}), {perm})")
+            }
+            Expr::Acc(ref pred_name, ref arg, ref perm, _pos) => {
+                write!(f, "acc({}({}), {})", pred_name, arg, perm)
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
                 write!(f, "acc({expr}, {perm})")
@@ -306,6 +313,8 @@ impl fmt::Display for Expr {
 
             Expr::SnapApp(ref expr, _) => write!(f, "snap({expr})"),
             Expr::Cast(ref kind, ref base, _) => write!(f, "cast<{kind:?}>({base})"),
+            Expr::Frac(ref top, ref bottom, ..) => write!(f, "({top} / {bottom})"),
+            Expr::Perm(ref pred_name, ref arg, _pos) => write!(f, "perm({}({}))", pred_name, arg)
         }
     }
 }
@@ -391,6 +400,9 @@ impl Expr {
             | Expr::SnapApp(_, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
+            Expr::Acc(..) => unimplemented!(),
+            Expr::Frac(..) => unimplemented!(),
+            Expr::Perm(..) => unimplemented!(),
         }
     }
 
@@ -425,6 +437,9 @@ impl Expr {
             Expr::ContainerOp(x, y, z, _) => Expr::ContainerOp(x, y, z, pos),
             Expr::Seq(x, y, _) => Expr::Seq(x, y, pos),
             Expr::Map(x, y, _) => Expr::Map(x, y, pos),
+            Expr::Acc(..) => todo!(),
+            Expr::Frac(..) => todo!(),
+            Expr::Perm(..) => todo!(),
             x => x,
         }
     }
@@ -941,6 +956,15 @@ impl Expr {
             non_pure: bool,
         }
         impl ExprWalker for PurityFinder {
+            fn walk_acc(
+                &mut self,
+                _name: &str,
+                _arg: &Expr,
+                _perm_amount: &Expr,
+                _pos: &Position,
+            ) {
+                self.non_pure = true;
+            }
             fn walk_predicate_access_predicate(
                 &mut self,
                 _name: &str,
@@ -1243,10 +1267,11 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {self:?}");
                 typ1?
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::Acc(..) =>
+                &Type::Bool,
             Expr::MagicWand(..)
-            | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
+            | Expr::PredicateAccessPredicate(..)
             | Expr::InhaleExhale(..) => {
                 return None;
             }
@@ -1260,6 +1285,7 @@ impl Expr {
             }
             Expr::Seq(ref ty, ..) | Expr::Map(ref ty, ..) => ty,
             Expr::Cast(kind, _, _) => match kind {
+                CastKind::ToViperInt => &Type::Int,
                 CastKind::BVIntoInt(_) => &Type::Int,
                 CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV8)) => {
                     &Type::BitVector(BitVector::Signed(BitVectorSize::BV8))
@@ -1292,6 +1318,7 @@ impl Expr {
                     &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV128))
                 }
             },
+            Expr::Frac(..) | Expr::Perm(..) => &Type::Rational,
         };
         Some(result)
     }
@@ -1688,6 +1715,7 @@ impl Expr {
         impl ExprFolder for PermConjunctionFilter {
             fn fold(&mut self, e: Expr) -> Expr {
                 match e {
+                    f @ Expr::Acc(..) => f,
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp(BinaryOpKind::And, y, z, p) => {
@@ -1716,7 +1744,9 @@ impl Expr {
                     | Expr::Seq(..)
                     | Expr::Map(..)
                     | Expr::SnapApp(..)
-                    | Expr::Cast(..) => true.into(),
+                    | Expr::Cast(..)
+                    | Expr::Perm(..)
+                    | Expr::Frac(..) => true.into(),
                 }
             }
         }

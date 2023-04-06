@@ -94,9 +94,8 @@ fn extract_prusti_attributes(
                     }
                     SpecAttributeKind::Invariant => unreachable!("type invariant on function"),
                     SpecAttributeKind::Model => unreachable!("model on function"),
-                    SpecAttributeKind::PrintCounterexample => {
-                        unreachable!("print_counterexample on function")
-                    }
+                    SpecAttributeKind::PrintCounterexample => unreachable!("print_counterexample on function"),
+                    SpecAttributeKind::Resource => unreachable!("resource on function"),
                 };
                 prusti_attributes.push((attr_kind, tokens));
             } else {
@@ -178,6 +177,7 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::RefineSpec => type_cond_specs::generate(attr_tokens, item),
             SpecAttributeKind::Model => unreachable!(),
             SpecAttributeKind::PrintCounterexample => unreachable!(),
+            SpecAttributeKind::Resource => unreachable!(),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -433,6 +433,14 @@ pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
 
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens)
+}
+
+pub fn produces(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_inhale, tokens)
+}
+
+pub fn consumes(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_exhale, tokens)
 }
 
 /// Generates the TokenStream encoding an expression using prusti syntax
@@ -707,7 +715,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
-pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn invariant(attr: TokenStream, tokens: TokenStream, two_state: bool) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -722,12 +730,22 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
     let attr = handle_result!(parse_prusti(attr));
 
+    let annotation: syn::Attribute = if two_state {
+        parse_quote_spanned! {item_span=>
+            #[prusti::type_twostate_invariant_spec]
+        }
+    } else {
+        parse_quote_spanned! {item_span=>
+            #[prusti::type_invariant_spec]
+        }
+    };
+
     // TODO: move some of this to AstRewriter?
     // see AstRewriter::generate_spec_item_fn for explanation of syntax below
     let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
         #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
         #[prusti::spec_only]
-        #[prusti::type_invariant_spec]
+        #annotation
         #[prusti::spec_id = #spec_id_str]
         fn #item_name(self) -> bool {
             !!((#attr) : bool)
@@ -864,7 +882,9 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::Invariant => unreachable!("invariant on type"),
                     SpecAttributeKind::Predicate => unreachable!("predicate on type"),
                     SpecAttributeKind::Terminates => unreachable!("terminates on type"),
-                    SpecAttributeKind::Trusted | SpecAttributeKind::Model => {
+                    SpecAttributeKind::Trusted |
+                    SpecAttributeKind::Model |
+                    SpecAttributeKind::Resource => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
                     }
@@ -912,8 +932,9 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::Trusted => generate_for_trusted_for_types(attr_tokens, item),
             SpecAttributeKind::Model => generate_for_model(attr_tokens, item),
             SpecAttributeKind::PrintCounterexample => {
-                generate_for_print_counterexample(attr_tokens, item)
+              generate_for_print_counterexample(attr_tokens, item)
             }
+            SpecAttributeKind::Resource => generate_for_resource(attr_tokens, item),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -943,6 +964,25 @@ fn generate_for_model(attr: TokenStream, item: &mut syn::DeriveInput) -> Generat
         _ => Err(syn::Error::new(
             attr.span(),
             "Only structs can be attributed with a type model",
+        )),
+    }
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "resource" annotations.
+fn generate_for_resource(attr: TokenStream, item: &mut syn::DeriveInput) -> GeneratedResult {
+    match syn::Item::from(item.clone()) {
+        syn::Item::Struct(item_struct) => {
+            let resource_annotation = parse_quote_spanned! { item_struct.span() =>
+                #[prusti::resource]
+            };
+            let copy_annotation = parse_quote_spanned! { item_struct.span() =>
+                #[derive(Clone, Copy)]
+            };
+            Ok((vec![], vec![resource_annotation, copy_annotation]))
+        }
+        _ => Err(syn::Error::new(
+            attr.span(),
+            "Only structs can be resources",
         )),
     }
 }
@@ -977,6 +1017,18 @@ fn generate_for_print_counterexample(
             attr.span(),
             "Only structs and enums can be attributed with a custom counterexample print",
         )),
+    }
+}
+
+pub fn type_resource(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
+        rewrite_prusti_attributes_for_types(SpecAttributeKind::Resource, attr, tokens)
+    } else {
+        syn::Error::new(
+            attr.span(),
+            "Only structs can be used as resources",
+        )
+        .to_compile_error()
     }
 }
 

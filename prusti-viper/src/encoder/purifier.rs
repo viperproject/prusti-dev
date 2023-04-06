@@ -236,6 +236,7 @@ fn translate_type<'tcx>(encoder: &Encoder<'_, 'tcx>, typ: vir::Type) -> vir::Typ
     match typ {
         vir::Type::Int
         | vir::Type::Bool
+        | vir::Type::Rational
         | vir::Type::Float(_)
         | vir::Type::BitVector(_)
         | vir::Type::Snapshot(_)

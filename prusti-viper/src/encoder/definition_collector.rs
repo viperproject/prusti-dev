@@ -61,6 +61,7 @@ pub(super) fn collect_definitions(
         unfolded_functions: Default::default(),
         directly_called_functions: Default::default(),
         in_directly_calling_state: true,
+        used_resource_predicates: Default::default(),
     };
     collector.walk_methods(&methods)?;
     collector.into_program(name, methods)
@@ -94,6 +95,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// Functions that are explicitly called in the program.
     directly_called_functions: FxHashSet<vir::FunctionIdentifier>,
     in_directly_calling_state: bool,
+    used_resource_predicates: FxHashSet<vir::Predicate>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
@@ -197,6 +199,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             vir::Type::typed_ref("DeadBorrowToken$"),
             vir_local! { borrow: Int },
         ));
+        for pred in self.used_resource_predicates.iter() {
+            predicates.push(pred.clone());
+        }
         predicates.sort_by_key(|f| f.get_identifier());
         Ok(predicates)
     }
@@ -813,7 +818,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 .collect(),
             });
         }
-        backend_types
+        vec![]
     }
     fn contains_unfolded_predicates(&self, exprs: &[vir::Expr]) -> bool {
         let unfolded_predicate_checker = &mut UnfoldedPredicateChecker {
@@ -882,6 +887,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.used_predicates.insert(predicate_type.clone());
         FallibleExprWalker::fallible_walk(self, argument)
+    }
+    fn fallible_walk_perm(
+        &mut self,
+        vir::Perm {
+            predicate_name,
+            argument,
+            ..
+        }: &vir::Perm,
+    ) -> SpannedEncodingResult<()> {
+        if let box vir::Expr::DomainFuncApp(df) = argument {
+            let pred = vir::Predicate::Resource(
+                predicate_name.clone(),
+                df.domain_function.formal_args.clone()
+            );
+            self.used_resource_predicates.insert(pred);
+            FallibleExprWalker::fallible_walk(self, argument)
+        } else {
+            unreachable!("Unexpected argument to acc (not DomainFuncApp) {:?}", argument);
+        }
+    }
+    fn fallible_walk_acc(
+        &mut self,
+        vir::Acc {
+            predicate_name,
+            argument,
+            permission,
+            ..
+        }: &vir::Acc,
+    ) -> SpannedEncodingResult<()> {
+        if let box vir::Expr::DomainFuncApp(df) = argument {
+            let pred = vir::Predicate::Resource(
+                predicate_name.clone(),
+                df.domain_function.formal_args.clone()
+            );
+            self.used_resource_predicates.insert(pred);
+            FallibleExprWalker::fallible_walk(self, argument)?;
+            FallibleExprWalker::fallible_walk(self, permission)
+        } else {
+            unreachable!("Unexpected argument to acc (not DomainFuncApp) {:?}", argument);
+        }
     }
     fn fallible_walk_unfolding(
         &mut self,

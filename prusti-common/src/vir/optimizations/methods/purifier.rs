@@ -445,10 +445,7 @@ impl ast::StmtFolder for VarPurifier {
         assert!(arguments.len() == 1);
         if is_purifiable_predicate(&predicate) && self.is_pure(&arguments[0]) {
             let new_expr = self.get_replacement_bounds(&predicate, &arguments[0]);
-            ast::Stmt::Assert(ast::Assert {
-                expr: new_expr,
-                position,
-            })
+            ast::Stmt::assert(new_expr, position)
         } else {
             ast::Stmt::Fold(ast::Fold {
                 predicate,
@@ -477,6 +474,7 @@ impl ast::StmtFolder for VarPurifier {
                 .unwrap_or_else(|| panic!("key: {target}"))
                 .clone();
             method_name = match replacement.typ {
+                ast::Type::Rational => todo!(),
                 ast::Type::Int => "builtin$havoc_int".to_string(),
                 ast::Type::Bool => "builtin$havoc_bool".to_string(),
                 ast::Type::Float(ast::Float::F32) => "builtin$havoc_f32".to_string(),

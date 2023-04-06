@@ -31,6 +31,7 @@ impl ExprFootprintGetter for vir::Expr {
             | vir::Expr::Const(_)
             | vir::Expr::FuncApp(_)
             | vir::Expr::DomainFuncApp(_)
+            | vir::Expr::Acc(_)
             | vir::Expr::InhaleExhale(_) => FxHashSet::default(),
 
             vir::Expr::Unfolding(vir::Unfolding {
@@ -176,6 +177,11 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::SnapApp(vir::SnapApp { ref base, .. }) => base.get_footprint(predicates),
 
             vir::Expr::Cast(vir::Cast { ref base, .. }) => base.get_footprint(predicates),
+            vir::Expr::Frac(vir::Frac {ref top, ref bottom, ..}) => union(
+                &top.get_footprint(predicates),
+                &bottom.get_footprint(predicates),
+            ),
+            vir::Expr::Perm(vir::Perm { ref argument, .. } ) => argument.get_footprint(predicates),
         }
     }
 }
@@ -209,6 +215,7 @@ impl PredicateFootprintGetter for vir::Predicate {
                 }
             }
             vir::Predicate::Bodyless(_, _) => FxHashSet::default(),
+            vir::Predicate::Resource(_, _) => FxHashSet::default(),
         }
     }
 }

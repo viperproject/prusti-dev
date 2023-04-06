@@ -7,7 +7,7 @@
 use self::path_ctxt::*;
 use crate::encoder::{
     foldunfold::{action::Action, footprint::*, perm::*, requirements::*, semantics::ApplyOnState},
-    Encoder,
+    Encoder, mir_encoder::START_LABEL,
 };
 #[rustfmt::skip]
 use ::log::{debug, trace};
@@ -1379,6 +1379,10 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         }: vir::LabelledOld,
     ) -> Result<vir::Expr, Self::Error> {
         trace!("[enter] fallible_fold_labelled_old {}: {}", label, base);
+
+        if label == START_LABEL {
+            return Ok(vir::Expr::LabelledOld(vir::LabelledOld {label, base, position}));
+        }
 
         let mut tmp_curr_pctxt = if label == "lhs" && self.lhs_pctxt.is_some() {
             self.lhs_pctxt.as_ref().unwrap().clone()

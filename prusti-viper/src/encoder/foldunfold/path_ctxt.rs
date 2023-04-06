@@ -572,11 +572,13 @@ impl<'a> PathCtxt<'a> {
             // We want to fold `req`
             trace!("We want to fold {}", req);
             let predicate_type = req.get_type();
-            let predicate = self
-                .predicates
-                .get(predicate_type)
-                .unwrap_or_else(|| panic!("not found: {predicate_type}"));
-
+            let predicate = match self.predicates.get(predicate_type) {
+                Some(p) => p,
+                None => {
+                    // No need to try to obtain this, as it is an abstract predicate
+                    return Ok(ObtainResult::Success(vec![]));
+                }
+            };
             let variant = find_unfolded_variant(&self.state, req.get_place());
 
             // Find an access permission for which req is a proper suffix

@@ -952,10 +952,10 @@ impl PrustiBinaryOp {
             // order issues: `f(a, b)` makes Rust evaluate both `a` and `b`
             // before the `f` call
             Self::Implies => {
-                let joined_span = join_spans(lhs.span(), rhs.span());
-                // preserve span of LHS
-                let not_lhs = quote_spanned! { lhs.span() => !#lhs };
-                quote_spanned! { joined_span => #not_lhs || #rhs }
+                // This forces #rhs to be evaluated after #lhs
+                // Note that we cannot translate this to !#lhs || #rhs because #rhs
+                // may not be pure (for example, it could be a transfers(..) expression)
+                quote_spanned! { span => (if #lhs { #rhs } else { true }) }
             }
             Self::ImpliesReverse => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
@@ -1059,7 +1059,7 @@ mod tests {
             parse_prusti("a ==> b".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "! (a) || (b)",
+            "(if (a) { (b) } else { true })",
         );
         assert_eq!(
             parse_prusti("a === b + c".parse().unwrap())
@@ -1077,19 +1077,19 @@ mod tests {
             parse_prusti("a ==> b ==> c".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "! (a) || (! (b) || (c))",
+            "(if (a) { ((if (b) { (c) } else { true })) } else { true })",
         );
         assert_eq!(
             parse_prusti("(a ==> b && c) ==> d || e".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "! ((! (a) || ((b) && (c)))) || ((d) || (e))",
+            "(if (((if (a) { ((b) && (c)) } else { true }))) { ((d) || (e)) } else { true })",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b)".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            ":: prusti_contracts :: forall (() , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
+            ":: prusti_contracts :: forall (() , # [prusti :: spec_only] | x : i32 | -> bool { (((if (a) { (b) } else { true })) : bool) })",
         );
         assert_eq!(
             parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
@@ -1097,13 +1097,13 @@ mod tests {
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
-            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
+            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { (((if (a) { (b) } else { true })) : bool) })",
         );
         assert_eq!(
             parse_prusti("assert!(a === b ==> b)".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "assert ! (! (snapshot_equality (& (a) , & (b))) || (b))",
+            "assert ! ((if (snapshot_equality (& (a) , & (b))) { (b) } else { true }))",
         );
     }
 

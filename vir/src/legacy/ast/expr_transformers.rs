@@ -150,6 +150,34 @@ pub trait ExprFolder: Sized {
             self.fold_position(pos),
         )
     }
+    fn fold_acc(
+        &mut self,
+        name: String,
+        arg: Box<Expr>,
+        perm_amount: Box<Expr>,
+        pos: Position
+    ) -> Expr {
+        Expr::Acc(
+            name,
+            self.fold_boxed(arg),
+            self.fold_boxed(perm_amount),
+            self.fold_position(pos),
+        )
+    }
+
+    fn fold_perm(
+        &mut self,
+        name: String,
+        arg: Box<Expr>,
+        pos: Position
+    ) -> Expr {
+        Expr::Perm(
+            name,
+            self.fold_boxed(arg),
+            self.fold_position(pos),
+        )
+    }
+
     fn fold_field_access_predicate(
         &mut self,
         receiver: Box<Expr>,
@@ -341,6 +369,10 @@ pub trait ExprFolder: Sized {
         Expr::Cast(kind, base, self.fold_position(p))
     }
 
+    fn fold_frac(&mut self, top: Box<Expr>, bottom: Box<Expr>, p: Position) -> Expr {
+        Expr::Frac(top, bottom, self.fold_position(p))
+    }
+
     fn fold_position(&mut self, p: Position) -> Position {
         p
     }
@@ -357,6 +389,9 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::MagicWand(x, y, b, p) => this.fold_magic_wand(x, y, b, p),
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fold_predicate_access_predicate(x, y, z, p)
+        }
+        Expr::Acc(x, y, z, p) => {
+            this.fold_acc(x, y, z, p)
         }
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
@@ -378,6 +413,10 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Seq(x, y, p) => this.fold_seq(x, y, p),
         Expr::Map(x, y, p) => this.fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fold_cast(kind, base, p),
+        Expr::Frac(top, bottom, p) => this.fold_frac(top, bottom, p),
+        Expr::Perm(x, y, p) => {
+            this.fold_perm(x, y, p)
+        }
     }
 }
 
@@ -433,6 +472,26 @@ pub trait ExprWalker: Sized {
         _name: &str,
         arg: &Expr,
         _perm_amount: PermAmount,
+        pos: &Position,
+    ) {
+        self.walk(arg);
+        self.walk_position(pos);
+    }
+    fn walk_acc(
+        &mut self,
+        _name: &str,
+        arg: &Expr,
+        perm_amount: &Expr,
+        pos: &Position,
+    ) {
+        self.walk(arg);
+        self.walk(perm_amount);
+        self.walk_position(pos);
+    }
+    fn walk_perm(
+        &mut self,
+        _name: &str,
+        arg: &Expr,
         pos: &Position,
     ) {
         self.walk(arg);
@@ -606,6 +665,12 @@ pub trait ExprWalker: Sized {
         self.walk_position(pos);
     }
 
+    fn walk_frac(&mut self, top: &Expr, bottom: &Expr, pos: &Position) {
+        self.walk(top);
+        self.walk(bottom);
+        self.walk_position(pos);
+    }
+
     fn walk_position(&mut self, _pos: &Position) {}
 }
 
@@ -620,6 +685,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::MagicWand(ref x, ref y, ref b, ref p) => this.walk_magic_wand(x, y, b, p),
         Expr::PredicateAccessPredicate(ref x, ref y, z, ref p) => {
             this.walk_predicate_access_predicate(x, y, z, p)
+        }
+        Expr::Acc(ref x, ref y, ref z, ref p) => {
+            this.walk_acc(x, y, z, p)
         }
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
@@ -641,6 +709,8 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Seq(ref ty, ref elems, ref p) => this.walk_seq(ty, elems, p),
         Expr::Map(ref ty, ref elems, ref p) => this.walk_map(ty, elems, p),
         Expr::Cast(ref kind, ref base, ref p) => this.walk_cast(kind, base, p),
+        Expr::Frac(ref top, ref bottom, ref p) => this.walk_frac(top, bottom, p),
+        Expr::Perm(ref x, ref y, ref p) => this.walk_perm(x, y, p),
     }
 }
 
@@ -725,6 +795,16 @@ pub trait FallibleExprFolder: Sized {
             perm_amount,
             pos,
         ))
+    }
+    fn fallible_fold_acc(
+        &mut self,
+        _name: String,
+        _args: Box<Expr>,
+        _perm_amount: Box<Expr>,
+        _pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        // TODO
+        unimplemented!()
     }
     fn fallible_fold_field_access_predicate(
         &mut self,
@@ -981,6 +1061,9 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fallible_fold_predicate_access_predicate(x, y, z, p)
         }
+        Expr::Acc(x, y, z, p) => {
+            this.fallible_fold_acc(x, y, z, p)
+        }
         Expr::FieldAccessPredicate(x, y, p) => this.fallible_fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fallible_fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fallible_fold_bin_op(x, y, z, p),
@@ -1001,5 +1084,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Seq(x, y, p) => this.fallible_fold_seq(x, y, p),
         Expr::Map(x, y, p) => this.fallible_fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fallible_fold_cast(kind, base, p),
+        Expr::Frac(..) => unimplemented!(),
+        Expr::Perm(..) => unimplemented!(),
     }
 }

@@ -109,6 +109,7 @@ pub fn compute_identifier(
             Type::Int => "$int$".to_string(),
             Type::Bool => "$bool$".to_string(),
             Type::Ref => "$ref$".to_string(),
+            Type::Rational => "$rational".to_string(),
             Type::Float(Float::F32) => "$f32$".to_string(),
             Type::Float(Float::F64) => "$f64$".to_string(),
             Type::BitVector(value) => format!("${}$", value),

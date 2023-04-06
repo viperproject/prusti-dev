@@ -146,6 +146,34 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_acc(&mut self, expr: Acc) -> Expr {
+        let Acc {
+            predicate_name,
+            argument,
+            permission,
+            position,
+        } = expr;
+        Expr::Acc(Acc {
+            predicate_name,
+            argument: self.fold_boxed(argument),
+            permission: self.fold_boxed(permission),
+            position,
+        })
+    }
+
+    fn fold_perm(&mut self, expr: Perm) -> Expr {
+        let Perm {
+            predicate_name,
+            argument,
+            position,
+        } = expr;
+        Expr::Perm(Perm {
+            predicate_name,
+            argument: self.fold_boxed(argument),
+            position,
+        })
+    }
+
     fn fold_predicate_access_predicate(&mut self, expr: PredicateAccessPredicate) -> Expr {
         let PredicateAccessPredicate {
             predicate_type,
@@ -436,6 +464,14 @@ pub trait ExprFolder: Sized {
             position: expr.position,
         })
     }
+
+    fn fold_frac(&mut self, expr: Frac) -> Expr {
+        Expr::Frac(Frac {
+            top: self.fold_boxed(expr.top),
+            bottom: self.fold_boxed(expr.bottom),
+            position: expr.position,
+        })
+    }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -449,6 +485,9 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::MagicWand(magic_wand) => this.fold_magic_wand(magic_wand),
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fold_predicate_access_predicate(predicate_access_predicate)
+        }
+        Expr::Acc(acc) => {
+            this.fold_acc(acc)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fold_field_access_predicate(field_access_predicate)
@@ -470,6 +509,8 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Seq(seq) => this.fold_seq(seq),
         Expr::Map(map) => this.fold_map(map),
         Expr::Cast(cast) => this.fold_cast(cast),
+        Expr::Frac(frac) => this.fold_frac(frac),
+        Expr::Perm(frac) => this.fold_perm(frac),
     }
 }
 
@@ -520,6 +561,15 @@ pub trait ExprWalker: Sized {
     }
     fn walk_predicate_access_predicate(&mut self, expr: &PredicateAccessPredicate) {
         let PredicateAccessPredicate { argument, .. } = expr;
+        self.walk(argument);
+    }
+    fn walk_acc(&mut self, expr: &Acc) {
+        let Acc { argument, permission, .. } = expr;
+        self.walk(argument);
+        self.walk(permission);
+    }
+    fn walk_perm(&mut self, expr: &Perm) {
+        let Perm { argument, .. } = expr;
         self.walk(argument);
     }
     fn walk_field_access_predicate(&mut self, expr: &FieldAccessPredicate) {
@@ -694,6 +744,12 @@ pub trait ExprWalker: Sized {
         let Cast { base, .. } = expr;
         self.walk(base);
     }
+
+    fn walk_frac(&mut self, expr: &Frac) {
+        let Frac { top, bottom, .. } = expr;
+        self.walk(top);
+        self.walk(bottom);
+    }
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -707,6 +763,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::MagicWand(magic_wand) => this.walk_magic_wand(magic_wand),
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.walk_predicate_access_predicate(predicate_access_predicate)
+        }
+        Expr::Acc(acc) => {
+            this.walk_acc(acc)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.walk_field_access_predicate(field_access_predicate)
@@ -728,6 +787,8 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Seq(seq) => this.walk_seq(seq),
         Expr::Map(map) => this.walk_map(map),
         Expr::Cast(cast) => this.walk_cast(cast),
+        Expr::Frac(frac) => this.walk_frac(frac),
+        Expr::Perm(perm) => this.walk_perm(perm),
     }
 }
 
@@ -831,6 +892,40 @@ pub trait FallibleExprFolder: Sized {
             predicate_type,
             argument: self.fallible_fold_boxed(argument)?,
             permission,
+            position,
+        }))
+    }
+
+    fn fallible_fold_perm(
+        &mut self,
+        expr: Perm,
+    ) -> Result<Expr, Self::Error> {
+        let Perm {
+            predicate_name,
+            argument,
+            position,
+        } = expr;
+        Ok(Expr::Perm(Perm {
+            predicate_name,
+            argument: self.fallible_fold_boxed(argument)?,
+            position,
+        }))
+    }
+
+    fn fallible_fold_acc(
+        &mut self,
+        expr: Acc,
+    ) -> Result<Expr, Self::Error> {
+        let Acc {
+            predicate_name,
+            argument,
+            permission,
+            position,
+        } = expr;
+        Ok(Expr::Acc(Acc {
+            predicate_name,
+            argument: self.fallible_fold_boxed(argument)?,
+            permission: self.fallible_fold_boxed(permission)?,
             position,
         }))
     }
@@ -1135,6 +1230,19 @@ pub trait FallibleExprFolder: Sized {
             position,
         }))
     }
+
+    fn fallible_fold_frac(&mut self, expr: Frac) -> Result<Expr, Self::Error> {
+        let Frac {
+            top,
+            bottom,
+            position,
+        } = expr;
+        Ok(Expr::Frac(Frac {
+            top: self.fallible_fold_boxed(top)?,
+            bottom: self.fallible_fold_boxed(bottom)?,
+            position,
+        }))
+    }
 }
 
 pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
@@ -1151,6 +1259,9 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::MagicWand(magic_wand) => this.fallible_fold_magic_wand(magic_wand),
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fallible_fold_predicate_access_predicate(predicate_access_predicate)
+        }
+        Expr::Acc(acc) => {
+            this.fallible_fold_acc(acc)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_fold_field_access_predicate(field_access_predicate)
@@ -1172,6 +1283,8 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Seq(seq) => this.fallible_fold_seq(seq),
         Expr::Map(map) => this.fallible_fold_map(map),
         Expr::Cast(cast) => this.fallible_fold_cast(cast),
+        Expr::Frac(frac) => this.fallible_fold_frac(frac),
+        Expr::Perm(perm) => this.fallible_fold_perm(perm),
     }
 }
 
@@ -1234,6 +1347,23 @@ pub trait FallibleExprWalker: Sized {
         let PredicateAccessPredicate { argument, .. } = expr;
         self.fallible_walk(argument)
     }
+    fn fallible_walk_acc(
+        &mut self,
+        expr: &Acc,
+    ) -> Result<(), Self::Error> {
+        let Acc { argument, permission, .. } = expr;
+        self.fallible_walk(argument)?;
+        self.fallible_walk(permission)
+    }
+
+    fn fallible_walk_perm(
+        &mut self,
+        expr: &Perm,
+    ) -> Result<(), Self::Error> {
+        let Perm { argument, .. } = expr;
+        self.fallible_walk(argument)
+    }
+
     fn fallible_walk_field_access_predicate(
         &mut self,
         expr: &FieldAccessPredicate,
@@ -1416,6 +1546,12 @@ pub trait FallibleExprWalker: Sized {
         let Cast { base, .. } = expr;
         self.fallible_walk(base)
     }
+
+    fn fallible_walk_frac(&mut self, expr: &Frac) -> Result<(), Self::Error> {
+        let Frac { top, bottom, .. } = expr;
+        self.fallible_walk(bottom)?;
+        self.fallible_walk(top)
+    }
 }
 
 pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
@@ -1432,6 +1568,9 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::MagicWand(magic_wand) => this.fallible_walk_magic_wand(magic_wand),
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fallible_walk_predicate_access_predicate(predicate_access_predicate)
+        }
+        Expr::Acc(acc) => {
+            this.fallible_walk_acc(acc)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_walk_field_access_predicate(field_access_predicate)
@@ -1453,5 +1592,7 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::Seq(seq) => this.fallible_walk_seq(seq),
         Expr::Map(map) => this.fallible_walk_map(map),
         Expr::Cast(cast) => this.fallible_walk_cast(cast),
+        Expr::Frac(frac) => this.fallible_walk_frac(frac),
+        Expr::Perm(perm) => this.fallible_walk_perm(perm),
     }
 }

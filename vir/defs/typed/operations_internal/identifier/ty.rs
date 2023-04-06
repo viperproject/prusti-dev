@@ -30,6 +30,7 @@ impl WithIdentifier for ty::Type {
             ty::Type::Unsupported(ty) => ty.get_identifier(),
             ty::Type::Trusted(ty) => ty.get_identifier(),
             ty::Type::Lifetime => "Lifetime".to_string(),
+            ty::Type::Rational => "Rational".to_string(),
         }
     }
 }

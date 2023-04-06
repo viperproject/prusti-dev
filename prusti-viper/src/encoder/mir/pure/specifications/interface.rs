@@ -25,7 +25,7 @@ use crate::encoder::{
         },
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PRECONDITION_LABEL},
-    snapshot::interface::SnapshotEncoderInterface,
+    snapshot::interface::SnapshotEncoderInterface, encoder::perm_amount_from_int,
 };
 use prusti_rustc_interface::{
     hir::def_id::DefId,
@@ -34,7 +34,7 @@ use prusti_rustc_interface::{
 };
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
-    polymorphic as vir_poly,
+    polymorphic::{self as vir_poly},
 };
 
 pub(crate) trait SpecificationEncoderInterface<'tcx> {
@@ -95,6 +95,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr>;
 }
+
 
 impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encoder<'v, 'tcx> {
     fn encode_prusti_operation_high(
@@ -233,6 +234,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         Ok(final_invariant)
     }
 
+
     fn encode_prusti_operation(
         &self,
         fn_name: &str,
@@ -250,12 +252,58 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 parent_def_id,
                 substs,
             ),
+            "prusti_contracts::transfers" => {
+                if let vir_poly::Type::TypedRef(tr) = encoded_args[0].get_type() {
+                    let predicate_name = tr.label.split("struct$m_").last().unwrap();
+                    let perm_amt = match encoded_args[1].get_type() {
+                        vir_poly::Type::Int => perm_amount_from_int(&encoded_args[1]),
+                        other => unimplemented!("Unexpected permission amount type {:?}", other)
+                    };
+                    let acc_expr = vir_poly::Expr::acc(
+                        predicate_name.to_string(),
+                        encoded_args[0].clone(),
+                        perm_amt
+                    );
+                    let acc_expr = acc_expr.set_pos(self.error_manager().register_span(
+                        parent_def_id, span
+                    ));
+                    Ok(acc_expr)
+                } else {
+                    unreachable!()
+                }
+            },
+            "prusti_contracts::holds" => {
+                if let vir_poly::Type::TypedRef(tr) = encoded_args[0].get_type() {
+                    let predicate_name = tr.label.split("struct$m_").last().unwrap();
+                    let perm_expr = vir_poly::Expr::perm(
+                        predicate_name.to_string(),
+                        encoded_args[0].clone(),
+                    );
+                    let perm_expr = perm_expr.set_pos(self.error_manager().register_span(
+                        parent_def_id, span
+                    ));
+                    Ok(perm_expr)
+                } else {
+                    unreachable!()
+                }
+            },
             "prusti_contracts::snap" => Ok(vir_poly::Expr::snap_app(encoded_args[0].clone())),
             "prusti_contracts::snapshot_equality" => Ok(vir_poly::Expr::eq_cmp(
                 vir_poly::Expr::snap_app(encoded_args[0].clone()),
                 vir_poly::Expr::snap_app(encoded_args[1].clone()),
             )),
-            _ => unimplemented!(),
+            "std::convert::From::from" if substs.type_at(0).to_string() == "prusti_contracts::PermAmount" => {
+                match encoded_args[0].get_type() {
+                    vir_poly::Type::Int => Ok(perm_amount_from_int(&encoded_args[0])),
+                    other => unimplemented!("Unexpected permission amount type {:?}", other)
+                }
+            }
+            "prusti_contracts::implies" => Ok(
+                vir_poly::Expr::implies(
+                    encoded_args[0].clone(),
+                    encoded_args[1].clone()
+                )),
+            _ => unimplemented!("Cannot encode prusti operation {fn_name} (substs: {substs:?})"),
         }
     }
 

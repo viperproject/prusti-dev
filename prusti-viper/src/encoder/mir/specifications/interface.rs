@@ -100,6 +100,10 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the prusti refutation
     fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation>;
 
+    fn get_prusti_inhale(&self, def_id: DefId) -> Option<typed::PrustiInhale>;
+
+    fn get_prusti_exhale(&self, def_id: DefId) -> Option<typed::PrustiExhale>;
+
     /// Get the begin marker of the ghost block
     fn get_ghost_begin(&self, def_id: DefId) -> Option<typed::GhostBegin>;
 
@@ -229,6 +233,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .cloned()
     }
 
+    fn get_prusti_exhale(&self, def_id: DefId) -> Option<typed::PrustiExhale> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_exhale(&def_id)
+            .cloned()
+    }
+
     fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption> {
         self.specifications_state
             .specs
@@ -242,6 +254,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow()
             .get_refutation(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_inhale(&self, def_id: DefId) -> Option<typed::PrustiInhale> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_inhale(&def_id)
             .cloned()
     }
 

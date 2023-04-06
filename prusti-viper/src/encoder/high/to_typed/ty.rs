@@ -78,6 +78,10 @@ impl<'v, 'tcx> HighToTypedTypeLowerer for crate::encoder::Encoder<'v, 'tcx> {
 impl<'v, 'tcx> TypedToHighTypeUpperer for crate::encoder::Encoder<'v, 'tcx> {
     type Error = SpannedEncodingError;
 
+    fn typed_to_high_type_type_rational(&mut self) -> Result<vir_high::Type, Self::Error> {
+        todo!()
+    }
+
     fn typed_to_high_type_expression(
         &mut self,
         expression: vir_typed::Expression,

@@ -24,6 +24,9 @@ pub use prusti_contracts_proc_macros::verified;
 /// A macro for type invariants.
 pub use prusti_contracts_proc_macros::invariant;
 
+/// A macro for type invariants.
+pub use prusti_contracts_proc_macros::invariant_twostate;
+
 /// A macro for writing a loop body invariant.
 pub use prusti_contracts_proc_macros::body_invariant;
 
@@ -35,6 +38,9 @@ pub use prusti_contracts_proc_macros::prusti_assume;
 
 /// A macro for writing refutations using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_refute;
+
+pub use prusti_contracts_proc_macros::produces;
+pub use prusti_contracts_proc_macros::consumes;
 
 /// A macro for impl blocks that refine trait specifications.
 pub use prusti_contracts_proc_macros::refine_trait_spec;
@@ -65,6 +71,9 @@ pub use prusti_contracts_proc_macros::terminates;
 
 /// A macro to annotate body variant of a loop to prove termination
 pub use prusti_contracts_proc_macros::body_variant;
+
+/// A macro to annotate a data type as representing a resource
+pub use prusti_contracts_proc_macros::resource;
 
 #[cfg(not(feature = "prusti"))]
 mod private {
@@ -119,6 +128,10 @@ mod private {
     pub struct Ghost<T> {
         _phantom: PhantomData<T>,
     }
+
+    /// A permission amount; it should not be constructed from running rust code, hence the private unit inside
+    #[derive(Copy, Clone, PartialEq, Eq)]
+    pub struct PermAmount(());
 }
 
 #[cfg(feature = "prusti")]
@@ -199,6 +212,8 @@ mod private {
             panic!()
         }
     }
+
+    pub struct Frac(Int, Int);
 
     /// A sequence type
     #[non_exhaustive]
@@ -325,6 +340,44 @@ mod private {
             panic!()
         }
     }
+
+    /// A permission amount; it should not be constructed from running rust code, hence the private unit inside
+    #[derive(Copy, Clone, PartialEq, Eq)]
+    pub struct PermAmount(());
+
+    impl PermAmount {
+        pub fn from_int(_value: Int) -> PermAmount {
+            panic!()
+        }
+    }
+
+    impl PartialOrd for PermAmount {
+        fn partial_cmp(&self, _other: &Self) -> Option<core::cmp::Ordering> {
+            panic!()
+        }
+    }
+
+    impl Ord for PermAmount {
+        fn cmp(&self, _other: &Self) -> core::cmp::Ordering {
+            panic!()
+        }
+    }
+
+    impl Sub for PermAmount {
+        type Output = PermAmount;
+
+        fn sub(self, _other: Self) -> Self {
+            panic!()
+        }
+    }
+
+    impl Add for PermAmount {
+        type Output = PermAmount;
+
+        fn add(self, _other: Self) -> Self {
+            panic!()
+        }
+    }
 }
 
 /// This function is used to evaluate an expression in the context just
@@ -366,6 +419,26 @@ pub fn snap<T>(_x: &T) -> T {
 /// are not. Importantly, addresses are not taken into consideration.
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
+}
+
+impl From<u32> for PermAmount {
+    fn from(_value: u32) -> PermAmount {
+        unimplemented!()
+    }
+}
+
+impl From<Int> for PermAmount {
+    fn from(_value: Int) -> PermAmount {
+        unimplemented!()
+    }
+}
+
+pub fn transfers<T, A: Into<PermAmount>>(_res: T, _amt: A) -> bool {
+    true
+}
+
+pub fn holds<T>(_res: T) -> PermAmount {
+    unimplemented!();
 }
 
 pub use private::*;

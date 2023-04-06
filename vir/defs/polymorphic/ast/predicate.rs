@@ -6,6 +6,7 @@
 
 use crate::{common::identifier::WithIdentifier, enum_predicate, polymorphic::ast::*};
 use rustc_hash::{FxHashMap, FxHashSet};
+use itertools::Itertools;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
@@ -13,6 +14,7 @@ pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(Type, LocalVar),
+    Resource(String, Vec<LocalVar>)
 }
 
 impl fmt::Display for Predicate {
@@ -21,6 +23,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{}", p),
             Predicate::Enum(p) => write!(f, "{}", p),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
+            Predicate::Resource(name, args) => write!(f, "resource_predicate {}({});", name, args.iter().format(", ")),
         }
     }
 }
@@ -103,14 +106,16 @@ impl Predicate {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
+            Predicate::Resource(..) => unreachable!("No self for resource"),
         }
     }
     /// The predicate type getter.
-    pub fn get_type(&self) -> &Type {
+    pub fn get_type(&self) -> Option<&Type> {
         match self {
-            Predicate::Struct(p) => &p.typ,
-            Predicate::Enum(p) => &p.typ,
-            Predicate::Bodyless(typ, _) => typ,
+            Predicate::Struct(p) => Some(&p.typ),
+            Predicate::Enum(p) => Some(&p.typ),
+            Predicate::Bodyless(typ, _) => Some(typ),
+            Predicate::Resource(_, _) => None
         }
     }
     /// The predicate name getter.
@@ -119,6 +124,7 @@ impl Predicate {
             Predicate::Struct(p) => p.typ.name(),
             Predicate::Enum(p) => p.typ.name(),
             Predicate::Bodyless(ref typ, _) => typ.name(),
+            Predicate::Resource(name, _) => name.clone(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -126,6 +132,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
+            Predicate::Resource(_, _) => None,
         }
     }
     pub fn is_struct_with_empty_body(&self) -> bool {
@@ -142,6 +149,7 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(typ, _) => typ.encode_as_string(),
+            Predicate::Resource(name, _) => name.clone(),
         }
     }
 }

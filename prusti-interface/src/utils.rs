@@ -218,6 +218,11 @@ pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "extern_spec")
 }
 
+/// Check if `prusti::resource` is among the attributes.
+pub fn has_resource_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "resource")
+}
+
 pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {
     read_prusti_attr("extern_spec", attrs)
 }

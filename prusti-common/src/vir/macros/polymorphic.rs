@@ -33,10 +33,10 @@ macro_rules! vir_stmt {
         $crate::vir::polymorphic_vir::Stmt::label($label)
     };
     (assert $exp: tt) => {
-        $crate::vir::polymorphic_vir::Stmt::Assert( $crate::vir::polymorphic_vir::Assert {
-            expr: vir_expr!($exp),
-            position: $crate::vir::polymorphic_vir::Position::default(),
-        })
+        $crate::vir::polymorphic_vir::Stmt::assert(
+            vir_expr!($exp),
+            $crate::vir::polymorphic_vir::Position::default()
+        )
     };
     (inhale $exp: tt) => {
         $crate::vir::polymorphic_vir::Stmt::Inhale( $crate::vir::polymorphic_vir::Inhale {

@@ -70,6 +70,9 @@ pub enum Expr {
     SnapApp(SnapApp),
     /// Cast from one type into another.
     Cast(Cast),
+    Acc(Acc),
+    Frac(Frac),
+    Perm(Perm)
 }
 
 impl fmt::Display for Expr {
@@ -102,6 +105,40 @@ impl fmt::Display for Expr {
             Expr::Map(map) => map.fmt(f),
             Expr::Downcast(downcast_expr) => downcast_expr.fmt(f),
             Expr::Cast(expr) => expr.fmt(f),
+            Expr::Acc(acc) => acc.fmt(f),
+            Expr::Frac(frac) => frac.fmt(f),
+            Expr::Perm(perm) => perm.fmt(f),
+        }
+    }
+}
+
+const ENABLE_SIMPLIFICATION: bool = true;
+
+macro_rules! default_unary_expr {
+    ($expr:ident, $kind_name:ident) => {
+        if ENABLE_SIMPLIFICATION {
+            // IMPORTANT: This optimization assumes that applying the
+            // unary operation twice cancels the effect. This is
+            // true for `Not` and `Minus` but may not apply to other
+            // unary operations in the future...
+            match $expr {
+                Expr::UnaryOp(
+                    UnaryOp {op_kind, box argument, ..}
+                ) if op_kind == UnaryOpKind::$kind_name => {
+                    argument
+                },
+                _ => Expr::UnaryOp(UnaryOp {
+                        op_kind: UnaryOpKind:: $kind_name,
+                        argument: Box::new($expr),
+                        position: Position::default(),
+                    })
+            }
+        } else {
+            Expr::UnaryOp(UnaryOp {
+                op_kind: UnaryOpKind:: $kind_name,
+                argument: Box::new($expr),
+                position: Position::default(),
+            })
         }
     }
 }
@@ -111,19 +148,26 @@ macro_rules! __unary_op__ {
         impl Expr {$(
             #[allow(clippy::should_implement_trait)]
             pub fn $fn_name(expr: Expr) -> Self {
-                Expr::UnaryOp(UnaryOp {
-                    op_kind: UnaryOpKind:: $kind_name,
-                    argument: Box::new(expr),
-                    position: Position::default(),
-                })
+                default_unary_expr!(expr, $kind_name)
             }
         )*}
     }
 }
 
+// Note: see comment in the definition of __unary_op__
 __unary_op__! {
-    not Not,
     minus Minus
+}
+
+macro_rules! default_bin_expr {
+    ($left:ident, $right:ident, $kind_name:ident) => {
+        Expr::BinOp(BinOp {
+            op_kind: BinaryOpKind:: $kind_name,
+            left: Box::new($left),
+            right: Box::new($right),
+            position: Position::default(),
+        })
+    }
 }
 
 macro_rules! __binary_op__ {
@@ -131,12 +175,7 @@ macro_rules! __binary_op__ {
         impl Expr {$(
             #[allow(clippy::should_implement_trait)]
             pub fn $fn_name(left: Expr, right: Expr) -> Self {
-                Expr::BinOp(BinOp {
-                    op_kind: BinaryOpKind:: $kind_name,
-                    left: Box::new(left),
-                    right: Box::new(right),
-                    position: Position::default(),
-                })
+                default_bin_expr!(left, right, $kind_name)
             }
         )*}
     }
@@ -152,13 +191,52 @@ __binary_op__! {
     sub Sub,
     mul Mul,
     div Div,
-    modulo Mod,
-    and And,
-    or Or,
-    implies Implies
+    modulo Mod
 }
 
+
 impl Expr {
+
+    pub fn or(lhs: Expr, rhs: Expr) -> Self {
+        debug_assert!(lhs.is_pure(), "LHS of disjunction is not pure");
+        debug_assert!(rhs.is_pure(), "RHS of disjunction is not pure");
+        default_bin_expr!(lhs, rhs, Or)
+    }
+
+    pub fn implies(lhs: Expr, rhs: Expr) -> Self {
+        debug_assert!(lhs.is_pure(), "LHS of implication is not pure");
+        if ENABLE_SIMPLIFICATION {
+            if lhs == true.into() {
+                return rhs;
+            } else if lhs == false.into() {
+                return true.into();
+            }
+        }
+        default_bin_expr!(lhs, rhs, Implies)
+    }
+
+    pub fn not(expr: Expr) -> Self {
+        debug_assert!(expr.is_pure(), "Cannot negate non-pure expression");
+        if ENABLE_SIMPLIFICATION {
+            if expr == true.into() {
+                return false.into();
+            } else if expr == false.into() {
+                return true.into();
+            }
+        }
+        default_unary_expr!(expr, Not)
+    }
+    pub fn and(left: Expr, right: Expr) -> Expr {
+        if ENABLE_SIMPLIFICATION {
+            if right == true.into() {
+                return left;
+            }
+            if left == true.into() {
+                return right;
+            }
+        }
+        default_bin_expr!(left, right, And)
+    }
     pub fn pos(&self) -> Position {
         match self {
             Expr::Local(Local { position, .. })
@@ -184,7 +262,10 @@ impl Expr {
             | Expr::ContainerOp(ContainerOp { position, .. })
             | Expr::Cast(Cast { position, .. })
             | Expr::Map(Map { position, .. })
-            | Expr::Seq(Seq { position, .. }) => *position,
+            | Expr::Seq(Seq { position, .. })
+            | Expr::Acc(Acc { position, .. })
+            | Expr::Frac(Frac { position, .. })
+            | Expr::Perm(Perm { position, .. }) => *position,
             Expr::Downcast(DowncastExpr { base, .. }) => base.pos(),
         }
     }
@@ -235,7 +316,10 @@ impl Expr {
             DomainFuncApp,
             InhaleExhale,
             SnapApp,
-            Cast
+            Cast,
+            Acc,
+            Frac,
+            Perm
         )
     }
 
@@ -268,6 +352,25 @@ impl Expr {
         })
     }
 
+    pub fn acc(predicate_name: String, pred: Expr, perm: Expr) -> Self {
+        let position = pred.pos();
+        Expr::Acc(Acc {
+            predicate_name,
+            argument: Box::new(pred),
+            permission: Box::new(perm),
+            position,
+        })
+    }
+
+    pub fn perm(predicate_name: String, pred: Expr) -> Self {
+        let position = pred.pos();
+        Expr::Perm(Perm {
+            predicate_name,
+            argument: Box::new(pred),
+            position,
+        })
+    }
+
     pub fn field_access_predicate(place: Expr, perm: PermAmount) -> Self {
         let pos = place.pos();
         Expr::FieldAccessPredicate(FieldAccessPredicate {
@@ -295,6 +398,7 @@ impl Expr {
     }
 
     pub fn labelled_old(label: &str, expr: Expr) -> Self {
+        assert!(!matches!(expr, Expr::Local(..)), "Should not create old expr of local var");
         Expr::LabelledOld(LabelledOld {
             label: label.to_string(),
             base: Box::new(expr),
@@ -366,6 +470,11 @@ impl Expr {
     }
 
     pub fn ite(guard: Expr, left: Expr, right: Expr) -> Self {
+        if ENABLE_SIMPLIFICATION {
+            if right == true.into() {
+                return Expr::implies(guard, left);
+            }
+        }
         Expr::Cond(Cond {
             guard: Box::new(guard),
             then_expr: Box::new(left),
@@ -673,15 +782,16 @@ impl Expr {
 
     /// Only defined for places
     pub fn get_parent_ref(&self) -> Option<&Expr> {
-        debug_assert!(self.is_place());
+        // debug_assert!(self.is_place());
         match self {
             &Expr::Local(_) => None,
             &Expr::Variant(Variant { box ref base, .. })
             | &Expr::Field(FieldExpr { box ref base, .. })
             | &Expr::AddrOf(AddrOf { box ref base, .. }) => Some(base),
-            &Expr::LabelledOld(_) => None,
-            &Expr::Unfolding(_) => None,
-            ref x => unreachable!("{}", x),
+            &Expr::LabelledOld(_)
+            | &Expr::Unfolding(_)
+            | &Expr::DomainFuncApp(_) => None,
+            ref x => unreachable!("{:?}", x),
         }
     }
 
@@ -795,6 +905,12 @@ impl Expr {
             non_pure: bool,
         }
         impl ExprWalker for PurityFinder {
+            fn walk_acc(
+                &mut self,
+                _acc: &Acc,
+            ) {
+                self.non_pure = true;
+            }
             fn walk_predicate_access_predicate(
                 &mut self,
                 _predicate_access_predicate: &PredicateAccessPredicate,
@@ -891,14 +1007,14 @@ impl Expr {
     }
 
     pub fn has_proper_prefix(&self, other: &Expr) -> bool {
-        debug_assert!(self.is_place(), "self={} other={}", self, other);
-        debug_assert!(other.is_place(), "self={} other={}", self, other);
+        // debug_assert!(self.is_place(), "self={} other={}", self, other);
+        // debug_assert!(other.is_place(), "self={} other={}", self, other);
         self != other && self.has_prefix(other)
     }
 
     pub fn has_prefix(&self, other: &Expr) -> bool {
-        debug_assert!(self.is_place());
-        debug_assert!(other.is_place());
+        // debug_assert!(self.is_place());
+        // debug_assert!(other.is_place());
         if self == other {
             true
         } else {
@@ -1047,10 +1163,10 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
                 typ1
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::Acc(..) => &Type::Bool,
             Expr::MagicWand(..)
-            | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
+            | Expr::PredicateAccessPredicate(..)
             | Expr::InhaleExhale(..) => {
                 unreachable!("Unexpected expression: {:?}", self);
             }
@@ -1069,6 +1185,7 @@ impl Expr {
             }
             Expr::Map(Map { typ, .. }) | Expr::Seq(Seq { typ, .. }) => typ,
             Expr::Cast(Cast { kind, .. }) => match kind {
+                CastKind::ToViperInt => &Type::Int,
                 CastKind::BVIntoInt(_) => &Type::Int,
                 CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV8)) => {
                     &Type::BitVector(BitVector::Signed(BitVectorSize::BV8))
@@ -1101,6 +1218,7 @@ impl Expr {
                     &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV128))
                 }
             },
+            Expr::Frac(_) | Expr::Perm(_) => &Type::Rational,
         }
     }
 
@@ -1189,11 +1307,85 @@ impl Expr {
         OldLabelReplacer { f }.fold(self)
     }
 
-    /// Simplify `Deref(AddrOf(P))` to `P`.
     #[must_use]
-    pub fn simplify_addr_of(self) -> Self {
+    pub fn simplify(self) -> Self {
         struct Simplifier;
         impl ExprFolder for Simplifier {
+            fn fold_cond(
+                &mut self,
+                Cond {
+                    guard,
+                    then_expr,
+                    else_expr,
+                    position,
+                }: Cond
+            ) -> Expr {
+                match self.fold_boxed(guard) {
+                    box Expr::UnaryOp(expr) if expr.op_kind == UnaryOpKind::Not =>
+                        Expr::Cond(
+                            Cond { guard: expr.argument,
+                                   then_expr: self.fold_boxed(else_expr),
+                                   else_expr: self.fold_boxed(then_expr),
+                                   position} ),
+                    guard => Expr::Cond(
+                            Cond { guard,
+                                   then_expr: self.fold_boxed(then_expr),
+                                   else_expr: self.fold_boxed(else_expr),
+                                   position}
+                    )
+
+                }
+            }
+            fn fold_bin_op(
+                &mut self,
+                BinOp {
+                    op_kind,
+                    left,
+                    right,
+                    position
+                }: BinOp
+            ) -> Expr {
+                if op_kind == BinaryOpKind::Or {
+                    match left {
+                        box Expr::UnaryOp(op) if op.op_kind == UnaryOpKind::Not => {
+                            return Expr::BinOp(
+                                BinOp {
+                                    op_kind: BinaryOpKind::Implies,
+                                    left: self.fold_boxed(op.argument),
+                                    right: self.fold_boxed(right),
+                                    position
+                                }
+                            );
+                        },
+                        _ => {}
+                    }
+                }
+
+                if op_kind == BinaryOpKind::Implies && *left == true.into() {
+                    return *self.fold_boxed(right)
+                };
+
+                let left = self.fold_boxed(left);
+                let right = self.fold_boxed(right);
+                Expr::BinOp(BinOp { op_kind, left, right, position })
+            }
+            fn fold_unary_op(
+                &mut self,
+                UnaryOp {
+                    op_kind,
+                    argument,
+                    position
+                }: UnaryOp
+            ) -> Expr {
+                match argument {
+                    box Expr::UnaryOp(op) if op.op_kind == op_kind =>
+                        default_fold_expr(self, *op.argument),
+                    _ => {
+                        let argument = self.fold_boxed(argument);
+                        Expr::UnaryOp(UnaryOp { op_kind, argument, position })
+                    }
+                }
+            }
             fn fold_field(
                 &mut self,
                 FieldExpr {
@@ -1494,6 +1686,7 @@ impl Expr {
         impl ExprFolder for PermConjunctionFilter {
             fn fold(&mut self, e: Expr) -> Expr {
                 match e {
+                    f @ Expr::Acc(..) => f,
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp(BinOp {
@@ -1530,7 +1723,9 @@ impl Expr {
                     | Expr::Seq(..)
                     | Expr::Map(..)
                     | Expr::SnapApp(..)
-                    | Expr::Cast(..) => true.into(),
+                    | Expr::Cast(..)
+                    | Expr::Frac(..)
+                    | Expr::Perm(..) => true.into(),
                 }
             }
         }
@@ -1923,6 +2118,30 @@ impl Hash for FieldExpr {
 }
 
 #[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub struct Frac {
+    pub top: Box<Expr>,
+    pub bottom: Box<Expr>,
+    pub position: Position
+}
+impl fmt::Display for Frac {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} / {}", self.top, self.bottom)
+    }
+}
+
+impl PartialEq for Frac {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.top, &self.bottom) == (&other.top, &other.bottom)
+    }
+}
+
+impl Hash for Frac {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&self.top, &self.bottom).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct AddrOf {
     pub base: Box<Expr>,
     pub addr_type: Type,
@@ -2023,6 +2242,70 @@ impl PartialEq for MagicWand {
 impl Hash for MagicWand {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&*self.left, &*self.right, self.borrow).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub struct Acc {
+    pub predicate_name: String,
+    pub argument: Box<Expr>,
+    pub permission: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for Acc {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "acc({}({}), {})",
+            &self.predicate_name,
+            &self.argument,
+            self.permission
+        )
+    }
+}
+
+impl PartialEq for Acc {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.predicate_name, &self.argument, &self.permission)
+            == (&other.predicate_name, &other.argument, &other.permission)
+    }
+}
+
+impl Hash for Acc {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&self.predicate_name, &self.argument, &self.permission).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub struct Perm {
+    pub predicate_name: String,
+    pub argument: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for Perm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "perm({}({}))",
+            &self.predicate_name,
+            &self.argument,
+        )
+    }
+}
+
+impl PartialEq for Perm {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.predicate_name, &self.argument)
+            == (&other.predicate_name, &other.argument)
+    }
+}
+
+impl Hash for Perm {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&self.predicate_name, &self.argument).hash(state);
     }
 }
 
@@ -2581,6 +2864,7 @@ impl Hash for DowncastExpr {
 pub enum CastKind {
     BVIntoInt(BitVector),
     IntIntoBV(BitVector),
+    ToViperInt
 }
 
 #[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]

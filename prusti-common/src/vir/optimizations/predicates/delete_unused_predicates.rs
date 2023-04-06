@@ -65,6 +65,7 @@ fn get_used_predicates_in_predicate_map(
                 map.insert(p.typ.clone(), res);
             }
             Predicate::Bodyless(_, _) => { /* ignore */ }
+            Predicate::Resource(_, _) => { /* ignore */ }
         }
     }
     map
@@ -122,14 +123,15 @@ pub fn delete_unused_predicates(
 
     // Remove the bodies of predicats that are never folded or unfolded
     predicates.iter_mut().for_each(|predicate| {
-        let predicate_type = &predicate.get_type().clone();
-        if !folded_predicates.contains(predicate_type) {
-            if let Predicate::Struct(sp) = predicate {
-                debug!("Removed body of {}", predicate_type);
-                sp.body = None;
+        if let Some(predicate_type) = predicate.get_type().cloned() {
+            if !folded_predicates.contains(&predicate_type) {
+                if let Predicate::Struct(sp) = predicate {
+                    debug!("Removed body of {}", predicate_type);
+                    sp.body = None;
 
-                // since the predicate now has no body update the predicate map accordingly
-                predicates_in_predicates_map.remove(predicate_type);
+                    // since the predicate now has no body update the predicate map accordingly
+                    predicates_in_predicates_map.remove(&predicate_type);
+                }
             }
         }
     });
@@ -146,7 +148,13 @@ pub fn delete_unused_predicates(
 
     debug!("All the used predicates are {:?}", &reachable_predicates);
 
-    predicates.retain(|p| reachable_predicates.contains(p.get_type()));
+    predicates.retain( |p|
+      if let Some(typ) = p.get_type() {
+        reachable_predicates.contains(typ)
+      } else {
+        true
+      }
+    );
 
     predicates
 }
