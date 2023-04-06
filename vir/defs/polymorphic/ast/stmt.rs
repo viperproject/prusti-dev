@@ -248,6 +248,17 @@ pub struct Fold {
     pub position: Position,
 }
 
+impl Fold {
+    pub fn inverse(&self) -> Unfold {
+        Unfold {
+            predicate: self.predicate.clone(),
+            arguments: self.arguments.clone(),
+            permission: self.permission.clone(),
+            enum_variant: self.enum_variant.clone(),
+        }
+    }
+}
+
 impl fmt::Display for Fold {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -274,6 +285,18 @@ pub struct Unfold {
     pub arguments: Vec<Expr>,
     pub permission: PermAmount,
     pub enum_variant: MaybeEnumVariantIndex,
+}
+
+impl Unfold {
+    pub fn inverse(&self) -> Fold {
+        Fold {
+            predicate: self.predicate.clone(),
+            arguments: self.arguments.clone(),
+            permission: self.permission.clone(),
+            enum_variant: self.enum_variant.clone(),
+            position: Position::new(0,0,0),
+        }
+    }
 }
 
 impl fmt::Display for Unfold {
@@ -465,6 +488,11 @@ impl Stmt {
         Stmt::Label(Label {
             label: label.to_string(),
         })
+    }
+
+    pub fn assert(expr: Expr, position: Position) -> Self {
+        // debug_assert!(expr.is_pure(), "Asserted non-pure expr {expr}");
+        Stmt::Assert(Assert {expr, position})
     }
 
     pub fn inhale(expr: Expr) -> Self {

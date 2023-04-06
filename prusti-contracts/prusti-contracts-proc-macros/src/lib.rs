@@ -18,6 +18,12 @@ pub fn invariant(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
+pub fn invariant_twostate(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
 pub fn ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
@@ -77,6 +83,18 @@ pub fn prusti_refute(_tokens: TokenStream) -> TokenStream {
 }
 
 #[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn produces(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn consumes(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
@@ -128,6 +146,12 @@ pub fn terminates(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn body_variant(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn resource(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
 }
 
 // ----------------------
@@ -209,6 +233,18 @@ pub fn prusti_refute(tokens: TokenStream) -> TokenStream {
 
 #[cfg(feature = "prusti")]
 #[proc_macro]
+pub fn produces(tokens: TokenStream) -> TokenStream {
+    prusti_specs::produces(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn consumes(tokens: TokenStream) -> TokenStream {
+    prusti_specs::consumes(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
 pub fn closure(tokens: TokenStream) -> TokenStream {
     prusti_specs::closure(tokens.into()).into()
 }
@@ -228,7 +264,13 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[cfg(feature = "prusti")]
 #[proc_macro_attribute]
 pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::invariant(attr.into(), tokens.into()).into()
+    prusti_specs::invariant(attr.into(), tokens.into(), false).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn invariant_twostate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::invariant(attr.into(), tokens.into(), true).into()
 }
 
 #[cfg(feature = "prusti")]
@@ -271,6 +313,16 @@ pub fn terminates(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn body_variant(tokens: TokenStream) -> TokenStream {
     prusti_specs::body_variant(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn resource(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::type_resource(
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
 }
 
 // Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`

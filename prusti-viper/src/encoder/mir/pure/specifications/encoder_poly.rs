@@ -97,7 +97,8 @@ pub(super) fn inline_spec_item<'tcx>(
         .get_expression_body(def_id, substs, parent_def_id);
     assert_eq!(
         mir.arg_count,
-        target_args.len() + usize::from(target_return.is_some())
+        target_args.len() + usize::from(target_return.is_some()),
+        "Mir {mir:?} argument count mismatch"
     );
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];

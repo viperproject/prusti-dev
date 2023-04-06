@@ -39,6 +39,7 @@ pub enum Type {
     Projection(Projection),
     Unsupported(Unsupported),
     Trusted(Trusted),
+    Rational
 }
 
 #[derive(Copy)]

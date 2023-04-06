@@ -2,7 +2,7 @@ use crate::{
     environment::Environment,
     utils::{
         has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, has_to_model_fn_attr,
-        read_prusti_attr, read_prusti_attrs,
+        read_prusti_attr, read_prusti_attrs, has_resource_attr,
     },
     PrustiError,
 };
@@ -60,6 +60,7 @@ impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
 #[derive(Debug, Default)]
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
+    twostate_invariants: Vec<LocalDefId>,
     trusted: bool,
     model: Option<(String, LocalDefId)>,
     countexample_print: Vec<(Option<String>, LocalDefId)>,
@@ -84,8 +85,11 @@ pub struct SpecCollector<'a, 'tcx> {
     prusti_assertions: Vec<LocalDefId>,
     prusti_assumptions: Vec<LocalDefId>,
     prusti_refutations: Vec<LocalDefId>,
+    prusti_inhales: Vec<LocalDefId>,
+    prusti_exhales: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
     ghost_end: Vec<LocalDefId>,
+    resources: Vec<LocalDefId>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -101,8 +105,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             prusti_assertions: vec![],
             prusti_assumptions: vec![],
             prusti_refutations: vec![],
+            prusti_inhales: vec![],
+            prusti_exhales: vec![],
             ghost_begin: vec![],
             ghost_end: vec![],
+            resources: vec![],
         }
     }
 
@@ -119,9 +126,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
+        self.determine_resources(&mut def_spec);
         self.determine_prusti_assertions(&mut def_spec);
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
+        self.determine_prusti_inhales(&mut def_spec);
+        self.determine_prusti_exhales(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
@@ -229,6 +239,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
+    fn determine_resources(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for local_id in self.resources.iter() {
+            def_spec.resources.insert(local_id.to_def_id());
+        }
+    }
+
     fn determine_type_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (type_id, refs) in self.type_specs.iter() {
             if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
@@ -244,6 +260,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 type_id.to_def_id(),
                 typed::TypeSpecification {
                     source: type_id.to_def_id(),
+                    twostate_invariant: SpecificationItem::Inherent(
+                        refs.twostate_invariants
+                            .clone()
+                            .into_iter()
+                            .map(LocalDefId::to_def_id)
+                            .collect(),
+                    ),
                     invariant: SpecificationItem::Inherent(
                         refs.invariants
                             .clone()
@@ -278,12 +301,34 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             );
         }
     }
+
     fn determine_prusti_refutations(&self, def_spec: &mut typed::DefSpecificationMap) {
         for local_id in self.prusti_refutations.iter() {
             def_spec.prusti_refutations.insert(
                 local_id.to_def_id(),
                 typed::PrustiRefutation {
                     refutation: *local_id,
+                },
+            );
+        }
+    }
+
+    fn determine_prusti_inhales(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for local_id in self.prusti_inhales.iter() {
+            def_spec.prusti_inhales.insert(
+                local_id.to_def_id(),
+                typed::PrustiInhale {
+                    inhale: *local_id,
+                },
+            );
+        }
+    }
+    fn determine_prusti_exhales(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for local_id in self.prusti_exhales.iter() {
+            def_spec.prusti_exhales.insert(
+                local_id.to_def_id(),
+                typed::PrustiExhale {
+                    exhale: *local_id,
                 },
             );
         }
@@ -449,6 +494,16 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         self.env.query.hir()
     }
 
+    fn visit_item(&mut self, si: &'tcx prusti_rustc_interface::hir::Item) {
+        intravisit::walk_item(self, si);
+        let id = si.hir_id();
+        let local_id = self.env.query.as_local_def_id(id);
+        let attrs = self.env.query.get_local_attributes(id);
+        if has_resource_attr(attrs) {
+            self.resources.push(local_id);
+        }
+    }
+
     fn visit_trait_item(&mut self, ti: &'tcx prusti_rustc_interface::hir::TraitItem) {
         intravisit::walk_trait_item(self, ti);
 
@@ -489,15 +544,29 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.loop_variants.push(local_id);
             }
 
-            // TODO: (invariants and trusted flag) visit the struct itself?
-            // For now, a method is used to mark the type as "trusted".
-
-            // Collect type invariants
-            if has_prusti_attr(attrs, "type_invariant_spec") {
+            let get_type_id = || {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let hir = self.env.query.hir();
                 let impl_id = hir.parent_id(hir.parent_id(self_id));
-                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                get_type_id_from_impl_node(hir.get(impl_id)).unwrap()
+            };
+
+            // TODO: (invariants and trusted flag) visit the struct itself?
+            // For now, a method is used to mark the type as "trusted".
+            //
+            // Collect 2-state type invariants
+            if has_prusti_attr(attrs, "type_twostate_invariant_spec") {
+                let type_id = get_type_id();
+                self.type_specs
+                    .entry(type_id.as_local().unwrap())
+                    .or_default()
+                    .twostate_invariants
+                    .push(local_id);
+            }
+
+            // Collect type invariants
+            if has_prusti_attr(attrs, "type_invariant_spec") {
+                let type_id = get_type_id();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
                     .or_default()
@@ -507,10 +576,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             // Collect trusted type flag
             if has_prusti_attr(attrs, "trusted_type") {
-                let self_id = fn_decl.inputs[0].hir_id;
-                let hir = self.env.query.hir();
-                let impl_id = hir.parent_id(hir.parent_id(self_id));
-                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                let type_id = get_type_id();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
                     .or_default()
@@ -519,11 +585,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             //collect counterexamples type flag
             if has_prusti_attr(attrs, "counterexample_print") {
-                let self_id = fn_decl.inputs[0].hir_id;
                 let name = read_prusti_attr("counterexample_print", attrs);
-                let hir = self.env.query.hir();
-                let impl_id = hir.parent_id(hir.parent_id(self_id));
-                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                let type_id = get_type_id();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
                     .or_default()
@@ -541,6 +604,14 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             if has_prusti_attr(attrs, "prusti_refutation") {
                 self.prusti_refutations.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "produces") {
+                self.prusti_inhales.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "consumes") {
+                self.prusti_exhales.push(local_id);
             }
 
             if has_prusti_attr(attrs, "ghost_begin") {

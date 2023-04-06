@@ -78,10 +78,7 @@ impl ast::StmtFolder for StmtOptimizer {
         ast::Stmt::inhale(expr.optimize())
     }
     fn fold_assert(&mut self, ast::Assert { expr, position }: ast::Assert) -> ast::Stmt {
-        ast::Stmt::Assert(ast::Assert {
-            expr: expr.optimize(),
-            position,
-        })
+        ast::Stmt::assert(expr.optimize(), position)
     }
     fn fold_exhale(&mut self, ast::Exhale { expr, position }: ast::Exhale) -> ast::Stmt {
         ast::Stmt::Exhale(ast::Exhale {

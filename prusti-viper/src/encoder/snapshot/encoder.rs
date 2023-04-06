@@ -240,6 +240,7 @@ impl SnapshotEncoder {
             | Type::Int
             | Type::Map(..)
             | Type::Seq(..)
+            | Type::Rational
             | Type::Float(_) => Ok(expr),
 
             _ => Err(EncodingError::internal(

@@ -63,7 +63,7 @@ impl ExprBackwardInterpreterState {
         if let Some(curr_expr) = self.expr.as_mut() {
             // Replace two times to avoid cloning `expr`, which could be big.
             let expr = mem::replace(curr_expr, true.into());
-            let new_expr = expr.replace_place(&target, &replacement).simplify_addr_of();
+            let new_expr = expr.replace_place(&target, &replacement).simplify();
             let _ = mem::replace(curr_expr, new_expr);
         }
     }

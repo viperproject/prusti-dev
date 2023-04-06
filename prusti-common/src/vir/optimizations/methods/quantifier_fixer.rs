@@ -100,6 +100,16 @@ impl vir::ExprFolder for Optimizer {
         let mut replacer = Replacer::new(&variables, &mut self.counter);
         let replaced_body = replacer.fold_boxed(folded_body);
         debug!("replaced body: {}", replaced_body);
+        if cfg!(debug_assertions) {
+            for (expr, _) in &replacer.map {
+                for var in &variables {
+                    debug_assert!(
+                        !expr.find(&vir::Expr::local(var.clone())),
+                        "Expression {expr} contains quantified variable {var}, cannot lift out"
+                    );
+                }
+            }
+        }
         let mut forall = vir::Expr::ForAll(vir::ForAll {
             variables,
             triggers,
@@ -174,6 +184,10 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
             position,
         }: vir::LabelledOld,
     ) -> vir::Expr {
+        match base {
+            box vir::Expr::Local(_) => return *base, // TODO: This should be fixed earlier
+            _ => {}
+        }
         let original_expr = vir::Expr::LabelledOld(vir::LabelledOld {
             label,
             base: base.clone(),

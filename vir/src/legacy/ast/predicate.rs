@@ -6,13 +6,15 @@
 
 use crate::{common::identifier::WithIdentifier, enum_predicate, legacy::ast::*};
 use rustc_hash::FxHashSet;
-use std::fmt;
+use std::{collections::HashSet, fmt};
+use itertools::Itertools;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(String, LocalVar),
+    Resource(String, Vec<LocalVar>),
 }
 
 impl fmt::Display for Predicate {
@@ -21,6 +23,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{p}"),
             Predicate::Enum(p) => write!(f, "{p}"),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
+            Predicate::Resource(name, args) => write!(f, "resource_predicate {}({});", name, args.iter().format(", ")),
         }
     }
 }
@@ -105,6 +108,7 @@ impl Predicate {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
+            Predicate::Resource(..) => unreachable!("No self for resource"),
         }
     }
     /// The predicate name getter.
@@ -113,6 +117,7 @@ impl Predicate {
             Predicate::Struct(p) => &p.name,
             Predicate::Enum(p) => &p.name,
             Predicate::Bodyless(ref name, _) => name,
+            Predicate::Resource(ref name, _) => name,
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -120,6 +125,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
+            Predicate::Resource(_, _) => None,
         }
     }
 
@@ -130,6 +136,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions(visitor),
             Predicate::Enum(p) => p.visit_expressions(visitor),
             Predicate::Bodyless(..) => {}
+            Predicate::Resource(..) => {}
         }
     }
 
@@ -140,6 +147,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions_mut(visitor),
             Predicate::Enum(p) => p.visit_expressions_mut(visitor),
             Predicate::Bodyless(..) => {}
+            Predicate::Resource(..) => {}
         }
     }
 }
@@ -150,6 +158,7 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(name, _) => name.clone(),
+            Predicate::Resource(name, _) => name.clone(),
         }
     }
 }

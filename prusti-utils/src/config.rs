@@ -103,7 +103,7 @@ lazy_static::lazy_static! {
         settings.set_default("quiet", false).unwrap();
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
-        settings.set_default("use_more_complete_exhale", true).unwrap();
+        settings.set_default("use_more_complete_exhale", false).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();

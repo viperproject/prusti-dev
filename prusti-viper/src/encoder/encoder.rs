@@ -42,6 +42,7 @@ use crate::encoder::purifier;
 use super::builtin_encoder::BuiltinDomainKind;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
+use super::mir::type_invariants::TypeInvariantEncoderInterface;
 use super::mir::{
     sequences::{
         MirSequencesEncoderState, MirSequencesEncoderInterface,
@@ -119,6 +120,18 @@ pub enum EncodingTask<'tcx> {
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
    format!("f${}", field_name.trim_start_matches("r#"))
+}
+
+pub fn perm_amount_from_int(
+    expr: &vir::Expr
+) -> vir::Expr {
+    debug_assert!(expr.get_type() == &vir::Type::Int);
+    let frac = vir::Frac {
+        top: Box::new(expr.clone()),
+        bottom: Box::new(1.into()),
+        position: expr.pos(),
+    };
+    vir::Expr::Frac(frac)
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -791,6 +804,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 }
                 EncodingTask::Type { ty } => {
+                    // TODO
+                    // match self.encode_twostate_invariant_reflexivity_expr(ty) {
+                    //     Ok(expr) => {
+                    //         let cfg_method = vir::CfgMethod::new("foo", vec![], vec![], vec![]);
+                    //         cfg_method.add_block("Init", vec![vir::Stmt::assert(expr, vir::Position::default())]);
+                    //         let program = super::definition_collector::collect_definitions(error_span, self, "foo", self.get_used_viper_methods());
+                    //         self.programs.push(program);
+                    //     }
+                    //     Err(error) => { panic!("{error:?}"); /* TODO */ }
+                    // }
                     if config::unsafe_core_proof() && config::verify_core_proof() && config::verify_types() {
                         if let Err(error) = self.encode_core_proof_for_type(ty, CheckMode::CoreProof) {
                             self.register_encoding_error(error);

@@ -285,6 +285,14 @@ fn get_all_required_expr_permissions(
             reqs.extend(inner_reqs);
             discr.extend(inner_discr);
         }
+        | vir::Expr::Acc(vir::Acc {
+            argument: inner,
+            ..
+        }) => {
+            let (inner_reqs, inner_discr) = get_all_required_expr_permissions(inner, preds);
+            reqs.extend(inner_reqs);
+            discr.extend(inner_discr);
+        }
 
         vir::Expr::BinOp(vir::BinOp {
             left,
@@ -417,7 +425,7 @@ impl RequiredExprPermissionsGetter for vir::Expr {
                 box argument,
                 ..
             }) => {
-                debug_assert!(argument.is_place());
+                // debug_assert!(argument.is_place());
                 Some(Pred(argument.clone(), PermAmount::Read))
                     .into_iter()
                     .collect()

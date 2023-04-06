@@ -14,7 +14,7 @@ use crate::environment::{borrowck::facts::BorrowckFacts, mir_storage};
 
 /// Stores any possible MIR body (from the compiler) that
 /// Prusti might want to work with. Cheap to clone
-#[derive(Clone, TyEncodable, TyDecodable)]
+#[derive(Clone, TyEncodable, TyDecodable, Debug)]
 pub struct MirBody<'tcx>(Rc<mir::Body<'tcx>>);
 impl<'tcx> std::ops::Deref for MirBody<'tcx> {
     type Target = mir::Body<'tcx>;

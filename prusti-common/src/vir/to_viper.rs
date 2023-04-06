@@ -102,6 +102,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
         match self {
             Type::Int => ast.int_type(),
             Type::Bool => ast.bool_type(),
+            Type::Rational => ast.perm_type(),
             Type::Ref | Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${name}"), &[], &[]),
@@ -176,6 +177,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.exhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
             Stmt::Assert(ref expr, ref pos) => {
+                // debug_assert!(expr.is_pure(), "Asserted expression {expr} is not pure");
                 ast.assert(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
             Stmt::Refute(ref expr, ref pos) => {
@@ -407,6 +409,32 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     perm.to_viper(context, ast),
                     pos.to_viper(context, ast),
                 ),
+            Expr::Acc(predicate_name, box arg, perm, ref pos) => {
+                if let Expr::DomainFuncApp(_, args, _) = arg {
+                    let args: Vec<_> = args.iter().map(|a| a.to_viper(context, ast)).collect();
+                    ast.predicate_access_predicate_with_pos(
+                        ast.predicate_access(args.as_slice(), predicate_name),
+                        perm.to_viper(context, ast),
+                        pos.to_viper(context, ast),
+                    )
+                } else {
+                    unreachable!(
+                        "Argument to acc() should have been a DomainFuncApp, was {:?}", arg
+                    )
+                }
+            }
+            Expr::Perm(predicate_name, box arg, _) => {
+                if let Expr::DomainFuncApp(_, args, _) = arg {
+                    let args: Vec<_> = args.iter().map(|a| a.to_viper(context, ast)).collect();
+                    ast.current_perm(
+                        ast.predicate_access(args.as_slice(), predicate_name)
+                    )
+                } else {
+                    unreachable!(
+                        "Argument to perm() should have been a DomainFuncApp, was {:?}", arg
+                    )
+                }
+            }
             Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
                 .field_access_predicate_with_pos(
                     loc.to_viper(context, ast),
@@ -532,6 +560,37 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                         }
                     }
                 }
+                Some(Type::Rational) => match op {
+                    BinaryOpKind::GeCmp => ast.ge_cmp_with_pos(
+                        left.to_viper(context, ast),
+                        right.to_viper(context, ast),
+                        pos.to_viper(context, ast),
+                    ),
+                    BinaryOpKind::LeCmp => ast.le_cmp_with_pos(
+                        left.to_viper(context, ast),
+                        right.to_viper(context, ast),
+                        pos.to_viper(context, ast),
+                    ),
+                    BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
+                        left.to_viper(context, ast),
+                        right.to_viper(context, ast),
+                        pos.to_viper(context, ast),
+                    ),
+                    BinaryOpKind::NeCmp => ast.ne_cmp_with_pos(
+                        left.to_viper(context, ast),
+                        right.to_viper(context, ast),
+                        pos.to_viper(context, ast),
+                    ),
+                    BinaryOpKind::Sub => ast.perm_sub(
+                        left.to_viper(context, ast),
+                        right.to_viper(context, ast),
+                    ),
+                    BinaryOpKind::Add => ast.perm_add(
+                        left.to_viper(context, ast),
+                        right.to_viper(context, ast),
+                    ),
+                    _ => todo!("Don't know how to support op {op} for Rational values")
+                },
                 typ => match op {
                     BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
                         left.to_viper(context, ast),
@@ -739,6 +798,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             }*/
             Expr::Cast(kind, base, position) => match kind {
+                CastKind::ToViperInt => base.to_viper(context, ast),
                 CastKind::BVIntoInt(signed_size) => match signed_size {
                     BitVector::Signed(size) => {
                         unsigned_bv_to_signed_int(context, ast, *size, base, *position)
@@ -753,6 +813,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.int_to_backend_bv(size, base.to_viper(context, ast))
                 }
             },
+            Expr::Frac(top, bottom, _) => {
+                ast.fractional_perm(top.to_viper(context, ast), bottom.to_viper(context, ast))
+            }
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
@@ -814,6 +877,11 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
             Predicate::Enum(p) => p.to_viper(context, ast),
             Predicate::Bodyless(name, this) => {
                 ast.predicate(name, &[this.to_viper_decl(context, ast)], None)
+            }
+            Predicate::Resource(name, args) => {
+                let viper_args: Vec<_> =
+                    args.iter().map(|t| t.to_viper_decl(context, ast)).collect();
+                ast.predicate(name, viper_args.as_slice(), None)
             }
         }
     }

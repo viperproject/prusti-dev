@@ -194,6 +194,7 @@ pub enum Type {
     Snapshot(SnapshotType),
     // For type substitution
     TypeVar(TypeVar),
+    Rational,
 }
 
 impl fmt::Display for Type {
@@ -211,6 +212,7 @@ impl fmt::Display for Type {
             Type::Domain(_) => write!(f, "Domain({})", self.encode_as_string()),
             Type::Snapshot(_) => write!(f, "Snapshot({})", self.encode_as_string()),
             Type::TypeVar(type_var) => type_var.fmt(f),
+            Type::Rational => write!(f, "Rational")
         }
     }
 }
@@ -255,6 +257,7 @@ impl Type {
 
     pub fn name(&self) -> String {
         match self {
+            Type::Rational => "rational".to_string(),
             Type::Bool => "bool".to_string(),
             Type::Int => "int".to_string(),
             Type::Ref => "ref".to_string(),
@@ -367,6 +370,7 @@ impl Type {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
             Type::Ref => TypeId::Ref,
+            Type::Rational => todo!(),
             Type::Float(_) => TypeId::Float,
             Type::BitVector(_) => TypeId::BitVector,
             Type::TypedRef(_) => TypeId::Ref,

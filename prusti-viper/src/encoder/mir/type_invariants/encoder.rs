@@ -1,18 +1,18 @@
 use super::interface::TypeInvariantEncoderInterface;
 use crate::encoder::{
-    errors::EncodingResult,
+    errors::{EncodingResult, EncodingError, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     mir::{
         pure::SpecificationEncoderInterface, specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     snapshot::interface::SnapshotEncoderInterface,
-    Encoder,
+    Encoder, mir_encoder::PRECONDITION_LABEL,
 };
 use prusti_common::{vir_expr, vir_local};
 use prusti_interface::specs::typed;
 use prusti_rustc_interface::{middle::ty, target::abi::Integer};
-use vir_crate::polymorphic::{self as vir, ExprIterator};
+use vir_crate::polymorphic::{self as vir, ExprFolder, ExprIterator};
 
 pub(super) fn needs_invariant_func(ty: ty::Ty<'_>) -> bool {
     match ty.kind() {
@@ -49,6 +49,152 @@ pub(super) fn encode_invariant_stub<'p, 'v: 'p, 'tcx: 'v>(
     ty: ty::Ty<'tcx>,
 ) -> EncodingResult<vir::Function> {
     encode_invariant_func_base(encoder, ty, None)
+}
+
+fn replace_old_expr_with(expr: &vir::Expr, from: &vir::LocalVar, to: &vir::LocalVar) -> vir::Expr {
+    struct ReplaceOldFolder<'a> { from: &'a vir::LocalVar, to: &'a vir::LocalVar }
+    impl <'a> ExprFolder for ReplaceOldFolder<'a> {
+        fn fold_labelled_old(&mut self, expr: vir::LabelledOld) -> vir::Expr {
+            expr.base.fold_expr(|e|
+                match e {
+                    vir::Expr::Local(local) if &local.variable == self.from =>
+                        vir::Expr::local(self.to.clone()),
+                    _ => e
+                }
+            )
+        }
+    }
+    ReplaceOldFolder { from, to }.fold(expr.clone())
+}
+
+pub (super) fn encode_twostate_invariant_reflexivity_expr<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    ty: ty::Ty<'tcx>,
+) -> EncodingResult<vir::Expr> {
+    let mut conjuncts: Vec<vir::Expr> = vec![];
+    match ty.kind() {
+        ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() || adt_def.is_enum() => {
+            if let Some(specs) = encoder.get_type_specs(adt_def.did()) {
+                match &specs.twostate_invariant {
+                    typed::SpecificationItem::Empty => {}
+                    typed::SpecificationItem::Inherent(invs) => {
+                        conjuncts.extend(
+                            invs.iter()
+                                .map(|inherent_def_id| {
+                                    let arg = vir::LocalVar{
+                                        name: "tmp".to_string(),
+                                        typ: encoder.encode_type(ty)?
+                                    };
+                                    let base_assertion = encoder.encode_assertion(
+                                            inherent_def_id,
+                                            None,
+                                            &[arg.clone().into()],
+                                            None,
+                                            true,
+                                            *inherent_def_id,
+                                            substs,
+                                    )?;
+                                    let arg2 = vir::LocalVar{
+                                        name: "tmp2".to_string(),
+                                        typ: encoder.encode_type(ty)?
+                                    };
+                                    let impl_lhs = vir::Expr::exists(
+                                            vec![arg2.clone()],
+                                            vec![],
+                                            replace_old_expr_with(&base_assertion, &arg, &arg2)
+                                        );
+
+                                    let impl_rhs = replace_old_expr_with(&base_assertion, &arg, &arg);
+
+                                    Ok::<vir::Expr, EncodingError>(vir::Expr::forall(
+                                        vec![arg.clone()],
+                                        vec![],
+                                        vir::Expr::implies(impl_lhs, impl_rhs)
+                                    ))
+                                })
+                                .collect::<Result<Vec<_>, _>>()?,
+                            )
+                    }
+                    _ => todo!(),
+                }
+            }
+        }
+
+        _ => {}, // TODO?
+    };
+    Ok(conjuncts.into_iter().conjoin())
+}
+
+pub (super) fn encode_twostate_invariant_expr<'p, 'v: 'p, 'tcx: 'v>(
+    pre_label: Option<&str>,
+    encoder: &'p Encoder<'v, 'tcx>,
+    ty: ty::Ty<'tcx>,
+    encoded_arg: vir::Expr,
+) -> EncodingResult<vir::Expr> {
+    let mut conjuncts = vec![];
+    match ty.kind() {
+        ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() || adt_def.is_enum() => {
+            if let Some(specs) = encoder.get_type_specs(adt_def.did()) {
+                match &specs.twostate_invariant {
+                    typed::SpecificationItem::Empty => {}
+                    typed::SpecificationItem::Inherent(invs) => {
+                        let arg = match pre_label {
+                            Some(label) => vir::Expr::labelled_old(label, encoded_arg.clone()),
+                            None        => encoded_arg.clone()
+                        };
+                        conjuncts.extend(
+                            invs.iter()
+                                .map(|inherent_def_id| {
+                                    let assertion = encoder.encode_assertion(
+                                        inherent_def_id,
+                                        pre_label,
+                                        &[arg.clone()],
+                                        None,
+                                        true,
+                                        *inherent_def_id,
+                                        substs,
+                                    )?;
+                                    let result: SpannedEncodingResult<vir::Expr> = Ok(if pre_label.is_none() {
+                                        assertion.fold_expr(|e| {
+                                            match e {
+                                                vir::Expr::LabelledOld(e) if e.label == PRECONDITION_LABEL => *e.base,
+                                                _ => e
+                                            }
+                                        })
+                                    } else {
+                                        assertion
+                                    });
+                                    result
+                                })
+                                .collect::<Result<Vec<_>, _>>()?,
+                        )
+                    }
+                    _ => todo!(),
+                }
+            }
+        }
+
+        // other types should not make it here because of `needs_invariant_func`
+        _ => unreachable!("{ty:?}"),
+    };
+    let expr = conjuncts.into_iter().conjoin();
+    struct RemoveOldFolder(Option<String>);
+    impl ExprFolder for RemoveOldFolder {
+        fn fold_labelled_old(&mut self, expr: vir::LabelledOld) -> vir::Expr {
+            match &self.0 {
+                Some(label) if label == &expr.label => vir::default_fold_expr(self, *expr.base),
+                _ => vir::Expr::LabelledOld(
+                    vir::LabelledOld {
+                        label: expr.label.clone(),
+                        base: box RemoveOldFolder(Some(expr.label.clone())).fold(*expr.base),
+                        position: expr.position
+                    })
+            }
+        }
+    }
+    let expr = RemoveOldFolder(None).fold(expr);
+    let expr = encoder.patch_snapshots(expr)?;
+    Ok(expr)
 }
 
 pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(

@@ -31,7 +31,12 @@ impl Generic for BodylessMethod {
 impl Generic for Type {
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         match self {
-            Type::Bool | Type::Int | Type::Ref | Type::Float(..) | Type::BitVector(..) => self,
+            Type::Bool
+                | Type::Int
+                | Type::Ref
+                | Type::Float(..)
+                | Type::BitVector(..)
+                | Type::Rational => self,
             Type::Seq(mut seq) => {
                 let typ = *seq.typ;
                 *seq.typ = typ.substitute(map);
@@ -148,6 +153,9 @@ impl Generic for Expr {
             Expr::PredicateAccessPredicate(predicate_access_predicate) => {
                 Expr::PredicateAccessPredicate(predicate_access_predicate.substitute(map))
             }
+            Expr::Acc(acc) => {
+                Expr::Acc(acc.substitute(map))
+            }
             Expr::FieldAccessPredicate(field_access_predicate) => {
                 Expr::FieldAccessPredicate(field_access_predicate.substitute(map))
             }
@@ -169,7 +177,15 @@ impl Generic for Expr {
             Expr::Downcast(down_cast) => Expr::Downcast(down_cast.substitute(map)),
             Expr::SnapApp(snap_app) => Expr::SnapApp(snap_app.substitute(map)),
             Expr::Cast(cast) => Expr::Cast(cast.substitute(map)),
+            Expr::Frac(frac) => Expr::Frac(frac.substitute(map)),
+            Expr::Perm(perm) => Expr::Perm(perm.substitute(map)),
         }
+    }
+}
+
+impl Generic for Frac {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
+        unimplemented!()
     }
 }
 
@@ -237,6 +253,26 @@ impl Generic for PredicateAccessPredicate {
         let mut predicate_access_predicate = self;
         *predicate_access_predicate.argument = predicate_access_predicate.argument.substitute(map);
         predicate_access_predicate
+    }
+}
+
+impl Generic for Acc {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
+        // TODO
+        unimplemented!()
+        // let mut acc = self;
+        // *acc.arguments = acc.arguments.substitute(map);
+        // acc
+    }
+}
+
+impl Generic for Perm {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
+        // TODO
+        unimplemented!()
+        // let mut acc = self;
+        // *acc.arguments = acc.arguments.substitute(map);
+        // acc
     }
 }
 
@@ -472,6 +508,9 @@ impl Generic for Predicate {
             Predicate::Enum(enum_predicate) => Predicate::Enum(enum_predicate.substitute(map)),
             Predicate::Bodyless(label, local_var) => {
                 Predicate::Bodyless(label, local_var.substitute(map))
+            },
+            Predicate::Resource(_, _) => {
+                unreachable!()
             }
         }
     }

@@ -281,6 +281,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     return Ok(false);
                 }
             }
+            "prusti_contracts::PermAmount::from_int" => {
+                todo!()
+            }
             _ => return Ok(false),
         };
         Ok(true)

@@ -1,5 +1,6 @@
 use crate::{
     encoder::{
+        encoder::perm_amount_from_int,
         builtin_encoder::BuiltinFunctionKind,
         errors::{
             EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan,
@@ -23,9 +24,9 @@ use crate::{
             MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL,
         },
         snapshot::interface::SnapshotEncoderInterface,
-        Encoder,
+        Encoder
     },
-    error_unsupported,
+    error_unsupported
 };
 use log::{debug, trace};
 use prusti_common::vir_local;
@@ -50,6 +51,9 @@ pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     caller_def_id: DefId,
     def_id: DefId, // TODO(tymap): is this actually caller_def_id?
 }
+
+const PERM_AMOUNT_TYPENAME: &str = "prusti_contracts::PermAmount";
+const INT_TYPENAME: &str = "prusti_contracts::Int";
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
@@ -576,6 +580,80 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state
                             }
 
+                            "prusti_contracts::Int::new" => {
+
+                                let expr = vir::Expr::Cast(
+                                    vir::Cast {
+                                       base: box encoded_args[0].clone(),
+                                       kind: vir::CastKind::ToViperInt,
+                                       position: encoded_args[0].pos(),
+                                    }
+                                );
+
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, expr);
+                                state
+
+                            }
+
+                            "std::ops::Add::add" if call_substs.type_at(0).to_string() == PERM_AMOUNT_TYPENAME || call_substs.type_at(0).to_string() == INT_TYPENAME
+                                => {
+                                let expr = vir::Expr::add(
+                                    encoded_args[0].clone(),
+                                    encoded_args[1].clone()
+                                );
+
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, expr);
+                                state
+                            }
+
+                            "std::ops::Sub::sub" if call_substs.type_at(0).to_string() == PERM_AMOUNT_TYPENAME => {
+                                let expr = vir::Expr::sub(
+                                    encoded_args[0].clone(),
+                                    encoded_args[1].clone()
+                                );
+
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, expr);
+                                state
+                            }
+
+                            "std::cmp::PartialOrd::ge" if call_substs.type_at(0).to_string() == PERM_AMOUNT_TYPENAME => {
+                                let expr = vir::Expr::ge_cmp(
+                                    encoded_args[0].clone(),
+                                    encoded_args[1].clone()
+                                );
+
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, expr);
+                                state
+                            }
+
+                            "std::cmp::PartialOrd::le" if call_substs.type_at(0).to_string() == PERM_AMOUNT_TYPENAME => {
+                                let expr = vir::Expr::le_cmp(
+                                    encoded_args[0].clone(),
+                                    encoded_args[1].clone()
+                                );
+
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, expr);
+                                state
+                            }
+
+                            "std::convert::From::from" 
+                                if call_substs.type_at(0).to_string() == PERM_AMOUNT_TYPENAME &&
+                                   call_substs.type_at(1).to_string() == "u32" => {
+
+                                let expr = match encoded_args[0].get_type() {
+                                    vir::Type::Int => perm_amount_from_int(&encoded_args[0]),
+                                    other => unimplemented!("Unexpected permission amount type {:?}", other)
+                                };
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, expr);
+                                state
+                            }
+
                             // Prusti-specific syntax
                             // TODO: check we are in a spec function
                             "prusti_contracts::exists"
@@ -583,7 +661,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             | "prusti_contracts::specification_entailment"
                             | "prusti_contracts::call_description"
                             | "prusti_contracts::snap"
-                            | "prusti_contracts::snapshot_equality" => {
+                            | "prusti_contracts::snapshot_equality"
+                            | "prusti_contracts::transfers"
+                            | "prusti_contracts::holds" => {
                                 let expr = self.encoder.encode_prusti_operation(
                                     full_func_proc_name,
                                     span,

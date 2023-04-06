@@ -104,6 +104,7 @@ impl From<polymorphic::Type> for legacy::Type {
             }
             polymorphic::Type::Domain(_) => legacy::Type::Domain(typ.encode_as_string()),
             polymorphic::Type::Snapshot(_) => legacy::Type::Snapshot(typ.encode_as_string()),
+            polymorphic::Type::Rational => legacy::Type::Rational
         }
     }
 }
@@ -268,6 +269,21 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     predicate_access_predicate.position.into(),
                 )
             }
+            polymorphic::Expr::Acc(acc) => {
+                legacy::Expr::Acc(
+                    acc.predicate_name,
+                    Box::new((*acc.argument).into()),
+                    Box::new((*acc.permission).into()),
+                    acc.position.into()
+                )
+            }
+            polymorphic::Expr::Perm(perm) => {
+                legacy::Expr::Perm(
+                    perm.predicate_name,
+                    Box::new((*perm.argument).into()),
+                    perm.position.into()
+                )
+            }
             polymorphic::Expr::FieldAccessPredicate(field_access_predicate) => {
                 legacy::Expr::FieldAccessPredicate(
                     Box::new((*field_access_predicate.base).into()),
@@ -406,6 +422,11 @@ impl From<polymorphic::Expr> for legacy::Expr {
                 Box::new((*cast.base).into()),
                 cast.position.into(),
             ),
+            polymorphic::Expr::Frac(frac) => legacy::Expr::Frac(
+                Box::new((*frac.top).into()),
+                Box::new((*frac.bottom).into()),
+                frac.position.into(),
+            )
         }
     }
 }
@@ -474,6 +495,7 @@ impl From<polymorphic::ContainerOpKind> for legacy::ContainerOpKind {
 impl From<polymorphic::CastKind> for legacy::CastKind {
     fn from(container_op_kind: polymorphic::CastKind) -> legacy::CastKind {
         match container_op_kind {
+            polymorphic::CastKind::ToViperInt      => legacy::CastKind::ToViperInt,
             polymorphic::CastKind::BVIntoInt(size) => legacy::CastKind::BVIntoInt(size.into()),
             polymorphic::CastKind::IntIntoBV(size) => legacy::CastKind::IntIntoBV(size.into()),
         }
@@ -547,6 +569,10 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
             }
             polymorphic::Predicate::Bodyless(typ, local_var) => {
                 legacy::Predicate::Bodyless(typ.encode_as_string(), local_var.into())
+            }
+            polymorphic::Predicate::Resource(name, vars) => {
+                let vars = vars.into_iter().map(|t| t.into()).collect();
+                legacy::Predicate::Resource(name, vars)
             }
         }
     }

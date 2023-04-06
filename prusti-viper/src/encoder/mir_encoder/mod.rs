@@ -35,6 +35,7 @@ mod place_encoding;
 
 pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
+pub static START_LABEL: &str = "start";
 pub static PRECONDITION_LABEL: &str = "pre";
 pub static WAND_LHS_LABEL: &str = "lhs";
 

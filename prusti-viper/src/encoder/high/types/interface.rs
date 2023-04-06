@@ -80,12 +80,14 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterfacePrivate for super::super::super::Enco
                         predicate.to_string(),
                     );
                 }
-                assert!(self
-                    .high_type_encoder_state
-                    .viper_predicates
-                    .borrow_mut()
-                    .insert(predicate.get_type().clone(), predicate)
-                    .is_none());
+                if let Some(typ) = predicate.get_type().cloned() {
+                    assert!(self
+                        .high_type_encoder_state
+                        .viper_predicates
+                        .borrow_mut()
+                        .insert(typ, predicate)
+                        .is_none());
+                }
             }
         }
         Ok(())

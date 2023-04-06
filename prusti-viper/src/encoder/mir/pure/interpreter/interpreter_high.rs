@@ -593,7 +593,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 "new" => subst_with(encoded_args[0].clone()),
                 _ => unreachable!("no further Ghost functions."),
             };
-        }
+        }else if let Some(_) = proc_name.strip_prefix("prusti_contracts::PermAmount::") {
+            todo!();
+        };
 
         // replace all the operations on Ints
         if let Some(
