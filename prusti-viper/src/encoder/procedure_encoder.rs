@@ -1290,12 +1290,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     statement_index: 0,
                 };
                 let span = self.mir_encoder.get_span_of_location(location);
-                let bb_pos_expr_id = self.mir_encoder.register_span(span).id();
-                let bb_pos_expr = Position::new(-(bb_pos_expr_id as i32), 0, bb_pos_expr_id);
-                let bb_pos_stmt_id = self.register_error(span, ErrorCtxt::UnreachableCode).id();
-                let bb_pos_stmt = Position::new(-(bb_pos_stmt_id as i32), 0, bb_pos_stmt_id);
-                let refute_expr = vir::ast::Expr::Const(vir_crate::polymorphic::ConstExpr{value: vir_crate::polymorphic::Const::Bool(false), position: bb_pos_expr});
-                let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: bb_pos_stmt});
+                let expr_position = self.mir_encoder.register_span(span);
+                let stmt_position = self.register_error(span, ErrorCtxt::UnreachableCode);
+                let refute_expr = vir::ast::Expr::Const(vir_crate::polymorphic::ConstExpr{value: vir_crate::polymorphic::Const::Bool(false), position: expr_position});
+                let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: stmt_position});
                 self.cfg_method.add_stmt(curr_block, refute_stmt);
             }
         }
