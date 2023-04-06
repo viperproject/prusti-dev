@@ -1320,17 +1320,33 @@ impl Expr {
                     position,
                 }: Cond
             ) -> Expr {
-                match self.fold_boxed(guard) {
-                    box Expr::UnaryOp(expr) if expr.op_kind == UnaryOpKind::Not =>
-                        Expr::Cond(
+                let guard = self.fold_boxed(guard);
+                let then_expr = self.fold_boxed(then_expr);
+                let else_expr = self.fold_boxed(else_expr);
+                // eprintln!("fold_cond(IF: {}, THEN: {}, ELSE: {})", guard, then_expr, else_expr);
+                if *else_expr == true.into() {
+                    return Expr::BinOp(BinOp {
+                        op_kind: BinaryOpKind::Implies,
+                        left: guard,
+                        right: then_expr,
+                        position
+                    })
+                }
+                match guard {
+                    box Expr::UnaryOp(expr) if expr.op_kind == UnaryOpKind::Not => {
+                        // eprintln!("Swap {} {} to negate {}", then_expr, else_expr, expr.argument);
+                        let result = Expr::Cond(
                             Cond { guard: expr.argument,
-                                   then_expr: self.fold_boxed(else_expr),
-                                   else_expr: self.fold_boxed(then_expr),
-                                   position} ),
-                    guard => Expr::Cond(
+                                   then_expr: else_expr,
+                                   else_expr: then_expr,
+                                   position} );
+                        // eprintln!("Yields {}", result);
+                        result
+                        }
+                    _ => Expr::Cond(
                             Cond { guard,
-                                   then_expr: self.fold_boxed(then_expr),
-                                   else_expr: self.fold_boxed(else_expr),
+                                   then_expr,
+                                   else_expr,
                                    position}
                     )
 
@@ -1345,6 +1361,7 @@ impl Expr {
                     position
                 }: BinOp
             ) -> Expr {
+                // eprintln!("fold_bin_op: {} {} {}", op_kind, left, right);
                 if op_kind == BinaryOpKind::Or {
                     match left {
                         box Expr::UnaryOp(op) if op.op_kind == UnaryOpKind::Not => {
@@ -1361,10 +1378,33 @@ impl Expr {
                     }
                 }
 
-                if op_kind == BinaryOpKind::Implies && *left == true.into() {
-                    return *self.fold_boxed(right)
-                };
-
+                if op_kind == BinaryOpKind::Implies  {
+                    if *left == true.into() {
+                        return *self.fold_boxed(right)
+                    }
+                    match right {
+                        box Expr::BinOp(nested) if nested.op_kind == BinaryOpKind::Implies => {
+                            let condition = Expr::BinOp(
+                                BinOp {
+                                    op_kind: BinaryOpKind::And,
+                                    left: self.fold_boxed(left),
+                                    right: self.fold_boxed(nested.left),
+                                    position
+                                }
+                            );
+                            // eprintln!("Optimizing a thing!");
+                            return Expr::BinOp(
+                                BinOp {
+                                    op_kind: BinaryOpKind::Implies,
+                                    left: box self.fold(condition),
+                                    right: self.fold_boxed(nested.right),
+                                    position
+                                }
+                            );
+                        },
+                        _ => {}
+                    }
+                }
                 let left = self.fold_boxed(left);
                 let right = self.fold_boxed(right);
                 Expr::BinOp(BinOp { op_kind, left, right, position })
@@ -1410,7 +1450,10 @@ impl Expr {
                 }
             }
         }
-        Simplifier.fold(self)
+        // eprintln!("Going to simplify: {self}");
+        let result = Simplifier.fold(self);
+        // eprintln!("Simplified version: {result}");
+        result
     }
 
     // TODO polymorphic: convert following 2 functions after type substitution is updated
