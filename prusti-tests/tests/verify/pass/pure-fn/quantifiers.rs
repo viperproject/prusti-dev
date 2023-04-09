@@ -1,3 +1,5 @@
+// compile-flags: -Pdisable_function_unfold_trigger=false
+
 #![feature(nll)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]

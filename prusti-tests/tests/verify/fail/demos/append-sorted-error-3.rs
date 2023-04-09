@@ -1,3 +1,5 @@
+// compile-flags: -Pdisable_function_unfold_trigger=false
+
 #![feature(box_patterns, box_syntax)]
 use prusti_contracts::*;
 
