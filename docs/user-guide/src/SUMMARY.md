@@ -33,4 +33,5 @@
   - [Specification entailments](verify/spec_ent.md)
   - [Type models](verify/type-models.md)
   - [Counterexamples](verify/counterexample.md)
+  - [Specifications in `impl` blocks](verify/impl_block_specs.md)
 - [Specification Syntax](syntax.md)
