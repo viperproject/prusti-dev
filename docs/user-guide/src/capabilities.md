@@ -2,5 +2,5 @@
 
 This chapter documents capabilities and limitations of Prusti:
 
-- [Limitations of Prusti](capabilities/limitations.md)
-- [Supported Rust and verification features of Prusti](capabilities/supported.md)
+- [Supported Rust and verification features](capabilities/supported.md)
+- [Current Prusti limitations](capabilities/limitations.md)

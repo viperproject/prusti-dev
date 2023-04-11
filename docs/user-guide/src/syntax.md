@@ -4,12 +4,14 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 
 | Syntax | Meaning |
 | --- | --- |
+| [`result`](#result-variable) | Variable to refer to function return value in postcondition |
 | [`old(...)`](#old-expressions) | Value of expression in a previous state |
-| [`... ==> ...`](#implications) | Implication |
-| [`... <== ...`](#implications) | Implication |
+| [`... ==> ...`](#implications) | Right implication |
+| [`... <== ...`](#implications) | Left implication |
 | [`... <==> ...`](#implications) | Biconditional |
 | [`... === ...`](#snapshot-equality) | Snapshot equality |
 | [`... !== ...`](#snapshot-equality) | Snapshot inequality |
+| [`snap(...)`](#snap-function) | Snapshot function |
 | [`forall(...)`](#quantifiers) | Universal quantifier |
 | [`exists(...)`](#quantifiers) | Existential quantifier |
 | [<code>... &#x7C;= ...</code>](#specification-entailments) | Specification entailment |
@@ -18,7 +20,7 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 ## `result` Variable
 
 When using Prusti, `result` is used to refer to what a function returns.
-`result` can only be used inside a postcondition, meaning that variables called `result` used in a function need to be renamed.
+`result` can only be used inside a postcondition, meaning that function arguments called `result` need to be renamed.
 
 Here is an example for returning an integer:
 ```rust,noplaypen,ignore
@@ -198,35 +200,6 @@ and the syntax of existential ones:
 ```plain
 exists(|<bound variable>: <bound variable type>, ...| <expression>)
 ```
-
-## Adding specification in trait `impl` blocks
-
-Adding specifications to trait functions requires the `impl` block to be annotated with `#[refine_trait_spec]`:
-
-```rust,noplaypen,ignore
-# use prusti_contracts::*;
-# 
-trait TestTrait {
-    fn trait_fn(self) -> i64;
-}
-
-#[refine_trait_spec] // <== Add this annotation
-impl TestTrait for i64 {
-
-    // Cannot add these 2 specifications without `refine_trait_spec`:
-    #[requires(true)]
-    #[ensures(result >= 0)]
-    fn trait_fn(self) -> i64 {
-        5
-    }
-}
-```
-
-Note: Currently there is no clear error message when `#[refine_trait_spec]` is missing, you will just get an error message on the `requires` or the `ensures` like this one:
-```plain
-[E0407] method `prusti_pre_item_trait_fn_d5ce99cd719545e8adb9de778a953ec2` is not a member of trait `TestTrait`.
-```
-See [issue #625](https://github.com/viperproject/prusti-dev/issues/625) for more details.
 
 
 ## Specification entailments

@@ -33,6 +33,7 @@
   - [Specification entailments](verify/spec_ent.md)
   - [Type models](verify/type-models.md)
   - [Counterexamples](verify/counterexample.md)
+  - [Specifications in `impl` blocks](verify/impl_block_specs.md)
 - [Prusti capabilities summary](capabilities.md)
   - [Supported Rust and verification features](capabilities/supported.md)
   - [Current Prusti limitations](capabilities/limitations.md)
