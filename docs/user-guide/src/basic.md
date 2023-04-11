@@ -19,10 +19,16 @@ To run Prusti on a file using the command-line setup:
 prusti-rustc --edition=2018 path/to/file.rs
 ```
 
-To run Prusti on a Rust crate:
+Run this command from a crate or workspace root directory to verify it:
 
 ```sh
 cargo-prusti
+```
+
+If Prusti is in `$PATH`, it can also be run as a [Cargo subcommand](https://doc.rust-lang.org/stable/book/ch14-05-extending-cargo.html):
+
+```sh
+cargo prusti
 ```
 
 ## Introductory example
