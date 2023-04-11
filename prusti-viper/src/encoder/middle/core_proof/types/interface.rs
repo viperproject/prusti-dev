@@ -226,6 +226,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.register_struct_constructor(&domain_name, Vec::new())?;
                 self.encode_validity_axioms_struct(&domain_name, Vec::new(), false.into())?;
             }
+            vir_mid::TypeDecl::Closure(closure) => {
+                // closure has a name and array of arguments, which represent the "saved" parameters of the function
+                // it is not a function, just a struct that remembers the arguments at entry time
+                let mut parameters = Vec::new();
+                for (ix, argument) in closure.arguments.iter().enumerate() {
+                    self.ensure_type_definition(&argument)?;
+                    parameters.push(vir_low::VariableDecl::new(
+                        format!("_{}", ix),
+                        argument.to_snapshot(self)?,
+                    ));
+                }
+
+                self.register_struct_constructor(&domain_name, parameters.clone())?;
+                self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
+            }
             _ => unimplemented!("type: {:?}", type_decl),
         };
         Ok(())

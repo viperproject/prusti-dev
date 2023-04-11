@@ -354,7 +354,7 @@ impl Expression {
                 // (2) rename with a fresh name the quantified variables that conflict with `dst`.
                 for (src, dst) in self.replacements.iter() {
                     if quantifier.variables.contains(&src.get_base())
-                        || quantifier.variables.contains(&dst.get_base())
+                        || (dst.is_place() && quantifier.variables.contains(&dst.get_base()))
                     {
                         unimplemented!(
                             "replace_multiple_places doesn't handle replacements that conflict \
@@ -427,6 +427,11 @@ impl Expression {
             expression = match expression {
                 Expression::Deref(Deref {
                     base: box Expression::AddrOf(AddrOf { base, .. }),
+                    ..
+                }) => *base,
+                Expression::Deref(Deref {
+                    base,
+                    ty: Type::Closure(_),
                     ..
                 }) => *base,
                 Expression::Field(Field {
