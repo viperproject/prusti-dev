@@ -303,7 +303,8 @@ impl SMTTranslatable for Program {
         self.domains.iter().for_each(|d| d.build_smt(smt));
         self.methods.iter().for_each(|d| d.build_smt(smt));
         self.procedures.iter().for_each(|d| d.build_smt(smt));
-        // TODO: Everything else
+        debug_assert!(self.functions.len() == 0); // TODO: Implement
+        debug_assert!(self.predicates.len() == 0);
     }
 }
 

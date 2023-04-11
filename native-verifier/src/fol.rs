@@ -114,12 +114,12 @@ fn vir_statement_to_fol_statements(
                         position: op.position,
                     }),
                     Expression::UnaryOp(op) => Expression::UnaryOp(UnaryOp {
-                        op_kind: op.op_kind.clone(), // TODO: Copy trait derivation
+                        op_kind: op.op_kind,
                         argument: Box::new(substitute(&op.argument, mapping)),
                         position: op.position,
                     }),
                     Expression::ContainerOp(op) => Expression::ContainerOp(ContainerOp {
-                        kind: op.kind.clone(), // TODO: Copy trait derivation
+                        kind: op.kind,
                         container_type: op.container_type.clone(),
                         operands: op
                             .operands
@@ -163,7 +163,7 @@ fn vir_statement_to_fol_statements(
             preconds.chain(postconds).collect::<Vec<_>>()
         }
         Statement::Comment(comment) => vec![FolStatement::Comment(comment.comment.clone())],
-        Statement::LogEvent(_) => vec![], // TODO: Embed in SMT-LIB code
+        Statement::LogEvent(_) => vec![], // ignored
         _ => {
             unimplemented!("Statement {:?} not yet supported", statement);
         }

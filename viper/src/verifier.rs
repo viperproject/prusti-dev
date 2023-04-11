@@ -53,6 +53,9 @@ impl<'a> Verifier<'a> {
                     VerificationBackend::Carbon => {
                         carbon::CarbonFrontendAPI::with(env).new(reporter)
                     }
+                    VerificationBackend::Lithium => {
+                        unreachable!("Lithium is not a JVM-based backend")
+                    }
                 }
             };
             let frontend_instance = jni.unwrap_result(unwrapped_frontend_instance);
