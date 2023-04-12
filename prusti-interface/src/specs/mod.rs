@@ -606,11 +606,11 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.prusti_refutations.push(local_id);
             }
 
-            if has_prusti_attr(attrs, "produces") {
+            if has_prusti_attr(attrs, "produce") {
                 self.prusti_inhales.push(local_id);
             }
 
-            if has_prusti_attr(attrs, "consumes") {
+            if has_prusti_attr(attrs, "consume") {
                 self.prusti_exhales.push(local_id);
             }
 

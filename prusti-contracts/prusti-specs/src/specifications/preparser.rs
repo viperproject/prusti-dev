@@ -954,7 +954,7 @@ impl PrustiBinaryOp {
             Self::Implies => {
                 // This forces #rhs to be evaluated after #lhs
                 // Note that we cannot translate this to !#lhs || #rhs because #rhs
-                // may not be pure (for example, it could be a transfers(..) expression)
+                // may not be pure (for example, it could be a resource(..) expression)
                 quote_spanned! { span => (if #lhs { #rhs } else { true }) }
             }
             Self::ImpliesReverse => {

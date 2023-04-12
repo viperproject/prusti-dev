@@ -3,7 +3,7 @@ use prusti_contracts::*;
 
 type BankID = u32;
 
-#[resource]
+#[resource_kind]
 struct Money(BankID);
 
 struct Bank();

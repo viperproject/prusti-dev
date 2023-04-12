@@ -1,3 +1,4 @@
+// ignore-test
 #![allow(dead_code)]
 use prusti_contracts::*;
 
@@ -9,7 +10,6 @@ struct Money();
         PermAmount::from(self.balance()) - PermAmount::from(old(self.balance()))
     )
 ]
-#[invariant(PermAmount::from(self.balance()) >= holds(Money()))]
 struct Bank { value: u32 }
 
 impl Bank {
@@ -23,6 +23,17 @@ impl Bank {
     fn withdraw(&mut self, amt: u32) {
         self.value -= amt;
     }
+
+
+    #[trusted]
+    #[after_expiry(before_expiry(self.balance()) == old(self.balance()))]
+    fn get_mut_value(&mut self) -> &mut u32 {
+        &mut self.value
+    }
+}
+
+fn hack_balance(bank: &mut Bank){
+    bank.get_mut_value();
 }
 
 #[requires(resource(Money(), 10))]

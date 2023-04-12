@@ -1,6 +1,6 @@
 use prusti_contracts::*;
 
-#[resource]
+#[resource_kind]
 struct Money;
 
 fn main(){}

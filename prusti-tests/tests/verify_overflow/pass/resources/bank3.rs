@@ -3,7 +3,7 @@ use prusti_contracts::*;
 
 type BankID = u32;
 
-#[resource]
+#[resource_kind]
 struct Money();
 
 struct Bank(u32);
@@ -17,7 +17,7 @@ impl Bank {
         unimplemented!()
     }
 
-    #[requires(transfers(Money(), amt))]
+    #[requires(resource(Money(), amt))]
     #[ensures(
             holds(Money()) - old(holds(Money())) ==
             PermAmount::from(self.balance() - old(self.balance()))
@@ -27,7 +27,7 @@ impl Bank {
         unimplemented!()
     }
 
-    #[ensures(transfers(Money(), amt))]
+    #[ensures(resource(Money(), amt))]
     #[ensures(
             holds(Money()) - old(holds(Money())) ==
             PermAmount::from(self.balance() - old(self.balance()))
@@ -38,7 +38,7 @@ impl Bank {
     }
 }
 
-#[requires(transfers(Money(), 10))]
+#[requires(resource(Money(), 10))]
 #[ensures(
         holds(Money()) - old(holds(Money())) ==
         PermAmount::from(bank.balance() - old(bank.balance()))

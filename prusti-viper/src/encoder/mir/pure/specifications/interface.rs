@@ -252,7 +252,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 parent_def_id,
                 substs,
             ),
-            "prusti_contracts::transfers" => {
+            "prusti_contracts::resource" => {
                 if let vir_poly::Type::TypedRef(tr) = encoded_args[0].get_type() {
                     let predicate_name = tr.label.split("struct$m_").last().unwrap();
                     let perm_amt = match encoded_args[1].get_type() {

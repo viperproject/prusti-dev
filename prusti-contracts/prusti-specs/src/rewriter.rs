@@ -270,7 +270,7 @@ impl AstRewriter {
         spec_id: SpecificationId,
         tokens: TokenStream,
     ) -> syn::Result<TokenStream> {
-        self.process_prusti_expression(quote! {produces}, spec_id, tokens)
+        self.process_prusti_expression(quote! {produce}, spec_id, tokens)
     }
 
     /// Parse a prusti exhale into a Rust expression
@@ -279,7 +279,7 @@ impl AstRewriter {
         spec_id: SpecificationId,
         tokens: TokenStream,
     ) -> syn::Result<TokenStream> {
-        self.process_prusti_expression(quote! {consumes}, spec_id, tokens)
+        self.process_prusti_expression(quote! {consume}, spec_id, tokens)
     }
 
     fn process_prusti_expression(

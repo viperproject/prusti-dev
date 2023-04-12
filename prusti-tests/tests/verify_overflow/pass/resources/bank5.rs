@@ -4,7 +4,7 @@ use prusti_contracts::*;
 #[derive(Copy, Clone)]
 struct AccountID(u32);
 
-#[resource]
+#[resource_kind]
 struct Money(AccountID);
 
 struct Bank(u32);
@@ -18,7 +18,7 @@ impl Bank {
         unimplemented!()
     }
 
-    #[requires(transfers(Money(acct_id), amt))]
+    #[requires(resource(Money(acct_id), amt))]
     #[ensures(
             old(holds(Money(acct_id))) ==
             PermAmount::from(old(self.balance(acct_id))) - PermAmount::from(self.balance(acct_id))
@@ -30,7 +30,7 @@ impl Bank {
 }
 
 
-#[requires(transfers(Money(from), 10))]
+#[requires(resource(Money(from), 10))]
 #[ensures(
     old(holds(Money(from))) ==
     PermAmount::from(old(bank.balance(from))) - PermAmount::from(bank.balance(from))

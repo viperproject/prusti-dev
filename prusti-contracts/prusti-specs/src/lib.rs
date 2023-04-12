@@ -435,11 +435,11 @@ pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens)
 }
 
-pub fn produces(tokens: TokenStream) -> TokenStream {
+pub fn produce(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_inhale, tokens)
 }
 
-pub fn consumes(tokens: TokenStream) -> TokenStream {
+pub fn consume(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_exhale, tokens)
 }
 
@@ -973,7 +973,7 @@ fn generate_for_resource(attr: TokenStream, item: &mut syn::DeriveInput) -> Gene
     match syn::Item::from(item.clone()) {
         syn::Item::Struct(item_struct) => {
             let resource_annotation = parse_quote_spanned! { item_struct.span() =>
-                #[prusti::resource]
+                #[prusti::resource_kind]
             };
             let copy_annotation = parse_quote_spanned! { item_struct.span() =>
                 #[derive(Clone, Copy)]

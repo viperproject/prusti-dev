@@ -39,7 +39,7 @@ impl U32Map<AcctId> {
     }
 }
 
-#[resource]
+#[resource_kind]
 struct Money(AcctId);
 
 #[invariant_twostate(
@@ -67,23 +67,23 @@ impl Bank {
         self.0.get(acct_id).unwrap_or(0)
     }
 
-    #[ensures(transfers(Money(acct_id), amt))]
+    #[ensures(resource(Money(acct_id), amt))]
     fn deposit(&mut self, acct_id: AcctId, amt: u32) {
         let bal = self.balance(acct_id);
         self.0.insert(acct_id, bal + amt);
-        produces!(transfers(Money(acct_id), amt));
+        produce!(resource(Money(acct_id), amt));
     }
 
-    #[requires(transfers(Money(acct_id), amt))]
+    #[requires(resource(Money(acct_id), amt))]
     fn withdraw(&mut self, acct_id: AcctId, amt: u32) {
         let bal = self.balance(acct_id);
         self.0.insert(acct_id, bal - amt);
-        consumes!(transfers(Money(acct_id), amt));
+        consume!(resource(Money(acct_id), amt));
     }
 }
 
-#[requires(transfers(Money(from), amt))]
-#[ensures(transfers(Money(to), amt))]
+#[requires(resource(Money(from), amt))]
+#[ensures(resource(Money(to), amt))]
 fn transfer(bank: &mut Bank, from: AcctId, to: AcctId, amt: u32) { 
     bank.withdraw(from, amt);
     bank.deposit(to, amt);

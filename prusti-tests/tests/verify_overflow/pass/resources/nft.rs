@@ -5,38 +5,42 @@ use prusti_contracts::*;
 type AccountId = u32;
 type TokenId = u32;
 
-#[resource]
-struct Holds(AccountId, TokenId);
+#[resource_kind]
+struct CanChange(TokenId);
 
 #[invariant_twostate(
     forall(
-        |acct_id: AccountId, token_id: TokenId|
-        holds(Holds(acct_id, token_id)) == PermAmount::from(1) ==>
-            self.get_owner(token_id) == acct_id
+        |token_id: TokenId|
+        (old(holds(CanChange(token_id))) == PermAmount::from(0) &&
+         holds(CanChange(token_id)) == PermAmount::from(0)) ==>
+            self.get_owner(token_id) == old(self.get_owner(token_id))
     )
 )]
-pub struct Keeper(u32);
+pub struct Keeper(u32, u32);
 
 impl Keeper {
     #[pure]
     #[trusted]
-    fn get_owner(&self, token_id: TokenId) -> AccountId {
+    fn get_owner(&self, token_id: TokenId) -> Option<AccountId> {
         unimplemented!()
     }
 
     #[trusted]
-    #[ensures(transfers(Holds(acct_id, token_id), 1))]
+    #[ensures(resource(CanChange(token_id), 1))]
+    #[ensures(self.get_owner(token_id) == Some(acct_id))]
     fn obtain(&mut self, acct_id: AccountId, token_id: TokenId){
         unimplemented!()
     }
 
-    #[ensures(self.get_owner(token_id) == acct_id)]
-    fn obtain2(&mut self, acct_id: AccountId, token_id: TokenId){
-        self.obtain(acct_id, token_id);
-        prusti_assert!(holds(Holds(acct_id, token_id)) == PermAmount::from(1));
-        prusti_assert!(self.get_owner(token_id) == acct_id);
+    fn borrow_unrelated(&mut self) -> &mut u32 {
+        &mut self.1
     }
+
 }
+
+// fn client(keeper: &mut Keeper) {
+//     keeper.borrow_unrelated();
+// }
 
 
 fn main(){}

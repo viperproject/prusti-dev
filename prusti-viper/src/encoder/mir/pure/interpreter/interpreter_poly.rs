@@ -662,7 +662,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             | "prusti_contracts::call_description"
                             | "prusti_contracts::snap"
                             | "prusti_contracts::snapshot_equality"
-                            | "prusti_contracts::transfers"
+                            | "prusti_contracts::resource"
                             | "prusti_contracts::holds" => {
                                 let expr = self.encoder.encode_prusti_operation(
                                     full_func_proc_name,

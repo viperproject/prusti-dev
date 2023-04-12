@@ -4907,9 +4907,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::exhale(
+            vir::Stmt::assert(
                 twostate_invariants,
-                type_inv_pos // TODO: Confirm
+                type_inv_pos
             )
         );
 
