@@ -51,11 +51,11 @@ struct Money(AcctId);
     ))
 ]
 // Another useful invariant
-// #[invariant_twostate(
-//     forall(|acct_id: AcctId|
-//         PermAmount::from(old(self.balance(acct_id))) >= old(holds(Money(acct_id)))
-//     ))
-// ]
+#[invariant(
+    forall(|acct_id: AcctId|
+        PermAmount::from(self.balance(acct_id)) >= holds(Money(acct_id))
+    ))
+]
 struct Bank(U32Map<AcctId>);
 
 
@@ -75,7 +75,6 @@ impl Bank {
     }
 
     #[requires(transfers(Money(acct_id), amt))]
-    #[requires(self.balance(acct_id) >= amt)]
     fn withdraw(&mut self, acct_id: AcctId, amt: u32) {
         let bal = self.balance(acct_id);
         self.0.insert(acct_id, bal - amt);
@@ -83,7 +82,6 @@ impl Bank {
     }
 }
 
-#[requires(bank.balance(from) >= amt)]
 #[requires(transfers(Money(from), amt))]
 #[ensures(transfers(Money(to), amt))]
 fn transfer(bank: &mut Bank, from: AcctId, to: AcctId, amt: u32) { 

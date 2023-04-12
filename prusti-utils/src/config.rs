@@ -125,7 +125,7 @@ lazy_static::lazy_static! {
         settings.set_default("use_eval_axioms", true).unwrap();
         settings.set_default("inline_caller_for", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
-        settings.set_default("enable_type_invariants", false).unwrap();
+        settings.set_default("enable_type_invariants", true).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
