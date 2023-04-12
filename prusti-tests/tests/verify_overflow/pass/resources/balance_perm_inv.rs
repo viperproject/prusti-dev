@@ -4,7 +4,12 @@ use prusti_contracts::*;
 #[resource]
 struct Money();
 
-#[invariant_twostate(PermAmount::from(self.balance()) >= holds(Money()))]
+#[invariant_twostate(
+        holds(Money()) - old(holds(Money())) ==
+        PermAmount::from(self.balance()) - PermAmount::from(old(self.balance()))
+    )
+]
+#[invariant(PermAmount::from(self.balance()) >= holds(Money()))]
 struct Bank { value: u32 }
 
 impl Bank {
@@ -15,7 +20,6 @@ impl Bank {
     }
 
     #[requires(transfers(Money(), amt))]
-    #[requires(self.balance() >= amt)]
     fn withdraw(&mut self, amt: u32) {
         self.value -= amt;
     }

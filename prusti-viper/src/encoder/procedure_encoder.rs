@@ -3497,7 +3497,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "Before Post Label"
         );
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: replace_fake_exprs(post_invs_spec),
+            expr: patch_perm_exprs_for_call_postcondition(
+                replace_fake_exprs(post_invs_spec),
+                pre_label.clone(),
+                before_post_label.clone()
+            )
         }));
         stmts.push(
             vir::Stmt::inhale(
@@ -3922,6 +3926,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if !ty.is_unsafe_ptr() && !self.encoder.is_pure(contract.def_id, Some(substs)) {
                 invs_spec.push(
                     self.encoder.encode_invariant_func_app(
+                        None,
                         ty,
                         self.encode_prusti_local(*arg).into(),
                     ).with_span(precondition_spans.clone())?
@@ -3933,7 +3938,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ty,
                         self.encode_prusti_local(*arg).into()
                     ).with_span(precondition_spans.clone())?
-                )
+                );
             }
         }
         Ok((
@@ -4118,6 +4123,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
+            vir::Stmt::comment("INVS SPEC"),
+        );
+        self.cfg_method.add_stmt(
+            start_cfg_block,
             vir::Stmt::inhale(invs_spec),
         );
         self.cfg_method.add_stmt(
@@ -4180,7 +4189,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 if !self.encoder.is_pure(contract.def_id, Some(substs)) {
                     let inv = self
                         .encoder
-                        .encode_invariant_func_app(place_ty, place_expr.old(label))
+                        .encode_invariant_func_app(None, place_ty, place_expr.old(label))
                         .with_span(span)?;
                     Ok(vir::Expr::and(vir_access, inv))
                 } else {
@@ -4374,16 +4383,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 Mutability::Mut => {
                     add_type_spec(vir::PermAmount::Write);
                     if !self.encoder.is_pure(contract.def_id, Some(substs)) {
+                        // eprintln!("Place: {place_expr}; Old: {old_place_expr}");
                         let inv = self
                             .encoder
-                            .encode_invariant_func_app(place_ty, old_place_expr)
+                            .encode_invariant_func_app(Some(pre_label), place_ty, old_place_expr.clone())
                             // TODO: Use a better span
                             .with_span(self.mir.span)?;
                         invs_spec.push(inv);
                         twostate_invs_spec.push(
                             self.encoder
                                 .encode_twostate_invariant(
-                                    Some(pre_label), place_ty, place_expr
+                                    Some(pre_label), place_ty, old_place_expr
                                 ).with_span(self.mir.span)?
                         );
                     }
@@ -4477,6 +4487,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if !self.encoder.is_pure(contract.def_id, Some(substs)) {
             invs_spec.push(
                 self.encoder.encode_invariant_func_app(
+                    None,
                     self.locals.get_type(contract.returned_value),
                     encoded_return,
                 ).with_span(postcondition_span)?
@@ -4907,6 +4918,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             return_cfg_block,
             vir::Stmt::comment("Assert type invariants"),
         );
+        let invs_spec = vir::ExprFolder::fold(&mut post_patcher, invs_spec);
         let patched_invs_spec = self.replace_old_places_with_ghost_vars(None, invs_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
@@ -5248,6 +5260,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let ty = self.encoder.decode_type_predicate_type(predicate_type)?;
                 if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
                     let inv_func_app = self.encoder.encode_invariant_func_app(
+                        None,
                         ty,
                         (**argument).clone(),
                     )?;
