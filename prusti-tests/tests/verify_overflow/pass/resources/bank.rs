@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use prusti_contracts::*;
 
-#[resource]
+#[resource_kind]
 struct Money();
 
 trait Bank {
@@ -9,14 +9,14 @@ trait Bank {
     #[pure]
     fn balance(&self) -> u32;
 
-    #[ensures(transfers(Money(), amt))]
+    #[ensures(resource(Money(), amt))]
     #[ensures(
         holds(Money()) - old(holds(Money())) ==
         PermAmount::from(self.balance() - old(self.balance()))
     )]
     fn deposit(&mut self, amt: u32);
 
-    #[requires(transfers(Money(), amt))]
+    #[requires(resource(Money(), amt))]
     #[ensures(
         holds(Money()) - old(holds(Money())) ==
         PermAmount::from(self.balance() - old(self.balance()))
@@ -24,7 +24,7 @@ trait Bank {
     fn withdraw(&mut self, amt: u32);
 }
 
-#[ensures(transfers(Money(), 10))]
+#[ensures(resource(Money(), 10))]
 fn client<B: Bank>(bank: &mut B) {
     bank.deposit(10);
     prusti_assert!(bank.balance() >= 10);

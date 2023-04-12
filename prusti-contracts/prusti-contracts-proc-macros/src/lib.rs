@@ -84,13 +84,13 @@ pub fn prusti_refute(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
-pub fn produces(_tokens: TokenStream) -> TokenStream {
+pub fn produce(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
-pub fn consumes(_tokens: TokenStream) -> TokenStream {
+pub fn consume(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
@@ -233,14 +233,14 @@ pub fn prusti_refute(tokens: TokenStream) -> TokenStream {
 
 #[cfg(feature = "prusti")]
 #[proc_macro]
-pub fn produces(tokens: TokenStream) -> TokenStream {
-    prusti_specs::produces(tokens.into()).into()
+pub fn produce(tokens: TokenStream) -> TokenStream {
+    prusti_specs::produce(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]
 #[proc_macro]
-pub fn consumes(tokens: TokenStream) -> TokenStream {
-    prusti_specs::consumes(tokens.into()).into()
+pub fn consume(tokens: TokenStream) -> TokenStream {
+    prusti_specs::consume(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]
@@ -317,7 +317,7 @@ pub fn body_variant(tokens: TokenStream) -> TokenStream {
 
 #[cfg(feature = "prusti")]
 #[proc_macro_attribute]
-pub fn resource(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn resource_kind(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::type_resource(
         attr.into(),
         tokens.into(),

@@ -6,7 +6,7 @@ struct IntRef { field: UnsafeCell<u32> }
 #[derive(Clone, Copy)]
 struct IntRefId(u32);
 
-#[resource]
+#[resource_kind]
 struct CanWrite(IntRefId);
 
 impl IntRef {
@@ -23,15 +23,15 @@ impl IntRef {
         unimplemented!();
     }
 
-    #[requires(transfers(CanWrite(self.id()), 1))]
+    #[requires(resource(CanWrite(self.id()), 1))]
     #[ensures(self.read() == value)]
-    #[ensures(transfers(CanWrite(self.id()), 1))]
+    #[ensures(resource(CanWrite(self.id()), 1))]
     #[trusted]
     fn write(&self, value: u32) {
         unimplemented!()
     }
 
-    #[ensures(transfers(CanWrite(result.id()), 1))]
+    #[ensures(resource(CanWrite(result.id()), 1))]
     #[trusted]
     fn new() -> IntRef {
         unimplemented!()

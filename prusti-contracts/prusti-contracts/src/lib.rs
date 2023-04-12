@@ -39,8 +39,8 @@ pub use prusti_contracts_proc_macros::prusti_assume;
 /// A macro for writing refutations using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_refute;
 
-pub use prusti_contracts_proc_macros::produces;
-pub use prusti_contracts_proc_macros::consumes;
+pub use prusti_contracts_proc_macros::produce;
+pub use prusti_contracts_proc_macros::consume;
 
 /// A macro for impl blocks that refine trait specifications.
 pub use prusti_contracts_proc_macros::refine_trait_spec;
@@ -73,7 +73,7 @@ pub use prusti_contracts_proc_macros::terminates;
 pub use prusti_contracts_proc_macros::body_variant;
 
 /// A macro to annotate a data type as representing a resource
-pub use prusti_contracts_proc_macros::resource;
+pub use prusti_contracts_proc_macros::resource_kind;
 
 #[cfg(not(feature = "prusti"))]
 mod private {
@@ -433,7 +433,7 @@ impl From<Int> for PermAmount {
     }
 }
 
-pub fn transfers<T, A: Into<PermAmount>>(_res: T, _amt: A) -> bool {
+pub fn resource<T, A: Into<PermAmount>>(_res: T, _amt: A) -> bool {
     true
 }
 

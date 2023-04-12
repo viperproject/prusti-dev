@@ -1,9 +1,9 @@
 use prusti_contracts::*;
 
-#[resource]
+#[resource_kind]
 struct Money(u32, u8);
 
-#[requires(transfers(Money(123, 2), 1))]
+#[requires(resource(Money(123, 2), 1))]
 fn spend(amt: u128){}
 
 fn main(){

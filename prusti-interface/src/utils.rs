@@ -218,9 +218,9 @@ pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "extern_spec")
 }
 
-/// Check if `prusti::resource` is among the attributes.
+/// Check if `prusti::resource_kind` is among the attributes.
 pub fn has_resource_attr(attrs: &[ast::Attribute]) -> bool {
-    has_prusti_attr(attrs, "resource")
+    has_prusti_attr(attrs, "resource_kind")
 }
 
 pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {

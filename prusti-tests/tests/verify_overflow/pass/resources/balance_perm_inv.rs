@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use prusti_contracts::*;
 
-#[resource]
+#[resource_kind]
 struct Money();
 
 #[invariant_twostate(
@@ -19,13 +19,13 @@ impl Bank {
         return self.value;
     }
 
-    #[requires(transfers(Money(), amt))]
+    #[requires(resource(Money(), amt))]
     fn withdraw(&mut self, amt: u32) {
         self.value -= amt;
     }
 }
 
-#[requires(transfers(Money(), 10))]
+#[requires(resource(Money(), 10))]
 fn client(bank: &mut Bank) {
     bank.withdraw(10);
 }

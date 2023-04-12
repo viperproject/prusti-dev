@@ -10,7 +10,7 @@ struct IntRef { field: UnsafeCell<u32> }
 #[derive(Clone, Copy)]
 struct IntRefId(u32);
 
-#[resource]
+#[resource_kind]
 struct CanWrite(IntRefId);
 
 impl IntRef {
@@ -33,9 +33,9 @@ impl IntRef {
         0
     }
 
-    #[requires(transfers(CanWrite(self.id()), 1))]
+    #[requires(resource(CanWrite(self.id()), 1))]
     #[ensures(self.read() == value)]
-    #[ensures(transfers(CanWrite(self.id()), 1))]
+    #[ensures(resource(CanWrite(self.id()), 1))]
     #[trusted]
     fn write(&self, value: u32) {
         unsafe {
@@ -43,7 +43,7 @@ impl IntRef {
         }
     }
 
-    #[ensures(transfers(CanWrite(result.id()), 1))]
+    #[ensures(resource(CanWrite(result.id()), 1))]
     #[trusted]
     fn new() -> IntRef {
         IntRef {
@@ -52,8 +52,8 @@ impl IntRef {
     }
 }
 
-#[requires(transfers(CanWrite(int_ref.id()), 1))]
-#[ensures(transfers(CanWrite(int_ref.id()), 1))]
+#[requires(resource(CanWrite(int_ref.id()), 1))]
+#[ensures(resource(CanWrite(int_ref.id()), 1))]
 #[ensures(int_ref.read() == 3)]
 fn good_client(int_ref: &IntRef) {
     int_ref.write(3);

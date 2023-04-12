@@ -12,7 +12,7 @@ struct IntMap<T: Copy>(HashMap<u32, T>);
 #[derive(Clone, Copy)]
 struct IntMapId(u32);
 
-#[resource]
+#[resource_kind]
 struct Insert(IntMapId, u32);
 
 impl <T: Copy> IntMap<T> {
@@ -23,8 +23,8 @@ impl <T: Copy> IntMap<T> {
         unimplemented!()
     }
 
-    #[requires(transfers(Insert(self.id(), key), 1))]
-    #[ensures(transfers(Insert(self.id(), key), 1))]
+    #[requires(resource(Insert(self.id(), key), 1))]
+    #[ensures(resource(Insert(self.id(), key), 1))]
     #[ensures(self.id() === old(self.id()))]
     #[ensures(self.get(key) === value)]
     #[trusted]
@@ -37,10 +37,10 @@ impl <T: Copy> IntMap<T> {
         todo!();
     }
 
-    #[ensures(forall(|key: u32| transfers(Insert(result.id(), key), 1)))]
+    #[ensures(forall(|key: u32| resource(Insert(result.id(), key), 1)))]
     fn new() -> IntMap<T> {
         let result = IntMap(HashMap::new());
-        produces!(forall(|key: u32| transfers(Insert(result.id(), key), 1)));
+        produce!(forall(|key: u32| resource(Insert(result.id(), key), 1)));
         result
     }
 }

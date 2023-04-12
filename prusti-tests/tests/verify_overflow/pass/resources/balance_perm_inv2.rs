@@ -14,7 +14,7 @@ struct Bank(u32);
 
 type BankID = u32;
 
-#[resource]
+#[resource_kind]
 struct Money(BankID, u32);
 
 impl Bank {
@@ -38,8 +38,8 @@ fn on_recv_packet(
 }
 
 #[requires(bank1.bank_id() !== bank2.bank_id())]
-#[requires(transfers(Money(bank1.bank_id(), 0), 1))]
-#[ensures(transfers(Money(bank1.bank_id(), 0), 1))]
+#[requires(resource(Money(bank1.bank_id(), 0), 1))]
+#[ensures(resource(Money(bank1.bank_id(), 0), 1))]
 fn send_preserves(bank1: &mut Bank, bank2: &mut Bank) {
     on_recv_packet(bank1);
 }

@@ -38,7 +38,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             "verified" => Ok(SpecAttributeKind::Verified),
-            "resource" => Ok(SpecAttributeKind::Resource),
+            "resource_kind" => Ok(SpecAttributeKind::Resource),
             _ => Err(name),
         }
     }

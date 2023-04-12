@@ -3,14 +3,14 @@
 #![allow(dead_code, unused)]
 use prusti_contracts::*;
 
-#[resource]
+#[resource_kind]
 struct Money();
 
 #[ensures(
-    (n > 1 && true) ==> transfers(Money(), 1)
+    (n > 1 && true) ==> resource(Money(), 1)
 )]
 fn foo(n: u32) -> bool {
-    produces!(transfers(Money(), 1));
+    produce!(resource(Money(), 1));
     true
 }
 

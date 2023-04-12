@@ -14,7 +14,7 @@ struct Bank(u32);
 
 type BankID = u32;
 
-#[resource]
+#[resource_kind]
 struct Money(BankID);
 
 type AccountID = u32;
