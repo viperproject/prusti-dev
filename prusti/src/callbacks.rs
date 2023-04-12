@@ -1,4 +1,6 @@
 use crate::verifier::verify;
+use crate::mir_modify;
+
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
@@ -59,6 +61,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             config.override_queries = Some(
                 |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
                     providers.mir_borrowck = mir_borrowck;
+                    providers.mir_built = mir_modify::mir_built;
                 },
             );
         }
@@ -109,6 +112,14 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 );
             });
         }
+        // can we modify ast? just stealing it does not work obviously..
+        //  queries.global_ctxt().unwrap().enter(|tcx: TyCtxt<'tcx>| {
+        //     let (resolver, mut krate_rc) = tcx.resolver_for_lowering(()).steal();
+        //     let krate: &mut Crate = Rc::get_mut(&mut krate_rc).unwrap();
+        //     // let _visitor = MutVisitor;
+        //     tcx.arena.alloc(Steal::new((resolver, Rc::new(krate.clone()))))
+        // });
+
         Compilation::Continue
     }
 

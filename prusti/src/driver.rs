@@ -13,6 +13,7 @@
 mod arg_value;
 mod callbacks;
 mod verifier;
+mod mir_modify;
 
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
