@@ -14,6 +14,22 @@ fn choose(b: bool, h: i32, l: i32) -> i32 {
     }
 }
 
+#[requires(low(l))]
+#[ensures(low(result))]
+fn foo(b: bool, l: i32) -> i32 {
+    let res;
+    if b {
+        res = l + 3;
+    } else {
+        res = l - 3;
+    }
+    if b {
+        res - 3
+    } else {
+        res + 3
+    }
+}
+
 fn produce_high() -> i32 {
     42
 }

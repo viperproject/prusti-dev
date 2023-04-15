@@ -69,7 +69,7 @@ fn fill_with_low(array: &mut [i32]) {
     let mut i = 0;
     while i < array.len() {
         body_invariant!(low(i));
-        body_invariant!(forall(|j: usize| j < i ==> low(array[j])));
+        body_invariant!(forall(|j: usize| 0 <= j && j < i ==> low(array[j])));
         array[i] = produce_low();
         // replace_low(array, i);
         i += 1;
