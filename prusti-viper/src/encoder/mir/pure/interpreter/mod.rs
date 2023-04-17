@@ -7,9 +7,11 @@
 //! MIR interpreters that translates MIR into vir_high or vir_poly expressions.
 
 mod backward_interpreter;
+mod forward_interpreter;
 pub(super) mod state_poly;
 pub(super) mod state_high;
 pub(super) mod interpreter_high;
 pub(super) mod interpreter_poly;
 
 pub use backward_interpreter::*;
+pub use forward_interpreter::*;

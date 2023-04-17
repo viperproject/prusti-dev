@@ -37,6 +37,8 @@ use vir_crate::{
     high::operations::identifier::compute_function_identifier,
     polymorphic::{self as vir, ExprIterator},
 };
+use crate::encoder::mir::pure::interpreter::run_forward_interpreter;
+use crate::encoder::mir::pure::interpreter::interpreter_poly::VirPolyExprFactory;
 
 pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -115,6 +117,12 @@ fn encode_mir<'p, 'v: 'p, 'tcx: 'v>(
     pure_encoding_context: PureEncodingContext,
     parent_def_id: DefId,
 ) -> SpannedEncodingResult<vir::Expr> {
+
+    let f = VirPolyExprFactory::new(encoder, mir, proc_def_id);
+
+    println!("Forward: {:?}", 
+        run_forward_interpreter(mir, &f).unwrap());
+
     let interpreter = PureFunctionBackwardInterpreter::new(
         encoder,
         mir,
