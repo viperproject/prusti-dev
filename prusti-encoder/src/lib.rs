@@ -721,11 +721,22 @@ pub fn test_entrypoint<'tcx>(tcx: ty::TyCtxt<'tcx>) {
     VCTX.replace(Some(unsafe { std::mem::transmute(vcx) }));
 
     for def_id in tcx.hir_crate_items(()).definitions() {
-        //println!("item: {def_id:?}");
+        println!("item: {def_id:?}");
         let kind = tcx.def_kind(def_id);
-        //println!("  kind: {:?}", kind);
+        println!("  kind: {:?}", kind);
         if !format!("{def_id:?}").contains("foo") {
             continue;
+        }
+        match kind {
+            hir::def::DefKind::Fn => {
+                use task_encoder::TaskEncoder;
+                let res = crate::encoders::MirPureEncoder::encode(def_id.to_def_id());
+                match res {
+                    Ok(res) => println!("ok: {:?}", res),
+                    Err(err) => println!("err: {:?}", err),
+                }
+            }
+            _ => {}
         }
         match kind {
             hir::def::DefKind::Fn => {
@@ -741,15 +752,13 @@ pub fn test_entrypoint<'tcx>(tcx: ty::TyCtxt<'tcx>) {
     }
     //println!("all items in crate: {:?}", tcx.hir_crate_items(()).definitions().collect::<Vec<_>>());
 
-    /*
-    let res = crate::encoders::MirImpureEncoder::encode_eager(
+    // let res = crate::encoders::MirImpureEncoder::encode_eager(
         
-    );
-    match res {
-        Ok(res) => println!("ok: {:?}", res),
-        Err(err) => println!("err: {:?}", err),
-    }
-    */
+    // );
+    // match res {
+    //     Ok(res) => println!("ok: {:?}", res),
+    //     Err(err) => println!("err: {:?}", err),
+    // }
 
     /*
     let res = crate::encoders::TypeEncoder::encode_eager(tcx.types.bool);
