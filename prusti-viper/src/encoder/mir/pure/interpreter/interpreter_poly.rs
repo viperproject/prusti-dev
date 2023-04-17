@@ -37,6 +37,7 @@ use prusti_rustc_interface::{
 use rustc_hash::FxHashMap;
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
+use crate::encoder::mir::pure::interpreter::{ExprFactory, run_forward_interpreter};
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -192,6 +193,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                 )?
             }
         })
+    }
+}
+
+pub struct VirPolyExprFactory<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
+    mir_encoder: MirEncoder<'p, 'v, 'tcx>,
+}
+
+impl<'p, 'v: 'p, 'tcx: 'v>VirPolyExprFactory <'p, 'v, 'tcx> {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
+        def_id: DefId,
+    ) -> Self {
+        Self { 
+            encoder,
+            mir_encoder: MirEncoder::new(encoder, mir, def_id) 
+        }
+    }
+
+}
+
+impl <'p, 'v: 'p, 'tcx: 'v> ExprFactory<'tcx, vir::Expr, vir::LocalVar> for VirPolyExprFactory<'p, 'v, 'tcx> {
+    fn local(&self, local: mir::Local) -> EncodingResult<vir::LocalVar> {
+        Ok(self.mir_encoder.encode_local(local)?)
+    }
+
+    fn var(&self, v: vir::LocalVar) -> EncodingResult<vir::Expr> {
+        Ok(vir::Expr::local(v))
+    }
+    fn let_expr(&self, binder: vir::LocalVar, value: vir::Expr, body: vir::Expr) -> vir::Expr {
+        vir::Expr::LetExpr(vir::LetExpr {
+            variable: binder,
+            def: box value,
+            body: box body,
+            position: vir::Position::default()
+        })
+    }
+    fn switch_int(&self, cond: vir::Expr, then_expr: vir::Expr, else_expr: vir::Expr) -> vir::Expr {
+        unimplemented!()
+    }
+    fn gt(&self, lhs: vir::Expr, rhs:vir::Expr) -> vir::Expr {
+        unimplemented!()
+    }
+    fn bin_op_expr(&self, op: mir::BinOp, left: vir::Expr, right: vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Expr> {
+        self.mir_encoder.encode_bin_op_expr(op, left, right, ty)
+    }
+    fn operand_expr(&self, operand: &mir::Operand<'tcx>) -> EncodingResult<vir::Expr> {
+        self.mir_encoder.encode_operand_expr(operand)
     }
 }
 
