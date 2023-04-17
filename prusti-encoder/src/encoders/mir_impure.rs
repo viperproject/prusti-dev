@@ -239,11 +239,11 @@ impl<'tcx, 'vir> mir::visit::Visitor<'tcx> for EncoderVisitor<'vir, 'tcx> {
                     //mir::Rvalue::BinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>) => {}
                     //mir::Rvalue::CheckedBinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>) => {}
                     //mir::Rvalue::NullaryOp(NullOp, Ty<'tcx>) => {}
-                    mir::Rvalue::UnaryOp(UnOp, Operand<'tcx>) => {
-                        // require builtin mir_unop_neg/mir_unop_not
-                        // apply func
-                        todo!()
-                    }
+                    // mir::Rvalue::UnaryOp(UnOp, Operand<'tcx>) => {
+                    //     // require builtin mir_unop_neg/mir_unop_not
+                    //     // apply func
+                    //     todo!()
+                    // }
                     //mir::Rvalue::Discriminant(Place<'tcx>) => {}
                     //mir::Rvalue::Aggregate(Box<AggregateKind<'tcx>>, IndexVec<FieldIdx, Operand<'tcx>>) => {}
                     //mir::Rvalue::ShallowInitBox(Operand<'tcx>, Ty<'tcx>) => {}

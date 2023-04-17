@@ -88,6 +88,20 @@ impl TaskEncoder for TypeEncoder {
         Option<Self::OutputFullDependency<'vir, 'tcx>>,
     )> {
         crate::with_vcx(|vcx| match task_key.kind() {
+            TyKind::Int(_) => {
+                deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
+                    snapshot: vcx.alloc_str("s_Int"),
+                    predicate: vcx.alloc_str("p_Int"),
+                });
+                Ok((TypeEncoderOutput {
+                    snapshot: crate::vir_domain! { vcx; domain s_Int {
+                        function cons(Int): s_Int;
+                        function val(s_Int): Int;
+                        axiom_inverse(cons, val);
+                    } },
+                    predicate: crate::vir_predicate! { vcx; predicate p_Int(self_p: Ref, self_s: s_Int) },
+                }, ()))
+            }
             TyKind::Bool => {
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
                     snapshot: vcx.alloc_str("s_Bool"),
@@ -102,16 +116,30 @@ impl TaskEncoder for TypeEncoder {
                     predicate: crate::vir_predicate! { vcx; predicate p_Bool(self_p: Ref, self_s: s_Bool) },
                 }, ()))
             }
-            TyKind::Tuple(tys) if tys.len() == 0 => {
+            TyKind::Tuple(tys) => {
+                let name_s = vcx.alloc_str("s_Tuple_"); // TODO
+                let name_p = vcx.alloc_str("p_Tuple_"); // TODO
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
-                    snapshot: vcx.alloc_str("s_Tuple0"),
-                    predicate: vcx.alloc_str("p_Tuple0"),
+                    snapshot: name_s,
+                    predicate: name_p,
                 });
+                let ty_s = vcx.alloc(vir::TypeData::Domain(name_s));
+                let mut funcs: Vec<vir::DomainFunction<'vir>> = vec![];
+                for (idx, ty) in tys.iter().enumerate() {
+                    let ty_out = deps.require_ref::<crate::encoders::TypeEncoder>(ty).unwrap();
+                    let field_ty_s = vcx.alloc(vir::TypeData::Domain(ty_out.snapshot));
+
+                    let name_r = vcx.alloc_str(&format!("read_field_{idx}"));
+                    funcs.push(crate::vir_domain_func! { vcx; function [name_r]([ty_s]): [field_ty_s] });
+
+                    let name_w = vcx.alloc_str(&format!("write_field_{idx}"));
+                    funcs.push(crate::vir_domain_func! { vcx; function [name_w]([ty_s], [field_ty_s]): [ty_s] });
+                }
                 Ok((TypeEncoderOutput {
-                    snapshot: crate::vir_domain! { vcx; domain s_Tuple0 {
-                        function cons(): s_Tuple0;
+                    snapshot: crate::vir_domain! { vcx; domain [name_s] {
+                        with_funcs [funcs];
                     } },
-                    predicate: crate::vir_predicate! { vcx; predicate p_Tuple0(self_p: Ref, self_s: s_Tuple0) },
+                    predicate: crate::vir_predicate! { vcx; predicate [name_p](self_p: Ref, self_s: [ty_s]) },
                 }, ()))
             }
             TyKind::Adt(adt_def, substs) if adt_def.is_struct() => {
@@ -155,7 +183,10 @@ impl TaskEncoder for TypeEncoder {
                     predicate: crate::vir_predicate! { vcx; predicate [name_p](self_p: Ref, self_s: [ty_s]) },
                 }, ()))
             }
-            _ => Err((TypeEncoderError::UnsupportedType, None)),
+            other => {
+                panic!("How to encode type {:?}", other);
+                Err((TypeEncoderError::UnsupportedType, None))
+            },
         })
     }
 }
