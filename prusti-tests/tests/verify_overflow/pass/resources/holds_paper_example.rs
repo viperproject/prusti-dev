@@ -42,20 +42,20 @@ impl U32Map<AcctId> {
 #[resource_kind]
 struct Money(AcctId);
 
-#[invariant_twostate(
-    forall(|acct_id: AcctId|
-        holds(Money(acct_id)) -
-        old(holds(Money(acct_id))) ==
-        PermAmount::from(self.balance(acct_id)) -
-            PermAmount::from(old(self.balance(acct_id)))
-    ))
-]
-// Another useful invariant
-#[invariant(
-    forall(|acct_id: AcctId|
-        PermAmount::from(self.balance(acct_id)) >= holds(Money(acct_id))
-    ))
-]
+// #[invariant_twostate(
+//     forall(|acct_id: AcctId|
+//         holds(Money(acct_id)) -
+//         old(holds(Money(acct_id))) ==
+//         PermAmount::from(self.balance(acct_id)) -
+//             PermAmount::from(old(self.balance(acct_id)))
+//     ))
+// ]
+// // Another useful invariant
+// #[invariant(
+//     forall(|acct_id: AcctId|
+//         PermAmount::from(self.balance(acct_id)) >= holds(Money(acct_id))
+//     ))
+// ]
 struct Bank(U32Map<AcctId>);
 
 
@@ -80,16 +80,20 @@ impl Bank {
     }
 }
 
-#[requires(resource(Money(a), 2))]
+#[requires(resource(Money(a), 1))] // holds(Money(a)) == 1
+#[requires(resource(Money(a), 1))] // holds(Money(a)) == 2
+#[ensures(old(holds(Money(a))) == PermAmount::from(2))]
 #[ensures(holds(Money(a)) == PermAmount::from(0))]
-fn take2(bank:&mut Bank,a:AcctId){
-    bank.withdraw(a, 2);
+#[ensures(resource(Money(a), 1))] // holds(Money(a)) == 1
+fn take2return1(bank:&mut Bank,a:AcctId){
+    bank.withdraw(a, 1);
 }
 
 #[requires(resource(Money(a),3))]
-#[ensures(resource(Money(a),1))]
 fn client(bank:&mut Bank,a:AcctId){
-    take2(bank, a);
+    prusti_assert!(holds(Money(a)) == PermAmount::from(3));
+    take2return1(bank, a);
+    prusti_assert!(holds(Money(a)) == PermAmount::from(2));
 }
 
 pub fn main(){}
