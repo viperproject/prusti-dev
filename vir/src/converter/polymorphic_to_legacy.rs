@@ -599,6 +599,9 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
             polymorphic::Stmt::Assert(assert) => {
                 legacy::Stmt::Assert(assert.expr.into(), assert.position.into())
             }
+            polymorphic::Stmt::Refute(refute) => {
+                legacy::Stmt::Refute(refute.expr.into(), refute.position.into())
+            }
             polymorphic::Stmt::MethodCall(method_call) => legacy::Stmt::MethodCall(
                 method_call.method_name,
                 method_call

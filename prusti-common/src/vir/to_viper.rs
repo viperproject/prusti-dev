@@ -178,6 +178,9 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             Stmt::Assert(ref expr, ref pos) => {
                 ast.assert(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
+            Stmt::Refute(ref expr, ref pos) => {
+                ast.refute(expr.to_viper(context, ast), pos.to_viper(context, ast))
+            }
             Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::default();
                 ast.method_call(

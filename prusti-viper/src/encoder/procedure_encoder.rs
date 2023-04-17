@@ -222,7 +222,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let block = &self.mir[bb];
         let _ = self.try_encode_assert(bb, block, encoded_statements)?
-        || self.try_encode_assume(bb, block, encoded_statements)?;
+        || self.try_encode_assume(bb, block, encoded_statements)?
+        || self.try_encode_refute(bb, block, encoded_statements)?;
         Ok(())
     }
 
@@ -288,6 +289,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
 
                 encoded_statements.push(assert_stmt);
+
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    fn try_encode_refute(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir::Stmt>,
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+            )) = stmt.kind
+            {
+                let refutation = match self.encoder.get_prusti_refutation(cl_def_id) {
+                    Some(spec) => spec,
+                    None => return Ok(false),
+                };
+
+                let span = self
+                    .encoder
+                    .get_definition_span(refutation.refutation.to_def_id());
+
+                let refute_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+
+                let refute_stmt = vir::Stmt::Refute(
+                    vir::Refute {
+                        expr: refute_expr,
+                        position: self.register_error(span, ErrorCtxt::Panic(PanicCause::Refute))
+                    }
+                );
+
+                encoded_statements.push(refute_stmt);
 
                 return Ok(true);
             }
