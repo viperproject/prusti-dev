@@ -71,7 +71,11 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
                     .collect()
             }
 
-            &vir::Stmt::Assert(vir::Assert {
+            &vir::Stmt::Refute(vir::Refute {
+                ref expr,
+                ref position,
+            })
+            | &vir::Stmt::Assert(vir::Assert {
                 ref expr,
                 ref position,
             })

@@ -132,11 +132,26 @@ fn main() {
             java_class!("viper.silicon.Silicon", vec![
                 constructor!("(Lviper/silver/reporter/Reporter;Lscala/collection/immutable/Seq;)V"),
             ]),
+            java_class!("viper.silicon.SiliconFrontend", vec![
+                constructor!("(Lviper/silver/reporter/Reporter;Lch/qos/logback/classic/Logger;)V"),
+            ]),
             // Carbon
             java_class!("viper.carbon.CarbonVerifier", vec![
                 constructor!("(Lviper/silver/reporter/Reporter;Lscala/collection/immutable/Seq;)V"),
             ]),
+            java_class!("viper.carbon.CarbonFrontend", vec![
+                constructor!("(Lviper/silver/reporter/Reporter;Lch/qos/logback/classic/Logger;)V"),
+            ]),
             // Silver
+            java_class!("viper.silver.frontend.SilFrontend", vec![
+                method!("setVerifier"),
+                method!("verification"),
+                method!("getVerificationResult"),
+                method!("setState"),
+                method!("verifier"),
+                trait_field!("_verifier"),
+                trait_field!("_program"),
+            ]),
             java_class!("viper.silver.reporter.CSVReporter", vec![
                 constructor!("(Ljava/lang/String;Ljava/lang/String;)V"),
             ]),
@@ -150,6 +165,16 @@ fn main() {
                 method!("start"),
                 method!("stop"),
                 method!("verify"),
+            ]),
+            java_class!("viper.silver.frontend.DefaultStates", vec![
+                method!("ConsistencyCheck"),
+            ]),
+            java_class!("viper.silver.logger.SilentLogger$", vec![
+                object_getter!(),
+                method!("apply"),
+            ]),
+            java_class!("viper.silver.logger.ViperLogger", vec![
+                method!("get"),
             ]),
             java_class!("viper.silver.ast.pretty.FastPrettyPrinter$", vec![
                 object_getter!(),
@@ -196,6 +221,9 @@ fn main() {
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.Assert", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.refute.Refute", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.Bool$", vec![

@@ -10,3 +10,4 @@ mod method;
 pub mod module;
 mod scala_object_getter;
 mod field_getter_setter;
+mod trait_field_getter_setter;
