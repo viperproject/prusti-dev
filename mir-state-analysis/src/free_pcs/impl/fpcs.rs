@@ -53,6 +53,9 @@ impl<'a, 'tcx> DebugWithContext<FreePlaceCapabilitySummary<'a, 'tcx>> for Fpcs<'
         f: &mut Formatter<'_>,
     ) -> Result {
         assert_eq!(self.summary.len(), old.summary.len());
+        for op in &self.repackings {
+            writeln!(f, "{op}")?;
+        }
         for (new, old) in self.summary.iter().zip(old.summary.iter()) {
             let changed = match (new, old) {
                 (CapabilityLocal::Unallocated, CapabilityLocal::Unallocated) => false,
