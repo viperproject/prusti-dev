@@ -6,25 +6,26 @@
 
 use prusti_rustc_interface::{
     data_structures::fx::FxHashMap,
-    dataflow::Results,
     middle::mir::{visit::Visitor, Location},
 };
 
 use crate::{
-    engine::FreePlaceCapabilitySummary, join_semi_lattice::RepackingJoinSemiLattice,
-    utils::PlaceRepacker, CapabilityKind, CapabilityLocal, CapabilitySummary, PlaceOrdering,
-    RepackOp,
+    utils::PlaceRepacker, CapabilityKind, CapabilityLocal, CapabilitySummary, Fpcs,
+    FreePcsAnalysis, PlaceOrdering, RepackOp,
 };
 
 use super::consistency::CapabilityConistency;
 
-pub(crate) fn check<'tcx>(results: Results<'tcx, FreePlaceCapabilitySummary<'_, 'tcx>>) {
-    let rp = results.analysis.0;
+pub(crate) fn check(mut results: FreePcsAnalysis<'_, '_>) {
+    let rp = results.repacker();
     let body = rp.body();
-    let mut cursor = results.into_results_cursor(body);
     for (block, data) in body.basic_blocks.iter_enumerated() {
-        cursor.seek_to_block_start(block);
-        let mut fpcs = cursor.get().clone();
+        let mut cursor = results.analysis_for_bb(block);
+        let mut fpcs = Fpcs {
+            summary: cursor.initial_state().clone(),
+            repackings: Vec::new(),
+            repacker: rp,
+        };
         // Consistency
         fpcs.summary.consistency_check(rp);
         for (statement_index, stmt) in data.statements.iter().enumerate() {
@@ -32,10 +33,10 @@ pub(crate) fn check<'tcx>(results: Results<'tcx, FreePlaceCapabilitySummary<'_, 
                 block,
                 statement_index,
             };
-            cursor.seek_after_primary_effect(loc);
-            let fpcs_after = cursor.get();
+            let fpcs_after = cursor.next().unwrap();
+            assert_eq!(fpcs_after.location, loc);
             // Repacks
-            for op in &fpcs_after.repackings {
+            for op in fpcs_after.repacks {
                 op.update_free(&mut fpcs.summary, false, rp);
             }
             // Consistency
@@ -51,10 +52,10 @@ pub(crate) fn check<'tcx>(results: Results<'tcx, FreePlaceCapabilitySummary<'_, 
             block,
             statement_index: data.statements.len(),
         };
-        cursor.seek_after_primary_effect(loc);
-        let fpcs_after = cursor.get();
+        let fpcs_after = cursor.next().unwrap();
+        assert_eq!(fpcs_after.location, loc);
         // Repacks
-        for op in &fpcs_after.repackings {
+        for op in fpcs_after.repacks {
             op.update_free(&mut fpcs.summary, false, rp);
         }
         // Consistency
@@ -65,19 +66,23 @@ pub(crate) fn check<'tcx>(results: Results<'tcx, FreePlaceCapabilitySummary<'_, 
         assert!(fpcs.repackings.is_empty());
         // Consistency
         fpcs.summary.consistency_check(rp);
-        assert_eq!(&fpcs, fpcs_after);
+        assert_eq!(&fpcs.summary, fpcs_after.state);
 
-        for succ in data.terminator().successors() {
-            // Get repacks
-            let to = cursor.results().entry_set_for_block(succ);
-            let repacks = fpcs.summary.bridge(&to.summary, rp);
+        let Err(fpcs_end) = cursor.next() else {
+            panic!("Expected error at the end of the block");
+        };
 
+        for succ in fpcs_end.succs {
             // Repacks
             let mut from = fpcs.clone();
-            for op in repacks {
-                op.update_free(&mut from.summary, body.basic_blocks[succ].is_cleanup, rp);
+            for op in succ.repacks {
+                op.update_free(
+                    &mut from.summary,
+                    body.basic_blocks[succ.location.block].is_cleanup,
+                    rp,
+                );
             }
-            assert_eq!(&from, to);
+            assert_eq!(&from.summary, succ.state);
         }
     }
 }
