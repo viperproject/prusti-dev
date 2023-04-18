@@ -81,6 +81,10 @@ impl Verifier {
                     String::from_utf8(output.stdout)?
                 } else {
                     let err = String::from_utf8(output.stdout)?;
+
+                    // only lines that contain "error" are actual errors
+                    let err = err.lines().filter(|line| line.contains("error")).collect::<Vec<_>>().join("\n");
+
                     Err(err)?
                 }
             };
