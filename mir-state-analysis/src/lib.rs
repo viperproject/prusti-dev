@@ -18,11 +18,19 @@ use prusti_rustc_interface::{
     middle::{mir::Body, ty::TyCtxt},
 };
 
-pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, tcx: TyCtxt<'tcx>) {
+pub fn run_free_pcs<'mir, 'tcx>(
+    mir: &'mir Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+) -> FreePcsAnalysis<'mir, 'tcx> {
     let fpcs = free_pcs::engine::FreePlaceCapabilitySummary::new(tcx, mir);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("free_pcs")
         .iterate_to_fixpoint();
+    FreePcsAnalysis(analysis.into_results_cursor(mir))
+}
+
+pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, tcx: TyCtxt<'tcx>) {
+    let analysis = run_free_pcs(mir, tcx);
     free_pcs::check(analysis);
 }
