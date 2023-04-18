@@ -1,5 +1,5 @@
 use crate::verifier::verify;
-use micromir::test_free_pcs;
+use mir_state_analysis::test_free_pcs;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
@@ -140,7 +140,14 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
                 if config::test_free_pcs() {
-                    test_free_pcs(&env);
+                    for proc_id in env.get_annotated_procedures_and_types().0.iter() {
+                        let name = env.name.get_unique_item_name(*proc_id);
+                        println!("Calculating FPCS for: {name}");
+
+                        let current_procedure = env.get_procedure(*proc_id);
+                        let mir = current_procedure.get_mir_rc();
+                        test_free_pcs(&mir, tcx);
+                    }
                 } else {
                     verify(env, def_spec);
                 }
