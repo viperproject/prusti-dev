@@ -9,12 +9,37 @@ use prusti_rustc_interface::{
     dataflow::storage,
     index::bit_set::BitSet,
     middle::{
-        mir::{Body, Field, HasLocalDecls, Local, Mutability, ProjectionElem},
+        mir::{tcx::PlaceTy, Body, Field, HasLocalDecls, Local, Mutability, ProjectionElem},
         ty::{TyCtxt, TyKind},
     },
 };
 
-use crate::Place;
+use super::Place;
+
+#[derive(Debug, Clone, Copy)]
+pub enum ProjectionRefKind {
+    Ref(Mutability),
+    RawPtr(Mutability),
+    Box,
+    Other,
+}
+impl ProjectionRefKind {
+    pub fn is_ref(self) -> bool {
+        matches!(self, ProjectionRefKind::Ref(_))
+    }
+    pub fn is_raw_ptr(self) -> bool {
+        matches!(self, ProjectionRefKind::RawPtr(_))
+    }
+    pub fn is_box(self) -> bool {
+        matches!(self, ProjectionRefKind::Box)
+    }
+    pub fn is_deref(self) -> bool {
+        self.is_ref() || self.is_raw_ptr() || self.is_box()
+    }
+    pub fn is_shared_ref(self) -> bool {
+        matches!(self, ProjectionRefKind::Ref(Mutability::Not))
+    }
+}
 
 #[derive(Copy, Clone)]
 // TODO: modified version of fns taken from `prusti-interface/src/utils.rs`; deduplicate
@@ -56,7 +81,7 @@ impl<'tcx> Place<'tcx> {
         mut self,
         to: Self,
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> (Vec<(Self, Self)>, Vec<Self>) {
+    ) -> (Vec<(Self, Self, ProjectionRefKind)>, Vec<Self>) {
         assert!(
             self.is_prefix(to),
             "The minuend ({self:?}) must be the prefix of the subtrahend ({to:?})."
@@ -64,10 +89,10 @@ impl<'tcx> Place<'tcx> {
         let mut place_set = Vec::new();
         let mut expanded = Vec::new();
         while self.projection.len() < to.projection.len() {
-            expanded.push((self, to));
-            let (new_minuend, places) = self.expand_one_level(to, repacker);
-            self = new_minuend;
+            let (new_minuend, places, kind) = self.expand_one_level(to, repacker);
+            expanded.push((self, new_minuend, kind));
             place_set.extend(places);
+            self = new_minuend;
         }
         (expanded, place_set)
     }
@@ -80,7 +105,7 @@ impl<'tcx> Place<'tcx> {
         self,
         from: &mut FxHashSet<Self>,
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> Vec<(Self, Self)> {
+    ) -> Vec<(Self, Self, ProjectionRefKind)> {
         let mut collapsed = Vec::new();
         let mut guide_places = vec![self];
         while let Some(guide_place) = guide_places.pop() {
@@ -112,11 +137,11 @@ impl<'tcx> Place<'tcx> {
     /// Returns the new `self` and a vector containing other places that
     /// could have resulted from the expansion.
     #[tracing::instrument(level = "trace", skip(repacker), ret)]
-    pub(crate) fn expand_one_level(
+    pub fn expand_one_level(
         self,
         guide_place: Self,
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> (Self, Vec<Self>) {
+    ) -> (Self, Vec<Self>, ProjectionRefKind) {
         let index = self.projection.len();
         let new_projection = repacker.tcx.mk_place_elems_from_iter(
             self.projection
@@ -124,43 +149,56 @@ impl<'tcx> Place<'tcx> {
                 .chain([guide_place.projection[index]]),
         );
         let new_current_place = Place::new(self.local, new_projection);
-        let other_places = match guide_place.projection[index] {
+        let (other_places, kind) = match guide_place.projection[index] {
             ProjectionElem::Field(projected_field, _field_ty) => {
-                self.expand_field(Some(projected_field.index()), repacker)
+                let other_places = self.expand_field(Some(projected_field.index()), repacker);
+                (other_places, ProjectionRefKind::Other)
             }
             ProjectionElem::ConstantIndex {
                 offset,
                 min_length,
                 from_end,
-            } => (0..min_length)
-                .filter(|&i| {
-                    if from_end {
-                        i != min_length - offset
-                    } else {
-                        i != offset
-                    }
-                })
-                .map(|i| {
-                    repacker
-                        .tcx
-                        .mk_place_elem(
-                            *self,
-                            ProjectionElem::ConstantIndex {
-                                offset: i,
-                                min_length,
-                                from_end,
-                            },
-                        )
-                        .into()
-                })
-                .collect(),
-            ProjectionElem::Deref
-            | ProjectionElem::Index(..)
+            } => {
+                let other_places = (0..min_length)
+                    .filter(|&i| {
+                        if from_end {
+                            i != min_length - offset
+                        } else {
+                            i != offset
+                        }
+                    })
+                    .map(|i| {
+                        repacker
+                            .tcx
+                            .mk_place_elem(
+                                *self,
+                                ProjectionElem::ConstantIndex {
+                                    offset: i,
+                                    min_length,
+                                    from_end,
+                                },
+                            )
+                            .into()
+                    })
+                    .collect();
+                (other_places, ProjectionRefKind::Other)
+            }
+            ProjectionElem::Deref => {
+                let typ = self.ty(repacker.mir, repacker.tcx);
+                let kind = match typ.ty.kind() {
+                    TyKind::Ref(_, _, mutbl) => ProjectionRefKind::Ref(*mutbl),
+                    TyKind::RawPtr(ptr) => ProjectionRefKind::RawPtr(ptr.mutbl),
+                    _ if typ.ty.is_box() => ProjectionRefKind::Box,
+                    _ => unreachable!(),
+                };
+                (Vec::new(), kind)
+            }
+            ProjectionElem::Index(..)
             | ProjectionElem::Subslice { .. }
             | ProjectionElem::Downcast(..)
-            | ProjectionElem::OpaqueCast(..) => vec![],
+            | ProjectionElem::OpaqueCast(..) => (Vec::new(), ProjectionRefKind::Other),
         };
-        (new_current_place, other_places)
+        (new_current_place, other_places, kind)
     }
 
     /// Expands a place `x.f.g` of type struct into a vector of places for
@@ -267,7 +305,12 @@ impl<'tcx> Place<'tcx> {
     }
 
     #[tracing::instrument(level = "info", skip(repacker), ret)]
-    pub fn joinable_to(self, to: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
+    pub fn joinable_to(
+        self,
+        to: Self,
+        not_through_ref: bool,
+        repacker: PlaceRepacker<'_, 'tcx>,
+    ) -> Self {
         assert!(self.is_prefix(to));
         let proj = self.projection.iter();
         let to_proj = to.projection[self.projection.len()..]
@@ -276,10 +319,8 @@ impl<'tcx> Place<'tcx> {
             .take_while(|p| {
                 matches!(
                     p,
-                    ProjectionElem::Deref
-                        | ProjectionElem::Field(..)
-                        | ProjectionElem::ConstantIndex { .. }
-                )
+                    ProjectionElem::Field(..) | ProjectionElem::ConstantIndex { .. } // TODO: we may want to allow going through Box derefs here?
+                ) || (!not_through_ref && matches!(p, ProjectionElem::Deref))
             });
         let projection = repacker.tcx.mk_place_elems_from_iter(proj.chain(to_proj));
         Self::new(self.local, projection)
@@ -304,5 +345,57 @@ impl<'tcx> Place<'tcx> {
         } else {
             unreachable!("get_ref_mutability called on non-ref type: {:?}", typ.ty);
         }
+    }
+
+    // /// Calculates if we dereference through a mutable/immutable reference. For example, if we have\
+    // /// `x: (i32, & &mut i32)` then we would get the following results:
+    // ///
+    // /// * `"x".through_ref_mutability("x.0")` -> `None`
+    // /// * `"x".through_ref_mutability("x.1")` -> `None`
+    // /// * `"x".through_ref_mutability("*x.1")` -> `Some(Mutability::Not)`
+    // /// * `"x".through_ref_mutability("**x.1")` -> `Some(Mutability::Not)`
+    // /// * `"*x.1".through_ref_mutability("**x.1")` -> `Some(Mutability::Mut)`
+    // pub fn between_ref_mutability(self, to: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Mutability> {
+    //     assert!(self.is_prefix(to));
+    //     let mut typ = self.ty(repacker.mir, repacker.tcx);
+    //     let mut mutbl = None;
+    //     for &elem in &to.projection[self.projection.len()..] {
+    //         match typ.ty.kind() {
+    //             TyKind::Ref(_, _, Mutability::Not) => return Some(Mutability::Not),
+    //             TyKind::Ref(_, _, Mutability::Mut) => mutbl = Some(Mutability::Mut),
+    //             _ => ()
+    //         };
+    //         typ = typ.projection_ty(repacker.tcx, elem);
+    //     }
+    //     mutbl
+    // }
+
+    pub fn projects_shared_ref(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
+        self.projects_ty(
+            |typ| {
+                typ.ty
+                    .ref_mutability()
+                    .map(|m| m.is_not())
+                    .unwrap_or_default()
+            },
+            repacker,
+        )
+        .is_some()
+    }
+
+    pub fn projects_ty(
+        self,
+        predicate: impl Fn(PlaceTy<'tcx>) -> bool,
+        repacker: PlaceRepacker<'_, 'tcx>,
+    ) -> Option<Place<'tcx>> {
+        let mut typ = PlaceTy::from_ty(repacker.mir.local_decls()[self.local].ty);
+        for (idx, elem) in self.projection.iter().enumerate() {
+            if predicate(typ) {
+                let projection = repacker.tcx.mk_place_elems(&self.projection[0..idx]);
+                return Some(Self::new(self.local, projection));
+            }
+            typ = typ.projection_ty(repacker.tcx, elem);
+        }
+        None
     }
 }
