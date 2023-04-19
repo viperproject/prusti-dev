@@ -12,21 +12,25 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    engine::FreePlaceCapabilitySummary, utils::PlaceRepacker, CapabilityKind, CapabilityLocal,
-    CapabilityProjections, RepackOp,
+    free_pcs::{
+        engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
+    },
+    utils::PlaceRepacker,
 };
 
 #[derive(Clone)]
 pub struct Fpcs<'a, 'tcx> {
     pub(crate) repacker: PlaceRepacker<'a, 'tcx>,
+    pub(crate) bottom: bool,
     pub summary: CapabilitySummary<'tcx>,
     pub repackings: Vec<RepackOp<'tcx>>,
 }
 impl<'a, 'tcx> Fpcs<'a, 'tcx> {
     pub(crate) fn new(repacker: PlaceRepacker<'a, 'tcx>) -> Self {
-        let summary = CapabilitySummary::bottom_value(repacker.local_count());
+        let summary = CapabilitySummary::default(repacker.local_count());
         Self {
             repacker,
+            bottom: true,
             summary,
             repackings: Vec::new(),
         }
@@ -35,7 +39,9 @@ impl<'a, 'tcx> Fpcs<'a, 'tcx> {
 
 impl PartialEq for Fpcs<'_, '_> {
     fn eq(&self, other: &Self) -> bool {
-        self.summary == other.summary
+        self.bottom == other.bottom
+            && self.summary == other.summary
+            && self.repackings == other.repackings
     }
 }
 impl Eq for Fpcs<'_, '_> {}
@@ -129,23 +135,14 @@ impl<T: Debug> Debug for Summary<T> {
     }
 }
 
-// impl<T> Summary<T> {
-//     pub fn default(local_count: usize) -> Self
-//     where
-//         T: Default + Clone,
-//     {
-//         Self(IndexVec::from_elem_n(T::default(), local_count))
-//     }
-// }
+impl<T> Summary<T> {
+    pub fn default(local_count: usize) -> Self
+    where
+        T: Default + Clone,
+    {
+        Self(IndexVec::from_elem_n(T::default(), local_count))
+    }
+}
 
 /// The free pcs of all locals
 pub type CapabilitySummary<'tcx> = Summary<CapabilityLocal<'tcx>>;
-
-impl<'tcx> CapabilitySummary<'tcx> {
-    pub fn bottom_value(local_count: usize) -> Self {
-        Self(IndexVec::from_fn_n(
-            |local: Local| CapabilityLocal::new(local, CapabilityKind::Exclusive),
-            local_count,
-        ))
-    }
-}

@@ -4,7 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{utils::PlaceRepacker, CapabilityLocal, CapabilityProjections, Place, Summary};
+use crate::{
+    free_pcs::{CapabilityKind, CapabilityLocal, CapabilityProjections, Summary},
+    utils::{Place, PlaceRepacker},
+};
 
 pub trait CapabilityConistency<'tcx> {
     fn consistency_check(&self, repacker: PlaceRepacker<'_, 'tcx>);
@@ -34,6 +37,13 @@ impl<'tcx> CapabilityConistency<'tcx> for CapabilityProjections<'tcx> {
         for (i, p1) in keys.iter().enumerate() {
             for p2 in keys[i + 1..].iter() {
                 assert!(!p1.related_to(*p2), "{p1:?} {p2:?}",);
+            }
+            // Cannot pack or unpack through uninitialized pointers.
+            if p1.projection_contains_deref() {
+                assert!(
+                    matches!(self[p1], CapabilityKind::Exclusive | CapabilityKind::Read),
+                    "{self:?}"
+                );
             }
         }
         // Can always pack up to the root
