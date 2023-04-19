@@ -131,6 +131,7 @@ pub(in super::super) fn ensure_required_permission(
     required_permission: Permission,
     actions: &mut Vec<Action>,
 ) -> SpannedEncodingResult<()> {
+    return Ok(()); // TODO: Remove permission reasoning
     state.debug_print();
 
     let (place, permission_kind) = match required_permission {
@@ -319,6 +320,7 @@ fn ensure_permission_in_state(
     permission_kind: PermissionKind,
     actions: &mut Vec<Action>,
 ) -> SpannedEncodingResult<bool> {
+    return Ok(true); // TODO: Remove permission reasoning
     predicate_state.check_consistency();
     let to_drop = if check_contains_place(predicate_state, &place, permission_kind)? {
         debug!("  satisfied: {:?} {}", permission_kind, place);

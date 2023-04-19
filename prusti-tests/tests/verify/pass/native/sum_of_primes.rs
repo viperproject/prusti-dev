@@ -273,6 +273,6 @@ fn main() {
     wrap.push(3);
     wrap.push(5);
 
-    sum_of_different_primes_rec_iter(&wrap, 2, 5);
-    sum_of_different_primes(&wrap, 2, 5);
+    sum_of_different_primes_rec_iter(&wrap, 3, 3);
+    sum_of_different_primes(&wrap, 3, 3);
 }

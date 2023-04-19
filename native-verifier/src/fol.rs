@@ -56,9 +56,44 @@ fn vir_statement_to_fol_statements(
                     .collect();
             }
 
+            if cond.then_branch.is_empty() ^ cond.else_branch.is_empty() {
+                let branch = if cond.then_branch.is_empty() {
+                    &cond.else_branch
+                } else {
+                    &cond.then_branch
+                };
+                // if the branch is an assertion, emit it as an implication from the guard
+                let mut statements = vec![];
+                for s in branch {
+                    if let Statement::Assert(assert) = s {
+                        let implication = Expression::BinaryOp(BinaryOp {
+                            op_kind: BinaryOpKind::Implies,
+                            left: Box::new(cond.guard.clone()),
+                            right: Box::new(assert.expression.clone()),
+                            position: assert.position,
+                        });
+                        statements.push(FolStatement::Assert(implication));
+                    } else if let Statement::Inhale(inhale) = s {
+                        let implication = Expression::BinaryOp(BinaryOp {
+                            op_kind: BinaryOpKind::Implies,
+                            left: Box::new(cond.guard.clone()),
+                            right: Box::new(inhale.expression.clone()),
+                            position: inhale.position,
+                        });
+                        statements.push(FolStatement::Assume(implication));
+                    } else {
+                        unimplemented!(
+                            "Non-assertion statements in conditional branches not supported: {}",
+                            s
+                        )
+                    }
+                }
+                return statements;
+            }
+
             if !(cond.then_branch.is_empty() && cond.else_branch.is_empty()) {
                 unimplemented!(
-                    "Non-trivial conditional statements not supported!!\nGuard: {}\n\nThen-branch:\n{}\n\nElse-branch:\n{}",
+                    "Non-trivial conditional statements not supported!!\nGuard: {}\n\nThen-branch:\n{}\n\nElse-branch:\n{}\n",
                     cond.guard,
                     cond.then_branch
                         .iter()
@@ -72,6 +107,7 @@ fn vir_statement_to_fol_statements(
                         .join(";\n")
                 );
             }
+
             vec![]
         }
         Statement::MethodCall(method_call) => {
