@@ -7,4 +7,5 @@
 pub mod place;
 pub(crate) mod repacker;
 
-pub(crate) use repacker::*;
+pub use place::*;
+pub use repacker::*;

@@ -12,7 +12,7 @@ use prusti_rustc_interface::{
     },
 };
 
-use crate::Fpcs;
+use crate::free_pcs::{CapabilityKind, Fpcs};
 
 impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
     fn visit_operand(&mut self, operand: &Operand<'tcx>, location: Location) {
@@ -33,9 +33,14 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
         self.super_statement(statement, location);
         use StatementKind::*;
         match &statement.kind {
-            &Assign(box (place, _)) => {
-                self.requires_write(place);
-                self.ensures_exclusive(place);
+            Assign(box (place, rvalue)) => {
+                self.requires_write(*place);
+                let ensures = rvalue.capability();
+                match ensures {
+                    CapabilityKind::Exclusive => self.ensures_exclusive(*place),
+                    CapabilityKind::ShallowExclusive => self.ensures_shallow_exclusive(*place),
+                    _ => unreachable!(),
+                }
             }
             &FakeRead(box (_, place)) => self.requires_read(place),
             &SetDiscriminant { box place, .. } => self.requires_exclusive(place),
@@ -141,8 +146,36 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             },
             &Len(place) => self.requires_read(place),
             &Discriminant(place) => self.requires_read(place),
-            ShallowInitBox(_, _) => todo!(),
+            ShallowInitBox(op, ty) => todo!("{op:?}, {ty:?}"),
             &CopyForDeref(place) => self.requires_read(place),
+        }
+    }
+}
+
+trait ProducesCapability {
+    fn capability(&self) -> CapabilityKind;
+}
+
+impl ProducesCapability for Rvalue<'_> {
+    fn capability(&self) -> CapabilityKind {
+        use Rvalue::*;
+        match self {
+            Use(_)
+            | Repeat(_, _)
+            | Ref(_, _, _)
+            | ThreadLocalRef(_)
+            | AddressOf(_, _)
+            | Len(_)
+            | Cast(_, _, _)
+            | BinaryOp(_, _)
+            | CheckedBinaryOp(_, _)
+            | NullaryOp(_, _)
+            | UnaryOp(_, _)
+            | Discriminant(_)
+            | Aggregate(_, _)
+            | CopyForDeref(_) => CapabilityKind::Exclusive,
+            // TODO:
+            ShallowInitBox(_, _) => CapabilityKind::Read,
         }
     }
 }

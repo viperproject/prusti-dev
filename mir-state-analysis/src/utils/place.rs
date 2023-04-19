@@ -155,7 +155,7 @@ impl<'tcx> Place<'tcx> {
         }
     }
 
-    /// Check if the place `potential_prefix` is a prefix of `place`. For example:
+    /// Check if the place `self` is a prefix of `place`. For example:
     ///
     /// +   `is_prefix(x.f, x.f) == true`
     /// +   `is_prefix(x.f, x.f.g) == true`
@@ -166,12 +166,48 @@ impl<'tcx> Place<'tcx> {
             .unwrap_or(false)
     }
 
+    /// Check if the place `self` is an exact prefix of `place`. For example:
+    ///
+    /// +   `is_prefix(x.f, x.f) == false`
+    /// +   `is_prefix(x.f, x.f.g) == true`
+    /// +   `is_prefix(x.f, x.f.g.h) == false`
+    pub(crate) fn is_prefix_exact(self, place: Self) -> bool {
+        self.0.projection.len() + 1 == place.0.projection.len()
+            && Self::partial_cmp(self, place)
+                .map(|o| o == PlaceOrdering::Prefix)
+                .unwrap_or(false)
+    }
+
+    /// Check if the place `self` is a prefix of `place` or vice versa. For example:
+    ///
+    /// +   `is_prefix(x.f, x.f) == None`
+    /// +   `is_prefix(x.f, x.f.g) == Some(true)`
+    /// +   `is_prefix(x.f.g, x.f) == Some(false)`
+    /// +   `is_prefix(x.g, x.f) == None`
+    pub(crate) fn either_prefix(self, place: Self) -> Option<bool> {
+        Self::partial_cmp(self, place).and_then(|o| {
+            if o == PlaceOrdering::Prefix {
+                Some(true)
+            } else if o == PlaceOrdering::Suffix {
+                Some(false)
+            } else {
+                None
+            }
+        })
+    }
+
     /// Returns `true` if either of the places can reach the other
     /// with a series of expand/collapse operations. Note that
     /// both operations are allowed and so e.g.
     /// related_to(`_1[_4]`, `_1[_3]`) == true
     pub fn related_to(self, right: Self) -> bool {
         self.partial_cmp(right).is_some()
+    }
+
+    pub fn projection_contains_deref(self) -> bool {
+        self.projection
+            .iter()
+            .any(|proj| matches!(proj, ProjectionElem::Deref))
     }
 }
 

@@ -7,13 +7,21 @@
 use prusti_rustc_interface::dataflow::JoinSemiLattice;
 
 use crate::{
-    utils::PlaceRepacker, CapabilityKind, CapabilityLocal, CapabilityProjections,
-    CapabilitySummary, Fpcs, PlaceOrdering, RepackOp,
+    free_pcs::{
+        CapabilityKind, CapabilityLocal, CapabilityProjections, CapabilitySummary, Fpcs, RepackOp,
+    },
+    utils::{PlaceOrdering, PlaceRepacker},
 };
 
 impl JoinSemiLattice for Fpcs<'_, '_> {
     fn join(&mut self, other: &Self) -> bool {
-        self.summary.join(&other.summary, self.repacker)
+        assert!(!other.bottom);
+        if self.bottom {
+            self.clone_from(other);
+            true
+        } else {
+            self.summary.join(&other.summary, self.repacker)
+        }
     }
 }
 
@@ -32,8 +40,8 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilitySummary<'tcx> {
     }
     fn bridge(&self, other: &Self, repacker: PlaceRepacker<'_, 'tcx>) -> Vec<RepackOp<'tcx>> {
         let mut repacks = Vec::new();
-        for (l, to) in self.iter_enumerated() {
-            let local_repacks = to.bridge(&other[l], repacker);
+        for (l, from) in self.iter_enumerated() {
+            let local_repacks = from.bridge(&other[l], repacker);
             repacks.extend(local_repacks);
         }
         repacks
@@ -59,8 +67,8 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityLocal<'tcx> {
     fn bridge(&self, other: &Self, repacker: PlaceRepacker<'_, 'tcx>) -> Vec<RepackOp<'tcx>> {
         match (self, other) {
             (CapabilityLocal::Unallocated, CapabilityLocal::Unallocated) => Vec::new(),
-            (CapabilityLocal::Allocated(to_places), CapabilityLocal::Allocated(from_places)) => {
-                to_places.bridge(from_places, repacker)
+            (CapabilityLocal::Allocated(from_places), CapabilityLocal::Allocated(to_places)) => {
+                from_places.bridge(to_places, repacker)
             }
             (CapabilityLocal::Allocated(cps), CapabilityLocal::Unallocated) => {
                 // TODO: remove need for clone
@@ -74,15 +82,10 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityLocal<'tcx> {
                     }
                 }
                 if !cps.contains_key(&local.into()) {
-                    let packs = cps.pack_ops(
-                        cps.keys().copied().collect(),
-                        local.into(),
-                        CapabilityKind::Write,
-                        repacker,
-                    );
+                    let packs = cps.collapse(cps.keys().copied().collect(), local.into(), repacker);
                     repacks.extend(packs);
                 };
-                repacks.push(RepackOp::DeallocForCleanup(local));
+                repacks.push(RepackOp::StorageDead(local));
                 repacks
             }
             (CapabilityLocal::Unallocated, CapabilityLocal::Allocated(..)) => unreachable!(),
@@ -95,53 +98,67 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
     fn join(&mut self, other: &Self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
         let mut changed = false;
         for (&place, &kind) in &**other {
+            let want = kind.read_as_exclusive();
             let related = self.find_all_related(place, None);
-            match related.relation {
+            let final_place = match related.relation {
                 PlaceOrdering::Prefix => {
                     changed = true;
 
-                    let from = related.from[0].0;
-                    let joinable_place = from.joinable_to(place, repacker);
+                    let from = related.get_only_from();
+                    let not_through_ref = self[&from] != CapabilityKind::Exclusive;
+                    let joinable_place = from.joinable_to(place, not_through_ref, repacker);
                     if joinable_place != from {
-                        self.unpack(from, joinable_place, repacker);
+                        self.expand(from, joinable_place, repacker);
                     }
-                    // Downgrade the permission if needed
-                    let new_min = kind.minimum(related.minimum).unwrap();
-                    if new_min != related.minimum {
-                        self.insert(joinable_place, new_min);
-                    }
+                    Some(joinable_place)
                 }
-                PlaceOrdering::Equal => {
-                    // Downgrade the permission if needed
-                    let new_min = kind.minimum(related.minimum).unwrap();
-                    if new_min != related.minimum {
-                        changed = true;
-                        self.insert(place, new_min);
-                    }
-                }
+                PlaceOrdering::Equal => Some(place),
                 PlaceOrdering::Suffix => {
                     // Downgrade the permission if needed
                     for &(p, k) in &related.from {
-                        let new_min = kind.minimum(k).unwrap();
-                        if new_min != k {
+                        if !self.contains_key(&p) {
+                            continue;
+                        }
+                        let k = k.read_as_exclusive();
+                        let p = if want != CapabilityKind::Exclusive {
+                            // TODO: we may want to allow going through Box derefs here?
+                            if let Some(to) = p.projects_ty(
+                                |typ| typ.ty.is_ref() || typ.ty.is_unsafe_ptr() || typ.ty.is_box(),
+                                repacker,
+                            ) {
+                                changed = true;
+                                let related = self.find_all_related(to, None);
+                                assert_eq!(related.relation, PlaceOrdering::Suffix);
+                                self.collapse(related.get_from(), related.to, repacker);
+                                to
+                            } else {
+                                p
+                            }
+                        } else {
+                            p
+                        };
+                        if k > want {
                             changed = true;
-                            self.insert(p, new_min);
+                            self.insert(p, want);
+                        } else {
+                            assert_eq!(k, want);
                         }
                     }
+                    None
                 }
                 PlaceOrdering::Both => {
                     changed = true;
 
-                    // Downgrade the permission if needed
-                    let min = kind.minimum(related.minimum).unwrap();
-                    for &(p, k) in &related.from {
-                        let new_min = min.minimum(k).unwrap();
-                        if new_min != k {
-                            self.insert(p, new_min);
-                        }
-                    }
-                    let cp = related.from[0].0.common_prefix(place, repacker);
-                    self.pack(related.get_from(), cp, min, repacker);
+                    let cp = related.common_prefix(place, repacker);
+                    self.collapse(related.get_from(), cp, repacker);
+                    Some(cp)
+                }
+            };
+            if let Some(place) = final_place {
+                // Downgrade the permission if needed
+                let curr = self[&place].read_as_exclusive();
+                if curr > want {
+                    self.insert(place, want);
                 }
             }
         }
@@ -149,47 +166,32 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
     }
     fn bridge(&self, other: &Self, repacker: PlaceRepacker<'_, 'tcx>) -> Vec<RepackOp<'tcx>> {
         // TODO: remove need for clone
-        let mut cps = self.clone();
+        let mut from = self.clone();
 
         let mut repacks = Vec::new();
         for (&place, &kind) in &**other {
-            let related = cps.find_all_related(place, None);
+            let related = from.find_all_related(place, None);
             match related.relation {
                 PlaceOrdering::Prefix => {
-                    let from = related.from[0].0;
+                    let from_place = related.get_only_from();
                     // TODO: remove need for clone
-                    let unpacks = cps.unpack_ops(from, place, related.minimum, repacker);
+                    let unpacks = from.expand(from_place, place, repacker);
                     repacks.extend(unpacks);
-
-                    // Downgrade the permission if needed
-                    let new_min = kind.minimum(related.minimum).unwrap();
-                    if new_min != related.minimum {
-                        cps.insert(place, new_min);
-                        repacks.push(RepackOp::Weaken(place, related.minimum, new_min));
-                    }
                 }
-                PlaceOrdering::Equal => {
-                    // Downgrade the permission if needed
-                    let new_min = kind.minimum(related.minimum).unwrap();
-                    if new_min != related.minimum {
-                        cps.insert(place, new_min);
-                        repacks.push(RepackOp::Weaken(place, related.minimum, new_min));
-                    }
-                }
+                PlaceOrdering::Equal => (),
                 PlaceOrdering::Suffix => {
-                    // Downgrade the permission if needed
-                    for &(p, k) in &related.from {
-                        let new_min = kind.minimum(k).unwrap();
-                        if new_min != k {
-                            cps.insert(p, new_min);
-                            repacks.push(RepackOp::Weaken(p, k, new_min));
-                        }
-                    }
-                    let packs =
-                        cps.pack_ops(related.get_from(), related.to, related.minimum, repacker);
+                    let packs = from.collapse(related.get_from(), related.to, repacker);
                     repacks.extend(packs);
                 }
                 PlaceOrdering::Both => unreachable!(),
+            }
+            // Downgrade the permission if needed
+            let want = kind.read_as_exclusive();
+            let curr = from[&place].read_as_exclusive();
+            if curr != want {
+                assert!(curr > want);
+                from.insert(place, want);
+                repacks.push(RepackOp::Weaken(place, curr, want));
             }
         }
         repacks

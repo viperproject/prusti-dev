@@ -12,7 +12,10 @@ use prusti_rustc_interface::{
     middle::mir::Local,
 };
 
-use crate::{utils::PlaceRepacker, CapabilityKind, Place, PlaceOrdering, RelatedSet};
+use crate::{
+    free_pcs::{CapabilityKind, RelatedSet, RepackOp},
+    utils::{Place, PlaceOrdering, PlaceRepacker},
+};
 
 #[derive(Clone, PartialEq, Eq)]
 /// The permissions of a local, each key in the hashmap is a "root" projection of the local
@@ -28,6 +31,12 @@ impl Debug for CapabilityLocal<'_> {
             Self::Unallocated => write!(f, "U"),
             Self::Allocated(cps) => write!(f, "{cps:?}"),
         }
+    }
+}
+
+impl Default for CapabilityLocal<'_> {
+    fn default() -> Self {
+        Self::Unallocated
     }
 }
 
@@ -82,15 +91,16 @@ impl<'tcx> CapabilityProjections<'tcx> {
         to: Place<'tcx>,
         mut expected: Option<PlaceOrdering>,
     ) -> RelatedSet<'tcx> {
-        let mut minimum = None::<CapabilityKind>;
+        // let mut minimum = None::<CapabilityKind>;
         let mut related = Vec::new();
         for (&from, &cap) in &**self {
             if let Some(ord) = from.partial_cmp(to) {
-                minimum = if let Some(min) = minimum {
-                    Some(min.minimum(cap).unwrap())
-                } else {
-                    Some(cap)
-                };
+                // let cap_no_read = cap.read_as_exclusive();
+                // minimum = if let Some(min) = minimum {
+                //     Some(min.minimum(cap_no_read).unwrap())
+                // } else {
+                //     Some(cap_no_read)
+                // };
                 if let Some(expected) = expected {
                     assert_eq!(ord, expected);
                 } else {
@@ -110,7 +120,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
         RelatedSet {
             from: related,
             to,
-            minimum: minimum.unwrap(),
+            // minimum: minimum.unwrap(),
             relation,
         }
     }
@@ -121,18 +131,35 @@ impl<'tcx> CapabilityProjections<'tcx> {
         skip(repacker),
         ret
     )]
-    pub(crate) fn unpack(
+    pub(crate) fn expand(
         &mut self,
         from: Place<'tcx>,
         to: Place<'tcx>,
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> Vec<(Place<'tcx>, Place<'tcx>)> {
+    ) -> Vec<RepackOp<'tcx>> {
         debug_assert!(!self.contains_key(&to));
-        let (expanded, others) = from.expand(to, repacker);
-        let perm = self.remove(&from).unwrap();
+        let (expanded, mut others) = from.expand(to, repacker);
+        let mut perm = self.remove(&from).unwrap();
+        others.push(to);
+        let mut ops = Vec::new();
+        for (from, to, kind) in expanded {
+            let others = others.drain_filter(|other| !to.is_prefix(*other));
+            self.extend(others.map(|p| (p, perm)));
+            if kind.is_deref() {
+                let new_perm = if perm.is_shallow_exclusive() && kind.is_box() {
+                    CapabilityKind::Write
+                } else {
+                    perm
+                };
+                ops.push(RepackOp::Deref(from, perm, to, new_perm));
+                perm = new_perm;
+            } else {
+                ops.push(RepackOp::Expand(from, to, perm));
+            }
+        }
         self.extend(others.into_iter().map(|p| (p, perm)));
-        self.insert(to, perm);
-        expanded
+        // assert!(self.contains_key(&to), "{self:?}\n{to:?}");
+        ops
     }
 
     // TODO: this could be implemented more efficiently, by assuming that a valid
@@ -143,21 +170,68 @@ impl<'tcx> CapabilityProjections<'tcx> {
         skip(repacker),
         ret
     )]
-    pub(crate) fn pack(
+    pub(crate) fn collapse(
         &mut self,
         mut from: FxHashSet<Place<'tcx>>,
         to: Place<'tcx>,
-        perm: CapabilityKind,
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> Vec<(Place<'tcx>, Place<'tcx>)> {
+    ) -> Vec<RepackOp<'tcx>> {
         debug_assert!(!self.contains_key(&to), "{to:?} already exists in {self:?}");
-        for place in &from {
-            let p = self.remove(place).unwrap();
-            assert_eq!(p, perm, "Cannot pack {place:?} with {p:?} into {to:?}");
-        }
+        let mut old_caps: FxHashMap<_, _> = from
+            .iter()
+            .map(|&p| (p, self.remove(&p).unwrap()))
+            .collect();
         let collapsed = to.collapse(&mut from, repacker);
         assert!(from.is_empty());
-        self.insert(to, perm);
-        collapsed
+        let mut exclusive_at = Vec::new();
+        if !to.projects_shared_ref(repacker) {
+            for (to, _, kind) in &collapsed {
+                if kind.is_shared_ref() {
+                    let mut is_prefixed = false;
+                    exclusive_at.drain_filter(|old| {
+                        let cmp = to.either_prefix(*old);
+                        if matches!(cmp, Some(false)) {
+                            is_prefixed = true;
+                        }
+                        cmp.unwrap_or_default()
+                    });
+                    if !is_prefixed {
+                        exclusive_at.push(*to);
+                    }
+                }
+            }
+        }
+        let mut ops = Vec::new();
+        for (to, from, kind) in collapsed {
+            let removed_perms: Vec<_> =
+                old_caps.drain_filter(|old, _| to.is_prefix(*old)).collect();
+            let perm = removed_perms
+                .iter()
+                .fold(CapabilityKind::Exclusive, |acc, (_, p)| {
+                    acc.minimum(*p).unwrap()
+                });
+            for (from, from_perm) in removed_perms {
+                if perm != from_perm {
+                    assert!(from_perm > perm);
+                    ops.push(RepackOp::Weaken(from, from_perm, perm));
+                }
+            }
+            let op = if kind.is_deref() {
+                let new_perm = if kind.is_shared_ref() && exclusive_at.contains(&to) {
+                    assert_eq!(perm, CapabilityKind::Read);
+                    CapabilityKind::Exclusive
+                } else {
+                    perm
+                };
+                old_caps.insert(to, new_perm);
+                RepackOp::Upref(to, new_perm, from, perm)
+            } else {
+                old_caps.insert(to, perm);
+                RepackOp::Collapse(to, from, perm)
+            };
+            ops.push(op);
+        }
+        self.insert(to, old_caps[&to]);
+        ops
     }
 }

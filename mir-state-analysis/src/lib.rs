@@ -5,13 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(rustc_private)]
-#![feature(box_patterns)]
+#![feature(box_patterns, hash_drain_filter, drain_filter)]
 
-mod free_pcs;
-mod utils;
-
-pub use free_pcs::*;
-pub use utils::place::*;
+pub mod free_pcs;
+pub mod utils;
 
 use prusti_rustc_interface::{
     dataflow::Analysis,
@@ -21,13 +18,13 @@ use prusti_rustc_interface::{
 pub fn run_free_pcs<'mir, 'tcx>(
     mir: &'mir Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-) -> FreePcsAnalysis<'mir, 'tcx> {
+) -> free_pcs::FreePcsAnalysis<'mir, 'tcx> {
     let fpcs = free_pcs::engine::FreePlaceCapabilitySummary::new(tcx, mir);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("free_pcs")
         .iterate_to_fixpoint();
-    FreePcsAnalysis(analysis.into_results_cursor(mir))
+    free_pcs::FreePcsAnalysis(analysis.into_results_cursor(mir))
 }
 
 pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, tcx: TyCtxt<'tcx>) {

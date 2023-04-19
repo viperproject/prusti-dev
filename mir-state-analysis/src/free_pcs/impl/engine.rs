@@ -15,7 +15,10 @@ use prusti_rustc_interface::{
     },
 };
 
-use crate::{utils::PlaceRepacker, CapabilityKind, CapabilityLocal, Fpcs};
+use crate::{
+    free_pcs::{CapabilityKind, CapabilityLocal, Fpcs},
+    utils::PlaceRepacker,
+};
 
 pub(crate) struct FreePlaceCapabilitySummary<'a, 'tcx>(pub(crate) PlaceRepacker<'a, 'tcx>);
 impl<'a, 'tcx> FreePlaceCapabilitySummary<'a, 'tcx> {
@@ -34,20 +37,16 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
     }
 
     fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
+        state.bottom = false;
         let always_live = self.0.always_live_locals();
         let return_local = RETURN_PLACE;
         let last_arg = Local::new(body.arg_count);
         for (local, cap) in state.summary.iter_enumerated_mut() {
-            if local == return_local {
-                let old = cap
-                    .get_allocated_mut()
-                    .insert(local.into(), CapabilityKind::Write);
-                assert!(old.is_some());
+            assert!(cap.is_unallocated());
+            let new_cap = if local == return_local {
+                CapabilityLocal::new(local, CapabilityKind::Write)
             } else if local <= last_arg {
-                let old = cap
-                    .get_allocated_mut()
-                    .insert(local.into(), CapabilityKind::Exclusive);
-                assert!(old.is_some());
+                CapabilityLocal::new(local, CapabilityKind::Exclusive)
             } else if always_live.contains(local) {
                 // TODO: figure out if `always_live` should start as `Uninit` or `Exclusive`
                 let al_cap = if true {
@@ -55,11 +54,11 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
                 } else {
                     CapabilityKind::Exclusive
                 };
-                let old = cap.get_allocated_mut().insert(local.into(), al_cap);
-                assert!(old.is_some());
+                CapabilityLocal::new(local, al_cap)
             } else {
-                *cap = CapabilityLocal::Unallocated;
-            }
+                CapabilityLocal::Unallocated
+            };
+            *cap = new_cap;
         }
     }
 }
