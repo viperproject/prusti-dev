@@ -344,6 +344,8 @@ mod vir {
         PureAssign(PureAssign<'vir>),
         Inhale(Expr<'vir>),
         Exhale(Expr<'vir>),
+        Unfold(PredicateApp<'vir>),
+        Fold(PredicateApp<'vir>),
         MethodCall(MethodCall<'vir>),
         Comment(&'vir str),
         Dummy(&'vir str),
@@ -355,6 +357,8 @@ mod vir {
                 Self::PureAssign(data) => write!(f, "{:?} := {:?}", data.dest, data.expr),
                 Self::Inhale(data) => write!(f, "inhale {:?}", data),
                 Self::Exhale(data) => write!(f, "exhale {:?}", data),
+                Self::Unfold(data) => write!(f, "unfold {:?}", data),
+                Self::Fold(data) => write!(f, "fold {:?}", data),
                 Self::MethodCall(data) => {
                     if !data.targets.is_empty() {
                         fmt_comma_sep(f, &data.targets)?;

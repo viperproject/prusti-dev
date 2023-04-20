@@ -264,8 +264,10 @@ impl TaskEncoder for TypeEncoder {
                 }, ()))
             }
             TyKind::Adt(adt_def, substs) if adt_def.is_struct() => {
-                let name_s = vcx.alloc_str("s_Adt_S"); // TODO
-                let name_p = vcx.alloc_str("p_Adt_S"); // TODO
+                let did_name = vcx.tcx.item_name(adt_def.did()).to_ident_string();
+
+                let name_s = crate::vir_format!(vcx, "s_Adt_{did_name}");
+                let name_p = crate::vir_format!(vcx, "p_Adt_{did_name}");
                 let mut field_read_names = vir::bvec![in &vcx.arena];
                 let mut field_write_names = vir::bvec![in &vcx.arena];
                 let mut field_projection_p_names = vir::bvec![in &vcx.arena];
@@ -331,7 +333,7 @@ impl TaskEncoder for TypeEncoder {
                 for (write_idx, write_ty_out) in field_ty_out.iter().enumerate() {
                     for (read_idx, read_ty_out) in field_ty_out.iter().enumerate() {
                         axioms.push(vcx.alloc(vir::DomainAxiomData {
-                            name: crate::vir_format!(vcx, "ax_write_{write_idx}_read_{read_idx}"),
+                            name: crate::vir_format!(vcx, "ax_{name_s}_write_{write_idx}_read_{read_idx}"),
                             expr: if read_idx == write_idx {
                                 vcx.alloc(vir::ExprData::Forall(vcx.alloc(vir::ForallData {
                                     qvars: vir::bvec![in &vcx.arena;
@@ -428,7 +430,7 @@ impl TaskEncoder for TypeEncoder {
 
                     for (read_idx, _) in field_ty_out.iter().enumerate() {
                         axioms.push(vcx.alloc(vir::DomainAxiomData {
-                            name: crate::vir_format!(vcx, "ax_cons_read_{read_idx}"),
+                            name: crate::vir_format!(vcx, "ax_{name_s}_cons_read_{read_idx}"),
                             expr: vcx.alloc(vir::ExprData::Forall(vcx.alloc(vir::ForallData {
                                 qvars: cons_qvars.clone(),
                                 triggers: vir::bvec![in &vcx.arena;
@@ -461,7 +463,7 @@ impl TaskEncoder for TypeEncoder {
                             .collect::<Vec<_>>(),
                     );
                     axioms.push(vcx.alloc(vir::DomainAxiomData {
-                        name: crate::vir_format!(vcx, "ax_cons"),
+                        name: crate::vir_format!(vcx, "ax_{name_s}_cons"),
                         expr: vcx.alloc(vir::ExprData::Forall(vcx.alloc(vir::ForallData {
                             qvars: vir::bvec![in &vcx.arena;
                                 vcx.mk_local_decl("self", ty_s),
