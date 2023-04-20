@@ -16,6 +16,11 @@ use crate::environment::mir_storage;
 /// Prusti might want to work with. Cheap to clone
 #[derive(Clone, TyEncodable, TyDecodable)]
 pub struct MirBody<'tcx>(Rc<mir::Body<'tcx>>);
+impl<'tcx> MirBody<'tcx> {
+    pub fn body(&self) -> Rc<mir::Body<'tcx>> {
+        self.0.clone()
+    }
+}
 impl<'tcx> std::ops::Deref for MirBody<'tcx> {
     type Target = mir::Body<'tcx>;
     fn deref(&self) -> &Self::Target {
