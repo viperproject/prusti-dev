@@ -133,6 +133,10 @@ impl<'tcx> Procedure<'tcx> {
         &self.mir
     }
 
+    pub fn get_mir_rc(&self) -> std::rc::Rc<Body<'tcx>> {
+        self.mir.body()
+    }
+
     /// Get the typing context.
     pub fn get_tcx(&self) -> TyCtxt<'tcx> {
         self.tcx
