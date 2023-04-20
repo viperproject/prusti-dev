@@ -43,7 +43,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             }
         }
 
-        //prusti_encoder::test_entrypoint(env.tcx());
+        prusti_encoder::test_entrypoint(env.tcx());
 
         //let verification_result =
         //    if verification_task.procedures.is_empty() && verification_task.types.is_empty() {
