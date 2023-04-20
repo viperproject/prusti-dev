@@ -4,6 +4,9 @@ use prusti_rustc_interface::{
     middle::mir,
     span::def_id::DefId,
 };
+use mir_state_analysis::{
+    free_pcs::{FreePcsAnalysis, FreePcsCursor},
+};
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
@@ -75,6 +78,8 @@ impl TaskEncoder for MirImpureEncoder {
             let mut ssa_visitor = SsaVisitor::new(vcx, body.local_decls.len());
             ssa_visitor.analyse(&body);
             let ssa_analysis = ssa_visitor.analysis;
+
+            let fpcs_analysis = mir_state_analysis::run_free_pcs(&body, vcx.tcx);
 
             let local_types = body.local_decls.iter()
                 .map(|local_decl| deps.require_ref::<crate::encoders::TypeEncoder>(
@@ -192,7 +197,13 @@ impl TaskEncoder for MirImpureEncoder {
                 deps,
                 local_decls: &body.local_decls,
                 ssa_analysis,
+                fpcs_analysis,
                 local_types,
+
+                //current_fpcs: None,
+                current_fpcs_stmt: Vec::new(),
+                current_fpcs_term: HashMap::new(),
+
                 current_stmts: None,
                 current_terminator: None,
                 encoded_blocks,
@@ -226,7 +237,13 @@ struct EncoderVisitor<'vir, 'tcx, 'enc>
     deps: &'enc mut TaskEncoderDependencies<'vir, 'tcx>,
     local_decls: &'enc mir::LocalDecls<'tcx>,
     ssa_analysis: SsaAnalysis,
+    fpcs_analysis: FreePcsAnalysis<'enc, 'tcx>,
     local_types: IndexVec<mir::Local, crate::encoders::TypeEncoderOutputRef<'vir>>,
+
+    // for the current basic block
+    //current_fpcs: Option<FreePcsCursor<'enc, 'enc, 'tcx>>, // TODO: lifetimes ...
+    current_fpcs_stmt: Vec<Vec<mir_state_analysis::free_pcs::RepackOp<'tcx>>>,
+    current_fpcs_term: HashMap<mir::BasicBlock, Vec<mir_state_analysis::free_pcs::RepackOp<'tcx>>>,
 
     current_stmts: Option<vir::BumpVec<'vir, vir::Stmt<'vir>>>,
     current_terminator: Option<vir::TerminatorStmt<'vir>>,
@@ -352,6 +369,64 @@ impl<'vir, 'tcx, 'enc> EncoderVisitor<'vir, 'tcx, 'enc> {
                 _ => panic!("unsupported projection"),
             }).0
     }
+
+    fn fpcs_location(
+        &mut self,
+        location: mir::Location,
+    ) {
+        // TODO: no clone ...
+        for repack_op in self.current_fpcs_stmt[location.statement_index].clone() {
+            match repack_op {
+                mir_state_analysis::free_pcs::RepackOp::Expand(place, _target, capability_kind)
+                | mir_state_analysis::free_pcs::RepackOp::Collapse(place, _target, capability_kind) => {
+                    
+                    let place_ty = place.ty(self.local_decls, self.vcx.tcx);
+                    assert!(place_ty.variant_index.is_none());
+
+                    let place_ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                        place_ty.ty,
+                    ).unwrap();
+
+                    let name_p = crate::vir_format!(self.vcx, "_{}p", place.local.index());
+                    let ref_p = self.project(
+                        self.vcx.mk_local_ex(name_p),
+                        self.local_types[place.local].clone(),
+                        place.projection,
+                    );
+                    let name_s = crate::vir_format!(
+                        self.vcx,
+                        "_{}s_{}",
+                        place.local.index(),
+                        self.ssa_analysis.version[&(location, place.local)],
+                    );
+                    let base_ty_out = &self.local_types[place.local];
+                    let projection_s = self.project_read_snap(
+                        self.vcx.mk_local_ex(name_s),
+                        base_ty_out.clone(),
+                        place.projection,
+                    );
+                    if matches!(repack_op, mir_state_analysis::free_pcs::RepackOp::Expand(..)) {
+                        self.stmt(vir::StmtData::Unfold(self.vcx.alloc(vir::PredicateAppData {
+                            target: place_ty_out.predicate_name,
+                            args: vir::bvec![in &self.vcx.arena;
+                                ref_p,
+                                projection_s,
+                            ],
+                        })));
+                    } else {
+                        self.stmt(vir::StmtData::Fold(self.vcx.alloc(vir::PredicateAppData {
+                            target: place_ty_out.predicate_name,
+                            args: vir::bvec![in &self.vcx.arena;
+                                ref_p,
+                                projection_s,
+                            ],
+                        })));
+                    }
+                }
+                unsupported_op => panic!("unsupported repack op: {unsupported_op:?}"),
+            }
+        }
+    }
 }
 
 impl<'vir, 'tcx, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'vir, 'tcx, 'enc> {
@@ -363,6 +438,29 @@ impl<'vir, 'tcx, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'vir, 'tcx, 
         block: mir::BasicBlock,
         data: &mir::BasicBlockData<'tcx>,
     ) {
+        let mut fpcs_for_block = self.fpcs_analysis.analysis_for_bb(block);
+        self.current_fpcs_stmt = (0..=data.statements.len())
+            .map(|statement_index| {
+                let location = mir::Location {
+                    block,
+                    statement_index,
+                };
+                let fpcs_for_stmt = fpcs_for_block.next().unwrap();
+                assert_eq!(location, fpcs_for_stmt.location);
+                fpcs_for_stmt.repacks.clone()
+            })
+            .collect::<Vec<_>>();
+        println!("current_fpcs_stmt: {:?}", self.current_fpcs_stmt);
+        let fpcs_for_term = fpcs_for_block.next().unwrap_err();
+        self.current_fpcs_term = data.terminator().successors()
+            .enumerate()
+            .map(|(succ_idx, succ_block)| (
+                succ_block,
+                fpcs_for_term.succs[succ_idx].repacks.clone(),
+            ))
+            .collect::<HashMap<_, _>>();
+        println!("current_fpcs_term: {:?}", self.current_fpcs_term);
+
         self.current_stmts = Some(vir::BumpVec::with_capacity_in(
             data.statements.len(), // TODO: not exact?
             &self.vcx.arena,
@@ -413,6 +511,7 @@ impl<'vir, 'tcx, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'vir, 'tcx, 
         statement: &mir::Statement<'tcx>,
         location: mir::Location,
     ) {
+        self.fpcs_location(location);
         match &statement.kind {
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 let ssa_update = self.ssa_analysis.updates.get(&location).cloned().unwrap();
@@ -559,6 +658,7 @@ impl<'vir, 'tcx, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'vir, 'tcx, 
         terminator: &mir::Terminator<'tcx>,
         location: mir::Location,
     ) {
+        self.fpcs_location(location);
         match &terminator.kind {
             mir::TerminatorKind::Goto { target } => {
                 assert!(self.current_terminator.replace(
@@ -774,6 +874,10 @@ impl<'tcx, 'vir> mir::visit::Visitor<'tcx> for SsaVisitor<'vir, 'tcx> {
     ) {
         let local = place.local;
 
+        assert!(self.analysis.version
+            .insert((location, local), self.last_version[local])
+            .is_none());
+
         if let mir::visit::PlaceContext::MutatingUse(_) = context {
             let old_version = self.last_version[local];
             let new_version = self.version_counter[local] + 1;
@@ -787,9 +891,5 @@ impl<'tcx, 'vir> mir::visit::Visitor<'tcx> for SsaVisitor<'vir, 'tcx> {
                 })
                 .is_none());
         }
-
-        assert!(self.analysis.version
-            .insert((location, local), self.last_version[local])
-            .is_none());
     }
 }
