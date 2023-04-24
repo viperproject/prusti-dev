@@ -19,98 +19,122 @@ use crate::{
 
 type Cursor<'mir, 'tcx> = ResultsCursor<'mir, 'tcx, FreePlaceCapabilitySummary<'mir, 'tcx>>;
 
-pub struct FreePcsAnalysis<'mir, 'tcx>(pub(crate) Cursor<'mir, 'tcx>);
+pub struct FreePcsAnalysis<'mir, 'tcx> {
+    cursor: Cursor<'mir, 'tcx>,
+    curr_stmt: Option<Location>,
+    end_stmt: Option<Location>,
+}
 
 impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
-    pub fn analysis_for_bb(&mut self, block: BasicBlock) -> FreePcsCursor<'_, 'mir, 'tcx> {
-        self.0.seek_to_block_start(block);
+    pub(crate) fn new(cursor: Cursor<'mir, 'tcx>) -> Self {
+        Self {
+            cursor,
+            curr_stmt: None,
+            end_stmt: None,
+        }
+    }
+
+    pub fn analysis_for_bb(&mut self, block: BasicBlock) {
+        self.cursor.seek_to_block_start(block);
         let end_stmt = self
-            .0
+            .cursor
             .analysis()
             .0
             .body()
             .terminator_loc(block)
             .successor_within_block();
-        FreePcsCursor {
-            analysis: self,
-            curr_stmt: Location {
-                block,
-                statement_index: 0,
-            },
-            end_stmt,
-        }
+        self.curr_stmt = Some(Location {
+            block,
+            statement_index: 0,
+        });
+        self.end_stmt = Some(end_stmt);
     }
 
-    pub(crate) fn body(&self) -> &'mir Body<'tcx> {
-        self.0.analysis().0.body()
+    fn body(&self) -> &'mir Body<'tcx> {
+        self.cursor.analysis().0.body()
     }
     pub(crate) fn repacker(&self) -> PlaceRepacker<'mir, 'tcx> {
-        self.0.results().analysis.0
+        self.cursor.results().analysis.0
     }
-}
 
-pub struct FreePcsCursor<'a, 'mir, 'tcx> {
-    analysis: &'a mut FreePcsAnalysis<'mir, 'tcx>,
-    curr_stmt: Location,
-    end_stmt: Location,
-}
-
-impl<'a, 'mir, 'tcx> FreePcsCursor<'a, 'mir, 'tcx> {
     pub fn initial_state(&self) -> &CapabilitySummary<'tcx> {
-        &self.analysis.0.get().summary
+        &self.cursor.get().summary
     }
-    pub fn next<'b>(
-        &'b mut self,
-    ) -> Result<FreePcsLocation<'b, 'tcx>, FreePcsTerminator<'b, 'tcx>> {
-        let location = self.curr_stmt;
-        assert!(location <= self.end_stmt);
-        self.curr_stmt = location.successor_within_block();
+    pub fn next(&mut self, exp_loc: Location) -> FreePcsLocation<'tcx> {
+        let location = self.curr_stmt.unwrap();
+        assert_eq!(location, exp_loc);
+        assert!(location < self.end_stmt.unwrap());
+        self.curr_stmt = Some(location.successor_within_block());
 
-        if location == self.end_stmt {
-            // TODO: cleanup
-            let cursor = &self.analysis.0;
-            let state = cursor.get();
-            let rp = self.analysis.repacker();
-            let block = &self.analysis.body()[location.block];
-            let succs = block
-                .terminator()
-                .successors()
-                .map(|succ| {
-                    // Get repacks
-                    let to = cursor.results().entry_set_for_block(succ);
-                    FreePcsLocation {
-                        location: Location {
-                            block: succ,
-                            statement_index: 0,
-                        },
-                        state: &to.summary,
-                        repacks: state.summary.bridge(&to.summary, rp),
-                    }
-                })
-                .collect();
-            Err(FreePcsTerminator { succs })
-        } else {
-            self.analysis.0.seek_after_primary_effect(location);
-            let state = self.analysis.0.get();
-            Ok(FreePcsLocation {
-                location,
-                state: &state.summary,
-                repacks: state.repackings.clone(),
-            })
+        self.cursor.seek_after_primary_effect(location);
+        let state = self.cursor.get();
+        FreePcsLocation {
+            location,
+            state: state.summary.clone(),
+            repacks: state.repackings.clone(),
         }
     }
+    pub fn terminator(&mut self) -> FreePcsTerminator<'tcx> {
+        let location = self.curr_stmt.unwrap();
+        assert!(location == self.end_stmt.unwrap());
+        self.curr_stmt = None;
+        self.end_stmt = None;
+
+        // TODO: cleanup
+        let state = self.cursor.get();
+        let rp: PlaceRepacker = self.repacker();
+        let block = &self.body()[location.block];
+        let succs = block
+            .terminator()
+            .successors()
+            .map(|succ| {
+                // Get repacks
+                let to = self.cursor.results().entry_set_for_block(succ);
+                FreePcsLocation {
+                    location: Location {
+                        block: succ,
+                        statement_index: 0,
+                    },
+                    state: to.summary.clone(),
+                    repacks: state.summary.bridge(&to.summary, rp),
+                }
+            })
+            .collect();
+        FreePcsTerminator { succs }
+    }
+
+    /// Recommened interface.
+    /// Does *not* require that one calls `analysis_for_bb` first
+    pub fn get_all_for_bb(&mut self, block: BasicBlock) -> FreePcsBasicBlock<'tcx> {
+        self.analysis_for_bb(block);
+        let mut statements = Vec::new();
+        while self.curr_stmt.unwrap() != self.end_stmt.unwrap() {
+            let stmt = self.next(self.curr_stmt.unwrap());
+            statements.push(stmt);
+        }
+        let terminator = self.terminator();
+        FreePcsBasicBlock {
+            statements,
+            terminator,
+        }
+    }
+}
+
+pub struct FreePcsBasicBlock<'tcx> {
+    pub statements: Vec<FreePcsLocation<'tcx>>,
+    pub terminator: FreePcsTerminator<'tcx>,
 }
 
 #[derive(Debug)]
-pub struct FreePcsLocation<'a, 'tcx> {
+pub struct FreePcsLocation<'tcx> {
     pub location: Location,
     /// Repacks before the statement
     pub repacks: Vec<RepackOp<'tcx>>,
     /// State after the statement
-    pub state: &'a CapabilitySummary<'tcx>,
+    pub state: CapabilitySummary<'tcx>,
 }
 
 #[derive(Debug)]
-pub struct FreePcsTerminator<'a, 'tcx> {
-    pub succs: Vec<FreePcsLocation<'a, 'tcx>>,
+pub struct FreePcsTerminator<'tcx> {
+    pub succs: Vec<FreePcsLocation<'tcx>>,
 }

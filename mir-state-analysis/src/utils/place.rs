@@ -233,13 +233,13 @@ impl Debug for Place<'_> {
         for elem in self.projection.iter() {
             match elem {
                 ProjectionElem::OpaqueCast(ty) => {
-                    write!(fmt, " as {})", ty)?;
+                    write!(fmt, "@{ty})")?;
                 }
                 ProjectionElem::Downcast(Some(name), _index) => {
-                    write!(fmt, " as {})", name)?;
+                    write!(fmt, "@{name})")?;
                 }
                 ProjectionElem::Downcast(None, index) => {
-                    write!(fmt, " as variant#{:?})", index)?;
+                    write!(fmt, "@variant#{index:?})")?;
                 }
                 ProjectionElem::Deref => {
                     write!(fmt, ")")?;
@@ -248,49 +248,49 @@ impl Debug for Place<'_> {
                     write!(fmt, ".{:?}", field.index())?;
                 }
                 ProjectionElem::Index(ref index) => {
-                    write!(fmt, "[{:?}]", index)?;
+                    write!(fmt, "[{index:?}]")?;
                 }
                 ProjectionElem::ConstantIndex {
                     offset,
                     min_length,
                     from_end: false,
                 } => {
-                    write!(fmt, "[{:?} of {:?}]", offset, min_length)?;
+                    write!(fmt, "[{offset:?} of {min_length:?}]")?;
                 }
                 ProjectionElem::ConstantIndex {
                     offset,
                     min_length,
                     from_end: true,
                 } => {
-                    write!(fmt, "[-{:?} of {:?}]", offset, min_length)?;
+                    write!(fmt, "[-{offset:?} of {min_length:?}]")?;
                 }
                 ProjectionElem::Subslice {
                     from,
                     to,
                     from_end: true,
                 } if to == 0 => {
-                    write!(fmt, "[{:?}:]", from)?;
+                    write!(fmt, "[{from:?}:]")?;
                 }
                 ProjectionElem::Subslice {
                     from,
                     to,
                     from_end: true,
                 } if from == 0 => {
-                    write!(fmt, "[:-{:?}]", to)?;
+                    write!(fmt, "[:-{to:?}]")?;
                 }
                 ProjectionElem::Subslice {
                     from,
                     to,
                     from_end: true,
                 } => {
-                    write!(fmt, "[{:?}:-{:?}]", from, to)?;
+                    write!(fmt, "[{from:?}:-{to:?}]")?;
                 }
                 ProjectionElem::Subslice {
                     from,
                     to,
                     from_end: false,
                 } => {
-                    write!(fmt, "[{:?}..{:?}]", from, to)?;
+                    write!(fmt, "[{from:?}..{to:?}]")?;
                 }
             }
         }

@@ -119,7 +119,8 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             | CheckedBinaryOp(_, _)
             | NullaryOp(_, _)
             | UnaryOp(_, _)
-            | Aggregate(_, _) => {}
+            | Aggregate(_, _)
+            | ShallowInitBox(_, _) => {}
 
             &Ref(_, bk, place) => match bk {
                 BorrowKind::Shared => {
@@ -146,7 +147,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             },
             &Len(place) => self.requires_read(place),
             &Discriminant(place) => self.requires_read(place),
-            ShallowInitBox(op, ty) => todo!("{op:?}, {ty:?}"),
             &CopyForDeref(place) => self.requires_read(place),
         }
     }
@@ -174,8 +174,7 @@ impl ProducesCapability for Rvalue<'_> {
             | Discriminant(_)
             | Aggregate(_, _)
             | CopyForDeref(_) => CapabilityKind::Exclusive,
-            // TODO:
-            ShallowInitBox(_, _) => CapabilityKind::Read,
+            ShallowInitBox(_, _) => CapabilityKind::ShallowExclusive,
         }
     }
 }

@@ -52,8 +52,7 @@ pub enum RepackOp<'tcx> {
     /// given capability for all places in this set.
     Collapse(Place<'tcx>, Place<'tcx>, CapabilityKind),
     /// TODO
-    Deref(Place<'tcx>, CapabilityKind, Place<'tcx>, CapabilityKind),
-    Upref(Place<'tcx>, CapabilityKind, Place<'tcx>, CapabilityKind),
+    DerefShallowInit(Place<'tcx>, Place<'tcx>),
 }
 
 impl Display for RepackOp<'_> {
@@ -61,25 +60,12 @@ impl Display for RepackOp<'_> {
         match self {
             RepackOp::StorageDead(place) => write!(f, "StorageDead({place:?})"),
             RepackOp::IgnoreStorageDead(_) => write!(f, "IgnoreSD"),
-            RepackOp::Weaken(place, from, to) => {
-                write!(f, "Weaken({place:?}, {:?})", (*from - *to).unwrap())
+            RepackOp::Weaken(place, _, to) => {
+                write!(f, "Weaken({place:?}, {to:?})")
             }
             RepackOp::Collapse(to, _, kind) => write!(f, "CollapseTo({to:?}, {kind:?})"),
             RepackOp::Expand(from, _, kind) => write!(f, "Expand({from:?}, {kind:?})"),
-            RepackOp::Upref(to, to_kind, _, from_kind) => {
-                if to_kind == from_kind {
-                    write!(f, "UprefTo({to:?}, {to_kind:?})")
-                } else {
-                    write!(f, "UprefTo({to:?}, {from_kind:?} -> {to_kind:?})")
-                }
-            }
-            RepackOp::Deref(from, from_kind, _, to_kind) => {
-                if to_kind == from_kind {
-                    write!(f, "Deref({from:?}, {to_kind:?})")
-                } else {
-                    write!(f, "Deref({from:?}, {from_kind:?} -> {to_kind:?})")
-                }
-            }
+            RepackOp::DerefShallowInit(from, _) => write!(f, "DerefShallowInit({from:?})"),
         }
     }
 }

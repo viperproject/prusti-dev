@@ -58,6 +58,7 @@ impl<'a, 'tcx> DebugWithContext<FreePlaceCapabilitySummary<'a, 'tcx>> for Fpcs<'
         _ctxt: &FreePlaceCapabilitySummary<'a, 'tcx>,
         f: &mut Formatter<'_>,
     ) -> Result {
+        // let rp = self.repacker;
         assert_eq!(self.summary.len(), old.summary.len());
         for op in &self.repackings {
             writeln!(f, "{op}")?;
@@ -79,24 +80,16 @@ impl<'a, 'tcx> DebugWithContext<FreePlaceCapabilitySummary<'a, 'tcx>> for Fpcs<'
                         let mut old_set = CapabilityProjections::empty();
                         for (&p, &nk) in new.iter() {
                             match old.get(&p) {
-                                Some(&ok) => {
-                                    if let Some(d) = nk - ok {
-                                        new_set.insert(p, d);
-                                    }
-                                }
-                                None => {
+                                Some(&ok) if nk == ok => (),
+                                _ => {
                                     new_set.insert(p, nk);
                                 }
                             }
                         }
                         for (&p, &ok) in old.iter() {
                             match new.get(&p) {
-                                Some(&nk) => {
-                                    if let Some(d) = ok - nk {
-                                        old_set.insert(p, d);
-                                    }
-                                }
-                                None => {
+                                Some(&nk) if nk == ok => (),
+                                _ => {
                                     old_set.insert(p, ok);
                                 }
                             }
