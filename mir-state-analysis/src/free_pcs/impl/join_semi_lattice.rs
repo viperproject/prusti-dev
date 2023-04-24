@@ -98,15 +98,20 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
     fn join(&mut self, other: &Self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
         let mut changed = false;
         for (&place, &kind) in &**other {
-            let want = kind.read_as_exclusive();
             let related = self.find_all_related(place, None);
             let final_place = match related.relation {
                 PlaceOrdering::Prefix => {
                     changed = true;
 
                     let from = related.get_only_from();
-                    let not_through_ref = self[&from] != CapabilityKind::Exclusive;
-                    let joinable_place = from.joinable_to(place, not_through_ref, repacker);
+                    let joinable_place = if self[&from] != CapabilityKind::Exclusive {
+                        place
+                            .projects_ptr(repacker)
+                            .unwrap_or_else(|| from.joinable_to(place, repacker))
+                    } else {
+                        from.joinable_to(place, repacker)
+                    };
+                    assert!(from.is_prefix(joinable_place));
                     if joinable_place != from {
                         self.expand(from, joinable_place, repacker);
                     }
@@ -119,13 +124,8 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                         if !self.contains_key(&p) {
                             continue;
                         }
-                        let k = k.read_as_exclusive();
-                        let p = if want != CapabilityKind::Exclusive {
-                            // TODO: we may want to allow going through Box derefs here?
-                            if let Some(to) = p.projects_ty(
-                                |typ| typ.ty.is_ref() || typ.ty.is_unsafe_ptr() || typ.ty.is_box(),
-                                repacker,
-                            ) {
+                        let p = if kind != CapabilityKind::Exclusive {
+                            if let Some(to) = p.projects_ptr(repacker) {
                                 changed = true;
                                 let related = self.find_all_related(to, None);
                                 assert_eq!(related.relation, PlaceOrdering::Suffix);
@@ -137,11 +137,9 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                         } else {
                             p
                         };
-                        if k > want {
+                        if k > kind {
                             changed = true;
-                            self.insert(p, want);
-                        } else {
-                            assert_eq!(k, want);
+                            self.insert(p, kind);
                         }
                     }
                     None
@@ -156,9 +154,8 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
             };
             if let Some(place) = final_place {
                 // Downgrade the permission if needed
-                let curr = self[&place].read_as_exclusive();
-                if curr > want {
-                    self.insert(place, want);
+                if self[&place] > kind {
+                    self.insert(place, kind);
                 }
             }
         }
@@ -186,12 +183,11 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                 PlaceOrdering::Both => unreachable!(),
             }
             // Downgrade the permission if needed
-            let want = kind.read_as_exclusive();
-            let curr = from[&place].read_as_exclusive();
-            if curr != want {
-                assert!(curr > want);
-                from.insert(place, want);
-                repacks.push(RepackOp::Weaken(place, curr, want));
+            let curr = from[&place];
+            if curr != kind {
+                assert!(curr > kind);
+                from.insert(place, kind);
+                repacks.push(RepackOp::Weaken(place, curr, kind));
             }
         }
         repacks

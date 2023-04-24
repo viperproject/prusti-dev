@@ -44,8 +44,8 @@ impl ProjectionRefKind {
 #[derive(Copy, Clone)]
 // TODO: modified version of fns taken from `prusti-interface/src/utils.rs`; deduplicate
 pub struct PlaceRepacker<'a, 'tcx: 'a> {
-    mir: &'a Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
+    pub(super) mir: &'a Body<'tcx>,
+    pub(super) tcx: TyCtxt<'tcx>,
 }
 
 impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
@@ -305,12 +305,7 @@ impl<'tcx> Place<'tcx> {
     }
 
     #[tracing::instrument(level = "info", skip(repacker), ret)]
-    pub fn joinable_to(
-        self,
-        to: Self,
-        not_through_ref: bool,
-        repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> Self {
+    pub fn joinable_to(self, to: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
         assert!(self.is_prefix(to));
         let proj = self.projection.iter();
         let to_proj = to.projection[self.projection.len()..]
@@ -319,8 +314,10 @@ impl<'tcx> Place<'tcx> {
             .take_while(|p| {
                 matches!(
                     p,
-                    ProjectionElem::Field(..) | ProjectionElem::ConstantIndex { .. } // TODO: we may want to allow going through Box derefs here?
-                ) || (!not_through_ref && matches!(p, ProjectionElem::Deref))
+                    ProjectionElem::Deref
+                        | ProjectionElem::Field(..)
+                        | ProjectionElem::ConstantIndex { .. }
+                )
             });
         let projection = repacker.tcx.mk_place_elems_from_iter(proj.chain(to_proj));
         Self::new(self.local, projection)
@@ -347,29 +344,6 @@ impl<'tcx> Place<'tcx> {
         }
     }
 
-    // /// Calculates if we dereference through a mutable/immutable reference. For example, if we have\
-    // /// `x: (i32, & &mut i32)` then we would get the following results:
-    // ///
-    // /// * `"x".through_ref_mutability("x.0")` -> `None`
-    // /// * `"x".through_ref_mutability("x.1")` -> `None`
-    // /// * `"x".through_ref_mutability("*x.1")` -> `Some(Mutability::Not)`
-    // /// * `"x".through_ref_mutability("**x.1")` -> `Some(Mutability::Not)`
-    // /// * `"*x.1".through_ref_mutability("**x.1")` -> `Some(Mutability::Mut)`
-    // pub fn between_ref_mutability(self, to: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Mutability> {
-    //     assert!(self.is_prefix(to));
-    //     let mut typ = self.ty(repacker.mir, repacker.tcx);
-    //     let mut mutbl = None;
-    //     for &elem in &to.projection[self.projection.len()..] {
-    //         match typ.ty.kind() {
-    //             TyKind::Ref(_, _, Mutability::Not) => return Some(Mutability::Not),
-    //             TyKind::Ref(_, _, Mutability::Mut) => mutbl = Some(Mutability::Mut),
-    //             _ => ()
-    //         };
-    //         typ = typ.projection_ty(repacker.tcx, elem);
-    //     }
-    //     mutbl
-    // }
-
     pub fn projects_shared_ref(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
         self.projects_ty(
             |typ| {
@@ -383,9 +357,17 @@ impl<'tcx> Place<'tcx> {
         .is_some()
     }
 
+    pub fn projects_ptr(self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Place<'tcx>> {
+        self.projects_ty(|typ| typ.ty.is_ref() || typ.ty.is_unsafe_ptr(), repacker)
+    }
+
+    pub fn can_deinit(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
+        !self.projects_shared_ref(repacker)
+    }
+
     pub fn projects_ty(
         self,
-        predicate: impl Fn(PlaceTy<'tcx>) -> bool,
+        mut predicate: impl FnMut(PlaceTy<'tcx>) -> bool,
         repacker: PlaceRepacker<'_, 'tcx>,
     ) -> Option<Place<'tcx>> {
         let mut typ = PlaceTy::from_ty(repacker.mir.local_decls()[self.local].ty);

@@ -18,11 +18,11 @@ use crate::{
 
 use super::consistency::CapabilityConistency;
 
-pub(crate) fn check(mut results: FreePcsAnalysis<'_, '_>) {
-    let rp = results.repacker();
+pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
+    let rp = cursor.repacker();
     let body = rp.body();
     for (block, data) in body.basic_blocks.iter_enumerated() {
-        let mut cursor = results.analysis_for_bb(block);
+        cursor.analysis_for_bb(block);
         let mut fpcs = Fpcs {
             summary: cursor.initial_state().clone(),
             bottom: false,
@@ -36,7 +36,7 @@ pub(crate) fn check(mut results: FreePcsAnalysis<'_, '_>) {
                 block,
                 statement_index,
             };
-            let fpcs_after = cursor.next().unwrap();
+            let fpcs_after = cursor.next(loc);
             assert_eq!(fpcs_after.location, loc);
             // Repacks
             for op in fpcs_after.repacks {
@@ -55,7 +55,7 @@ pub(crate) fn check(mut results: FreePcsAnalysis<'_, '_>) {
             block,
             statement_index: data.statements.len(),
         };
-        let fpcs_after = cursor.next().unwrap();
+        let fpcs_after = cursor.next(loc);
         assert_eq!(fpcs_after.location, loc);
         // Repacks
         for op in fpcs_after.repacks {
@@ -69,11 +69,9 @@ pub(crate) fn check(mut results: FreePcsAnalysis<'_, '_>) {
         assert!(fpcs.repackings.is_empty());
         // Consistency
         fpcs.summary.consistency_check(rp);
-        assert_eq!(&fpcs.summary, fpcs_after.state);
+        assert_eq!(fpcs.summary, fpcs_after.state);
 
-        let Err(fpcs_end) = cursor.next() else {
-            panic!("Expected error at the end of the block");
-        };
+        let fpcs_end = cursor.terminator();
 
         for succ in fpcs_end.succs {
             // Repacks
@@ -85,7 +83,7 @@ pub(crate) fn check(mut results: FreePcsAnalysis<'_, '_>) {
                     rp,
                 );
             }
-            assert_eq!(&from.summary, succ.state);
+            assert_eq!(from.summary, succ.state);
         }
     }
 }
@@ -124,7 +122,6 @@ impl<'tcx> RepackOp<'tcx> {
             }
             RepackOp::Expand(place, guide, kind) => {
                 assert!(place.is_prefix_exact(guide), "{self:?}");
-                assert_ne!(*guide.projection.last().unwrap(), ProjectionElem::Deref);
                 let curr_state = state[place.local].get_allocated_mut();
                 assert_eq!(
                     curr_state.remove(&place),
@@ -132,21 +129,18 @@ impl<'tcx> RepackOp<'tcx> {
                     "{self:?} ({curr_state:?})"
                 );
 
-                let (p, others, pkind) = place.expand_one_level(guide, rp);
-                assert!(!pkind.is_deref());
+                let (p, others, _) = place.expand_one_level(guide, rp);
                 curr_state.insert(p, kind);
                 curr_state.extend(others.into_iter().map(|p| (p, kind)));
             }
             RepackOp::Collapse(place, guide, kind) => {
                 assert!(place.is_prefix_exact(guide), "{self:?}");
-                assert_ne!(*guide.projection.last().unwrap(), ProjectionElem::Deref);
                 let curr_state = state[place.local].get_allocated_mut();
                 let mut removed = curr_state
                     .drain_filter(|p, _| place.related_to(*p))
                     .collect::<FxHashMap<_, _>>();
 
-                let (p, mut others, pkind) = place.expand_one_level(guide, rp);
-                assert!(!pkind.is_deref());
+                let (p, mut others, _) = place.expand_one_level(guide, rp);
                 others.push(p);
                 for other in others {
                     assert_eq!(removed.remove(&other), Some(kind), "{self:?}");
@@ -155,51 +149,20 @@ impl<'tcx> RepackOp<'tcx> {
                 let old = curr_state.insert(place, kind);
                 assert_eq!(old, None);
             }
-            RepackOp::Deref(place, kind, guide, to_kind) => {
+            RepackOp::DerefShallowInit(place, guide) => {
                 assert!(place.is_prefix_exact(guide), "{self:?}");
                 assert_eq!(*guide.projection.last().unwrap(), ProjectionElem::Deref);
                 let curr_state = state[place.local].get_allocated_mut();
                 assert_eq!(
                     curr_state.remove(&place),
-                    Some(kind),
+                    Some(CapabilityKind::ShallowExclusive),
                     "{self:?} ({curr_state:?})"
                 );
 
                 let (p, others, pkind) = place.expand_one_level(guide, rp);
-                assert!(pkind.is_deref());
-                if pkind.is_box() && kind.is_shallow_exclusive() {
-                    assert_eq!(to_kind, CapabilityKind::Write);
-                } else {
-                    assert_eq!(to_kind, kind);
-                }
-
-                curr_state.insert(p, to_kind);
+                assert!(pkind.is_box());
+                curr_state.insert(p, CapabilityKind::Write);
                 assert!(others.is_empty());
-            }
-            RepackOp::Upref(place, to_kind, guide, kind) => {
-                assert!(place.is_prefix_exact(guide), "{self:?}");
-                assert_eq!(*guide.projection.last().unwrap(), ProjectionElem::Deref);
-                let curr_state = state[place.local].get_allocated_mut();
-                let mut removed = curr_state
-                    .drain_filter(|p, _| place.related_to(*p))
-                    .collect::<FxHashMap<_, _>>();
-
-                let (p, mut others, pkind) = place.expand_one_level(guide, rp);
-                assert!(pkind.is_deref());
-                others.push(p);
-                for other in others {
-                    assert_eq!(removed.remove(&other), Some(kind));
-                }
-                assert!(removed.is_empty(), "{self:?}, {removed:?}");
-
-                if pkind.is_shared_ref() && !place.projects_shared_ref(rp) {
-                    assert_eq!(kind, CapabilityKind::Read);
-                    assert_eq!(to_kind, CapabilityKind::Exclusive);
-                } else {
-                    assert_eq!(to_kind, kind);
-                }
-                let old = curr_state.insert(place, to_kind);
-                assert_eq!(old, None);
             }
         }
     }

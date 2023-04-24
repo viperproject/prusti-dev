@@ -26,14 +26,20 @@ impl<'tcx> Fpcs<'_, 'tcx> {
         }
     }
     pub(crate) fn requires_read(&mut self, place: impl Into<Place<'tcx>>) {
-        self.requires(place, CapabilityKind::Read)
+        self.requires(place, CapabilityKind::Exclusive)
     }
     /// May obtain write _or_ exclusive, if one should only have write afterwards,
     /// make sure to also call `ensures_write`!
     pub(crate) fn requires_write(&mut self, place: impl Into<Place<'tcx>>) {
+        let place = place.into();
+        // Cannot get write on a shared ref
+        assert!(!place.projects_shared_ref(self.repacker));
         self.requires(place, CapabilityKind::Write)
     }
     pub(crate) fn requires_exclusive(&mut self, place: impl Into<Place<'tcx>>) {
+        let place = place.into();
+        // Cannot get exclusive on a shared ref
+        assert!(!place.projects_shared_ref(self.repacker));
         self.requires(place, CapabilityKind::Exclusive)
     }
     fn requires(&mut self, place: impl Into<Place<'tcx>>, cap: CapabilityKind) {
@@ -65,6 +71,9 @@ impl<'tcx> Fpcs<'_, 'tcx> {
         self.ensures_alloc(place, CapabilityKind::ShallowExclusive)
     }
     pub(crate) fn ensures_write(&mut self, place: impl Into<Place<'tcx>>) {
+        let place = place.into();
+        // Cannot get uninitialize behind a ref (actually drop does this)
+        assert!(place.can_deinit(self.repacker), "{place:?}");
         self.ensures_alloc(place, CapabilityKind::Write)
     }
 }
