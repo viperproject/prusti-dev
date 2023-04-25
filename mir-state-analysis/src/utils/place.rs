@@ -13,9 +13,8 @@ use std::{
 
 use derive_more::{Deref, DerefMut};
 
-use prusti_rustc_interface::middle::{
-    mir::{Local, Place as MirPlace, PlaceElem, PlaceRef, ProjectionElem},
-    ty::List,
+use prusti_rustc_interface::middle::mir::{
+    Local, Place as MirPlace, PlaceElem, PlaceRef, ProjectionElem,
 };
 
 // #[derive(Clone, Copy, Deref, DerefMut, Hash, PartialEq, Eq)]
@@ -79,25 +78,19 @@ fn elem_eq<'tcx>(to_cmp: (PlaceElem<'tcx>, PlaceElem<'tcx>)) -> bool {
 }
 
 #[derive(Clone, Copy, Deref, DerefMut)]
-pub struct Place<'tcx>(MirPlace<'tcx>);
+pub struct Place<'tcx>(PlaceRef<'tcx>);
 
 impl<'tcx> Place<'tcx> {
-    pub(crate) fn new(local: Local, projection: &'tcx List<PlaceElem<'tcx>>) -> Self {
-        Self(MirPlace { local, projection })
+    pub(crate) fn new(local: Local, projection: &'tcx [PlaceElem<'tcx>]) -> Self {
+        Self(PlaceRef { local, projection })
     }
 
     pub(crate) fn compare_projections(
         self,
         other: Self,
     ) -> impl Iterator<Item = (bool, PlaceElem<'tcx>, PlaceElem<'tcx>)> {
-        Self::compare_projections_ref(self.as_ref(), other.as_ref())
-    }
-    pub(crate) fn compare_projections_ref(
-        left: PlaceRef<'tcx>,
-        right: PlaceRef<'tcx>,
-    ) -> impl Iterator<Item = (bool, PlaceElem<'tcx>, PlaceElem<'tcx>)> {
-        let left = left.projection.iter().copied();
-        let right = right.projection.iter().copied();
+        let left = self.projection.iter().copied();
+        let right = other.projection.iter().copied();
         left.zip(right).map(|(e1, e2)| (elem_eq((e1, e2)), e1, e2))
     }
 
@@ -109,10 +102,7 @@ impl<'tcx> Place<'tcx> {
     /// +   `partial_cmp(x.f.g, x.f) == Some(Suffix)`
     /// +   `partial_cmp(x.f, x.f.g) == Some(Prefix)`
     /// +   `partial_cmp(x as None, x as Some.0) == Some(Both)`
-    #[tracing::instrument(level = "trace", ret)]
-    pub fn partial_cmp(self, right: Self) -> Option<PlaceOrdering> {
-        Self::partial_cmp_ref(self.as_ref(), right.as_ref())
-    }
+    ///
     /// The ultimate question this answers is: are the two places mutually
     /// exclusive (i.e. can we have both or not)?
     /// For example, all of the following are mutually exclusive:
@@ -124,14 +114,12 @@ impl<'tcx> Place<'tcx> {
     ///  - `x` and `y`
     ///  - `x.f` and `x.g.h`
     ///  - `x[3 of 6]` and `x[4 of 6]`
-    pub(crate) fn partial_cmp_ref(
-        left: PlaceRef<'tcx>,
-        right: PlaceRef<'tcx>,
-    ) -> Option<PlaceOrdering> {
-        if left.local != right.local {
+    #[tracing::instrument(level = "trace", ret)]
+    pub(crate) fn partial_cmp(self, right: Self) -> Option<PlaceOrdering> {
+        if self.local != right.local {
             return None;
         }
-        let diff = Self::compare_projections_ref(left, right).find(|(eq, _, _)| !eq);
+        let diff = self.compare_projections(right).find(|(eq, _, _)| !eq);
         if let Some((_, left, right)) = diff {
             use ProjectionElem::*;
             fn is_index(elem: PlaceElem<'_>) -> bool {
@@ -151,7 +139,7 @@ impl<'tcx> Place<'tcx> {
                 diff => unreachable!("Unexpected diff: {diff:?}"),
             }
         } else {
-            Some(left.projection.len().cmp(&right.projection.len()).into())
+            Some(self.projection.len().cmp(&right.projection.len()).into())
         }
     }
 
@@ -209,6 +197,36 @@ impl<'tcx> Place<'tcx> {
             .iter()
             .any(|proj| matches!(proj, ProjectionElem::Deref))
     }
+
+    #[tracing::instrument(level = "debug", ret, fields(lp = ?self.projection, rp = ?other.projection))]
+    pub fn common_prefix(self, other: Self) -> Self {
+        assert_eq!(self.local, other.local);
+
+        let max_len = std::cmp::min(self.projection.len(), other.projection.len());
+        let common_prefix = self
+            .compare_projections(other)
+            .position(|(eq, _, _)| !eq)
+            .unwrap_or(max_len);
+        Self::new(self.local, &self.projection[..common_prefix])
+    }
+
+    #[tracing::instrument(level = "info", ret)]
+    pub fn joinable_to(self, to: Self) -> Self {
+        assert!(self.is_prefix(to));
+        let diff = to.projection.len() - self.projection.len();
+        let to_proj = self.projection.len()
+            + to.projection[self.projection.len()..]
+                .iter()
+                .position(|p| !matches!(p, ProjectionElem::Deref | ProjectionElem::Field(..)))
+                .unwrap_or(diff);
+        Self::new(self.local, &to.projection[..to_proj])
+    }
+
+    pub fn last_projection(self) -> Option<(Self, PlaceElem<'tcx>)> {
+        self.0
+            .last_projection()
+            .map(|(place, proj)| (place.into(), proj))
+    }
 }
 
 impl Debug for Place<'_> {
@@ -230,7 +248,7 @@ impl Debug for Place<'_> {
 
         write!(fmt, "{:?}", self.local)?;
 
-        for elem in self.projection.iter() {
+        for &elem in self.projection.iter() {
             match elem {
                 ProjectionElem::OpaqueCast(ty) => {
                     write!(fmt, "@{ty})")?;
@@ -312,7 +330,7 @@ impl Hash for Place<'_> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.local.hash(state);
         let projection = self.0.projection;
-        for pe in projection {
+        for &pe in projection {
             match pe {
                 ProjectionElem::Field(field, _) => {
                     discriminant(&pe).hash(state);
@@ -346,9 +364,24 @@ impl Hash for Place<'_> {
     }
 }
 
-impl<'tcx, T: Into<MirPlace<'tcx>>> From<T> for Place<'tcx> {
-    fn from(value: T) -> Self {
-        Self(value.into())
+// impl<'tcx, T: Into<PlaceRef<'tcx>>> From<T> for Place<'tcx> {
+//     fn from(value: T) -> Self {
+//         Self(value.into())
+//     }
+// }
+impl<'tcx> From<PlaceRef<'tcx>> for Place<'tcx> {
+    fn from(value: PlaceRef<'tcx>) -> Self {
+        Self(value)
+    }
+}
+impl<'tcx> From<MirPlace<'tcx>> for Place<'tcx> {
+    fn from(value: MirPlace<'tcx>) -> Self {
+        Self(value.as_ref())
+    }
+}
+impl<'tcx> From<Local> for Place<'tcx> {
+    fn from(value: Local) -> Self {
+        MirPlace::from(value).into()
     }
 }
 

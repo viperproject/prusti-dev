@@ -8,7 +8,7 @@ use prusti_rustc_interface::middle::mir::Local;
 
 use crate::{
     free_pcs::{CapabilityKind, CapabilityLocal, CapabilityProjections, Fpcs, RepackOp},
-    utils::{Place, PlaceOrdering, PlaceRepacker},
+    utils::{LocalMutationIsAllowed, Place, PlaceOrdering, PlaceRepacker},
 };
 
 impl<'tcx> Fpcs<'_, 'tcx> {
@@ -33,7 +33,9 @@ impl<'tcx> Fpcs<'_, 'tcx> {
     pub(crate) fn requires_write(&mut self, place: impl Into<Place<'tcx>>) {
         let place = place.into();
         // Cannot get write on a shared ref
-        assert!(!place.projects_shared_ref(self.repacker));
+        assert!(place
+            .is_mutable(LocalMutationIsAllowed::Yes, self.repacker)
+            .is_ok());
         self.requires(place, CapabilityKind::Write)
     }
     pub(crate) fn requires_exclusive(&mut self, place: impl Into<Place<'tcx>>) {
@@ -90,7 +92,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
             PlaceOrdering::Equal => Vec::new(),
             PlaceOrdering::Suffix => self.collapse(related.get_from(), related.to, repacker),
             PlaceOrdering::Both => {
-                let cp = related.common_prefix(to, repacker);
+                let cp = related.common_prefix(to);
                 // Collapse
                 let mut ops = self.collapse(related.get_from(), cp, repacker);
                 // Expand
