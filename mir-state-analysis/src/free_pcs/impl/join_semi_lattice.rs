@@ -180,7 +180,7 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                     let packs = from.collapse(related.get_from(), related.to, repacker);
                     repacks.extend(packs);
                 }
-                PlaceOrdering::Both => unreachable!(),
+                PlaceOrdering::Both => unreachable!("{self:?}\n{from:?}\n{other:?}\n{related:?}"),
             }
             // Downgrade the permission if needed
             let curr = from[&place];

@@ -311,14 +311,7 @@ impl<'tcx> Place<'tcx> {
         let to_proj = to.projection[self.projection.len()..]
             .iter()
             .copied()
-            .take_while(|p| {
-                matches!(
-                    p,
-                    ProjectionElem::Deref
-                        | ProjectionElem::Field(..)
-                        | ProjectionElem::ConstantIndex { .. }
-                )
-            });
+            .take_while(|p| matches!(p, ProjectionElem::Deref | ProjectionElem::Field(..)));
         let projection = repacker.tcx.mk_place_elems_from_iter(proj.chain(to_proj));
         Self::new(self.local, projection)
     }
