@@ -92,7 +92,7 @@ impl SMTLib {
 
                 // assume predicate afterwards
                 self.add_code(format!(
-                    "(assert {}) ; assumed after assert",
+                    "(assert {}) ; assumed after assert\n",
                     expression.to_smt()
                 ));
             }
@@ -267,6 +267,7 @@ impl ToString for SMTLib {
             .filter(|&line| line != "(assert true)") // TODO: Optimization module
             .collect::<Vec<_>>()
             .join("\n")
+            .replace("(push)\n(echo \"position: 0\")\n(check-sat)\n(pop)", "")
     }
 }
 
@@ -435,7 +436,7 @@ impl SMTTranslatable for Expression {
         match self {
             Expression::Local(local) => local.variable.name.clone(),
             Expression::Field(_) => unimplemented!(),
-            Expression::LabelledOld(_) => unimplemented!(),
+            Expression::LabelledOld(_) => unimplemented!("old expressions"),
             Expression::Constant(constant) => match &constant.value {
                 ConstantValue::Bool(bool) => bool.to_string(),
                 ConstantValue::Int(i64) => i64.to_string(),

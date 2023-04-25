@@ -201,7 +201,7 @@ fn helper(
     answer
 }
 
-#[trusted] // TODO: remove trusted
+#[trusted] // TODO: Error by the author?
 #[requires(prices.len() ==  weights.len())]
 #[requires(prices.len() > 0 &&  weights.len() <= 1000)]
 #[requires(forall(|k: isize| (k >= 0 && k < prices.len()) ==>  prices.lookup(k) >= 1 && prices.lookup(k) <= 1000))]
@@ -255,10 +255,10 @@ fn super_sale(
         body_invariant!(index_weight >= 1 && index_weight < max_weight);
         body_invariant!(forall(|i: isize, j: isize| (i >= 0 && i < index_weight && j >= 0 && j < dp.x_size()) ==> dp.lookup(i, j) == solve_rec(prices, weights, j, i)));
         helper_loop(prices, weights, index_weight, &mut dp);
-        prusti_assume!(dp.y_size() == max_weight && dp.x_size() == n); // TODO: Postcondition should handle this
+        prusti_assume!(dp.y_size() == max_weight && dp.x_size() == n); // TODO: Postconditions do not handle old-expressions
+        prusti_assume!(forall(|i: isize, j: isize| (i >= 0 && i <= index_weight && j >= 0 && j < dp.x_size()) ==> dp.lookup(i, j) == solve_rec(prices, weights, j, i)));
+        // TODO: Postconditions do not handle old-expressions
         index_weight += 1;
-        prusti_assume!(forall(|i: isize, j: isize| (i >= 0 && i < index_weight && j >= 0 && j < dp.x_size()) ==> dp.lookup(i, j) == solve_rec(prices, weights, j, i)));
-        // TODO: Postcondition should handle this
     }
 
     let mut index_person = 0isize;
