@@ -11,7 +11,7 @@ use std::{
 
 use prusti_rustc_interface::data_structures::fx::FxHashSet;
 
-use crate::utils::{Place, PlaceOrdering, PlaceRepacker};
+use crate::utils::{Place, PlaceOrdering};
 
 #[derive(Debug)]
 pub(crate) struct RelatedSet<'tcx> {
@@ -32,8 +32,8 @@ impl<'tcx> RelatedSet<'tcx> {
         assert_eq!(self.from.len(), 1);
         self.from[0].0
     }
-    pub fn common_prefix(&self, to: Place<'tcx>, repacker: PlaceRepacker<'_, 'tcx>) -> Place<'tcx> {
-        self.from[0].0.common_prefix(to, repacker)
+    pub fn common_prefix(&self, to: Place<'tcx>) -> Place<'tcx> {
+        self.from[0].0.common_prefix(to)
     }
 }
 

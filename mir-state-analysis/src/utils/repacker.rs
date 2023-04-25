@@ -9,7 +9,10 @@ use prusti_rustc_interface::{
     dataflow::storage,
     index::bit_set::BitSet,
     middle::{
-        mir::{tcx::PlaceTy, Body, Field, HasLocalDecls, Local, Mutability, ProjectionElem},
+        mir::{
+            tcx::PlaceTy, Body, Field, HasLocalDecls, Local, Mutability, Place as MirPlace,
+            ProjectionElem,
+        },
         ty::{TyCtxt, TyKind},
     },
 };
@@ -67,6 +70,13 @@ impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
 }
 
 impl<'tcx> Place<'tcx> {
+    pub fn to_rust_place(self, repacker: PlaceRepacker<'_, 'tcx>) -> MirPlace<'tcx> {
+        MirPlace {
+            local: self.local,
+            projection: repacker.tcx.mk_place_elems(self.projection),
+        }
+    }
+
     /// Subtract the `to` place from the `self` place. The
     /// subtraction is defined as set minus between `self` place replaced
     /// with a set of places that are unrolled up to the same level as
@@ -146,6 +156,7 @@ impl<'tcx> Place<'tcx> {
         let new_projection = repacker.tcx.mk_place_elems_from_iter(
             self.projection
                 .iter()
+                .copied()
                 .chain([guide_place.projection[index]]),
         );
         let new_current_place = Place::new(self.local, new_projection);
@@ -171,7 +182,7 @@ impl<'tcx> Place<'tcx> {
                         repacker
                             .tcx
                             .mk_place_elem(
-                                *self,
+                                self.to_rust_place(repacker),
                                 ProjectionElem::ConstantIndex {
                                     offset: i,
                                     min_length,
@@ -228,7 +239,7 @@ impl<'tcx> Place<'tcx> {
                     if Some(index) != without_field {
                         let field = Field::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(
-                            *self,
+                            self.to_rust_place(repacker),
                             field,
                             field_def.ty(repacker.tcx, substs),
                         );
@@ -240,7 +251,10 @@ impl<'tcx> Place<'tcx> {
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = Field::from_usize(index);
-                        let field_place = repacker.tcx.mk_place_field(*self, field, arg);
+                        let field_place =
+                            repacker
+                                .tcx
+                                .mk_place_field(self.to_rust_place(repacker), field, arg);
                         places.push(field_place.into());
                     }
                 }
@@ -249,7 +263,11 @@ impl<'tcx> Place<'tcx> {
                 for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
                     if Some(index) != without_field {
                         let field = Field::from_usize(index);
-                        let field_place = repacker.tcx.mk_place_field(*self, field, subst_ty);
+                        let field_place = repacker.tcx.mk_place_field(
+                            self.to_rust_place(repacker),
+                            field,
+                            subst_ty,
+                        );
                         places.push(field_place.into());
                     }
                 }
@@ -258,7 +276,11 @@ impl<'tcx> Place<'tcx> {
                 for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
                     if Some(index) != without_field {
                         let field = Field::from_usize(index);
-                        let field_place = repacker.tcx.mk_place_field(*self, field, subst_ty);
+                        let field_place = repacker.tcx.mk_place_field(
+                            self.to_rust_place(repacker),
+                            field,
+                            subst_ty,
+                        );
                         places.push(field_place.into());
                     }
                 }
@@ -290,32 +312,6 @@ impl<'tcx> Place<'tcx> {
 // }
 
 impl<'tcx> Place<'tcx> {
-    #[tracing::instrument(level = "debug", skip(repacker), ret, fields(lp = ?self.projection, rp = ?other.projection))]
-    pub fn common_prefix(self, other: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
-        assert_eq!(self.local, other.local);
-
-        let common_prefix = self
-            .compare_projections(other)
-            .take_while(|(eq, _, _)| *eq)
-            .map(|(_, e1, _)| e1);
-        Self::new(
-            self.local,
-            repacker.tcx.mk_place_elems_from_iter(common_prefix),
-        )
-    }
-
-    #[tracing::instrument(level = "info", skip(repacker), ret)]
-    pub fn joinable_to(self, to: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
-        assert!(self.is_prefix(to));
-        let proj = self.projection.iter();
-        let to_proj = to.projection[self.projection.len()..]
-            .iter()
-            .copied()
-            .take_while(|p| matches!(p, ProjectionElem::Deref | ProjectionElem::Field(..)));
-        let projection = repacker.tcx.mk_place_elems_from_iter(proj.chain(to_proj));
-        Self::new(self.local, projection)
-    }
-
     // pub fn get_root(self, repacker: PlaceRepacker<'_, 'tcx>) -> RootPlace<'tcx> {
     //     if let Some(idx) = self.projection.iter().rev().position(RootPlace::is_indirect) {
     //         let idx = self.projection.len() - idx;
@@ -369,7 +365,7 @@ impl<'tcx> Place<'tcx> {
                 let projection = repacker.tcx.mk_place_elems(&self.projection[0..idx]);
                 return Some(Self::new(self.local, projection));
             }
-            typ = typ.projection_ty(repacker.tcx, elem);
+            typ = typ.projection_ty(repacker.tcx, *elem);
         }
         None
     }

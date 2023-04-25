@@ -107,9 +107,9 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                     let joinable_place = if self[&from] != CapabilityKind::Exclusive {
                         place
                             .projects_ptr(repacker)
-                            .unwrap_or_else(|| from.joinable_to(place, repacker))
+                            .unwrap_or_else(|| from.joinable_to(place))
                     } else {
-                        from.joinable_to(place, repacker)
+                        from.joinable_to(place)
                     };
                     assert!(from.is_prefix(joinable_place));
                     if joinable_place != from {
@@ -147,7 +147,7 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                 PlaceOrdering::Both => {
                     changed = true;
 
-                    let cp = related.common_prefix(place, repacker);
+                    let cp = related.common_prefix(place);
                     self.collapse(related.get_from(), cp, repacker);
                     Some(cp)
                 }

@@ -6,6 +6,9 @@
 
 pub mod place;
 pub(crate) mod repacker;
+mod mutable;
+mod root_place;
 
+pub use mutable::*;
 pub use place::*;
 pub use repacker::*;
