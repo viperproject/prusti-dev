@@ -137,7 +137,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             })
             .collect();
 
-        let body = self.expression_to_snapshot(lowerer, body, expect_math_bool)?;
+        let body = self.expression_to_snapshot(lowerer, body, true)?;
 
         // generate validity calls for all variables we quantify over
         // this is needed to ensure that the quantifier is well-formed
@@ -193,15 +193,21 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         };
 
         // no call to ensure_bool_expression since quantifiers are always math bool and forall is built-in to SMT solvers
-        Ok(vir_low::Expression::Quantifier(
-            vir_low::expression::Quantifier {
-                kind,
-                variables: vars,
-                triggers: trigs,
-                body: Box::new(validity_call_imply_body),
-                position: *position,
-            },
-        ))
+        let qtfy = vir_low::Expression::Quantifier(vir_low::expression::Quantifier {
+            kind,
+            variables: vars,
+            triggers: trigs,
+            body: Box::new(validity_call_imply_body),
+            position: *position,
+        });
+
+        // wrap in snapshot bool constructor if not expect_math_bool
+        if !expect_math_bool {
+            let pos = qtfy.position();
+            lowerer.construct_struct_snapshot(&quantifier.get_type(), vec![qtfy], pos)
+        } else {
+            Ok(qtfy)
+        }
     }
 
     fn variable_to_snapshot(

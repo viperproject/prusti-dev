@@ -1,6 +1,7 @@
 ; ===== Static preamble =====
 
 (set-logic ALL)
+(set-option :timeout 1000)
 
 ; --- Floating-point arithmetic ---
 
