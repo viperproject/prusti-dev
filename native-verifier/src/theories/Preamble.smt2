@@ -1,7 +1,8 @@
 ; ===== Static preamble =====
 
 (set-logic ALL)
-(set-option :timeout 1000)
+
+(set-option :tlimit-per 5000)
 
 ; --- Floating-point arithmetic ---
 

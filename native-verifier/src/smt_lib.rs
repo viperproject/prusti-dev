@@ -1,3 +1,5 @@
+use crate::optimization::optimize_statements;
+
 use super::{
     fol::{vir_to_fol, FolStatement},
     theory_provider::*,
@@ -125,6 +127,7 @@ impl SMTLib {
 
         // verify body
         let predicates = vir_to_fol(&block.statements, &self.methods);
+        let predicates = optimize_statements(predicates);
 
         predicates.into_iter().for_each(|predicate| {
             self.emit(predicate);
@@ -267,7 +270,6 @@ impl ToString for SMTLib {
             .filter(|&line| line != "(assert true)") // TODO: Optimization module
             .collect::<Vec<_>>()
             .join("\n")
-            .replace("(push)\n(echo \"position: 0\")\n(check-sat)\n(pop)", "")
     }
 }
 

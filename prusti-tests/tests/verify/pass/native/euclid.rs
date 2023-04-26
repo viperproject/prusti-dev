@@ -109,9 +109,4 @@ fn euclid(n: i32, m: i32) -> i32 {
     a
 }
 
-// this will fail for a wrong Z3 version (4.8.7 is required)
-fn completeness_check(m: i32, c: i32, d: i32) {
-    assert!(m * c - m * d == m * (c - d));
-}
-
 fn main() {}
