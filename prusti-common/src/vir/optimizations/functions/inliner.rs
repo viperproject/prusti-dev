@@ -136,14 +136,14 @@ impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
         if base.is_constant() {
             *base
         } else {
-            ast::Expr::Unfolding(ast::Unfolding {
-                predicate,
-                arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
-                base,
-                permission,
-                variant,
-                position,
-            })
+            ast::Expr::unfolding_with_pos(
+                predicate, 
+                arguments.into_iter().map(|e| self.fold(e)).collect(),
+                *base, 
+                permission, 
+                variant, 
+                position
+            )
         }
     }
 }

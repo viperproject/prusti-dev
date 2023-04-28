@@ -374,14 +374,14 @@ impl ast::ExprFolder for VarPurifier {
         if is_purifiable_predicate(&predicate) && self.is_pure(&arguments[0]) {
             self.fold(*base)
         } else {
-            ast::Expr::Unfolding(ast::Unfolding {
+            ast::Expr::unfolding_with_pos(
                 predicate,
                 arguments,
-                base: self.fold_boxed(base),
+                *self.fold_boxed(base),
                 permission,
                 variant,
                 position,
-            })
+            )
         }
     }
     fn fold_field(

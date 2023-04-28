@@ -331,6 +331,16 @@ impl vir::ExprFolder for UnfoldingExtractor {
             self.unfoldings.is_empty(),
             "Nested quantifiers are not supported."
         );
+        if !body.is_pure() {
+            return vir::Expr::ForAll(
+                vir::ForAll {
+                    variables,
+                    triggers,
+                    body,
+                    position,
+                }
+            )
+        }
 
         self.in_quantifier = true;
         let replaced_body = self.fold_boxed(body);
@@ -346,14 +356,14 @@ impl vir::ExprFolder for UnfoldingExtractor {
         let unfoldings = mem::take(&mut self.unfoldings);
 
         for ((typ, args), (perm_amount, variant, _)) in unfoldings {
-            forall = vir::Expr::Unfolding(vir::Unfolding {
-                predicate: typ,
-                arguments: args,
-                base: box forall,
-                permission: perm_amount,
+            forall = vir::Expr::unfolding_with_pos(
+                typ,
+                args,
+                forall,
+                perm_amount,
                 variant,
-                position,
-            });
+                position
+            );
         }
         debug!("replaced quantifier: {}", forall);
 
@@ -375,14 +385,14 @@ impl vir::ExprFolder for UnfoldingExtractor {
                 .insert((predicate, arguments), (permission, variant, position));
             self.fold(*base)
         } else {
-            vir::Expr::Unfolding(vir::Unfolding {
+            vir::Expr::unfolding_with_pos(
                 predicate,
                 arguments,
-                base,
+                *base,
                 permission,
                 variant,
                 position,
-            })
+            )
         }
     }
     fn fold_labelled_old(&mut self, labelled_old: vir::LabelledOld) -> vir::Expr {

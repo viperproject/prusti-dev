@@ -239,14 +239,14 @@ pub trait ExprFolder: Sized {
             variant,
             position,
         } = expr;
-        Expr::Unfolding(Unfolding {
+        Expr::unfolding_with_pos(
             predicate,
-            arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
-            base: self.fold_boxed(base),
+            arguments.into_iter().map(|e| self.fold(e)).collect(),
+            *self.fold_boxed(base),
             permission,
             variant,
-            position,
-        })
+            position
+        )
     }
 
     fn fold_cond(&mut self, expr: Cond) -> Expr {
@@ -983,17 +983,17 @@ pub trait FallibleExprFolder: Sized {
             variant,
             position,
         } = expr;
-        Ok(Expr::Unfolding(Unfolding {
+        Ok(Expr::unfolding_with_pos(
             predicate,
-            arguments: arguments
+            arguments
                 .into_iter()
                 .map(|e| self.fallible_fold(e))
                 .collect::<Result<Vec<_>, Self::Error>>()?,
-            base: self.fallible_fold_boxed(base)?,
+            *self.fallible_fold_boxed(base)?,
             permission,
             variant,
             position,
-        }))
+        ))
     }
 
     fn fallible_fold_cond(&mut self, expr: Cond) -> Result<Expr, Self::Error> {
