@@ -490,14 +490,14 @@ impl Expr {
         perm: PermAmount,
         variant: MaybeEnumVariantIndex,
     ) -> Self {
-        Expr::Unfolding(Unfolding {
+        Expr::unfolding_with_pos(
             predicate,
-            arguments: args,
-            base: Box::new(expr),
-            permission: perm,
+            args,
+            expr,
+            perm,
             variant,
-            position: Position::default(),
-        })
+            Position::default(),
+        )
     }
 
     pub fn unfolding_with_pos(
@@ -508,6 +508,11 @@ impl Expr {
         variant: MaybeEnumVariantIndex,
         position: Position,
     ) -> Self {
+        debug_assert!(
+            expr.is_pure(), 
+            "Unfolding base {expr} is not pure (unfold: {predicate}({}))",
+            display::cjoin(&args)
+        );
         Expr::Unfolding(Unfolding {
             predicate,
             arguments: args,
@@ -522,14 +527,14 @@ impl Expr {
     pub fn wrap_in_unfolding(arg: Expr, body: Expr) -> Expr {
         let typ = arg.get_type();
         let pos = body.pos();
-        Expr::Unfolding(Unfolding {
-            predicate: typ.clone(),
-            arguments: vec![arg],
-            base: Box::new(body),
-            permission: PermAmount::Read,
-            variant: None,
-            position: pos,
-        })
+        Expr::unfolding_with_pos(
+            typ.clone(),
+            vec![arg],
+            body,
+            PermAmount::Read,
+            None,
+            pos
+        )
     }
 
     pub fn func_app(
