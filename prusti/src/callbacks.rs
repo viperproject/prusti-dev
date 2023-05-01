@@ -1,5 +1,4 @@
-use crate::verifier::verify;
-use crate::mir_modify;
+use crate::{mir_modify, verifier::verify};
 
 use prusti_common::config;
 use prusti_interface::{

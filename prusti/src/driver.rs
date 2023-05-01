@@ -8,6 +8,7 @@
 #![feature(proc_macro_internals)]
 #![feature(decl_macro)]
 #![feature(box_syntax)]
+#![feature(box_patterns)]
 #![deny(unused_must_use)]
 
 mod arg_value;
