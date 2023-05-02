@@ -188,6 +188,7 @@ pub enum ErrorCtxt {
     /// The state that fold-unfold algorithm deduced as unreachable, is actually
     /// reachable.
     UnreachableFoldingState,
+    QPNotInjective
 }
 
 /// The error manager
@@ -225,18 +226,18 @@ impl<'tcx> ErrorManager<'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     pub fn set_error(&mut self, pos: Position, error_ctxt: ErrorCtxt) {
         assert_ne!(pos, Position::default(), "Trying to register an error on a default position");
-        // if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
-        //     debug_assert_eq!(
-        //         existing_error_ctxt, &error_ctxt,
-        //         "An existing error context would be overwritten.\n\
-        //         Position id: {}\n\
-        //         Existing error context: {:?}\n\
-        //         New error context: {:?}",
-        //         pos.id(),
-        //         existing_error_ctxt,
-        //         error_ctxt
-        //     );
-        // }
+        if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
+            debug_assert_eq!(
+                existing_error_ctxt, &error_ctxt,
+                "An existing error context would be overwritten.\n\
+                Position id: {}\n\
+                Existing error context: {:?}\n\
+                New error context: {:?}",
+                pos.id(),
+                existing_error_ctxt,
+                error_ctxt
+            );
+        }
         self.error_contexts.insert(pos.id(), error_ctxt);
     }
 
@@ -303,7 +304,11 @@ impl<'tcx> ErrorManager<'tcx> {
             Err(prusti_err) => return prusti_err
         };
         let opt_error_ctxts = opt_offending_pos_id
-            .and_then(|pos_id| self.error_contexts.get(&pos_id));
+            .and_then(|pos_id| self.error_contexts.get(&pos_id))
+            .or(
+                opt_pos_id 
+                    .and_then(|pos_id| self.error_contexts.get(&pos_id))
+            );
         let opt_pos_span = opt_pos_id.and_then(|pos_id| self.position_manager.source_span.get(&pos_id));
         let opt_error_span = opt_offending_pos_id.and_then(|pos_id| self.position_manager.source_span.get(&pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
@@ -315,7 +320,7 @@ impl<'tcx> ErrorManager<'tcx> {
         });
 
         if let Some(error_ctxt) = opt_error_ctxts {
-            debug_assert!(opt_error_span.is_some());
+            // debug_assert!(opt_error_span.is_some());
             let error_span = opt_error_span.cloned().unwrap_or_else(MultiSpan::new);
             self.translate_verification_error_with_context(
                 ver_error,
@@ -337,6 +342,7 @@ impl<'tcx> ErrorManager<'tcx> {
 
             match opt_offending_pos_id {
                 Some(ref pos_id) => {
+                    eprintln!("Reason position id: {opt_reason_pos_id:?}, opt_pos_id: {opt_pos_id:?}");
                     PrustiError::internal(
                         format!(
                             "unregistered verification error: [{}; {}] {}",
@@ -363,7 +369,9 @@ impl<'tcx> ErrorManager<'tcx> {
         ver_error: &VerificationError,
         error_ctxt: &ErrorCtxt,
     ) -> bool {
-        ver_error.full_id.as_str() == "exhale.failed:insufficient.permission"
+        ver_error.full_id.as_str() == "exhale.failed:insufficient.permission" ||
+        ver_error.full_id.as_str() == "inhale.failed:qp.not.injective" ||
+        ver_error.full_id.as_str() == "exhale.failed:qp.not.injective"
     }
 
     fn is_exhale_or_assert_fail_msg(msg: &str) -> bool {
@@ -679,6 +687,13 @@ impl<'tcx> ErrorManager<'tcx> {
             ("inhale.failed:map.key.contains", _) => {
                 PrustiError::verification(
                     "the key might not be in the map".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:qp.not.injective", _) => {
+                PrustiError::verification(
+                    "The quantified resource may not be injective".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }

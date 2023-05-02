@@ -281,6 +281,15 @@ impl Expr {
                         position,
                         ..inner
                     }),)*
+                    Expr::ForAll(inner) => {
+                        if !inner.position.is_default() {
+                            panic!("Cannot set position of ForAll expression twice");
+                        }
+                        Expr::ForAll(ForAll {
+                            position,
+                            ..inner
+                        })
+                    },
                     Expr::Field(inner) => Expr::Field(FieldExpr {
                         position,
                         ..inner
@@ -309,7 +318,6 @@ impl Expr {
             Map,
             Unfolding,
             Cond,
-            ForAll,
             Exists,
             LetExpr,
             FuncApp,
@@ -1316,6 +1324,87 @@ impl Expr {
     pub fn simplify(self) -> Self {
         struct Simplifier;
         impl ExprFolder for Simplifier {
+
+            fn fold_forall(
+                &mut self,
+                ForAll {
+                    variables,
+                    triggers,
+                    body,
+                    position,
+                }: ForAll
+            ) -> Expr {
+
+                let triggers = triggers
+                    .iter()
+                    .map(|set| {
+                        Trigger::new(
+                            set.elements()
+                                .iter()
+                                .cloned()
+                                .map(|expr| self.fold(expr))
+                                .collect::<Vec<_>>(),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                // TODO: This duplicates logic from the `desugarSourceQuantifiedPermissions` function from 
+                // https://github.com/viperproject/silver/blob/ae4a12399cd0b42bedabf01be2cda93700244bd6/src/main/scala/viper/silver/ast/utility/QuantifiedPermissions.scala#L164
+                // Perhaps expose that function and use it instead?
+                //
+                // Without these simplifications, the backend Viper verifier will complain
+                if !body.is_pure() {
+                    // eprintln!("Fold forall (position: {:?}, body position: {:?})", position, body.pos());
+                    match *body {
+                        Expr::BinOp( BinOp { op_kind: BinaryOpKind::Implies, left, right: box Expr::Cond(c), .. } ) => {
+                            let left = self.fold_boxed(left);
+                            let with_new_body = |g, e: Box<Expr>| {
+                                // eprintln!("E pos: {:?}", e.pos());
+                                Expr::ForAll(ForAll {
+                                    variables: variables.clone(),
+                                    triggers: triggers.clone(),
+                                    body: box Expr::implies(Expr::and(g, *left.clone()), *e),
+                                    position 
+                                })
+                            };
+                            let guard = self.fold_boxed(c.guard);
+                            let then_expr = self.fold_boxed(c.then_expr);
+                            let else_expr = self.fold_boxed(c.else_expr);
+                            return Expr::and(
+                                with_new_body(*guard.clone(), then_expr),
+                                with_new_body(Expr::not(*guard), else_expr),
+                            );
+                        },
+                        Expr::BinOp( BinOp { op_kind: BinaryOpKind::Implies, left, right: box Expr::BinOp(bop), .. } )
+                        if bop.op_kind == BinaryOpKind::And => {
+                            let left = self.fold_boxed(left);
+                            let with_new_body = |e| {
+                                Expr::ForAll(ForAll {
+                                    variables: variables.clone(),
+                                    triggers: triggers.clone(),
+                                    body: box Expr::implies(*left.clone(), e),
+                                    position 
+                                })
+                            };
+                            let left = self.fold_boxed(bop.left);
+                            let right = self.fold_boxed(bop.right);
+                            return Expr::and(
+                                with_new_body(*left),
+                                with_new_body(*right)
+                            );
+                        },
+                        _ => {
+                            // eprintln!("Fold forall default");
+                        }
+                    }
+                }
+
+                return Expr::ForAll(ForAll {
+                    variables,
+                    triggers,
+                    body: self.fold_boxed(body),
+                    position
+                })
+            }
             fn fold_cond(
                 &mut self,
                 Cond {
