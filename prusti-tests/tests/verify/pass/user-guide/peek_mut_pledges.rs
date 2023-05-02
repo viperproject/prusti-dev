@@ -116,7 +116,7 @@ impl<T> List<T> {
     }
 
     // // Not currently possible in Prusti
-    // pub fn try_peek(&mut self) -> Option<&T> {
+    // pub fn try_peek(&self) -> Option<&T> {
     //     todo!()
     // }
 
