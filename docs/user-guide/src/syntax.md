@@ -4,14 +4,14 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 
 | Syntax | Meaning |
 | --- | --- |
-| [`result`](#result-variable) | Variable to refer to function return value in postcondition |
+| [`result`](#result-variable) | Function return value |
 | [`old(...)`](#old-expressions) | Value of expression in a previous state |
 | [`... ==> ...`](#implications) | Right implication |
 | [`... <== ...`](#implications) | Left implication |
 | [`... <==> ...`](#implications) | Biconditional |
 | [`... === ...`](#snapshot-equality) | Snapshot equality |
 | [`... !== ...`](#snapshot-equality) | Snapshot inequality |
-| [`snap(...)`](#snap-function) | Snapshot function |
+| [`snap(...)`](#snap-function) | Snapshot clone function |
 | [`forall(...)`](#quantifiers) | Universal quantifier |
 | [`exists(...)`](#quantifiers) | Existential quantifier |
 | [<code>... &#x7C;= ...</code>](#specification-entailments) | Specification entailment |
