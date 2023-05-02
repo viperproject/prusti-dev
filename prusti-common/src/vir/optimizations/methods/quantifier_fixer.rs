@@ -158,6 +158,7 @@ impl<'a> Replacer<'a> {
     }
 
     fn replace_expr(&mut self, original_expr: vir::Expr, pos: vir::Position) -> vir::Expr {
+        debug_assert!(original_expr.is_pure());
         if let Some(local) = self.map.get(&original_expr) {
             vir::Expr::Local(vir::Local {
                 variable: local.clone(),
@@ -216,11 +217,12 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
             position,
         }: vir::Cond,
     ) -> vir::Expr {
+        let impure = !then_expr.is_pure() || !else_expr.is_pure();
         let contains_bounded = self
             .bound_vars
             .iter()
             .any(|v| guard.find(v) || then_expr.find(v) || else_expr.find(v));
-        if contains_bounded {
+        if impure || contains_bounded {
             // Do not extract conditional branches into let-vars: it's possible that
             // the "then" branch is well-defined only when `guard` is true, or
             // vice-versa (i.e the "else" branch is only defined when `guard` is

@@ -244,14 +244,18 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         match fn_name {
-            "prusti_contracts::forall" | "prusti_contracts::exists" => encode_quantifier(
-                self,
-                span,
-                encoded_args,
-                fn_name == "prusti_contracts::exists",
-                parent_def_id,
-                substs,
-            ),
+            "prusti_contracts::forall" | "prusti_contracts::exists" => {
+                let expr = encode_quantifier(
+                    self,
+                    span,
+                    encoded_args,
+                    fn_name == "prusti_contracts::exists",
+                    parent_def_id,
+                    substs,
+                )?;
+                let expr = expr.set_pos(self.error_manager().register_span(parent_def_id, span));
+                Ok(expr)
+            }
             "prusti_contracts::resource" => {
                 if let vir_poly::Type::TypedRef(tr) = encoded_args[0].get_type() {
                     let predicate_name = tr.label.split("struct$m_").last().unwrap();
