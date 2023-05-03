@@ -66,17 +66,7 @@ impl SMTLib {
                 // assert predicate
                 self.add_code(format!("(assert {})", expression.to_smt()));
             }
-            FolStatement::Assert(expression) => {
-                // check if just asserting true
-                // TODO: Optimization module
-                if let Expression::Constant(Constant {
-                    value: ConstantValue::Bool(true),
-                    ..
-                }) = expression
-                {
-                    return;
-                }
-
+            FolStatement::Assert { expression, reason } => {
                 // negate predicate
                 let position = expression.position();
                 let negated = Expression::UnaryOp(UnaryOp {
@@ -88,7 +78,15 @@ impl SMTLib {
                 // assert negated predicate
                 self.add_code("(push)".to_string());
                 self.add_code(format!("(assert {})", negated.to_smt()));
-                self.add_code(format!("(echo \"position: {}\")", expression.position().id));
+                if let Some(res) = reason {
+                    self.add_code(format!(
+                        "(echo \"position: {}, reason: {}\")",
+                        position.id, res.id
+                    ));
+                } else {
+                    self.add_code(format!("(echo \"position: {}\")", position.id));
+                }
+
                 self.add_code("(check-sat)".to_string());
                 self.add_code("(pop)".to_string());
 
@@ -122,7 +120,7 @@ impl SMTLib {
         if let Some(precond) = precond {
             // TODO: Location of the call site
             self.add_code("; Branch precond:".to_string());
-            self.add_code(format!("(assert {})", precond.to_smt()));
+            self.add_assert(precond.to_smt());
         }
 
         // verify body
@@ -212,8 +210,6 @@ impl ToString for SMTLib {
         main.push_str("\n\n");
         main.push_str(&self.code.join("\n"));
 
-        // TODO: Sort wrappers
-
         // initialize the theory providers
         let set_provider = ContainerTheoryProvider::new("Set");
         let seq_provider = ContainerTheoryProvider::new("Seq");
@@ -267,7 +263,6 @@ impl ToString for SMTLib {
         result
             .lines()
             .filter(|&line| !MARKER_RE.is_match(line)) // TODO: SSO form for marker variables?
-            .filter(|&line| line != "(assert true)") // TODO: Optimization module
             .collect::<Vec<_>>()
             .join("\n")
     }

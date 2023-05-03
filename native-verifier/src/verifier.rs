@@ -20,7 +20,8 @@ use std::{
 
 // lazy regex for parsing z3 output
 lazy_static! {
-    static ref POSITION_REGEX: Regex = Regex::new(r#"^"?position: (\d+)"?"#).unwrap();
+    static ref POSITION_REGEX: Regex =
+        Regex::new(r#"^"?position: (\d+)(?:, reason: (\d+))?"?"#).unwrap();
 }
 
 pub struct Verifier {
@@ -106,16 +107,18 @@ impl Verifier {
             return VerificationResult::Failure(errors);
         }
 
-        let mut last_pos: i32 = 0;
+        let mut last_pos: (i32, Option<i32>) = (0, None);
         for line in result.unwrap().lines() {
             if let Some(caps) = POSITION_REGEX.captures(line) {
-                last_pos = caps[1].parse().unwrap();
+                let pos = caps[1].parse().unwrap();
+                let res = caps.get(2).map(|r| r.as_str().parse().unwrap());
+                last_pos = (pos, res);
             } else if line == "sat" || line == "unknown" {
                 errors.push(VerificationError::new(
                     "assert.failed:assertion.false".to_string(),
                     Some("0".to_string()),
-                    Some(last_pos.to_string()),
-                    Some("0".to_string()),
+                    Some(last_pos.0.to_string()),
+                    last_pos.1.map(|r| r.to_string()),
                     format!("Assert might fail. Assertion might not hold."),
                     None,
                 ));

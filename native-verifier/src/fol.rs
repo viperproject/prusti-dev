@@ -1,13 +1,32 @@
 use std::collections::HashMap;
-use vir::low::{
-    ast::{expression::*, statement::*},
-    *,
+use vir::{
+    common::position::Positioned,
+    low::{
+        ast::{expression::*, statement::*},
+        expression::visitors::ExpressionFolder,
+        *,
+    },
 };
 
 pub enum FolStatement {
     Comment(String),
     Assume(Expression),
-    Assert(Expression),
+    Assert {
+        expression: Expression,
+        reason: Option<Position>,
+    },
+}
+
+pub fn set_position(expr: Expression, new_position: Position) -> Expression {
+    struct PositionReplacer {
+        new_position: Position,
+    }
+    impl ExpressionFolder for PositionReplacer {
+        fn fold_position(&mut self, _: Position) -> Position {
+            self.new_position
+        }
+    }
+    PositionReplacer { new_position }.fold_expression(expr)
 }
 
 fn vir_statement_to_fol_statements(
@@ -15,10 +34,16 @@ fn vir_statement_to_fol_statements(
     known_methods: &HashMap<String, MethodDecl>,
 ) -> Vec<FolStatement> {
     match statement {
-        Statement::Assert(expr) => vec![FolStatement::Assert(expr.expression.clone())],
+        Statement::Assert(expr) => vec![FolStatement::Assert {
+            expression: set_position(expr.expression.clone(), expr.position),
+            reason: Some(expr.expression.position()),
+        }],
         Statement::Assume(expr) => vec![FolStatement::Assume(expr.expression.clone())],
         Statement::Inhale(expr) => vec![FolStatement::Assume(expr.expression.clone())],
-        Statement::Exhale(expr) => vec![FolStatement::Assert(expr.expression.clone())],
+        Statement::Exhale(expr) => vec![FolStatement::Assert {
+            expression: expr.expression.clone(),
+            reason: None,
+        }],
         Statement::Assign(assign) => {
             let eq = Expression::BinaryOp(BinaryOp {
                 op_kind: BinaryOpKind::EqCmp,
@@ -72,7 +97,10 @@ fn vir_statement_to_fol_statements(
                             right: Box::new(assert.expression.clone()),
                             position: assert.position,
                         });
-                        statements.push(FolStatement::Assert(implication));
+                        statements.push(FolStatement::Assert {
+                            expression: implication,
+                            reason: None,
+                        });
                     } else if let Statement::Inhale(inhale) = s {
                         let implication = Expression::BinaryOp(BinaryOp {
                             op_kind: BinaryOpKind::Implies,
@@ -188,7 +216,10 @@ fn vir_statement_to_fol_statements(
 
             let preconds = method_decl.pres.iter().map(|pre| {
                 // substitute parameters for arguments
-                FolStatement::Assert(substitute(pre, &params_to_args))
+                FolStatement::Assert {
+                    expression: substitute(pre, &params_to_args),
+                    reason: None,
+                }
             });
 
             let postconds = method_decl.posts.iter().map(|post| {

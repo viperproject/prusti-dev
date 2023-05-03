@@ -170,13 +170,13 @@ pub fn optimize_statements(statements: Vec<FolStatement>) -> Vec<FolStatement> {
                     Some(FolStatement::Assume(expr))
                 }
             }
-            FolStatement::Assert(expr) => {
+            FolStatement::Assert { expression, reason } => {
                 let mut optimizer = Optimizer {};
-                let expr = optimizer.fold_expression(expr);
-                if expr == true.into() {
+                let expression = optimizer.fold_expression(expression);
+                if expression == true.into() {
                     None
                 } else {
-                    Some(FolStatement::Assert(expr))
+                    Some(FolStatement::Assert { expression, reason })
                 }
             }
             x => Some(x),

@@ -1,3 +1,5 @@
+// compile-flags: -Pviper_backend=Lithium
+
 use prusti_contracts::*;
 
 macro_rules! divides_prop {
