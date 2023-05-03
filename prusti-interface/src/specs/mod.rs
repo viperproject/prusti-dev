@@ -75,9 +75,11 @@ pub struct SpecCollector<'a, 'tcx> {
 
     /// Map from specification IDs to their typed expressions.
     spec_functions: FxHashMap<SpecificationId, LocalDefId>,
+    check_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
     procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
+    procedure_checks: FxHashMap<LocalDefId, SpecificationId>,
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
     type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
@@ -94,7 +96,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             extern_resolver: ExternSpecResolver::new(env),
             env,
             spec_functions: FxHashMap::default(),
+            check_functions: FxHashMap::default(),
             procedure_specs: FxHashMap::default(),
+            procedure_checks: FxHashMap::default(),
             loop_specs: vec![],
             loop_variants: vec![],
             type_specs: FxHashMap::default(),
@@ -123,10 +127,21 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
+
+        self.determine_checks(&mut def_spec);
+
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
         self.ensure_local_mirs_fetched(&def_spec);
+
         def_spec
+    }
+
+    fn determine_checks(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for (local_id, check_id) in self.procedure_checks.iter() {
+            let fn_id = self.check_functions.get(check_id).unwrap();
+            def_spec.checks.insert(local_id.to_def_id(), fn_id.to_def_id());
+        }
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -441,6 +456,11 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     }
 }
 
+fn get_procedure_check_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<SpecificationId> {
+    read_prusti_attr("pre_check_id_ref", attrs)
+        .map(|x| parse_spec_id(x, def_id))
+}
+
 impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
@@ -460,6 +480,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         // Collect procedure specifications
         if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
             self.procedure_specs.insert(local_id, procedure_spec_ref);
+        }
+        if let Some(check_id) = get_procedure_check_ids(def_id, attrs) {
+            self.procedure_checks.insert(local_id, check_id);
         }
     }
 
@@ -550,6 +573,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "ghost_end") {
                 self.ghost_end.push(local_id);
             }
+        } else if let Some(raw_check_id) = read_prusti_attr("check_id", attrs) {
+            let spec_id = parse_spec_id(raw_check_id, def_id);
+            self.check_functions.insert(spec_id, local_id);
         } else {
             // Don't collect specs "for" spec items
 
@@ -564,6 +590,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             // Collect procedure specifications
             if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
+            }
+            if let Some(check_id) = get_procedure_check_ids(def_id, attrs) {
+                self.procedure_checks.insert(local_id, check_id);
             }
 
             // Collect model type flag

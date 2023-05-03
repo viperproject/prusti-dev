@@ -191,16 +191,24 @@ fn generate_spec_and_assertions(
 fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
+    let check_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
+    let check_id_str = check_id.to_string();
     let spec_item =
-        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr, item)?;
-    Ok((
-        vec![spec_item],
+        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr.clone(), item)?;
+    let check_item =
+        rewriter.create_check_requires(rewriter::SpecItemType::Precondition, check_id, attr, item)?;
+    let res = Ok((
+        vec![spec_item, check_item],
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::pre_spec_id_ref = #spec_id_str]
+        }, parse_quote_spanned! {item.span()=>
+            #[prusti::pre_check_id_ref = #check_id_str]
         }],
-    ))
+    ));
+    res
 }
+
 
 /// Generate spec items and attributes to typecheck the and later retrieve "ensures" annotations.
 fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {

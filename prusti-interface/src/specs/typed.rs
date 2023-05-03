@@ -20,6 +20,7 @@ pub struct DefSpecificationMap {
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
+    pub checks: FxHashMap<DefId, DefId>,
 }
 
 impl DefSpecificationMap {
@@ -57,6 +58,10 @@ impl DefSpecificationMap {
 
     pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
         self.ghost_end.get(def_id)
+    }
+
+    pub fn get_checks(&self, def_id: &DefId) -> Option<DefId> {
+        self.checks.get(def_id).copied()
     }
 
     pub(crate) fn defid_for_export(
