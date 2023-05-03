@@ -533,63 +533,82 @@ impl SMTTranslatable for Expression {
                 conditional.else_expr.to_smt()
             ),
             // TODO: Quantifier triggers
-            Expression::Quantifier(quantifier) => match quantifier.kind {
-                QuantifierKind::ForAll => {
-                    let mut quant = String::new();
-                    quant.push_str("(forall (");
-                    quant.push_str(
-                        &quantifier
-                            .variables
-                            .iter()
-                            .map(|v| format!("({} {})", v.name, v.ty.to_smt()))
-                            .collect::<Vec<_>>()
-                            .join(" "),
-                    );
-                    quant.push_str(") ");
+            Expression::Quantifier(quantifier) => {
+                let mut quant = String::new();
 
-                    let triggers: Vec<_> = quantifier
-                        .triggers
+                match quantifier.kind {
+                    QuantifierKind::ForAll => quant.push_str("(forall ("),
+                    QuantifierKind::Exists => quant.push_str("(exists ("),
+                }
+
+                quant.push_str(
+                    &quantifier
+                        .variables
                         .iter()
-                        .filter(|t| {
-                            !t.terms
+                        .map(|v| format!("({} {})", v.name, v.ty.to_smt()))
+                        .collect::<Vec<_>>()
+                        .join(" "),
+                );
+                quant.push_str(") ");
+
+                let triggers: Vec<_> = quantifier
+                    .triggers
+                    .iter()
+                    .filter(|t| {
+                        !t.terms
+                            .iter()
+                            .any(|t| matches!(t, Expression::PredicateAccessPredicate(_)))
+                        // TODO: Support triggers with predicate access predicates?
+                    })
+                    .collect();
+
+                if triggers.is_empty() {
+                    quant.push_str(&quantifier.body.to_smt());
+                    quant.push_str(")");
+                } else {
+                    // triggers are :pattern
+                    quant.push_str("(! ");
+                    quant.push_str(&quantifier.body.to_smt());
+
+                    for trigger in &triggers {
+                        quant.push_str(" :pattern (");
+
+                        quant.push_str(
+                            &trigger
+                                .terms
                                 .iter()
-                                .any(|t| matches!(t, Expression::PredicateAccessPredicate(_)))
-                            // TODO: Support triggers with predicate access predicates?
-                        })
-                        .collect();
+                                .map(|expr| expr.to_smt())
+                                .collect::<Vec<_>>()
+                                .join(" "),
+                        );
 
-                    if triggers.is_empty() {
-                        quant.push_str(&quantifier.body.to_smt());
                         quant.push_str(")");
-                    } else {
-                        // triggers are :pattern
-                        quant.push_str("(!");
-                        quant.push_str(&quantifier.body.to_smt());
-
-                        for trigger in &triggers {
-                            quant.push_str(" :pattern (");
-
-                            quant.push_str(
-                                &trigger
-                                    .terms
-                                    .iter()
-                                    .map(|expr| expr.to_smt())
-                                    .collect::<Vec<_>>()
-                                    .join(" "),
-                            );
-
-                            quant.push_str(")");
-                        }
-
-                        quant.push_str("))");
                     }
 
-                    quant
+                    quant.push_str("))");
                 }
-                QuantifierKind::Exists => unimplemented!(),
-            },
+
+                quant
+            }
             Expression::LetExpr(_) => unimplemented!(),
-            Expression::FuncApp(_) => unimplemented!(),
+            Expression::FuncApp(func) => {
+                let mut app = "(".to_string();
+
+                app.push_str(&func.function_name);
+                app.push_str(" ");
+
+                app.push_str(
+                    &func
+                        .arguments
+                        .iter()
+                        .map(|arg| arg.to_smt())
+                        .collect::<Vec<_>>()
+                        .join(" "),
+                );
+
+                app.push_str(")");
+                app
+            }
             Expression::DomainFuncApp(domain_func_app) => {
                 mk_app(&domain_func_app.function_name, &domain_func_app.arguments)
             }

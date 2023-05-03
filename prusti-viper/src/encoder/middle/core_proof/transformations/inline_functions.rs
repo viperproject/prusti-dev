@@ -86,6 +86,29 @@ impl<'a> ExpressionFolder for Inliner<'a> {
         binary_op
     }
 
+    fn fold_quantifier(
+        &mut self,
+        mut quantifier: vir_low::expression::Quantifier,
+    ) -> vir_low::expression::Quantifier {
+        quantifier.triggers = quantifier
+            .triggers
+            .iter()
+            .map(|trigger| {
+                let mut trigger = trigger.clone();
+                trigger.terms = trigger
+                    .terms
+                    .into_iter()
+                    .map(|term| *self.fold_expression_boxed(box term))
+                    .collect();
+                trigger
+            })
+            .collect();
+
+        quantifier.body = self.fold_expression_boxed(quantifier.body);
+
+        quantifier
+    }
+
     fn fold_conditional(
         &mut self,
         mut conditional: vir_low::expression::Conditional,

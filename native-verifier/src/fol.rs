@@ -34,10 +34,22 @@ fn vir_statement_to_fol_statements(
     known_methods: &HashMap<String, MethodDecl>,
 ) -> Vec<FolStatement> {
     match statement {
-        Statement::Assert(expr) => vec![FolStatement::Assert {
-            expression: set_position(expr.expression.clone(), expr.position),
-            reason: Some(expr.expression.position()),
-        }],
+        Statement::Assert(expr) => {
+            let reason_pos = expr.expression.position();
+            let failure_pos = expr.position;
+
+            if reason_pos != failure_pos {
+                vec![FolStatement::Assert {
+                    expression: set_position(expr.expression.clone(), failure_pos),
+                    reason: Some(reason_pos),
+                }]
+            } else {
+                vec![FolStatement::Assert {
+                    expression: expr.expression.clone(),
+                    reason: None,
+                }]
+            }
+        }
         Statement::Assume(expr) => vec![FolStatement::Assume(expr.expression.clone())],
         Statement::Inhale(expr) => vec![FolStatement::Assume(expr.expression.clone())],
         Statement::Exhale(expr) => vec![FolStatement::Assert {
@@ -99,7 +111,7 @@ fn vir_statement_to_fol_statements(
                         });
                         statements.push(FolStatement::Assert {
                             expression: implication,
-                            reason: None,
+                            reason: None, // TODO: Reason?
                         });
                     } else if let Statement::Inhale(inhale) = s {
                         let implication = Expression::BinaryOp(BinaryOp {
@@ -241,7 +253,6 @@ pub fn vir_to_fol(
     statements: &Vec<Statement>,
     known_methods: &HashMap<String, MethodDecl>,
 ) -> Vec<FolStatement> {
-    // reduce so that the order in the vector is now the Sequence operator
     statements
         .iter()
         .flat_map(|s| vir_statement_to_fol_statements(s, known_methods))

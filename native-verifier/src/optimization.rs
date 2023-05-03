@@ -1,5 +1,5 @@
 use vir::low::{
-    expression::{visitors::ExpressionFolder, BinaryOp, UnaryOp},
+    expression::{visitors::ExpressionFolder, BinaryOp, MagicWand, UnaryOp},
     Expression,
 };
 
@@ -129,6 +129,53 @@ impl ExpressionFolder for Optimizer {
                 argument: Box::new(new_argument),
                 position: unary_op.position,
             }),
+        }
+    }
+
+    fn fold_quantifier_enum(
+        &mut self,
+        quantifier: vir::low::expression::Quantifier,
+    ) -> vir::low::Expression {
+        if quantifier.triggers.is_empty() {
+            let new_body = self.fold_expression(*quantifier.body);
+            if new_body == true.into() {
+                true.into()
+            } else if new_body == false.into() {
+                false.into()
+            } else {
+                vir::low::Expression::Quantifier(vir::low::expression::Quantifier {
+                    body: Box::new(new_body),
+                    ..quantifier
+                })
+            }
+        } else {
+            quantifier.into() // cannot optimize because we might remove something that is in a trigger
+        }
+    }
+
+    fn fold_magic_wand_enum(&mut self, magic_wand: vir::low::expression::MagicWand) -> Expression {
+        // magic wand (--*) is basically implication, so we can simplify accordingly
+        let new_left = self.fold_expression(*magic_wand.left);
+        let new_right = self.fold_expression(*magic_wand.right);
+
+        if new_left == true.into() {
+            new_right
+        } else if new_right == false.into() {
+            vir::low::Expression::UnaryOp(UnaryOp {
+                op_kind: vir::low::UnaryOpKind::Not,
+                argument: Box::new(new_left),
+                position: magic_wand.position,
+            })
+        } else if new_left == false.into() {
+            true.into()
+        } else if new_right == true.into() {
+            true.into()
+        } else {
+            vir::low::Expression::MagicWand(MagicWand {
+                left: Box::new(new_left),
+                right: Box::new(new_right),
+                position: magic_wand.position,
+            })
         }
     }
 
