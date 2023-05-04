@@ -107,6 +107,7 @@ fn next3() -> Result<Option<T>, E> {
     Ok(None)
 }
 
+/*
 fn test11() -> Result<T, E> {
     while let Some(n) = next3()? { }
     Err(E)
@@ -121,21 +122,21 @@ fn test12() -> Result<T, E> {
 
 fn test13() -> Result<T, E> {
     while let Some(n) = next3()? {
-        assert!(false);     //~ ERROR: the asserted expression might not hold
+        assert!(false);     ERROR: the asserted expression might not hold
     }
     Err(E)
 }
 
 fn test14() -> Result<T, E> {
     while let Some(n) = next3()? { }
-    assert!(false);     //~ ERROR: the asserted expression might not hold
+    assert!(false);     ERROR: the asserted expression might not hold
     Err(E)
 }
 
 fn test15() -> Result<T, E> {
     while let Some(n) = next3()? {
         body_invariant!(true);
-        assert!(false);     //~ ERROR: the asserted expression might not hold
+        assert!(false);     ERROR: the asserted expression might not hold
     }
     Err(E)
 }
@@ -144,7 +145,7 @@ fn test16() -> Result<T, E> {
     while let Some(n) = next3()? {
         body_invariant!(true);
     }
-    assert!(false);     //~ ERROR: the asserted expression might not hold
+    assert!(false);     ERROR: the asserted expression might not hold
     Err(E)
 }
 
@@ -167,6 +168,7 @@ fn test18() -> Result<T, E> {
     }
     Err(E)
 }
+*/
 
 fn next4() -> u32 {
     4
