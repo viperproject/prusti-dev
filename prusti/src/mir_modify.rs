@@ -8,7 +8,7 @@ use prusti_rustc_interface::{
         mir::{visit::MutVisitor, Body, Operand, Location, Constant,
         ConstantKind, BasicBlock, BasicBlocks, BasicBlockData, Statement,
         StatementKind, Place, Terminator, TerminatorKind,
-        SourceScope, SourceInfo},
+        SourceScope, SourceInfo, terminator},
         mir::interpret::{Scalar, ConstValue},
         mir::patch::MirPatch,
         ty::{self, TyCtxt, ScalarInt, TyKind},
@@ -71,7 +71,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
             let mut patch = MirPatch::new(body);
             let start_node = body.basic_blocks.start_node();
             println!("Start node is {:?}", start_node);
-            let target = BasicBlock::from_usize(1);
+            let target = start_node;
             // let mut loc = Location {
             //     block: start_node,
             //     statement_index: 0,
@@ -158,19 +158,14 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
             println!("block index: {:?}", new_block);
 
             patch.apply(body);
-            let mut reordered: IndexVec<BasicBlock, BasicBlockData> = IndexVec::new();
-            println!("our block was indeed added");
-            let new_block_data = body.basic_blocks.get(new_block).cloned().unwrap();
-            reordered.push(new_block_data);
+            let old_start_data = body.basic_blocks_mut().swap(start_node, new_block);
 
-            for (block, data) in body.basic_blocks.iter_enumerated() {
-                if block != new_block {
-                    reordered.push(data.clone());
-                }
+
+            for b in body.basic_blocks.as_mut().iter_mut() {
+                replace_outgoing_edges(b, start_node, BasicBlock::MAX);
+                replace_outgoing_edges(b, new_block, start_node);
+                replace_outgoing_edges(b, BasicBlock::MAX, new_block);
             }
-            body.basic_blocks = BasicBlocks::new(reordered);
-
-
 
         }
 
@@ -197,5 +192,54 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
     // }
 }
 
-// create a new function call statement!
 
+// If we re-order the IndexVec containing the basic blocks, we will need to adjust
+// some the basic blocks that terminators point to. This is what this function does
+fn replace_outgoing_edges(data: &mut BasicBlockData, from: BasicBlock, to: BasicBlock) {
+    match &mut data.terminator_mut().kind {
+        TerminatorKind::Goto { target }
+        => update_if_equals(target, from, to),
+        TerminatorKind::SwitchInt { targets, .. } => {
+            for bb1 in &mut targets.all_targets_mut().iter_mut() {
+                update_if_equals(bb1, from, to);
+            }
+        },
+        TerminatorKind::Call { target, cleanup, .. } => {
+            if let Some(target) = target {
+                update_if_equals(target, from, to);
+            }
+            if let Some(cleanup) = cleanup {
+                update_if_equals(cleanup, from, to);
+            }
+        },
+        TerminatorKind::Assert { target: target_bb, cleanup: opt_bb, .. } |
+        TerminatorKind::DropAndReplace { target: target_bb, unwind: opt_bb, .. } |
+        TerminatorKind::Drop { target: target_bb, unwind: opt_bb, .. } |
+        TerminatorKind::Yield { resume: target_bb, drop: opt_bb, .. } |
+        TerminatorKind::FalseUnwind { real_target: target_bb, unwind: opt_bb }=> {
+            update_if_equals(target_bb, from, to);
+            if let Some(bb) = opt_bb {
+                update_if_equals(bb, from, to);
+            }
+
+        },
+        TerminatorKind::InlineAsm { destination, cleanup, .. } => {
+            // is this prettier? does this even modify the blockdata?
+            destination.map(|mut x| update_if_equals(&mut x, from, to));
+            cleanup.map(|mut x| update_if_equals(&mut x, from, to));
+        }
+        TerminatorKind::FalseEdge { real_target, imaginary_target } => {
+            update_if_equals(real_target, from, to);
+            update_if_equals(imaginary_target, from, to);
+        },
+        TerminatorKind::Resume | TerminatorKind::Abort |
+        TerminatorKind::Return | TerminatorKind::Unreachable |
+        TerminatorKind::GeneratorDrop => {}
+    }
+}
+
+fn update_if_equals<T: PartialEq>(dest: &mut T, from: T, to: T) {
+    if *dest == from {
+        *dest = to;
+    }
+}
