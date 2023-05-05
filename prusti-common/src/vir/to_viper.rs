@@ -455,6 +455,19 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                         Float::F32 => viper::FloatSizeViper::F32,
                         Float::F64 => viper::FloatSizeViper::F64,
                     };
+
+                    if *op == BinaryOpKind::NeCmp {
+                        return ast.not_with_pos(
+                            ast.float_binop(
+                                viper::BinOpFloat::Eq,
+                                size,
+                                left.to_viper(context, ast),
+                                right.to_viper(context, ast),
+                            ),
+                            pos.to_viper(context, ast),
+                        );
+                    }
+
                     let float_op_kind = match op {
                         BinaryOpKind::Add => viper::BinOpFloat::Add,
                         BinaryOpKind::Sub => viper::BinOpFloat::Sub,
