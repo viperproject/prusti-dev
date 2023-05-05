@@ -23,10 +23,10 @@ pub fn rewrite_mod(item_mod: &syn::ItemMod, mut path: syn::Path) -> syn::Result<
         match item {
             syn::Item::Fn(ref item_fn) => {
                 check_is_stub(&item_fn.block)?;
-                rewritten_fns.extend(rewrite_fn(item_fn, &path));
+                rewritten_fns.extend(rewrite_fn(item_fn, &path, false));
             }
             syn::Item::Mod(ref inner_mod) => rewritten_fns.extend(rewrite_mod(inner_mod, path.clone())?),
-            syn::Item::Verbatim(ref tokens) => rewritten_fns.extend(rewrite_stub(tokens, &path)?),
+            syn::Item::Verbatim(ref tokens) => rewritten_fns.extend(rewrite_stub(tokens, &path, false)?),
             syn::Item::Use(_) => rewritten_fns.extend(syn::Error::new(
                 item.span(),
                 "`use` statements have no effect in #[extern_spec] modules; module contents share the outer scope.",

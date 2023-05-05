@@ -145,7 +145,7 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
 
     // Build the method stub
     let stub_method =
-        generate_extern_spec_function_stub(method, &method_path, extern_spec_kind, false);
+        generate_extern_spec_function_stub(method, &method_path, extern_spec_kind, false, false);
     let stub_method: syn::ImplItemMethod = syn::parse2(stub_method)?;
 
     // Eagerly extract and process specifications
@@ -191,6 +191,7 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
     fn_path: &syn::ExprPath,
     extern_spec_kind: ExternSpecKind,
     mangle_name: bool,
+    is_unsafe: bool,
 ) -> TokenStream {
     let signature = function.sig();
     let mut signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
@@ -202,6 +203,12 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
     let generic_params = &signature.generic_params_as_call_args();
     let args = &signature.params_as_call_args();
     let extern_spec_kind_string: String = extern_spec_kind.into();
+    let fn_call = quote! { #fn_path :: < #generic_params > ( #args ) };
+    let stub_body = if is_unsafe {
+        quote! { unsafe { #fn_call } }
+    } else {
+        quote! { #fn_call }
+    };
 
     quote_spanned! {function.span()=>
         #[trusted]
@@ -209,7 +216,7 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
         #(#attrs)*
         #[allow(unused, dead_code)]
         #signature {
-            #fn_path :: < #generic_params > ( #args )
+            #stub_body
         }
     }
 }

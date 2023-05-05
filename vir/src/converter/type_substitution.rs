@@ -522,6 +522,7 @@ impl Generic for Stmt {
             Stmt::Inhale(inhale) => Stmt::Inhale(inhale.substitute(map)),
             Stmt::Exhale(exhale) => Stmt::Exhale(exhale.substitute(map)),
             Stmt::Assert(assert) => Stmt::Assert(assert.substitute(map)),
+            Stmt::Refute(refute) => Stmt::Refute(refute.substitute(map)),
             Stmt::MethodCall(method_call) => Stmt::MethodCall(method_call.substitute(map)),
             Stmt::Assign(assign) => Stmt::Assign(assign.substitute(map)),
             Stmt::Fold(fold) => Stmt::Fold(fold.substitute(map)),
@@ -591,6 +592,14 @@ impl Generic for Assert {
         let mut assert = self;
         assert.expr = assert.expr.substitute(map);
         assert
+    }
+}
+
+impl Generic for Refute {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut refute = self;
+        refute.expr = refute.expr.substitute(map);
+        refute
     }
 }
 
