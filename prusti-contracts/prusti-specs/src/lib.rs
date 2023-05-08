@@ -23,6 +23,7 @@ pub mod specifications;
 mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
+mod runtime_checks;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
@@ -159,11 +160,16 @@ fn generate_spec_and_assertions(
 ) -> GeneratedResult {
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
+    let is_trusted = !prusti_attributes
+        .iter()
+        .filter(|x| matches!(x.0, SpecAttributeKind::Trusted))
+        .collect::<Vec<&(SpecAttributeKind, TokenStream)>>()
+        .is_empty();
 
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
-            SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
+            SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item, is_trusted),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
@@ -194,35 +200,77 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
     let check_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
     let check_id_str = check_id.to_string();
-    let spec_item =
-        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr.clone(), item)?;
-    let check_item =
-        rewriter.create_check_requires(rewriter::SpecItemType::Precondition, check_id, attr, item)?;
+    let spec_item = rewriter.process_assertion(
+        rewriter::SpecItemType::Precondition,
+        spec_id,
+        attr.clone(),
+        item,
+    )?;
+    let check_item = rewriter.create_check(
+        rewriter::SpecItemType::Precondition,
+        check_id,
+        attr,
+        item,
+    )?;
     let res = Ok((
         vec![spec_item, check_item],
-        vec![parse_quote_spanned! {item.span()=>
-            #[prusti::pre_spec_id_ref = #spec_id_str]
-        }, parse_quote_spanned! {item.span()=>
-            #[prusti::pre_check_id_ref = #check_id_str]
-        }],
+        vec![
+            parse_quote_spanned! {item.span()=>
+                #[prusti::pre_spec_id_ref = #spec_id_str]
+            },
+            parse_quote_spanned! {item.span()=>
+                #[prusti::pre_check_id_ref = #check_id_str]
+            },
+        ],
     ));
     res
 }
 
-
 /// Generate spec items and attributes to typecheck the and later retrieve "ensures" annotations.
-fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_ensures(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+    is_trusted: bool,
+) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let spec_item =
-        rewriter.process_assertion(rewriter::SpecItemType::Postcondition, spec_id, attr, item)?;
+    let spec_item = rewriter.process_assertion(
+        rewriter::SpecItemType::Postcondition,
+        spec_id,
+        attr.clone(),
+        item,
+    )?;
+    // if is_trusted {
+    // For now we always check postconditions.. later we might exclude some
+    let check_id = rewriter.generate_spec_id();
+    let check_id_str = check_id.to_string();
+    // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
+    let check_item = rewriter.create_check(
+        rewriter::SpecItemType::Postcondition,
+        check_id,
+        attr,
+        item,
+    )?;
     Ok((
-        vec![spec_item],
-        vec![parse_quote_spanned! {item.span()=>
-            #[prusti::post_spec_id_ref = #spec_id_str]
-        }],
+        vec![spec_item, check_item],
+        vec![
+            parse_quote_spanned! {item.span()=>
+                #[prusti::post_spec_id_ref = #spec_id_str]
+            },
+            parse_quote_spanned! {item.span()=>
+                #[prusti::post_check_id_ref = #check_id_str]
+            }
+        ],
     ))
+    // } else {
+    //     Ok((
+    //         vec![spec_item],
+    //         vec![parse_quote_spanned! {item.span()=>
+    //             #[prusti::post_spec_id_ref = #spec_id_str]
+    //         }],
+    //     ))
+    // }
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.

@@ -16,7 +16,8 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 
     for nested_spec in type_cond_spec.specs {
         let (mut generated_items, generated_attrs) = match nested_spec {
-            NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item)?,
+            NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item, true)?,
+            // is_trusted argument above is true because spec-refinements are always trusted
             NestedSpec::Requires(tokens) => generate_for_requires(tokens, item)?,
             NestedSpec::Pure => generate_for_pure_refinements(item)?,
         };

@@ -75,11 +75,13 @@ pub struct SpecCollector<'a, 'tcx> {
 
     /// Map from specification IDs to their typed expressions.
     spec_functions: FxHashMap<SpecificationId, LocalDefId>,
+    /// the functions who's specifications have associated checks.
     check_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
     procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
-    procedure_checks: FxHashMap<LocalDefId, SpecificationId>,
+    /// The procedures that contain runtime checks.
+    procedure_checks: FxHashMap<LocalDefId, Vec<SpecIdRef>>,
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
     type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
@@ -138,9 +140,24 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_checks(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for (local_id, check_id) in self.procedure_checks.iter() {
-            let fn_id = self.check_functions.get(check_id).unwrap();
-            def_spec.checks.insert(local_id.to_def_id(), fn_id.to_def_id());
+        for (local_id, checks) in self.procedure_checks.iter() {
+            let mut function_checks = Vec::new();
+            for check in checks {
+                let kind = match check {
+                    SpecIdRef::Precondition(id) => {
+                        let fn_id = self.check_functions.get(id).unwrap();
+                        typed::CheckType::Pre(fn_id.to_def_id())
+                    },
+                    SpecIdRef::Postcondition(id) => {
+                        let fn_id = self.check_functions.get(id).unwrap();
+                        typed::CheckType::Post(fn_id.to_def_id())
+                    },
+                    // Todo: Pledges, Assume?
+                    _ => unreachable!()
+                };
+                function_checks.push(kind);
+            }
+            def_spec.checks.insert(local_id.to_def_id(), function_checks);
         }
     }
 
@@ -456,9 +473,15 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     }
 }
 
-fn get_procedure_check_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<SpecificationId> {
-    read_prusti_attr("pre_check_id_ref", attrs)
-        .map(|x| parse_spec_id(x, def_id))
+fn get_procedure_check_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Vec<SpecIdRef> {
+    let mut res = Vec::new();
+    read_prusti_attrs("pre_check_id_ref", attrs)
+        .iter()
+        .for_each(|x| res.push(SpecIdRef::Precondition(parse_spec_id(x.to_string(), def_id))));
+    read_prusti_attrs("post_check_id_ref", attrs)
+        .iter()
+        .for_each(|x| res.push(SpecIdRef::Postcondition(parse_spec_id(x.to_string(), def_id))));
+    res
 }
 
 impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
@@ -481,9 +504,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
             self.procedure_specs.insert(local_id, procedure_spec_ref);
         }
-        if let Some(check_id) = get_procedure_check_ids(def_id, attrs) {
-            self.procedure_checks.insert(local_id, check_id);
-        }
+        let check_id = get_procedure_check_ids(def_id, attrs);
+        self.procedure_checks.insert(local_id, check_id);
     }
 
     fn visit_fn(
@@ -574,6 +596,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.ghost_end.push(local_id);
             }
         } else if let Some(raw_check_id) = read_prusti_attr("check_id", attrs) {
+            // check_id work just like spec_ids
             let spec_id = parse_spec_id(raw_check_id, def_id);
             self.check_functions.insert(spec_id, local_id);
         } else {
@@ -591,9 +614,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
             }
-            if let Some(check_id) = get_procedure_check_ids(def_id, attrs) {
-                self.procedure_checks.insert(local_id, check_id);
-            }
+            let check_id = get_procedure_check_ids(def_id, attrs);
+            self.procedure_checks.insert(local_id, check_id);
 
             // Collect model type flag
             if has_to_model_fn_attr(attrs) {

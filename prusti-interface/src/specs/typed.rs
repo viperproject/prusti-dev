@@ -20,7 +20,15 @@ pub struct DefSpecificationMap {
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
-    pub checks: FxHashMap<DefId, DefId>,
+    pub checks: FxHashMap<DefId, Vec<CheckType>>,
+}
+
+#[derive(Debug, Clone)]
+pub enum CheckType {
+    Pre(DefId),
+    Post(DefId),
+    Assume(DefId),
+    Pledge{rhs: DefId, lhs: DefId},
 }
 
 impl DefSpecificationMap {
@@ -60,8 +68,34 @@ impl DefSpecificationMap {
         self.ghost_end.get(def_id)
     }
 
-    pub fn get_checks(&self, def_id: &DefId) -> Option<DefId> {
-        self.checks.get(def_id).copied()
+    pub fn get_pre_checks(&self, def_id: &DefId) -> Vec<DefId> {
+        let checks_opt = self.checks.get(def_id);
+        if let Some(checks) = checks_opt {
+            checks.iter().filter_map(|el|
+                if let CheckType::Pre(id) = el {
+                    Some(id)
+                } else {
+                    None
+                }
+            ).cloned().collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn get_post_checks(&self, def_id: &DefId) -> Vec<DefId> {
+        let checks_opt = self.checks.get(def_id);
+        if let Some(checks) = checks_opt {
+            checks.iter().filter_map(|el|
+                if let CheckType::Post(id) = el {
+                    Some(id)
+                } else {
+                    None
+                }
+            ).cloned().collect()
+        } else {
+            Vec::new()
+        }
     }
 
     pub(crate) fn defid_for_export(

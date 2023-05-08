@@ -5,6 +5,7 @@ use crate::{
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
         untyped,
     },
+    runtime_checks::translate_check,
 };
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned};
@@ -144,12 +145,12 @@ impl AstRewriter {
         Ok(syn::Item::Fn(spec_item))
     }
 
-    pub fn generate_check_item_fn<T: HasSignature + Spanned>(
+    pub fn generate_check_item_fn(
         &mut self,
         spec_type: SpecItemType,
         check_id: SpecificationId,
         expr: TokenStream,
-        item: &T,
+        item: &untyped::AnyFnItem,
     ) -> syn::Result<syn::Item> {
         if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
             return Err(syn::Error::new(
@@ -175,37 +176,37 @@ impl AstRewriter {
         //   of a single identifier; without the double negation, the `Return`
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
-        let (return_type, return_modifier) = match &spec_type {
-            SpecItemType::Termination => (
-                quote_spanned! {item_span => Int},
-                quote_spanned! {item_span => Int::new(0) + },
-            ),
-            SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
-            _ => (
-                quote_spanned! {item_span => bool},
-                quote_spanned! {item_span => !!},
-            ),
-        };
-        let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+        // let (return_type, return_modifier) = match &spec_type {
+        //     SpecItemType::Termination => (
+        //         quote_spanned! {item_span => Int},
+        //         quote_spanned! {item_span => Int::new(0) + },
+        //     ),
+        //     SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
+        //     _ => (
+        //         quote_spanned! {item_span => bool},
+        //         quote_spanned! {item_span => !!},
+        //     ),
+        // };
+        let body = translate_check(expr.clone());
+        let mut check_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
             #[prusti::check_id = #check_id_str]
-            fn #item_name() -> #return_type {
-                assert!(#expr);
-                #return_modifier ((#expr) : #return_type)
+            fn #item_name() {
+                #body
             }
         };
 
-        spec_item.sig.generics = item.sig().generics.clone();
-        spec_item.sig.inputs = item.sig().inputs.clone();
+        check_item.sig.generics = item.sig().generics.clone();
+        check_item.sig.inputs = item.sig().inputs.clone();
         match spec_type {
             SpecItemType::Postcondition | SpecItemType::Pledge => {
                 let fn_arg = self.generate_result_arg(item);
-                spec_item.sig.inputs.push(fn_arg);
+                check_item.sig.inputs.push(fn_arg);
             }
             _ => (),
         }
-        Ok(syn::Item::Fn(spec_item))
+        Ok(syn::Item::Fn(check_item))
     }
 
 
@@ -220,12 +221,12 @@ impl AstRewriter {
         self.generate_spec_item_fn(spec_type, spec_id, parse_prusti(tokens)?, item)
     }
 
-    pub fn create_check_requires<T: HasSignature + Spanned>(
+    pub fn create_check(
         &mut self,
         spec_type: SpecItemType,
         check_id: SpecificationId,
         tokens: TokenStream,
-        item: &T,
+        item: &untyped::AnyFnItem,
     ) -> syn::Result<syn::Item> {
         self.generate_check_item_fn(spec_type, check_id, parse_prusti(tokens)?, item)
     }
