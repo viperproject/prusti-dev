@@ -3931,14 +3931,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.encode_prusti_local(*arg).into(),
                     ).with_span(precondition_spans.clone())?
                 );
-                invs_spec.push(
-                  self.encoder
-                    .encode_twostate_invariant(
-                        None,
-                        ty,
-                        self.encode_prusti_local(*arg).into()
-                    ).with_span(precondition_spans.clone())?
-                );
             }
         }
         Ok((
@@ -5051,7 +5043,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         loop_inv: BasicBlockIndex,
         drop_read_references: bool,
-    ) -> EncodingResult<(Vec<vir::Expr>, Vec<vir::Expr>, Vec<vir::Expr>)> {
+    ) -> EncodingResult<(Vec<vir::Expr>, Vec<vir::Expr>, Vec<vir::Expr>, Vec<vir::Expr>)> {
         let permissions_forest = self
             .loop_encoder
             .compute_loop_invariant(loop_head, loop_inv)
@@ -5255,9 +5247,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // encode type invariants
         let mut invs_spec = Vec::new();
+        let mut twostate_invs_spec = Vec::new();
         for permission in &permissions {
+            eprintln!("Permission: {permission}");
+            if let vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {base, ..}) = permission {
+                let ty = self.encoder.decode_type_predicate_type(base.get_type())?;
+                eprintln!("Considering field permission {permission} (ty: {ty:?})");
+                if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
+                    let inv_func_app = self.encoder.encode_invariant_func_app(
+                        None,
+                        ty,
+                        (**base).clone(),
+                    )?;
+                    invs_spec.push(inv_func_app);
+                    let inv_func_app = self.encoder.encode_twostate_invariant(
+                        Some("pre"),
+                        ty,
+                        (**base).clone(),
+                    ).unwrap();
+                    eprintln!("Add inv func app {} for argument {}: {}", 
+                        inv_func_app,
+                        **base,
+                        base.get_type()
+                    );
+                    twostate_invs_spec.push(inv_func_app);
+                }
+            }
             if let vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {predicate_type, argument, ..}) = permission {
                 let ty = self.encoder.decode_type_predicate_type(predicate_type)?;
+                eprintln!("Considering permission {permission} (ty: {ty:?})");
                 if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
                     let inv_func_app = self.encoder.encode_invariant_func_app(
                         None,
@@ -5265,6 +5283,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         (**argument).clone(),
                     )?;
                     invs_spec.push(inv_func_app);
+                    let inv_func_app = self.encoder.encode_twostate_invariant(
+                        None,
+                        ty,
+                        (**argument).clone(),
+                    ).unwrap();
+                    eprintln!("Add inv func app {:?} for argument {}: {}", 
+                        inv_func_app,
+                        **argument,
+                        argument.get_type()
+                    );
+                    twostate_invs_spec.push(inv_func_app);
                 }
             }
         }
@@ -5285,7 +5314,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .collect::<String>()
         );
 
-        Ok((permissions, equalities, invs_spec))
+        Ok((permissions, equalities, invs_spec, twostate_invs_spec))
     }
 
     /// Get the basic blocks that encode the specification of a loop invariant
@@ -5365,7 +5394,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         let (func_spec, func_spec_span) =
             self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
-        let (permissions, equalities, invs_spec) =
+        let (permissions, equalities, invs_spec, twostate_invs_spec) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)
                 .with_span(func_spec_span.clone())?;
 
@@ -5424,6 +5453,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             invs_spec.into_iter().conjoin(),
             exhale_pos
         ));
+        // stmts.push(vir::Stmt::assert(
+        //     twostate_invs_spec.into_iter().conjoin(),
+        //     exhale_pos
+        // ));
         let equalities_expr = equalities.into_iter().conjoin();
         stmts.push(vir::Stmt::assert(
             equalities_expr,
@@ -5444,7 +5477,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
     ) -> EncodingResult<Vec<vir::Stmt>> {
-        let (permissions, equalities, invs_spec) =
+        let (permissions, equalities, invs_spec, twostate_invs_spec) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)?;
 
         let permission_expr = permissions.into_iter().conjoin();
@@ -5461,6 +5494,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }));
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: invs_spec.into_iter().conjoin(),
+        }));
+        stmts.push(vir::Stmt::Inhale( vir::Inhale {
+            expr: twostate_invs_spec.into_iter().conjoin(),
         }));
         Ok(stmts)
     }
