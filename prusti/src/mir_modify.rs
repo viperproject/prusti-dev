@@ -238,7 +238,7 @@ fn new_call_block<'tcx>(
     for (local, decl) in caller.local_decls.iter_enumerated() {
         let index = local.index();
         if index != 0 && index <= caller_nr_args {
-            args.push(Operand::Copy(Place {
+            args.push(Operand::Move(Place {
                 local,
                 projection: ty::List::empty(),
             }));
@@ -246,7 +246,7 @@ fn new_call_block<'tcx>(
     }
     if let Some(result_operand) = result {
         println!("Adding the result operand!");
-        args.push(Operand::Copy(result_operand));
+        args.push(Operand::Move(result_operand));
     }
 
     let terminator_kind = TerminatorKind::Call {

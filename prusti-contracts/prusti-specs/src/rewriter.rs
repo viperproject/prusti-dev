@@ -1,15 +1,18 @@
 use crate::{
     common::HasSignature,
+    runtime_checks::{translate_check, CheckTranslator},
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
         untyped,
     },
-    runtime_checks::translate_check,
 };
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned};
-use syn::{parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, Pat, Token, Type};
+use syn::{
+    parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, visit_mut::VisitMut, Pat, Token,
+    Type,
+};
 
 pub(crate) struct AstRewriter {
     spec_id_generator: SpecificationIdGenerator,
@@ -151,7 +154,7 @@ impl AstRewriter {
         check_id: SpecificationId,
         expr: TokenStream,
         item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
+    ) -> syn::Result<(syn::Item, Option<syn::Item>)> {
         if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
             return Err(syn::Error::new(
                 span,
@@ -159,8 +162,23 @@ impl AstRewriter {
             ));
         }
         let item_span = expr.span();
-        let item_name = syn::Ident::new(
-            &format!("prusti_{}_check_item_{}_{}", spec_type, item.sig().ident, check_id),
+        let check_item_name = syn::Ident::new(
+            &format!(
+                "prusti_{}_check_item_{}_{}",
+                spec_type,
+                item.sig().ident,
+                check_id
+            ),
+            item_span,
+        );
+
+        let store_old_item_name = syn::Ident::new(
+            &format!(
+                "prusti_{}_store_old_item_{}_{}",
+                spec_type,
+                item.sig().ident,
+                check_id
+            ),
             item_span,
         );
         let check_id_str = check_id.to_string();
@@ -187,13 +205,19 @@ impl AstRewriter {
         //         quote_spanned! {item_span => !!},
         //     ),
         // };
-        let body = translate_check(expr.clone());
+        let mut check_translator = CheckTranslator::new(item);
+        let mut expr_to_check = syn::parse2::<syn::Expr>(expr.clone()).unwrap();
+
+        // this call will modify the expression, but also collect the information
+        // about what expressions we need to store etc.
+        check_translator.visit_expr_mut(&mut expr_to_check);
+
         let mut check_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
             #[prusti::check_id = #check_id_str]
-            fn #item_name() {
-                #body
+            fn #check_item_name() {
+                assert!(#expr_to_check);
             }
         };
 
@@ -201,14 +225,19 @@ impl AstRewriter {
         check_item.sig.inputs = item.sig().inputs.clone();
         match spec_type {
             SpecItemType::Postcondition | SpecItemType::Pledge => {
+                let mut store_item =
+                    check_translator.generate_store_function(item, store_old_item_name, check_id_str);
+                store_item.sig.generics = item.sig().generics.clone();
+                store_item.sig.inputs = item.sig().inputs.clone();
                 let fn_arg = self.generate_result_arg(item);
+                let old_arg = check_translator.construct_old_type(item);
                 check_item.sig.inputs.push(fn_arg);
+                check_item.sig.inputs.push(old_arg);
+                Ok((syn::Item::Fn(check_item), Some(syn::Item::Fn(store_item))))
             }
-            _ => (),
+            _ => Ok((syn::Item::Fn(check_item), None)),
         }
-        Ok(syn::Item::Fn(check_item))
     }
-
 
     /// Parse an assertion into a Rust expression
     pub fn process_assertion<T: HasSignature + Spanned>(
@@ -227,7 +256,7 @@ impl AstRewriter {
         check_id: SpecificationId,
         tokens: TokenStream,
         item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
+    ) -> syn::Result<(syn::Item, Option<syn::Item>)> {
         self.generate_check_item_fn(spec_type, check_id, parse_prusti(tokens)?, item)
     }
 

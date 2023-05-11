@@ -206,23 +206,37 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
         attr.clone(),
         item,
     )?;
-    let check_item = rewriter.create_check(
+    let (check_item, store_item_opt) = rewriter.create_check(
         rewriter::SpecItemType::Precondition,
         check_id,
         attr,
         item,
     )?;
-    let res = Ok((
-        vec![spec_item, check_item],
-        vec![
-            parse_quote_spanned! {item.span()=>
-                #[prusti::pre_spec_id_ref = #spec_id_str]
-            },
-            parse_quote_spanned! {item.span()=>
-                #[prusti::pre_check_id_ref = #check_id_str]
-            },
-        ],
-    ));
+    let res = if let Some(store_item) = store_item_opt {
+        Ok((
+            vec![spec_item, check_item, store_item],
+            vec![
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::pre_spec_id_ref = #spec_id_str]
+                },
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::pre_check_id_ref = #check_id_str]
+                },
+            ],
+        ))
+    } else {
+        Ok((
+            vec![spec_item, check_item],
+            vec![
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::pre_spec_id_ref = #spec_id_str]
+                },
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::pre_check_id_ref = #check_id_str]
+                },
+            ],
+        ))
+    };
     res
 }
 
@@ -246,31 +260,37 @@ fn generate_for_ensures(
     let check_id = rewriter.generate_spec_id();
     let check_id_str = check_id.to_string();
     // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
-    let check_item = rewriter.create_check(
+    let (check_item, store_item_opt) = rewriter.create_check(
         rewriter::SpecItemType::Postcondition,
         check_id,
         attr,
         item,
     )?;
-    Ok((
-        vec![spec_item, check_item],
-        vec![
-            parse_quote_spanned! {item.span()=>
-                #[prusti::post_spec_id_ref = #spec_id_str]
-            },
-            parse_quote_spanned! {item.span()=>
-                #[prusti::post_check_id_ref = #check_id_str]
-            }
-        ],
-    ))
-    // } else {
-    //     Ok((
-    //         vec![spec_item],
-    //         vec![parse_quote_spanned! {item.span()=>
-    //             #[prusti::post_spec_id_ref = #spec_id_str]
-    //         }],
-    //     ))
-    // }
+    if let Some(store_item) = store_item_opt {
+        Ok((
+            vec![spec_item, check_item, store_item],
+            vec![
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::post_spec_id_ref = #spec_id_str]
+                },
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::post_check_id_ref = #check_id_str]
+                }
+            ],
+        ))
+    } else {
+        Ok((
+            vec![spec_item, check_item],
+            vec![
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::post_spec_id_ref = #spec_id_str]
+                },
+                parse_quote_spanned! {item.span()=>
+                    #[prusti::post_check_id_ref = #check_id_str]
+                }
+            ],
+        ))
+    }
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
