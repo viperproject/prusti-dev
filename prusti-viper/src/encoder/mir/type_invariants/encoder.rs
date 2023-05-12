@@ -96,16 +96,6 @@ pub (super) fn encode_twostate_invariant_expr<'p, 'v: 'p, 'tcx: 'v>(
                                         *inherent_def_id,
                                         substs,
                                     )
-                                    // let result: SpannedEncodingResult<vir::Expr> = Ok(if pre_label.is_none() {
-                                    //     assertion.fold_expr(|e| {
-                                    //         match e {
-                                    //             vir::Expr::LabelledOld(e) if e.label == PRECONDITION_LABEL => *e.base,
-                                    //             _ => e
-                                    //         }
-                                    //     })
-                                    // } else {
-                                    //     assertion
-                                    // });
                                 })
                                 .collect::<Result<Vec<_>, _>>()?,
                         )
