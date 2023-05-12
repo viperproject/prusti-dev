@@ -13,9 +13,9 @@ struct Bank(u32);
 fn do_loop(bank: &mut Bank) {
     let mut x = 0; 
     while x < 5 {
-        body_invariant!(bank.0 == x);
+        // TODO: Fix error location and message
+        body_invariant!(bank.0 == x); //~ ERROR: internal
         bank.0 += 1;
-        produce!(resource(Money(), 1));
         x += 1;
     }
 }

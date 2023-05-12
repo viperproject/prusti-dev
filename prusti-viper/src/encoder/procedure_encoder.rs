@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::env;
 use crate::encoder::mir::spans::interface::SpanInterface;
 use crate::encoder::builtin_encoder::{BuiltinMethodKind};
 use crate::encoder::errors::{
@@ -4375,7 +4376,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 Mutability::Mut => {
                     add_type_spec(vir::PermAmount::Write);
                     if !self.encoder.is_pure(contract.def_id, Some(substs)) {
-                        // eprintln!("Place: {place_expr}; Old: {old_place_expr}");
                         let inv = self
                             .encoder
                             .encode_invariant_func_app(Some(pre_label), place_ty, old_place_expr.clone())
@@ -5249,51 +5249,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut invs_spec = Vec::new();
         let mut twostate_invs_spec = Vec::new();
         for permission in &permissions {
-            eprintln!("Permission: {permission}");
-            if let vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {base, ..}) = permission {
-                let ty = self.encoder.decode_type_predicate_type(base.get_type())?;
-                eprintln!("Considering field permission {permission} (ty: {ty:?})");
-                if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
-                    let inv_func_app = self.encoder.encode_invariant_func_app(
-                        None,
-                        ty,
-                        (**base).clone(),
-                    )?;
-                    invs_spec.push(inv_func_app);
-                    let inv_func_app = self.encoder.encode_twostate_invariant(
-                        Some("pre"),
-                        ty,
-                        (**base).clone(),
-                    ).unwrap();
-                    eprintln!("Add inv func app {} for argument {}: {}", 
-                        inv_func_app,
-                        **base,
-                        base.get_type()
-                    );
-                    twostate_invs_spec.push(inv_func_app);
+            let mut encode_inv_for_pred = |ty, argument: &Box<vir::Expr>| {
+                let inv_func_app = self.encoder.encode_invariant_func_app(
+                    None,
+                    ty,
+                    (**argument).clone(),
+                )?;
+                invs_spec.push(inv_func_app);
+                let inv_func_app = self.encoder.encode_twostate_invariant(
+                    None,
+                    ty,
+                    (**argument).clone(),
+                ).unwrap();
+                twostate_invs_spec.push(inv_func_app);
+                Ok::<(), EncodingError>(())
+            };
+            if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
+                if let vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {base, ..}) = permission {
+                    let ty = self.encoder.decode_type_predicate_type(base.get_type())?;
+                    encode_inv_for_pred(ty, base)?;
                 }
-            }
-            if let vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {predicate_type, argument, ..}) = permission {
-                let ty = self.encoder.decode_type_predicate_type(predicate_type)?;
-                eprintln!("Considering permission {permission} (ty: {ty:?})");
-                if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
-                    let inv_func_app = self.encoder.encode_invariant_func_app(
-                        None,
-                        ty,
-                        (**argument).clone(),
-                    )?;
-                    invs_spec.push(inv_func_app);
-                    let inv_func_app = self.encoder.encode_twostate_invariant(
-                        None,
-                        ty,
-                        (**argument).clone(),
-                    ).unwrap();
-                    eprintln!("Add inv func app {:?} for argument {}: {}", 
-                        inv_func_app,
-                        **argument,
-                        argument.get_type()
-                    );
-                    twostate_invs_spec.push(inv_func_app);
+                if let vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {predicate_type, argument, ..}) = permission {
+                    let ty = self.encoder.decode_type_predicate_type(predicate_type)?;
+                    encode_inv_for_pred(ty, argument)?;
                 }
             }
         }
@@ -5445,6 +5423,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         });
         stmts.extend(obtain_predicates);
 
+        stmts.push(vir::Stmt::assert(
+            twostate_invs_spec.into_iter().conjoin(),
+            exhale_pos
+        ));
         stmts.push(vir::Stmt::exhale(
             func_spec.into_iter().conjoin(),
             assert_pos,
@@ -5453,10 +5435,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             invs_spec.into_iter().conjoin(),
             exhale_pos
         ));
-        // stmts.push(vir::Stmt::assert(
-        //     twostate_invs_spec.into_iter().conjoin(),
-        //     exhale_pos
-        // ));
         let equalities_expr = equalities.into_iter().conjoin();
         stmts.push(vir::Stmt::assert(
             equalities_expr,
