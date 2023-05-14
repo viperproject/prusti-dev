@@ -68,6 +68,7 @@ fn get_used_predicates_in_predicate_map(
             }
             Predicate::Bodyless(_, _) => { /* ignore */ }
             Predicate::ResourceAccess(_) => { /* ignore */ }
+            Predicate::PyRefObligation() => { /* ignore */ }
         }
     }
     map
@@ -128,6 +129,7 @@ pub fn delete_unused_predicates(
     predicates
         .iter_mut()
         .filter(|p| !p.is_resource_predicate())
+        .filter(|p| !matches!(p, vir::polymorphic::Predicate::PyRefObligation()))
         .for_each(|predicate| {
             let predicate_type = &predicate.get_type().clone();
             if !folded_predicates.contains(predicate_type) {
@@ -158,6 +160,7 @@ pub fn delete_unused_predicates(
     );
 
     predicates.retain(|p| match p {
+        Predicate::PyRefObligation() => true,
         Predicate::ResourceAccess(typ) => collector.used_resource_predicates.contains(typ),
         _ => reachable_predicates.contains(p.get_type()),
     });

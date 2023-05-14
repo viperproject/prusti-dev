@@ -416,6 +416,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(context, ast),
                 )
             }
+            Expr::PyRefObligationPredicate(ref ref_of, ref pos) => {
+                ast.predicate_access_predicate_with_pos(
+                    ast.predicate_access(&[ref_of.to_viper(context, ast)], "PyRefObligation"),
+                    ast.fractional_perm(ast.int_lit(1), ast.int_lit(1)),
+                    pos.to_viper(context, ast),
+                )
+            },
             Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
                 .field_access_predicate_with_pos(
                     loc.to_viper(context, ast),
@@ -827,6 +834,10 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
             Predicate::ResourceAccess(typ) => {
                 let var = ast.local_var_decl("scope_id", legacy::Type::Int.to_viper(context, ast));
                 ast.predicate(typ, &[var], None)
+            }
+            Predicate::PyRefObligation() => {
+                let var = ast.local_var_decl("object_id", legacy::Type::Int.to_viper(context, ast));
+                ast.predicate("PyRefObligation", &[var], None)
             }
         }
     }

@@ -381,4 +381,8 @@ pub fn time_receipts(_n: usize) -> bool {
     true
 }
 
+pub fn py_ref_obligation(_obj: usize) -> bool {
+    true
+}
+
 pub use private::*;

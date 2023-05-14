@@ -151,6 +151,9 @@ impl Generic for Expr {
             Expr::ResourceAccessPredicate(resource_access_predicate) => {
                 Expr::ResourceAccessPredicate(resource_access_predicate.substitute(map))
             }
+            Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
+                Expr::PyRefObligationPredicate(py_ref_obligation_predicate.substitute(map))
+            }
             Expr::FieldAccessPredicate(field_access_predicate) => {
                 Expr::FieldAccessPredicate(field_access_predicate.substitute(map))
             }
@@ -248,6 +251,14 @@ impl Generic for ResourceAccessPredicate {
         let mut resource_access_predicate = self;
         *resource_access_predicate.amount = resource_access_predicate.amount.substitute(map);
         resource_access_predicate
+    }
+}
+
+impl Generic for PyRefObligationPredicate {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut py_ref_obligation_predicate = self;
+        *py_ref_obligation_predicate.ref_of = py_ref_obligation_predicate.ref_of.substitute(map);
+        py_ref_obligation_predicate
     }
 }
 
@@ -485,6 +496,7 @@ impl Generic for Predicate {
                 Predicate::Bodyless(label, local_var.substitute(map))
             }
             p @ Predicate::ResourceAccess(_) => p,
+            p @ Predicate::PyRefObligation() => p,
         }
     }
 }

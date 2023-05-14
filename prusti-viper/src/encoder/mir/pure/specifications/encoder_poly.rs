@@ -154,6 +154,15 @@ pub(super) fn encode_time_specifications<'tcx>(
     vir_crate::polymorphic::Expr::and(amount_non_negative, resource_access_predicate)
 }
 
+pub(super) fn encode_py_ref_obligation<'tcx>(
+    encoder: &Encoder<'_, 'tcx>,
+    ref_of: &vir_crate::polymorphic::Expr,
+    parent_def_id: DefId,
+    span: Span,
+) -> vir_crate::polymorphic::Expr {
+    vir_crate::polymorphic::Expr::py_ref_obligation_predicate(ref_of.clone())
+}
+
 pub(super) fn encode_quantifier<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     _span: Span,

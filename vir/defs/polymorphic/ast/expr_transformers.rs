@@ -168,6 +168,14 @@ pub trait ExprFolder: Sized {
             ..expr
         })
     }
+    
+    fn fold_py_ref_obligation_predicate(&mut self, expr: PyRefObligationPredicate) -> Expr {
+        let PyRefObligationPredicate { ref_of, .. } = expr;
+        Expr::PyRefObligationPredicate(PyRefObligationPredicate {
+            ref_of: self.fold_boxed(ref_of),
+            ..expr
+        })
+    }
 
     fn fold_field_access_predicate(&mut self, expr: FieldAccessPredicate) -> Expr {
         let FieldAccessPredicate {
@@ -461,6 +469,9 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.fold_resource_access_predicate(resource_access_predicate)
         }
+        Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
+            this.fold_py_ref_obligation_predicate(py_ref_obligation_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fold_field_access_predicate(field_access_predicate)
         }
@@ -536,6 +547,10 @@ pub trait ExprWalker: Sized {
     fn walk_resource_access_predicate(&mut self, expr: &ResourceAccessPredicate) {
         let ResourceAccessPredicate { amount, .. } = expr;
         self.walk(amount);
+    }
+    fn walk_py_ref_obligation_predicate(&mut self, expr: &PyRefObligationPredicate) {
+        let PyRefObligationPredicate { ref_of, .. } = expr;
+        self.walk(ref_of);
     }
     fn walk_field_access_predicate(&mut self, expr: &FieldAccessPredicate) {
         let FieldAccessPredicate { base, .. } = expr;
@@ -726,6 +741,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.walk_resource_access_predicate(resource_access_predicate)
         }
+        Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
+            this.walk_py_ref_obligation_predicate(py_ref_obligation_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.walk_field_access_predicate(field_access_predicate)
         }
@@ -860,6 +878,17 @@ pub trait FallibleExprFolder: Sized {
         let ResourceAccessPredicate { amount, .. } = expr;
         Ok(Expr::ResourceAccessPredicate(ResourceAccessPredicate {
             amount: self.fallible_fold_boxed(amount)?,
+            ..expr
+        }))
+    }
+
+    fn fallible_fold_py_ref_obligation_predicate(
+        &mut self,
+        expr: PyRefObligationPredicate,
+    ) -> Result<Expr, Self::Error> {
+        let PyRefObligationPredicate { ref_of, .. } = expr;
+        Ok(Expr::PyRefObligationPredicate(PyRefObligationPredicate {
+            ref_of: self.fallible_fold_boxed(ref_of)?,
             ..expr
         }))
     }
@@ -1184,6 +1213,9 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.fallible_fold_resource_access_predicate(resource_access_predicate)
         }
+        Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
+            this.fallible_fold_py_ref_obligation_predicate(py_ref_obligation_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_fold_field_access_predicate(field_access_predicate)
         }
@@ -1272,6 +1304,13 @@ pub trait FallibleExprWalker: Sized {
     ) -> Result<(), Self::Error> {
         let ResourceAccessPredicate { amount, .. } = expr;
         self.fallible_walk(amount)
+    }
+    fn fallible_walk_py_ref_obligation_predicate(
+        &mut self,
+        expr: &PyRefObligationPredicate,
+    ) -> Result<(), Self::Error> {
+        let PyRefObligationPredicate { ref_of, .. } = expr;
+        self.fallible_walk(ref_of)
     }
     fn fallible_walk_field_access_predicate(
         &mut self,
@@ -1474,6 +1513,9 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         }
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.fallible_walk_resource_access_predicate(resource_access_predicate)
+        }
+        Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
+            this.fallible_walk_py_ref_obligation_predicate(py_ref_obligation_predicate)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_walk_field_access_predicate(field_access_predicate)

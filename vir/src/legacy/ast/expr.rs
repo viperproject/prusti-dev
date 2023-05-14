@@ -33,6 +33,7 @@ pub enum Expr {
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
     /// ResourceAccessPredicate: resource name, amount, scope_id
     ResourceAccessPredicate(String, Box<Expr>, isize, Position),
+    PyRefObligationPredicate(Box<Expr>, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
@@ -197,6 +198,9 @@ impl fmt::Display for Expr {
             }
             Expr::ResourceAccessPredicate(resouce_name, amount, scope_id, _) => {
                 write!(f, "acc({resouce_name}({scope_id}), {amount}/1)")
+            }
+            Expr::PyRefObligationPredicate(ref_of, _) => {
+                write!(f, "PyRefObligation({ref_of})")
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
                 write!(f, "acc({expr}, {perm})")
@@ -379,6 +383,7 @@ impl Expr {
             | Expr::MagicWand(_, _, _, p)
             | Expr::PredicateAccessPredicate(_, _, _, p)
             | Expr::ResourceAccessPredicate(_, _, _, p)
+            | Expr::PyRefObligationPredicate(_, p)
             | Expr::FieldAccessPredicate(_, _, p)
             | Expr::UnaryOp(_, _, p)
             | Expr::BinOp(_, _, _, p)
@@ -1312,6 +1317,7 @@ impl Expr {
             }
             Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
+            Expr::PyRefObligationPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1758,6 +1764,7 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::ResourceAccessPredicate(..) => f,
+                    f @ Expr::PyRefObligationPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp(BinaryOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinaryOpKind::And, y, z, p)

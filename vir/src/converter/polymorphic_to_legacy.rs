@@ -276,6 +276,12 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     resource_access_predicate.position.into(),
                 )
             }
+            polymorphic::Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
+                legacy::Expr::PyRefObligationPredicate(
+                    Box::new((*py_ref_obligation_predicate.ref_of).into()),
+                    py_ref_obligation_predicate.position.into(),
+                )
+            }
             polymorphic::Expr::FieldAccessPredicate(field_access_predicate) => {
                 legacy::Expr::FieldAccessPredicate(
                     Box::new((*field_access_predicate.base).into()),
@@ -558,6 +564,9 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
             }
             polymorphic::Predicate::ResourceAccess(typ) => {
                 legacy::Predicate::ResourceAccess(typ.encode_as_string())
+            }
+            polymorphic::Predicate::PyRefObligation() => {
+                legacy::Predicate::PyRefObligation()
             }
         }
     }

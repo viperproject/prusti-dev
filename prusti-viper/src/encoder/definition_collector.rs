@@ -205,6 +205,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             };
             predicates.push(predicate);
         }
+        predicates.push(vir::Predicate::PyRefObligation());
         for resource in &self.used_resource_types {
             predicates.push(vir::Predicate::ResourceAccess(resource.clone()));
         }

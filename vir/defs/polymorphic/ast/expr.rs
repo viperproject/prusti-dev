@@ -34,6 +34,7 @@ pub enum Expr {
     PredicateAccessPredicate(PredicateAccessPredicate),
     /// ResourceAccessPredicate: resource_type, amount
     ResourceAccessPredicate(ResourceAccessPredicate),
+    PyRefObligationPredicate(PyRefObligationPredicate),
     FieldAccessPredicate(FieldAccessPredicate),
     UnaryOp(UnaryOp),
     BinOp(BinOp),
@@ -89,6 +90,9 @@ impl fmt::Display for Expr {
             }
             Expr::ResourceAccessPredicate(resource_access_predicate) => {
                 resource_access_predicate.fmt(f)
+            }
+            Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
+                py_ref_obligation_predicate.fmt(f)
             }
             Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.fmt(f),
             Expr::UnaryOp(unary_op) => unary_op.fmt(f),
@@ -175,6 +179,7 @@ impl Expr {
             | Expr::MagicWand(MagicWand { position, .. })
             | Expr::PredicateAccessPredicate(PredicateAccessPredicate { position, .. })
             | Expr::ResourceAccessPredicate(ResourceAccessPredicate { position, .. })
+            | Expr::PyRefObligationPredicate(PyRefObligationPredicate { position, .. })
             | Expr::FieldAccessPredicate(FieldAccessPredicate { position, .. })
             | Expr::UnaryOp(UnaryOp { position, .. })
             | Expr::BinOp(BinOp { position, .. })
@@ -227,6 +232,7 @@ impl Expr {
             MagicWand,
             PredicateAccessPredicate,
             ResourceAccessPredicate,
+            PyRefObligationPredicate,
             FieldAccessPredicate,
             UnaryOp,
             BinOp,
@@ -285,6 +291,16 @@ impl Expr {
             resource_type,
             amount: Box::new(amount),
             scope_id,
+            position: pos,
+        })
+    }
+
+    pub fn py_ref_obligation_predicate(
+        ref_of: Expr,
+    ) -> Self {
+        let pos = ref_of.pos();
+        Expr::PyRefObligationPredicate(PyRefObligationPredicate {
+            ref_of: Box::new(ref_of),
             position: pos,
         })
     }
@@ -1078,6 +1094,7 @@ impl Expr {
             }
             Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
+            Expr::PyRefObligationPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1154,6 +1171,7 @@ impl Expr {
                     ..
                 })
                 | Expr::ResourceAccessPredicate(..)
+                | Expr::PyRefObligationPredicate(..)
                 | Expr::ForAll(..)
                 | Expr::Exists(..) => true,
                 Expr::BinOp(BinOp { op_kind, .. }) => {
@@ -1528,6 +1546,7 @@ impl Expr {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     f @ Expr::ResourceAccessPredicate(..) => f,
+                    f @ Expr::PyRefObligationPredicate(..) => f,
                     Expr::BinOp(BinOp {
                         op_kind: BinaryOpKind::And,
                         left,
@@ -2119,6 +2138,24 @@ impl fmt::Display for ResourceAccessPredicate {
             self.resource_type.encode_as_string(),
             self.scope_id,
             self.amount
+        )
+    }
+}
+
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
+pub struct PyRefObligationPredicate {
+    pub ref_of: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for PyRefObligationPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "PyRefOblication({})",
+            self.ref_of
         )
     }
 }

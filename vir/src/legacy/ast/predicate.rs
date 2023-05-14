@@ -14,6 +14,7 @@ pub enum Predicate {
     Enum(EnumPredicate),
     Bodyless(String, LocalVar),
     ResourceAccess(String),
+    PyRefObligation()
 }
 
 impl fmt::Display for Predicate {
@@ -23,6 +24,7 @@ impl fmt::Display for Predicate {
             Predicate::Enum(p) => write!(f, "{p}"),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
             Predicate::ResourceAccess(typ) => write!(f, "{typ}"),
+            Predicate::PyRefObligation() => write!(f, "PyRefObligation"),
         }
     }
 }
@@ -109,7 +111,10 @@ impl Predicate {
             Predicate::Bodyless(_, this) => this.clone().into(),
             Predicate::ResourceAccess(_) => {
                 unreachable!("Resource access does not have `self` place.")
-            }
+            },
+            Predicate::PyRefObligation() => {
+                unreachable!("PyRefObligation does not have `self` place.")
+            },
         }
     }
     /// The predicate name getter.
@@ -119,6 +124,7 @@ impl Predicate {
             Predicate::Enum(p) => &p.name,
             Predicate::Bodyless(ref name, _) => name,
             Predicate::ResourceAccess(typ) => typ,
+            Predicate::PyRefObligation() => "PyRefObligation",
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -127,6 +133,7 @@ impl Predicate {
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
             Predicate::ResourceAccess(_) => None,
+            Predicate::PyRefObligation() => None,
         }
     }
 
@@ -138,6 +145,7 @@ impl Predicate {
             Predicate::Enum(p) => p.visit_expressions(visitor),
             Predicate::Bodyless(..) => {}
             Predicate::ResourceAccess(_) => {}
+            Predicate::PyRefObligation() => {}
         }
     }
 
@@ -149,6 +157,7 @@ impl Predicate {
             Predicate::Enum(p) => p.visit_expressions_mut(visitor),
             Predicate::Bodyless(..) => {}
             Predicate::ResourceAccess(_) => {}
+            Predicate::PyRefObligation() => {}
         }
     }
 }
@@ -160,6 +169,7 @@ impl WithIdentifier for Predicate {
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(name, _) => name.clone(),
             Predicate::ResourceAccess(typ) => typ.clone(),
+            Predicate::PyRefObligation() => "PyRefObligation".into(),
         }
     }
 }

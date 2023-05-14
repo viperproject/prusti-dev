@@ -14,6 +14,7 @@ pub enum Predicate {
     Enum(EnumPredicate),
     Bodyless(Type, LocalVar),
     ResourceAccess(ResourceType),
+    PyRefObligation(),
 }
 
 impl fmt::Display for Predicate {
@@ -23,6 +24,7 @@ impl fmt::Display for Predicate {
             Predicate::Enum(p) => write!(f, "{}", p),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
             Predicate::ResourceAccess(resouce_type) => write!(f, "{}", resouce_type),
+            Predicate::PyRefObligation() => write!(f, "PyRefObligation"),
         }
     }
 }
@@ -112,6 +114,9 @@ impl Predicate {
             Predicate::ResourceAccess(_) => {
                 unreachable!("Resouce access predicate does not have `self` place.")
             }
+            Predicate::PyRefObligation() => {
+                unreachable!("PyRefObligation predicate does not have `self` place.")
+            }
         }
     }
     /// The predicate type getter.
@@ -123,6 +128,9 @@ impl Predicate {
             Predicate::ResourceAccess(_) => {
                 unreachable!("Resouce access predicate does not have types.")
             }
+            Predicate::PyRefObligation() => {
+                unreachable!("PyRefObligation predicate does not have types.")
+            }
         }
     }
     /// The predicate name getter.
@@ -132,6 +140,7 @@ impl Predicate {
             Predicate::Enum(p) => p.typ.name(),
             Predicate::Bodyless(ref typ, _) => typ.name(),
             Predicate::ResourceAccess(typ) => typ.encode_as_string(),
+            Predicate::PyRefObligation() => "PyRefObligation".into(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -140,6 +149,7 @@ impl Predicate {
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
             Predicate::ResourceAccess(_) => None,
+            Predicate::PyRefObligation() => None,
         }
     }
     pub fn is_struct_with_empty_body(&self) -> bool {
@@ -160,6 +170,7 @@ impl WithIdentifier for Predicate {
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(typ, _) => typ.encode_as_string(),
             Predicate::ResourceAccess(typ) => typ.encode_as_string(),
+            Predicate::PyRefObligation() => "PyRefObligation".into(),
         }
     }
 }
