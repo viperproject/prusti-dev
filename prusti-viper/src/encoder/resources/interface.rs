@@ -7,9 +7,10 @@
 use super::super::errors::ErrorCtxt;
 use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::polymorphic as vir;
+use std::fmt::Debug;
 
 pub trait ResourcesEncoderInterface {
-    fn get_tick_call<T: Into<MultiSpan>>(
+    fn get_tick_call<T: Into<MultiSpan> + Debug>(
         &self,
         span: T,
         amount: usize,
@@ -22,7 +23,7 @@ pub trait ResourcesEncoderInterface {
 impl<'p, 'v: 'p, 'tcx: 'v> ResourcesEncoderInterface
     for super::super::procedure_encoder::ProcedureEncoder<'p, 'v, 'tcx>
 {
-    fn get_tick_call<T: Into<MultiSpan>>(
+    fn get_tick_call<T: Into<MultiSpan> + Debug>(
         &self,
         span: T,
         amount: usize,

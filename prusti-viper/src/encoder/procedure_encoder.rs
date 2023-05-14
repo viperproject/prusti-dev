@@ -78,6 +78,7 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{collections::BTreeMap, convert::TryInto, iter::once};
+use std::fmt::Debug;
 use vir_crate::polymorphic::{
     self as vir, borrows::Borrow, collect_assigned_vars, compute_identifier, CfgBlockIndex,
     ExprIterator, Float, Successor, Type,
@@ -5624,7 +5625,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ),
                 )) = stmt.kind
                 {
-                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id.to_def_id()) {
+                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id) {
                         let invariant_expr = self.encoder.encode_invariant(
                             self.mir,
                             bbi,
@@ -7061,7 +7062,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::AggregateKind::Closure(def_id, substs) => {
                 // TODO: might need to assert history invariants?
-                assert!(!self.encoder.is_spec_closure(def_id.to_def_id()), "spec closure: {def_id:?}");
+                assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {def_id:?}");
                 let cl_substs = substs.as_closure();
                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
                     let operand = &operands[field_index];
@@ -7382,7 +7383,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
+    pub fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
         self.mir_encoder.register_error(span, error_ctxt)
     }
 }
