@@ -166,6 +166,7 @@ impl Generic for Expr {
             Expr::Cond(cond) => Expr::Cond(cond.substitute(map)),
             Expr::ForAll(for_all) => Expr::ForAll(for_all.substitute(map)),
             Expr::Exists(exists) => Expr::Exists(exists.substitute(map)),
+            Expr::ForPerm(for_perm) => Expr::ForPerm(for_perm.substitute(map)),
             Expr::LetExpr(let_expr) => Expr::LetExpr(let_expr.substitute(map)),
             Expr::FuncApp(func_app) => Expr::FuncApp(func_app.substitute(map)),
             Expr::DomainFuncApp(domain_func_app) => {
@@ -381,6 +382,19 @@ impl Generic for Exists {
             .collect();
         *exists.body = exists.body.substitute(map);
         exists
+    }
+}
+
+impl Generic for ForPerm {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut for_perm = self;
+        for_perm.variables = for_perm
+            .variables
+            .into_iter()
+            .map(|variable| variable.substitute(map))
+            .collect();
+        *for_perm.body = for_perm.body.substitute(map);
+        for_perm
     }
 }
 

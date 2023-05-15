@@ -58,6 +58,8 @@ pub enum Expr {
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
     /// Exists: variables, triggers, body
     Exists(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
+    /// ForPerm: variable, access predicates, body
+    ForPerm(Vec<LocalVar>, Box<Expr>, Box<Expr>, Position),
     /// let variable == (expr) in body
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -259,6 +261,16 @@ impl fmt::Display for Expr {
                     .join(", "),
                 body
             ),
+            Expr::ForPerm(ref vars, ref resource, ref body, ref _pos) => write!(
+                f, 
+                "forperm {}: Ref [{}] :: {}",
+                vars.iter()
+                    .map(|x| format!("{x:?}"))
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                resource,
+                body,
+            ),
             Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => {
                 write!(f, "(let {var:?} == ({expr}) in {body})",)
             }
@@ -391,6 +403,7 @@ impl Expr {
             | Expr::Cond(_, _, _, p)
             | Expr::ForAll(_, _, _, p)
             | Expr::Exists(_, _, _, p)
+            | Expr::ForPerm(_, _, _, p)
             | Expr::LetExpr(_, _, _, p)
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
@@ -1315,7 +1328,7 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {self:?}");
                 typ1?
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
             Expr::PyRefObligationPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
@@ -1783,6 +1796,7 @@ impl Expr {
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
                     | Expr::Exists(..)
+                    | Expr::ForPerm(..)
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)

@@ -253,6 +253,20 @@ pub trait ExprFolder: Sized {
     ) -> Expr {
         Expr::Exists(x, y, self.fold_boxed(z), self.fold_position(p))
     }
+    fn fold_forperm(
+        &mut self,
+        vars: Vec<LocalVar>,
+        resource: Box<Expr>,
+        body: Box<Expr>,
+        p: Position,
+    ) -> Expr {
+        Expr::ForPerm(
+            vars,
+            self.fold_boxed(resource),
+            self.fold_boxed(body),
+            self.fold_position(p),
+        )
+    }
     fn fold_let_expr(
         &mut self,
         var: LocalVar,
@@ -397,6 +411,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Cond(x, y, z, p) => this.fold_cond(x, y, z, p),
         Expr::ForAll(x, y, z, p) => this.fold_forall(x, y, z, p),
         Expr::Exists(x, y, z, p) => this.fold_exists(x, y, z, p),
+        Expr::ForPerm(x, y, z, p) => this.fold_forperm(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(x, y, p) => this.fold_domain_func_app(x, y, p),
@@ -561,6 +576,20 @@ pub trait ExprWalker: Sized {
         self.walk(body);
         self.walk_position(pos);
     }
+    fn walk_forperm(
+        &mut self,
+        vars: &[LocalVar],
+        resource: &Expr,
+        body: &Expr,
+        pos: &Position,
+    ) {
+        for var in vars {
+            self.walk_local_var(var);
+        }
+        self.walk(resource);
+        self.walk(body);
+        self.walk_position(pos);
+    }
     fn walk_let_expr(&mut self, bound_var: &LocalVar, expr: &Expr, body: &Expr, pos: &Position) {
         self.walk_local_var(bound_var);
         self.walk(expr);
@@ -684,6 +713,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Cond(ref x, ref y, ref z, ref p) => this.walk_cond(x, y, z, p),
         Expr::ForAll(ref x, ref y, ref z, ref p) => this.walk_forall(x, y, z, p),
         Expr::Exists(ref x, ref y, ref z, ref p) => this.walk_exists(x, y, z, p),
+        Expr::ForPerm(ref x, ref y, ref z, ref p) => this.walk_forperm(x, y, z, p),
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(ref x, ref y, ref p) => this.walk_domain_func_app(x, y, p),
@@ -890,6 +920,20 @@ pub trait FallibleExprFolder: Sized {
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::Exists(x, y, self.fallible_fold_boxed(z)?, p))
     }
+    fn fallible_fold_forperm(
+        &mut self,
+        vars: Vec<LocalVar>,
+        resource: Box<Expr>,
+        body: Box<Expr>,
+        pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        Ok(Expr::ForPerm(
+                vars,
+                self.fallible_fold_boxed(resource)?,
+                self.fallible_fold_boxed(body)?,
+                pos,
+        ))
+    }
     fn fallible_fold_let_expr(
         &mut self,
         var: LocalVar,
@@ -1074,6 +1118,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Cond(x, y, z, p) => this.fallible_fold_cond(x, y, z, p),
         Expr::ForAll(x, y, z, p) => this.fallible_fold_forall(x, y, z, p),
         Expr::Exists(x, y, z, p) => this.fallible_fold_exists(x, y, z, p),
+        Expr::ForPerm(x, y, z, p) => this.fallible_fold_forperm(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fallible_fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fallible_fold_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(x, y, p) => this.fallible_fold_domain_func_app(x, y, p),

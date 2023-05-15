@@ -367,6 +367,16 @@ impl From<polymorphic::Expr> for legacy::Expr {
                 Box::new((*exists.body).into()),
                 exists.position.into(),
             ),
+            polymorphic::Expr::ForPerm(for_perm) => legacy::Expr::ForPerm(
+                for_perm
+                    .variables
+                    .into_iter()
+                    .map(|variable| variable.into())
+                    .collect(),
+                Box::new((*for_perm.resource).into()),
+                Box::new((*for_perm.body).into()),
+                for_perm.position.into(),
+            ),
             polymorphic::Expr::LetExpr(let_expr) => legacy::Expr::LetExpr(
                 let_expr.variable.into(),
                 Box::new((*let_expr.def).into()),

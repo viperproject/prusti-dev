@@ -52,6 +52,8 @@ pub enum Expr {
     ForAll(ForAll),
     /// Exists: variables, triggers, body
     Exists(Exists),
+    /// ForPerm: variable, access predicates, body
+    ForPerm(ForPerm),
     /// let variable == (expr) in body
     LetExpr(LetExpr),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -101,6 +103,7 @@ impl fmt::Display for Expr {
             Expr::Cond(cond) => cond.fmt(f),
             Expr::ForAll(for_all) => for_all.fmt(f),
             Expr::Exists(exists) => exists.fmt(f),
+            Expr::ForPerm(for_perm) => for_perm.fmt(f),
             Expr::LetExpr(let_expr) => let_expr.fmt(f),
             Expr::FuncApp(func_app) => func_app.fmt(f),
             Expr::DomainFuncApp(domain_func_app) => domain_func_app.fmt(f),
@@ -187,6 +190,7 @@ impl Expr {
             | Expr::Cond(Cond { position, .. })
             | Expr::ForAll(ForAll { position, .. })
             | Expr::Exists(Exists { position, .. })
+            | Expr::ForPerm(ForPerm { position, .. })
             | Expr::LetExpr(LetExpr { position, .. })
             | Expr::FuncApp(FuncApp { position, .. })
             | Expr::DomainFuncApp(DomainFuncApp { position, .. })
@@ -243,6 +247,7 @@ impl Expr {
             Cond,
             ForAll,
             Exists,
+            ForPerm,
             LetExpr,
             FuncApp,
             DomainFuncApp,
@@ -1092,7 +1097,7 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
                 typ1
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
             Expr::PyRefObligationPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
@@ -1173,7 +1178,8 @@ impl Expr {
                 | Expr::ResourceAccessPredicate(..)
                 | Expr::PyRefObligationPredicate(..)
                 | Expr::ForAll(..)
-                | Expr::Exists(..) => true,
+                | Expr::Exists(..)
+                | Expr::ForPerm(..) => true,
                 Expr::BinOp(BinOp { op_kind, .. }) => {
                     use self::BinaryOpKind::*;
                     *op_kind == EqCmp
@@ -1572,6 +1578,7 @@ impl Expr {
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
                     | Expr::Exists(..)
+                    | Expr::ForPerm(..)
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
@@ -2518,6 +2525,43 @@ impl PartialEq for Exists {
 impl Hash for Exists {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&self.variables, &self.triggers, &*self.body).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub struct ForPerm {
+    pub variables: Vec<LocalVar>,
+    pub resource: Box<Expr>,
+    pub body: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for ForPerm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "forperm {}: Ref [{}] :: {}",
+            (self.variables)
+                .iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", "),
+            self.resource,
+            self.body
+        )
+    }
+}
+
+impl PartialEq for ForPerm {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.variables, &*self.resource, &*self.body)
+            == (&other.variables, &*other.resource, &*other.body)
+    }
+}
+
+impl Hash for ForPerm {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&self.variables, &*self.resource, &*self.body).hash(state);
     }
 }
 

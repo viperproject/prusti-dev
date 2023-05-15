@@ -304,6 +304,21 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_forperm(&mut self, expr: ForPerm) -> Expr {
+        let ForPerm {
+            variables,
+            resource,
+            body,
+            position,
+        } = expr;
+        Expr::ForPerm(ForPerm {
+            variables,
+            resource: self.fold_boxed(resource),
+            body: self.fold_boxed(body),
+            position,
+        })
+    }
+
     fn fold_let_expr(&mut self, expr: LetExpr) -> Expr {
         let LetExpr {
             variable,
@@ -481,6 +496,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Cond(cond) => this.fold_cond(cond),
         Expr::ForAll(forall) => this.fold_forall(forall),
         Expr::Exists(exists) => this.fold_exists(exists),
+        Expr::ForPerm(forperm) => this.fold_forperm(forperm),
         Expr::LetExpr(let_expr) => this.fold_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fold_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fold_domain_func_app(domain_func_app),
@@ -619,6 +635,19 @@ pub trait ExprWalker: Sized {
         }
         self.walk(body);
     }
+    fn walk_forperm(&mut self, expr: &ForPerm) {
+        let ForPerm {
+            variables,
+            resource,
+            body,
+            ..
+        } = expr;
+        for var in variables {
+            self.walk_local_var(var);
+        }
+        self.walk(resource);
+        self.walk(body);
+    }
     fn walk_let_expr(&mut self, expr: &LetExpr) {
         let LetExpr {
             variable,
@@ -753,6 +782,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Cond(cond) => this.walk_cond(cond),
         Expr::ForAll(forall) => this.walk_forall(forall),
         Expr::Exists(exists) => this.walk_exists(exists),
+        Expr::ForPerm(forperm) => this.walk_forperm(forperm),
         Expr::LetExpr(let_expr) => this.walk_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.walk_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.walk_domain_func_app(domain_func_app),
@@ -1026,6 +1056,21 @@ pub trait FallibleExprFolder: Sized {
         }))
     }
 
+    fn fallible_fold_forperm(&mut self, expr: ForPerm) -> Result<Expr, Self::Error> {
+        let ForPerm {
+            variables,
+            resource,
+            body,
+            position,
+        } = expr;
+        Ok(Expr::ForPerm(ForPerm {
+            variables,
+            resource: self.fallible_fold_boxed(resource)?,
+            body: self.fallible_fold_boxed(body)?,
+            position,
+        }))
+    }
+
     fn fallible_fold_let_expr(&mut self, expr: LetExpr) -> Result<Expr, Self::Error> {
         let LetExpr {
             variable,
@@ -1225,6 +1270,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Cond(cond) => this.fallible_fold_cond(cond),
         Expr::ForAll(forall) => this.fallible_fold_forall(forall),
         Expr::Exists(exists) => this.fallible_fold_exists(exists),
+        Expr::ForPerm(forperm) => this.fallible_fold_forperm(forperm),
         Expr::LetExpr(let_expr) => this.fallible_fold_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fallible_fold_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fallible_fold_domain_func_app(domain_func_app),
@@ -1384,6 +1430,19 @@ pub trait FallibleExprWalker: Sized {
         }
         self.fallible_walk(body)
     }
+    fn fallible_walk_forperm(&mut self, expr: &ForPerm) -> Result<(), Self::Error> {
+        let ForPerm {
+            variables,
+            resource,
+            body,
+            ..
+        } = expr;
+        for var in variables {
+            self.fallible_walk_local_var(var)?;
+        }
+        self.fallible_walk(resource)?;
+        self.fallible_walk(body)
+    }
     fn fallible_walk_let_expr(&mut self, expr: &LetExpr) -> Result<(), Self::Error> {
         let LetExpr {
             variable,
@@ -1526,6 +1585,7 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::Cond(cond) => this.fallible_walk_cond(cond),
         Expr::ForAll(forall) => this.fallible_walk_forall(forall),
         Expr::Exists(exists) => this.fallible_walk_exists(exists),
+        Expr::ForPerm(forperm) => this.fallible_walk_forperm(forperm),
         Expr::LetExpr(let_expr) => this.fallible_walk_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fallible_walk_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fallible_walk_domain_func_app(domain_func_app),

@@ -691,6 +691,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 body.to_viper(context, ast),
                 pos.to_viper(context, ast),
             ),
+            Expr::ForPerm(ref vars, ref resource, ref body, ref _pos) => ast.for_perm(
+                // TODO: make work properly
+                &vars.to_viper_decl(context, ast)[..],
+                ast.predicate_access(&[ast.local_var("x", ast.int_type())], "PyRefObligation"),
+                //resource.to_viper(context, ast),
+                body.to_viper(context, ast),
+            ),
             Expr::LetExpr(ref var, ref expr, ref body, ref pos) => ast.let_expr_with_pos(
                 var.to_viper_decl(context, ast),
                 expr.to_viper(context, ast),
@@ -769,6 +776,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.int_to_backend_bv(size, base.to_viper(context, ast))
                 }
             },
+
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

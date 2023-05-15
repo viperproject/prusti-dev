@@ -23,6 +23,11 @@ jobject_wrapper!(Location);
 generate_conversion_from_to!(Predicate, Location);
 generate_conversion_from_to!(Field, Location);
 
+// TODO: uncomment this later to add more structure to everything
+//jobject_wrapper!(LocationAccess);
+//jobject_wrapper!(PredicateAccess);
+//generate_conversion_from_to!(PredicateAccess, LocationAccess);
+
 jobject_wrapper!(Declaration);
 generate_conversion_from_to!(Stmt, Declaration);
 generate_conversion_from_to!(LocalVarDecl, Declaration);

@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::ast_factory::{
-    structs::{DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Trigger, Type},
+    structs::{DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Predicate, Trigger, Type},
     AstFactory,
 };
 use jni::objects::JObject;
@@ -1215,18 +1215,22 @@ impl<'a> AstFactory<'a> {
 
     pub fn for_perm(
         &self,
-        variable: LocalVarDecl,
-        access_list: &[Location],
+        variables: &[LocalVarDecl],
+        access: Expr,//Predicate,//Location,//&[Location],
         body: Expr,
     ) -> Expr<'a> {
-        build_ast_node!(
+        dbg!("ok before");
+        let res = build_ast_node!(
             self,
             Expr,
             ast::ForPerm,
-            variable.to_jobject(),
-            self.jni.new_seq(&map_to_jobjects!(access_list)),
+            self.jni.new_seq(&map_to_jobjects!(variables)),//vec![ variable.to_jobject() ]),
+            access.to_jobject(),
+            //self.jni.new_seq(&map_to_jobjects!(access_list)),
             body.to_jobject()
-        )
+        );
+        dbg!("ok after");
+        res
     }
 
     pub fn trigger_with_pos(&self, exps: &[Expr], pos: Position) -> Trigger<'a> {

@@ -129,6 +129,9 @@ impl ExprFootprintGetter for vir::Expr {
                 perm_difference(body.get_footprint(predicates), vars_places)
             }
 
+            // TODO: implement?
+            vir::Expr::ForPerm(_) => FxHashSet::default(),
+
             vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
                 box ref argument,
                 permission,

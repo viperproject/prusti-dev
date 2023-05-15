@@ -599,6 +599,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
+        dbg!(&method_with_fold_unfold);
+
         Ok(method_with_fold_unfold)
     }
 
@@ -5158,16 +5160,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        // Assert functional specification of postcondition
+        // Assert functional specification of postcondition (CHANGED TO EXHALE)
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::comment("Assert functional specification of postcondition"),
+            vir::Stmt::comment("Assert (CHANGED TO EXHALE) functional specification of postcondition"),
         );
         let func_pos = self.register_error(self.mir.span, ErrorCtxt::AssertMethodPostcondition);
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(vir::Assert {
+            vir::Stmt::Exhale(vir::Exhale {
                 expr: patched_func_spec,
                 position: func_pos,
             }),
@@ -5230,6 +5232,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }),
             );
         }
+        // check for PyRefObligation leaks
+        
+        let quant_var = vir::LocalVar {
+            name: "x".into(),
+            typ: vir::Type::Int,
+        };
+
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::Assert(vir::Assert {
+                expr: vir::Expr::ForPerm(vir::ForPerm {
+                    variables: vec![ quant_var.clone() ],
+                    resource: Box::new(
+                        vir::Expr::PyRefObligationPredicate(vir::PyRefObligationPredicate {
+                            ref_of: Box::new(vir::Expr::Local(vir::Local { variable: quant_var, position: vir::Position::default() })),
+                            position: vir::Position::default()
+                        })
+                    ),
+                    body: Box::new(vir::Expr::Const(vir::ConstExpr { value: vir::Const::Bool(false), position: vir::Position::default() })),
+                    position: vir::Position::default(),
+                }),
+                position: perm_pos,
+            }),
+        );
+
         Ok(())
     }
 
