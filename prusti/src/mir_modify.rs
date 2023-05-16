@@ -1,19 +1,16 @@
 use prusti_interface::specs::typed::DefSpecificationMap;
 use prusti_rustc_interface::{
-    data_structures::{graph::WithStartNode, steal::Steal},
-    index::vec::IndexVec,
+    data_structures::steal::Steal,
     interface::DEFAULT_QUERY_PROVIDERS,
     middle::{
         mir::{
-            interpret::{ConstValue, Scalar},
             patch::MirPatch,
-            terminator,
             visit::MutVisitor,
-            BasicBlock, BasicBlockData, BasicBlocks, Body, Constant, ConstantKind, Location,
-            Operand, Place, SourceInfo, SourceScope, Statement, StatementKind, Terminator,
+            BasicBlock, BasicBlockData, Body, Constant, ConstantKind,
+            Operand, Place, SourceInfo, SourceScope, Terminator,
             TerminatorKind,
         },
-        ty::{self, ScalarInt, Ty, TyCtxt, TyKind},
+        ty::{self, Ty, TyCtxt, TyKind},
     },
     span::{
         def_id::{DefId, LocalDefId},
@@ -36,7 +33,7 @@ pub(crate) fn mir_checked(
     // SAFETY: Is definitely not safe at the moment
     let specs = unsafe { SPECS.clone().unwrap() };
 
-    let steal = ((*DEFAULT_QUERY_PROVIDERS).mir_drops_elaborated_and_const_checked)(tcx, def);
+    let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
     let mut stolen = steal.steal();
 
     let mut visitor = InsertChecksVisitor::new(tcx, specs);
@@ -49,7 +46,7 @@ pub(crate) fn mir_checked(
 pub struct InsertChecksVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
     specs: DefSpecificationMap,
-    post_check_types: HashMap<Ty<'tcx>, (DefId, Vec<DefId>)>,
+    post_check_types: HashMap<Ty<'tcx>, (DefId, Vec<(DefId, DefId)>)>,
     current_patcher: Option<MirPatch<'tcx>>,
 }
 
@@ -60,6 +57,8 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         // A `Ty` representing it does exist however.
         // That's why we transform the specification map in the following way
         let mut post_check_types = HashMap::new();
+        // specs.checks contains all the ids of functions that are annotated with
+        // some check_id
         for (id, _) in specs.checks.iter() {
             let checks = specs.get_post_checks(id);
             let subst = ty::List::empty();
@@ -90,8 +89,16 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
         for check_id in pre_check_ids {
             let mut patch = MirPatch::new(body);
             let start_node = BasicBlock::from_usize(0);
-            let new_block =
-                new_call_block(self.tcx, &mut patch, check_id, body, Some(start_node), None);
+            let (new_block, _) = new_call_block(
+                self.tcx,
+                &mut patch,
+                check_id,
+                body,
+                Some(start_node),
+                None,
+                None,
+                None,
+            );
             patch.apply(body);
             // swap first and last node, so our new block is called on entry
             body.basic_blocks_mut().swap(start_node, new_block);
@@ -110,52 +117,101 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
         mir_patch.unwrap().apply(body);
     }
 
-    fn visit_terminator(&mut self, terminator: &mut Terminator<'tcx>, location: Location) {
+    fn visit_basic_block_data(&mut self, block: BasicBlock, data: &mut BasicBlockData<'tcx>) {
         // our goal here is to find calls to functions where we want to check
         // their precondition afterwards
-        self.super_terminator(terminator, location);
-        if let TerminatorKind::Call {
-            func: Operand::Constant(box constant),
-            target,
-            destination,
+        self.super_basic_block_data(block, data);
+        // we will be adding blocks and new blocks will be representing the
+        // main block, this variable is used to update it.
+
+        if let Some(Terminator {
+            kind: terminator_kind,
             ..
-        } = &mut terminator.kind
+        }) = &data.terminator
         {
-            if let Constant {
-                literal: ConstantKind::Val(value, ty),
+            let mut original_block = block;
+            let original_terminator = data.terminator.clone().unwrap().clone();
+            if let TerminatorKind::Call {
+                func:
+                    Operand::Constant(box Constant {
+                        literal: ConstantKind::Val(_, ty),
+                        ..
+                    }),
+                target,
+                destination,
+                args,
                 ..
-            } = constant
+            } = terminator_kind
             {
                 println!("Call terminator: {:?}", ty);
+                let mut current_target = *target;
                 // lookup if there is a check function:
-                if let Some((call_id, id_vec)) = self.post_check_types.get(&ty) {
+                if let Some((call_id, id_vec)) = self.post_check_types.get(ty) {
+                    let called_body: Body = self
+                        .tcx
+                        .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
+                                call_id.as_local().unwrap(),
+                                ))
+                        .borrow()
+                        .clone();
+                    println!("inserting checks for {} specification items", id_vec.len());
                     // since there might be multiple blocks to be inserted,
-                    for check_id in id_vec {
+                    for (check_id, old_store_id) in id_vec {
                         println!("Now inserting a runtime check for a postcondition");
+                        println!("Old store defid: {:?}", old_store_id);
                         let mut patch = self.current_patcher.take().unwrap();
-                        let called_body: Body = self
+
+                        let old_store_body = self
                             .tcx
                             .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
-                                call_id.as_local().unwrap(),
+                                old_store_id.as_local().unwrap(),
                             ))
-                            .borrow()
-                            .clone();
+                            .borrow();
+
+                        // create a new internal to store result of old_store function
+                        let old_ret_ty = old_store_body.return_ty();
+                        println!("expecting return type {:?} for old_store function", old_ret_ty);
+                        let old_dest_place = Place::from(patch.new_internal(old_ret_ty, DUMMY_SP));
                         // we store the target, create a new block per check function
                         // chain these with the final call having the original target,
                         // change the target of the call to the first block of our chain.
-                        let block = new_call_block(
+                        let (block, _) = new_call_block(
                             self.tcx,
                             &mut patch,
                             *check_id,
                             &called_body,
-                            *target,
-                            Some(*destination),
+                            current_target,
+                            Some(*destination), // destination is now result arg
+                            Some(old_dest_place),
+                            Some(args.clone()),
                         );
-                        // from here we can not really add this block to the cfg
-                        // so we need to store it in our visitor..
-                        // It needs to be jumped to after this call and has our calls
-                        // original target..
-                        *target = Some(block);
+                        current_target = Some(block);
+
+                        let mut call_fn_terminator = original_terminator.clone();
+                        replace_target(&mut call_fn_terminator, block);
+                        let new_block_data = BasicBlockData::new(Some(call_fn_terminator));
+                        let new_block = patch.new_block(new_block_data);
+
+                        let subst = ty::List::empty(); // potentially bad?
+                        let store_func_ty = self.tcx.mk_ty_from_kind(TyKind::FnDef(*old_store_id, subst));
+                        let store_func = Operand::Constant(Box::new(Constant {
+                            span: DUMMY_SP,
+                            user_ty: None,
+                            literal: ConstantKind::zero_sized(store_func_ty),
+                        }));
+
+                        let store_terminator = TerminatorKind::Call {
+                            func: store_func,
+                            args: args.clone(),
+                            destination: old_dest_place,
+                            target: Some(new_block),
+                            cleanup: None,
+                            from_hir_call: false,
+                            fn_span: old_store_body.span,
+                        };
+                        patch.patch_terminator(original_block, store_terminator);
+                        original_block = new_block;
+
                         // If there are multiple checks, this also should behave
                         // correctly, since on the second iteration this target
                         // is already the new block
@@ -185,23 +241,36 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
     // }
 }
 
+fn replace_target(terminator: &mut Terminator, new_target: BasicBlock) {
+    if let TerminatorKind::Call {
+        target,
+        ..
+    } = &mut terminator.kind {
+        *target = Some(new_target);
+    }
+}
+
+
 fn new_call_block<'tcx>(
     tcx: TyCtxt<'tcx>,
     patch: &mut MirPatch<'tcx>,
-    func: DefId,
-    caller: &Body,
+    terminator_call: DefId,
+    attached_to_body: &Body,
     target: Option<BasicBlock>,
     result: Option<Place<'tcx>>,
-) -> BasicBlock {
+    old_value: Option<Place<'tcx>>,
+    args_opt: Option<Vec<Operand<'tcx>>>,
+) -> (BasicBlock, Place<'tcx>) {
     let body_to_insert: Body = tcx
         .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
-            func.as_local().unwrap(),
+            terminator_call.as_local().unwrap(),
         ))
         .borrow()
         .clone();
 
-    let ret_ty = body_to_insert.return_ty().clone();
-    assert!(ret_ty.is_bool() || ret_ty.is_unit());
+    let ret_ty = body_to_insert.return_ty();
+    // assert!(ret_ty.is_bool() || ret_ty.is_unit());
+    // for store functions it can absolutely have a return type
     // should always be block 0 but let's be certain..
     println!("Target node is {:?}", target);
     // let mut loc = Location {
@@ -221,7 +290,7 @@ fn new_call_block<'tcx>(
     let dest_place: Place = Place::from(patch.new_internal(ret_ty, DUMMY_SP));
 
     let subst = ty::List::empty(); // potentially bad?
-    let func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(func, subst)); // do I need substs?
+    let func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(terminator_call, subst)); // do I need substs?
     println!("Function type: {:?}", func_ty);
     let func = Operand::Constant(Box::new(Constant {
         span: DUMMY_SP,
@@ -229,24 +298,32 @@ fn new_call_block<'tcx>(
         literal: ConstantKind::zero_sized(func_ty),
     }));
 
-    // determine the arguments!
-    // Todo: deal with result!
-    // and make it less ugly.. But not sure how this is supposed to be done
-    let caller_nr_args = caller.arg_count;
     let mut args = Vec::new();
-    // now the final mapping to operands:
-    for (local, decl) in caller.local_decls.iter_enumerated() {
-        let index = local.index();
-        if index != 0 && index <= caller_nr_args {
-            args.push(Operand::Move(Place {
-                local,
-                projection: ty::List::empty(),
-            }));
+    if let Some(arguments) = args_opt {
+        args = arguments;
+    } else {
+        // determine the arguments!
+        // Todo: deal with result!
+        // and make it less ugly.. But not sure how this is supposed to be done
+        let caller_nr_args = attached_to_body.arg_count;
+        // now the final mapping to operands:
+        for (local, _decl) in attached_to_body.local_decls.iter_enumerated() {
+            let index = local.index();
+            if index != 0 && index <= caller_nr_args {
+                args.push(Operand::Copy(Place {
+                    local,
+                    projection: ty::List::empty(),
+                }));
+            }
         }
     }
     if let Some(result_operand) = result {
         println!("Adding the result operand!");
         args.push(Operand::Move(result_operand));
+    }
+    if let Some(old_value_operand) = old_value {
+        println!("Adding the old_value operand");
+        args.push(Operand::Move(old_value_operand));
     }
 
     let terminator_kind = TerminatorKind::Call {
@@ -267,7 +344,7 @@ fn new_call_block<'tcx>(
         kind: terminator_kind,
     };
     let blockdata = BasicBlockData::new(Some(terminator));
-    patch.new_block(blockdata)
+    (patch.new_block(blockdata), dest_place)
 }
 
 // If we re-order the IndexVec containing the basic blocks, we will need to adjust

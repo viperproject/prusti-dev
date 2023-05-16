@@ -1,6 +1,6 @@
 use crate::{
     common::HasSignature,
-    runtime_checks::{translate_check, CheckTranslator},
+    runtime_checks::CheckTranslator,
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
@@ -206,7 +206,7 @@ impl AstRewriter {
         //     ),
         // };
         let mut check_translator = CheckTranslator::new(item);
-        let mut expr_to_check = syn::parse2::<syn::Expr>(expr.clone()).unwrap();
+        let mut expr_to_check = syn::parse2::<syn::Expr>(expr).unwrap();
 
         // this call will modify the expression, but also collect the information
         // about what expressions we need to store etc.
@@ -250,7 +250,17 @@ impl AstRewriter {
         self.generate_spec_item_fn(spec_type, spec_id, parse_prusti(tokens)?, item)
     }
 
-    pub fn create_check(
+    pub fn create_pre_check(
+        &mut self,
+        spec_type: SpecItemType,
+        check_id: SpecificationId,
+        tokens: TokenStream,
+        item: &untyped::AnyFnItem,
+    ) -> syn::Result<(syn::Item, Option<syn::Item>)> {
+        self.generate_check_item_fn(spec_type, check_id, parse_prusti(tokens)?, item)
+    }
+
+    pub fn create_post_check(
         &mut self,
         spec_type: SpecItemType,
         check_id: SpecificationId,

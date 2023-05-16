@@ -77,6 +77,7 @@ pub struct SpecCollector<'a, 'tcx> {
     spec_functions: FxHashMap<SpecificationId, LocalDefId>,
     /// the functions who's specifications have associated checks.
     check_functions: FxHashMap<SpecificationId, LocalDefId>,
+    store_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
     procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
@@ -99,6 +100,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             env,
             spec_functions: FxHashMap::default(),
             check_functions: FxHashMap::default(),
+            store_functions: FxHashMap::default(),
             procedure_specs: FxHashMap::default(),
             procedure_checks: FxHashMap::default(),
             loop_specs: vec![],
@@ -140,6 +142,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_checks(&self, def_spec: &mut typed::DefSpecificationMap) {
+        // local_id: defId of the annotated function
+        // checks: uuids + kind of the check
         for (local_id, checks) in self.procedure_checks.iter() {
             let mut function_checks = Vec::new();
             for check in checks {
@@ -147,17 +151,24 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     SpecIdRef::Precondition(id) => {
                         let fn_id = self.check_functions.get(id).unwrap();
                         typed::CheckType::Pre(fn_id.to_def_id())
-                    },
+                    }
                     SpecIdRef::Postcondition(id) => {
                         let fn_id = self.check_functions.get(id).unwrap();
-                        typed::CheckType::Post(fn_id.to_def_id())
-                    },
+                        // postconditions always have a fn storing old values
+                        let store_fn_id = self.store_functions.get(id).unwrap();
+                        typed::CheckType::Post {
+                            check: fn_id.to_def_id(),
+                            old_store: store_fn_id.to_def_id(),
+                        }
+                    }
                     // Todo: Pledges, Assume?
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
                 function_checks.push(kind);
             }
-            def_spec.checks.insert(local_id.to_def_id(), function_checks);
+            def_spec
+                .checks
+                .insert(local_id.to_def_id(), function_checks);
         }
     }
 
@@ -477,10 +488,20 @@ fn get_procedure_check_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Vec<SpecI
     let mut res = Vec::new();
     read_prusti_attrs("pre_check_id_ref", attrs)
         .iter()
-        .for_each(|x| res.push(SpecIdRef::Precondition(parse_spec_id(x.to_string(), def_id))));
+        .for_each(|x| {
+            res.push(SpecIdRef::Precondition(parse_spec_id(
+                x.to_string(),
+                def_id,
+            )))
+        });
     read_prusti_attrs("post_check_id_ref", attrs)
         .iter()
-        .for_each(|x| res.push(SpecIdRef::Postcondition(parse_spec_id(x.to_string(), def_id))));
+        .for_each(|x| {
+            res.push(SpecIdRef::Postcondition(parse_spec_id(
+                x.to_string(),
+                def_id,
+            )))
+        });
     res
 }
 
@@ -597,8 +618,11 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
         } else if let Some(raw_check_id) = read_prusti_attr("check_id", attrs) {
             // check_id work just like spec_ids
-            let spec_id = parse_spec_id(raw_check_id, def_id);
-            self.check_functions.insert(spec_id, local_id);
+            let check_id = parse_spec_id(raw_check_id, def_id);
+            self.check_functions.insert(check_id, local_id);
+        } else if let Some(raw_store_id) = read_prusti_attr("store_id", attrs) {
+            let store_id = parse_spec_id(raw_store_id, def_id);
+            self.store_functions.insert(store_id, local_id);
         } else {
             // Don't collect specs "for" spec items
 
@@ -614,8 +638,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
             }
-            let check_id = get_procedure_check_ids(def_id, attrs);
-            self.procedure_checks.insert(local_id, check_id);
+            let check_ids = get_procedure_check_ids(def_id, attrs);
+            self.procedure_checks.insert(local_id, check_ids);
 
             // Collect model type flag
             if has_to_model_fn_attr(attrs) {

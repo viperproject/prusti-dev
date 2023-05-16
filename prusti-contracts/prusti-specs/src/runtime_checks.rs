@@ -1,45 +1,23 @@
 use crate::{common::HasSignature, specifications::untyped};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use syn::{
-    parse_quote, parse_quote_spanned, punctuated::Punctuated, spanned::Spanned,
+    parse_quote_spanned, punctuated::Punctuated, spanned::Spanned,
     visit_mut::VisitMut, Expr, ExprCall, FnArg,
 };
 
 pub struct CheckTranslator {
     rust_only: bool, // no translation needed if true
     within_old: bool,
-    surrounding_quantifiers: Vec<Quantifier>, // list of surrounding quantifiers
-    inputs: HashMap<String, Argument>,
+    // surrounding_quantifiers: Vec<Quantifier>, // list of surrounding quantifiers
+    inputs: FxHashMap<String, Argument>,
     // each old argument that needs to be stored will be stored as a field
     // of a tuple. Need to keep track of them
     highest_old_index: usize,
 }
 
-pub fn translate_check(tokens: TokenStream, item: &untyped::AnyFnItem) -> TokenStream {
-    // this unwrap can not really failed since these tokens are parsed before
-    // and discarded in prusti_parse
-    let mut expr = syn::parse2::<Expr>(tokens).unwrap();
-    let mut visitor = CheckTranslator::new(item);
-    visitor.visit_expr_mut(&mut expr);
-
-    // after translation:
-    // check if expr can be used without translating
-    if visitor.rust_only {
-        quote! {
-            assert!(#expr);
-        }
-    } else {
-        // to be done correctly..
-        // or actually probably should not be done here..
-        quote! {
-            assert!(#expr);
-        }
-    }
-}
-
-impl<'a> CheckTranslator {
+impl CheckTranslator {
     pub fn new(item: &untyped::AnyFnItem) -> Self {
         // figure out keywords
         let inputs = item
@@ -53,7 +31,7 @@ impl<'a> CheckTranslator {
         Self {
             rust_only: true,
             within_old: false,
-            surrounding_quantifiers: Vec::new(),
+            // surrounding_quantifiers: Vec::new(),
             inputs,
             highest_old_index: 0,
         }
@@ -64,9 +42,14 @@ impl<'a> CheckTranslator {
         if let syn::Type::Tuple(syn::TypeTuple { elems, .. }) = &mut old_values_type {
             // start adding the elements we want to store:
             for i in 0..self.highest_old_index {
-                for (_, el) in &self.inputs {
+                for el in self.inputs.values() {
                     if el.used_in_old && el.old_store_index == i {
-                        elems.push(el.ty.clone());
+                        match &el.ty {
+                            // if we have a reference, cloning will result in its inner type
+                            // (usually...)
+                            syn::Type::Reference(cloned_type) => elems.push(*cloned_type.elem.clone()),
+                            _ => elems.push(el.ty.clone()),
+                        }
                     }
                 }
             }
@@ -117,7 +100,7 @@ impl<'a> CheckTranslator {
         parse_quote_spanned! {item.span() =>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
-            #[prusti::check_id = #check_id_str]
+            #[prusti::store_id = #check_id_str]
             fn #item_name() -> #old_values_type {
                 return (#tuple);
             }
@@ -135,6 +118,7 @@ impl<'a> CheckTranslator {
 
 impl VisitMut for CheckTranslator {
     fn visit_expr_mut(&mut self, expr: &mut Expr) {
+        println!("visiting expression: {}", quote!{#expr});
         match expr {
             Expr::Path(expr_path) => {
                 // collect arguments that occurr within old expression
@@ -164,7 +148,7 @@ impl VisitMut for CheckTranslator {
                                 quote! {old_values.#index_token}
                             };
                             println!("tokens: {}", tokens);
-                            let new_path = syn::parse2::<Expr>(tokens).unwrap();
+                            let new_path : syn::Expr = syn::parse2(tokens).unwrap();
                             *expr = new_path;
                         }
                     }
@@ -174,6 +158,7 @@ impl VisitMut for CheckTranslator {
                 syn::visit_mut::visit_expr_mut(self, expr);
             }
             Expr::Call(ExprCall { func, args, .. }) => {
+                assert!(args.len() == 1);
                 match *func.clone() {
                     Expr::Path(syn::ExprPath { path, .. }) => {
                         let name = path.to_token_stream().to_string();
@@ -183,13 +168,13 @@ impl VisitMut for CheckTranslator {
                                 let sub_expr = args.pop();
                                 // remove old-call and replace with content expression
                                 *expr = sub_expr.unwrap().value().clone();
-                                println!("recognized old!");
+                                println!("recognized old with sub_expr: {}!", quote!{#expr});
                                 self.rust_only = false; // no translation is not enough..
                                 self.within_old = true;
                                 syn::visit_mut::visit_expr_mut(self, expr);
                                 // will cause all variables below to be replaced by old_value.some_field
                                 self.within_old = false;
-                                println!("done searching contents of old()");
+                                println!("done searching contents of old(), expression now: {}", quote!{#expr});
                             }
                             ":: prusti_contracts :: forall" => {
                                 println!("recognized forall!");
@@ -235,7 +220,7 @@ impl TryFrom<&FnArg> for Argument {
         match arg {
             FnArg::Typed(syn::PatType { pat, ty, .. }) => {
                 if let syn::Pat::Ident(pat_ident) = *pat.clone() {
-                    let is_ref = matches!(**ty, syn::Type::Reference(_)); 
+                    let is_ref = matches!(**ty, syn::Type::Reference(_));
                     let arg = Argument {
                         name: pat_ident.ident.to_string(),
                         ty: *ty.clone(),
@@ -253,8 +238,8 @@ impl TryFrom<&FnArg> for Argument {
     }
 }
 
-#[derive(Clone)]
-enum Quantifier {
-    Exists(Vec<(String, String)>),
-    Forall(Vec<(String, String)>),
-}
+// #[derive(Clone)]
+// enum Quantifier {
+//     Exists(Vec<(String, String)>),
+//     Forall(Vec<(String, String)>),
+// }

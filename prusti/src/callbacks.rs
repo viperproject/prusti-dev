@@ -18,9 +18,8 @@ use prusti_rustc_interface::{
 };
 
 #[derive(Default)]
-pub struct PrustiCompilerCalls {
-    check_ids: Vec<LocalDefId>,
-}
+pub struct PrustiCompilerCalls;
+
 
 // Running `get_body_with_borrowck_facts` can be very slow, therefore we avoid it when not
 // necessary; for crates which won't be verified or spec_fns it suffices to load just the fn body

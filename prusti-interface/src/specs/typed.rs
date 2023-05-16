@@ -26,7 +26,7 @@ pub struct DefSpecificationMap {
 #[derive(Debug, Clone)]
 pub enum CheckType {
     Pre(DefId),
-    Post(DefId),
+    Post { check: DefId, old_store: DefId }, // actual check and old_store function
     Assume(DefId),
     Pledge{rhs: DefId, lhs: DefId},
 }
@@ -83,16 +83,16 @@ impl DefSpecificationMap {
         }
     }
 
-    pub fn get_post_checks(&self, def_id: &DefId) -> Vec<DefId> {
+    pub fn get_post_checks(&self, def_id: &DefId) -> Vec<(DefId, DefId)> {
         let checks_opt = self.checks.get(def_id);
         if let Some(checks) = checks_opt {
             checks.iter().filter_map(|el|
-                if let CheckType::Post(id) = el {
-                    Some(id)
+                if let CheckType::Post { check, old_store } = el {
+                    Some((*check, *old_store))
                 } else {
                     None
                 }
-            ).cloned().collect()
+            ).collect()
         } else {
             Vec::new()
         }
