@@ -20,7 +20,7 @@ use crate::encoder::{
                     encode_quantifier_high, inline_closure_high, inline_spec_item_high,
                 },
                 encoder_poly::{
-                    encode_quantifier, encode_time_specifications, inline_closure, inline_spec_item, encode_py_ref_obligation,
+                    encode_quantifier, encode_time_specifications, inline_closure, inline_spec_item, encode_obligation,
                 },
             },
             PureEncodingContext,
@@ -279,9 +279,10 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 }
             },
             "prusti_contracts::py_ref_obligation" => {
-                Ok(encode_py_ref_obligation(
+                Ok(encode_obligation(
                         self,
-                        &encoded_args[0],
+                        "PyRefObligation",
+                        encoded_args,
                         parent_def_id,
                         span,
                 ))

@@ -34,7 +34,7 @@ pub enum Expr {
     PredicateAccessPredicate(PredicateAccessPredicate),
     /// ResourceAccessPredicate: resource_type, amount
     ResourceAccessPredicate(ResourceAccessPredicate),
-    PyRefObligationPredicate(PyRefObligationPredicate),
+    ObligationAccessPredicate(ObligationAccessPredicate),
     FieldAccessPredicate(FieldAccessPredicate),
     UnaryOp(UnaryOp),
     BinOp(BinOp),
@@ -93,8 +93,8 @@ impl fmt::Display for Expr {
             Expr::ResourceAccessPredicate(resource_access_predicate) => {
                 resource_access_predicate.fmt(f)
             }
-            Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
-                py_ref_obligation_predicate.fmt(f)
+            Expr::ObligationAccessPredicate(obligation_access_predicate) => {
+                obligation_access_predicate.fmt(f)
             }
             Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.fmt(f),
             Expr::UnaryOp(unary_op) => unary_op.fmt(f),
@@ -182,7 +182,7 @@ impl Expr {
             | Expr::MagicWand(MagicWand { position, .. })
             | Expr::PredicateAccessPredicate(PredicateAccessPredicate { position, .. })
             | Expr::ResourceAccessPredicate(ResourceAccessPredicate { position, .. })
-            | Expr::PyRefObligationPredicate(PyRefObligationPredicate { position, .. })
+            | Expr::ObligationAccessPredicate(ObligationAccessPredicate { position, .. })
             | Expr::FieldAccessPredicate(FieldAccessPredicate { position, .. })
             | Expr::UnaryOp(UnaryOp { position, .. })
             | Expr::BinOp(BinOp { position, .. })
@@ -236,7 +236,7 @@ impl Expr {
             MagicWand,
             PredicateAccessPredicate,
             ResourceAccessPredicate,
-            PyRefObligationPredicate,
+            ObligationAccessPredicate,
             FieldAccessPredicate,
             UnaryOp,
             BinOp,
@@ -300,12 +300,14 @@ impl Expr {
         })
     }
 
-    pub fn py_ref_obligation_predicate(
-        ref_of: Expr,
+    pub fn obligation_access_predicate(
+        access: ObligationAccess,
+        amount: Expr,
     ) -> Self {
-        let pos = ref_of.pos();
-        Expr::PyRefObligationPredicate(PyRefObligationPredicate {
-            ref_of: Box::new(ref_of),
+        let pos = amount.pos();
+        Expr::ObligationAccessPredicate(ObligationAccessPredicate {
+            access,
+            amount: Box::new(amount),
             position: pos,
         })
     }
@@ -1099,7 +1101,7 @@ impl Expr {
             }
             Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
-            Expr::PyRefObligationPredicate(..) => &Type::Bool,
+            Expr::ObligationAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1176,7 +1178,7 @@ impl Expr {
                     ..
                 })
                 | Expr::ResourceAccessPredicate(..)
-                | Expr::PyRefObligationPredicate(..)
+                | Expr::ObligationAccessPredicate(..)
                 | Expr::ForAll(..)
                 | Expr::Exists(..)
                 | Expr::ForPerm(..) => true,
@@ -1552,7 +1554,7 @@ impl Expr {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     f @ Expr::ResourceAccessPredicate(..) => f,
-                    f @ Expr::PyRefObligationPredicate(..) => f,
+                    f @ Expr::ObligationAccessPredicate(..) => f,
                     Expr::BinOp(BinOp {
                         op_kind: BinaryOpKind::And,
                         left,
@@ -2152,17 +2154,42 @@ impl fmt::Display for ResourceAccessPredicate {
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
 )]
-pub struct PyRefObligationPredicate {
-    pub ref_of: Box<Expr>,
-    pub position: Position,
+pub struct ObligationAccess {
+    pub name: String,
+    pub args: Vec<Expr>,
 }
 
-impl fmt::Display for PyRefObligationPredicate {
+impl fmt::Display for ObligationAccess {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "PyRefOblication({})",
-            self.ref_of
+            "{}({})",
+            self.name,
+            self.args
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
+pub struct ObligationAccessPredicate {
+    pub access: ObligationAccess,
+    pub amount: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for ObligationAccessPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "acc({}, {})",
+            self.access,
+            self.amount
         )
     }
 }
@@ -2531,7 +2558,7 @@ impl Hash for Exists {
 #[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct ForPerm {
     pub variables: Vec<LocalVar>,
-    pub resource: Box<Expr>,
+    pub access: ObligationAccess,
     pub body: Box<Expr>,
     pub position: Position,
 }
@@ -2546,7 +2573,7 @@ impl fmt::Display for ForPerm {
                 .map(|x| format!("{:?}", x))
                 .collect::<Vec<String>>()
                 .join(", "),
-            self.resource,
+            self.access,
             self.body
         )
     }
@@ -2554,14 +2581,14 @@ impl fmt::Display for ForPerm {
 
 impl PartialEq for ForPerm {
     fn eq(&self, other: &Self) -> bool {
-        (&self.variables, &*self.resource, &*self.body)
-            == (&other.variables, &*other.resource, &*other.body)
+        (&self.variables, &self.access, &*self.body)
+            == (&other.variables, &other.access, &*other.body)
     }
 }
 
 impl Hash for ForPerm {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.variables, &*self.resource, &*self.body).hash(state);
+        (&self.variables, &self.access, &*self.body).hash(state);
     }
 }
 

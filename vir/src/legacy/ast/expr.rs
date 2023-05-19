@@ -33,7 +33,8 @@ pub enum Expr {
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
     /// ResourceAccessPredicate: resource name, amount, scope_id
     ResourceAccessPredicate(String, Box<Expr>, isize, Position),
-    PyRefObligationPredicate(Box<Expr>, Position),
+    /// ObligationAccessPredicate: obligation name with arguments, amount (as integer)
+    ObligationAccessPredicate(ObligationAccess, Box<Expr>, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
@@ -58,8 +59,8 @@ pub enum Expr {
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
     /// Exists: variables, triggers, body
     Exists(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
-    /// ForPerm: variable, access predicates, body
-    ForPerm(Vec<LocalVar>, Box<Expr>, Box<Expr>, Position),
+    /// ForPerm: variables, obligation access, body
+    ForPerm(Vec<LocalVar>, ObligationAccess, Box<Expr>, Position),
     /// let variable == (expr) in body
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -160,6 +161,27 @@ pub enum Const {
     FnPtr,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub struct ObligationAccess {
+    pub name: String,
+    pub args: Vec<Expr>,
+}
+
+impl fmt::Display for ObligationAccess {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}({})",
+            self.name,
+            self.args
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -201,8 +223,8 @@ impl fmt::Display for Expr {
             Expr::ResourceAccessPredicate(resouce_name, amount, scope_id, _) => {
                 write!(f, "acc({resouce_name}({scope_id}), {amount}/1)")
             }
-            Expr::PyRefObligationPredicate(ref_of, _) => {
-                write!(f, "PyRefObligation({ref_of})")
+            Expr::ObligationAccessPredicate(ref access, ref amount, _) => {
+                write!(f, "acc({access}, {amount})")
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
                 write!(f, "acc({expr}, {perm})")
@@ -261,14 +283,14 @@ impl fmt::Display for Expr {
                     .join(", "),
                 body
             ),
-            Expr::ForPerm(ref vars, ref resource, ref body, ref _pos) => write!(
+            Expr::ForPerm(ref vars, ref access, ref body, ref _pos) => write!(
                 f, 
                 "forperm {}: Ref [{}] :: {}",
                 vars.iter()
                     .map(|x| format!("{x:?}"))
                     .collect::<Vec<String>>()
                     .join(", "),
-                resource,
+                access,
                 body,
             ),
             Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => {
@@ -395,7 +417,7 @@ impl Expr {
             | Expr::MagicWand(_, _, _, p)
             | Expr::PredicateAccessPredicate(_, _, _, p)
             | Expr::ResourceAccessPredicate(_, _, _, p)
-            | Expr::PyRefObligationPredicate(_, p)
+            | Expr::ObligationAccessPredicate(_, _, p)
             | Expr::FieldAccessPredicate(_, _, p)
             | Expr::UnaryOp(_, _, p)
             | Expr::BinOp(_, _, _, p)
@@ -1330,7 +1352,7 @@ impl Expr {
             }
             Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
-            Expr::PyRefObligationPredicate(..) => &Type::Bool,
+            Expr::ObligationAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1777,7 +1799,7 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::ResourceAccessPredicate(..) => f,
-                    f @ Expr::PyRefObligationPredicate(..) => f,
+                    f @ Expr::ObligationAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp(BinaryOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinaryOpKind::And, y, z, p)

@@ -164,13 +164,27 @@ pub trait ExprFolder: Sized {
             self.fold_position(pos),
         )
     }
-    fn fold_py_ref_obligation_predicate(
+    fn fold_obligation_access(
         &mut self,
-        ref_of: Box<Expr>,
+        access: ObligationAccess,
+    ) -> ObligationAccess {
+        ObligationAccess { 
+            args: access.args
+                .into_iter()
+                .map(|e| self.fold(e))
+                .collect(),
+            ..access
+        }
+    }
+    fn fold_obligation_access_predicate(
+        &mut self,
+        access: ObligationAccess,
+        amount: Box<Expr>,
         pos: Position,
     ) -> Expr {
-        Expr::PyRefObligationPredicate(
-            self.fold_boxed(ref_of),
+        Expr::ObligationAccessPredicate(
+            self.fold_obligation_access(access),
+            self.fold_boxed(amount),
             self.fold_position(pos),
         )
     }
@@ -256,13 +270,13 @@ pub trait ExprFolder: Sized {
     fn fold_forperm(
         &mut self,
         vars: Vec<LocalVar>,
-        resource: Box<Expr>,
+        access: ObligationAccess,
         body: Box<Expr>,
         p: Position,
     ) -> Expr {
         Expr::ForPerm(
             vars,
-            self.fold_boxed(resource),
+            self.fold_obligation_access(access),
             self.fold_boxed(body),
             self.fold_position(p),
         )
@@ -399,8 +413,8 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::ResourceAccessPredicate(n, a, id, p) => {
             this.fold_resource_access_predicate(n, a, id, p)
         }
-        Expr::PyRefObligationPredicate(ro, p) => {
-            this.fold_py_ref_obligation_predicate(ro, p)
+        Expr::ObligationAccessPredicate(ac, am, p) => {
+            this.fold_obligation_access_predicate(ac, am, p)
         }
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
@@ -493,12 +507,22 @@ pub trait ExprWalker: Sized {
         self.walk(amount);
         self.walk_position(pos);
     }
-    fn walk_py_ref_obligation_predicate(
+    fn walk_obligation_access(
         &mut self,
-        ro: &Expr,
+        access: &ObligationAccess,
+    ) {
+        for arg in &access.args {
+            self.walk(&arg);
+        }
+    }
+    fn walk_obligation_access_predicate(
+        &mut self,
+        access: &ObligationAccess,
+        amount: &Expr,
         pos: &Position,
     ) {
-        self.walk(ro);
+        self.walk_obligation_access(access);
+        self.walk(amount);
         self.walk_position(pos);
     }
     fn walk_field_access_predicate(
@@ -579,14 +603,14 @@ pub trait ExprWalker: Sized {
     fn walk_forperm(
         &mut self,
         vars: &[LocalVar],
-        resource: &Expr,
+        access: &ObligationAccess,
         body: &Expr,
         pos: &Position,
     ) {
         for var in vars {
             self.walk_local_var(var);
         }
-        self.walk(resource);
+        self.walk_obligation_access(access);
         self.walk(body);
         self.walk_position(pos);
     }
@@ -701,8 +725,8 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::ResourceAccessPredicate(ref n, ref a, id, ref p) => {
             this.walk_resource_access_predicate(n, a, id, p)
         }
-        Expr::PyRefObligationPredicate(ref ro, ref p) => {
-            this.walk_py_ref_obligation_predicate(ro, p)
+        Expr::ObligationAccessPredicate(ref ac, ref am, ref p) => {
+            this.walk_obligation_access_predicate(ac, am, p)
         }
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
@@ -824,13 +848,27 @@ pub trait FallibleExprFolder: Sized {
             pos,
         ))
     }
-    fn fallible_fold_py_ref_obligation_predicate(
+    fn fallible_fold_obligation_access(
         &mut self,
-        ref_of: Box<Expr>,
+        access: ObligationAccess,
+    ) -> Result<ObligationAccess, Self::Error> {
+        Ok(ObligationAccess {
+            args: access.args
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+            ..access
+        })
+    }
+    fn fallible_fold_obligation_access_predicate(
+        &mut self,
+        access: ObligationAccess,
+        amount: Box<Expr>,
         pos: Position
     ) -> Result<Expr, Self::Error> {
-        Ok(Expr::PyRefObligationPredicate(
-                self.fallible_fold_boxed(ref_of)?,
+        Ok(Expr::ObligationAccessPredicate(
+                self.fallible_fold_obligation_access(access)?,
+                self.fallible_fold_boxed(amount)?,
                 pos,
         ))
     }
@@ -923,13 +961,13 @@ pub trait FallibleExprFolder: Sized {
     fn fallible_fold_forperm(
         &mut self,
         vars: Vec<LocalVar>,
-        resource: Box<Expr>,
+        access: ObligationAccess,
         body: Box<Expr>,
         pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::ForPerm(
                 vars,
-                self.fallible_fold_boxed(resource)?,
+                self.fallible_fold_obligation_access(access)?,
                 self.fallible_fold_boxed(body)?,
                 pos,
         ))
@@ -1106,8 +1144,8 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::ResourceAccessPredicate(n, a, id, p) => {
             this.fallible_fold_resource_access_predicate(n, a, id, p)
         }
-        Expr::PyRefObligationPredicate(ro, p) => {
-            this.fallible_fold_py_ref_obligation_predicate(ro, p)
+        Expr::ObligationAccessPredicate(ac, am, p) => {
+            this.fallible_fold_obligation_access_predicate(ac, am, p)
         }
         Expr::FieldAccessPredicate(x, y, p) => this.fallible_fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fallible_fold_unary_op(x, y, p),

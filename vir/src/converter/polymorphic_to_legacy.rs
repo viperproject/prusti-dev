@@ -142,6 +142,15 @@ impl From<polymorphic::Field> for legacy::Field {
     }
 }
 
+impl From<polymorphic::ObligationAccess> for legacy::ObligationAccess {
+    fn from(access: polymorphic::ObligationAccess) -> legacy::ObligationAccess {
+        legacy::ObligationAccess {
+            name: access.name,
+            args: access.args.into_iter().map(|e| e.into()).collect()
+        }
+    }
+}
+
 // domain
 impl From<polymorphic::Domain> for legacy::Domain {
     fn from(domain: polymorphic::Domain) -> legacy::Domain {
@@ -276,10 +285,11 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     resource_access_predicate.position.into(),
                 )
             }
-            polymorphic::Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
-                legacy::Expr::PyRefObligationPredicate(
-                    Box::new((*py_ref_obligation_predicate.ref_of).into()),
-                    py_ref_obligation_predicate.position.into(),
+            polymorphic::Expr::ObligationAccessPredicate(obligation_access_predicate) => {
+                legacy::Expr::ObligationAccessPredicate(
+                    obligation_access_predicate.access.into(),
+                    Box::new((*obligation_access_predicate.amount).into()),
+                    obligation_access_predicate.position.into(),
                 )
             }
             polymorphic::Expr::FieldAccessPredicate(field_access_predicate) => {
@@ -373,7 +383,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     .into_iter()
                     .map(|variable| variable.into())
                     .collect(),
-                Box::new((*for_perm.resource).into()),
+                for_perm.access.into(),
                 Box::new((*for_perm.body).into()),
                 for_perm.position.into(),
             ),
@@ -575,8 +585,8 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
             polymorphic::Predicate::ResourceAccess(typ) => {
                 legacy::Predicate::ResourceAccess(typ.encode_as_string())
             }
-            polymorphic::Predicate::PyRefObligation() => {
-                legacy::Predicate::PyRefObligation()
+            polymorphic::Predicate::Obligation(obligation_predicate) => {
+                legacy::Predicate::Obligation(obligation_predicate.into())
             }
         }
     }
@@ -613,6 +623,19 @@ impl From<polymorphic::EnumPredicate> for legacy::EnumPredicate {
 impl From<polymorphic::EnumVariantIndex> for legacy::EnumVariantIndex {
     fn from(enum_variant_index: polymorphic::EnumVariantIndex) -> legacy::EnumVariantIndex {
         legacy::EnumVariantIndex::new(enum_variant_index.0)
+    }
+}
+
+impl From<polymorphic::ObligationPredicate> for legacy::ObligationPredicate {
+    fn from(obligation_predicate: polymorphic::ObligationPredicate) -> legacy::ObligationPredicate {
+        legacy::ObligationPredicate {
+            name: obligation_predicate.name.into(),
+            params: obligation_predicate
+                .params
+                .into_iter()
+                .map(|p| p.into())
+                .collect(),
+        }
     }
 }
 

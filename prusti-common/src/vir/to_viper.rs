@@ -401,12 +401,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(context, ast),
                 )
             }
-            Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => ast
-                .predicate_access_predicate_with_pos(
+            Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => {
+                ast.predicate_access_predicate_with_pos(
                     ast.predicate_access(&[arg.to_viper(context, ast)], predicate_name),
                     perm.to_viper(context, ast),
                     pos.to_viper(context, ast),
-                ),
+                )
+            },
             Expr::ResourceAccessPredicate(ref resource_name, ref amount, scope_id, ref pos) => {
                 let id = ast.int_lit(*scope_id as i64);
                 // resources are encoded as predicates with the integer scope_id as arguments
@@ -416,10 +417,10 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(context, ast),
                 )
             }
-            Expr::PyRefObligationPredicate(ref ref_of, ref pos) => {
+            Expr::ObligationAccessPredicate(ref access, ref amount, ref pos) => {
                 ast.predicate_access_predicate_with_pos(
-                    ast.predicate_access(&[ref_of.to_viper(context, ast)], "PyRefObligation"),
-                    ast.fractional_perm(ast.int_lit(1), ast.int_lit(1)),
+                    access.to_viper(context, ast),
+                    ast.fractional_perm(amount.to_viper(context, ast), ast.int_lit(1)),
                     pos.to_viper(context, ast),
                 )
             },
@@ -691,11 +692,10 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 body.to_viper(context, ast),
                 pos.to_viper(context, ast),
             ),
-            Expr::ForPerm(ref vars, ref resource, ref body, ref _pos) => ast.for_perm(
+            Expr::ForPerm(ref vars, ref access, ref body, ref _pos) => ast.for_perm(
                 // TODO: make work properly
                 &vars.to_viper_decl(context, ast)[..],
-                ast.predicate_access(&[ast.local_var("x", ast.int_type())], "PyRefObligation"),
-                //resource.to_viper(context, ast),
+                access.to_viper(context, ast),
                 body.to_viper(context, ast),
             ),
             Expr::LetExpr(ref var, ref expr, ref body, ref pos) => ast.let_expr_with_pos(
@@ -843,10 +843,7 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
                 let var = ast.local_var_decl("scope_id", legacy::Type::Int.to_viper(context, ast));
                 ast.predicate(typ, &[var], None)
             }
-            Predicate::PyRefObligation() => {
-                let var = ast.local_var_decl("object_id", legacy::Type::Int.to_viper(context, ast));
-                ast.predicate("PyRefObligation", &[var], None)
-            }
+            Predicate::Obligation(p) => p.to_viper(context, ast),
         }
     }
 }
@@ -873,6 +870,17 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for EnumPredicate {
             &self.name,
             &[self.this.to_viper_decl(context, ast)],
             Some(self.body().to_viper(context, ast)),
+        )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Predicate<'v>> for ObligationPredicate {
+    #[tracing::instrument(name = "ObligationPredicate::to_viper", level = "trace", skip(context, ast))]
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
+        ast.predicate(
+            &self.name,
+            &self.params.to_viper_decl(context, ast),
+            None
         )
     }
 }
@@ -970,6 +978,12 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a BackendFuncDecl {
             &self.domain_name,
             &self.interpretation,
         )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::Expr<'v>> for &'a ObligationAccess {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.predicate_access(&self.args.to_viper(context, ast)[..], &self.name)
     }
 }
 

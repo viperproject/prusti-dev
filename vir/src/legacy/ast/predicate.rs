@@ -14,7 +14,7 @@ pub enum Predicate {
     Enum(EnumPredicate),
     Bodyless(String, LocalVar),
     ResourceAccess(String),
-    PyRefObligation()
+    Obligation(ObligationPredicate),
 }
 
 impl fmt::Display for Predicate {
@@ -24,7 +24,7 @@ impl fmt::Display for Predicate {
             Predicate::Enum(p) => write!(f, "{p}"),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
             Predicate::ResourceAccess(typ) => write!(f, "{typ}"),
-            Predicate::PyRefObligation() => write!(f, "PyRefObligation"),
+            Predicate::Obligation(p) => write!(f, "{p}"),
         }
     }
 }
@@ -112,8 +112,8 @@ impl Predicate {
             Predicate::ResourceAccess(_) => {
                 unreachable!("Resource access does not have `self` place.")
             },
-            Predicate::PyRefObligation() => {
-                unreachable!("PyRefObligation does not have `self` place.")
+            Predicate::Obligation(_) => {
+                unreachable!("Obligation predicate does not have `self` place.")
             },
         }
     }
@@ -124,7 +124,7 @@ impl Predicate {
             Predicate::Enum(p) => &p.name,
             Predicate::Bodyless(ref name, _) => name,
             Predicate::ResourceAccess(typ) => typ,
-            Predicate::PyRefObligation() => "PyRefObligation",
+            Predicate::Obligation(p) => &p.name,
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -133,7 +133,7 @@ impl Predicate {
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
             Predicate::ResourceAccess(_) => None,
-            Predicate::PyRefObligation() => None,
+            Predicate::Obligation(_) => None,
         }
     }
 
@@ -145,7 +145,7 @@ impl Predicate {
             Predicate::Enum(p) => p.visit_expressions(visitor),
             Predicate::Bodyless(..) => {}
             Predicate::ResourceAccess(_) => {}
-            Predicate::PyRefObligation() => {}
+            Predicate::Obligation(_) => {}
         }
     }
 
@@ -157,7 +157,7 @@ impl Predicate {
             Predicate::Enum(p) => p.visit_expressions_mut(visitor),
             Predicate::Bodyless(..) => {}
             Predicate::ResourceAccess(_) => {}
-            Predicate::PyRefObligation() => {}
+            Predicate::Obligation(_) => {}
         }
     }
 }
@@ -169,7 +169,7 @@ impl WithIdentifier for Predicate {
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(name, _) => name.clone(),
             Predicate::ResourceAccess(typ) => typ.clone(),
-            Predicate::PyRefObligation() => "PyRefObligation".into(),
+            Predicate::Obligation(p) => p.get_identifier(),
         }
     }
 }
@@ -336,6 +336,33 @@ impl EnumPredicate {
 }
 
 impl WithIdentifier for EnumPredicate {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub struct ObligationPredicate {
+    pub name: String,
+    pub params: Vec<LocalVar>,
+}
+
+impl fmt::Display for ObligationPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "obligation_predicate {}({})",
+            self.name,
+            self.params
+                .iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
+impl WithIdentifier for ObligationPredicate {
     fn get_identifier(&self) -> String {
         self.name.clone()
     }

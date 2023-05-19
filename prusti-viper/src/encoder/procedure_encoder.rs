@@ -599,8 +599,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        dbg!(&method_with_fold_unfold);
-
         Ok(method_with_fold_unfold)
     }
 
@@ -5244,12 +5242,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir::Stmt::Assert(vir::Assert {
                 expr: vir::Expr::ForPerm(vir::ForPerm {
                     variables: vec![ quant_var.clone() ],
-                    resource: Box::new(
-                        vir::Expr::PyRefObligationPredicate(vir::PyRefObligationPredicate {
-                            ref_of: Box::new(vir::Expr::Local(vir::Local { variable: quant_var, position: vir::Position::default() })),
-                            position: vir::Position::default()
-                        })
-                    ),
+                    access: vir::ObligationAccess {
+                        name: "PyRefObligation".into(),
+                        args: vec![vir::Expr::Local(vir::Local { variable: quant_var, position: vir::Position::default() })]
+                    },
                     body: Box::new(vir::Expr::Const(vir::ConstExpr { value: vir::Const::Bool(false), position: vir::Position::default() })),
                     position: vir::Position::default(),
                 }),

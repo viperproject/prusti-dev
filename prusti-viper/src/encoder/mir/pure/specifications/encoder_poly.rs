@@ -154,13 +154,22 @@ pub(super) fn encode_time_specifications<'tcx>(
     vir_crate::polymorphic::Expr::and(amount_non_negative, resource_access_predicate)
 }
 
-pub(super) fn encode_py_ref_obligation<'tcx>(
+pub(super) fn encode_obligation<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
-    ref_of: &vir_crate::polymorphic::Expr,
+    name: &str,
+    args: Vec<vir_crate::polymorphic::Expr>,
     parent_def_id: DefId,
     span: Span,
 ) -> vir_crate::polymorphic::Expr {
-    vir_crate::polymorphic::Expr::py_ref_obligation_predicate(ref_of.clone())
+    let const_one = vir_crate::polymorphic::Expr::Const(vir_crate::polymorphic::ConstExpr{
+        value: vir_crate::polymorphic::Const::Int(1),
+        position: vir_crate::polymorphic::Position::default(),
+    });
+    vir_crate::polymorphic::Expr::obligation_access_predicate(
+        vir_crate::polymorphic::ObligationAccess {
+            name: name.into(),
+            args: args.clone()
+        }, const_one)
 }
 
 pub(super) fn encode_quantifier<'tcx>(

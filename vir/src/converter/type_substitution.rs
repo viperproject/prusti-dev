@@ -151,8 +151,8 @@ impl Generic for Expr {
             Expr::ResourceAccessPredicate(resource_access_predicate) => {
                 Expr::ResourceAccessPredicate(resource_access_predicate.substitute(map))
             }
-            Expr::PyRefObligationPredicate(py_ref_obligation_predicate) => {
-                Expr::PyRefObligationPredicate(py_ref_obligation_predicate.substitute(map))
+            Expr::ObligationAccessPredicate(obligation_access_predicate) => {
+                Expr::ObligationAccessPredicate(obligation_access_predicate.substitute(map))
             }
             Expr::FieldAccessPredicate(field_access_predicate) => {
                 Expr::FieldAccessPredicate(field_access_predicate.substitute(map))
@@ -255,11 +255,23 @@ impl Generic for ResourceAccessPredicate {
     }
 }
 
-impl Generic for PyRefObligationPredicate {
+impl Generic for ObligationAccess {
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
-        let mut py_ref_obligation_predicate = self;
-        *py_ref_obligation_predicate.ref_of = py_ref_obligation_predicate.ref_of.substitute(map);
-        py_ref_obligation_predicate
+        let mut obligation_access = self;
+        obligation_access.args = obligation_access.args
+            .into_iter()
+            .map(|arg| arg.substitute(map))
+            .collect();
+        obligation_access
+    }
+}
+
+impl Generic for ObligationAccessPredicate {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut obligation_access_predicate = self;
+        obligation_access_predicate.access = obligation_access_predicate.access.substitute(map);
+        *obligation_access_predicate.amount = obligation_access_predicate.amount.substitute(map);
+        obligation_access_predicate
     }
 }
 
@@ -510,7 +522,7 @@ impl Generic for Predicate {
                 Predicate::Bodyless(label, local_var.substitute(map))
             }
             p @ Predicate::ResourceAccess(_) => p,
-            p @ Predicate::PyRefObligation() => p,
+            p @ Predicate::Obligation(_) => p,
         }
     }
 }
