@@ -300,13 +300,27 @@ impl Expr {
         })
     }
 
+    pub fn unit_obligation_access_predicate(
+        name: String,
+        args: Vec<Expr>,
+        formal_arguments: Vec<LocalVar>
+    ) -> Self {
+        let const_one = Expr::Const(ConstExpr {
+            value: Const::Int(1),
+            position: Position::default(),
+        });
+        Expr::obligation_access_predicate(name, args, formal_arguments, const_one)
+    }
+
     pub fn obligation_access_predicate(
-        access: ObligationAccess,
+        name: String,
+        args: Vec<Expr>,
+        formal_arguments: Vec<LocalVar>,
         amount: Expr,
     ) -> Self {
         let pos = amount.pos();
         Expr::ObligationAccessPredicate(ObligationAccessPredicate {
-            access,
+            access: ObligationAccess { name, args, formal_arguments },
             amount: Box::new(amount),
             position: pos,
         })
@@ -2157,6 +2171,7 @@ impl fmt::Display for ResourceAccessPredicate {
 pub struct ObligationAccess {
     pub name: String,
     pub args: Vec<Expr>,
+    pub formal_arguments: Vec<LocalVar>,
 }
 
 impl fmt::Display for ObligationAccess {

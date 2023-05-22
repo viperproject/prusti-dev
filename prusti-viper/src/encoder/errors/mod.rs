@@ -19,6 +19,6 @@ mod spanned_encoding_error;
 pub mod error_manager;
 mod encoding_error;
 mod encoding_error_kind;
-mod with_span;
+pub mod with_span;
 mod position_manager;
 mod macros;

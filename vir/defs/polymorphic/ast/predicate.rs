@@ -348,6 +348,11 @@ impl fmt::Display for ObligationPredicate {
 
 impl WithIdentifier for ObligationPredicate {
     fn get_identifier(&self) -> String {
-        self.name.clone()
+        compute_identifier(
+            &self.name,
+            &[],
+            &self.params,
+            &Type::Bool,
+        )
     }
 }

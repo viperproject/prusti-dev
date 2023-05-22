@@ -97,6 +97,7 @@ impl Function {
     }
 }
 
+// TODO: make a version for obligations (no type arguments and Bool return type)
 pub fn compute_identifier(
     name: &str,
     type_arguments: &[Type],

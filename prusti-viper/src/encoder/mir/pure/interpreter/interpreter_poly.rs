@@ -601,9 +601,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .resolve_method_call(self.def_id, def_id, call_substs);
                                 trace!("Resolved function call: {:?}", called_def_id);
 
+                                let is_obligation =
+                                    self.encoder.is_obligation(called_def_id, Some(call_substs));
+
                                 let is_pure_function =
                                     self.encoder.is_pure(called_def_id, Some(call_substs));
-                                let (function_name, return_type) = if is_pure_function {
+                                let (function_name, return_type) = if is_pure_function || is_obligation {
                                     self.encoder
                                         .encode_pure_function_use(
                                             called_def_id,
@@ -641,14 +644,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encoder
                                     .encode_generic_arguments(called_def_id, call_substs)
                                     .with_span(term.source_info.span)?;
-                                let encoded_rhs = vir::Expr::func_app(
-                                    function_name,
-                                    type_arguments,
-                                    encoded_args,
-                                    formal_args,
-                                    return_type,
-                                    pos,
-                                );
+                                let encoded_rhs = if is_obligation {
+                                    vir::Expr::unit_obligation_access_predicate(function_name, encoded_args, formal_args)
+                                } else {
+                                    vir::Expr::func_app(
+                                        function_name,
+                                        type_arguments,
+                                        encoded_args,
+                                        formal_args,
+                                        return_type,
+                                        pos,
+                                    )
+                                };
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&encoded_lhs, encoded_rhs);
                                 state

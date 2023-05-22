@@ -165,6 +165,7 @@ pub enum Const {
 pub struct ObligationAccess {
     pub name: String,
     pub args: Vec<Expr>,
+    pub formal_arguments: Vec<LocalVar>,
 }
 
 impl fmt::Display for ObligationAccess {

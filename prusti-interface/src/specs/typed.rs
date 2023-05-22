@@ -240,6 +240,7 @@ pub enum ProcedureSpecificationKind {
     /// The specification is a predicate with the enclosed body.
     /// The body can be None to account for abstract predicates.
     Predicate(Option<DefId>),
+    Obligation,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, TyEncodable, TyDecodable)]
@@ -253,6 +254,7 @@ impl Display for ProcedureSpecificationKind {
             ProcedureSpecificationKind::Impure => write!(f, "Impure"),
             ProcedureSpecificationKind::Pure => write!(f, "Pure"),
             ProcedureSpecificationKind::Predicate(_) => write!(f, "Predicate"),
+            ProcedureSpecificationKind::Obligation => write!(f, "Obligation"),
         }
     }
 }

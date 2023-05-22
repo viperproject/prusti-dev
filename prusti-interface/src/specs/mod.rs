@@ -43,11 +43,14 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+    obligation: bool,
 }
 
 impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
     fn from(refs: &ProcedureSpecRefs) -> Self {
-        if refs.abstract_predicate {
+        if refs.obligation {
+            ProcedureSpecificationKind::Obligation
+        }  else if refs.abstract_predicate {
             ProcedureSpecificationKind::Predicate(None)
         } else if refs.pure {
             ProcedureSpecificationKind::Pure
@@ -428,13 +431,15 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     let trusted = has_prusti_attr(attrs, "trusted")
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
+    let obligation = has_prusti_attr(attrs, "obligation");
 
-    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
+    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() || obligation {
         Some(ProcedureSpecRefs {
             spec_id_refs,
             pure,
             abstract_predicate,
             trusted,
+            obligation,
         })
     } else {
         None

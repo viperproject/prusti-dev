@@ -46,6 +46,8 @@ pub use prusti_contracts_proc_macros::extern_spec;
 /// of just Rust expressions.
 pub use prusti_contracts_proc_macros::predicate;
 
+pub use prusti_contracts_proc_macros::obligation;
+
 /// Macro for creating type models.
 pub use prusti_contracts_proc_macros::model;
 
@@ -378,10 +380,6 @@ pub fn time_credits(_n: usize) -> bool {
 /// end of the execution of a function in its specification. It defines the
 /// lower bound for its runtime.
 pub fn time_receipts(_n: usize) -> bool {
-    true
-}
-
-pub fn py_ref_obligation(_obj: usize) -> bool {
     true
 }
 

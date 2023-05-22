@@ -154,6 +154,7 @@ pub(super) fn encode_time_specifications<'tcx>(
     vir_crate::polymorphic::Expr::and(amount_non_negative, resource_access_predicate)
 }
 
+/*
 pub(super) fn encode_obligation<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     name: &str,
@@ -171,6 +172,7 @@ pub(super) fn encode_obligation<'tcx>(
             args: args.clone()
         }, const_one)
 }
+*/
 
 pub(super) fn encode_quantifier<'tcx>(
     encoder: &Encoder<'_, 'tcx>,

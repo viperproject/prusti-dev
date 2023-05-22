@@ -52,6 +52,7 @@ pub(super) fn collect_definitions(
         new_unfolded_predicates: Default::default(),
         used_resource_types: Default::default(),
         used_predicates: Default::default(),
+        used_obligations: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
         used_builtin_domains,
@@ -77,6 +78,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     used_resource_types: FxHashSet<vir::ResourceType>,
     /// The set of all predicates that are mentioned in the method.
     used_predicates: FxHashSet<vir::Type>,
+    used_obligations: FxHashSet<vir::FunctionIdentifier>,
     /// The set of predicates whose bodies have to be included because they are
     /// unfolded in the method.
     unfolded_predicates: FxHashSet<vir::Type>,
@@ -110,13 +112,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let domains = self.get_used_domains();
         let backend_types = self.get_used_backend_types();
         let fields = self.get_used_fields();
+        let leak_checked_methods = methods
+            .into_iter()
+            .map(|mut method| -> SpannedEncodingResult<vir::CfgMethod> {
+                let ret_index = method.basic_blocks_labels
+                    .iter()
+                    .position(|label| label == "return")
+                    .unwrap();
+                let ret_index = method.block_index(ret_index);
+                for identifier in &self.used_obligations {
+                    let leak_check = self.encoder.get_obligation_leak_check(identifier)?;
+                    let leak_check = (*leak_check).clone();
+                    method.add_stmt(
+                        ret_index,
+                        leak_check
+                    );
+                }
+                Ok(method)
+            }).collect::<SpannedEncodingResult<Vec<_>>>()?;
         Ok(vir::Program {
             name,
             domains,
             backend_types,
             fields,
             builtin_methods: self.get_all_methods(),
-            methods,
+            methods: leak_checked_methods,
             functions,
             viper_predicates,
         })
@@ -205,10 +225,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             };
             predicates.push(predicate);
         }
-        predicates.push(vir::Predicate::new_obligation(
-                "PyRefObligation".into(),
-                vec![vir::LocalVar{ name: "x".into(), typ: vir::Type::Int }]
-        ));
+        for identifier in &self.used_obligations {
+            let obligation = self.encoder.get_obligation(identifier)?;
+            let obligation = (*obligation).clone();
+            predicates.push(obligation);
+        }
         for resource in &self.used_resource_types {
             predicates.push(vir::Predicate::ResourceAccess(resource.clone()));
         }
@@ -912,6 +933,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.used_resource_types.insert(resource_type.clone());
         FallibleExprWalker::fallible_walk(self, amount)
+    }
+    fn fallible_walk_obligation_access(
+        &mut self,
+        vir::ObligationAccess {
+            name,
+            args,
+            formal_arguments,
+        }: &vir::ObligationAccess,
+    ) -> SpannedEncodingResult<()> {
+        let identifier: vir::FunctionIdentifier =
+            compute_identifier(name, &[], formal_arguments, &vir::Type::Bool).into();
+        self.used_obligations.insert(identifier);
+        for arg in args {
+            FallibleExprWalker::fallible_walk(self, &arg)?;
+        }
+        Ok(())
     }
     fn fallible_walk_unfolding(
         &mut self,

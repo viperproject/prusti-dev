@@ -9,7 +9,7 @@ use prusti_common::utils::identifiers::encode_identifier;
 use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
+use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError, with_span::WithSpan};
 use crate::encoder::foldunfold;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::error_unsupported;
@@ -24,7 +24,7 @@ use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::mir;
-use prusti_rustc_interface::middle::ty;
+use prusti_rustc_interface::middle::{ty, ty::subst::SubstsRef};
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use std::fmt::Debug;
 use rustc_hash::{FxHashSet, FxHashMap};
@@ -50,7 +50,7 @@ use super::mir::{
     procedures::MirProcedureEncoderState,
     type_invariants::TypeInvariantEncoderState,
     pure::{
-        PureFunctionEncoderState, PureFunctionEncoderInterface,
+        PureFunctionEncoderState, PureFunctionEncoderInterface, compute_key,
     },
     types::{
         compute_discriminant_bounds,
@@ -70,6 +70,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     error_manager: RefCell<ErrorManager<'tcx>>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
+    obligations: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Predicate>>>,
+    obligation_checks: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Stmt>>>,
     builtin_domains: RefCell<FxHashMap<BuiltinDomainKind, vir::Domain>>,
     builtin_domains_in_progress: RefCell<FxHashSet<BuiltinDomainKind>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -153,6 +155,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             env,
             error_manager: RefCell::new(ErrorManager::new(env.query.codemap())),
             functions: RefCell::new(FxHashMap::default()),
+            obligations: RefCell::new(FxHashMap::default()),
+            obligation_checks: RefCell::new(FxHashMap::default()),
             builtin_domains: RefCell::new(FxHashMap::default()),
             builtin_domains_in_progress: RefCell::new(FxHashSet::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
@@ -289,6 +293,116 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             Ok(self.get_snapshot_function(identifier))
         } else {
             unreachable!("Not found function: {:?}", identifier)
+        }
+    }
+
+    fn ensure_obligation_encoded(
+        &self,
+        identifier: &vir::FunctionIdentifier,
+    ) -> SpannedEncodingResult<()> {
+        let function_descriptions = self
+            .pure_function_encoder_state
+            .function_descriptions
+            .borrow();
+        if let Some(function_description) = function_descriptions.get(identifier) {
+            let function_description = function_description.clone();
+            // We need to release the borrow here before encoding the function
+            // because otherwise encoding recursive functions cause a panic.
+            drop(function_descriptions);
+            self.encode_obligation_def(
+                function_description.proc_def_id,
+                function_description.parent_def_id,
+                function_description.substs,
+            )?;
+        } else {
+            unreachable!();
+        }
+        Ok(())
+    }
+
+    fn encode_obligation_def(
+        &self,
+        proc_def_id: ProcedureDefId,
+        parent_def_id: ProcedureDefId,
+        substs: SubstsRef<'tcx>,
+    ) -> SpannedEncodingResult<()> {
+        assert!(self.is_obligation(proc_def_id, Some(substs)), "procedure not marked as obligation");
+        let mir_span = self.env().query.get_def_span(proc_def_id);
+        let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
+        if !self
+            .pure_function_encoder_state
+            .function_identifiers
+            .borrow()
+            .contains_key(&key)
+            && !self
+                .pure_function_encoder_state
+                .pure_functions_encoding_started
+                .borrow()
+                .contains(&key)
+        {
+            self.pure_function_encoder_state
+                .pure_functions_encoding_started
+                .borrow_mut()
+                .insert(key);
+
+            let sig = self.env().query.get_fn_sig_resolved(proc_def_id, substs, parent_def_id);
+            let obligation_name = self.encode_item_name(proc_def_id);
+            let mut args = vec![];
+            let mut concrete_args = vec![];
+            for local_idx in 0..sig.skip_binder().inputs().len() {
+                let local_ty = sig.input(local_idx);
+                let local = prusti_rustc_interface::middle::mir::Local::from_usize(local_idx + 1);
+                let var_name = format!("{local:?}_l_check"); // TODO: *ensure* that there are no local
+                                                             // variable name clashes
+                let var_span = self.get_spec_span(proc_def_id);
+                let var_type = self.encode_snapshot_type(local_ty.skip_binder()).with_span(var_span)?;
+                let local_var = vir::LocalVar::new(var_name, var_type);
+                args.push(local_var.clone());
+                concrete_args.push(vir::Expr::local(local_var));
+            }
+            let obligation = vir::Predicate::new_obligation(obligation_name.clone(), args.clone());
+            let ident: vir::FunctionIdentifier = obligation.get_identifier().into();
+            self.obligations.borrow_mut().insert(ident.clone(), Rc::new(obligation));
+
+            let obligation_access = vir::ObligationAccess {
+                name: obligation_name.clone(),
+                args: concrete_args,
+                formal_arguments: args.clone(),
+            };
+            let check = vir::Stmt::Assert(vir::Assert {
+                expr: vir::Expr::ForPerm(vir::ForPerm {
+                    variables: args,
+                    access: obligation_access,
+                    body: Box::new(vir::Expr::Const(vir::ConstExpr {
+                        value: vir::Const::Bool(false),
+                        position: vir::Position::default(),
+                    })),
+                    position: vir::Position::default(),
+                }),
+                position: vir::Position::default(),
+            });
+            self.obligation_checks.borrow_mut().insert(ident.clone()/*obligation_name.clone().into()*/, Rc::new(check));
+        }
+        Ok(())
+    }
+
+    pub(super) fn get_obligation(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Predicate>> {
+        self.ensure_obligation_encoded(identifier)?;
+        if self.obligations.borrow().contains_key(identifier) {
+            let map = self.obligations.borrow();
+            Ok(map[identifier].clone())
+        } else {
+            unreachable!("Not found obligation: {:?}", identifier);
+        }
+    }
+
+    pub(super) fn get_obligation_leak_check(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Stmt>> {
+        self.ensure_obligation_encoded(identifier)?;
+        if self.obligation_checks.borrow().contains_key(identifier) {
+            let map = self.obligation_checks.borrow();
+            Ok(map[identifier].clone())
+        } else {
+            unreachable!("Not found obligation check: {:?}", identifier);
         }
     }
 
@@ -766,9 +880,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                                 proc_def_id
                             );
                         },
-                        ProcedureSpecificationKind::Predicate(_) => {
+                        ProcedureSpecificationKind::Predicate(_) |
+                        ProcedureSpecificationKind::Obligation => {
                             debug!(
-                                "Predicates will not be encoded or verified: {:?}",
+                                "Predicates OR OBLIGATIONS will not be encoded or verified: {:?}",
                                 proc_def_id
                             );
                         },

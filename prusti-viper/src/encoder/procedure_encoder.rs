@@ -5230,28 +5230,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }),
             );
         }
-        // check for PyRefObligation leaks
-        
-        let quant_var = vir::LocalVar {
-            name: "x".into(),
-            typ: vir::Type::Int,
-        };
-
-        self.cfg_method.add_stmt(
-            return_cfg_block,
-            vir::Stmt::Assert(vir::Assert {
-                expr: vir::Expr::ForPerm(vir::ForPerm {
-                    variables: vec![ quant_var.clone() ],
-                    access: vir::ObligationAccess {
-                        name: "PyRefObligation".into(),
-                        args: vec![vir::Expr::Local(vir::Local { variable: quant_var, position: vir::Position::default() })]
-                    },
-                    body: Box::new(vir::Expr::Const(vir::ConstExpr { value: vir::Const::Bool(false), position: vir::Position::default() })),
-                    position: vir::Position::default(),
-                }),
-                position: perm_pos,
-            }),
-        );
 
         Ok(())
     }

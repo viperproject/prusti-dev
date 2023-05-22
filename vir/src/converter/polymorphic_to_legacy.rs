@@ -145,8 +145,14 @@ impl From<polymorphic::Field> for legacy::Field {
 impl From<polymorphic::ObligationAccess> for legacy::ObligationAccess {
     fn from(access: polymorphic::ObligationAccess) -> legacy::ObligationAccess {
         legacy::ObligationAccess {
-            name: access.name,
-            args: access.args.into_iter().map(|e| e.into()).collect()
+            name: polymorphic::compute_identifier(
+                &access.name,
+                &[],
+                &access.formal_arguments,
+                &polymorphic::Type::Bool,
+            ),
+            args: access.args.into_iter().map(|e| e.into()).collect(),
+            formal_arguments: access.formal_arguments.into_iter().map(|formal_argument| formal_argument.into()).collect(),
         }
     }
 }
@@ -629,7 +635,12 @@ impl From<polymorphic::EnumVariantIndex> for legacy::EnumVariantIndex {
 impl From<polymorphic::ObligationPredicate> for legacy::ObligationPredicate {
     fn from(obligation_predicate: polymorphic::ObligationPredicate) -> legacy::ObligationPredicate {
         legacy::ObligationPredicate {
-            name: obligation_predicate.name.into(),
+            name: polymorphic::compute_identifier(
+                &obligation_predicate.name,
+                &[],
+                &obligation_predicate.params,
+                &polymorphic::Type::Bool,
+            ),
             params: obligation_predicate
                 .params
                 .into_iter()

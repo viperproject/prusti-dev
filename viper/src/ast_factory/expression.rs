@@ -1216,20 +1216,17 @@ impl<'a> AstFactory<'a> {
     pub fn for_perm(
         &self,
         variables: &[LocalVarDecl],
-        access: Expr,//Predicate,//Location,//&[Location],
+        access: Expr,
         body: Expr,
     ) -> Expr<'a> {
-        dbg!("ok before");
         let res = build_ast_node!(
             self,
             Expr,
             ast::ForPerm,
-            self.jni.new_seq(&map_to_jobjects!(variables)),//vec![ variable.to_jobject() ]),
+            self.jni.new_seq(&map_to_jobjects!(variables)),
             access.to_jobject(),
-            //self.jni.new_seq(&map_to_jobjects!(access_list)),
             body.to_jobject()
         );
-        dbg!("ok after");
         res
     }
 

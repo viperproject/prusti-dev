@@ -72,6 +72,8 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     // TODO abstract-predicates: Maybe this should be deleted (and ProcedureSpecificationKind::is_pure)
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
+    fn is_obligation(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
     fn get_proc_kind(
         &self,
         def_id: DefId,
@@ -147,6 +149,12 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             pure = true;
         }
         pure
+    }
+
+    #[tracing::instrument(level = "trace", skip(self), ret)]
+    fn is_obligation(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let kind = self.get_proc_kind(def_id, substs);
+        matches!(kind, ProcedureSpecificationKind::Obligation)
     }
 
     fn get_proc_kind(

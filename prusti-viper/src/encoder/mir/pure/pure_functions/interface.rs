@@ -24,10 +24,10 @@ use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphi
 /// being called from callers (with different parameter environments). Each
 /// variant of a pure function will be encoded as a separate Viper function.
 /// Lifetimes/regions are erased.
-type Key<'tcx> = (ProcedureDefId, SubstsRef<'tcx>, ty::PolyFnSig<'tcx>);
+pub type Key<'tcx> = (ProcedureDefId, SubstsRef<'tcx>, ty::PolyFnSig<'tcx>);
 
 /// Compute the key for the given call.
-fn compute_key<'v, 'tcx: 'v>(
+pub(crate) fn compute_key<'v, 'tcx: 'v>(
     encoder: &crate::encoder::encoder::Encoder<'v, 'tcx>,
     proc_def_id: ProcedureDefId,
     caller_def_id: ProcedureDefId,
@@ -98,13 +98,13 @@ pub(crate) struct PureFunctionEncoderState<'v, 'tcx: 'v> {
     call_infos_high: RefCell<FxHashMap<Key<'tcx>, FunctionCallInfoHigh>>,
     /// Pure functions whose encoding started (and potentially already
     /// finished). This is used to break recursion.
-    pure_functions_encoding_started: RefCell<FxHashSet<Key<'tcx>>>,
+    pub pure_functions_encoding_started: RefCell<FxHashSet<Key<'tcx>>>,
     // A mapping from the function identifier to an information needed to encode
     // that function.
-    function_descriptions:
+    pub function_descriptions:
         RefCell<FxHashMap<vir_poly::FunctionIdentifier, FunctionDescription<'tcx>>>,
     /// Mapping from keys on MIR level to function identifiers on VIR level.
-    function_identifiers: RefCell<FxHashMap<Key<'tcx>, vir_poly::FunctionIdentifier>>,
+    pub function_identifiers: RefCell<FxHashMap<Key<'tcx>, vir_poly::FunctionIdentifier>>,
     /// Encoded functions. The encoding of these functions was triggered by the
     /// definition collector requesting their definition.
     functions: RefCell<FxHashMap<String, std::rc::Rc<vir_high::FunctionDecl>>>,
@@ -117,9 +117,9 @@ pub(crate) struct PureFunctionEncoderState<'v, 'tcx: 'v> {
 /// The information necessary to encode a function definition.
 #[derive(Clone, Debug)]
 pub(crate) struct FunctionDescription<'tcx> {
-    proc_def_id: ProcedureDefId,
-    parent_def_id: ProcedureDefId,
-    substs: SubstsRef<'tcx>,
+    pub proc_def_id: ProcedureDefId,
+    pub parent_def_id: ProcedureDefId,
+    pub substs: SubstsRef<'tcx>,
 }
 
 pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
@@ -361,6 +361,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                         ProcedureSpecificationKind::Impure => {
                             unreachable!("trying to encode an impure function in pure encoder")
                         }
+                        ProcedureSpecificationKind::Obligation => {
+                            unreachable!("trying to encode an obligation in pure encoder")
+                        }
                     }
                 };
 
@@ -443,7 +446,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
-            self.is_pure(proc_def_id, Some(substs)),
+            self.is_pure(proc_def_id, Some(substs)) || self.is_obligation(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {proc_def_id:?}"
         );
 
