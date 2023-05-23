@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["buf"],"struct":["Bytes","BytesMut"],"trait":["Buf","BufMut"]};
+window.SIDEBAR_ITEMS = {"mod":["buf"],"struct":["Bytes","BytesMut"]};

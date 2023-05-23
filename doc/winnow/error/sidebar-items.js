@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ErrMode","ErrorKind","Needed","VerboseErrorKind"],"fn":["append_error","context","convert_error","dbg_dmp","make_error"],"struct":["Error","VerboseError"],"trait":["ContextError","ErrorConvert","FinishIResult","FromExternalError","ParseError"],"type":["IResult"]};
+window.SIDEBAR_ITEMS = {"enum":["ErrMode","ErrorKind","Needed","VerboseErrorKind"],"fn":["convert_error"],"struct":["Error","VerboseError"],"trait":["ContextError","ErrorConvert","FinishIResult","FromExternalError","ParseError"],"type":["IResult"]};

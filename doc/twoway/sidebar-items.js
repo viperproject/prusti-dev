@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["find_bytes","find_str","rfind_bytes","rfind_str"],"mod":["bmh"]};

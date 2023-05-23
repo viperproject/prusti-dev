@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["DoRead","FlushAmt","FlushAtLeast","FlushExact","FlushOn","FlushOnNewline","MinBuffered","StdPolicy"],"trait":["ReaderPolicy","WriterPolicy"]};

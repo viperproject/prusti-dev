@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/openssl-0.10.45/src/cipher_ctx.rs`."><title>cipher_ctx.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/openssl-0.10.50/src/cipher_ctx.rs`."><title>cipher_ctx.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -839,6 +839,83 @@
 <a href="#839" id="839">839</a>
 <a href="#840" id="840">840</a>
 <a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The symmetric encryption context.
 //!
 //! # Examples
@@ -1227,7 +1304,7 @@
     /// # Panics
     ///
     /// Panics if the context has not been initialized with a cipher.
-    </span><span class="attr">#[corresponds(EVP_CIHPER_CTX_ctrl)]
+    </span><span class="attr">#[corresponds(EVP_CIPHER_CTX_ctrl)]
     </span><span class="kw">pub fn </span>set_iv_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="self">self</span>.assert_cipher();
 
@@ -1432,6 +1509,50 @@
         <span class="prelude-val">Ok</span>(len)
     }
 
+    <span class="doccomment">/// Like [`Self::cipher_update`] except that it writes output into the
+    /// `data` buffer. The `inlen` parameter specifies the number of bytes in
+    /// `data` that are considered the input. For streaming ciphers, the size of
+    /// `data` must be at least the input size. Otherwise, it must be at least
+    /// an additional block size larger.
+    ///
+    /// Note: Use [`Self::cipher_update`] with no output argument to write AAD.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the input size cannot be represented as `int` or
+    /// exceeds the buffer size, or if the output buffer does not contain enough
+    /// additional space.
+    </span><span class="attr">#[corresponds(EVP_CipherUpdate)]
+    </span><span class="kw">pub fn </span>cipher_update_inplace(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        data: <span class="kw-2">&amp;mut </span>[u8],
+        inlen: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="macro">assert!</span>(inlen &lt;= data.len(), <span class="string">&quot;Input size may not exceed buffer size&quot;</span>);
+        <span class="kw">let </span>block_size = <span class="self">self</span>.block_size();
+        <span class="kw">if </span>block_size != <span class="number">1 </span>{
+            <span class="macro">assert!</span>(
+                data.len() &gt;= inlen + block_size,
+                <span class="string">&quot;Output buffer size must be at least {} bytes.&quot;</span>,
+                inlen + block_size
+            );
+        }
+
+        <span class="kw">let </span>inlen = c_int::try_from(inlen).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>outlen = <span class="number">0</span>;
+        <span class="kw">unsafe </span>{
+            cvt(ffi::EVP_CipherUpdate(
+                <span class="self">self</span>.as_ptr(),
+                data.as_mut_ptr(),
+                <span class="kw-2">&amp;mut </span>outlen,
+                data.as_ptr(),
+                inlen,
+            ))
+        }<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(outlen <span class="kw">as </span>usize)
+    }
+
     <span class="doccomment">/// Finalizes the encryption or decryption process.
     ///
     /// Any remaining data will be written to the output buffer.
@@ -1619,6 +1740,26 @@
 
         ctx.cipher_final_vec(<span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">0</span>]).unwrap();
 
+        <span class="comment">// encrypt again, but use in-place encryption this time
+        // First reset the IV
+        </span>ctx.encrypt_init(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>iv)).unwrap();
+        ctx.set_padding(<span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>data_inplace: [u8; <span class="number">32</span>] = [<span class="number">1</span>; <span class="number">32</span>];
+        <span class="kw">let </span>outlen = ctx
+            .cipher_update_inplace(<span class="kw-2">&amp;mut </span>data_inplace[<span class="number">0</span>..<span class="number">15</span>], <span class="number">15</span>)
+            .unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">15</span>, outlen);
+
+        <span class="kw">let </span>outlen = ctx
+            .cipher_update_inplace(<span class="kw-2">&amp;mut </span>data_inplace[<span class="number">15</span>..<span class="number">32</span>], <span class="number">17</span>)
+            .unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">17</span>, outlen);
+
+        ctx.cipher_final(<span class="kw-2">&amp;mut </span>[<span class="number">0u8</span>; <span class="number">0</span>]).unwrap();
+
+        <span class="comment">// Check that the resulting data is encrypted in the same manner
+        </span><span class="macro">assert_eq!</span>(data_inplace.as_slice(), output.as_slice());
+
         <span class="comment">// try to decrypt
         </span>ctx.decrypt_init(<span class="prelude-val">Some</span>(cipher), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>key), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>iv))
             .unwrap();
@@ -1641,6 +1782,19 @@
         ctx.cipher_final_vec(<span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">0</span>]).unwrap();
         <span class="comment">// check if the decrypted blocks are the same as input (all ones)
         </span><span class="macro">assert_eq!</span>(output_decrypted, <span class="macro">vec!</span>[<span class="number">1</span>; <span class="number">32</span>]);
+
+        <span class="comment">// decrypt again, but now the output in-place
+        </span>ctx.decrypt_init(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>iv)).unwrap();
+        ctx.set_padding(<span class="bool-val">false</span>);
+
+        <span class="kw">let </span>outlen = ctx.cipher_update_inplace(<span class="kw-2">&amp;mut </span>output[<span class="number">0</span>..<span class="number">15</span>], <span class="number">15</span>).unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">15</span>, outlen);
+
+        <span class="kw">let </span>outlen = ctx.cipher_update_inplace(<span class="kw-2">&amp;mut </span>output[<span class="number">15</span>..], <span class="number">17</span>).unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">17</span>, outlen);
+
+        ctx.cipher_final_vec(<span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">0</span>]).unwrap();
+        <span class="macro">assert_eq!</span>(output_decrypted, output);
     }
 
     <span class="attr">#[test]
@@ -1680,5 +1834,4 @@
             .unwrap();
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["IsTerminal"]};
+window.SIDEBAR_ITEMS = {"fn":["is_terminal"],"trait":["IsTerminal"]};

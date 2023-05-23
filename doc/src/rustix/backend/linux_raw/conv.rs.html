@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.36.9/src/backend/linux_raw/conv.rs`."><title>conv.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../rustix/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.37.11/src/backend/linux_raw/conv.rs`."><title>conv.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../rustix/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -797,6 +797,64 @@
 <a href="#797" id="797">797</a>
 <a href="#798" id="798">798</a>
 <a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Convert values to [`ArgReg`] and from [`RetReg`].
 //!
 //! System call arguments and return values are all communicated with inline
@@ -814,12 +872,12 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::c;
 <span class="kw">use </span><span class="kw">super</span>::fd::{AsRawFd, BorrowedFd, FromRawFd, RawFd};
-<span class="attr">#[cfg(not(debug_assertions))]
-</span><span class="kw">use </span><span class="kw">super</span>::io::errno::decode_usize_infallible;
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::io::errno::try_decode_error;
 <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::io::errno::try_decode_u64;
+<span class="attr">#[cfg(not(debug_assertions))]
+</span><span class="kw">use </span><span class="kw">super</span>::io::errno::{decode_c_uint_infallible, decode_usize_infallible};
 <span class="kw">use </span><span class="kw">super</span>::io::errno::{
     try_decode_c_int, try_decode_c_uint, try_decode_raw_fd, try_decode_usize, try_decode_void,
     try_decode_void_star,
@@ -942,7 +1000,7 @@
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;BorrowedFd&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(fd: BorrowedFd&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="comment">// Safety: `BorrowedFd` ensures that the file descriptor is valid, and the
+        <span class="comment">// SAFETY: `BorrowedFd` ensures that the file descriptor is valid, and the
         // lifetime parameter on the resulting `ArgReg` ensures that the result is
         // bounded by the `BorrowedFd`&#39;s lifetime.
         </span><span class="kw">unsafe </span>{ raw_fd(fd.as_raw_fd()) }
@@ -1108,6 +1166,22 @@
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::AtFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::AtFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::inotify::CreateFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::inotify::CreateFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::inotify::WatchFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::inotify::WatchFlags) -&gt; <span class="self">Self </span>{
         c_uint(flags.bits())
     }
 }
@@ -1398,9 +1472,9 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::AcceptFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::SocketFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::net::AcceptFlags) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::net::SocketFlags) -&gt; <span class="self">Self </span>{
         c_uint(flags.bits())
     }
 }
@@ -1470,6 +1544,29 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::fs::types::MountFlagsArg) -&gt; <span class="self">Self </span>{
         c_uint(flags.<span class="number">0</span>)
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::fs::types::UnmountFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::fs::types::UnmountFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::process::Uid&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(t: <span class="kw">crate</span>::process::Uid) -&gt; <span class="self">Self </span>{
+        c_uint(t.as_raw())
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::process::Gid&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(t: <span class="kw">crate</span>::process::Gid) -&gt; <span class="self">Self </span>{
+        c_uint(t.as_raw())
     }
 }
 
@@ -1562,6 +1659,25 @@
     }
 }
 
+<span class="doccomment">/// Convert a `c_uint` returned from a syscall that effectively always
+/// returns a `c_uint`.
+///
+/// # Safety
+///
+/// This function must only be used with return values from infallible
+/// syscalls.
+</span><span class="attr">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>ret_c_uint_infallible(raw: RetReg&lt;R0&gt;) -&gt; c::c_uint {
+    <span class="attr">#[cfg(debug_assertions)]
+    </span>{
+        try_decode_c_uint(raw).unwrap()
+    }
+    <span class="attr">#[cfg(not(debug_assertions))]
+    </span>{
+        decode_c_uint_infallible(raw)
+    }
+}
+
 <span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns an
 /// `OwnedFd` on success.
 ///
@@ -1596,5 +1712,4 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ret_void_star(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;<span class="kw-2">*mut </span>c::c_void&gt; {
     try_decode_void_star(raw)
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["spawn","spawn_local","spawn_unchecked"],"struct":["FallibleTask","Runnable","Task"]};
+window.SIDEBAR_ITEMS = {"fn":["spawn","spawn_local","spawn_unchecked"],"struct":["Builder","FallibleTask","Runnable","ScheduleInfo","Task","WithInfo"],"trait":["Schedule"]};

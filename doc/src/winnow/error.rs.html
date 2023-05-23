@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.3.5/src/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../winnow/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.4.1/src/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../winnow/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -719,243 +719,6 @@
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
-<a href="#722" id="722">722</a>
-<a href="#723" id="723">723</a>
-<a href="#724" id="724">724</a>
-<a href="#725" id="725">725</a>
-<a href="#726" id="726">726</a>
-<a href="#727" id="727">727</a>
-<a href="#728" id="728">728</a>
-<a href="#729" id="729">729</a>
-<a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
-<a href="#734" id="734">734</a>
-<a href="#735" id="735">735</a>
-<a href="#736" id="736">736</a>
-<a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
-<a href="#741" id="741">741</a>
-<a href="#742" id="742">742</a>
-<a href="#743" id="743">743</a>
-<a href="#744" id="744">744</a>
-<a href="#745" id="745">745</a>
-<a href="#746" id="746">746</a>
-<a href="#747" id="747">747</a>
-<a href="#748" id="748">748</a>
-<a href="#749" id="749">749</a>
-<a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
-<a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
-<a href="#775" id="775">775</a>
-<a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
-<a href="#778" id="778">778</a>
-<a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
-<a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
-<a href="#821" id="821">821</a>
-<a href="#822" id="822">822</a>
-<a href="#823" id="823">823</a>
-<a href="#824" id="824">824</a>
-<a href="#825" id="825">825</a>
-<a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
-<a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
-<a href="#830" id="830">830</a>
-<a href="#831" id="831">831</a>
-<a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
-<a href="#866" id="866">866</a>
-<a href="#867" id="867">867</a>
-<a href="#868" id="868">868</a>
-<a href="#869" id="869">869</a>
-<a href="#870" id="870">870</a>
-<a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
-<a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
-<a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # Error management
 //!
 //! Errors are designed with multiple needs in mind:
@@ -976,16 +739,15 @@
 //! - [`VerboseError`]
 //! - [Custom errors][crate::_topic::error]
 
-</span><span class="attr">#![allow(deprecated)]
-
-#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::lib::std::borrow::ToOwned;
 <span class="kw">use </span><span class="kw">crate</span>::lib::std::fmt;
 <span class="kw">use </span>core::num::NonZeroUsize;
 
 <span class="kw">use </span><span class="kw">crate</span>::stream::Stream;
 <span class="kw">use </span><span class="kw">crate</span>::stream::StreamIsPartial;
-<span class="kw">use </span><span class="kw">crate</span>::Parser;
+<span class="attr">#[allow(unused_imports)] </span><span class="comment">// Here for intra-doc links
+</span><span class="kw">use </span><span class="kw">crate</span>::Parser;
 
 <span class="doccomment">/// Holds the result of [`Parser`]
 ///
@@ -999,6 +761,7 @@
 </span><span class="kw">pub type </span>IResult&lt;I, O, E = Error&lt;I&gt;&gt; = <span class="prelude-ty">Result</span>&lt;(I, O), ErrMode&lt;E&gt;&gt;;
 
 <span class="doccomment">/// Extension trait to convert a parser&#39;s [`IResult`] to a more manageable type
+</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.4.0&quot;</span>, note = <span class="string">&quot;Replaced with `Parser::parse`&quot;</span>)]
 </span><span class="kw">pub trait </span>FinishIResult&lt;I, O, E&gt; {
     <span class="doccomment">/// Converts the parser&#39;s [`IResult`] to a type that is more consumable by callers.
     ///
@@ -1028,6 +791,7 @@
     ///     hex_uint.map(Hex).parse_next(value).finish().map_err(Error::into_owned)
     /// }
     /// ```
+    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.4.0&quot;</span>, note = <span class="string">&quot;Replaced with `Parser::parse`&quot;</span>)]
     </span><span class="kw">fn </span>finish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;O, E&gt;;
 
     <span class="doccomment">/// Converts the parser&#39;s [`IResult`] to a type that is more consumable by errors.
@@ -1040,10 +804,12 @@
     /// If the result is `Err(ErrMode::Incomplete(_))`, this method will panic as [`ErrMode::Incomplete`]
     /// should only be set when the input is [`StreamIsPartial&lt;false&gt;`] which this isn&#39;t implemented
     /// for.
+    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.4.0&quot;</span>, note = <span class="string">&quot;Replaced with `Parser::parse`&quot;</span>)]
     </span><span class="kw">fn </span>finish_err(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(I, O), E&gt;;
 }
 
-<span class="kw">impl</span>&lt;I, O, E&gt; FinishIResult&lt;I, O, E&gt; <span class="kw">for </span>IResult&lt;I, O, E&gt;
+<span class="attr">#[allow(deprecated)]
+</span><span class="kw">impl</span>&lt;I, O, E&gt; FinishIResult&lt;I, O, E&gt; <span class="kw">for </span>IResult&lt;I, O, E&gt;
 <span class="kw">where
     </span>I: Stream,
     <span class="comment">// Force users to deal with `Incomplete` when `StreamIsPartial&lt;true&gt;`
@@ -1073,34 +839,6 @@
             <span class="prelude-val">Err</span>(ErrMode::Backtrack(e)) | <span class="prelude-val">Err</span>(ErrMode::Cut(e)) =&gt; <span class="prelude-val">Err</span>(e),
             <span class="prelude-val">Err</span>(ErrMode::Incomplete(<span class="kw">_</span>)) =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;complete parsers should not report `Err(ErrMode::Incomplete(_))`&quot;</span>)
-            }
-        }
-    }
-}
-
-<span class="attr">#[doc(hidden)]
-#[deprecated(
-    since = <span class="string">&quot;0.1.0&quot;</span>,
-    note = <span class="string">&quot;Replaced with `FinishIResult` which is available via `winnow::prelude`&quot;
-</span>)]
-#[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-</span><span class="kw">pub trait </span>Finish&lt;I, O, E&gt; {
-    <span class="attr">#[deprecated(
-        since = <span class="string">&quot;0.1.0&quot;</span>,
-        note = <span class="string">&quot;Replaced with `FinishIResult::finish_err` which is available via `winnow::prelude`&quot;
-    </span>)]
-    #[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-    </span><span class="kw">fn </span>finish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(I, O), E&gt;;
-}
-
-<span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;I, O, E&gt; Finish&lt;I, O, E&gt; <span class="kw">for </span>IResult&lt;I, O, E&gt; {
-    <span class="kw">fn </span>finish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(I, O), E&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="prelude-val">Ok</span>(res) =&gt; <span class="prelude-val">Ok</span>(res),
-            <span class="prelude-val">Err</span>(ErrMode::Backtrack(e)) | <span class="prelude-val">Err</span>(ErrMode::Cut(e)) =&gt; <span class="prelude-val">Err</span>(e),
-            <span class="prelude-val">Err</span>(ErrMode::Incomplete(<span class="kw">_</span>)) =&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;Cannot call `finish()` on `Err(ErrMode::Incomplete(_))`: this result means that the parser does not have enough data to decide, you should gather more data and try to reapply  the parser instead&quot;</span>)
             }
         }
     }
@@ -1274,26 +1012,6 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">impl </span>ErrMode&lt;Error&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
-    <span class="doccomment">/// Deprecated, replaced with [`Error::into_owned`]
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.3.0&quot;</span>, note = <span class="string">&quot;Replaced with `Error::into_owned`&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-    </span><span class="kw">pub fn </span>to_owned(<span class="self">self</span>) -&gt; ErrMode&lt;Error&lt;<span class="kw">crate</span>::lib::std::vec::Vec&lt;u8&gt;&gt;&gt; {
-        <span class="self">self</span>.map_input(ToOwned::to_owned)
-    }
-}
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">impl </span>ErrMode&lt;Error&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
-    <span class="doccomment">/// Deprecated, replaced with [`Error::into_owned`]
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.3.0&quot;</span>, note = <span class="string">&quot;Replaced with `Error::into_owned`&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-    </span><span class="kw">pub fn </span>to_owned(<span class="self">self</span>) -&gt; ErrMode&lt;Error&lt;<span class="kw">crate</span>::lib::std::string::String&gt;&gt; {
-        <span class="self">self</span>.map_input(ToOwned::to_owned)
-    }
-}
-
 <span class="kw">impl</span>&lt;E: Eq&gt; Eq <span class="kw">for </span>ErrMode&lt;E&gt; {}
 
 <span class="kw">impl</span>&lt;E&gt; fmt::Display <span class="kw">for </span>ErrMode&lt;E&gt;
@@ -1336,13 +1054,6 @@
     /// way.
     </span><span class="kw">fn </span>append(<span class="self">self</span>, input: I, kind: ErrorKind) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Creates an error from an input position and an expected character
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ContextError`&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-    </span><span class="kw">fn </span>from_char(input: I, <span class="kw">_</span>: char) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_error_kind(input, ErrorKind::Char)
-    }
-
     <span class="doccomment">/// Combines errors from two different parse branches.
     ///
     /// For example, this would be used by [`alt`][crate::branch::alt] to report the error from
@@ -1352,13 +1063,13 @@
     }
 }
 
-<span class="doccomment">/// Used by the [`context`] to add custom data to error while backtracking
+<span class="doccomment">/// Used by [`Parser::context`] to add custom data to error while backtracking
 ///
 /// May be implemented multiple times for different kinds of context.
 </span><span class="kw">pub trait </span>ContextError&lt;I, C = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;: Sized {
     <span class="doccomment">/// Append to an existing error custom data
     ///
-    /// This is used mainly in the [`context`] combinator, to add user friendly information
+    /// This is used mainly by [`Parser::context`], to add user friendly information
     /// to errors when backtracking through a parse tree
     </span><span class="kw">fn </span>add_context(<span class="self">self</span>, _input: I, _ctx: C) -&gt; <span class="self">Self </span>{
         <span class="self">self
@@ -1386,7 +1097,7 @@
 ///:w
 /// **Note:** [context][Parser::context] and inner errors (like from [`Parser::map_res`]) will be
 /// dropped.
-</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Error&lt;I&gt; {
     <span class="doccomment">/// The input stream, pointing to the location where the error occurred
     </span><span class="kw">pub </span>input: I,
@@ -1473,22 +1184,6 @@
 
 <span class="kw">impl </span>ErrorConvert&lt;()&gt; <span class="kw">for </span>() {
     <span class="kw">fn </span>convert(<span class="self">self</span>) {}
-}
-
-<span class="doccomment">/// Creates an error from the input position and an [`ErrorKind`]
-</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ParseError::from_error_kind`&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-</span><span class="kw">pub fn </span>make_error&lt;I, E: ParseError&lt;I&gt;&gt;(input: I, kind: ErrorKind) -&gt; E {
-    E::from_error_kind(input, kind)
-}
-
-<span class="doccomment">/// Combines an existing error with a new one created from the input
-/// position and an [`ErrorKind`]. This is useful when backtracking
-/// through a parse tree, accumulating error context on the way
-</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ParseError::append`&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-</span><span class="kw">pub fn </span>append_error&lt;I, E: ParseError&lt;I&gt;&gt;(input: I, kind: ErrorKind, other: E) -&gt; E {
-    other.append(input, kind)
 }
 
 <span class="doccomment">/// Accumulates error information while backtracking
@@ -1597,28 +1292,6 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl</span>&lt;I: fmt::Debug + fmt::Display + Sync + Send + <span class="lifetime">&#39;static</span>&gt; std::error::Error <span class="kw">for </span>VerboseError&lt;I&gt; {}
 
-<span class="doccomment">/// Create a new error from an input position, a static string and an existing error.
-/// This is used mainly in the [context] combinator, to add user friendly information
-/// to errors when backtracking through a parse tree
-///
-/// **WARNING:** Deprecated, replaced with [`Parser::context`]
-</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.1.0&quot;</span>, note = <span class="string">&quot;Replaced with `Parser::context&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-</span><span class="kw">pub fn </span>context&lt;I: Clone, E: ContextError&lt;I, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;, F, O&gt;(
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-    <span class="kw-2">mut </span>f: F,
-) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, O, E&gt;
-<span class="kw">where
-    </span>F: Parser&lt;I, O, E&gt;,
-{
-    <span class="kw">move </span>|i: I| <span class="kw">match </span>f.parse_next(i.clone()) {
-        <span class="prelude-val">Ok</span>(o) =&gt; <span class="prelude-val">Ok</span>(o),
-        <span class="prelude-val">Err</span>(ErrMode::Incomplete(i)) =&gt; <span class="prelude-val">Err</span>(ErrMode::Incomplete(i)),
-        <span class="prelude-val">Err</span>(ErrMode::Backtrack(e)) =&gt; <span class="prelude-val">Err</span>(ErrMode::Backtrack(e.add_context(i, context))),
-        <span class="prelude-val">Err</span>(ErrMode::Cut(e)) =&gt; <span class="prelude-val">Err</span>(ErrMode::Cut(e.add_context(i, context))),
-    }
-}
-
 <span class="doccomment">/// Transforms a `VerboseError` into a trace with input position information
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">pub fn </span>convert_error&lt;I: core::ops::Deref&lt;Target = str&gt;&gt;(
@@ -1701,218 +1374,70 @@
     result
 }
 
-<span class="doccomment">/// Indicates which parser returned an error
+<span class="doccomment">/// Provide some minor debug context for errors
 </span><span class="attr">#[rustfmt::skip]
 #[derive(Debug,PartialEq,Eq,Hash,Clone,Copy)]
-#[allow(deprecated,missing_docs)]
+#[allow(missing_docs)]
 </span><span class="kw">pub enum </span>ErrorKind {
   Assert,
+  Token,
   Tag,
-  MapRes,
   Alt,
-  IsNot,
-  IsA,
-  SeparatedList,
-  SeparatedNonEmptyList,
-  Many0,
-  Many1,
-  ManyTill,
-  Count,
-  TakeUntil,
-  LengthValue,
-  TagClosure,
-  Alpha,
-  Digit,
-  HexDigit,
-  OctDigit,
-  AlphaNumeric,
-  Space,
-  MultiSpace,
-  LengthValueFn,
+  Many,
   Eof,
-  Switch,
-  TagBits,
-  OneOf,
-  NoneOf,
-  Char,
-  CrLf,
-  RegexpMatch,
-  RegexpMatches,
-  RegexpFind,
-  RegexpCapture,
-  RegexpCaptures,
-  TakeWhile1,
+  Slice,
   Complete,
-  Fix,
-  Escaped,
-  EscapedTransform,
-  NonEmpty,
-  ManyMN,
   Not,
-  Permutation,
   Verify,
-  TakeTill1,
-  TakeWhileMN,
-  TooLarge,
-  Many0Count,
-  Many1Count,
-  Float,
-  Satisfy,
   Fail,
 }
 
 <span class="kw">impl </span>ErrorKind {
     <span class="attr">#[rustfmt::skip]
-  #[allow(deprecated)]
     </span><span class="doccomment">/// Converts an `ErrorKind` to a text description
     </span><span class="kw">pub fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
     <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-      ErrorKind::Assert                    =&gt; <span class="string">&quot;Assert&quot;</span>,
-      ErrorKind::Tag                       =&gt; <span class="string">&quot;Tag&quot;</span>,
-      ErrorKind::MapRes                    =&gt; <span class="string">&quot;Map on Result&quot;</span>,
-      ErrorKind::Alt                       =&gt; <span class="string">&quot;Alternative&quot;</span>,
-      ErrorKind::IsNot                     =&gt; <span class="string">&quot;IsNot&quot;</span>,
-      ErrorKind::IsA                       =&gt; <span class="string">&quot;IsA&quot;</span>,
-      ErrorKind::SeparatedList             =&gt; <span class="string">&quot;Separated list&quot;</span>,
-      ErrorKind::SeparatedNonEmptyList     =&gt; <span class="string">&quot;Separated non empty list&quot;</span>,
-      ErrorKind::Many0                     =&gt; <span class="string">&quot;Many0&quot;</span>,
-      ErrorKind::Many1                     =&gt; <span class="string">&quot;Many1&quot;</span>,
-      ErrorKind::Count                     =&gt; <span class="string">&quot;Count&quot;</span>,
-      ErrorKind::TakeUntil                 =&gt; <span class="string">&quot;Take until&quot;</span>,
-      ErrorKind::LengthValue               =&gt; <span class="string">&quot;Length followed by value&quot;</span>,
-      ErrorKind::TagClosure                =&gt; <span class="string">&quot;Tag closure&quot;</span>,
-      ErrorKind::Alpha                     =&gt; <span class="string">&quot;Alphabetic&quot;</span>,
-      ErrorKind::Digit                     =&gt; <span class="string">&quot;Digit&quot;</span>,
-      ErrorKind::AlphaNumeric              =&gt; <span class="string">&quot;AlphaNumeric&quot;</span>,
-      ErrorKind::Space                     =&gt; <span class="string">&quot;Space&quot;</span>,
-      ErrorKind::MultiSpace                =&gt; <span class="string">&quot;Multiple spaces&quot;</span>,
-      ErrorKind::LengthValueFn             =&gt; <span class="string">&quot;LengthValueFn&quot;</span>,
-      ErrorKind::Eof                       =&gt; <span class="string">&quot;End of file&quot;</span>,
-      ErrorKind::Switch                    =&gt; <span class="string">&quot;Switch&quot;</span>,
-      ErrorKind::TagBits                   =&gt; <span class="string">&quot;Tag on bitstream&quot;</span>,
-      ErrorKind::OneOf                     =&gt; <span class="string">&quot;OneOf&quot;</span>,
-      ErrorKind::NoneOf                    =&gt; <span class="string">&quot;NoneOf&quot;</span>,
-      ErrorKind::Char                      =&gt; <span class="string">&quot;Char&quot;</span>,
-      ErrorKind::CrLf                      =&gt; <span class="string">&quot;CrLf&quot;</span>,
-      ErrorKind::RegexpMatch               =&gt; <span class="string">&quot;RegexpMatch&quot;</span>,
-      ErrorKind::RegexpMatches             =&gt; <span class="string">&quot;RegexpMatches&quot;</span>,
-      ErrorKind::RegexpFind                =&gt; <span class="string">&quot;RegexpFind&quot;</span>,
-      ErrorKind::RegexpCapture             =&gt; <span class="string">&quot;RegexpCapture&quot;</span>,
-      ErrorKind::RegexpCaptures            =&gt; <span class="string">&quot;RegexpCaptures&quot;</span>,
-      ErrorKind::TakeWhile1                =&gt; <span class="string">&quot;TakeWhile1&quot;</span>,
-      ErrorKind::Complete                  =&gt; <span class="string">&quot;Complete&quot;</span>,
-      ErrorKind::Fix                       =&gt; <span class="string">&quot;Fix&quot;</span>,
-      ErrorKind::Escaped                   =&gt; <span class="string">&quot;Escaped&quot;</span>,
-      ErrorKind::EscapedTransform          =&gt; <span class="string">&quot;EscapedTransform&quot;</span>,
-      ErrorKind::NonEmpty                  =&gt; <span class="string">&quot;NonEmpty&quot;</span>,
-      ErrorKind::ManyMN                    =&gt; <span class="string">&quot;Many(m, n)&quot;</span>,
-      ErrorKind::HexDigit                  =&gt; <span class="string">&quot;Hexadecimal Digit&quot;</span>,
-      ErrorKind::OctDigit                  =&gt; <span class="string">&quot;Octal digit&quot;</span>,
-      ErrorKind::Not                       =&gt; <span class="string">&quot;Negation&quot;</span>,
-      ErrorKind::Permutation               =&gt; <span class="string">&quot;Permutation&quot;</span>,
-      ErrorKind::ManyTill                  =&gt; <span class="string">&quot;ManyTill&quot;</span>,
+      ErrorKind::Assert                    =&gt; <span class="string">&quot;assert&quot;</span>,
+      ErrorKind::Token                     =&gt; <span class="string">&quot;token&quot;</span>,
+      ErrorKind::Tag                       =&gt; <span class="string">&quot;tag&quot;</span>,
+      ErrorKind::Alt                       =&gt; <span class="string">&quot;alternative&quot;</span>,
+      ErrorKind::Many                      =&gt; <span class="string">&quot;many&quot;</span>,
+      ErrorKind::Eof                       =&gt; <span class="string">&quot;end of file&quot;</span>,
+      ErrorKind::Slice                     =&gt; <span class="string">&quot;slice&quot;</span>,
+      ErrorKind::Complete                  =&gt; <span class="string">&quot;complete&quot;</span>,
+      ErrorKind::Not                       =&gt; <span class="string">&quot;negation&quot;</span>,
       ErrorKind::Verify                    =&gt; <span class="string">&quot;predicate verification&quot;</span>,
-      ErrorKind::TakeTill1                 =&gt; <span class="string">&quot;TakeTill1&quot;</span>,
-      ErrorKind::TakeWhileMN               =&gt; <span class="string">&quot;TakeWhileMN&quot;</span>,
-      ErrorKind::TooLarge                  =&gt; <span class="string">&quot;Needed data size is too large&quot;</span>,
-      ErrorKind::Many0Count                =&gt; <span class="string">&quot;Count occurrence of &gt;=0 patterns&quot;</span>,
-      ErrorKind::Many1Count                =&gt; <span class="string">&quot;Count occurrence of &gt;=1 patterns&quot;</span>,
-      ErrorKind::Float                     =&gt; <span class="string">&quot;Float&quot;</span>,
-      ErrorKind::Satisfy                   =&gt; <span class="string">&quot;Satisfy&quot;</span>,
-      ErrorKind::Fail                      =&gt; <span class="string">&quot;Fail&quot;</span>,
+      ErrorKind::Fail                      =&gt; <span class="string">&quot;fail&quot;</span>,
     }
   }
 }
 
 <span class="doccomment">/// Creates a parse error from a [`ErrorKind`]
 /// and the position in the input
-</span><span class="attr">#[allow(unused_variables)]
-#[macro_export(local_inner_macros)]
-#[cfg_attr(
-    not(test),
-    deprecated(since = <span class="string">&quot;0.3.0&quot;</span>, note = <span class="string">&quot;Replaced with `E::from_error_kind`&quot;</span>)
-)]
-#[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
+</span><span class="attr">#[cfg(test)]
 </span><span class="macro">macro_rules! </span>error_position(
   (<span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$code</span>:expr) =&gt; ({
     <span class="macro-nonterminal">$crate::error::ParseError::from_error_kind</span>(<span class="macro-nonterminal">$input</span>, <span class="macro-nonterminal">$code</span>)
   });
 );
 
-<span class="doccomment">/// Creates a parse error from a [`ErrorKind`],
-/// the position in the input and the next error in
-/// the parsing tree
-</span><span class="attr">#[allow(unused_variables)]
-#[macro_export(local_inner_macros)]
-#[cfg_attr(
-    not(test),
-    deprecated(since = <span class="string">&quot;0.3.0&quot;</span>, note = <span class="string">&quot;Replaced with `E::append`&quot;</span>)
-)]
-#[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
+<span class="attr">#[cfg(test)]
 </span><span class="macro">macro_rules! </span>error_node_position(
   (<span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$code</span>:expr, <span class="macro-nonterminal">$next</span>:expr) =&gt; ({
     <span class="macro-nonterminal">$crate::error::ParseError::append</span>(<span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$input</span>, <span class="macro-nonterminal">$code</span>)
   });
 );
 
-<span class="doccomment">/// Prints a message and the input if the parser fails.
-///
-/// The message prints the `Backtrack` or `Incomplete`
-/// and the parser&#39;s calling kind.
-///
-/// It also displays the input in hexdump format
-///
-/// **WARNING:** Deprecated, replaced with [`trace`][crate::trace] and the `debug` feature flag.
-///
-/// ```rust
-/// use winnow::{IResult, error::dbg_dmp, bytes::tag};
-///
-/// fn f(i: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
-///   dbg_dmp(tag(&quot;abcd&quot;), &quot;tag&quot;)(i)
-/// }
-///
-///   let a = &amp;b&quot;efghijkl&quot;[..];
-///
-/// // Will print the following message:
-/// // Error(Position(0, [101, 102, 103, 104, 105, 106, 107, 108])) at l.5 by &#39; tag ! ( &quot;abcd&quot; ) &#39;
-/// // 00000000        65 66 67 68 69 6a 6b 6c         efghijkl
-/// f(a);
-/// ```
-</span><span class="attr">#[deprecated(
-    since = <span class="string">&quot;0.1.0&quot;</span>,
-    note = <span class="string">&quot;Replaced with `trace` and the `debug` feature flag&quot;
-</span>)]
-#[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">pub fn </span>dbg_dmp&lt;<span class="lifetime">&#39;a</span>, F, O, E: std::fmt::Debug&gt;(
-    <span class="kw-2">mut </span>f: F,
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-) -&gt; <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], O, E&gt;
-<span class="kw">where
-    </span>F: Parser&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], O, E&gt;,
-{
-    <span class="kw">use </span><span class="kw">crate</span>::stream::HexDisplay;
-    <span class="kw">move </span>|i: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]| <span class="kw">match </span>f.parse_next(i) {
-        <span class="prelude-val">Err</span>(e) =&gt; {
-            <span class="macro">println!</span>(<span class="string">&quot;{}: Error({:?}) at:\n{}&quot;</span>, context, e, i.to_hex(<span class="number">8</span>));
-            <span class="prelude-val">Err</span>(e)
-        }
-        a =&gt; a,
-    }
-}
-
 <span class="attr">#[cfg(test)]
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><span class="kw">crate</span>::bytes::one_of;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>convert_error_panic() {
         <span class="kw">let </span>input = <span class="string">&quot;&quot;</span>;
 
-        <span class="kw">let </span>_result: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, VerboseError&lt;<span class="kw-2">&amp;</span>str&gt;&gt; = one_of(<span class="string">&#39;x&#39;</span>)(input);
+        <span class="kw">let </span>_result: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, VerboseError&lt;<span class="kw-2">&amp;</span>str&gt;&gt; = <span class="string">&#39;x&#39;</span>.parse_next(input);
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

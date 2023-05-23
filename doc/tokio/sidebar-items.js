@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["spawn"],"macro":["pin","task_local"],"mod":["fs","io","net","process","runtime","stream","sync","task","time"]};
+window.SIDEBAR_ITEMS = {"macro":["pin","task_local"],"mod":["fs","io","net","process","runtime","stream","sync","task","time"]};

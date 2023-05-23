@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs`."><title>mir_dataflow.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs`."><title>mir_dataflow.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1080,6 +1080,9 @@
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
 </pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:
 // https://github.com/rust-lang/rust/blob/661e8beec1fa5f3c58bf6e4362ae3c3fe0b4b1bd/compiler/rustc_mir_dataflow/src/elaborate_drops.rs
 // This file is licensed under Apache 2.0
@@ -1096,6 +1099,7 @@
 </span><span class="kw">use </span>log::debug;
 <span class="kw">use </span>prusti_interface::environment::mir_body::patch::MirPatch;
 <span class="kw">use </span>prusti_rustc_interface::{
+    abi::FieldIdx,
     dataflow::elaborate_drops::{DropFlagMode, DropStyle, Unwind},
     hir,
     hir::lang_items::LangItem,
@@ -1177,7 +1181,7 @@
     </span><span class="doccomment">/// Returns the subpath of a field of `path` (or `None` if there is no dedicated subpath).
     ///
     /// If this returns `None`, `field` will not get a dedicated drop flag.
-    </span><span class="kw">fn </span>field_subpath(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, field: Field) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Path&gt;;
+    </span><span class="kw">fn </span>field_subpath(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="self">Self</span>::Path, field: FieldIdx) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Path&gt;;
 
     <span class="doccomment">/// Returns the subpath of a dereference of `path` (or `None` if there is no dedicated subpath).
     ///
@@ -1325,7 +1329,7 @@
             .iter()
             .enumerate()
             .map(|(i, f)| {
-                <span class="kw">let </span>field = Field::new(i);
+                <span class="kw">let </span>field = FieldIdx::from_usize(i);
                 <span class="kw">let </span>subpath = <span class="self">self</span>.elaborator.field_subpath(variant_path, field);
                 <span class="kw">let </span>tcx = <span class="self">self</span>.tcx();
 
@@ -1465,8 +1469,10 @@
             .enumerate()
             .map(|(i, <span class="kw-2">&amp;</span>ty)| {
                 (
-                    <span class="self">self</span>.tcx().mk_place_field(<span class="self">self</span>.place, Field::new(i), ty),
-                    <span class="self">self</span>.elaborator.field_subpath(<span class="self">self</span>.path, Field::new(i)),
+                    <span class="self">self</span>.tcx()
+                        .mk_place_field(<span class="self">self</span>.place, FieldIdx::from_usize(i), ty),
+                    <span class="self">self</span>.elaborator
+                        .field_subpath(<span class="self">self</span>.path, FieldIdx::from_usize(i)),
                 )
             })
             .collect();
@@ -2063,7 +2069,7 @@
             .iter()
             .enumerate()
             .map(|(i, f)| {
-                <span class="kw">let </span>field = Field::new(i);
+                <span class="kw">let </span>field = FieldIdx::from_usize(i);
                 <span class="kw">let </span>field_ty = f.ty(tcx, substs);
                 Operand::Move(tcx.mk_place_field(<span class="self">self</span>.place, field, field_ty))
             })
@@ -2162,5 +2168,4 @@
         }
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-static-root-path="../../../../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ParsedPkcs12","Pkcs12","Pkcs12Builder","Pkcs12Ref"]};
+window.SIDEBAR_ITEMS = {"struct":["ParsedPkcs12","ParsedPkcs12_2","Pkcs12","Pkcs12Builder","Pkcs12Ref"]};

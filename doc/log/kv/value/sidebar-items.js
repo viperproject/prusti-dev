@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Error","Value"],"trait":["ToValue","Visit"]};
+window.SIDEBAR_ITEMS = {"struct":["Value"],"trait":["ToValue","Visit"]};

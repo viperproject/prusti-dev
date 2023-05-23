@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/openssl-0.10.45/src/asn1.rs`."><title>asn1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/openssl-0.10.50/src/asn1.rs`."><title>asn1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -767,6 +767,73 @@
 <a href="#767" id="767">767</a>
 <a href="#768" id="768">768</a>
 <a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
 </pre><pre class="rust"><code><span class="attr">#![deny(missing_docs)]
 
 </span><span class="doccomment">//! Defines the format of certificates
@@ -796,8 +863,7 @@
 </span><span class="kw">use </span>cfg_if::cfg_if;
 <span class="kw">use </span>foreign_types::{ForeignType, ForeignTypeRef};
 <span class="kw">use </span>libc::{c_char, c_int, c_long, time_t};
-<span class="attr">#[cfg(ossl102)]
-</span><span class="kw">use </span>std::cmp::Ordering;
+<span class="kw">use </span>std::cmp::Ordering;
 <span class="kw">use </span>std::ffi::CString;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::ptr;
@@ -808,6 +874,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::bn::{BigNum, BigNumRef};
 <span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
 <span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+<span class="kw">use </span><span class="kw">crate</span>::stack::Stackable;
 <span class="kw">use </span><span class="kw">crate</span>::string::OpensslString;
 <span class="kw">use crate</span>::{cvt, cvt_p};
 <span class="kw">use </span>openssl_macros::corresponds;
@@ -956,7 +1023,7 @@
     /// [ASN_TIME_set] documentation at OpenSSL explains the ASN.1 implementation
     /// used by OpenSSL.
     ///
-    /// [ASN_TIME_set]: https://www.openssl.org/docs/man1.1.0/crypto/ASN1_TIME_set.html
+    /// [ASN_TIME_set]: https://www.openssl.org/docs/manmaster/crypto/ASN1_TIME_set.html
     </span><span class="kw">pub struct </span>Asn1Time;
     <span class="doccomment">/// Reference to an [`Asn1Time`]
     ///
@@ -1192,7 +1259,7 @@
     /// structures.  This implementation uses [ASN1_STRING-to_UTF8] to preserve
     /// compatibility with Rust&#39;s String.
     ///
-    /// [ASN1_STRING-to_UTF8]: https://www.openssl.org/docs/man1.1.0/crypto/ASN1_STRING_to_UTF8.html
+    /// [ASN1_STRING-to_UTF8]: https://www.openssl.org/docs/manmaster/crypto/ASN1_STRING_to_UTF8.html
     </span><span class="kw">pub struct </span>Asn1String;
     <span class="doccomment">/// A reference to an [`Asn1String`].
     </span><span class="kw">pub struct </span>Asn1StringRef;
@@ -1261,7 +1328,7 @@
     /// OpenSSL documentation includes [`ASN1_INTEGER_set`].
     ///
     /// [`bn`]: ../bn/index.html
-    /// [`ASN1_INTEGER_set`]: https://www.openssl.org/docs/man1.1.0/crypto/ASN1_INTEGER_set.html
+    /// [`ASN1_INTEGER_set`]: https://www.openssl.org/docs/manmaster/crypto/ASN1_INTEGER_set.html
     </span><span class="kw">pub struct </span>Asn1Integer;
     <span class="doccomment">/// A reference to an [`Asn1Integer`].
     </span><span class="kw">pub struct </span>Asn1IntegerRef;
@@ -1273,10 +1340,27 @@
     /// Corresponds to [`BN_to_ASN1_INTEGER`]. Also see
     /// [`BigNumRef::to_asn1_integer`].
     ///
-    /// [`BN_to_ASN1_INTEGER`]: https://www.openssl.org/docs/man1.1.0/crypto/BN_to_ASN1_INTEGER.html
+    /// [`BN_to_ASN1_INTEGER`]: https://www.openssl.org/docs/manmaster/crypto/BN_to_ASN1_INTEGER.html
     /// [`BigNumRef::to_asn1_integer`]: ../bn/struct.BigNumRef.html#method.to_asn1_integer
     </span><span class="kw">pub fn </span>from_bn(bn: <span class="kw-2">&amp;</span>BigNumRef) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ErrorStack&gt; {
         bn.to_asn1_integer()
+    }
+}
+
+<span class="kw">impl </span>Ord <span class="kw">for </span>Asn1Integer {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+        Asn1IntegerRef::cmp(<span class="self">self</span>, other)
+    }
+}
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>Asn1Integer {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Asn1Integer) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
+    }
+}
+<span class="kw">impl </span>Eq <span class="kw">for </span>Asn1Integer {}
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Asn1Integer {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Asn1Integer) -&gt; bool {
+        Asn1IntegerRef::eq(<span class="self">self</span>, other)
     }
 }
 
@@ -1303,6 +1387,30 @@
     </span><span class="attr">#[corresponds(ASN1_INTEGER_set)]
     </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
         <span class="kw">unsafe </span>{ cvt(ffi::ASN1_INTEGER_set(<span class="self">self</span>.as_ptr(), value <span class="kw">as </span>c_long)).map(|<span class="kw">_</span>| ()) }
+    }
+
+    <span class="doccomment">/// Creates a new Asn1Integer with the same value.
+    </span><span class="attr">#[corresponds(ASN1_INTEGER_dup)]
+    </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Asn1Integer, ErrorStack&gt; {
+        <span class="kw">unsafe </span>{ cvt_p(ffi::ASN1_INTEGER_dup(<span class="self">self</span>.as_ptr())).map(|p| Asn1Integer::from_ptr(p)) }
+    }
+}
+
+<span class="kw">impl </span>Ord <span class="kw">for </span>Asn1IntegerRef {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ ffi::ASN1_INTEGER_cmp(<span class="self">self</span>.as_ptr(), other.as_ptr()) };
+        res.cmp(<span class="kw-2">&amp;</span><span class="number">0</span>)
+    }
+}
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>Asn1IntegerRef {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Asn1IntegerRef) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
+    }
+}
+<span class="kw">impl </span>Eq <span class="kw">for </span>Asn1IntegerRef {}
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Asn1IntegerRef {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Asn1IntegerRef) -&gt; bool {
+        <span class="self">self</span>.cmp(other) == Ordering::Equal
     }
 }
 
@@ -1355,10 +1463,14 @@
     ///
     /// [`Nid`]: ../nid/index.html
     /// [`nid::COMMONNAME`]: ../nid/constant.COMMONNAME.html
-    /// [`OBJ_nid2obj`]: https://www.openssl.org/docs/man1.1.0/crypto/OBJ_obj2nid.html
+    /// [`OBJ_nid2obj`]: https://www.openssl.org/docs/manmaster/crypto/OBJ_obj2nid.html
     </span><span class="kw">pub struct </span>Asn1Object;
     <span class="doccomment">/// A reference to an [`Asn1Object`].
     </span><span class="kw">pub struct </span>Asn1ObjectRef;
+}
+
+<span class="kw">impl </span>Stackable <span class="kw">for </span>Asn1Object {
+    <span class="kw">type </span>StackType = ffi::stack_st_ASN1_OBJECT;
 }
 
 <span class="kw">impl </span>Asn1Object {
@@ -1514,6 +1626,28 @@
     }
 
     <span class="attr">#[test]
+    </span><span class="kw">fn </span>integer_to_owned() {
+        <span class="kw">let </span>a = Asn1Integer::from_bn(<span class="kw-2">&amp;</span>BigNum::from_dec_str(<span class="string">&quot;42&quot;</span>).unwrap()).unwrap();
+        <span class="kw">let </span>b = a.to_owned().unwrap();
+        <span class="macro">assert_eq!</span>(
+            a.to_bn().unwrap().to_dec_str().unwrap().to_string(),
+            b.to_bn().unwrap().to_dec_str().unwrap().to_string(),
+        );
+        <span class="macro">assert_ne!</span>(a.as_ptr(), b.as_ptr());
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>integer_cmp() {
+        <span class="kw">let </span>a = Asn1Integer::from_bn(<span class="kw-2">&amp;</span>BigNum::from_dec_str(<span class="string">&quot;42&quot;</span>).unwrap()).unwrap();
+        <span class="kw">let </span>b = Asn1Integer::from_bn(<span class="kw-2">&amp;</span>BigNum::from_dec_str(<span class="string">&quot;42&quot;</span>).unwrap()).unwrap();
+        <span class="kw">let </span>c = Asn1Integer::from_bn(<span class="kw-2">&amp;</span>BigNum::from_dec_str(<span class="string">&quot;43&quot;</span>).unwrap()).unwrap();
+        <span class="macro">assert!</span>(a == b);
+        <span class="macro">assert!</span>(a != c);
+        <span class="macro">assert!</span>(a &lt; c);
+        <span class="macro">assert!</span>(c &gt; b);
+    }
+
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>object_from_str() {
         <span class="kw">let </span>object = Asn1Object::from_str(<span class="string">&quot;2.16.840.1.101.3.4.2.1&quot;</span>).unwrap();
         <span class="macro">assert_eq!</span>(object.nid(), Nid::SHA256);
@@ -1536,5 +1670,4 @@
         );
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="openssl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/procedure_encoder.rs`."><title>procedure_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/procedure_encoder.rs`."><title>procedure_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -6996,19 +6996,6 @@
 <a href="#6996" id="6996">6996</a>
 <a href="#6997" id="6997">6997</a>
 <a href="#6998" id="6998">6998</a>
-<a href="#6999" id="6999">6999</a>
-<a href="#7000" id="7000">7000</a>
-<a href="#7001" id="7001">7001</a>
-<a href="#7002" id="7002">7002</a>
-<a href="#7003" id="7003">7003</a>
-<a href="#7004" id="7004">7004</a>
-<a href="#7005" id="7005">7005</a>
-<a href="#7006" id="7006">7006</a>
-<a href="#7007" id="7007">7007</a>
-<a href="#7008" id="7008">7008</a>
-<a href="#7009" id="7009">7009</a>
-<a href="#7010" id="7010">7010</a>
-<a href="#7011" id="7011">7011</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -8464,6 +8451,7 @@
             | mir::StatementKind::FakeRead(..)
             | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::Coverage(..)
+            | mir::StatementKind::PlaceMention(..)
             | mir::StatementKind::Nop =&gt; <span class="macro">vec!</span>[],
 
             mir::StatementKind::Assign(<span class="kw">box </span>(lhs, <span class="kw-2">ref </span>rhs)) =&gt; {
@@ -9193,8 +9181,8 @@
                 );
                 <span class="comment">// Inhale the magic wand.
                 </span><span class="kw">let </span>magic_wand = vir::Expr::MagicWand( vir::MagicWand {
-                    left: <span class="kw">box </span>lhs.clone(),
-                    right: <span class="kw">box </span>rhs.clone(),
+                    left: Box::new(lhs.clone()),
+                    right: Box::new(rhs.clone()),
                     borrow: <span class="prelude-val">Some</span>(loan.index().into()),
                     position: pos,
                 });
@@ -9463,20 +9451,6 @@
 
             TerminatorKind::FalseUnwind { real_target, .. } =&gt; {
                 (stmts, MirSuccessor::Goto(real_target))
-            }
-
-            TerminatorKind::DropAndReplace {
-                target,
-                place: lhs,
-                <span class="kw-2">ref </span>value,
-                ..
-            } =&gt; {
-                <span class="kw">let </span>(encoded_lhs, pre_stmts, <span class="kw">_</span>, <span class="kw">_</span>) = <span class="self">self</span>.encode_place(lhs, ArrayAccessKind::Mutable(<span class="prelude-val">None</span>, location), location)<span class="question-mark">?</span>;
-                stmts.extend(pre_stmts);
-                stmts.extend(
-                    <span class="self">self</span>.encode_assign_operand(<span class="kw-2">&amp;</span>encoded_lhs, value, location)<span class="question-mark">?
-                </span>);
-                (stmts, MirSuccessor::Goto(target))
             }
 
             TerminatorKind::Call {
@@ -12014,8 +11988,8 @@
         <span class="kw">let </span>tmp_var = <span class="self">self</span>.get_pure_var_for_preserving_value(loop_head, place);
         vir::Expr::BinOp ( vir::BinOp {
             op_kind: vir::BinaryOpKind::EqCmp,
-            left: <span class="kw">box </span>tmp_var.into(),
-            right: <span class="kw">box </span>place.clone(),
+            left: Box::new(tmp_var.into()),
+            right: Box::new(place.clone()),
             position: vir::Position::default(),
         })
     }
@@ -13226,14 +13200,14 @@
         <span class="kw">let </span>val_ref_field = <span class="self">self</span>.encoder.encode_value_field(ty).with_span(span)<span class="question-mark">?</span>;
         <span class="kw">let </span>slice_expr = encoded_lhs.field(val_ref_field);
         stmts.push(<span class="macro">vir_stmt!</span>{ inhale [vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
-            base: <span class="kw">box </span>slice_expr.clone(),
+            base: Box::new(slice_expr.clone()),
             permission: vir::PermAmount::Write,
             position: vir::Position::default(),
         })]});
 
         <span class="kw">let </span>slice_perm = vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {
             predicate_type: slice_types.sequence_pred_type.clone(),
-            argument: <span class="kw">box </span>slice_expr.clone(),
+            argument: Box::new(slice_expr.clone()),
             permission: <span class="kw">if </span>is_mut { vir::PermAmount::Write } <span class="kw">else </span>{ vir::PermAmount::Read },
             position: vir::Position::default(),
         });
@@ -13971,7 +13945,7 @@
             PlaceEncoding::Variant { <span class="kw">box </span>base, field } =&gt; {
                 <span class="kw">let </span>(expr, stmts) = <span class="self">self</span>.postprocess_place_encoding(base, array_encode_kind)<span class="question-mark">?</span>;
                 (vir::Expr::Variant( vir::Variant {
-                    base: <span class="kw">box </span>expr,
+                    base: Box::new(expr),
                     variant_index: field,
                     position: vir::Position::default(),
                 }),
@@ -14020,5 +13994,4 @@
     spec_functions_span: MultiSpan,
     refinement_check_expr: vir::Expr,
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

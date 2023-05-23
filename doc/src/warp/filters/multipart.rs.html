@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/warp-0.3.3/src/filters/multipart.rs`."><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/warp-0.3.4/src/filters/multipart.rs`."><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -188,21 +188,41 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Multipart body filters
 //!
 //! Filters that extract a multipart body for a route.
 
-</span><span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::io::{Cursor, Read};
+</span><span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::pin::Pin;
 <span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::{fmt, io};
 
 <span class="kw">use </span>bytes::{Buf, Bytes};
 <span class="kw">use </span>futures_util::{future, Stream};
 <span class="kw">use </span>headers::ContentType;
+<span class="kw">use </span>hyper::Body;
 <span class="kw">use </span>mime::Mime;
-<span class="kw">use </span>multipart::server::Multipart;
+<span class="kw">use </span>multiparty::headers::Headers;
+<span class="kw">use </span>multiparty::server::owned_futures03::{FormData <span class="kw">as </span>FormDataInner, Part <span class="kw">as </span>PartInner};
 
 <span class="kw">use </span><span class="kw">crate</span>::filter::{Filter, FilterBase, Internal};
 <span class="kw">use </span><span class="kw">crate</span>::reject::{<span class="self">self</span>, Rejection};
@@ -222,17 +242,15 @@
 ///
 /// Extracted with a `warp::multipart::form` filter.
 </span><span class="kw">pub struct </span>FormData {
-    inner: Multipart&lt;Cursor&lt;::bytes::Bytes&gt;&gt;,
+    inner: FormDataInner&lt;BodyIoError&gt;,
 }
 
 <span class="doccomment">/// A single &quot;part&quot; of a multipart/form-data body.
 ///
 /// Yielded from the `FormData` stream.
 </span><span class="kw">pub struct </span>Part {
-    name: String,
-    filename: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    content_type: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+    headers: Headers,
+    part: PartInner&lt;BodyIoError&gt;,
 }
 
 <span class="doccomment">/// Create a `Filter` to extract a `multipart/form-data` body from a request.
@@ -276,9 +294,12 @@
 
         <span class="kw">let </span>filt = <span class="kw">super</span>::body::content_length_limit(<span class="self">self</span>.max_length)
             .and(boundary)
-            .and(<span class="kw">super</span>::body::bytes())
-            .map(|boundary, body| FormData {
-                inner: Multipart::with_body(Cursor::new(body), boundary),
+            .and(<span class="kw">super</span>::body::body())
+            .map(|boundary: String, body| {
+                <span class="kw">let </span>body = BodyIoError(body);
+                FormData {
+                    inner: FormDataInner::new(body, <span class="kw-2">&amp;</span>boundary),
+                }
             });
 
         <span class="kw">let </span>fut = filt.filter(Internal);
@@ -298,23 +319,18 @@
 <span class="kw">impl </span>Stream <span class="kw">for </span>FormData {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Part, <span class="kw">crate</span>::Error&gt;;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">match </span>(<span class="kw-2">*</span><span class="self">self</span>).inner.read_entry() {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>field)) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
-                field
-                    .data
-                    .read_to_end(<span class="kw-2">&amp;mut </span>data)
-                    .map_err(<span class="kw">crate</span>::Error::new)<span class="question-mark">?</span>;
-                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Part {
-                    name: field.headers.name.to_string(),
-                    filename: field.headers.filename,
-                    content_type: field.headers.content_type.map(|m| m.to_string()),
-                    data: <span class="prelude-val">Some</span>(data),
-                })))
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_next(cx) {
+            Poll::Pending =&gt; Poll::Pending,
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(part))) =&gt; {
+                <span class="kw">let </span>headers = <span class="kw">match </span>part.raw_headers().parse() {
+                    <span class="prelude-val">Ok</span>(headers) =&gt; headers,
+                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new(err)))),
+                };
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(Part { part, headers })))
             }
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new(e)))),
+            Poll::Ready(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new(err)))),
         }
     }
 }
@@ -324,44 +340,49 @@
 </span><span class="kw">impl </span>Part {
     <span class="doccomment">/// Get the name of this part.
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.name
+        <span class="kw-2">&amp;</span><span class="self">self</span>.headers.name
     }
 
     <span class="doccomment">/// Get the filename of this part, if present.
     </span><span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="self">self</span>.filename.as_deref()
+        <span class="self">self</span>.headers.filename.as_deref()
     }
 
     <span class="doccomment">/// Get the content-type of this part, if present.
     </span><span class="kw">pub fn </span>content_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="self">self</span>.content_type.as_deref()
+        <span class="self">self</span>.headers.content_type.as_deref()
     }
 
     <span class="doccomment">/// Asynchronously get some of the data for this `Part`.
     </span><span class="kw">pub async fn </span>data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Buf, <span class="kw">crate</span>::Error&gt;&gt; {
-        <span class="self">self</span>.take_data()
-    }
+        future::poll_fn(|cx| <span class="self">self</span>.poll_next(cx)).<span class="kw">await
+    </span>}
 
     <span class="doccomment">/// Convert this `Part` into a `Stream` of `Buf`s.
     </span><span class="kw">pub fn </span>stream(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Buf, <span class="kw">crate</span>::Error&gt;&gt; {
         PartStream(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>take_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;Bytes, <span class="kw">crate</span>::Error&gt;&gt; {
-        <span class="self">self</span>.data.take().map(|vec| <span class="prelude-val">Ok</span>(vec.into()))
+    <span class="kw">fn </span>poll_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;Bytes, <span class="kw">crate</span>::Error&gt;&gt;&gt; {
+        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.part).poll_next(cx) {
+            Poll::Pending =&gt; Poll::Pending,
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes))),
+            Poll::Ready(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new(err)))),
+        }
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Part {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>builder = f.debug_struct(<span class="string">&quot;Part&quot;</span>);
-        builder.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name);
+        builder.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.headers.name);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>filename) = <span class="self">self</span>.filename {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>filename) = <span class="self">self</span>.headers.filename {
             builder.field(<span class="string">&quot;filename&quot;</span>, filename);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>mime) = <span class="self">self</span>.content_type {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>mime) = <span class="self">self</span>.headers.content_type {
             builder.field(<span class="string">&quot;content_type&quot;</span>, mime);
         }
 
@@ -374,9 +395,25 @@
 <span class="kw">impl </span>Stream <span class="kw">for </span>PartStream {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Bytes, <span class="kw">crate</span>::Error&gt;;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        Poll::Ready(<span class="self">self</span>.<span class="number">0</span>.take_data())
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.poll_next(cx)
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="warp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+
+<span class="kw">struct </span>BodyIoError(Body);
+
+<span class="kw">impl </span>Stream <span class="kw">for </span>BodyIoError {
+    <span class="kw">type </span>Item = io::Result&lt;Bytes&gt;;
+
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll_next(cx) {
+            Poll::Pending =&gt; Poll::Pending,
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes))),
+            Poll::Ready(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err))) =&gt; {
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, err))))
+            }
+        }
+    }
+}
+</code></pre></div></section></main></body></html>

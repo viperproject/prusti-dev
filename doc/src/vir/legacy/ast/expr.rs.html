@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/expr.rs`."><title>expr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/expr.rs`."><title>expr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1922,6 +1922,57 @@
 <a href="#1922" id="1922">1922</a>
 <a href="#1923" id="1923">1923</a>
 <a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
+<a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
+<a href="#1958" id="1958">1958</a>
+<a href="#1959" id="1959">1959</a>
+<a href="#1960" id="1960">1960</a>
+<a href="#1961" id="1961">1961</a>
+<a href="#1962" id="1962">1962</a>
+<a href="#1963" id="1963">1963</a>
+<a href="#1964" id="1964">1964</a>
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -2374,12 +2425,12 @@
 
     <span class="kw">pub fn </span>predicate_access_predicate&lt;S: ToString&gt;(name: S, place: Expr, perm: PermAmount) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>pos = place.pos();
-        Expr::PredicateAccessPredicate(name.to_string(), <span class="kw">box </span>place, perm, pos)
+        Expr::PredicateAccessPredicate(name.to_string(), Box::new(place), perm, pos)
     }
 
     <span class="kw">pub fn </span>field_access_predicate(place: Expr, perm: PermAmount) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>pos = place.pos();
-        Expr::FieldAccessPredicate(<span class="kw">box </span>place, perm, pos)
+        Expr::FieldAccessPredicate(Box::new(place), perm, pos)
     }
 
     <span class="kw">pub fn </span>pred_permission(place: Expr, perm: PermAmount) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2389,27 +2440,27 @@
     }
 
     <span class="kw">pub fn </span>acc_permission(place: Expr, perm: PermAmount) -&gt; <span class="self">Self </span>{
-        Expr::FieldAccessPredicate(<span class="kw">box </span>place, perm, Position::default())
+        Expr::FieldAccessPredicate(Box::new(place), perm, Position::default())
     }
 
     <span class="kw">pub fn </span>labelled_old(label: <span class="kw-2">&amp;</span>str, expr: Expr) -&gt; <span class="self">Self </span>{
-        Expr::LabelledOld(label.to_string(), <span class="kw">box </span>expr, Position::default())
+        Expr::LabelledOld(label.to_string(), Box::new(expr), Position::default())
     }
 
     <span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>not(expr: Expr) -&gt; <span class="self">Self </span>{
-        Expr::UnaryOp(UnaryOpKind::Not, <span class="kw">box </span>expr, Position::default())
+        Expr::UnaryOp(UnaryOpKind::Not, Box::new(expr), Position::default())
     }
 
     <span class="kw">pub fn </span>minus(expr: Expr) -&gt; <span class="self">Self </span>{
-        Expr::UnaryOp(UnaryOpKind::Minus, <span class="kw">box </span>expr, Position::default())
+        Expr::UnaryOp(UnaryOpKind::Minus, Box::new(expr), Position::default())
     }
 
     <span class="kw">pub fn </span>gt_cmp(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
         Expr::BinOp(
             BinaryOpKind::GtCmp,
-            <span class="kw">box </span>left,
-            <span class="kw">box </span>right,
+            Box::new(left),
+            Box::new(right),
             Position::default(),
         )
     }
@@ -2417,8 +2468,8 @@
     <span class="kw">pub fn </span>ge_cmp(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
         Expr::BinOp(
             BinaryOpKind::GeCmp,
-            <span class="kw">box </span>left,
-            <span class="kw">box </span>right,
+            Box::new(left),
+            Box::new(right),
             Position::default(),
         )
     }
@@ -2426,8 +2477,8 @@
     <span class="kw">pub fn </span>lt_cmp(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
         Expr::BinOp(
             BinaryOpKind::LtCmp,
-            <span class="kw">box </span>left,
-            <span class="kw">box </span>right,
+            Box::new(left),
+            Box::new(right),
             Position::default(),
         )
     }
@@ -2435,8 +2486,8 @@
     <span class="kw">pub fn </span>le_cmp(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
         Expr::BinOp(
             BinaryOpKind::LeCmp,
-            <span class="kw">box </span>left,
-            <span class="kw">box </span>right,
+            Box::new(left),
+            Box::new(right),
             Position::default(),
         )
     }
@@ -2444,8 +2495,8 @@
     <span class="kw">pub fn </span>eq_cmp(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
         Expr::BinOp(
             BinaryOpKind::EqCmp,
-            <span class="kw">box </span>left,
-            <span class="kw">box </span>right,
+            Box::new(left),
+            Box::new(right),
             Position::default(),
         )
     }
@@ -2456,26 +2507,51 @@
 
     <span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>add(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::BinOp(BinaryOpKind::Add, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::Add,
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>sub(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::BinOp(BinaryOpKind::Sub, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::Sub,
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>mul(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::BinOp(BinaryOpKind::Mul, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::Mul,
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>div(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::BinOp(BinaryOpKind::Div, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::Div,
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="kw">pub fn </span>modulo(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::BinOp(BinaryOpKind::Mod, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::Mod,
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="attr">#[allow(clippy::should_implement_trait)]
@@ -2499,11 +2575,21 @@
     }
 
     <span class="kw">pub fn </span>and(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::BinOp(BinaryOpKind::And, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::And,
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="kw">pub fn </span>or(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::BinOp(BinaryOpKind::Or, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::BinOp(
+            BinaryOpKind::Or,
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="kw">pub fn </span>xor(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
@@ -2513,8 +2599,8 @@
     <span class="kw">pub fn </span>implies(left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
         Expr::BinOp(
             BinaryOpKind::Implies,
-            <span class="kw">box </span>left,
-            <span class="kw">box </span>right,
+            Box::new(left),
+            Box::new(right),
             Position::default(),
         )
     }
@@ -2524,7 +2610,7 @@
             !vars.is_empty(),
             <span class="string">&quot;A quantifier must have at least one variable.&quot;
         </span>);
-        Expr::ForAll(vars, triggers, <span class="kw">box </span>body, Position::default())
+        Expr::ForAll(vars, triggers, Box::new(body), Position::default())
     }
 
     <span class="kw">pub fn </span>exists(vars: Vec&lt;LocalVar&gt;, triggers: Vec&lt;Trigger&gt;, body: Expr) -&gt; <span class="self">Self </span>{
@@ -2532,11 +2618,16 @@
             !vars.is_empty(),
             <span class="string">&quot;A quantifier must have at least one variable.&quot;
         </span>);
-        Expr::Exists(vars, triggers, <span class="kw">box </span>body, Position::default())
+        Expr::Exists(vars, triggers, Box::new(body), Position::default())
     }
 
     <span class="kw">pub fn </span>ite(guard: Expr, left: Expr, right: Expr) -&gt; <span class="self">Self </span>{
-        Expr::Cond(<span class="kw">box </span>guard, <span class="kw">box </span>left, <span class="kw">box </span>right, Position::default())
+        Expr::Cond(
+            Box::new(guard),
+            Box::new(left),
+            Box::new(right),
+            Position::default(),
+        )
     }
 
     <span class="kw">pub fn </span>unfolding(
@@ -2549,7 +2640,7 @@
         Expr::Unfolding(
             pred_name,
             args,
-            <span class="kw">box </span>expr,
+            Box::new(expr),
             perm,
             variant,
             Position::default(),
@@ -2560,7 +2651,14 @@
     </span><span class="kw">pub fn </span>wrap_in_unfolding(arg: Expr, body: Expr) -&gt; Expr {
         <span class="kw">let </span>type_name = arg.get_type().name();
         <span class="kw">let </span>pos = body.pos();
-        Expr::Unfolding(type_name, <span class="macro">vec!</span>[arg], <span class="kw">box </span>body, PermAmount::Read, <span class="prelude-val">None</span>, pos)
+        Expr::Unfolding(
+            type_name,
+            <span class="macro">vec!</span>[arg],
+            Box::new(body),
+            PermAmount::Read,
+            <span class="prelude-val">None</span>,
+            pos,
+        )
     }
 
     <span class="kw">pub fn </span>func_app(
@@ -2578,15 +2676,15 @@
     }
 
     <span class="kw">pub fn </span>magic_wand(lhs: Expr, rhs: Expr, borrow: <span class="prelude-ty">Option</span>&lt;Borrow&gt;) -&gt; <span class="self">Self </span>{
-        Expr::MagicWand(<span class="kw">box </span>lhs, <span class="kw">box </span>rhs, borrow, Position::default())
+        Expr::MagicWand(Box::new(lhs), Box::new(rhs), borrow, Position::default())
     }
 
     <span class="kw">pub fn </span>downcast(base: Expr, enum_place: Expr, variant_field: Field) -&gt; <span class="self">Self </span>{
-        Expr::Downcast(<span class="kw">box </span>base, <span class="kw">box </span>enum_place, variant_field)
+        Expr::Downcast(Box::new(base), Box::new(enum_place), variant_field)
     }
 
     <span class="kw">pub fn </span>snap_app(expr: Expr) -&gt; <span class="self">Self </span>{
-        Expr::SnapApp(<span class="kw">box </span>expr, Position::default())
+        Expr::SnapApp(Box::new(expr), Position::default())
     }
 
     <span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, sub_target: <span class="kw-2">&amp;</span>Expr) -&gt; bool {
@@ -2664,8 +2762,8 @@
         components
             .into_iter()
             .fold(<span class="self">self</span>, |acc, component| <span class="kw">match </span>component {
-                PlaceComponent::Variant(variant, pos) =&gt; Expr::Variant(<span class="kw">box </span>acc, variant, pos),
-                PlaceComponent::Field(field, pos) =&gt; Expr::Field(<span class="kw">box </span>acc, field, pos),
+                PlaceComponent::Variant(variant, pos) =&gt; Expr::Variant(Box::new(acc), variant, pos),
+                PlaceComponent::Field(field, pos) =&gt; Expr::Field(Box::new(acc), field, pos),
             })
     }
 
@@ -2681,18 +2779,22 @@
         <span class="kw">let </span>field_name = <span class="macro">format!</span>(<span class="string">&quot;enum_{index}&quot;</span>);
         <span class="kw">let </span>typ = <span class="self">self</span>.get_type();
         <span class="kw">let </span>variant = Field::new(field_name, typ.clone().variant(index));
-        Expr::Variant(<span class="kw">box </span><span class="self">self</span>, variant, Position::default())
+        Expr::Variant(Box::new(<span class="self">self</span>), variant, Position::default())
     }
 
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>field(<span class="self">self</span>, field: Field) -&gt; <span class="self">Self </span>{
-        Expr::Field(<span class="kw">box </span><span class="self">self</span>, field, Position::default())
+        Expr::Field(Box::new(<span class="self">self</span>), field, Position::default())
     }
 
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>addr_of(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>type_name = <span class="self">self</span>.get_type().name();
-        Expr::AddrOf(<span class="kw">box </span><span class="self">self</span>, Type::TypedRef(type_name), Position::default())
+        Expr::AddrOf(
+            Box::new(<span class="self">self</span>),
+            Type::TypedRef(type_name),
+            Position::default(),
+        )
     }
 
     <span class="kw">pub fn </span>is_only_permissions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2832,7 +2934,7 @@
                 */
                 </span><span class="self">self
             </span>}
-            <span class="kw">_ </span>=&gt; Expr::LabelledOld(label.to_string(), <span class="kw">box </span><span class="self">self</span>, Position::default()),
+            <span class="kw">_ </span>=&gt; Expr::LabelledOld(label.to_string(), Box::new(<span class="self">self</span>), Position::default()),
         }
     }
 
@@ -3670,13 +3772,13 @@
         <span class="kw">impl </span>ExprWalker <span class="kw">for </span>Collector {
             <span class="kw">fn </span>walk_variant(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <span class="kw-2">&amp;</span>Expr, v: <span class="kw-2">&amp;</span>Field, p: <span class="kw-2">&amp;</span>Position) {
                 <span class="self">self</span>.walk(e);
-                <span class="kw">let </span>expr = Expr::Variant(<span class="kw">box </span>e.clone(), v.clone(), <span class="kw-2">*</span>p);
+                <span class="kw">let </span>expr = Expr::Variant(Box::new(e.clone()), v.clone(), <span class="kw-2">*</span>p);
                 <span class="kw">let </span>perm = Expr::acc_permission(expr, <span class="self">self</span>.perm_amount);
                 <span class="self">self</span>.perms.push(perm);
             }
             <span class="kw">fn </span>walk_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <span class="kw-2">&amp;</span>Expr, f: <span class="kw-2">&amp;</span>Field, p: <span class="kw-2">&amp;</span>Position) {
                 <span class="self">self</span>.walk(e);
-                <span class="kw">let </span>expr = Expr::Field(<span class="kw">box </span>e.clone(), f.clone(), <span class="kw-2">*</span>p);
+                <span class="kw">let </span>expr = Expr::Field(Box::new(e.clone()), f.clone(), <span class="kw-2">*</span>p);
                 <span class="kw">let </span>perm = Expr::acc_permission(expr, <span class="self">self</span>.perm_amount);
                 <span class="self">self</span>.perms.push(perm);
             }
@@ -3846,5 +3948,4 @@
         rfold(<span class="self">self</span>)
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

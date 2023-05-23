@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-1.12.0/src/stream.rs`."><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_lite/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-1.13.0/src/stream.rs`."><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_lite/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3016,6 +3016,116 @@
 <a href="#3016" id="3016">3016</a>
 <a href="#3017" id="3017">3017</a>
 <a href="#3018" id="3018">3018</a>
+<a href="#3019" id="3019">3019</a>
+<a href="#3020" id="3020">3020</a>
+<a href="#3021" id="3021">3021</a>
+<a href="#3022" id="3022">3022</a>
+<a href="#3023" id="3023">3023</a>
+<a href="#3024" id="3024">3024</a>
+<a href="#3025" id="3025">3025</a>
+<a href="#3026" id="3026">3026</a>
+<a href="#3027" id="3027">3027</a>
+<a href="#3028" id="3028">3028</a>
+<a href="#3029" id="3029">3029</a>
+<a href="#3030" id="3030">3030</a>
+<a href="#3031" id="3031">3031</a>
+<a href="#3032" id="3032">3032</a>
+<a href="#3033" id="3033">3033</a>
+<a href="#3034" id="3034">3034</a>
+<a href="#3035" id="3035">3035</a>
+<a href="#3036" id="3036">3036</a>
+<a href="#3037" id="3037">3037</a>
+<a href="#3038" id="3038">3038</a>
+<a href="#3039" id="3039">3039</a>
+<a href="#3040" id="3040">3040</a>
+<a href="#3041" id="3041">3041</a>
+<a href="#3042" id="3042">3042</a>
+<a href="#3043" id="3043">3043</a>
+<a href="#3044" id="3044">3044</a>
+<a href="#3045" id="3045">3045</a>
+<a href="#3046" id="3046">3046</a>
+<a href="#3047" id="3047">3047</a>
+<a href="#3048" id="3048">3048</a>
+<a href="#3049" id="3049">3049</a>
+<a href="#3050" id="3050">3050</a>
+<a href="#3051" id="3051">3051</a>
+<a href="#3052" id="3052">3052</a>
+<a href="#3053" id="3053">3053</a>
+<a href="#3054" id="3054">3054</a>
+<a href="#3055" id="3055">3055</a>
+<a href="#3056" id="3056">3056</a>
+<a href="#3057" id="3057">3057</a>
+<a href="#3058" id="3058">3058</a>
+<a href="#3059" id="3059">3059</a>
+<a href="#3060" id="3060">3060</a>
+<a href="#3061" id="3061">3061</a>
+<a href="#3062" id="3062">3062</a>
+<a href="#3063" id="3063">3063</a>
+<a href="#3064" id="3064">3064</a>
+<a href="#3065" id="3065">3065</a>
+<a href="#3066" id="3066">3066</a>
+<a href="#3067" id="3067">3067</a>
+<a href="#3068" id="3068">3068</a>
+<a href="#3069" id="3069">3069</a>
+<a href="#3070" id="3070">3070</a>
+<a href="#3071" id="3071">3071</a>
+<a href="#3072" id="3072">3072</a>
+<a href="#3073" id="3073">3073</a>
+<a href="#3074" id="3074">3074</a>
+<a href="#3075" id="3075">3075</a>
+<a href="#3076" id="3076">3076</a>
+<a href="#3077" id="3077">3077</a>
+<a href="#3078" id="3078">3078</a>
+<a href="#3079" id="3079">3079</a>
+<a href="#3080" id="3080">3080</a>
+<a href="#3081" id="3081">3081</a>
+<a href="#3082" id="3082">3082</a>
+<a href="#3083" id="3083">3083</a>
+<a href="#3084" id="3084">3084</a>
+<a href="#3085" id="3085">3085</a>
+<a href="#3086" id="3086">3086</a>
+<a href="#3087" id="3087">3087</a>
+<a href="#3088" id="3088">3088</a>
+<a href="#3089" id="3089">3089</a>
+<a href="#3090" id="3090">3090</a>
+<a href="#3091" id="3091">3091</a>
+<a href="#3092" id="3092">3092</a>
+<a href="#3093" id="3093">3093</a>
+<a href="#3094" id="3094">3094</a>
+<a href="#3095" id="3095">3095</a>
+<a href="#3096" id="3096">3096</a>
+<a href="#3097" id="3097">3097</a>
+<a href="#3098" id="3098">3098</a>
+<a href="#3099" id="3099">3099</a>
+<a href="#3100" id="3100">3100</a>
+<a href="#3101" id="3101">3101</a>
+<a href="#3102" id="3102">3102</a>
+<a href="#3103" id="3103">3103</a>
+<a href="#3104" id="3104">3104</a>
+<a href="#3105" id="3105">3105</a>
+<a href="#3106" id="3106">3106</a>
+<a href="#3107" id="3107">3107</a>
+<a href="#3108" id="3108">3108</a>
+<a href="#3109" id="3109">3109</a>
+<a href="#3110" id="3110">3110</a>
+<a href="#3111" id="3111">3111</a>
+<a href="#3112" id="3112">3112</a>
+<a href="#3113" id="3113">3113</a>
+<a href="#3114" id="3114">3114</a>
+<a href="#3115" id="3115">3115</a>
+<a href="#3116" id="3116">3116</a>
+<a href="#3117" id="3117">3117</a>
+<a href="#3118" id="3118">3118</a>
+<a href="#3119" id="3119">3119</a>
+<a href="#3120" id="3120">3120</a>
+<a href="#3121" id="3121">3121</a>
+<a href="#3122" id="3122">3122</a>
+<a href="#3123" id="3123">3123</a>
+<a href="#3124" id="3124">3124</a>
+<a href="#3125" id="3125">3125</a>
+<a href="#3126" id="3126">3126</a>
+<a href="#3127" id="3127">3127</a>
+<a href="#3128" id="3128">3128</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Combinators for the [`Stream`] trait.
 //!
 //! # Examples
@@ -3082,6 +3192,71 @@
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.next())
+    }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.<span class="number">0</span>.size_hint()
+    }
+
+    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.count())
+    }
+
+    <span class="kw">fn </span>last(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.last())
+    }
+
+    <span class="kw">fn </span>nth(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.nth(n))
+    }
+
+    <span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
+    <span class="kw">where
+        </span>F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.fold(init, f))
+    }
+
+    <span class="kw">fn </span>for_each&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; F::Output
+    <span class="kw">where
+        </span>F: FnMut(<span class="self">Self</span>::Item),
+    {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.for_each(f))
+    }
+
+    <span class="kw">fn </span>all&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; bool
+    <span class="kw">where
+        </span>F: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
+    {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.all(f))
+    }
+
+    <span class="kw">fn </span>any&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; bool
+    <span class="kw">where
+        </span>F: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
+    {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.any(f))
+    }
+
+    <span class="kw">fn </span>find&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;
+    <span class="kw">where
+        </span>P: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool,
+    {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.find(predicate))
+    }
+
+    <span class="kw">fn </span>find_map&lt;B, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt;,
+    {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.find_map(f))
+    }
+
+    <span class="kw">fn </span>position&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
+    <span class="kw">where
+        </span>P: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
+    {
+        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.<span class="number">0</span>.position(predicate))
     }
 }
 
@@ -3562,6 +3737,53 @@
                     <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))),
                 }
             }
+        }
+    }
+}
+
+<span class="doccomment">/// Creates a stream that invokes the given future as its first item, and then
+/// produces no more items.
+///
+/// # Example
+///
+/// ```
+/// use futures_lite::{stream, prelude::*};
+///
+/// # spin_on::spin_on(async {
+/// let mut stream = Box::pin(stream::once_future(async { 1 }));
+/// assert_eq!(stream.next().await, Some(1));
+/// assert_eq!(stream.next().await, None);
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>once_future&lt;F: Future&gt;(future: F) -&gt; OnceFuture&lt;F&gt; {
+    OnceFuture {
+        future: <span class="prelude-val">Some</span>(future),
+    }
+}
+
+<span class="macro">pin_project! </span>{
+    <span class="doccomment">/// Stream for the [`once_future()`] method.
+    </span><span class="attr">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>OnceFuture&lt;F&gt; {
+        <span class="attr">#[pin]
+        </span>future: <span class="prelude-ty">Option</span>&lt;F&gt;,
+    }
+}
+
+<span class="kw">impl</span>&lt;F: Future&gt; Stream <span class="kw">for </span>OnceFuture&lt;F&gt; {
+    <span class="kw">type </span>Item = F::Output;
+
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+
+        <span class="kw">match </span>this.future.as_mut().as_pin_mut().map(|f| f.poll(cx)) {
+            <span class="prelude-val">Some</span>(Poll::Ready(t)) =&gt; {
+                this.future.set(<span class="prelude-val">None</span>);
+                Poll::Ready(<span class="prelude-val">Some</span>(t))
+            }
+            <span class="prelude-val">Some</span>(Poll::Pending) =&gt; Poll::Pending,
+            <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
         }
     }
 }
@@ -4829,9 +5051,7 @@
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
                 <span class="prelude-val">Some</span>(e) =&gt; this.collection.extend(<span class="prelude-val">Some</span>(e)),
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span>Poll::Ready(mem::replace(<span class="self">self</span>.project().collection, Default::default()))
-                }
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(mem::take(<span class="self">self</span>.project().collection)),
             }
         }
     }
@@ -4860,7 +5080,7 @@
         Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)<span class="question-mark">?</span>) {
                 <span class="prelude-val">Some</span>(x) =&gt; this.items.extend(<span class="prelude-val">Some</span>(x)),
-                <span class="prelude-val">None </span>=&gt; <span class="kw">break </span>mem::replace(this.items, Default::default()),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">break </span>mem::take(this.items),
             }
         }))
     }
@@ -5101,7 +5321,7 @@
 }
 
 <span class="macro">pin_project! </span>{
-    <span class="doccomment">/// Stream for the [`StreamExt::flat_map()`] method.
+    <span class="doccomment">/// Stream for the [`StreamExt::flatten()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
     #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
     </span><span class="kw">pub struct </span>Flatten&lt;S: Stream&gt; {
@@ -5175,7 +5395,7 @@
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
-        <span class="kw">let </span>future_len = <span class="kw">if </span><span class="self">self</span>.future.is_some() { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+        <span class="kw">let </span>future_len = <span class="self">self</span>.future.is_some() <span class="kw">as </span>usize;
         <span class="kw">let </span>(lower, upper) = <span class="self">self</span>.stream.size_hint();
         <span class="kw">let </span>lower = lower.saturating_add(future_len);
         <span class="kw">let </span>upper = upper.and_then(|u| u.checked_add(future_len));
@@ -5644,7 +5864,7 @@
 }
 
 <span class="macro">pin_project! </span>{
-    <span class="doccomment">/// Stream for the [`StreamExt::cycle()`] method.
+    <span class="doccomment">/// Stream for the [`StreamExt::enumerate()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
     #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
     </span><span class="kw">pub struct </span>Enumerate&lt;S&gt; {
@@ -6034,5 +6254,4 @@
         }
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.3.5/src/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../winnow/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.4.1/src/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../winnow/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -907,17 +907,11 @@
 <a href="#907" id="907">907</a>
 <a href="#908" id="908">908</a>
 <a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Basic types to build the parsers
 
 </span><span class="kw">use </span><span class="kw">crate</span>::combinator::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::error::{ContextError, IResult, ParseError};
-<span class="kw">use </span><span class="kw">crate</span>::stream::{AsChar, Compare, Location, Stream, StreamIsPartial};
+<span class="kw">use </span><span class="kw">crate</span>::error::{ContextError, FromExternalError, IResult, ParseError};
+<span class="kw">use </span><span class="kw">crate</span>::stream::{AsChar, Compare, Location, Offset, ParseSlice, Stream, StreamIsPartial};
 
 <span class="doccomment">/// Core trait for parsing
 ///
@@ -954,12 +948,18 @@
 /// - `u8` and `char`, see [`winnow::bytes::one_of`][crate::bytes::one_of]
 /// - `&amp;[u8]` and `&amp;str`, see [`winnow::bytes::tag`][crate::bytes::tag]
 </span><span class="kw">pub trait </span>Parser&lt;I, O, E&gt; {
-    <span class="doccomment">/// A parser takes in input type, and returns a `Result` containing
-    /// either the remaining input and the output value, or an error
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.3.0&quot;</span>, note = <span class="string">&quot;Replaced with `Parser::parse_next`&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-    </span><span class="kw">fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: I) -&gt; IResult&lt;I, O, E&gt; {
-        <span class="self">self</span>.parse_next(input)
+    <span class="doccomment">/// Parse all of `input`, generating `O` from it
+    </span><span class="kw">fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: I) -&gt; <span class="prelude-ty">Result</span>&lt;O, E&gt;
+    <span class="kw">where
+        </span>I: Stream,
+        <span class="comment">// Force users to deal with `Incomplete` when `StreamIsPartial&lt;true&gt;`
+        </span>I: StreamIsPartial,
+        I: Clone,
+        E: ParseError&lt;I&gt;,
+    {
+        <span class="attr">#![allow(deprecated)]
+        </span><span class="kw">use </span><span class="kw">crate</span>::error::FinishIResult;
+        <span class="self">self</span>.parse_next(input).finish()
     }
 
     <span class="doccomment">/// Take tokens from the [`Stream`], turning it into the output
@@ -1031,11 +1031,11 @@
     /// let mut parser = alpha1.value(1234);
     ///
     /// assert_eq!(parser.parse_next(&quot;abcd&quot;), Ok((&quot;&quot;, 1234)));
-    /// assert_eq!(parser.parse_next(&quot;123abcd;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123abcd;&quot;, ErrorKind::Alpha))));
+    /// assert_eq!(parser.parse_next(&quot;123abcd;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123abcd;&quot;, ErrorKind::Slice))));
     /// # }
     /// ```
     </span><span class="attr">#[doc(alias = <span class="string">&quot;to&quot;</span>)]
-    </span><span class="kw">fn </span>value&lt;O2&gt;(<span class="self">self</span>, val: O2) -&gt; Value&lt;<span class="self">Self</span>, O, O2&gt;
+    </span><span class="kw">fn </span>value&lt;O2&gt;(<span class="self">self</span>, val: O2) -&gt; Value&lt;<span class="self">Self</span>, I, O, O2, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         O2: Clone,
@@ -1055,10 +1055,10 @@
     /// let mut parser = alpha1.void();
     ///
     /// assert_eq!(parser.parse_next(&quot;abcd&quot;), Ok((&quot;&quot;, ())));
-    /// assert_eq!(parser.parse_next(&quot;123abcd;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123abcd;&quot;, ErrorKind::Alpha))));
+    /// assert_eq!(parser.parse_next(&quot;123abcd;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123abcd;&quot;, ErrorKind::Slice))));
     /// # }
     /// ```
-    </span><span class="kw">fn </span>void(<span class="self">self</span>) -&gt; Void&lt;<span class="self">Self</span>, O&gt;
+    </span><span class="kw">fn </span>void(<span class="self">self</span>) -&gt; Void&lt;<span class="self">Self</span>, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
     {
@@ -1086,7 +1086,7 @@
     /// assert_eq!(bytes, Ok((&quot;&quot;, vec![97, 98, 99, 100])));
     /// # }
     /// ```
-    </span><span class="kw">fn </span>output_into&lt;O2&gt;(<span class="self">self</span>) -&gt; OutputInto&lt;<span class="self">Self</span>, O, O2&gt;
+    </span><span class="kw">fn </span>output_into&lt;O2&gt;(<span class="self">self</span>) -&gt; OutputInto&lt;<span class="self">Self</span>, I, O, O2, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         O: Into&lt;O2&gt;,
@@ -1107,12 +1107,14 @@
     /// let mut parser = separated_pair(alpha1, &#39;,&#39;, alpha1).recognize();
     ///
     /// assert_eq!(parser.parse_next(&quot;abcd,efgh&quot;), Ok((&quot;&quot;, &quot;abcd,efgh&quot;)));
-    /// assert_eq!(parser.parse_next(&quot;abcd;&quot;),Err(ErrMode::Backtrack(Error::new(&quot;;&quot;, ErrorKind::OneOf))));
+    /// assert_eq!(parser.parse_next(&quot;abcd;&quot;),Err(ErrMode::Backtrack(Error::new(&quot;;&quot;, ErrorKind::Verify))));
     /// # }
     /// ```
-    </span><span class="kw">fn </span>recognize(<span class="self">self</span>) -&gt; Recognize&lt;<span class="self">Self</span>, O&gt;
+    </span><span class="attr">#[doc(alias = <span class="string">&quot;concat&quot;</span>)]
+    </span><span class="kw">fn </span>recognize(<span class="self">self</span>) -&gt; Recognize&lt;<span class="self">Self</span>, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
+        I: Stream + Offset,
     {
         Recognize::new(<span class="self">self</span>)
     }
@@ -1137,7 +1139,7 @@
     /// use winnow::sequence::separated_pair;
     ///
     /// fn inner_parser(input: &amp;str) -&gt; IResult&lt;&amp;str, bool&gt; {
-    ///     tag(&quot;1234&quot;).value(true).parse_next(input)
+    ///     &quot;1234&quot;.value(true).parse_next(input)
     /// }
     ///
     /// # fn main() {
@@ -1145,7 +1147,7 @@
     /// let mut consumed_parser = separated_pair(alpha1, &#39;,&#39;, alpha1).value(true).with_recognized();
     ///
     /// assert_eq!(consumed_parser.parse_next(&quot;abcd,efgh1&quot;), Ok((&quot;1&quot;, (true, &quot;abcd,efgh&quot;))));
-    /// assert_eq!(consumed_parser.parse_next(&quot;abcd;&quot;),Err(ErrMode::Backtrack(Error::new(&quot;;&quot;, ErrorKind::OneOf))));
+    /// assert_eq!(consumed_parser.parse_next(&quot;abcd;&quot;),Err(ErrMode::Backtrack(Error::new(&quot;;&quot;, ErrorKind::Verify))));
     ///
     /// // the second output (representing the consumed input)
     /// // should be the same as that of the `recognize` parser.
@@ -1157,9 +1159,10 @@
     /// # }
     /// ```
     </span><span class="attr">#[doc(alias = <span class="string">&quot;consumed&quot;</span>)]
-    </span><span class="kw">fn </span>with_recognized(<span class="self">self</span>) -&gt; WithRecognized&lt;<span class="self">Self</span>, O&gt;
+    </span><span class="kw">fn </span>with_recognized(<span class="self">self</span>) -&gt; WithRecognized&lt;<span class="self">Self</span>, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
+        I: Stream + Offset,
     {
         WithRecognized::new(<span class="self">self</span>)
     }
@@ -1177,13 +1180,13 @@
     ///
     /// let mut parser = separated_pair(alpha1.span(), &#39;,&#39;, alpha1.span());
     ///
-    /// assert_eq!(parser.parse_next(Located::new(&quot;abcd,efgh&quot;)).finish(), Ok((0..4, 5..9)));
-    /// assert_eq!(parser.parse_next(Located::new(&quot;abcd;&quot;)),Err(ErrMode::Backtrack(Error::new(Located::new(&quot;abcd;&quot;).next_slice(4).0, ErrorKind::OneOf))));
+    /// assert_eq!(parser.parse(Located::new(&quot;abcd,efgh&quot;)), Ok((0..4, 5..9)));
+    /// assert_eq!(parser.parse_next(Located::new(&quot;abcd;&quot;)),Err(ErrMode::Backtrack(Error::new(Located::new(&quot;abcd;&quot;).next_slice(4).0, ErrorKind::Verify))));
     /// ```
-    </span><span class="kw">fn </span>span(<span class="self">self</span>) -&gt; Span&lt;<span class="self">Self</span>, O&gt;
+    </span><span class="kw">fn </span>span(<span class="self">self</span>) -&gt; Span&lt;<span class="self">Self</span>, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
-        I: Location + Clone,
+        I: Stream + Location,
     {
         Span::new(<span class="self">self</span>)
     }
@@ -1209,15 +1212,15 @@
     /// use winnow::sequence::separated_pair;
     ///
     /// fn inner_parser(input: Located&lt;&amp;str&gt;) -&gt; IResult&lt;Located&lt;&amp;str&gt;, bool&gt; {
-    ///     tag(&quot;1234&quot;).value(true).parse_next(input)
+    ///     &quot;1234&quot;.value(true).parse_next(input)
     /// }
     ///
     /// # fn main() {
     ///
     /// let mut consumed_parser = separated_pair(alpha1.value(1).with_span(), &#39;,&#39;, alpha1.value(2).with_span());
     ///
-    /// assert_eq!(consumed_parser.parse_next(Located::new(&quot;abcd,efgh&quot;)).finish(), Ok(((1, 0..4), (2, 5..9))));
-    /// assert_eq!(consumed_parser.parse_next(Located::new(&quot;abcd;&quot;)),Err(ErrMode::Backtrack(Error::new(Located::new(&quot;abcd;&quot;).next_slice(4).0, ErrorKind::OneOf))));
+    /// assert_eq!(consumed_parser.parse(Located::new(&quot;abcd,efgh&quot;)), Ok(((1, 0..4), (2, 5..9))));
+    /// assert_eq!(consumed_parser.parse_next(Located::new(&quot;abcd;&quot;)),Err(ErrMode::Backtrack(Error::new(Located::new(&quot;abcd;&quot;).next_slice(4).0, ErrorKind::Verify))));
     ///
     /// // the second output (representing the consumed input)
     /// // should be the same as that of the `span` parser.
@@ -1228,10 +1231,10 @@
     /// assert_eq!(recognize_parser.parse_next(Located::new(&quot;abcd&quot;)), consumed_parser.parse_next(Located::new(&quot;abcd&quot;)));
     /// # }
     /// ```
-    </span><span class="kw">fn </span>with_span(<span class="self">self</span>) -&gt; WithSpan&lt;<span class="self">Self</span>, O&gt;
+    </span><span class="kw">fn </span>with_span(<span class="self">self</span>) -&gt; WithSpan&lt;<span class="self">Self</span>, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
-        I: Location + Clone,
+        I: Stream + Location,
     {
         WithSpan::new(<span class="self">self</span>)
     }
@@ -1251,15 +1254,15 @@
     /// assert_eq!(parser.parse_next(&quot;123456&quot;), Ok((&quot;&quot;, 6)));
     ///
     /// // this will fail if digit1 fails
-    /// assert_eq!(parser.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Digit))));
+    /// assert_eq!(parser.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Slice))));
     /// # }
     /// ```
-    </span><span class="kw">fn </span>map&lt;G, O2&gt;(<span class="self">self</span>, g: G) -&gt; Map&lt;<span class="self">Self</span>, G, O&gt;
+    </span><span class="kw">fn </span>map&lt;G, O2&gt;(<span class="self">self</span>, map: G) -&gt; Map&lt;<span class="self">Self</span>, G, I, O, O2, E&gt;
     <span class="kw">where
         </span>G: Fn(O) -&gt; O2,
         <span class="self">Self</span>: core::marker::Sized,
     {
-        Map::new(<span class="self">self</span>, g)
+        Map::new(<span class="self">self</span>, map)
     }
 
     <span class="doccomment">/// Applies a function returning a `Result` over the output of a parser.
@@ -1277,18 +1280,20 @@
     /// assert_eq!(parse.parse_next(&quot;123&quot;), Ok((&quot;&quot;, 123)));
     ///
     /// // this will fail if digit1 fails
-    /// assert_eq!(parse.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Digit))));
+    /// assert_eq!(parse.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Slice))));
     ///
     /// // this will fail if the mapped function fails (a `u8` is too small to hold `123456`)
-    /// assert_eq!(parse.parse_next(&quot;123456&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123456&quot;, ErrorKind::MapRes))));
+    /// assert_eq!(parse.parse_next(&quot;123456&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123456&quot;, ErrorKind::Verify))));
     /// # }
     /// ```
-    </span><span class="kw">fn </span>map_res&lt;G, O2, E2&gt;(<span class="self">self</span>, g: G) -&gt; MapRes&lt;<span class="self">Self</span>, G, O&gt;
+    </span><span class="kw">fn </span>map_res&lt;G, O2, E2&gt;(<span class="self">self</span>, map: G) -&gt; MapRes&lt;<span class="self">Self</span>, G, I, O, O2, E, E2&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         G: FnMut(O) -&gt; <span class="prelude-ty">Result</span>&lt;O2, E2&gt;,
+        I: Clone,
+        E: FromExternalError&lt;I, E2&gt;,
     {
-        MapRes::new(<span class="self">self</span>, g)
+        MapRes::new(<span class="self">self</span>, map)
     }
 
     <span class="doccomment">/// Apply both [`Parser::verify`] and [`Parser::map`].
@@ -1306,7 +1311,7 @@
     /// assert_eq!(parse.parse_next(&quot;123&quot;), Ok((&quot;&quot;, 123)));
     ///
     /// // this will fail if digit1 fails
-    /// assert_eq!(parse.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Digit))));
+    /// assert_eq!(parse.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Slice))));
     ///
     /// // this will fail if the mapped function fails (a `u8` is too small to hold `123456`)
     /// assert_eq!(parse.parse_next(&quot;123456&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123456&quot;, ErrorKind::Verify))));
@@ -1315,12 +1320,14 @@
     </span><span class="attr">#[doc(alias = <span class="string">&quot;satisfy_map&quot;</span>)]
     #[doc(alias = <span class="string">&quot;filter_map&quot;</span>)]
     #[doc(alias = <span class="string">&quot;map_opt&quot;</span>)]
-    </span><span class="kw">fn </span>verify_map&lt;G, O2&gt;(<span class="self">self</span>, g: G) -&gt; VerifyMap&lt;<span class="self">Self</span>, G, O&gt;
+    </span><span class="kw">fn </span>verify_map&lt;G, O2&gt;(<span class="self">self</span>, map: G) -&gt; VerifyMap&lt;<span class="self">Self</span>, G, I, O, O2, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         G: FnMut(O) -&gt; <span class="prelude-ty">Option</span>&lt;O2&gt;,
+        I: Clone,
+        E: ParseError&lt;I&gt;,
     {
-        VerifyMap::new(<span class="self">self</span>, g)
+        VerifyMap::new(<span class="self">self</span>, map)
     }
 
     <span class="doccomment">/// Creates a parser from the output of this one
@@ -1337,7 +1344,7 @@
     /// }
     ///
     /// assert_eq!(length_data.parse_next(&amp;[2, 0, 1, 2][..]), Ok((&amp;[2][..], &amp;[0, 1][..])));
-    /// assert_eq!(length_data.parse_next(&amp;[4, 0, 1, 2][..]), Err(ErrMode::Backtrack(Error::new(&amp;[0, 1, 2][..], ErrorKind::Eof))));
+    /// assert_eq!(length_data.parse_next(&amp;[4, 0, 1, 2][..]), Err(ErrMode::Backtrack(Error::new(&amp;[0, 1, 2][..], ErrorKind::Slice))));
     /// ```
     ///
     /// which is the same as
@@ -1353,15 +1360,15 @@
     /// }
     ///
     /// assert_eq!(length_data.parse_next(&amp;[2, 0, 1, 2][..]), Ok((&amp;[2][..], &amp;[0, 1][..])));
-    /// assert_eq!(length_data.parse_next(&amp;[4, 0, 1, 2][..]), Err(ErrMode::Backtrack(Error::new(&amp;[0, 1, 2][..], ErrorKind::Eof))));
+    /// assert_eq!(length_data.parse_next(&amp;[4, 0, 1, 2][..]), Err(ErrMode::Backtrack(Error::new(&amp;[0, 1, 2][..], ErrorKind::Slice))));
     /// ```
-    </span><span class="kw">fn </span>flat_map&lt;G, H, O2&gt;(<span class="self">self</span>, g: G) -&gt; FlatMap&lt;<span class="self">Self</span>, G, O&gt;
+    </span><span class="kw">fn </span>flat_map&lt;G, H, O2&gt;(<span class="self">self</span>, map: G) -&gt; FlatMap&lt;<span class="self">Self</span>, G, H, I, O, O2, E&gt;
     <span class="kw">where
-        </span>G: FnMut(O) -&gt; H,
+        </span><span class="self">Self</span>: core::marker::Sized,
+        G: FnMut(O) -&gt; H,
         H: Parser&lt;I, O2, E&gt;,
-        <span class="self">Self</span>: core::marker::Sized,
     {
-        FlatMap::new(<span class="self">self</span>, g)
+        FlatMap::new(<span class="self">self</span>, map)
     }
 
     <span class="doccomment">/// Applies a second parser over the output of the first one
@@ -1378,16 +1385,16 @@
     ///
     /// assert_eq!(digits.parse_next(&quot;12345&quot;), Ok((&quot;&quot;, &quot;12345&quot;)));
     /// assert_eq!(digits.parse_next(&quot;123ab&quot;), Ok((&quot;&quot;, &quot;123&quot;)));
-    /// assert_eq!(digits.parse_next(&quot;123&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123&quot;, ErrorKind::Eof))));
+    /// assert_eq!(digits.parse_next(&quot;123&quot;), Err(ErrMode::Backtrack(Error::new(&quot;123&quot;, ErrorKind::Slice))));
     /// # }
     /// ```
-    </span><span class="kw">fn </span>and_then&lt;G, O2&gt;(<span class="self">self</span>, g: G) -&gt; AndThen&lt;<span class="self">Self</span>, G, O&gt;
+    </span><span class="kw">fn </span>and_then&lt;G, O2&gt;(<span class="self">self</span>, inner: G) -&gt; AndThen&lt;<span class="self">Self</span>, G, I, O, O2, E&gt;
     <span class="kw">where
-        </span>O: StreamIsPartial,
+        </span><span class="self">Self</span>: core::marker::Sized,
         G: Parser&lt;O, O2, E&gt;,
-        <span class="self">Self</span>: core::marker::Sized,
+        O: StreamIsPartial,
     {
-        AndThen::new(<span class="self">self</span>, g)
+        AndThen::new(<span class="self">self</span>, inner)
     }
 
     <span class="doccomment">/// Apply [`std::str::FromStr`] to the output of the parser
@@ -1407,13 +1414,15 @@
     /// assert_eq!(parser.parse_next(&quot;123456&quot;), Ok((&quot;&quot;, 123456)));
     ///
     /// // this will fail if digit1 fails
-    /// assert_eq!(parser.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Digit))));
+    /// assert_eq!(parser.parse_next(&quot;abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abc&quot;, ErrorKind::Slice))));
     /// ```
     </span><span class="attr">#[doc(alias = <span class="string">&quot;from_str&quot;</span>)]
-    </span><span class="kw">fn </span>parse_to&lt;O2&gt;(<span class="self">self</span>) -&gt; ParseTo&lt;<span class="self">Self</span>, O, O2&gt;
+    </span><span class="kw">fn </span>parse_to&lt;O2&gt;(<span class="self">self</span>) -&gt; ParseTo&lt;<span class="self">Self</span>, I, O, O2, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
-        O: <span class="kw">crate</span>::stream::ParseSlice&lt;O2&gt;,
+        I: Stream,
+        O: ParseSlice&lt;O2&gt;,
+        E: ParseError&lt;I&gt;,
     {
         ParseTo::new(<span class="self">self</span>)
     }
@@ -1434,17 +1443,21 @@
     ///
     /// assert_eq!(parser.parse_next(&quot;abcd&quot;), Ok((&quot;&quot;, &quot;abcd&quot;)));
     /// assert_eq!(parser.parse_next(&quot;abcde&quot;), Err(ErrMode::Backtrack(Error::new(&quot;abcde&quot;, ErrorKind::Verify))));
-    /// assert_eq!(parser.parse_next(&quot;123abcd;&quot;),Err(ErrMode::Backtrack(Error::new(&quot;123abcd;&quot;, ErrorKind::Alpha))));
+    /// assert_eq!(parser.parse_next(&quot;123abcd;&quot;),Err(ErrMode::Backtrack(Error::new(&quot;123abcd;&quot;, ErrorKind::Slice))));
     /// # }
     /// ```
     </span><span class="attr">#[doc(alias = <span class="string">&quot;satisfy&quot;</span>)]
     #[doc(alias = <span class="string">&quot;filter&quot;</span>)]
-    </span><span class="kw">fn </span>verify&lt;G, O2: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, second: G) -&gt; Verify&lt;<span class="self">Self</span>, G, O2&gt;
+    </span><span class="kw">fn </span>verify&lt;G, O2&gt;(<span class="self">self</span>, filter: G) -&gt; Verify&lt;<span class="self">Self</span>, G, I, O, O2, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         G: Fn(<span class="kw-2">&amp;</span>O2) -&gt; bool,
+        I: Clone,
+        O: <span class="kw">crate</span>::lib::std::borrow::Borrow&lt;O2&gt;,
+        O2: <span class="question-mark">?</span>Sized,
+        E: ParseError&lt;I&gt;,
     {
-        Verify::new(<span class="self">self</span>, second)
+        Verify::new(<span class="self">self</span>, filter)
     }
 
     <span class="doccomment">/// If parsing fails, add context to the error
@@ -1452,11 +1465,12 @@
     /// This is used mainly to add user friendly information
     /// to errors when backtracking through a parse tree.
     </span><span class="attr">#[doc(alias = <span class="string">&quot;labelled&quot;</span>)]
-    </span><span class="kw">fn </span>context&lt;C&gt;(<span class="self">self</span>, context: C) -&gt; Context&lt;<span class="self">Self</span>, O, C&gt;
+    </span><span class="kw">fn </span>context&lt;C&gt;(<span class="self">self</span>, context: C) -&gt; Context&lt;<span class="self">Self</span>, I, O, E, C&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
-        C: Clone + <span class="kw">crate</span>::lib::std::fmt::Debug,
+        I: Stream,
         E: ContextError&lt;I, C&gt;,
+        C: Clone + <span class="kw">crate</span>::lib::std::fmt::Debug,
     {
         Context::new(<span class="self">self</span>, context)
     }
@@ -1484,38 +1498,12 @@
     }
 
     <span class="doccomment">/// Convert the parser&#39;s error to another type using [`std::convert::From`]
-    </span><span class="kw">fn </span>err_into&lt;E2&gt;(<span class="self">self</span>) -&gt; ErrInto&lt;<span class="self">Self</span>, E, E2&gt;
+    </span><span class="kw">fn </span>err_into&lt;E2&gt;(<span class="self">self</span>) -&gt; ErrInto&lt;<span class="self">Self</span>, I, O, E, E2&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         E: Into&lt;E2&gt;,
     {
         ErrInto::new(<span class="self">self</span>)
-    }
-
-    <span class="doccomment">/// Applies a second parser after the first one, return their results as a tuple
-    ///
-    /// **WARNING:** Deprecated, replaced with [`winnow::sequence::tuple`][crate::sequence::tuple]
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.1.0&quot;</span>, note = <span class="string">&quot;Replaced with `winnow::sequence::tuple&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-    </span><span class="kw">fn </span>and&lt;G, O2&gt;(<span class="self">self</span>, g: G) -&gt; And&lt;<span class="self">Self</span>, G&gt;
-    <span class="kw">where
-        </span>G: Parser&lt;I, O2, E&gt;,
-        <span class="self">Self</span>: core::marker::Sized,
-    {
-        And::new(<span class="self">self</span>, g)
-    }
-
-    <span class="doccomment">/// Applies a second parser over the input if the first one failed
-    ///
-    /// **WARNING:** Deprecated, replaced with [`winnow::branch::alt`][crate::branch::alt]
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.1.0&quot;</span>, note = <span class="string">&quot;Replaced with `winnow::branch::alt&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;unstable-doc&quot;</span>, doc(hidden))]
-    </span><span class="kw">fn </span>or&lt;G&gt;(<span class="self">self</span>, g: G) -&gt; Or&lt;<span class="self">Self</span>, G&gt;
-    <span class="kw">where
-        </span>G: Parser&lt;I, O, E&gt;,
-        <span class="self">Self</span>: core::marker::Sized,
-    {
-        Or::new(<span class="self">self</span>, g)
     }
 }
 
@@ -1539,9 +1527,9 @@
 ///     b&#39;a&#39;.parse_next(i)
 /// }
 /// assert_eq!(parser(&amp;b&quot;abc&quot;[..]), Ok((&amp;b&quot;bc&quot;[..], b&#39;a&#39;)));
-/// assert_eq!(parser(&amp;b&quot; abc&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot; abc&quot;[..], ErrorKind::OneOf))));
-/// assert_eq!(parser(&amp;b&quot;bc&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;bc&quot;[..], ErrorKind::OneOf))));
-/// assert_eq!(parser(&amp;b&quot;&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;&quot;[..], ErrorKind::OneOf))));
+/// assert_eq!(parser(&amp;b&quot; abc&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot; abc&quot;[..], ErrorKind::Verify))));
+/// assert_eq!(parser(&amp;b&quot;bc&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;bc&quot;[..], ErrorKind::Verify))));
+/// assert_eq!(parser(&amp;b&quot;&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;&quot;[..], ErrorKind::Token))));
 /// ```
 </span><span class="kw">impl</span>&lt;I, E&gt; Parser&lt;I, u8, E&gt; <span class="kw">for </span>u8
 <span class="kw">where
@@ -1565,9 +1553,9 @@
 ///     &#39;a&#39;.parse_next(i)
 /// }
 /// assert_eq!(parser(&quot;abc&quot;), Ok((&quot;bc&quot;, &#39;a&#39;)));
-/// assert_eq!(parser(&quot; abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot; abc&quot;, ErrorKind::OneOf))));
-/// assert_eq!(parser(&quot;bc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;bc&quot;, ErrorKind::OneOf))));
-/// assert_eq!(parser(&quot;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;&quot;, ErrorKind::OneOf))));
+/// assert_eq!(parser(&quot; abc&quot;), Err(ErrMode::Backtrack(Error::new(&quot; abc&quot;, ErrorKind::Verify))));
+/// assert_eq!(parser(&quot;bc&quot;), Err(ErrMode::Backtrack(Error::new(&quot;bc&quot;, ErrorKind::Verify))));
+/// assert_eq!(parser(&quot;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;&quot;, ErrorKind::Token))));
 /// ```
 </span><span class="kw">impl</span>&lt;I, E&gt; Parser&lt;I, &lt;I <span class="kw">as </span>Stream&gt;::Token, E&gt; <span class="kw">for </span>char
 <span class="kw">where
@@ -1596,8 +1584,8 @@
 ///
 /// assert_eq!(parser(&amp;b&quot;Hello, World!&quot;[..]), Ok((&amp;b&quot;, World!&quot;[..], &amp;b&quot;Hello&quot;[..])));
 /// assert_eq!(parser(&amp;b&quot;Something&quot;[..]), Ok((&amp;b&quot;hing&quot;[..], &amp;b&quot;Somet&quot;[..])));
-/// assert_eq!(parser(&amp;b&quot;Some&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;Some&quot;[..], ErrorKind::Eof))));
-/// assert_eq!(parser(&amp;b&quot;&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;&quot;[..], ErrorKind::Eof))));
+/// assert_eq!(parser(&amp;b&quot;Some&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;Some&quot;[..], ErrorKind::Slice))));
+/// assert_eq!(parser(&amp;b&quot;&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;&quot;[..], ErrorKind::Slice))));
 /// ```
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, I, E: ParseError&lt;I&gt;&gt; Parser&lt;I, &lt;I <span class="kw">as </span>Stream&gt;::Slice, E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]
 <span class="kw">where
@@ -1624,8 +1612,8 @@
 ///
 /// assert_eq!(parser(&amp;b&quot;Hello, World!&quot;[..]), Ok((&amp;b&quot;, World!&quot;[..], &amp;b&quot;Hello&quot;[..])));
 /// assert_eq!(parser(&amp;b&quot;Something&quot;[..]), Ok((&amp;b&quot;hing&quot;[..], &amp;b&quot;Somet&quot;[..])));
-/// assert_eq!(parser(&amp;b&quot;Some&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;Some&quot;[..], ErrorKind::Eof))));
-/// assert_eq!(parser(&amp;b&quot;&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;&quot;[..], ErrorKind::Eof))));
+/// assert_eq!(parser(&amp;b&quot;Some&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;Some&quot;[..], ErrorKind::Slice))));
+/// assert_eq!(parser(&amp;b&quot;&quot;[..]), Err(ErrMode::Backtrack(Error::new(&amp;b&quot;&quot;[..], ErrorKind::Slice))));
 /// ```
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, I, E: ParseError&lt;I&gt;, <span class="kw">const </span>N: usize&gt; Parser&lt;I, &lt;I <span class="kw">as </span>Stream&gt;::Slice, E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8; N]
 <span class="kw">where
@@ -1652,8 +1640,8 @@
 ///
 /// assert_eq!(parser(&quot;Hello, World!&quot;), Ok((&quot;, World!&quot;, &quot;Hello&quot;)));
 /// assert_eq!(parser(&quot;Something&quot;), Ok((&quot;hing&quot;, &quot;Somet&quot;)));
-/// assert_eq!(parser(&quot;Some&quot;), Err(ErrMode::Backtrack(Error::new(&quot;Some&quot;, ErrorKind::Eof))));
-/// assert_eq!(parser(&quot;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;&quot;, ErrorKind::Eof))));
+/// assert_eq!(parser(&quot;Some&quot;), Err(ErrMode::Backtrack(Error::new(&quot;Some&quot;, ErrorKind::Slice))));
+/// assert_eq!(parser(&quot;&quot;), Err(ErrMode::Backtrack(Error::new(&quot;&quot;, ErrorKind::Slice))));
 /// ```
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, I, E: ParseError&lt;I&gt;&gt; Parser&lt;I, &lt;I <span class="kw">as </span>Stream&gt;::Slice, E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str
 <span class="kw">where
@@ -1739,7 +1727,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><span class="kw">crate</span>::bytes::{tag, take};
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::take;
     <span class="kw">use </span><span class="kw">crate</span>::error::ErrMode;
     <span class="kw">use </span><span class="kw">crate</span>::error::Error;
     <span class="kw">use </span><span class="kw">crate</span>::error::ErrorKind;
@@ -1782,7 +1770,7 @@
             parser.parse_next(<span class="string">&quot;123def&quot;</span>),
             <span class="prelude-val">Err</span>(ErrMode::Backtrack(Error {
                 input: <span class="string">&quot;123def&quot;</span>,
-                kind: ErrorKind::Alpha
+                kind: ErrorKind::Slice
             }))
         );
     }
@@ -1791,7 +1779,7 @@
     </span><span class="kw">fn </span>tuple_test() {
         <span class="attr">#[allow(clippy::type_complexity)]
         </span><span class="kw">fn </span>tuple_3(i: Partial&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; IResult&lt;Partial&lt;<span class="kw-2">&amp;</span>[u8]&gt;, (u16, <span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span>[u8])&gt; {
-            (be_u16, take(<span class="number">3u8</span>), tag(<span class="string">&quot;fg&quot;</span>)).parse_next(i)
+            (be_u16, take(<span class="number">3u8</span>), <span class="string">&quot;fg&quot;</span>).parse_next(i)
         }
 
         <span class="macro">assert_eq!</span>(
@@ -1828,5 +1816,4 @@
         <span class="macro">assert_eq!</span>(parser.parse_next(<span class="string">&quot;&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;&quot;</span>, ())));
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

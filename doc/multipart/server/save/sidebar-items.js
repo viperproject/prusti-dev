@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["DataReader","PartialReason","SaveDir","SaveResult","SavedData"],"struct":["BufReader","Entries","PartialEntries","PartialSavedField","SaveBuilder","SavedField","TempDir"],"type":["EntriesSaveResult","FieldSaveResult"]};

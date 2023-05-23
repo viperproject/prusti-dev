@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Message"],"fn":["accept","accept_hdr","accept_hdr_with_config","accept_with_config"],"mod":["buffer","client","error","handshake","protocol","stream","util"]};
+window.SIDEBAR_ITEMS = {"fn":["accept","accept_hdr","accept_hdr_with_config","accept_with_config"],"mod":["buffer","client","error","handshake","protocol","stream","util"]};

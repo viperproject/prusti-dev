@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.26.0/src/net/udp.rs`."><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.27.0/src/net/udp.rs`."><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1714,10 +1714,234 @@
 <a href="#1714" id="1714">1714</a>
 <a href="#1715" id="1715">1715</a>
 <a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a>
+<a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::{Interest, PollEvented, ReadBuf, Ready};
 <span class="kw">use </span><span class="kw">crate</span>::net::{to_socket_addrs, ToSocketAddrs};
 
-<span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::net::{<span class="self">self</span>, Ipv4Addr, Ipv6Addr, SocketAddr};
@@ -2670,6 +2894,15 @@
         /// When there is no pending data, `Err(io::ErrorKind::WouldBlock)` is
         /// returned. This function is usually paired with `readable()`.
         ///
+        /// # Notes
+        /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+        /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+        /// Because UDP is stateless and does not validate the origin of a packet,
+        /// the attacker does not need to be able to intercept traffic in order to interfere.
+        /// It is important to be aware of this when designing your application-level protocol.
+        ///
+        /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
+        ///
         /// # Examples
         ///
         /// ```no_run
@@ -2893,6 +3126,15 @@
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// # Notes
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
     </span><span class="kw">pub async fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;(usize, SocketAddr)&gt; {
         <span class="self">self</span>.io
             .registration()
@@ -2917,6 +3159,15 @@
     /// # Errors
     ///
     /// This function may encounter any standard I/O error except `WouldBlock`.
+    ///
+    /// # Notes
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
     </span><span class="kw">pub fn </span>poll_recv_from(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -2948,6 +3199,16 @@
     ///
     /// When there is no pending data, `Err(io::ErrorKind::WouldBlock)` is
     /// returned. This function is usually paired with `readable()`.
+    ///
+    /// # Notes
+    ///
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
     ///
     /// # Examples
     ///
@@ -3035,6 +3296,42 @@
             .try_io(interest, || <span class="self">self</span>.io.try_io(f))
     }
 
+    <span class="doccomment">/// Reads or writes from the socket using a user-provided IO operation.
+    ///
+    /// The readiness of the socket is awaited and when the socket is ready,
+    /// the provided closure is called. The closure should attempt to perform
+    /// IO operation on the socket by manually calling the appropriate syscall.
+    /// If the operation fails because the socket is not actually ready,
+    /// then the closure should return a `WouldBlock` error. In such case the
+    /// readiness flag is cleared and the socket readiness is awaited again.
+    /// This loop is repeated until the closure returns an `Ok` or an error
+    /// other than `WouldBlock`.
+    ///
+    /// The closure should only return a `WouldBlock` error if it has performed
+    /// an IO operation on the socket that failed due to the socket not being
+    /// ready. Returning a `WouldBlock` error in any other situation will
+    /// incorrectly clear the readiness flag, which can cause the socket to
+    /// behave incorrectly.
+    ///
+    /// The closure should not perform the IO operation using any of the methods
+    /// defined on the Tokio `UdpSocket` type, as this will mess with the
+    /// readiness flag and can cause the socket to behave incorrectly.
+    ///
+    /// This method is not intended to be used with combined interests.
+    /// The closure should perform only one type of IO operation, so it should not
+    /// require more than one ready state. This method may panic or sleep forever
+    /// if it is called with a combined interest.
+    </span><span class="kw">pub async fn </span>async_io&lt;R&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        interest: Interest,
+        <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut() -&gt; io::Result&lt;R&gt;,
+    ) -&gt; io::Result&lt;R&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .async_io(interest, || <span class="self">self</span>.io.try_io(<span class="kw-2">&amp;mut </span>f))
+            .<span class="kw">await
+    </span>}
+
     <span class="doccomment">/// Receives data from the socket, without removing it from the input queue.
     /// On success, returns the number of bytes read and the address from whence
     /// the data came.
@@ -3046,6 +3343,17 @@
     /// WSAEMSGSIZE(10040). The excess data is lost.
     /// Make sure to always use a sufficiently large buffer to hold the
     /// maximum UDP packet size, which can be up to 65536 bytes in size.
+    ///
+    /// MacOS will return an error if you pass a zero-sized buffer.
+    ///
+    /// If you&#39;re merely interested in learning the sender of the data at the head of the queue,
+    /// try [`peek_sender`].
+    ///
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
     ///
     /// # Examples
     ///
@@ -3065,6 +3373,9 @@
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// [`peek_sender`]: method@Self::peek_sender
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
     </span><span class="kw">pub async fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;(usize, SocketAddr)&gt; {
         <span class="self">self</span>.io
             .registration()
@@ -3073,7 +3384,7 @@
     </span>}
 
     <span class="doccomment">/// Receives data from the socket, without removing it from the input queue.
-    /// On success, returns the number of bytes read.
+    /// On success, returns the sending address of the datagram.
     ///
     /// # Notes
     ///
@@ -3087,6 +3398,17 @@
     /// Make sure to always use a sufficiently large buffer to hold the
     /// maximum UDP packet size, which can be up to 65536 bytes in size.
     ///
+    /// MacOS will return an error if you pass a zero-sized buffer.
+    ///
+    /// If you&#39;re merely interested in learning the sender of the data at the head of the queue,
+    /// try [`poll_peek_sender`].
+    ///
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
     /// # Return value
     ///
     /// The function returns:
@@ -3098,6 +3420,9 @@
     /// # Errors
     ///
     /// This function may encounter any standard I/O error except `WouldBlock`.
+    ///
+    /// [`poll_peek_sender`]: method@Self::poll_peek_sender
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
     </span><span class="kw">pub fn </span>poll_peek_from(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -3118,6 +3443,117 @@
         }
         buf.advance(n);
         Poll::Ready(<span class="prelude-val">Ok</span>(addr))
+    }
+
+    <span class="doccomment">/// Tries to receive data on the socket without removing it from the input queue.
+    /// On success, returns the number of bytes read and the sending address of the
+    /// datagram.
+    ///
+    /// When there is no pending data, `Err(io::ErrorKind::WouldBlock)` is
+    /// returned. This function is usually paired with `readable()`.
+    ///
+    /// # Notes
+    ///
+    /// On Windows, if the data is larger than the buffer specified, the buffer
+    /// is filled with the first part of the data, and peek returns the error
+    /// WSAEMSGSIZE(10040). The excess data is lost.
+    /// Make sure to always use a sufficiently large buffer to hold the
+    /// maximum UDP packet size, which can be up to 65536 bytes in size.
+    ///
+    /// MacOS will return an error if you pass a zero-sized buffer.
+    ///
+    /// If you&#39;re merely interested in learning the sender of the data at the head of the queue,
+    /// try [`try_peek_sender`].
+    ///
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
+    /// [`try_peek_sender`]: method@Self::try_peek_sender
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
+    </span><span class="kw">pub fn </span>try_peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;(usize, SocketAddr)&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .try_io(Interest::READABLE, || <span class="self">self</span>.io.peek_from(buf))
+    }
+
+    <span class="doccomment">/// Retrieve the sender of the data at the head of the input queue, waiting if empty.
+    ///
+    /// This is equivalent to calling [`peek_from`] with a zero-sized buffer,
+    /// but suppresses the `WSAEMSGSIZE` error on Windows and the &quot;invalid argument&quot; error on macOS.
+    ///
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
+    /// [`peek_from`]: method@Self::peek_from
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
+    </span><span class="kw">pub async fn </span>peek_sender(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .async_io(Interest::READABLE, || <span class="self">self</span>.peek_sender_inner())
+            .<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Retrieve the sender of the data at the head of the input queue,
+    /// scheduling a wakeup if empty.
+    ///
+    /// This is equivalent to calling [`poll_peek_from`] with a zero-sized buffer,
+    /// but suppresses the `WSAEMSGSIZE` error on Windows and the &quot;invalid argument&quot; error on macOS.
+    ///
+    /// # Notes
+    ///
+    /// Note that on multiple calls to a `poll_*` method in the recv direction, only the
+    /// `Waker` from the `Context` passed to the most recent call will be scheduled to
+    /// receive a wakeup.
+    ///
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
+    /// [`poll_peek_from`]: method@Self::poll_peek_from
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
+    </span><span class="kw">pub fn </span>poll_peek_sender(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;SocketAddr&gt;&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .poll_read_io(cx, || <span class="self">self</span>.peek_sender_inner())
+    }
+
+    <span class="doccomment">/// Try to retrieve the sender of the data at the head of the input queue.
+    ///
+    /// When there is no pending data, `Err(io::ErrorKind::WouldBlock)` is
+    /// returned. This function is usually paired with `readable()`.
+    ///
+    /// Note that the socket address **cannot** be implicitly trusted, because it is relatively
+    /// trivial to send a UDP datagram with a spoofed origin in a [packet injection attack].
+    /// Because UDP is stateless and does not validate the origin of a packet,
+    /// the attacker does not need to be able to intercept traffic in order to interfere.
+    /// It is important to be aware of this when designing your application-level protocol.
+    ///
+    /// [packet injection attack]: https://en.wikipedia.org/wiki/Packet_injection
+    </span><span class="kw">pub fn </span>try_peek_sender(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.io
+            .registration()
+            .try_io(Interest::READABLE, || <span class="self">self</span>.peek_sender_inner())
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>peek_sender_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.io.try_io(|| {
+            <span class="self">self</span>.as_socket()
+                .peek_sender()<span class="question-mark">?
+                </span><span class="comment">// May be `None` if the platform doesn&#39;t populate the sender for some reason.
+                // In testing, that only occurred on macOS if you pass a zero-sized buffer,
+                // but the implementation of `Socket::peek_sender()` covers that.
+                </span>.as_socket()
+                .ok_or_else(|| io::Error::new(io::ErrorKind::Other, <span class="string">&quot;sender not available&quot;</span>))
+        })
     }
 
     <span class="doccomment">/// Gets the value of the `SO_BROADCAST` option for this socket.
@@ -3407,7 +3843,7 @@
     }
 }
 
-<span class="attr">#[cfg(all(unix))]
+<span class="attr">#[cfg(unix)]
 </span><span class="kw">mod </span>sys {
     <span class="kw">use </span><span class="kw">super</span>::UdpSocket;
     <span class="kw">use </span>std::os::unix::prelude::<span class="kw-2">*</span>;
@@ -3417,18 +3853,31 @@
             <span class="self">self</span>.io.as_raw_fd()
         }
     }
+
+    <span class="attr">#[cfg(not(tokio_no_as_fd))]
+    </span><span class="kw">impl </span>AsFd <span class="kw">for </span>UdpSocket {
+        <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+            <span class="kw">unsafe </span>{ BorrowedFd::borrow_raw(<span class="self">self</span>.as_raw_fd()) }
+        }
+    }
 }
 
-<span class="attr">#[cfg(windows)]
-</span><span class="kw">mod </span>sys {
-    <span class="kw">use </span><span class="kw">super</span>::UdpSocket;
-    <span class="kw">use </span>std::os::windows::prelude::<span class="kw-2">*</span>;
+<span class="macro">cfg_windows! </span>{
+    <span class="kw">use </span><span class="kw">crate</span>::os::windows::io::{AsRawSocket, RawSocket};
+    <span class="attr">#[cfg(not(tokio_no_as_fd))]
+    </span><span class="kw">use </span><span class="kw">crate</span>::os::windows::io::{AsSocket, BorrowedSocket};
 
     <span class="kw">impl </span>AsRawSocket <span class="kw">for </span>UdpSocket {
         <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
             <span class="self">self</span>.io.as_raw_socket()
         }
     }
+
+    <span class="attr">#[cfg(not(tokio_no_as_fd))]
+    </span><span class="kw">impl </span>AsSocket <span class="kw">for </span>UdpSocket {
+        <span class="kw">fn </span>as_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedSocket&lt;<span class="lifetime">&#39;_</span>&gt; {
+            <span class="kw">unsafe </span>{ BorrowedSocket::borrow_raw(<span class="self">self</span>.as_raw_socket()) }
+        }
+    }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

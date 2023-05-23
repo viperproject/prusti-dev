@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/snapshot/encoder.rs`."><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/snapshot/encoder.rs`."><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2761,7 +2761,7 @@
                 <span class="kw">let </span>domain_name = <span class="macro">format!</span>(<span class="string">&quot;Snap${}&quot;</span>, <span class="kw-2">&amp;</span>array_types.sequence_pred_type.name());
                 <span class="kw">let </span>snap_type = array_types.sequence_pred_type.convert_to_snapshot();
                 <span class="kw">let </span>seq_type = Type::Seq(vir::SeqType {
-                    typ: <span class="kw">box </span>elem_snap_ty.clone(),
+                    typ: Box::new(elem_snap_ty.clone()),
                 });
 
                 <span class="kw">let </span>cons = vir::DomainFunc {
@@ -2912,8 +2912,8 @@
 
                     <span class="kw">let </span>seq_lookup = Expr::ContainerOp(vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqIndex,
-                        left: <span class="kw">box </span>data.clone().into(),
-                        right: <span class="kw">box </span>idx.clone().into(),
+                        left: Box::new(data.clone().into()),
+                        right: Box::new(idx.clone().into()),
                         position: vir::Position::default(),
                     });
                     vir::DomainAxiom {
@@ -2991,7 +2991,7 @@
                 <span class="kw">let </span>slice_snap_ty = slice_types.sequence_pred_type.convert_to_snapshot();
                 <span class="kw">let </span>elem_snap_ty = <span class="self">self</span>.encode_type(encoder, <span class="kw-2">*</span>elem_ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>seq_type = Type::Seq(vir::SeqType {
-                    typ: <span class="kw">box </span>elem_snap_ty.clone(),
+                    typ: Box::new(elem_snap_ty.clone()),
                 });
 
                 <span class="kw">let </span>cons = vir::DomainFunc {
@@ -3081,13 +3081,13 @@
                     )],
                     posts: <span class="macro">vec!</span>[
                         Expr::InhaleExhale(vir::InhaleExhale {
-                            inhale_expr: <span class="kw">box </span>read_eq_lookup,
-                            exhale_expr: <span class="kw">box </span><span class="bool-val">true</span>.into(),
+                            inhale_expr: Box::new(read_eq_lookup),
+                            exhale_expr: Box::new(<span class="bool-val">true</span>.into()),
                             position: vir::Position::default(),
                         }),
                         Expr::InhaleExhale(vir::InhaleExhale {
-                            inhale_expr: <span class="kw">box </span>snap_len_eq_call_len,
-                            exhale_expr: <span class="kw">box </span><span class="bool-val">true</span>.into(),
+                            inhale_expr: Box::new(snap_len_eq_call_len),
+                            exhale_expr: Box::new(<span class="bool-val">true</span>.into()),
                             position: vir::Position::default(),
                         }),
                     ],
@@ -3167,8 +3167,8 @@
 
                     <span class="kw">let </span>seq_lookup = Expr::ContainerOp(vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqIndex,
-                        left: <span class="kw">box </span>data.clone().into(),
-                        right: <span class="kw">box </span>idx.clone().into(),
+                        left: Box::new(data.clone().into()),
+                        right: Box::new(idx.clone().into()),
                         position: vir::Position::default(),
                     });
 
@@ -3191,8 +3191,8 @@
                     <span class="kw">let </span>len_call = len.apply(<span class="macro">vec!</span>[cons_call]);
                     <span class="kw">let </span>seq_len = Expr::ContainerOp(vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqLen,
-                        left: <span class="kw">box </span>data.into(),
-                        right: <span class="kw">box </span><span class="bool-val">true</span>.into(), <span class="comment">// unused
+                        left: Box::new(data.into()),
+                        right: Box::new(<span class="bool-val">true</span>.into()), <span class="comment">// unused
                         </span>position: vir::Position::default(),
                     });
 
@@ -3323,7 +3323,7 @@
 
         <span class="kw">let </span>self_expr: Expr = <span class="macro">vir_local! </span>{ <span class="self">self</span>: {seq_pred_ty.clone()} }.into();
         <span class="kw">let </span>seq_type = Type::Seq(vir::SeqType {
-            typ: <span class="kw">box </span>elem_snap_ty.clone(),
+            typ: Box::new(elem_snap_ty.clone()),
         });
         <span class="kw">let </span>start = <span class="macro">vir_local! </span>{ start: Int };
         <span class="kw">let </span>start_expr: Expr = start.clone().into();
@@ -3341,20 +3341,20 @@
         <span class="kw">let </span>start_lt_len = <span class="macro">vir_expr! </span>{ [start_expr] &lt; [seq_len] };
         <span class="kw">let </span>result_len = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqLen,
-            left: <span class="kw">box </span>result_expr.clone(),
-            right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(<span class="number">0</span>)),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_0 = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span>result_expr.clone(),
-            right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(<span class="number">0</span>)),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_j = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span>result_expr.clone(),
-            right: <span class="kw">box </span>j_expr.clone(),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(j_expr.clone()),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>slice_lookup_i = lookup_pure(self_expr.clone(), i_expr.clone(), elem_snap_ty.clone());
@@ -3405,7 +3405,7 @@
                 }),
                 Expr::ContainerOp(vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqConcat,
-                    left: <span class="kw">box </span>Expr::Seq(vir::Seq {
+                    left: Box::new(Expr::Seq(vir::Seq {
                         typ: seq_type.clone(),
                         elements: <span class="macro">vec!</span>[lookup_pure(
                             self_expr.clone(),
@@ -3413,15 +3413,15 @@
                             elem_snap_ty,
                         )],
                         position: vir::Position::default(),
-                    }),
-                    right: <span class="kw">box </span>Expr::func_app(
+                    })),
+                    right: Box::new(Expr::func_app(
                         seq_collect_funcname,
                         Vec::new(), <span class="comment">// FIXME: This is most likely wrong.
                         </span><span class="macro">vec!</span>[self_expr, <span class="macro">vir_expr! </span>{ [start_expr] + [Expr::from(<span class="number">1</span>)] }],
                         <span class="macro">vec!</span>[<span class="macro">vir_local! </span>{ slice: {seq_pred_ty} }, start],
                         seq_type,
                         vir::Position::default(),
-                    ),
+                    )),
                     position: vir::Position::default(),
                 }),
             )),
@@ -3439,7 +3439,7 @@
 
         <span class="kw">let </span>self_expr: Expr = <span class="macro">vir_local! </span>{ <span class="self">self</span>: {self_snap_ty.clone()} }.into();
         <span class="kw">let </span>seq_type = Type::Seq(vir::SeqType {
-            typ: <span class="kw">box </span>elem_snap_ty.clone(),
+            typ: Box::new(elem_snap_ty),
         });
 
         <span class="kw">let </span>lo = <span class="macro">vir_local! </span>{ lo: Int };
@@ -3455,20 +3455,20 @@
 
         <span class="kw">let </span>result_len = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqLen,
-            left: <span class="kw">box </span>result_expr.clone(),
-            right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(<span class="number">0</span>)),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_0 = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span>result_expr.clone(),
-            right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
+            left: Box::new(result_expr.clone()),
+            right: Box::new(Expr::from(<span class="number">0</span>)),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_j = Expr::ContainerOp(vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span>result_expr.clone(),
-            right: <span class="kw">box </span>j_expr.clone(),
+            left: Box::new(result_expr),
+            right: Box::new(j_expr.clone()),
             position: vir::Position::default(),
         });
 
@@ -3515,12 +3515,12 @@
                 }),
                 Expr::ContainerOp(vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqConcat,
-                    left: <span class="kw">box </span>Expr::Seq(vir::Seq {
+                    left: Box::new(Expr::Seq(vir::Seq {
                         typ: seq_type.clone(),
                         elements: <span class="macro">vec!</span>[read_lo],
                         position: vir::Position::default(),
-                    }),
-                    right: <span class="kw">box </span>Expr::func_app(
+                    })),
+                    right: Box::new(Expr::func_app(
                         slice_helper_name,
                         <span class="macro">vec!</span>[self_snap_ty.clone()],
                         <span class="macro">vec!</span>[
@@ -3531,7 +3531,7 @@
                         <span class="macro">vec!</span>[<span class="macro">vir_local! </span>{ slice: {self_snap_ty} }, lo, hi],
                         seq_type,
                         vir::Position::default(),
-                    ),
+                    )),
                     position: vir::Position::default(),
                 }),
             )),
@@ -3896,5 +3896,4 @@
     </span>mir_type: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     typ: Type,
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_viper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

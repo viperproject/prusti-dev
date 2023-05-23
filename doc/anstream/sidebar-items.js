@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ColorChoice"],"fn":["force_color","stderr","stdout"],"macro":["eprint","eprintln","panic","print","println"],"mod":["adapter"],"struct":["AutoStream","Buffer","StripStream"],"trait":["Lockable","RawStream"]};

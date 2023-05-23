@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.36.9/src/backend/linux_raw/io/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../rustix/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.37.11/src/backend/linux_raw/io/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-fbd14db5c88ed452.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (5e1d3299a 2023-03-31)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../../../static.files/storage-d4a1a279bad1a0c0.js"></script><script defer src="../../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-8e6affb8c73a5ff1.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../rustix/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -344,64 +344,6 @@
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
 <a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
 </pre><pre class="rust"><code><span class="doccomment">//! epoll support.
 //!
 //! This is an experiment, and it isn&#39;t yet clear whether epoll is the right
@@ -410,17 +352,17 @@
 //!
 //! # Examples
 //!
-//! ```rust,no_run
+//! ```no_run
 //! # #![cfg_attr(io_lifetimes_use_std, feature(io_safety))]
 //! # #[cfg(feature = &quot;net&quot;)]
 //! # fn main() -&gt; std::io::Result&lt;()&gt; {
 //! use io_lifetimes::AsFd;
-//! use rustix::io::epoll::{self, Epoll};
-//! use rustix::io::{ioctl_fionbio, read, write};
+//! use rustix::io::{epoll, ioctl_fionbio, read, write};
 //! use rustix::net::{
 //!     accept, bind_v4, listen, socket, AddressFamily, Ipv4Addr, Protocol, SocketAddrV4,
 //!     SocketType,
 //! };
+//! use std::collections::HashMap;
 //! use std::os::unix::io::AsRawFd;
 //!
 //! // Create a socket and listen on it.
@@ -430,29 +372,40 @@
 //!
 //! // Create an epoll object. Using `Owning` here means the epoll object will
 //! // take ownership of the file descriptors registered with it.
-//! let epoll = Epoll::new(epoll::CreateFlags::CLOEXEC, epoll::Owning::new())?;
-//!
-//! // Remember the socket raw fd, which we use for comparisons only.
-//! let raw_listen_sock = listen_sock.as_fd().as_raw_fd();
+//! let epoll = epoll::epoll_create(epoll::CreateFlags::CLOEXEC)?;
 //!
 //! // Register the socket with the epoll object.
-//! epoll.add(listen_sock, epoll::EventFlags::IN)?;
+//! epoll::epoll_add(&amp;epoll, &amp;listen_sock, 1, epoll::EventFlags::IN)?;
+//!
+//! // Keep track of the sockets we&#39;ve opened.
+//! let mut next_id = 2;
+//! let mut sockets = HashMap::new();
 //!
 //! // Process events.
 //! let mut event_list = epoll::EventVec::with_capacity(4);
 //! loop {
-//!     epoll.wait(&amp;mut event_list, -1)?;
+//!     epoll::epoll_wait(&amp;epoll, &amp;mut event_list, -1)?;
 //!     for (_event_flags, target) in &amp;event_list {
-//!         if target.as_raw_fd() == raw_listen_sock {
+//!         if target == 1 {
 //!             // Accept a new connection, set it to non-blocking, and
 //!             // register to be notified when it&#39;s ready to write to.
-//!             let conn_sock = accept(&amp;*target)?;
+//!             let conn_sock = accept(&amp;listen_sock)?;
 //!             ioctl_fionbio(&amp;conn_sock, true)?;
-//!             epoll.add(conn_sock, epoll::EventFlags::OUT | epoll::EventFlags::ET)?;
+//!             epoll::epoll_add(
+//!                 &amp;epoll,
+//!                 &amp;conn_sock,
+//!                 next_id,
+//!                 epoll::EventFlags::OUT | epoll::EventFlags::ET,
+//!             )?;
+//!
+//!             // Keep track of the socket.
+//!             sockets.insert(next_id, conn_sock);
+//!             next_id += 1;
 //!         } else {
 //!             // Write a message to the stream and then unregister it.
-//!             write(&amp;*target, b&quot;hello\n&quot;)?;
-//!             let _ = epoll.del(target)?;
+//!             let target = sockets.remove(&amp;target).unwrap();
+//!             write(&amp;target, b&quot;hello\n&quot;)?;
+//!             let _ = epoll::epoll_del(&amp;epoll, &amp;target)?;
 //!         }
 //!     }
 //! }
@@ -464,18 +417,11 @@
 </span><span class="attr">#![allow(unsafe_code)]
 
 </span><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::c;
-<span class="kw">use </span><span class="kw">crate</span>::backend::io::syscalls::{epoll_add, epoll_create, epoll_del, epoll_mod, epoll_wait};
+<span class="kw">use </span><span class="kw">crate</span>::backend::io::syscalls;
 <span class="kw">use </span><span class="kw">crate</span>::fd::{AsFd, AsRawFd, OwnedFd};
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::fd::{BorrowedFd, FromRawFd, IntoRawFd, RawFd};
 <span class="kw">use </span><span class="kw">crate</span>::io;
 <span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>bitflags::bitflags;
-<span class="kw">use </span>core::marker::PhantomData;
-<span class="kw">use </span>core::ptr::null;
-
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub use </span><span class="kw">crate</span>::io::context::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags! </span>{
     <span class="doccomment">/// `EPOLL_*` for use with [`Epoll::new`].
@@ -504,6 +450,24 @@
         <span class="doccomment">/// `EPOLLHUP`
         </span><span class="kw">const </span>HUP = linux_raw_sys::general::EPOLLHUP <span class="kw">as </span>u32;
 
+        <span class="doccomment">/// `EPOLLRDNORM`
+        </span><span class="kw">const </span>RDNORM = linux_raw_sys::general::EPOLLRDNORM <span class="kw">as </span>u32;
+
+        <span class="doccomment">/// `EPOLLRDBAND`
+        </span><span class="kw">const </span>RDBAND = linux_raw_sys::general::EPOLLRDBAND <span class="kw">as </span>u32;
+
+        <span class="doccomment">/// `EPOLLWRNORM`
+        </span><span class="kw">const </span>WRNORM = linux_raw_sys::general::EPOLLWRNORM <span class="kw">as </span>u32;
+
+        <span class="doccomment">/// `EPOLLWRBAND`
+        </span><span class="kw">const </span>WRBAND = linux_raw_sys::general::EPOLLWRBAND <span class="kw">as </span>u32;
+
+        <span class="doccomment">/// `EPOLLMSG`
+        </span><span class="kw">const </span>MSG = linux_raw_sys::general::EPOLLMSG <span class="kw">as </span>u32;
+
+        <span class="doccomment">/// `EPOLLRDHUP`
+        </span><span class="kw">const </span>RDHUP = linux_raw_sys::general::EPOLLRDHUP <span class="kw">as </span>u32;
+
         <span class="doccomment">/// `EPOLLET`
         </span><span class="kw">const </span>ET = linux_raw_sys::general::EPOLLET <span class="kw">as </span>u32;
 
@@ -518,199 +482,127 @@
     }
 }
 
-<span class="doccomment">/// An &quot;epoll&quot;, an interface to an OS object allowing one to repeatedly wait
-/// for events from a set of file descriptors efficiently.
-</span><span class="kw">pub struct </span>Epoll&lt;Context: <span class="self">self</span>::Context&gt; {
-    epoll_fd: OwnedFd,
-    context: Context,
+<span class="doccomment">/// `epoll_create1(flags)`—Creates a new `Epoll`.
+///
+/// Use the [`CreateFlags::CLOEXEC`] flag to prevent the resulting file
+/// descriptor from being implicitly passed across `exec` boundaries.
+</span><span class="attr">#[inline]
+#[doc(alias = <span class="string">&quot;epoll_create1&quot;</span>)]
+</span><span class="kw">pub fn </span>epoll_create(flags: CreateFlags) -&gt; io::Result&lt;OwnedFd&gt; {
+    syscalls::epoll_create(flags)
 }
 
-<span class="kw">impl</span>&lt;Context: <span class="self">self</span>::Context&gt; Epoll&lt;Context&gt; {
-    <span class="doccomment">/// `epoll_create1(flags)`—Creates a new `Epoll`.
-    ///
-    /// Use the [`CreateFlags::CLOEXEC`] flag to prevent the resulting file
-    /// descriptor from being implicitly passed across `exec` boundaries.
-    </span><span class="attr">#[inline]
-    #[doc(alias = <span class="string">&quot;epoll_create1&quot;</span>)]
-    </span><span class="kw">pub fn </span>new(flags: CreateFlags, context: Context) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="comment">// Safety: We&#39;re calling `epoll_create1` via FFI and we know how it
-        // behaves.
-        </span><span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            epoll_fd: epoll_create(flags)<span class="question-mark">?</span>,
-            context,
-        })
-    }
-
-    <span class="doccomment">/// `epoll_ctl(self, EPOLL_CTL_ADD, data, event)`—Adds an element to an
-    /// `Epoll`.
-    ///
-    /// This registers interest in any of the events set in `events` occurring
-    /// on the file descriptor associated with `data`.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
-    </span><span class="kw">pub fn </span>add(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        data: Context::Data,
-        event_flags: EventFlags,
-    ) -&gt; io::Result&lt;Ref&lt;<span class="lifetime">&#39;_</span>, Context::Target&gt;&gt; {
-        <span class="comment">// Safety: We&#39;re calling `epoll_ctl` via FFI and we know how it
-        // behaves.
-        </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>target = <span class="self">self</span>.context.acquire(data);
-            <span class="kw">let </span>raw_fd = target.as_fd().as_raw_fd();
-            <span class="kw">let </span>encoded = <span class="self">self</span>.context.encode(target);
-            epoll_add(
-                <span class="self">self</span>.epoll_fd.as_fd(),
-                raw_fd,
-                <span class="kw-2">&amp;</span>linux_raw_sys::general::epoll_event {
-                    events: event_flags.bits(),
-                    data: encoded,
-                },
-            )<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="self">self</span>.context.decode(encoded))
-        }
-    }
-
-    <span class="doccomment">/// `epoll_ctl(self, EPOLL_CTL_MOD, target, event)`—Modifies an element in
-    /// this `Epoll`.
-    ///
-    /// This sets the events of interest with `target` to `events`.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
-    </span><span class="kw">pub fn </span>mod_(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        target: Ref&lt;<span class="lifetime">&#39;_</span>, Context::Target&gt;,
-        event_flags: EventFlags,
-    ) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>raw_fd = target.as_fd().as_raw_fd();
-        <span class="kw">let </span>encoded = <span class="self">self</span>.context.encode(target);
-        <span class="comment">// Safety: We&#39;re calling `epoll_ctl` via FFI and we know how it
-        // behaves.
-        </span><span class="kw">unsafe </span>{
-            epoll_mod(
-                <span class="self">self</span>.epoll_fd.as_fd(),
-                raw_fd,
-                <span class="kw-2">&amp;</span>linux_raw_sys::general::epoll_event {
-                    events: event_flags.bits(),
-                    data: encoded,
-                },
-            )
-        }
-    }
-
-    <span class="doccomment">/// `epoll_ctl(self, EPOLL_CTL_DEL, target, NULL)`—Removes an element in
-    /// this `Epoll`.
-    ///
-    /// This also returns the owning `Data`.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
-    </span><span class="kw">pub fn </span>del(<span class="kw-2">&amp;</span><span class="self">self</span>, target: Ref&lt;<span class="lifetime">&#39;_</span>, Context::Target&gt;) -&gt; io::Result&lt;Context::Data&gt; {
-        <span class="comment">// Safety: We&#39;re calling `epoll_ctl` via FFI and we know how it
-        // behaves.
-        </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>raw_fd = target.as_fd().as_raw_fd();
-            epoll_del(<span class="self">self</span>.epoll_fd.as_fd(), raw_fd)<span class="question-mark">?</span>;
-        }
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.context.release(target))
-    }
-
-    <span class="doccomment">/// `epoll_wait(self, events, timeout)`—Waits for registered events of
-    /// interest.
-    ///
-    /// For each event of interest, an element is written to `events`. On
-    /// success, this returns the number of written elements.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_wait&quot;</span>)]
-    </span><span class="kw">pub fn </span>wait&lt;<span class="lifetime">&#39;context</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="self">self</span>,
-        event_list: <span class="kw-2">&amp;mut </span>EventVec&lt;<span class="lifetime">&#39;context</span>, Context&gt;,
-        timeout: c::c_int,
-    ) -&gt; io::Result&lt;()&gt; {
-        <span class="comment">// Safety: We&#39;re calling `epoll_wait` via FFI and we know how it
-        // behaves.
-        </span><span class="kw">unsafe </span>{
-            event_list.events.set_len(<span class="number">0</span>);
-            <span class="kw">let </span>nfds = epoll_wait(
-                <span class="self">self</span>.epoll_fd.as_fd(),
-                event_list.events[..].as_mut_ptr().cast(),
-                event_list.events.capacity(),
-                timeout,
-            )<span class="question-mark">?</span>;
-            event_list.events.set_len(nfds);
-            event_list.context = <span class="kw-2">&amp;</span><span class="self">self</span>.context;
-        }
-
-        <span class="prelude-val">Ok</span>(())
+<span class="doccomment">/// `epoll_ctl(self, EPOLL_CTL_ADD, data, event)`—Adds an element to an
+/// `Epoll`.
+///
+/// This registers interest in any of the events set in `events` occurring
+/// on the file descriptor associated with `data`.
+///
+/// Note that if `epoll_del` is not called on the I/O source passed into
+/// this function before the I/O source is `close`d, then the `epoll` will
+/// act as if the I/O source is still registered with it. This can lead to
+/// spurious events being returned from `epoll_wait`. If a file descriptor
+/// is an `Arc&lt;dyn SystemResource&gt;`, then `epoll` can be thought to maintain
+/// a `Weak&lt;dyn SystemResource&gt;` to the file descriptor.
+</span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
+</span><span class="kw">pub fn </span>epoll_add(
+    epoll: <span class="kw">impl </span>AsFd,
+    source: <span class="kw">impl </span>AsFd,
+    data: u64,
+    event_flags: EventFlags,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="comment">// SAFETY: We&#39;re calling `epoll_ctl` via FFI and we know how it
+    // behaves.
+    </span><span class="kw">unsafe </span>{
+        syscalls::epoll_add(
+            epoll.as_fd(),
+            source.as_fd().as_raw_fd(),
+            <span class="kw-2">&amp;</span>linux_raw_sys::general::epoll_event {
+                events: event_flags.bits(),
+                data,
+            },
+        )
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, T: AsFd + Into&lt;OwnedFd&gt; + From&lt;OwnedFd&gt;&gt; AsRawFd <span class="kw">for </span>Epoll&lt;Owning&lt;<span class="lifetime">&#39;context</span>, T&gt;&gt; {
-    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
-        <span class="self">self</span>.epoll_fd.as_raw_fd()
+<span class="doccomment">/// `epoll_ctl(self, EPOLL_CTL_MOD, target, event)`—Modifies an element in
+/// this `Epoll`.
+///
+/// This sets the events of interest with `target` to `events`.
+</span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
+</span><span class="kw">pub fn </span>epoll_mod(
+    epoll: <span class="kw">impl </span>AsFd,
+    source: <span class="kw">impl </span>AsFd,
+    data: u64,
+    event_flags: EventFlags,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="comment">// SAFETY: We&#39;re calling `epoll_ctl` via FFI and we know how it
+    // behaves.
+    </span><span class="kw">unsafe </span>{
+        <span class="kw">let </span>raw_fd = source.as_fd().as_raw_fd();
+        syscalls::epoll_mod(
+            epoll.as_fd(),
+            raw_fd,
+            <span class="kw-2">&amp;</span>linux_raw_sys::general::epoll_event {
+                events: event_flags.bits(),
+                data,
+            },
+        )
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, T: AsFd + Into&lt;OwnedFd&gt; + From&lt;OwnedFd&gt;&gt; IntoRawFd <span class="kw">for </span>Epoll&lt;Owning&lt;<span class="lifetime">&#39;context</span>, T&gt;&gt; {
-    <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; RawFd {
-        <span class="self">self</span>.epoll_fd.into_raw_fd()
+<span class="doccomment">/// `epoll_ctl(self, EPOLL_CTL_DEL, target, NULL)`—Removes an element in
+/// this `Epoll`.
+///
+/// This also returns the owning `Data`.
+</span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
+</span><span class="kw">pub fn </span>epoll_del(epoll: <span class="kw">impl </span>AsFd, source: <span class="kw">impl </span>AsFd) -&gt; io::Result&lt;()&gt; {
+    <span class="comment">// SAFETY: We&#39;re calling `epoll_ctl` via FFI and we know how it
+    // behaves.
+    </span><span class="kw">unsafe </span>{
+        <span class="kw">let </span>raw_fd = source.as_fd().as_raw_fd();
+        syscalls::epoll_del(epoll.as_fd(), raw_fd)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, T: AsFd + Into&lt;OwnedFd&gt; + From&lt;OwnedFd&gt;&gt; FromRawFd <span class="kw">for </span>Epoll&lt;Owning&lt;<span class="lifetime">&#39;context</span>, T&gt;&gt; {
-    <span class="kw">unsafe fn </span>from_raw_fd(fd: RawFd) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            epoll_fd: OwnedFd::from_raw_fd(fd),
-            context: Owning::new(),
-        }
+<span class="doccomment">/// `epoll_wait(self, events, timeout)`—Waits for registered events of
+/// interest.
+///
+/// For each event of interest, an element is written to `events`. On
+/// success, this returns the number of written elements.
+</span><span class="kw">pub fn </span>epoll_wait(
+    epoll: <span class="kw">impl </span>AsFd,
+    event_list: <span class="kw-2">&amp;mut </span>EventVec,
+    timeout: c::c_int,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="comment">// SAFETY: We&#39;re calling `epoll_wait` via FFI and we know how it
+    // behaves.
+    </span><span class="kw">unsafe </span>{
+        event_list.events.set_len(<span class="number">0</span>);
+        <span class="kw">let </span>nfds = syscalls::epoll_wait(
+            epoll.as_fd(),
+            event_list.events[..].as_mut_ptr().cast(),
+            event_list.events.capacity(),
+            timeout,
+        )<span class="question-mark">?</span>;
+        event_list.events.set_len(nfds);
     }
-}
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, T: AsFd + Into&lt;OwnedFd&gt; + From&lt;OwnedFd&gt;&gt; AsFd <span class="kw">for </span>Epoll&lt;Owning&lt;<span class="lifetime">&#39;context</span>, T&gt;&gt; {
-    <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="self">self</span>.epoll_fd.as_fd()
-    }
-}
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, T: AsFd + Into&lt;OwnedFd&gt; + From&lt;OwnedFd&gt;&gt; From&lt;Epoll&lt;Owning&lt;<span class="lifetime">&#39;context</span>, T&gt;&gt;&gt;
-    <span class="kw">for </span>OwnedFd
-{
-    <span class="kw">fn </span>from(epoll: Epoll&lt;Owning&lt;<span class="lifetime">&#39;context</span>, T&gt;&gt;) -&gt; <span class="self">Self </span>{
-        epoll.epoll_fd
-    }
-}
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, T: AsFd + Into&lt;OwnedFd&gt; + From&lt;OwnedFd&gt;&gt; From&lt;OwnedFd&gt;
-    <span class="kw">for </span>Epoll&lt;Owning&lt;<span class="lifetime">&#39;context</span>, T&gt;&gt;
-{
-    <span class="kw">fn </span>from(fd: OwnedFd) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            epoll_fd: fd,
-            context: Owning::new(),
-        }
-    }
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// An iterator over the `Event`s in an `EventVec`.
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;context</span>, Context: <span class="self">self</span>::Context&gt; {
-    iter: core::slice::Iter&lt;<span class="lifetime">&#39;context</span>, Event&gt;,
-    context: <span class="kw-2">*const </span>Context,
-    _phantom: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span>Context&gt;,
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    iter: core::slice::Iter&lt;<span class="lifetime">&#39;a</span>, Event&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, Context: <span class="self">self</span>::Context&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;context</span>, Context&gt; {
-    <span class="kw">type </span>Item = (EventFlags, Ref&lt;<span class="lifetime">&#39;context</span>, Context::Target&gt;);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = (EventFlags, u64);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="self">self</span>.iter.next().map(|event| {
-            <span class="comment">// Safety: `self.context` is guaranteed to be valid because we hold
-            // `&#39;context` for it. And we know this event is associated with this
-            // context because `wait` sets both.
-            </span><span class="kw">let </span>decoded = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.context).decode(event.encoded) };
-
-            (event.event_flags, decoded)
-        })
+        <span class="self">self</span>.iter
+            .next()
+            .map(|event| (event.event_flags, event.data))
     }
 }
 
@@ -719,28 +611,22 @@
 #[cfg_attr(target_arch = <span class="string">&quot;x86_64&quot;</span>, repr(packed))]
 </span><span class="kw">struct </span>Event {
     <span class="comment">// Match the layout of `linux_raw_sys::general::epoll_event`. We just use a
-    // `u64` instead of the full union; `Context` implementations will simply
-    // need to deal with casting the value into and out of the `u64`
-    // themselves.
+    // `u64` instead of the full union.
     </span>event_flags: EventFlags,
-    encoded: u64,
+    data: u64,
 }
 
 <span class="doccomment">/// A vector of `Event`s, plus context for interpreting them.
-</span><span class="kw">pub struct </span>EventVec&lt;<span class="lifetime">&#39;context</span>, Context: <span class="self">self</span>::Context&gt; {
+</span><span class="kw">pub struct </span>EventVec {
     events: Vec&lt;Event&gt;,
-    context: <span class="kw-2">*const </span>Context,
-    _phantom: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, Context: <span class="self">self</span>::Context&gt; EventVec&lt;<span class="lifetime">&#39;context</span>, Context&gt; {
+<span class="kw">impl </span>EventVec {
     <span class="doccomment">/// Constructs an `EventVec` with memory for `capacity` `Event`s.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             events: Vec::with_capacity(capacity),
-            context: null(),
-            _phantom: PhantomData,
         }
     }
 
@@ -776,11 +662,9 @@
 
     <span class="doccomment">/// Returns an iterator over the `Event`s in this `EventVec`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, Context&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
         Iter {
             iter: <span class="self">self</span>.events.iter(),
-            context: <span class="self">self</span>.context,
-            _phantom: PhantomData,
         }
     }
 
@@ -797,14 +681,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, Context: <span class="self">self</span>::Context&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span>EventVec&lt;<span class="lifetime">&#39;context</span>, Context&gt; {
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;context</span>, Context&gt;;
-    <span class="kw">type </span>Item = (EventFlags, Ref&lt;<span class="lifetime">&#39;context</span>, Context::Target&gt;);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>EventVec {
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>Item = (EventFlags, u64);
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.iter()
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (e3dfeeaa4 2023-03-07)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

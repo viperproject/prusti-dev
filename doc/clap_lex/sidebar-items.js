@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["SeekFrom"],"struct":["ArgCursor","ParsedArg","RawArgs","RawOsStr","RawOsString","ShortFlags"]};
+window.SIDEBAR_ITEMS = {"enum":["SeekFrom"],"struct":["ArgCursor","ParsedArg","RawArgs","ShortFlags"],"trait":["OsStrExt"]};
