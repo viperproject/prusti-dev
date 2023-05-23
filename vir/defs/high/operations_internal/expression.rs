@@ -107,19 +107,19 @@ impl Expression {
     pub fn with_new_parent(&self, new_parent: Self) -> Self {
         match self {
             Expression::Variant(expression) => Expression::Variant(Variant {
-                base: box new_parent,
+                base: Box::new(new_parent),
                 ..expression.clone()
             }),
             Expression::Field(expression) => Expression::Field(Field {
-                base: box new_parent,
+                base: Box::new(new_parent),
                 ..expression.clone()
             }),
             Expression::Deref(expression) => Expression::Deref(Deref {
-                base: box new_parent,
+                base: Box::new(new_parent),
                 ..expression.clone()
             }),
             Expression::AddrOf(expression) => Expression::AddrOf(AddrOf {
-                base: box new_parent,
+                base: Box::new(new_parent),
                 ..expression.clone()
             }),
             _ => unreachable!("Cannot change parent for {}", self),
