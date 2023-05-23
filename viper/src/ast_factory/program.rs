@@ -74,6 +74,42 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn annotations(&self, annotations: &BTreeMap<String, Vec<String>>) -> JObject {
+        let mut map = Vec::new();
+        for (key, values) in annotations {
+            let mut sequence = Vec::new();
+            for value in values {
+                sequence.push(self.jni.new_string(value));
+            }
+            map.push((self.jni.new_string(key), self.jni.new_seq(&sequence)));
+        }
+        self.jni.new_map(&map)
+    }
+
+    pub fn predicate_with_annotations(
+        &self,
+        name: &str,
+        formal_args: &[LocalVarDecl],
+        body: Option<Expr>,
+        annotations: &BTreeMap<String, Vec<String>>,
+    ) -> Predicate<'a> {
+        let info = self
+            .jni
+            .unwrap_result(ast::AnnotationInfo::with(self.env).new(self.annotations(annotations)));
+        let obj = self.jni.unwrap_result(ast::Predicate::with(self.env).new(
+            self.jni.new_string(name),
+            self.jni.new_seq(&map_to_jobjects!(formal_args)),
+            match body {
+                None => self.jni.new_option(None),
+                Some(x) => self.jni.new_option(Some(x.to_jobject())),
+            },
+            self.no_position().to_jobject(),
+            info,
+            self.no_trafos(),
+        ));
+        Predicate::new(obj)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn function(
         &self,
