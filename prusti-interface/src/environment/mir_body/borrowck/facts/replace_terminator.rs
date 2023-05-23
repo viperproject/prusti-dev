@@ -16,32 +16,6 @@ pub fn collect_replace_terminators<'tcx>(
     new_body: &mir::Body<'tcx>,
 ) -> Vec<ReplaceTerminatorDesugaring> {
     let mut replace_terminator_locations = Vec::new();
-    for (_, old_block) in old_body.basic_blocks.iter_enumerated() {
-        if let mir::TerminatorKind::DropAndReplace { .. } = old_block.terminator().kind {
-            unreachable!("DropAndReplace should be removed by now");
-            // let new_block = &new_body.basic_blocks[index];
-            // if let mir::TerminatorKind::Drop { target, unwind, .. } = new_block.terminator().kind {
-            //     let unwinding_block = unwind.expect("unimplemented: DropAndReplace without unwind");
-            //     let desugaring = ReplaceTerminatorDesugaring {
-            //         replacing_drop_location: mir::Location {
-            //             block: index,
-            //             statement_index: new_block.statements.len(),
-            //         },
-            //         target_block: target,
-            //         unwinding_block,
-            //     };
-            //     replace_terminator_locations.push(desugaring);
-            //     let target_block_data = &new_body.basic_blocks[target];
-            //     let unwind_block_data = &new_body.basic_blocks[unwinding_block];
-            //     // Assert the properties on which we rely in
-            //     // prusti-interface/src/environment/mir_body/borrowck/lifetimes/mod.rs.
-            //     assert_eq!(unwind_block_data.statements.len(), 1);
-            //     assert_eq!(target_block_data.statements.len(), 1);
-            // } else {
-            //     unimplemented!("DropAndReplace should be replaced by Drop");
-            // }
-        }
-    }
     for (index, new_block) in new_body.basic_blocks.iter_enumerated() {
         if let mir::TerminatorKind::Drop {
             place,

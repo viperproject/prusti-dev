@@ -140,7 +140,6 @@ impl Lifetimes {
                     mir::TerminatorKind::Goto { .. }
                     | mir::TerminatorKind::SwitchInt { .. }
                     | mir::TerminatorKind::Drop { .. }
-                    | mir::TerminatorKind::DropAndReplace { .. }
                     | mir::TerminatorKind::Call { .. }
                     | mir::TerminatorKind::Assert { .. }
                     | mir::TerminatorKind::Yield { .. }
