@@ -117,6 +117,7 @@ lazy_static::lazy_static! {
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations", "all").unwrap();
         settings.set_default("intern_names", true).unwrap();
+        settings.set_default("create_missing_storage_live", false).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
@@ -777,6 +778,18 @@ pub fn optimizations() -> Optimizations {
     }
 
     opt
+}
+
+/// The Rust compiler does not guarantee that each `StorageDead` is dominated by
+/// a `StorageLive`:
+///
+/// * https://github.com/rust-lang/rust/issues/99160
+/// * https://github.com/rust-lang/rust/issues/98896
+///
+/// This option controls whether we should create fake `StorageLive` statements
+/// in such cases.
+pub fn create_missing_storage_live() -> bool {
+    read_setting("create_missing_storage_live")
 }
 
 /// When enabled, impure methods are optimized using the purification
