@@ -391,6 +391,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         procedure: &mut vir_high::ProcedureDecl,
     ) -> SpannedEncodingResult<()> {
+        if !config::create_missing_storage_live() {
+            return Ok(());
+        }
         let predecessors = self.mir.basic_blocks.predecessors();
         for (block, missing_local) in std::mem::take(&mut self.missing_live_locals) {
             for predecessor in &predecessors[block] {
@@ -404,10 +407,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             },
                         )?;
                         let label = self.encode_basic_block_label(*predecessor);
-                        eprintln!(
-                            "Inserting {:?} at the beginning of {}",
-                            missing_local, label
-                        );
                         procedure
                             .basic_blocks
                             .get_mut(&label)
@@ -417,7 +416,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
                 }
             }
-            eprintln!("Missing: {:?} in {:?}", missing_local, block);
         }
         Ok(())
     }
