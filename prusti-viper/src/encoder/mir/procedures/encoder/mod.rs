@@ -154,6 +154,8 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         loop_invariant_encoding: Default::default(),
         check_panics: config::check_panics() && check_mode.check_specifications(),
         locals_without_explicit_allocation,
+        locals_live_in_block: Default::default(),
+        missing_live_locals: Default::default(),
         used_locals: Default::default(),
         fresh_id_generator: 0,
         lifetime_count,
@@ -225,6 +227,19 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// `StorageLive`/`StorageDead`. Such locals are assumed to be alive through
     /// the entire body of the function.
     locals_without_explicit_allocation: BTreeSet<mir::Local>,
+    /// The Rust compiler does not guarantee that each `StorageDead` is
+    /// dominated by a `StorageLive`:
+    ///
+    /// * https://github.com/rust-lang/rust/issues/99160
+    /// * https://github.com/rust-lang/rust/issues/98896
+    ///
+    /// Therefore, we track which locals are alive in each block and emit a fake
+    /// `StorageLive` in blocks that are merged with blocks in which the local
+    /// is alive.
+    locals_live_in_block: BTreeMap<mir::BasicBlock, BTreeSet<mir::Local>>,
+    /// `StorageDead` statements which apply to locals that are not guaranteed
+    /// to be alive.
+    missing_live_locals: Vec<(mir::BasicBlock, mir::Local)>,
     /// Locals that are used in the function. The unused locals are assumed to
     /// be a side effect of specification generation code and are not generated.
     used_locals: BTreeSet<mir::Local>,
@@ -367,7 +382,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
         self.encode_implicit_allocations(&mut procedure_builder)?;
-        Ok(procedure_builder.build())
+        let mut procedure = procedure_builder.build();
+        self.add_missing_live_locals(&mut procedure)?;
+        Ok(procedure)
+    }
+
+    fn add_missing_live_locals(
+        &mut self,
+        procedure: &mut vir_high::ProcedureDecl,
+    ) -> SpannedEncodingResult<()> {
+        let predecessors = self.mir.basic_blocks.predecessors();
+        for (block, missing_local) in std::mem::take(&mut self.missing_live_locals) {
+            for predecessor in &predecessors[block] {
+                if let Some(locals_live_in_block) = self.locals_live_in_block.get(predecessor) {
+                    if !locals_live_in_block.contains(&missing_local) {
+                        let statements = self.encode_statement_storage_live(
+                            missing_local,
+                            mir::Location {
+                                block: *predecessor,
+                                statement_index: 0,
+                            },
+                        )?;
+                        let label = self.encode_basic_block_label(*predecessor);
+                        eprintln!(
+                            "Inserting {:?} at the beginning of {}",
+                            missing_local, label
+                        );
+                        procedure
+                            .basic_blocks
+                            .get_mut(&label)
+                            .unwrap()
+                            .statements
+                            .splice(0..0, statements);
+                    }
+                }
+            }
+            eprintln!("Missing: {:?} in {:?}", missing_local, block);
+        }
+        Ok(())
     }
 
     fn pure_sanity_checks(&self) -> SpannedEncodingResult<()> {
@@ -1200,12 +1252,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_specification_blocks(procedure_builder.name())?;
         self.reachable_blocks
             .insert(self.mir.basic_blocks.start_node());
+        let predecessors = self.mir.basic_blocks.predecessors();
         for (bb, data) in
             prusti_rustc_interface::middle::mir::traversal::reverse_postorder(self.mir)
         {
             if !self.specification_blocks.is_specification_block(bb)
                 && self.reachable_blocks.contains(&bb)
             {
+                self.create_locals_live_entry(bb, predecessors.get(bb).unwrap())?;
                 self.encode_basic_block(procedure_builder, bb, data)?;
             }
         }
@@ -1483,6 +1537,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    fn create_locals_live_entry(
+        &mut self,
+        bb: mir::BasicBlock,
+        predecessors: &[mir::BasicBlock],
+    ) -> SpannedEncodingResult<()> {
+        let mut predecessors_iter = predecessors.iter().filter(|predecessor| {
+            !self
+                .specification_blocks
+                .is_specification_block(**predecessor)
+                && self.reachable_blocks.contains(predecessor)
+        });
+        let locals_live_in_block = if let Some(first_predecessor) = predecessors_iter.next() {
+            let mut locals_live_in_block = self.locals_live_in_block[first_predecessor].clone();
+            for predecessor in predecessors_iter {
+                if let Some(predecessor_locals) = &self.locals_live_in_block.get(predecessor) {
+                    locals_live_in_block.retain(|local| predecessor_locals.contains(local));
+                }
+            }
+            locals_live_in_block
+        } else {
+            BTreeSet::new()
+        };
+        assert!(self
+            .locals_live_in_block
+            .insert(bb, locals_live_in_block)
+            .is_none());
+        Ok(())
+    }
+
     fn encode_basic_block(
         &mut self,
         procedure_builder: &mut ProcedureBuilder,
@@ -1604,25 +1687,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::StatementKind::StorageLive(local) => {
                 self.locals_without_explicit_allocation.remove(local);
-                let memory_block = self
-                    .encoder
-                    .encode_memory_block_for_local(self.mir, *local)?;
-                block_builder.add_statement(self.set_statement_error(
-                    location,
-                    ErrorCtxt::UnexpectedStorageLive,
-                    vir_high::Statement::inhale_predicate_no_pos(memory_block),
-                )?);
-                let memory_block_drop = self
-                    .encoder
-                    .encode_memory_block_drop_for_local(self.mir, *local)?;
-                block_builder.add_statement(self.set_statement_error(
-                    location,
-                    ErrorCtxt::UnexpectedStorageLive,
-                    vir_high::Statement::inhale_predicate_no_pos(memory_block_drop),
-                )?);
+                let block_locals = self.locals_live_in_block.get_mut(&location.block).unwrap();
+                assert!(block_locals.insert(*local));
+                let statements = self.encode_statement_storage_live(*local, location)?;
+                block_builder.add_statements(statements);
             }
             mir::StatementKind::StorageDead(local) => {
                 self.locals_without_explicit_allocation.remove(local);
+                let block_locals = self.locals_live_in_block.get_mut(&location.block).unwrap();
+                if !block_locals.remove(local) {
+                    self.missing_live_locals.push((location.block, *local));
+                }
                 let memory_block = self
                     .encoder
                     .encode_memory_block_for_local(self.mir, *local)?;
@@ -1652,6 +1727,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
         Ok(())
+    }
+
+    fn encode_statement_storage_live(
+        &mut self,
+        local: mir::Local,
+        location: mir::Location,
+    ) -> SpannedEncodingResult<Vec<vir_high::Statement>> {
+        let mut statements = Vec::new();
+        let memory_block = self
+            .encoder
+            .encode_memory_block_for_local(self.mir, local)?;
+        statements.push(self.set_statement_error(
+            location,
+            ErrorCtxt::UnexpectedStorageLive,
+            vir_high::Statement::inhale_predicate_no_pos(memory_block),
+        )?);
+        let memory_block_drop = self
+            .encoder
+            .encode_memory_block_drop_for_local(self.mir, local)?;
+        statements.push(self.set_statement_error(
+            location,
+            ErrorCtxt::UnexpectedStorageLive,
+            vir_high::Statement::inhale_predicate_no_pos(memory_block_drop),
+        )?);
+        Ok(statements)
     }
 
     fn encode_statement_assign(
