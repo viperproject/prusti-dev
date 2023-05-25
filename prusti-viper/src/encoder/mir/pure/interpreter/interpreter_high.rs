@@ -791,6 +791,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((ReadByte, vir_high::Type::MByte))
             }
+            "prusti_contracts::address_offset" | "prusti_contracts::address_offset_mut" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((PtrAddressOffset, encoded_args[0].get_type().clone()))
+            }
             "prusti_contracts::prusti_unpacking" => {
                 assert_eq!(encoded_args.len(), 2);
                 let place = encoded_args[0].clone();
@@ -915,11 +919,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             | "std::ptr::mut_ptr::<impl *mut T>::is_null" => {
                 assert_eq!(encoded_args.len(), 1);
                 builtin((PtrIsNull, vir_high::Type::Bool))
-            }
-            "std::ptr::const_ptr::<impl *const T>::wrapping_offset"
-            | "std::ptr::mut_ptr::<impl *mut T>::wrapping_offset" => {
-                assert_eq!(encoded_args.len(), 2);
-                builtin((PtrWrappingOffset, encoded_args[0].get_type().clone()))
             }
             "std::mem::size_of" => {
                 assert_eq!(encoded_args.len(), 0);

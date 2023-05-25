@@ -43,10 +43,17 @@ impl<T> Pointer<T> {
     #[trusted]
     #[terminates]
     #[pure]
+    // FIXME: Check provenance.
+    #[ensures(result == address_offset(self, count))]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    unsafe fn offset(self, count: isize) -> *const T;
+
+    #[trusted]
+    #[terminates]
+    #[pure]
     // FIXME: Properly specify the wrapping arithmetic.
-    // FIXME: This is needed because this function is special cased only in the
-    // pure encoder and not in the impure one.
-    #[ensures(result == self.wrapping_offset(count))]
+    #[ensures(result == address_offset(self, count))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     fn wrapping_offset(self, count: isize) -> *const T;
@@ -68,10 +75,17 @@ impl<T> MutPointer<T> {
     #[trusted]
     #[terminates]
     #[pure]
+    // FIXME: Check provenance.
+    #[ensures(result == address_offset_mut(self, count))]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    unsafe fn offset(self, count: isize) -> *mut T;
+
+    #[trusted]
+    #[terminates]
+    #[pure]
     // FIXME: Properly specify the wrapping arithmetic.
-    // FIXME: This is needed because this function is special cased only in the
-    // pure encoder and not in the impure one.
-    #[ensures(result == self.wrapping_offset(count))]
+    #[ensures(result == address_offset_mut(self, count))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     fn wrapping_offset(self, count: isize) -> *mut T;
@@ -123,6 +137,11 @@ mod core {
         #[no_panic_ensures_postcondition]
         #[ensures(result.is_null())]
         pub fn null<T>() -> *const T;
+
+        #[requires(own!(*src))]
+        #[ensures(raw!(*src, std::mem::size_of::<T>()))]
+        #[ensures(unsafe { old(eval_in!(own!(*src), &*src)) } === &result)]
+        pub unsafe fn read<T>(src: *const T) -> T;
     }
 }
 

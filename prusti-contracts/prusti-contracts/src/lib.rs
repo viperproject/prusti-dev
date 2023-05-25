@@ -698,7 +698,7 @@ pub fn prusti_set_union_active_field<T>(_arg: T) {
 /// predicate is present.
 #[doc(hidden)]
 #[trusted]
-pub fn prusti_eval_in<T>(_predicate: bool, expression: T) -> T {
+pub fn prusti_eval_in<T>(_predicate: bool, _expression: T) -> T {
     unreachable!();
 }
 
@@ -865,6 +865,16 @@ macro_rules! unpacking {
     ($place:expr, $body: expr) => {
         $crate::prusti_unpacking(unsafe { core::ptr::addr_of!($place) }, $body)
     };
+}
+
+/// A ghost operation for computing an offset of the pointer.
+pub fn address_offset_mut<T>(_ptr: *mut T, _count: isize) -> *mut T {
+    unreachable!();
+}
+
+/// A ghost operation for computing an offset of the pointer.
+pub fn address_offset<T>(_ptr: *const T, _count: isize) -> *const T {
+    unreachable!();
 }
 
 pub use private::*;
