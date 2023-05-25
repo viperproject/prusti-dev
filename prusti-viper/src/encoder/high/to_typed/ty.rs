@@ -28,7 +28,8 @@ impl<'v, 'tcx> HighToTypedTypeLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> Result<vir_typed::ty::Type, Self::Error> {
         let arguments = ty.arguments.high_to_typed_type(self)?;
         Ok(vir_typed::Type::struct_(
-            self.generate_tuple_name(&arguments)?,
+            // self.generate_tuple_name(&arguments)?,
+            "Tuple".to_string(),
             arguments,
             ty.lifetimes.high_to_typed_type(self)?,
         ))
