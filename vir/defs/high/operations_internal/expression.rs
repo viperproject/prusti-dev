@@ -212,7 +212,7 @@ impl Expression {
                 {
                     return Some((lifetime.clone(), *uniqueness));
                 } else {
-                    unreachable!();
+                    return None;
                 }
             }
         }
