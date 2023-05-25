@@ -984,7 +984,9 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     lowerer.construct_constant_snapshot(app.get_type(), equals, app.position)?;
                 self.ensure_bool_expression(lowerer, app.get_type(), equals, expect_math_bool)
             }
-            BuiltinFunc::PtrAddressOffset => {
+            BuiltinFunc::PtrOffset
+            | BuiltinFunc::PtrWrappingOffset
+            | BuiltinFunc::PtrAddressOffset => {
                 let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 2);
                 let ty = app.arguments[0].get_type();
