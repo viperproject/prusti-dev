@@ -142,11 +142,9 @@ impl IntoLow for vir_mid::Statement {
                     &statement.expression,
                     true,
                 )?;
-                Ok(vec![Statement::inhale(
-                    assertion,
-                    // statement.expression.to_procedure_assertion(lowerer)?,
-                    statement.position,
-                )])
+                let inhale =
+                    Statement::inhale_no_pos(assertion).set_default_position(statement.position);
+                Ok(vec![inhale])
             }
             Self::ExhaleExpression(statement) => {
                 let mut assertion_encoder =
@@ -157,7 +155,8 @@ impl IntoLow for vir_mid::Statement {
                     true,
                 )?;
                 // let assertion = statement.expression.to_procedure_assertion(lowerer)?;
-                let exhale = Statement::exhale(assertion, statement.position);
+                let exhale =
+                    Statement::exhale_no_pos(assertion).set_default_position(statement.position);
                 Ok(vec![exhale])
             }
             Self::Assume(statement) => {

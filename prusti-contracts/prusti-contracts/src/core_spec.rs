@@ -138,10 +138,19 @@ mod core {
         #[ensures(result.is_null())]
         pub fn null<T>() -> *const T;
 
+        #[no_panic]
+        #[no_panic_ensures_postcondition]
         #[requires(own!(*src))]
         #[ensures(raw!(*src, std::mem::size_of::<T>()))]
         #[ensures(unsafe { old(eval_in!(own!(*src), &*src)) } === &result)]
         pub unsafe fn read<T>(src: *const T) -> T;
+
+        #[no_panic]
+        #[no_panic_ensures_postcondition]
+        #[requires(raw!(*dst, std::mem::size_of::<T>()))]
+        #[ensures(own!(*dst))]
+        #[ensures(unsafe { old(eval_in!(own!(*dst), &*dst)) } === &src)]
+        pub unsafe fn write<T>(dst: *mut T, src: T);
     }
 }
 
