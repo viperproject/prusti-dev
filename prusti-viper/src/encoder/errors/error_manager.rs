@@ -834,6 +834,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("exhale.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) => {
+                PrustiError::verification(
+                    "the permission specified in the loop invariant might be missing on entry".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
             ("call.precondition:assertion.false", ErrorCtxt::Assign | ErrorCtxt::CopyPlace) => {
                 PrustiError::verification(
                     "the type invariant of the constructed object might not hold".to_string(),

@@ -266,7 +266,7 @@ pub enum BuiltinFunc {
     NewInt,
     Index,
     Len,
-    PtrWrappingOffset,
+    PtrAddressOffset,
     PtrIsNull,
     IsValid, // TODO: Delete.
     EnsureOwnedPredicate,
