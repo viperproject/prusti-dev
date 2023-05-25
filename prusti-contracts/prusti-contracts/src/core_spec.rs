@@ -92,6 +92,15 @@ impl<T> MutPointer<T> {
 }
 
 #[extern_spec]
+impl usize {
+    #[terminates]
+    #[pure]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    fn is_power_of_two(self) -> bool;
+}
+
+#[extern_spec]
 impl<T> ::core::ptr::NonNull<T> {
     #[trusted]
     #[terminates]
