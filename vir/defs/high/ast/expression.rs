@@ -266,7 +266,13 @@ pub enum BuiltinFunc {
     NewInt,
     Index,
     Len,
+    /// A ghost function for computing offset.
     PtrAddressOffset,
+    /// Special-cased `wrapping_offset` function on pointers.
+    PtrWrappingOffset,
+    /// Special-cased `offset` function on pointers.
+    PtrOffset,
+    /// Special-cased `is_null` function on pointers.
     PtrIsNull,
     IsValid, // TODO: Delete.
     EnsureOwnedPredicate,

@@ -920,6 +920,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 assert_eq!(encoded_args.len(), 1);
                 builtin((PtrIsNull, vir_high::Type::Bool))
             }
+            "std::ptr::const_ptr::<impl *const T>::offset"
+            | "std::ptr::mut_ptr::<impl *mut T>::offset" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((PtrWrappingOffset, encoded_args[0].get_type().clone()))
+            }
+            "std::ptr::const_ptr::<impl *const T>::wrapping_offset"
+            | "std::ptr::mut_ptr::<impl *mut T>::wrapping_offset" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((PtrOffset, encoded_args[0].get_type().clone()))
+            }
             "std::mem::size_of" => {
                 assert_eq!(encoded_args.len(), 0);
                 assert_eq!(type_arguments.len(), 1);

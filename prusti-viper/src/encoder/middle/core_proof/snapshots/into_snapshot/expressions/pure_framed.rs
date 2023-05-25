@@ -68,7 +68,10 @@ impl<'a> FramedExpressionToSnapshot<'a> {
                 unimplemented!("TODO: A proper error message that only permissions from non-nested structs are supported.");
             }
         } else if let vir_mid::Expression::BuiltinFuncApp(vir_mid::BuiltinFuncApp {
-            function: vir_mid::BuiltinFunc::PtrAddressOffset,
+            function:
+                vir_mid::BuiltinFunc::PtrOffset
+                | vir_mid::BuiltinFunc::PtrWrappingOffset
+                | vir_mid::BuiltinFunc::PtrAddressOffset,
             type_arguments: _,
             arguments,
             return_type: _,
