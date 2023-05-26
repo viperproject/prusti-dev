@@ -138,6 +138,7 @@ mod core {
         // FIXME: This is needed because this function is special cased only in the
         // pure encoder and not in the impure one.
         #[ensures(result == core::mem::align_of::<T>())]
+        #[ensures(result.is_power_of_two())]
         pub fn align_of<T>() -> usize;
     }
     mod ptr {
