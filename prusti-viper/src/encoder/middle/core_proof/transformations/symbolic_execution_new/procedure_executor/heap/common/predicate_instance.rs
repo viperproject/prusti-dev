@@ -77,6 +77,9 @@ pub(in super::super) struct PredicateInstance<S: SnapshotType> {
     /// from the else branch, we would try to use its permission, but that would
     /// inevitably fail.
     pub(super) is_materialized: bool,
+    /// Is this predicate instance present on all incoming traces or just some
+    /// of them?
+    pub(super) is_unconditional: bool,
 }
 
 impl SnapshotType for vir_low::VariableDecl {
@@ -190,6 +193,9 @@ impl<S: SnapshotType> PredicateInstance<S> {
                 )?);
             }
             self.is_materialized = true;
+        }
+        if self.is_unconditional != other.is_unconditional {
+            self.is_unconditional = false;
         }
         assert_eq!(self.permission_amount, other.permission_amount);
         self.snapshot_variable.merge_snapshots(
