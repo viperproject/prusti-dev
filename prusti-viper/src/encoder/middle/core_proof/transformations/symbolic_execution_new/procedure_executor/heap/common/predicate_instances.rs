@@ -497,6 +497,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             permission_amount: *predicate.permission,
             permission_variable,
             is_materialized: false,
+            is_unconditional: true,
         };
         if is_non_aliased {
             self.non_aliased_predicate_instances
@@ -594,7 +595,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             }
         } else {
             constraints.saturate_solver()?;
-            for (i, predicate_instance) in self.aliased_predicate_instances.iter_mut().enumerate() {
+            for (i, predicate_instance) in self.aliased_predicate_instances.iter().enumerate() {
                 if matches_arguments(
                     &predicate_instance.arguments,
                     &predicate.arguments,
@@ -602,26 +603,36 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                     expression_interner,
                     program_context,
                 )? {
-                    let predicate_instance = self.aliased_predicate_instances.remove(i);
-                    assert_eq!(predicate_instance.permission_amount, *predicate.permission);
-                    if predicate_instance.is_materialized {
-                        // The predicate instance is materialized, so we need to
-                        // produce a materialized exhale.
-                        block_builder.add_statement(
-                            vir_low::Statement::exhale_no_pos(
-                                vir_low::Expression::PredicateAccessPredicate(predicate),
-                            )
-                            .set_default_position(position),
-                        )?;
+                    if predicate_instance.is_unconditional
+                        || predicate_instance.is_materialized
+                        || self.aliased_predicate_instances.len() == 1
+                    {
+                        let predicate_instance = self.aliased_predicate_instances.remove(i);
+                        assert_eq!(predicate_instance.permission_amount, *predicate.permission);
+                        if predicate_instance.is_materialized {
+                            // The predicate instance is materialized, so we need to
+                            // produce a materialized exhale.
+                            block_builder.add_statement(
+                                vir_low::Statement::exhale_no_pos(
+                                    vir_low::Expression::PredicateAccessPredicate(predicate),
+                                )
+                                .set_default_position(position),
+                            )?;
+                            return Ok(());
+                        } else {
+                            self.permission_type.exhale(
+                                &predicate_instance.permission_variable,
+                                &predicate.permission,
+                                position,
+                                block_builder,
+                            )?;
+                        }
+                        return Ok(());
                     } else {
-                        self.permission_type.exhale(
-                            &predicate_instance.permission_variable,
-                            &predicate.permission,
-                            position,
-                            block_builder,
-                        )?;
+                        // The predicate instance is conditional, so we need to
+                        // materialize the exhale.
+                        break;
                     }
-                    return Ok(());
                 }
             }
             if config::panic_on_failed_exhale() || config::panic_on_failed_exhale_materialization()
@@ -894,13 +905,15 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 }
             }
             if !found {
-                // The permission amount is tracked by the verifier, so we do
-                // not need to do anything.
+                // The permission amount is tracked by the verifier, so we only
+                // need to mark that the instance is conditional.
+                self_instance.is_unconditional = false;
             }
         }
         for (i, used) in other_used.iter().enumerate() {
             if !*used {
-                let instance = other.aliased_predicate_instances[i].clone();
+                let mut instance = other.aliased_predicate_instances[i].clone();
+                instance.is_unconditional = false;
                 self.aliased_predicate_instances.push(instance);
                 // This could mean that we have two elements in other that are
                 // equal to each other and, therefore, we may need to merge
