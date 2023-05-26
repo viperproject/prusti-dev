@@ -129,6 +129,7 @@ lazy_static::lazy_static! {
         settings.set_default("symbolic_execution_leak_check", true).unwrap();
         settings.set_default("panic_on_failed_exhale", false).unwrap();
         settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
+        settings.set_default("ignore_whether_exhale_is_unconditional", true).unwrap();
         settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
         settings.set_default("expand_quantifiers", false).unwrap();
         settings.set_default("report_symbolic_execution_failures", false).unwrap();
@@ -986,6 +987,19 @@ pub fn panic_on_failed_exhale() -> bool {
 /// `purify_with_symbolic_execution` is true.
 pub fn panic_on_failed_exhale_materialization() -> bool {
     read_setting("panic_on_failed_exhale_materialization")
+}
+
+/// If this option is false, purification purifies out only exhales that are
+/// guaranteed to succeed because we know that on all incoming branches we have
+/// the necessary heap chunk. Setting this option to `true` is sound (because we
+/// still ask the verifier to check that the permission variable has the value
+/// we expect on all traces), but it can lead to incompletenesses when the
+/// purifier fails to merge the heap chunks due to incomplete solver.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn ignore_whether_exhale_is_unconditional() -> bool {
+    read_setting("ignore_whether_exhale_is_unconditional")
 }
 
 /// Error when simplifying non-linear arithmetic fails.
