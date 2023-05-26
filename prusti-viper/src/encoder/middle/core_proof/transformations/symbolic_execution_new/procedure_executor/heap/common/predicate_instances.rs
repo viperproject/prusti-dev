@@ -603,7 +603,8 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                     expression_interner,
                     program_context,
                 )? {
-                    if predicate_instance.is_unconditional
+                    if (predicate_instance.is_unconditional
+                        || config::ignore_whether_exhale_is_unconditional())
                         || predicate_instance.is_materialized
                         || self.aliased_predicate_instances.len() == 1
                     {
