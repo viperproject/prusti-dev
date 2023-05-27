@@ -107,7 +107,7 @@ pub(in super::super::super) trait PredicatesMemoryBlockInterface {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_memory_block_predicate(&mut self) -> SpannedEncodingResult<()>;
-    fn encode_memory_block_stack_acc(
+    fn encode_memory_block_acc(
         &mut self,
         place: vir_low::Expression,
         size: vir_low::Expression,
@@ -190,7 +190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             vir_low::PredicateKind::MemoryBlock,
         )
     }
-    fn encode_memory_block_stack_acc(
+    fn encode_memory_block_acc(
         &mut self,
         place: vir_low::Expression,
         size: vir_low::Expression,
@@ -219,8 +219,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         }
         let element_address =
             self.address_offset(size.clone(), address, index.clone().into(), position)?;
-        let predicate =
-            self.encode_memory_block_stack_acc(element_address.clone(), size, position)?;
+        let predicate = self.encode_memory_block_acc(element_address.clone(), size, position)?;
         let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
         let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
         let body = expr!(

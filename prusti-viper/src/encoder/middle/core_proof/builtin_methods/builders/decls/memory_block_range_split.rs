@@ -121,7 +121,7 @@ impl<'l, 'p, 'v, 'tcx> MemoryBlockRangeSplitMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.inner.position,
         )?;
         // let predicate =
-        //     self.encode_memory_block_stack_acc(element_address.clone(), size.clone(), position)?;
+        //     self.encode_memory_block_acc(element_address.clone(), size.clone(), position)?;
         let start_index = self.inner.inner.lowerer.obtain_constant_value(
             &size_type,
             self.inner.start_index.clone().into(),

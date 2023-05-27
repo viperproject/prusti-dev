@@ -23,7 +23,8 @@ pub use self::{
         predicate::{PredicateDecl, PredicateKind},
         statement::{
             ApplyMagicWand, Assert, Assign, Assume, Comment, Conditional as ConditionalStatement,
-            Exhale, Fold, Inhale, Label as LabelStatement, LogEvent, MethodCall, Statement, Unfold,
+            Exhale, Fold, Inhale, Label as LabelStatement, LogEvent, MaterializePredicate,
+            MethodCall, Statement, Unfold,
         },
         ty::{self, Type},
         variable::VariableDecl,

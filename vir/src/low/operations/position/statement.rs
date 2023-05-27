@@ -17,6 +17,7 @@ impl Positioned for Statement {
             Self::MethodCall(statement) => statement.position(),
             Self::Assign(statement) => statement.position(),
             Self::Conditional(statement) => statement.position(),
+            Self::MaterializePredicate(statement) => statement.position(),
         }
     }
 }
@@ -94,6 +95,12 @@ impl Positioned for Assign {
 }
 
 impl Positioned for Conditional {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for MaterializePredicate {
     fn position(&self) -> Position {
         self.position
     }

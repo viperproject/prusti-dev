@@ -71,6 +71,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             | vir_low::Statement::Conditional(_) => {
                 unreachable!();
             }
+            vir_low::Statement::MaterializePredicate(statement) => {
+                self.execute_materialize_predicate(statement)?;
+            }
         }
         Ok(())
     }
@@ -137,6 +140,17 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         self.execute_statement_label(&label)?;
         self.execute_exhale(&statement.expression, statement.position, &exhale_label)?;
         // self.current_builder_mut().set_materialization_point()?;
+        Ok(())
+    }
+
+    fn execute_materialize_predicate(
+        &mut self,
+        statement: &vir_low::ast::statement::MaterializePredicate,
+    ) -> SpannedEncodingResult<()> {
+        let vir_low::Expression::PredicateAccessPredicate(predicate) = self.simplify_expression(&statement.predicate, statement.position)? else {
+            unreachable!();
+        };
+        self.materialize_predicate(predicate, statement.position)?;
         Ok(())
     }
 }

@@ -53,6 +53,7 @@ impl<'a, 'c: 'a, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             vir_low::Statement::Conditional(_) => {
                 unreachable!();
             }
+            vir_low::Statement::MaterializePredicate(_) => todo!(),
         }
         Ok(())
     }

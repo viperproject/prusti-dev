@@ -659,6 +659,43 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         Ok(())
     }
 
+    pub(in super::super) fn materialize(
+        &mut self,
+        program_context: &mut ProgramContext<impl EncoderContext>,
+        expression_interner: &mut ExpressionInterner,
+        _global_state: &mut GlobalHeapState,
+        predicate: vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+        constraints: &mut BlockConstraints,
+        block_builder: &mut BlockBuilder,
+    ) -> SpannedEncodingResult<()> {
+        let mut found = false;
+        for predicate_instance in &mut self.aliased_predicate_instances {
+            if matches_arguments(
+                &predicate_instance.arguments,
+                &predicate.arguments,
+                constraints,
+                expression_interner,
+                program_context,
+            )? {
+                found = true;
+                assert!(
+                    !predicate_instance.is_materialized,
+                    "TODO: a proper error message {predicate}"
+                );
+                predicate_instance.is_materialized = true;
+                let statement = predicate_instance.create_materialization_statement(
+                    &predicate.name,
+                    position,
+                    program_context,
+                )?;
+                block_builder.add_statement(statement)?;
+            }
+        }
+        assert!(found, "TODO: a proper error message {predicate}");
+        Ok(())
+    }
+
     pub(in super::super) fn prepare_for_unhandled_exhale(
         &mut self,
         program_context: &mut ProgramContext<impl EncoderContext>,

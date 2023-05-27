@@ -240,6 +240,8 @@ pub enum ErrorCtxt {
     NoPanicPanics,
     /// Precondition of a checked binary operation failed.
     CheckedBinaryOpPrecondition,
+    /// Materializing a predicate for purification algorithm failed.
+    MaterializePredicate,
     // /// Permission error when dereferencing a raw pointer.
     // EnsureOwnedPredicate,
 }

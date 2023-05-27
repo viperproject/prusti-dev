@@ -127,6 +127,12 @@ pub fn prusti_structural_assume(_tokens: TokenStream) -> TokenStream {
 }
 
 #[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn materialize_predicate(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
@@ -485,6 +491,12 @@ pub fn prusti_refute(tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn prusti_structural_assume(tokens: TokenStream) -> TokenStream {
     prusti_specs::prusti_structural_assume(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn materialize_predicate(tokens: TokenStream) -> TokenStream {
+    prusti_specs::materialize_predicate(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

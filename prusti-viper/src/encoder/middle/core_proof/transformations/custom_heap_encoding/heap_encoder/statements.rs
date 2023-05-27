@@ -67,6 +67,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             vir_low::Statement::Conditional(conditional) => {
                 unreachable!("conditional: {}", conditional);
             }
+            vir_low::Statement::MaterializePredicate(statement) => {
+                unreachable!("materialize predicate: {statement}");
+            }
         }
         Ok(())
     }

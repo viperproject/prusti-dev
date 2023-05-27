@@ -108,6 +108,7 @@ fn from_statements(
                 );
                 statements.push(vir_low::Statement::Conditional(conditional));
             }
+            vir_low::Statement::MaterializePredicate(_) => todo!(),
         }
     }
 }

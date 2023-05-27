@@ -146,7 +146,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for PureSnapshot {
         //         // let place = lowerer.encode_expression_as_place_address(&predicate.address)?;
         //         let place = true.into();
         //         let size = predicate.size.to_pure_snapshot(lowerer)?;
-        //         lowerer.encode_memory_block_stack_acc(place, size, acc_predicate.position)?
+        //         lowerer.encode_memory_block_acc(place, size, acc_predicate.position)?
         //     }
         //     vir_mid::Predicate::MemoryBlockHeapDrop(predicate) => {
         //         // let place = lowerer.encode_expression_as_place_address(&predicate.address)?;

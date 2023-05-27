@@ -60,6 +60,7 @@ pub enum Statement {
     CloseMutRef(CloseMutRef),
     CloseFracRef(CloseFracRef),
     BorShorten(BorShorten),
+    MaterializePredicate(MaterializePredicate),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -603,5 +604,11 @@ pub struct BorShorten {
     pub old_lifetime: LifetimeConst,
     pub value: Expression,
     pub lifetime_token_permission: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "materialize_predicate({})", predicate)]
+pub struct MaterializePredicate {
+    pub predicate: Predicate,
     pub position: Position,
 }

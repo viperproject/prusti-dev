@@ -135,6 +135,32 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         Ok(())
     }
 
+    pub(in super::super) fn materialize(
+        &mut self,
+        program_context: &mut ProgramContext<impl EncoderContext>,
+        expression_interner: &mut ExpressionInterner,
+        global_state: &mut GlobalHeapState,
+        predicate: vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+        constraints: &mut BlockConstraints,
+        block_builder: &mut BlockBuilder,
+    ) -> SpannedEncodingResult<()> {
+        if let Some(predicate_instances) = self.predicates.get_mut(&predicate.name) {
+            predicate_instances.materialize(
+                program_context,
+                expression_interner,
+                global_state,
+                predicate,
+                position,
+                constraints,
+                block_builder,
+            )?;
+        } else {
+            unimplemented!("TODO: A proper error message");
+        }
+        Ok(())
+    }
+
     pub(in super::super) fn prepare_for_unhandled_exhale(
         &mut self,
         program_context: &mut ProgramContext<impl EncoderContext>,

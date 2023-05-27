@@ -51,6 +51,7 @@ impl Positioned for Statement {
             Self::CloseMutRef(statement) => statement.position(),
             Self::CloseFracRef(statement) => statement.position(),
             Self::BorShorten(statement) => statement.position(),
+            Self::MaterializePredicate(statement) => statement.position(),
         }
     }
 }
@@ -332,6 +333,12 @@ impl Positioned for CloseFracRef {
 }
 
 impl Positioned for BorShorten {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for MaterializePredicate {
     fn position(&self) -> Position {
         self.position
     }

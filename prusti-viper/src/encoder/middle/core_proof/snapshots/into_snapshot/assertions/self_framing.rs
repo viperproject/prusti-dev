@@ -692,11 +692,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                             &predicate.size,
                             expect_math_bool,
                         )?;
-                        lowerer.encode_memory_block_stack_acc(
-                            address,
-                            size,
-                            acc_predicate.position,
-                        )?
+                        lowerer.encode_memory_block_acc(address, size, acc_predicate.position)?
                     }
                     PredicateKind::FracRef { .. } | PredicateKind::UniqueRef { .. } => {
                         // Memory blocks are not accessible in frac/unique ref predicates.
