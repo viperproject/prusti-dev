@@ -125,7 +125,6 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             }
             vir_typed::TypeDecl::Sequence(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::Map(_) => unimplemented!("ty: {}", ty),
-            vir_typed::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
         };

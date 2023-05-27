@@ -24,7 +24,6 @@ impl WithIdentifier for ty::Type {
             ty::Type::Reference(ty) => ty.get_identifier(),
             ty::Type::Pointer(ty) => ty.get_identifier(),
             ty::Type::FnPointer => "FnPointer".to_string(),
-            ty::Type::Never => "Never".to_string(),
             ty::Type::Str => "Str".to_string(),
             ty::Type::Closure(ty) => ty.get_identifier(),
             ty::Type::FunctionDef(ty) => ty.get_identifier(),

@@ -36,7 +36,6 @@ pub enum Type {
     Reference(Reference),
     Pointer(Pointer),
     FnPointer,
-    Never,
     Str,
     Closure(Closure),
     FunctionDef(FunctionDef),
@@ -112,7 +111,7 @@ pub enum TypeVar {
     GenericType(GenericType),
 }
 
-/// Either a struct or a tuple.
+/// Either a struct, a tuple, or never.
 #[display(
     fmt = "{}<{}, {}>",
     name,

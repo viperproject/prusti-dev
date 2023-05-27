@@ -299,7 +299,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                     // };
                     // self.compute_address_state.rewrite_rules.push(axiom);
                 }
-                // vir_mid::TypeDecl::Never => {},
                 // vir_mid::TypeDecl::Closure(Closure) => {},
                 // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
                 x => unimplemented!("{:?}", x),

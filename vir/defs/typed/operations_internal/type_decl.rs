@@ -42,7 +42,6 @@ impl TypeDecl {
             // Since pointer targets may be invalid, we ignore their lifetimes.
             Self::Pointer(_decl) => &[],
             // // Self::FnPointer => &[],
-            // Self::Never => &[],
             // // Self::Str => &[],
             // Self::Closure(decl) => &decl.lifetimes,
             // // Self::Projection(_decl) => &[],
@@ -67,7 +66,6 @@ impl TypeDecl {
             Self::Reference(decl) => &decl.const_parameters,
             Self::Pointer(decl) => &decl.const_parameters,
             // // Self::FnPointer => &[],
-            // Self::Never => &[],
             // // Self::Str => &[],
             // Self::Closure(decl) => &decl.const_parameters,
             // // Self::Projection(_decl) => &[],

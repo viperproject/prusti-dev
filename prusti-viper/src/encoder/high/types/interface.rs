@@ -274,7 +274,6 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             vir_mid::TypeDecl::Struct(decl) => decl.fields.is_empty(),
             vir_mid::TypeDecl::Enum(decl) => decl.variants.is_empty(),
             vir_mid::TypeDecl::Array(_decl) => unimplemented!(),
-            vir_mid::TypeDecl::Never => true,
             vir_mid::TypeDecl::Closure(_) => unimplemented!(),
             vir_mid::TypeDecl::Unsupported(_) => unimplemented!(),
         })

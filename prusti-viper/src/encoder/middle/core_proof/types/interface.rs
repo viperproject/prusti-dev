@@ -265,15 +265,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                     )?;
                 }
             }
-            vir_mid::TypeDecl::Never => {
-                self.register_struct_constructor(&domain_name, Vec::new())?;
-                self.encode_validity_axioms_struct_with_invariant(
-                    &domain_name,
-                    Vec::new(),
-                    0,
-                    false.into(),
-                )?;
-            }
             _ => unimplemented!("type: {:?}", type_decl),
         };
         Ok(())
