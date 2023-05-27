@@ -62,13 +62,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         kind: PredicatePermissionMaskKind,
     ) -> Option<vir_low::VariableDecl> {
         match kind {
-            PredicatePermissionMaskKind::AliasedFractionalBool => Some(vir_low::VariableDecl::new(
-                "permission_amount",
-                vir_low::Type::Perm,
-            )),
+            PredicatePermissionMaskKind::AliasedWholeNat
+            | PredicatePermissionMaskKind::AliasedFractionalBool => Some(
+                vir_low::VariableDecl::new("permission_amount", vir_low::Type::Perm),
+            ),
             PredicatePermissionMaskKind::AliasedWholeBool
             | PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => None,
-            PredicatePermissionMaskKind::AliasedWholeNat => unimplemented!(),
         }
     }
 
