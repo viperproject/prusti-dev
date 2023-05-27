@@ -3371,72 +3371,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 post_call_block_builder.build();
 
                 if let Some(cleanup_block) = cleanup {
-                    let encoded_cleanup_block = self.encode_basic_block_label(*cleanup_block);
-                    let fresh_cleanup_label = self.fresh_basic_block_label();
-                    let mut cleanup_block_builder =
-                        block_builder.create_basic_block_builder(fresh_cleanup_label.clone());
-                    cleanup_block_builder
-                        .set_successor_jump(vir_high::Successor::Goto(encoded_cleanup_block));
-
-                    if is_precondition_checked || no_panic {
-                        // If the precondition is checked or the function is
-                        // guaranteed to not panic, then the cleanup block is
-                        // unreachable.
-                        let statement = vir_high::Statement::assume_no_pos(false.into());
-                        cleanup_block_builder.add_statement(
-                            self.encoder.set_statement_error_ctxt(
-                                statement,
-                                span,
-                                ErrorCtxt::ProcedureCall,
-                                self.def_id,
-                            )?,
-                        );
-                    }
-
-                    let statement =
-                        vir_high::Statement::inhale_predicate_no_pos(target_memory_block);
-                    cleanup_block_builder.add_statement(self.encoder.set_statement_error_ctxt(
-                        statement,
-                        span,
-                        ErrorCtxt::ProcedureCall,
-                        self.def_id,
-                    )?);
-
-                    self.encode_inhale_lifetime_tokens(
-                        &mut cleanup_block_builder,
-                        &lifetimes_to_exhale_inhale,
-                        derived_from.len() + 1,
-                    )?;
-                    let function_lifetime_return = self.encoder.set_statement_error_ctxt(
-                        vir_high::Statement::lifetime_return_no_pos(
-                            function_call_lifetime,
-                            derived_from.clone(),
-                            self.lifetime_token_fractional_permission(
-                                self.lifetime_count * derived_from.len(),
-                            ),
-                        ),
-                        self.mir.span,
-                        ErrorCtxt::LifetimeInhale,
-                        self.def_id,
-                    )?;
-                    cleanup_block_builder.add_statement(function_lifetime_return);
-
-                    if let Some(statements) = self
-                        .add_function_panic_specification_before_terminator
-                        .get(&(location.block, *cleanup_block))
-                    {
-                        // We need to add the statements before the expiration
-                        // of the lifetime. Otherwise, the fold-unfold crashes.
-                        cleanup_block_builder.add_statements(statements.clone());
-                    }
-
-                    self.encode_lft_for_block(
+                    let fresh_cleanup_label = self.encode_function_call_cleanup_block(
                         *cleanup_block,
+                        block_builder,
                         location,
-                        &mut cleanup_block_builder,
+                        span,
+                        is_precondition_checked,
+                        no_panic,
+                        Some(target_memory_block),
+                        &lifetimes_to_exhale_inhale,
+                        &derived_from,
+                        function_call_lifetime,
                     )?;
-
-                    cleanup_block_builder.build();
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(
                         fresh_destination_label,
                         fresh_cleanup_label,
@@ -3447,15 +3393,100 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } else {
                 unimplemented!();
             }
-        } else if let Some(_cleanup_block) = cleanup {
-            // TODO: add panic postconditions.
-            unimplemented!();
+        } else if let Some(cleanup_block) = cleanup {
+            let fresh_cleanup_label = self.encode_function_call_cleanup_block(
+                *cleanup_block,
+                block_builder,
+                location,
+                span,
+                is_precondition_checked,
+                no_panic,
+                None,
+                &lifetimes_to_exhale_inhale,
+                &derived_from,
+                function_call_lifetime,
+            )?;
+            block_builder.set_successor_jump(vir_high::Successor::Goto(fresh_cleanup_label));
         } else {
             // TODO: Can we always soundly assume false here?
             unimplemented!();
         }
 
         Ok(())
+    }
+
+    fn encode_function_call_cleanup_block(
+        &mut self,
+        cleanup_block: mir::BasicBlock,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        span: Span,
+        is_precondition_checked: bool,
+        no_panic: bool,
+        target_memory_block: Option<vir_high::Predicate>,
+        lifetimes_to_exhale_inhale: &[String],
+        derived_from: &[vir_high::VariableDecl],
+        function_call_lifetime: vir_high::VariableDecl,
+    ) -> SpannedEncodingResult<vir_high::BasicBlockId> {
+        let encoded_cleanup_block = self.encode_basic_block_label(cleanup_block);
+        let fresh_cleanup_label = self.fresh_basic_block_label();
+        let mut cleanup_block_builder =
+            block_builder.create_basic_block_builder(fresh_cleanup_label.clone());
+        cleanup_block_builder.set_successor_jump(vir_high::Successor::Goto(encoded_cleanup_block));
+
+        if is_precondition_checked || no_panic {
+            // If the precondition is checked or the function is
+            // guaranteed to not panic, then the cleanup block is
+            // unreachable.
+            let statement = vir_high::Statement::assume_no_pos(false.into());
+            cleanup_block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                statement,
+                span,
+                ErrorCtxt::ProcedureCall,
+                self.def_id,
+            )?);
+        }
+
+        if let Some(target_memory_block) = target_memory_block {
+            let statement = vir_high::Statement::inhale_predicate_no_pos(target_memory_block);
+            cleanup_block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                statement,
+                span,
+                ErrorCtxt::ProcedureCall,
+                self.def_id,
+            )?);
+        }
+
+        self.encode_inhale_lifetime_tokens(
+            &mut cleanup_block_builder,
+            lifetimes_to_exhale_inhale,
+            derived_from.len() + 1,
+        )?;
+        let function_lifetime_return = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::lifetime_return_no_pos(
+                function_call_lifetime,
+                derived_from.to_vec(),
+                self.lifetime_token_fractional_permission(self.lifetime_count * derived_from.len()),
+            ),
+            self.mir.span,
+            ErrorCtxt::LifetimeInhale,
+            self.def_id,
+        )?;
+        cleanup_block_builder.add_statement(function_lifetime_return);
+
+        if let Some(statements) = self
+            .add_function_panic_specification_before_terminator
+            .get(&(location.block, cleanup_block))
+        {
+            // We need to add the statements before the expiration
+            // of the lifetime. Otherwise, the fold-unfold crashes.
+            cleanup_block_builder.add_statements(statements.clone());
+        }
+
+        self.encode_lft_for_block(cleanup_block, location, &mut cleanup_block_builder)?;
+
+        cleanup_block_builder.build();
+        Ok(fresh_cleanup_label)
     }
 
     #[allow(clippy::too_many_arguments)]
