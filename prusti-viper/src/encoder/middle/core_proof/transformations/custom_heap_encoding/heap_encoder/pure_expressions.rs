@@ -1,7 +1,10 @@
 use super::HeapEncoder;
 use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
+    common::{
+        builtin_constants::MEMORY_BLOCK_PREDICATE_NAME,
+        expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
+    },
     low::{self as vir_low, expression::visitors::ExpressionFallibleFolder},
 };
 
@@ -34,6 +37,36 @@ struct Purifier<'e, 'p, 'v: 'p, 'tcx: 'v> {
     position: vir_low::Position,
 }
 
+impl<'e, 'p, 'v: 'p, 'tcx: 'v> Purifier<'e, 'p, 'v, 'tcx> {
+    fn snap_function_call(
+        &mut self,
+        predicate_name: &str,
+        mut arguments: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let heap_version = if let Some(expression_evaluation_state_label) =
+            &self.expression_evaluation_state_label
+        {
+            self.heap_encoder
+                .get_heap_version_at_label(predicate_name, expression_evaluation_state_label)?
+        } else {
+            self.heap_encoder
+                .get_current_heap_version_for(predicate_name)?
+        };
+        arguments.push(heap_version);
+        let heap_function_name = self.heap_encoder.heap_function_name(predicate_name);
+        let return_type = self
+            .heap_encoder
+            .get_snapshot_type_for_predicate(&predicate_name)
+            .unwrap();
+        Ok(vir_low::Expression::domain_function_call(
+            "HeapFunctions",
+            heap_function_name,
+            arguments,
+            return_type,
+        ))
+    }
+}
+
 impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v, 'tcx> {
     type Error = SpannedEncodingError;
 
@@ -43,7 +76,7 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
     ) -> Result<vir_low::Expression, Self::Error> {
         let function = self.heap_encoder.functions[&func_app.function_name];
         assert_eq!(function.parameters.len(), func_app.arguments.len());
-        let mut arguments = func_app
+        let arguments = func_app
             .arguments
             .into_iter()
             .map(|argument| self.fallible_fold_expression(argument))
@@ -65,36 +98,16 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
             self.expression_evaluation_state_label.clone(),
         )?;
         match function.kind {
-            vir_low::FunctionKind::MemoryBlockBytes => todo!(),
+            vir_low::FunctionKind::MemoryBlockBytes => {
+                self.snap_function_call(MEMORY_BLOCK_PREDICATE_NAME, arguments)
+            }
             vir_low::FunctionKind::CallerFor => todo!(),
             vir_low::FunctionKind::SnapRange => todo!(),
             vir_low::FunctionKind::Snap => {
                 let predicate_name = self
                     .heap_encoder
                     .get_predicate_name_for_function(&func_app.function_name)?;
-                let heap_version = if let Some(expression_evaluation_state_label) =
-                    &self.expression_evaluation_state_label
-                {
-                    self.heap_encoder.get_heap_version_at_label(
-                        &predicate_name,
-                        expression_evaluation_state_label,
-                    )?
-                } else {
-                    self.heap_encoder
-                        .get_current_heap_version_for(&predicate_name)?
-                };
-                arguments.push(heap_version);
-                let heap_function_name = self.heap_encoder.heap_function_name(&predicate_name);
-                let return_type = self
-                    .heap_encoder
-                    .get_snapshot_type_for_predicate(&predicate_name)
-                    .unwrap();
-                Ok(vir_low::Expression::domain_function_call(
-                    "HeapFunctions",
-                    heap_function_name,
-                    arguments,
-                    return_type,
-                ))
+                self.snap_function_call(&predicate_name, arguments)
             }
         }
     }
@@ -143,5 +156,13 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
             &mut self.expression_evaluation_state_label,
         );
         Ok(vir_low::Expression::LabelledOld(labelled_old))
+    }
+
+    fn fallible_fold_quantifier(
+        &mut self,
+        quantifier: vir_low::Quantifier,
+    ) -> Result<vir_low::Quantifier, Self::Error> {
+        TODO: Generate a fresh variable for each bound variable and use them instead when checking preconditions.
+        unimplemented!("quantifier: {quantifier}");
     }
 }

@@ -179,7 +179,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         )?;
                     }
                     vir_low::BinaryOpKind::Implies => {
-                        unimplemented!();
+                        let mut then_branch = Vec::new();
+                        self.encode_function_precondition_assert_rec(
+                            &mut then_branch,
+                            *expression.right,
+                            position,
+                            expression_evaluation_state_label,
+                        )?;
+                        let guard = self.encode_pure_expression(
+                            statements,
+                            *expression.left,
+                            Some(expression_evaluation_state_label.to_string()),
+                            position,
+                        )?;
+                        statements.push(vir_low::Statement::conditional(
+                            guard,
+                            then_branch,
+                            Vec::new(),
+                            position,
+                        ));
                     }
                     _ => unreachable!("expression: {}", expression),
                 },
