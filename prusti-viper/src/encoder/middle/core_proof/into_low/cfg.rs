@@ -27,6 +27,7 @@ use crate::encoder::{
         viewshifts::ViewShiftsInterface,
     },
 };
+use prusti_common::config;
 use vir_crate::{
     common::{
         expression::{BinaryOperationHelpers, QuantifierHelpers},
@@ -1642,6 +1643,17 @@ impl IntoLow for vir_mid::Statement {
                 )?];
                 Ok(statements)
             }
+            Self::MaterializePredicate(statement) => {
+                let mut statements = Vec::new();
+                if config::purify_with_symbolic_execution() {
+                    let predicate = statement.predicate.into_low(lowerer)?;
+                    statements.push(vir_low::Statement::materialize_predicate(
+                        predicate,
+                        statement.position,
+                    ));
+                }
+                Ok(statements)
+            }
         }
     }
 }
@@ -1665,15 +1677,11 @@ impl IntoLow for vir_mid::Predicate {
             }
             Predicate::MemoryBlockStack(predicate) => predicate.into_low(lowerer)?,
             Predicate::MemoryBlockStackDrop(predicate) => predicate.into_low(lowerer)?,
-            Predicate::MemoryBlockHeap(predicate) => {
-                unimplemented!("predicate: {}", predicate);
-            }
+            Predicate::MemoryBlockHeap(predicate) => predicate.into_low(lowerer)?,
             Predicate::MemoryBlockHeapRange(predicate) => {
                 unimplemented!("predicate: {}", predicate);
             }
-            Predicate::MemoryBlockHeapDrop(predicate) => {
-                unimplemented!("predicate: {}", predicate);
-            }
+            Predicate::MemoryBlockHeapDrop(predicate) => predicate.into_low(lowerer)?,
             Predicate::OwnedNonAliased(predicate) => {
                 lowerer.mark_place_as_used_in_memory_block(&predicate.place)?;
                 let place = lowerer.encode_expression_as_place(&predicate.place)?;
@@ -1720,7 +1728,7 @@ impl IntoLow for vir_mid::ast::predicate::MemoryBlockStack {
         lowerer.mark_place_as_used_in_memory_block(&self.place)?;
         let place = lowerer.encode_expression_as_place_address(&self.place)?;
         let size = self.size.to_procedure_snapshot(lowerer)?;
-        lowerer.encode_memory_block_stack_acc(place, size, self.position)
+        lowerer.encode_memory_block_acc(place, size, self.position)
     }
 }
 
@@ -1734,6 +1742,36 @@ impl IntoLow for vir_mid::ast::predicate::MemoryBlockStackDrop {
         let place = lowerer.encode_expression_as_place_address(&self.place)?;
         let size = self.size.to_procedure_snapshot(lowerer)?;
         lowerer.encode_memory_block_stack_drop_acc(place, size, self.position)
+    }
+}
+
+impl IntoLow for vir_mid::ast::predicate::MemoryBlockHeap {
+    type Target = vir_low::Expression;
+
+    fn into_low<'p, 'v: 'p, 'tcx: 'v>(
+        self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        let mut assertion_encoder =
+            SelfFramingAssertionToSnapshot::for_inhale_exhale_expression(None);
+        let address = assertion_encoder.pointer_deref_into_address(lowerer, &self.address)?;
+        let size = self.size.to_procedure_snapshot(lowerer)?;
+        lowerer.encode_memory_block_acc(address, size, self.position)
+    }
+}
+
+impl IntoLow for vir_mid::ast::predicate::MemoryBlockHeapDrop {
+    type Target = vir_low::Expression;
+
+    fn into_low<'p, 'v: 'p, 'tcx: 'v>(
+        self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        let mut assertion_encoder =
+            SelfFramingAssertionToSnapshot::for_inhale_exhale_expression(None);
+        let address = assertion_encoder.pointer_deref_into_address(lowerer, &self.address)?;
+        let size = self.size.to_procedure_snapshot(lowerer)?;
+        lowerer.encode_memory_block_heap_drop_acc(address, size, self.position)
     }
 }
 

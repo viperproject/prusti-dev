@@ -2892,7 +2892,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             // let address = self.encode_expression_as_place_address(&operand.expression)?;
             // let size = self.encode_type_size_expression2(ty, ty)?;
             // let predicate_acc = self
-            //     .encode_memory_block_stack_acc(address, size, position)?
+            //     .encode_memory_block_acc(address, size, position)?
             //     .unwrap_predicate_access_predicate();
             // self.mark_predicate_as_non_aliased(predicate_acc)?;
         }
@@ -3979,11 +3979,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 index.clone().into(),
                 position,
             )?;
-            let predicate = self.encode_memory_block_stack_acc(
-                element_address.clone(),
-                size.clone(),
-                position,
-            )?;
+            let predicate =
+                self.encode_memory_block_acc(element_address.clone(), size.clone(), position)?;
             // let new_start_index = self.obtain_constant_value(&size_type, new_start_address.clone(), position)?;
             // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
             let body = expr!(

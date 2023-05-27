@@ -325,6 +325,111 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
+    pub(super) fn materialize_predicate(
+        &mut self,
+        predicate: vir_low::ast::expression::PredicateAccessPredicate,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let current_block = self.current_block.as_ref().unwrap();
+        let current_state = self.state_keeper.get_state_mut(current_block);
+        let block_builder = self.current_block_builder.as_mut().unwrap();
+        block_builder.add_statement(vir_low::Statement::comment(format!(
+            "materialize {predicate}"
+        )))?;
+        match self.program_context.get_predicate_kind(&predicate.name) {
+            vir_low::PredicateKind::MemoryBlock => {
+                current_state.heap.memory_block.materialize(
+                    self.program_context,
+                    &mut self.expression_interner,
+                    &mut self.global_heap_state,
+                    predicate,
+                    position,
+                    &mut current_state.constraints,
+                    block_builder,
+                )?;
+            }
+            vir_low::PredicateKind::Owned => {
+                current_state.heap.owned.materialize(
+                    self.program_context,
+                    &mut self.expression_interner,
+                    &mut self.global_heap_state,
+                    predicate,
+                    position,
+                    &mut current_state.constraints,
+                    block_builder,
+                )?;
+            }
+            vir_low::PredicateKind::LifetimeToken => {
+                unreachable!();
+            }
+            vir_low::PredicateKind::DeadLifetimeToken => {
+                unreachable!();
+            }
+            vir_low::PredicateKind::CloseFracRef => {
+                current_state.heap.close_frac_ref.materialize(
+                    self.program_context,
+                    &mut self.expression_interner,
+                    &mut self.global_heap_state,
+                    predicate,
+                    position,
+                    &mut current_state.constraints,
+                    block_builder,
+                )?;
+            }
+            vir_low::PredicateKind::WithoutSnapshotFrac => {
+                current_state.heap.without_snapshot_frac.materialize(
+                    self.program_context,
+                    &mut self.expression_interner,
+                    &mut self.global_heap_state,
+                    predicate,
+                    position,
+                    &mut current_state.constraints,
+                    block_builder,
+                )?;
+            }
+            vir_low::PredicateKind::WithoutSnapshotWhole => {
+                current_state.heap.without_snapshot_whole.materialize(
+                    self.program_context,
+                    &mut self.expression_interner,
+                    &mut self.global_heap_state,
+                    predicate,
+                    position,
+                    &mut current_state.constraints,
+                    block_builder,
+                )?;
+            }
+            vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
+                current_state
+                    .heap
+                    .without_snapshot_whole_non_aliased
+                    .materialize(
+                        self.program_context,
+                        &mut self.expression_interner,
+                        &mut self.global_heap_state,
+                        predicate,
+                        position,
+                        &mut current_state.constraints,
+                        block_builder,
+                    )?;
+            }
+            vir_low::PredicateKind::EndBorrowViewShift => {
+                current_state
+                    .heap
+                    .without_snapshot_whole_non_aliased
+                    .materialize(
+                        self.program_context,
+                        &mut self.expression_interner,
+                        &mut self.global_heap_state,
+                        predicate,
+                        position,
+                        &mut current_state.constraints,
+                        block_builder,
+                    )?;
+            }
+        };
+        Ok(())
+    }
+
     // pub(super) fn mark_predicate_instances_seen_qp_inhale(
     //     &mut self,
     //     _predicate_name: &str,

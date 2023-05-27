@@ -1668,6 +1668,16 @@ pub fn restore_stash_range(tokens: TokenStream) -> TokenStream {
     })
 }
 
+pub fn materialize_predicate(tokens: TokenStream) -> TokenStream {
+    let (spec_id, predicate_closure) = handle_result!(prusti_specification_expression(tokens));
+    let spec_id_str = spec_id.to_string();
+    let call = unsafe_spec_function_call(quote! { prusti_materialize_predicate(#spec_id_str) });
+    quote! {
+        #call;
+        #predicate_closure
+    }
+}
+
 fn close_any_ref(tokens: TokenStream, function: TokenStream) -> TokenStream {
     parse_expressions!(tokens, syn::Token![,] => reference, witness);
     // let (reference, witness) = handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));

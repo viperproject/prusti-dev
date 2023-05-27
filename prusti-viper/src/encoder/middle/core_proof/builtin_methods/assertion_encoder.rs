@@ -191,7 +191,7 @@ impl<'a> AssertionEncoder<'a> {
                 };
                 let size =
                     self.expression_to_snapshot(lowerer, &predicate.size, expect_math_bool)?;
-                lowerer.encode_memory_block_stack_acc(address, size, acc_predicate.position)?
+                lowerer.encode_memory_block_acc(address, size, acc_predicate.position)?
             }
             vir_mid::Predicate::MemoryBlockHeapDrop(predicate) => {
                 // FIXME: Why this does not match the encoding of MemoryBlockHeap?

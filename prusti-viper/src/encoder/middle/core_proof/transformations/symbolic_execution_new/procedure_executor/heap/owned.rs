@@ -79,6 +79,27 @@ impl Owned {
         )
     }
 
+    pub(super) fn materialize(
+        &mut self,
+        program_context: &mut ProgramContext<impl EncoderContext>,
+        expression_interner: &mut ExpressionInterner,
+        global_state: &mut GlobalHeapState,
+        predicate: vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+        constraints: &mut BlockConstraints,
+        block_builder: &mut BlockBuilder,
+    ) -> SpannedEncodingResult<()> {
+        self.predicates.materialize(
+            program_context,
+            expression_interner,
+            global_state,
+            predicate,
+            position,
+            constraints,
+            block_builder,
+        )
+    }
+
     pub(super) fn prepare_for_unhandled_exhale(
         &mut self,
         program_context: &mut ProgramContext<impl EncoderContext>,

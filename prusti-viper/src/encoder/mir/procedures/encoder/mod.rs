@@ -4845,6 +4845,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             encoded_statements.push(statement);
                             Ok(true)
                         }
+                        "prusti_contracts::prusti_materialize_predicate" => {
+                            assert_eq!(args.len(), 1);
+                            let mut encoded_args = extract_args(self.mir, args, block, self)?;
+                            let ArgKind::String(predicate_spec_id) = encoded_args.pop().unwrap() else {
+                                unreachable!()
+                            };
+                            let predicate_expression = self
+                                .specification_expressions
+                                .get(&predicate_spec_id)
+                                .expect("FIXME: A proper error message")
+                                .clone();
+                            assert!(encoded_args.is_empty());
+                            let vir_high::Expression::AccPredicate(acc_predicate) = predicate_expression else {
+                                unimplemented!("FIXME: A proper error message")
+                            };
+                            let predicate = *acc_predicate.predicate;
+                            let statement = self.set_statement_error(
+                                location,
+                                ErrorCtxt::MaterializePredicate,
+                                vir_high::Statement::materialize_predicate_no_pos(predicate),
+                            )?;
+                            encoded_statements.push(statement);
+                            Ok(true)
+                        }
                         function_name => unreachable!("function: {}", function_name),
                     }
                 } else {

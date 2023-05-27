@@ -18,6 +18,7 @@ pub enum Statement {
     MethodCall(MethodCall),
     Assign(Assign),
     Conditional(Conditional),
+    MaterializePredicate(MaterializePredicate),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -112,5 +113,11 @@ pub struct Conditional {
     pub guard: Expression,
     pub then_branch: Vec<Statement>,
     pub else_branch: Vec<Statement>,
+    pub position: Position,
+}
+
+#[display(fmt = "materialize_predicate({})", predicate)]
+pub struct MaterializePredicate {
+    pub predicate: Expression,
     pub position: Position,
 }

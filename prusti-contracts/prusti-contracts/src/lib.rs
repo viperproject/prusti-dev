@@ -59,11 +59,14 @@ pub use prusti_contracts_proc_macros::prusti_structural_assert;
 /// A macro for writing assumptions using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_assume;
 
-/// A macro for writing refutations using prusti syntax
-pub use prusti_contracts_proc_macros::prusti_refute;
-
 /// A macro for writing structural assumptions using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_structural_assume;
+
+/// A macro for telling Prusti purification to materialize a predicate instance.
+pub use prusti_contracts_proc_macros::materialize_predicate;
+
+/// A macro for writing refutations using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_refute;
 
 /// A macro for impl blocks that refine trait specifications.
 pub use prusti_contracts_proc_macros::refine_trait_spec;
@@ -646,6 +649,12 @@ pub fn prusti_open_mut_ref_place<T>(_lifetime: &'static str, _arg: T, _witness: 
 #[doc(hidden)]
 #[trusted]
 pub fn prusti_resolve<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_materialize_predicate<T>(_arg: T) {
     unreachable!();
 }
 

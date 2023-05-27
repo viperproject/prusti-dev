@@ -201,6 +201,9 @@ impl CollectPermissionChanges for vir_typed::Statement {
             vir_typed::Statement::LifetimeReturn(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_typed::Statement::MaterializePredicate(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
         }
     }
 }
@@ -1105,6 +1108,18 @@ impl CollectPermissionChanges for vir_typed::LifetimeReturn {
         _consumed_permissions: &mut Vec<Permission>,
         _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_typed::MaterializePredicate {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        // Materialize predicate is applied only to non-managed predicates.
         Ok(())
     }
 }

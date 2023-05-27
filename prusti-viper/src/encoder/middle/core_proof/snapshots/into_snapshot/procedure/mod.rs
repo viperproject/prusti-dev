@@ -234,7 +234,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for ProcedureSnapsh
                 //     self.in_heap_assertions.push(in_heap);
                 // }
                 // let acc =
-                lowerer.encode_memory_block_stack_acc(place, size, acc_predicate.position)?
+                lowerer.encode_memory_block_acc(place, size, acc_predicate.position)?
                 //;
                 // vir_low::Expression::and(in_heap, acc)
             }
