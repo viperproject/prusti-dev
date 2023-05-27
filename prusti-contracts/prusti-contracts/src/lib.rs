@@ -886,4 +886,12 @@ pub fn address_offset<T>(_ptr: *const T, _count: isize) -> *const T {
     unreachable!();
 }
 
+#[trusted]
+#[pure]
+#[no_panic]
+#[no_panic_ensures_postcondition]
+pub fn allocation_never_fails() -> bool {
+    unreachable!();
+}
+
 pub use private::*;
