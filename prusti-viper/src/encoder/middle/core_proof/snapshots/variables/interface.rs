@@ -314,7 +314,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 }
                 vir_mid::TypeDecl::Sequence(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Map(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Never => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Closure(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", type_decl),
             }

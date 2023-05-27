@@ -24,7 +24,6 @@ pub enum TypeDecl {
     Reference(Reference),
     Pointer(Pointer),
     // FnPointer,
-    Never,
     // Str,
     Closure(Closure),
     // Projection(Projection),

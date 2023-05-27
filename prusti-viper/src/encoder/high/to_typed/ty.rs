@@ -35,6 +35,16 @@ impl<'v, 'tcx> HighToTypedTypeLowerer for crate::encoder::Encoder<'v, 'tcx> {
         ))
     }
 
+    fn high_to_typed_type_type_never(
+        &mut self,
+    ) -> Result<vir_crate::typed::ast::ty::Type, Self::Error> {
+        Ok(vir_typed::Type::struct_(
+            "Never".to_string(),
+            Vec::new(),
+            Vec::new(),
+        ))
+    }
+
     fn high_to_typed_type_expression(
         &mut self,
         expression: vir_high::Expression,

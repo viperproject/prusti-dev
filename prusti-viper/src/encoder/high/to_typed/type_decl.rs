@@ -65,6 +65,20 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
         ))
     }
 
+    fn high_to_typed_type_decl_type_decl_never(
+        &mut self,
+    ) -> Result<vir_typed::TypeDecl, Self::Error> {
+        Ok(vir_typed::TypeDecl::struct_(
+            "Never".to_owned(),
+            Vec::new(),
+            Vec::new(),
+            Some(vec![false.into()]),
+            Vec::new(),
+            None,
+            Default::default(),
+        ))
+    }
+
     fn high_to_typed_type_decl_variable_decl(
         &mut self,
         variable: vir_high::VariableDecl,

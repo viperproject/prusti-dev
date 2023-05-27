@@ -15,7 +15,6 @@ impl Positioned for TypeDecl {
             Self::Array(_) => Default::default(),
             Self::Reference(_) => Default::default(),
             Self::Pointer(_) => Default::default(),
-            Self::Never => Default::default(),
             Self::Closure(_) => Default::default(),
             Self::Unsupported(_) => Default::default(),
             Self::Trusted(_) => Default::default(),
