@@ -161,7 +161,7 @@ pub(super) fn matches_non_aliased_diff(
         }
         vir_low::PredicateKind::LifetimeToken => todo!(),
         vir_low::PredicateKind::CloseFracRef => todo!(),
-        vir_low::PredicateKind::WithoutSnapshotFrac => todo!(),
+        // vir_low::PredicateKind::WithoutSnapshotFrac => todo!(),
         vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
         vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
             assert_eq!(predicate_name, "MemoryBlockStackDrop");

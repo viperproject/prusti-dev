@@ -1,9 +1,6 @@
 use self::{
     close_frac_ref::ClosedFracRef,
-    common::{
-        AliasedFractionalBoundedPerm, AliasedWholeBool, AliasedWholeNat, NamedPredicateInstances,
-        NoSnapshot,
-    },
+    common::{AliasedWholeBool, NamedPredicateInstances, NoSnapshot},
     dead_lifetimes::DeadLifetimeTokens,
     lifetimes::LifetimeTokens,
     memory_block::MemoryBlock,
@@ -141,17 +138,17 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     block_builder,
                 )?;
             }
-            vir_low::PredicateKind::WithoutSnapshotFrac => {
-                current_state.heap.without_snapshot_frac.inhale(
-                    self.program_context,
-                    &mut self.expression_interner,
-                    &mut self.global_heap_state,
-                    predicate,
-                    position,
-                    &mut current_state.constraints,
-                    block_builder,
-                )?;
-            }
+            // vir_low::PredicateKind::WithoutSnapshotFrac => {
+            //     current_state.heap.without_snapshot_frac.inhale(
+            //         self.program_context,
+            //         &mut self.expression_interner,
+            //         &mut self.global_heap_state,
+            //         predicate,
+            //         position,
+            //         &mut current_state.constraints,
+            //         block_builder,
+            //     )?;
+            // }
             vir_low::PredicateKind::WithoutSnapshotWhole => {
                 current_state.heap.without_snapshot_whole.inhale(
                     self.program_context,
@@ -271,17 +268,17 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     block_builder,
                 )?;
             }
-            vir_low::PredicateKind::WithoutSnapshotFrac => {
-                current_state.heap.without_snapshot_frac.exhale(
-                    self.program_context,
-                    &mut self.expression_interner,
-                    &mut self.global_heap_state,
-                    predicate,
-                    position,
-                    &mut current_state.constraints,
-                    block_builder,
-                )?;
-            }
+            // vir_low::PredicateKind::WithoutSnapshotFrac => {
+            //     current_state.heap.without_snapshot_frac.exhale(
+            //         self.program_context,
+            //         &mut self.expression_interner,
+            //         &mut self.global_heap_state,
+            //         predicate,
+            //         position,
+            //         &mut current_state.constraints,
+            //         block_builder,
+            //     )?;
+            // }
             vir_low::PredicateKind::WithoutSnapshotWhole => {
                 current_state.heap.without_snapshot_whole.exhale(
                     self.program_context,
@@ -376,17 +373,17 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     block_builder,
                 )?;
             }
-            vir_low::PredicateKind::WithoutSnapshotFrac => {
-                current_state.heap.without_snapshot_frac.materialize(
-                    self.program_context,
-                    &mut self.expression_interner,
-                    &mut self.global_heap_state,
-                    predicate,
-                    position,
-                    &mut current_state.constraints,
-                    block_builder,
-                )?;
-            }
+            // vir_low::PredicateKind::WithoutSnapshotFrac => {
+            //     current_state.heap.without_snapshot_frac.materialize(
+            //         self.program_context,
+            //         &mut self.expression_interner,
+            //         &mut self.global_heap_state,
+            //         predicate,
+            //         position,
+            //         &mut current_state.constraints,
+            //         block_builder,
+            //     )?;
+            // }
             vir_low::PredicateKind::WithoutSnapshotWhole => {
                 current_state.heap.without_snapshot_whole.materialize(
                     self.program_context,
@@ -482,20 +479,20 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             vir_low::PredicateKind::CloseFracRef => {
                 unreachable!();
             }
-            vir_low::PredicateKind::WithoutSnapshotFrac => {
-                current_state
-                    .heap
-                    .without_snapshot_frac
-                    .prepare_for_unhandled_exhale(
-                        self.program_context,
-                        &mut self.expression_interner,
-                        &mut self.global_heap_state,
-                        predicate_name,
-                        position,
-                        &mut current_state.constraints,
-                        block_builder,
-                    )?;
-            }
+            // vir_low::PredicateKind::WithoutSnapshotFrac => {
+            //     current_state
+            //         .heap
+            //         .without_snapshot_frac
+            //         .prepare_for_unhandled_exhale(
+            //             self.program_context,
+            //             &mut self.expression_interner,
+            //             &mut self.global_heap_state,
+            //             predicate_name,
+            //             position,
+            //             &mut current_state.constraints,
+            //             block_builder,
+            //         )?;
+            // }
             vir_low::PredicateKind::WithoutSnapshotWhole => {
                 current_state
                     .heap
@@ -551,7 +548,7 @@ pub(super) struct BlockHeap {
     owned: Owned,
     memory_block: MemoryBlock,
     close_frac_ref: ClosedFracRef,
-    without_snapshot_frac: NamedPredicateInstances<AliasedFractionalBoundedPerm, NoSnapshot>,
+    // without_snapshot_frac: NamedPredicateInstances<AliasedFractionalBoundedPerm, NoSnapshot>,
     without_snapshot_whole: NamedPredicateInstances<AliasedWholeBool, NoSnapshot>,
     without_snapshot_whole_non_aliased: NamedPredicateInstances<AliasedWholeBool, NoSnapshot>,
     // dead_lifetimes: NamedPredicateInstances<AliasedWholeNat, NoSnapshot>,
@@ -563,7 +560,7 @@ impl std::fmt::Display for BlockHeap {
         writeln!(f, "owned: {}", self.owned)?;
         writeln!(f, "memory_block: {}", self.memory_block)?;
         writeln!(f, "close_frac_ref: {}", self.close_frac_ref)?;
-        writeln!(f, "without_snapshot_frac: {}", self.without_snapshot_frac)?;
+        // writeln!(f, "without_snapshot_frac: {}", self.without_snapshot_frac)?;
         writeln!(f, "without_snapshot_whole: {}", self.without_snapshot_whole)?;
         writeln!(
             f,
@@ -631,18 +628,18 @@ impl BlockHeap {
             program_context,
             global_state,
         )?;
-        self.without_snapshot_frac.merge(
-            &other.without_snapshot_frac,
-            self_edge_block,
-            other_edge_block,
-            position,
-            heap_merge_report,
-            constraints,
-            &constraints_merge_report,
-            expression_interner,
-            program_context,
-            global_state,
-        )?;
+        // self.without_snapshot_frac.merge(
+        //     &other.without_snapshot_frac,
+        //     self_edge_block,
+        //     other_edge_block,
+        //     position,
+        //     heap_merge_report,
+        //     constraints,
+        //     &constraints_merge_report,
+        //     expression_interner,
+        //     program_context,
+        //     global_state,
+        // )?;
         self.without_snapshot_whole.merge(
             &other.without_snapshot_whole,
             self_edge_block,
@@ -755,7 +752,7 @@ impl<'a> HeapRef<'a> {
                 ),
                 vir_low::PredicateKind::LifetimeToken => todo!(),
                 vir_low::PredicateKind::CloseFracRef => todo!(),
-                vir_low::PredicateKind::WithoutSnapshotFrac => todo!(),
+                // vir_low::PredicateKind::WithoutSnapshotFrac => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
                 vir_low::PredicateKind::DeadLifetimeToken => todo!(),
@@ -780,7 +777,7 @@ impl<'a> HeapRef<'a> {
                 ),
                 vir_low::PredicateKind::LifetimeToken => todo!(),
                 vir_low::PredicateKind::CloseFracRef => todo!(),
-                vir_low::PredicateKind::WithoutSnapshotFrac => todo!(),
+                // vir_low::PredicateKind::WithoutSnapshotFrac => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
                 vir_low::PredicateKind::DeadLifetimeToken => todo!(),

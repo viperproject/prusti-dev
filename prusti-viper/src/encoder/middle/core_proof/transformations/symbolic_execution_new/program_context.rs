@@ -125,7 +125,7 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
             | vir_low::PredicateKind::LifetimeToken
             | vir_low::PredicateKind::WithoutSnapshotWhole
             | vir_low::PredicateKind::WithoutSnapshotWholeNonAliased
-            | vir_low::PredicateKind::WithoutSnapshotFrac
+            // | vir_low::PredicateKind::WithoutSnapshotFrac
             | vir_low::PredicateKind::DeadLifetimeToken
             | vir_low::PredicateKind::EndBorrowViewShift => None,
         }

@@ -162,7 +162,7 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
         &mut self,
         quantifier: vir_low::Quantifier,
     ) -> Result<vir_low::Quantifier, Self::Error> {
-        TODO: Generate a fresh variable for each bound variable and use them instead when checking preconditions.
+        // TODO: Generate a fresh variable for each bound variable and use them instead when checking preconditions.
         unimplemented!("quantifier: {quantifier}");
     }
 }
