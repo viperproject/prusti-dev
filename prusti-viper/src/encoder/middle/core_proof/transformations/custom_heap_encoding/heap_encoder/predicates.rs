@@ -121,7 +121,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             | vir_low::PredicateKind::CloseFracRef
             | vir_low::PredicateKind::WithoutSnapshotWhole
             | vir_low::PredicateKind::WithoutSnapshotWholeNonAliased
-            | vir_low::PredicateKind::WithoutSnapshotFrac
+            // | vir_low::PredicateKind::WithoutSnapshotFrac
             | vir_low::PredicateKind::DeadLifetimeToken
             | vir_low::PredicateKind::EndBorrowViewShift => None,
         }
@@ -155,7 +155,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             vir_low::PredicateKind::MemoryBlock | vir_low::PredicateKind::Owned => {
                 PredicatePermissionMaskKind::AliasedFractionalBoundedPerm
             }
-            vir_low::PredicateKind::WithoutSnapshotFrac | vir_low::PredicateKind::LifetimeToken => {
+            // vir_low::PredicateKind::WithoutSnapshotFrac |
+            vir_low::PredicateKind::LifetimeToken => {
                 PredicatePermissionMaskKind::AliasedFractionalBoundedPerm
             }
             vir_low::PredicateKind::CloseFracRef

@@ -129,6 +129,7 @@ lazy_static::lazy_static! {
         settings.set_default("symbolic_execution_leak_check", true).unwrap();
         settings.set_default("panic_on_failed_exhale", false).unwrap();
         settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
+        settings.set_default("materialize_on_failed_exhale", true).unwrap();
         settings.set_default("ignore_whether_exhale_is_unconditional", true).unwrap();
         settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
         settings.set_default("expand_quantifiers", false).unwrap();
@@ -987,6 +988,15 @@ pub fn panic_on_failed_exhale() -> bool {
 /// `purify_with_symbolic_execution` is true.
 pub fn panic_on_failed_exhale_materialization() -> bool {
     read_setting("panic_on_failed_exhale_materialization")
+}
+
+/// If symbolic execution fails to purify out an exhale, materialize the exhale.
+/// This means that the purifier will emit inhale statements for all chunks it has and an exhale statement for the chunk it failed to exhale.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn materialize_on_failed_exhale() -> bool {
+    read_setting("materialize_on_failed_exhale")
 }
 
 /// If this option is false, purification purifies out only exhales that are

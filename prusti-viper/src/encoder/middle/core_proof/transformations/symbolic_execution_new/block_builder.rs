@@ -49,3 +49,20 @@ impl BlockBuilder {
         Ok(())
     }
 }
+
+pub trait StatementsBuilder {
+    fn add_statement(&mut self, statement: vir_low::Statement) -> SpannedEncodingResult<()>;
+}
+
+impl StatementsBuilder for BlockBuilder {
+    fn add_statement(&mut self, statement: vir_low::Statement) -> SpannedEncodingResult<()> {
+        BlockBuilder::add_statement(self, statement)
+    }
+}
+
+impl StatementsBuilder for Vec<vir_low::Statement> {
+    fn add_statement(&mut self, statement: vir_low::Statement) -> SpannedEncodingResult<()> {
+        self.push(statement);
+        Ok(())
+    }
+}

@@ -5,7 +5,7 @@ use crate::encoder::{
         encoder_context::EncoderContext,
         symbolic_execution::utils::all_heap_independent,
         symbolic_execution_new::{
-            block_builder::BlockBuilder,
+            block_builder::{BlockBuilder, StatementsBuilder},
             egg::ExpressionEGraph,
             expression_interner::ExpressionInterner,
             procedure_executor::{
@@ -49,8 +49,10 @@ pub(in super::super) trait PermissionType: Default + Clone {
         permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
+        block_builder: &mut impl StatementsBuilder,
     ) -> SpannedEncodingResult<()>;
+    /// Does the exhale may need to sum the permissions?
+    fn exhale_needs_to_add(&self) -> bool;
 }
 
 /// The permission amounts can be either full or none.
@@ -65,16 +67,16 @@ pub(in super::super) struct AliasedWholeBool;
 #[derive(Default, Clone, Copy)]
 pub(in super::super) struct AliasedFractionalBool;
 
-/// The permission amounts can be fractional and we need to perform
-/// arithmetic operations on them. However, the permission amount is bounded
-/// by `write` and, therefore, when inhaling `write` we can assume that the
-/// current amount is `none`.
-#[derive(Default, Clone, Copy)]
-pub(in super::super) struct AliasedFractionalBoundedPerm;
+// /// The permission amounts can be fractional and we need to perform
+// /// arithmetic operations on them. However, the permission amount is bounded
+// /// by `write` and, therefore, when inhaling `write` we can assume that the
+// /// current amount is `none`.
+// #[derive(Default, Clone, Copy)]
+// pub(in super::super) struct AliasedFractionalBoundedPerm;
 
-/// The permission amounts are natural numbers.
-#[derive(Default, Clone, Copy)]
-pub(in super::super) struct AliasedWholeNat;
+// /// The permission amounts are natural numbers.
+// #[derive(Default, Clone, Copy)]
+// pub(in super::super) struct AliasedWholeNat;
 
 impl PermissionType for AliasedWholeBool {
     fn inhale(
@@ -121,7 +123,7 @@ impl PermissionType for AliasedWholeBool {
         permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
+        block_builder: &mut impl StatementsBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
@@ -138,6 +140,10 @@ impl PermissionType for AliasedWholeBool {
             .set_default_position(position),
         )?;
         Ok(())
+    }
+
+    fn exhale_needs_to_add(&self) -> bool {
+        false
     }
 }
 
@@ -186,7 +192,7 @@ impl PermissionType for AliasedFractionalBool {
         permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
+        block_builder: &mut impl StatementsBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
@@ -204,143 +210,147 @@ impl PermissionType for AliasedFractionalBool {
         )?;
         Ok(())
     }
-}
 
-impl PermissionType for AliasedFractionalBoundedPerm {
-    fn inhale(
-        &self,
-        permission_variable: &vir_low::VariableDecl,
-        permission_amount: &vir_low::Expression,
-        position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
-    ) -> SpannedEncodingResult<()> {
-        // FIXME: This is most likely wrong.
-        block_builder.add_statement(
-            vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                permission_variable.clone().into(),
-                vir_low::Expression::no_permission(),
-            ))
-            .set_default_position(position),
-        )?;
-        self.inhale_fresh(
-            permission_variable,
-            permission_amount,
-            position,
-            block_builder,
-        )
-    }
-
-    fn inhale_fresh(
-        &self,
-        permission_variable: &vir_low::VariableDecl,
-        permission_amount: &vir_low::Expression,
-        position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
-    ) -> SpannedEncodingResult<()> {
-        // FIXME: This is most likely wrong.
-        block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
-                permission_amount.clone(),
-            )
-            .set_default_position(position),
-        )?;
-        Ok(())
-    }
-
-    fn exhale(
-        &self,
-        permission_variable: &vir_low::VariableDecl,
-        permission_amount: &vir_low::Expression,
-        position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
-    ) -> SpannedEncodingResult<()> {
-        // FIXME: This is most likely wrong.
-        block_builder.add_statement(
-            vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                permission_variable.clone().into(),
-                permission_amount.clone(),
-            ))
-            .set_default_position(position),
-        )?;
-        block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
-                vir_low::Expression::no_permission(),
-            )
-            .set_default_position(position),
-        )?;
-        Ok(())
+    fn exhale_needs_to_add(&self) -> bool {
+        false
     }
 }
 
-impl PermissionType for AliasedWholeNat {
-    fn inhale(
-        &self,
-        permission_variable: &vir_low::VariableDecl,
-        permission_amount: &vir_low::Expression,
-        position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
-    ) -> SpannedEncodingResult<()> {
-        block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
-                vir_low::Expression::perm_binary_op_no_pos(
-                    vir_low::PermBinaryOpKind::Add,
-                    permission_variable.clone().into(),
-                    permission_amount.clone(),
-                ),
-            )
-            .set_default_position(position),
-        )?;
-        Ok(())
-    }
+// impl PermissionType for AliasedFractionalBoundedPerm {
+//     fn inhale(
+//         &self,
+//         permission_variable: &vir_low::VariableDecl,
+//         permission_amount: &vir_low::Expression,
+//         position: vir_low::Position,
+//         block_builder: &mut BlockBuilder,
+//     ) -> SpannedEncodingResult<()> {
+//         // FIXME: This is most likely wrong.
+//         block_builder.add_statement(
+//             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
+//                 permission_variable.clone().into(),
+//                 vir_low::Expression::no_permission(),
+//             ))
+//             .set_default_position(position),
+//         )?;
+//         self.inhale_fresh(
+//             permission_variable,
+//             permission_amount,
+//             position,
+//             block_builder,
+//         )
+//     }
 
-    fn inhale_fresh(
-        &self,
-        permission_variable: &vir_low::VariableDecl,
-        permission_amount: &vir_low::Expression,
-        position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
-    ) -> SpannedEncodingResult<()> {
-        block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
-                permission_amount.clone(),
-            )
-            .set_default_position(position),
-        )?;
-        Ok(())
-    }
+//     fn inhale_fresh(
+//         &self,
+//         permission_variable: &vir_low::VariableDecl,
+//         permission_amount: &vir_low::Expression,
+//         position: vir_low::Position,
+//         block_builder: &mut BlockBuilder,
+//     ) -> SpannedEncodingResult<()> {
+//         // FIXME: This is most likely wrong.
+//         block_builder.add_statement(
+//             vir_low::Statement::assign_no_pos(
+//                 permission_variable.clone(),
+//                 permission_amount.clone(),
+//             )
+//             .set_default_position(position),
+//         )?;
+//         Ok(())
+//     }
 
-    fn exhale(
-        &self,
-        permission_variable: &vir_low::VariableDecl,
-        permission_amount: &vir_low::Expression,
-        position: vir_low::Position,
-        block_builder: &mut BlockBuilder,
-    ) -> SpannedEncodingResult<()> {
-        block_builder.add_statement(
-            vir_low::Statement::assert_no_pos(vir_low::Expression::greater_equals(
-                permission_variable.clone().into(),
-                permission_amount.clone(),
-            ))
-            .set_default_position(position),
-        )?;
-        block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
-                vir_low::Expression::perm_binary_op_no_pos(
-                    vir_low::PermBinaryOpKind::Sub,
-                    permission_variable.clone().into(),
-                    permission_amount.clone(),
-                ),
-            )
-            .set_default_position(position),
-        )?;
-        Ok(())
-    }
-}
+//     fn exhale(
+//         &self,
+//         permission_variable: &vir_low::VariableDecl,
+//         permission_amount: &vir_low::Expression,
+//         position: vir_low::Position,
+//         block_builder: &mut BlockBuilder,
+//     ) -> SpannedEncodingResult<()> {
+//         // FIXME: This is most likely wrong.
+//         block_builder.add_statement(
+//             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
+//                 permission_variable.clone().into(),
+//                 permission_amount.clone(),
+//             ))
+//             .set_default_position(position),
+//         )?;
+//         block_builder.add_statement(
+//             vir_low::Statement::assign_no_pos(
+//                 permission_variable.clone(),
+//                 vir_low::Expression::no_permission(),
+//             )
+//             .set_default_position(position),
+//         )?;
+//         Ok(())
+//     }
+// }
+
+// impl PermissionType for AliasedWholeNat {
+//     fn inhale(
+//         &self,
+//         permission_variable: &vir_low::VariableDecl,
+//         permission_amount: &vir_low::Expression,
+//         position: vir_low::Position,
+//         block_builder: &mut BlockBuilder,
+//     ) -> SpannedEncodingResult<()> {
+//         block_builder.add_statement(
+//             vir_low::Statement::assign_no_pos(
+//                 permission_variable.clone(),
+//                 vir_low::Expression::perm_binary_op_no_pos(
+//                     vir_low::PermBinaryOpKind::Add,
+//                     permission_variable.clone().into(),
+//                     permission_amount.clone(),
+//                 ),
+//             )
+//             .set_default_position(position),
+//         )?;
+//         Ok(())
+//     }
+
+//     fn inhale_fresh(
+//         &self,
+//         permission_variable: &vir_low::VariableDecl,
+//         permission_amount: &vir_low::Expression,
+//         position: vir_low::Position,
+//         block_builder: &mut BlockBuilder,
+//     ) -> SpannedEncodingResult<()> {
+//         block_builder.add_statement(
+//             vir_low::Statement::assign_no_pos(
+//                 permission_variable.clone(),
+//                 permission_amount.clone(),
+//             )
+//             .set_default_position(position),
+//         )?;
+//         Ok(())
+//     }
+
+//     fn exhale(
+//         &self,
+//         permission_variable: &vir_low::VariableDecl,
+//         permission_amount: &vir_low::Expression,
+//         position: vir_low::Position,
+//         block_builder: &mut BlockBuilder,
+//     ) -> SpannedEncodingResult<()> {
+//         block_builder.add_statement(
+//             vir_low::Statement::assert_no_pos(vir_low::Expression::greater_equals(
+//                 permission_variable.clone().into(),
+//                 permission_amount.clone(),
+//             ))
+//             .set_default_position(position),
+//         )?;
+//         block_builder.add_statement(
+//             vir_low::Statement::assign_no_pos(
+//                 permission_variable.clone(),
+//                 vir_low::Expression::perm_binary_op_no_pos(
+//                     vir_low::PermBinaryOpKind::Sub,
+//                     permission_variable.clone().into(),
+//                     permission_amount.clone(),
+//                 ),
+//             )
+//             .set_default_position(position),
+//         )?;
+//         Ok(())
+//     }
+// }
 
 #[derive(Clone)]
 pub(in super::super) struct PredicateInstances<P: PermissionType, S: SnapshotType> {
@@ -639,7 +649,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             if config::panic_on_failed_exhale() || config::panic_on_failed_exhale_materialization()
             {
                 panic!("failed to exhale: {predicate}\n{self}");
-            } else {
+            } else if config::materialize_on_failed_exhale() {
                 block_builder.add_statement(vir_low::Statement::comment(format!(
                     "failed to exhale: {predicate}"
                 )))?;
@@ -654,6 +664,17 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                     vir_low::Expression::PredicateAccessPredicate(predicate),
                     position,
                 ))?;
+            } else {
+                block_builder.add_statement(vir_low::Statement::comment(format!(
+                    "failed to exhale: {predicate}"
+                )))?;
+                self.emit_conditional_exhale(
+                    predicate,
+                    position,
+                    constraints,
+                    block_builder,
+                    program_context,
+                )?;
             }
         }
         Ok(())
@@ -1060,6 +1081,60 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         block_builder.add_statements_at_materialization_point(statements)?;
         // self.predicate_instances
         //     .retain(|instance| !instance.is_materialized);
+        Ok(())
+    }
+
+    fn emit_conditional_exhale(
+        &mut self,
+        predicate: vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+        constraints: &mut BlockConstraints,
+        block_builder: &mut BlockBuilder,
+        program_context: &ProgramContext<impl EncoderContext>,
+    ) -> SpannedEncodingResult<()> {
+        let mut statements = vec![vir_low::Statement::comment(
+            "Conditional exhale".to_string(),
+        )];
+        // Assert that we need to exhale exactly one heap chunk. This allows
+        // making the encoding more performant (achieve the Silicon-like grouping
+        // of summands).
+        assert!(!self.permission_type.exhale_needs_to_add());
+        // We consider only instances that are not materialized and conditional:
+        // 1. Materialized instances should be exhaled only by QPs.
+        // 2. For now, we just assume that unconditional instances would be
+        //    always successfully matched.
+        let mut predicate_instances =
+            self.aliased_predicate_instances
+                .iter()
+                .filter(|predicate_instance| {
+                    !predicate_instance.is_materialized && !predicate_instance.is_unconditional
+                });
+        let mut statement =
+            vir_low::Statement::assert_no_pos(false.into()).set_default_position(position);
+        while let Some(predicate_instance) = predicate_instances.next() {
+            let guard = predicate_instance
+                .arguments
+                .iter()
+                .zip(predicate.arguments.iter())
+                .map(|(instance_argument, predicate_argument)| {
+                    vir_low::Expression::equals(
+                        instance_argument.clone(),
+                        predicate_argument.clone(),
+                    )
+                })
+                .conjoin();
+            let mut then_statements = Vec::new();
+            self.permission_type.exhale(
+                &predicate_instance.permission_variable,
+                &predicate.permission,
+                position,
+                &mut then_statements,
+            )?;
+            statement =
+                vir_low::Statement::conditional_no_pos(guard, then_statements, vec![statement])
+                    .set_default_position(position);
+        }
+        block_builder.add_statement(statement)?;
         Ok(())
     }
 }
