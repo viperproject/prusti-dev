@@ -179,6 +179,9 @@ class Test:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
+            self.parse_event_kinds(trace_file)
+
+    def parse_event_kinds(self, trace_file):
             event_kinds = []
             with open(trace_file + '.event-kinds.csv') as fp:
                 for line in fp:
@@ -241,6 +244,32 @@ def execute_tests(
             except Exception as e:
                 print(e)
 
+def analyze_test_results(workspace):
+    tests = []
+    for directory in os.listdir(workspace):
+        if not directory.startswith('test-'):
+            continue
+        temp_directory = os.path.join(workspace, directory)
+        log_file = os.path.join(temp_directory, 'logfile-00.smt2')
+        if not os.path.exists(log_file):
+            continue
+        with open(log_file) as fp:
+            for line in fp:
+                if line.startswith('; Input file:'):
+                    file_path = line.split('; Input file:')[1].strip()
+                    break
+        identifier = int(directory.split('-')[1])
+        test = Test(identifier, file_path)
+        tests.append(test)
+        test.stdout = os.path.join(temp_directory, 'stdout')
+        test.stderr = os.path.join(temp_directory, 'stderr')
+        test.analyze_log()
+        test.log_files = list(sorted(glob.glob(os.path.join(temp_directory, 'logfile-*.smt2'))))
+        test.trace_files = list(sorted(glob.glob(os.path.join(temp_directory, 'logfile-*.trace'))))
+        for trace_file in test.trace_files:
+            test.parse_event_kinds(trace_file)
+    return tests
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Silicon Z3 statistics.")
     parser.add_argument(
@@ -277,17 +306,22 @@ def parse_args():
 
 def main():
     args = parse_args()
-    tests = collect_tests(args.viper_tests)
-    os.mkdir(args.workspace)
-    try:
-        execute_tests(
-            tests,
-            args.workspace,
-            args.viper_server_jar,
-            args.z3_exe,
-            [], #['--maskHeapMode'],
-        )
-    finally:
+    if not os.path.exists(args.workspace):
+        tests = collect_tests(args.viper_tests)
+        os.mkdir(args.workspace)
+        try:
+            execute_tests(
+                tests,
+                args.workspace,
+                args.viper_server_jar,
+                args.z3_exe,
+                [], #['--maskHeapMode'],
+            )
+        finally:
+            write_report_csv(tests, args.report_csv)
+            write_report_json(tests, args.report_json)
+    else:
+        tests = analyze_test_results(args.workspace)
         write_report_csv(tests, args.report_csv)
         write_report_json(tests, args.report_json)
 
