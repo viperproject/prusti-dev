@@ -262,6 +262,8 @@ def analyze_test_results(workspace):
                 if line.startswith('; Input file:'):
                     file_path = line.split('; Input file:')[1].strip()
                     break
+        if file_path is None:
+            continue
         identifier = int(directory.split('-')[1])
         test = Test(identifier, file_path)
         tests.append(test)
