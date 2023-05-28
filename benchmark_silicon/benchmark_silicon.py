@@ -256,6 +256,7 @@ def analyze_test_results(workspace):
         log_file = os.path.join(temp_directory, 'logfile-00.smt2')
         if not os.path.exists(log_file):
             continue
+        file_path = None
         with open(log_file) as fp:
             for line in fp:
                 if line.startswith('; Input file:'):
