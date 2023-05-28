@@ -287,10 +287,9 @@ def main():
             args.z3_exe,
             [], #['--maskHeapMode'],
         )
-    except:
+    finally:
         write_report_csv(tests, args.report_csv)
         write_report_json(tests, args.report_json)
-        raise
 
 if __name__ == '__main__':
     main()
