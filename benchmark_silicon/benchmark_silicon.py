@@ -132,7 +132,7 @@ class Test:
                     (predicate, algorithm) = suffix.split(' algorithm ')
                     self.algorithms.append((predicate, algorithm))
                 if ' - Field ' in line:
-                    suffix = line.split(' - Predicate ')[1].strip()
+                    suffix = line.split(' - Field ')[1].strip()
                     (predicate, algorithm) = suffix.split(' algorithm ')
                     self.algorithms.append((predicate, algorithm))
                 if ' - Quantified wands: ' in line:
