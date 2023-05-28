@@ -129,8 +129,8 @@ lazy_static::lazy_static! {
         settings.set_default("symbolic_execution_leak_check", true).unwrap();
         settings.set_default("panic_on_failed_exhale", false).unwrap();
         settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
-        settings.set_default("materialize_on_failed_exhale", true).unwrap();
-        settings.set_default("ignore_whether_exhale_is_unconditional", true).unwrap();
+        settings.set_default("materialize_on_failed_exhale", false).unwrap();
+        settings.set_default("ignore_whether_exhale_is_unconditional", false).unwrap();
         settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
         settings.set_default("expand_quantifiers", false).unwrap();
         settings.set_default("report_symbolic_execution_failures", false).unwrap();
