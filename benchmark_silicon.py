@@ -267,7 +267,10 @@ def analyze_test_results(workspace):
         test.log_files = list(sorted(glob.glob(os.path.join(temp_directory, 'logfile-*.smt2'))))
         test.trace_files = list(sorted(glob.glob(os.path.join(temp_directory, 'logfile-*.trace'))))
         for trace_file in test.trace_files:
-            test.parse_event_kinds(trace_file)
+            try:
+                test.parse_event_kinds(trace_file)
+            except Exception as e:
+                print(e)
     return tests
 
 def parse_args():
