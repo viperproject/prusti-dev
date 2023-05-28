@@ -189,7 +189,7 @@ class Test:
             self.event_kinds.append(event_kinds)
 
 def collect_tests(viper_tests_path):
-    print(viper_tests_path)
+    print(viper_tests_path, flush=True)
     tests = []
     for file_path in Path(viper_tests_path).rglob('*.vpr'):
         test = Test(len(tests), file_path)
@@ -225,7 +225,7 @@ def execute_tests(
     ):
     for test in tests:
         if not test.is_ignored:
-            print(test.file_path, datetime.datetime.now())
+            print(test.file_path, datetime.datetime.now(), flush=True)
             try:
                 temp_directory = os.path.join(workspace, f'test-{test.identifier:04}')
                 os.mkdir(temp_directory)
