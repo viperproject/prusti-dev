@@ -8,6 +8,7 @@ from pathlib import Path
 import csv
 import subprocess
 import json
+import datetime
 
 def is_test_ignored(file_path):
     for line in open(file_path):
@@ -31,6 +32,9 @@ class Test:
         self.result = None
         self.stdout = None
         self.stderr = None
+        self.start_time = None
+        self.end_time = None
+        self.duration = None
         self.algorithms = []
         self.wands = []
         self.log_files = []
@@ -58,6 +62,9 @@ class Test:
             'result': self.result,
             'stdout': self.stdout,
             'stderr': self.stderr,
+            'start_time': str(self.start_time) if self.start_time else None,
+            'end_time': str(self.end_time) if self.end_time else None,
+            'duration': self.duration.total_seconds() if self.duration else None,
             'algorithms': self.algorithms,
             'wands': self.wands,
             'log_files': self.log_files,
@@ -102,12 +109,15 @@ class Test:
             self.stderr = os.path.join(temp_directory, 'stderr')
             stdout = open(self.stdout, 'w')
             stderr = open(self.stderr, 'w')
+            self.start_time = datetime.datetime.now()
             result = subprocess.run(
                 args,
                 timeout=120,
                 stdout=stdout,
                 stderr=stderr,
             )
+            self.end_time = datetime.datetime.now()
+            self.duration = self.end_time - self.start_time
         except subprocess.TimeoutExpired:
             self.result = 'timeout'
         if result.returncode == 0:
@@ -132,6 +142,7 @@ class Test:
             trace_file = log_file.replace('.smt2', '.trace')
             self.trace_files.append(trace_file)
             self.run_z3(z3_exe, log_file, trace_file)
+            assert os.path.exists(trace_file)
 
     def run_z3(self, z3_exe, log_file, trace_file):
         args = [
@@ -214,18 +225,21 @@ def execute_tests(
     ):
     for test in tests:
         if not test.is_ignored:
-            print(test.file_path)
-            temp_directory = os.path.join(workspace, f'test-{test.identifier:04}')
-            os.mkdir(temp_directory)
-            test.execute(
-                viper_server_jar,
-                z3_exe,
-                temp_directory,
-                silicon_flags,
-            )
-            test.analyze_log()
-            test.generate_z3_traces(z3_exe, temp_directory)
-            test.parce_z3_traces()  # Call Rust SMT analyzer and use its CSV.
+            print(test.file_path, datetime.datetime.now())
+            try:
+                temp_directory = os.path.join(workspace, f'test-{test.identifier:04}')
+                os.mkdir(temp_directory)
+                test.execute(
+                    viper_server_jar,
+                    z3_exe,
+                    temp_directory,
+                    silicon_flags,
+                )
+                test.analyze_log()
+                test.generate_z3_traces(z3_exe, temp_directory)
+                test.parce_z3_traces()  # Call Rust SMT analyzer and use its CSV.
+            except Exception as e:
+                print(e)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Silicon Z3 statistics.")
