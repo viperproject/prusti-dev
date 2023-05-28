@@ -727,13 +727,15 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
-        self.materialize_aliased_instances(
-            predicate_name,
-            position,
-            constraints,
-            block_builder,
-            program_context,
-        )?;
+        if config::materialize_on_failed_exhale() {
+            self.materialize_aliased_instances(
+                predicate_name,
+                position,
+                constraints,
+                block_builder,
+                program_context,
+            )?;
+        }
         Ok(())
     }
 
@@ -1122,6 +1124,10 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                         predicate_argument.clone(),
                     )
                 })
+                .chain(std::iter::once(vir_low::Expression::equals(
+                    predicate_instance.permission_variable.clone().into(),
+                    (*predicate.permission).clone(),
+                )))
                 .conjoin();
             let mut then_statements = Vec::new();
             self.permission_type.exhale(
