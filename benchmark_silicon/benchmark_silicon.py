@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import sys
 import argparse
 import os
 import glob
@@ -129,6 +128,10 @@ class Test:
         with open(self.stdout) as fp:
             for line in fp:
                 if ' - Predicate ' in line:
+                    suffix = line.split(' - Predicate ')[1].strip()
+                    (predicate, algorithm) = suffix.split(' algorithm ')
+                    self.algorithms.append((predicate, algorithm))
+                if ' - Field ' in line:
                     suffix = line.split(' - Predicate ')[1].strip()
                     (predicate, algorithm) = suffix.split(' algorithm ')
                     self.algorithms.append((predicate, algorithm))
