@@ -90,7 +90,10 @@ pub(in super::super) fn desugar_method_calls_for_statements(
                     .conjoin()
                     .substitute_variables(&replacements)
                     .remove_unnecessary_old();
-                statements.push(vir_low::Statement::exhale(assertion, statement.position));
+                statements.push(
+                    vir_low::Statement::exhale_no_pos(assertion)
+                        .set_default_position(statement.position),
+                );
                 replacements.extend(method.targets.iter().zip(statement.targets.iter()));
                 let assertion = method
                     .posts
@@ -100,7 +103,10 @@ pub(in super::super) fn desugar_method_calls_for_statements(
                     .substitute_variables(&replacements)
                     .set_old_label(&old_label)
                     .remove_unnecessary_old();
-                statements.push(vir_low::Statement::inhale(assertion, statement.position));
+                statements.push(
+                    vir_low::Statement::inhale_no_pos(assertion)
+                        .set_default_position(statement.position),
+                );
             }
             vir_low::Statement::Conditional(mut statement) => {
                 statement.then_branch = desugar_method_calls_for_statements(
