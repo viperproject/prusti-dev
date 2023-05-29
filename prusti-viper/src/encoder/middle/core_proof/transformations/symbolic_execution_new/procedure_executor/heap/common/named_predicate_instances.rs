@@ -111,7 +111,7 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
                 constraints,
             )?;
             block_builder.add_statement(vir_low::Statement::comment(format!(
-                "failed to exhale: {predicate}"
+                "failed to exhale (nothing inhaled): {predicate}"
             )))?;
             if is_non_aliased {
                 if config::panic_on_failed_exhale() {

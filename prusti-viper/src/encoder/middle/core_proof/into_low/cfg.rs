@@ -1646,7 +1646,25 @@ impl IntoLow for vir_mid::Statement {
             Self::MaterializePredicate(statement) => {
                 let mut statements = Vec::new();
                 if config::purify_with_symbolic_execution() {
-                    let predicate = statement.predicate.into_low(lowerer)?;
+                    let predicate = if let vir_mid::Predicate::OwnedNonAliased(predicate) =
+                        statement.predicate
+                    {
+                        // OwnedNonAliased::into_low assumes that the predicate is non-aliased while here we
+                        // need an aliased version.
+                        let address =
+                            lowerer.encode_expression_as_place_address(&predicate.place)?;
+                        let ty = predicate.place.get_type();
+                        lowerer.owned_aliased(
+                            CallContext::Procedure,
+                            ty,
+                            ty,
+                            address,
+                            None,
+                            predicate.position,
+                        )?
+                    } else {
+                        statement.predicate.into_low(lowerer)?
+                    };
                     statements.push(vir_low::Statement::materialize_predicate(
                         predicate,
                         statement.position,
@@ -1664,56 +1682,73 @@ impl IntoLow for vir_mid::Predicate {
         self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
     ) -> SpannedEncodingResult<Self::Target> {
-        use vir_low::macros::*;
-        use vir_mid::Predicate;
         let result = match self {
-            Predicate::LifetimeToken(predicate) => {
-                lowerer.encode_lifetime_token_predicate()?;
-                let lifetime =
-                    lowerer.encode_lifetime_const_into_procedure_variable(predicate.lifetime)?;
-                let permission = predicate.permission.to_procedure_snapshot(lowerer)?;
-                expr! { acc(LifetimeToken([lifetime.into()]), [permission])}
-                    .set_default_position(predicate.position)
-            }
-            Predicate::MemoryBlockStack(predicate) => predicate.into_low(lowerer)?,
-            Predicate::MemoryBlockStackDrop(predicate) => predicate.into_low(lowerer)?,
-            Predicate::MemoryBlockHeap(predicate) => predicate.into_low(lowerer)?,
-            Predicate::MemoryBlockHeapRange(predicate) => {
+            Self::LifetimeToken(predicate) => predicate.into_low(lowerer)?,
+            Self::MemoryBlockStack(predicate) => predicate.into_low(lowerer)?,
+            Self::MemoryBlockStackDrop(predicate) => predicate.into_low(lowerer)?,
+            Self::MemoryBlockHeap(predicate) => predicate.into_low(lowerer)?,
+            Self::MemoryBlockHeapRange(predicate) => {
                 unimplemented!("predicate: {}", predicate);
             }
-            Predicate::MemoryBlockHeapDrop(predicate) => predicate.into_low(lowerer)?,
-            Predicate::OwnedNonAliased(predicate) => {
-                lowerer.mark_place_as_used_in_memory_block(&predicate.place)?;
-                let place = lowerer.encode_expression_as_place(&predicate.place)?;
-                let address = lowerer.encode_expression_as_place_address(&predicate.place)?;
-                // let root_address = lowerer.extract_root_address(&predicate.place)?;
-                let snapshot = predicate.place.to_procedure_snapshot(lowerer)?;
-                let ty = predicate.place.get_type();
-                let valid = lowerer.encode_snapshot_valid_call_for_type(snapshot.clone(), ty)?;
-                let low_predicate = lowerer.owned_non_aliased_with_snapshot(
-                    CallContext::Procedure,
-                    ty,
-                    ty,
-                    place,
-                    address,
-                    snapshot,
-                    None,
-                    predicate.position,
-                )?;
-                exprp! {
-                    predicate.position =>
-                    [low_predicate] &&
-                    [valid]
-                }
-            }
-            Predicate::OwnedRange(_) => todo!(),
-            Predicate::OwnedSet(_) => todo!(),
-            Predicate::UniqueRef(_) => todo!(),
-            Predicate::UniqueRefRange(_) => todo!(),
-            Predicate::FracRef(_) => todo!(),
-            Predicate::FracRefRange(_) => todo!(),
+            Self::MemoryBlockHeapDrop(predicate) => predicate.into_low(lowerer)?,
+            Self::OwnedNonAliased(predicate) => predicate.into_low(lowerer)?,
+            Self::OwnedRange(_) => todo!(),
+            Self::OwnedSet(_) => todo!(),
+            Self::UniqueRef(_) => todo!(),
+            Self::UniqueRefRange(_) => todo!(),
+            Self::FracRef(_) => todo!(),
+            Self::FracRefRange(_) => todo!(),
         };
         Ok(result)
+    }
+}
+
+impl IntoLow for vir_mid::ast::predicate::LifetimeToken {
+    type Target = vir_low::Expression;
+
+    fn into_low<'p, 'v: 'p, 'tcx: 'v>(
+        self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        use vir_low::macros::*;
+        lowerer.encode_lifetime_token_predicate()?;
+        let lifetime = lowerer.encode_lifetime_const_into_procedure_variable(self.lifetime)?;
+        let permission = self.permission.to_procedure_snapshot(lowerer)?;
+        Ok(expr! { acc(LifetimeToken([lifetime.into()]), [permission])}
+            .set_default_position(self.position))
+    }
+}
+
+impl IntoLow for vir_mid::ast::predicate::OwnedNonAliased {
+    type Target = vir_low::Expression;
+
+    fn into_low<'p, 'v: 'p, 'tcx: 'v>(
+        self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        use vir_low::macros::*;
+        lowerer.mark_place_as_used_in_memory_block(&self.place)?;
+        let place = lowerer.encode_expression_as_place(&self.place)?;
+        let address = lowerer.encode_expression_as_place_address(&self.place)?;
+        // let root_address = lowerer.extract_root_address(&self.place)?;
+        let snapshot = self.place.to_procedure_snapshot(lowerer)?;
+        let ty = self.place.get_type();
+        let valid = lowerer.encode_snapshot_valid_call_for_type(snapshot.clone(), ty)?;
+        let low_predicate = lowerer.owned_non_aliased_with_snapshot(
+            CallContext::Procedure,
+            ty,
+            ty,
+            place,
+            address,
+            snapshot,
+            None,
+            self.position,
+        )?;
+        Ok(exprp! {
+            self.position =>
+            [low_predicate] &&
+            [valid]
+        })
     }
 }
 
