@@ -9,10 +9,7 @@ use crate::{
 };
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned};
-use syn::{
-    parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, visit_mut::VisitMut, Pat, Token,
-    Type,
-};
+use syn::{parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, Pat, Token, Type};
 
 pub(crate) struct AstRewriter {
     spec_id_generator: SpecificationIdGenerator,
@@ -69,7 +66,7 @@ impl AstRewriter {
         None
     }
 
-    fn generate_result_arg<T: HasSignature + Spanned>(&self, item: &T) -> syn::FnArg {
+    pub(crate) fn generate_result_arg<T: HasSignature + Spanned>(item: &T) -> syn::FnArg {
         let item_span = item.span();
         let output_ty = match &item.sig().output {
             syn::ReturnType::Default => parse_quote_spanned!(item_span=> ()),
@@ -140,7 +137,7 @@ impl AstRewriter {
         spec_item.sig.inputs = item.sig().inputs.clone();
         match spec_type {
             SpecItemType::Postcondition | SpecItemType::Pledge => {
-                let fn_arg = self.generate_result_arg(item);
+                let fn_arg = Self::generate_result_arg(item);
                 spec_item.sig.inputs.push(fn_arg);
             }
             _ => (),
@@ -205,37 +202,34 @@ impl AstRewriter {
         //         quote_spanned! {item_span => !!},
         //     ),
         // };
-        let mut check_translator = CheckTranslator::new(item);
-        let mut expr_to_check = syn::parse2::<syn::Expr>(expr).unwrap();
+        let check_translator = CheckTranslator::new(item, expr);
 
-        // this call will modify the expression, but also collect the information
-        // about what expressions we need to store etc.
-        check_translator.visit_expr_mut(&mut expr_to_check);
-
-        let mut check_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
-            #[prusti::spec_only]
-            #[prusti::check_id = #check_id_str]
-            fn #check_item_name() {
-                assert!(#expr_to_check);
-            }
-        };
-
-        check_item.sig.generics = item.sig().generics.clone();
-        check_item.sig.inputs = item.sig().inputs.clone();
         match spec_type {
             SpecItemType::Postcondition | SpecItemType::Pledge => {
-                let mut store_item =
-                    check_translator.generate_store_function(item, store_old_item_name, check_id_str);
-                store_item.sig.generics = item.sig().generics.clone();
-                store_item.sig.inputs = item.sig().inputs.clone();
-                let fn_arg = self.generate_result_arg(item);
-                let old_arg = check_translator.construct_old_type(item);
-                check_item.sig.inputs.push(fn_arg);
-                check_item.sig.inputs.push(old_arg);
+                let check_item = check_translator.generate_check_function(
+                    item,
+                    check_item_name,
+                    &check_id_str,
+                    true,
+                    true,
+                );
+                let store_item = check_translator.generate_store_function(
+                    item,
+                    store_old_item_name,
+                    check_id_str,
+                );
                 Ok((syn::Item::Fn(check_item), Some(syn::Item::Fn(store_item))))
             }
-            _ => Ok((syn::Item::Fn(check_item), None)),
+            _ => {
+                let check_item = check_translator.generate_check_function(
+                    item,
+                    check_item_name,
+                    &check_id_str,
+                    false,
+                    false,
+                );
+                Ok((syn::Item::Fn(check_item), None))
+            }
         }
     }
 

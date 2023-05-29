@@ -1,4 +1,4 @@
-#![no_std]
+// #![no_std]
 
 /// A macro for writing a precondition on a function.
 pub use prusti_contracts_proc_macros::requires;

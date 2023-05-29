@@ -1,23 +1,20 @@
+use crate::mir_helper::*;
 use prusti_interface::specs::typed::DefSpecificationMap;
 use prusti_rustc_interface::{
     data_structures::steal::Steal,
     interface::DEFAULT_QUERY_PROVIDERS,
     middle::{
         mir::{
-            patch::MirPatch,
-            visit::MutVisitor,
-            BasicBlock, BasicBlockData, Body, Constant, ConstantKind,
-            Operand, Place, SourceInfo, SourceScope, Terminator,
-            TerminatorKind,
+            self, patch::MirPatch, visit::MutVisitor, BasicBlock, BasicBlockData, Body, Constant,
+            ConstantKind, Operand, Place, SourceInfo, SourceScope, Terminator, TerminatorKind,
         },
-        ty::{self, Ty, TyCtxt, TyKind},
+        ty::{self, TyCtxt, TyKind},
     },
     span::{
         def_id::{DefId, LocalDefId},
         DUMMY_SP,
     },
 };
-use std::collections::HashMap;
 
 pub static mut SPECS: Option<DefSpecificationMap> = None;
 
@@ -31,45 +28,34 @@ pub(crate) fn mir_checked(
     // let's get the specifications collected by prusti :)
 
     // SAFETY: Is definitely not safe at the moment
-    let specs = unsafe { SPECS.clone().unwrap() };
+    let specs_opt = unsafe { SPECS.clone() };
 
-    let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
-    let mut stolen = steal.steal();
+    if let Some(specs) = specs_opt {
+        let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
+        let mut stolen = steal.steal();
 
-    let mut visitor = InsertChecksVisitor::new(tcx, specs);
-    visitor.visit_body(&mut stolen);
-    println!("Custom modifications are done! Compiler back at work");
+        let mut visitor = InsertChecksVisitor::new(tcx, specs);
+        visitor.visit_body(&mut stolen);
+        println!("Custom modifications are done! Compiler back at work");
 
-    tcx.alloc_steal_mir(stolen)
+        tcx.alloc_steal_mir(stolen)
+    } else {
+        println!("the specs could not be collected");
+        (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def)
+    }
 }
 
 pub struct InsertChecksVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
     specs: DefSpecificationMap,
-    post_check_types: HashMap<Ty<'tcx>, (DefId, Vec<(DefId, DefId)>)>,
     current_patcher: Option<MirPatch<'tcx>>,
 }
 
 impl<'tcx> InsertChecksVisitor<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, specs: DefSpecificationMap) -> Self {
-        // when traversing the MIR and looking for function calls,
-        // it appears to be difficult to get the DefId of a Call.
-        // A `Ty` representing it does exist however.
-        // That's why we transform the specification map in the following way
-        let mut post_check_types = HashMap::new();
-        // specs.checks contains all the ids of functions that are annotated with
-        // some check_id
-        for (id, _) in specs.checks.iter() {
-            let checks = specs.get_post_checks(id);
-            let subst = ty::List::empty();
-            let func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(*id, subst)); // do I need substs?
-            post_check_types.insert(func_ty, (*id, checks.clone()));
-        }
-
         Self {
             tcx,
             specs,
-            post_check_types,
             current_patcher: None,
         }
     }
@@ -81,12 +67,11 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
     }
 
     fn visit_body(&mut self, body: &mut Body<'tcx>) {
+        // do we have to make sure this is the body the query was called on?
         let def_id = body.source.def_id();
         // try to find specification function:
-        let pre_check_ids = self.specs.get_pre_checks(&def_id);
-        // todo: properly deal with multiple of them
-        // does this already work? We just prepend new checks, so it should..
-        for check_id in pre_check_ids {
+        let substs = ty::subst::InternalSubsts::identity_for_item(self.tcx, def_id);
+        for check_id in self.specs.get_pre_checks(&def_id) {
             let mut patch = MirPatch::new(body);
             let start_node = BasicBlock::from_usize(0);
             let (new_block, _) = new_call_block(
@@ -98,6 +83,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                 None,
                 None,
                 None,
+                substs,
             );
             patch.apply(body);
             // swap first and last node, so our new block is called on entry
@@ -129,11 +115,15 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
             ..
         }) = &data.terminator
         {
-            let mut original_block = block;
+            // the block that actually calls the annotated function. The terminator
+            // that calls this function is potentially moved several times,
+            // this variable keeps track of that.
+            let mut caller_block = block;
             let original_terminator = data.terminator.clone().unwrap().clone();
+
             if let TerminatorKind::Call {
                 func:
-                    Operand::Constant(box Constant {
+                    func @ Operand::Constant(box Constant {
                         literal: ConstantKind::Val(_, ty),
                         ..
                     }),
@@ -144,47 +134,98 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
             } = terminator_kind
             {
                 println!("Call terminator: {:?}", ty);
-                let mut current_target = *target;
-                // lookup if there is a check function:
-                if let Some((call_id, id_vec)) = self.post_check_types.get(ty) {
+                // if it's a static function call, we start looking if there are
+                // post-conditions we could check
+                if let Some((call_id, substs)) = func.const_fn_def() {
+                    println!("we are dealing with call_id {:?}", call_id);
+                    // make sure the call is local:
+                    if !call_id.is_local() {
+                        // not sure yet here, to get the body the method
+                        // has to be local. The way we construct things
+                        // we currently need it. For extern_specs this will
+                        // be a problem.
+                        return;
+                    }
+
+                    // The block that is executed after the annotated function
+                    // is called. Mutable because after appending the first
+                    // check function call, this is the new target
+                    let mut current_target = *target;
+                    // lookup if there is a check function:
                     let called_body: Body = self
                         .tcx
                         .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
-                                call_id.as_local().unwrap(),
-                                ))
+                            call_id.as_local().unwrap(),
+                        ))
                         .borrow()
                         .clone();
-                    println!("inserting checks for {} specification items", id_vec.len());
                     // since there might be multiple blocks to be inserted,
-                    for (check_id, old_store_id) in id_vec {
+                    for (check_id, old_store_id) in self.specs.get_post_checks(&call_id) {
                         println!("Now inserting a runtime check for a postcondition");
                         println!("Old store defid: {:?}", old_store_id);
+                        // since here, we don't have mutable access to the body,
+                        // we created a patcher beforehand which we can use here
+                        // and apply later
                         let mut patch = self.current_patcher.take().unwrap();
 
+                        // get the bodies of the store and check function
                         let old_store_body = self
                             .tcx
                             .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
                                 old_store_id.as_local().unwrap(),
                             ))
                             .borrow();
+                        let check_body = self
+                            .tcx
+                            .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
+                                check_id.as_local().unwrap(),
+                            ))
+                            .borrow();
+
+                        // get the local index of the old_values argument to the
+                        // check function (where it's already a reference to this
+                        // tuple)
+                        let old_values_check_arg =
+                            get_local_from_name(&check_body, "old_values".to_string()).unwrap();
+                        // find the type of that local
+                        let old_value_arg_ty =
+                            check_body.local_decls.get(old_values_check_arg).unwrap().ty;
+
+                        println!("found old_values arg type: {:?}", old_value_arg_ty);
 
                         // create a new internal to store result of old_store function
                         let old_ret_ty = old_store_body.return_ty();
-                        println!("expecting return type {:?} for old_store function", old_ret_ty);
+                        println!(
+                            "expecting return type {:?} for old_store function",
+                            old_ret_ty
+                        );
                         let old_dest_place = Place::from(patch.new_internal(old_ret_ty, DUMMY_SP));
+                        let old_arg_deref_place =
+                            Place::from(patch.new_internal(old_value_arg_ty, DUMMY_SP));
+
+                        // dereference the old_values type
+                        let rvalue = rvalue_reference_to_place(self.tcx, old_dest_place);
+
                         // we store the target, create a new block per check function
                         // chain these with the final call having the original target,
                         // change the target of the call to the first block of our chain.
                         let (block, _) = new_call_block(
                             self.tcx,
                             &mut patch,
-                            *check_id,
+                            check_id,
                             &called_body,
                             current_target,
                             Some(*destination), // destination is now result arg
-                            Some(old_dest_place),
+                            Some(old_arg_deref_place),
                             Some(args.clone()),
+                            substs,
                         );
+                        // make deref the first statement in this block
+                        let insert_deref_location = mir::Location {
+                            block,
+                            statement_index: 0,
+                        };
+                        patch.add_assign(insert_deref_location, old_arg_deref_place, rvalue);
                         current_target = Some(block);
 
                         let mut call_fn_terminator = original_terminator.clone();
@@ -192,8 +233,10 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                         let new_block_data = BasicBlockData::new(Some(call_fn_terminator));
                         let new_block = patch.new_block(new_block_data);
 
-                        let subst = ty::List::empty(); // potentially bad?
-                        let store_func_ty = self.tcx.mk_ty_from_kind(TyKind::FnDef(*old_store_id, subst));
+                        // let generics = self.tcx.generics_of(def_id);
+                        let store_func_ty = self
+                            .tcx
+                            .mk_ty_from_kind(TyKind::FnDef(old_store_id, substs));
                         let store_func = Operand::Constant(Box::new(Constant {
                             span: DUMMY_SP,
                             user_ty: None,
@@ -209,8 +252,8 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                             from_hir_call: false,
                             fn_span: old_store_body.span,
                         };
-                        patch.patch_terminator(original_block, store_terminator);
-                        original_block = new_block;
+                        patch.patch_terminator(caller_block, store_terminator);
+                        caller_block = new_block;
 
                         // If there are multiple checks, this also should behave
                         // correctly, since on the second iteration this target
@@ -220,33 +263,6 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                 }
             }
         }
-    }
-
-    // This was just a test to see if changes influence the generted executable
-    // fn visit_operand(&mut self, operand: &mut Operand<'tcx>, location: Location) {
-    //     match operand {
-    //         Operand::Constant(box c) => {
-    //             if let Constant{ literal, .. } = c {
-    //                 if let ConstantKind::Val(value, ty) = literal {
-    //                     if ty.is_bool() {
-    //                         println!("found a boolean constant!");
-    //                         *value = ConstValue::Scalar(Scalar::Int(ScalarInt::FALSE))
-    //                     }
-    //                 }
-    //             }
-    //         },
-    //         _ => {}
-    //     }
-    //     self.super_operand(operand, location);
-    // }
-}
-
-fn replace_target(terminator: &mut Terminator, new_target: BasicBlock) {
-    if let TerminatorKind::Call {
-        target,
-        ..
-    } = &mut terminator.kind {
-        *target = Some(new_target);
     }
 }
 
@@ -260,6 +276,7 @@ fn new_call_block<'tcx>(
     result: Option<Place<'tcx>>,
     old_value: Option<Place<'tcx>>,
     args_opt: Option<Vec<Operand<'tcx>>>,
+    substs: ty::subst::SubstsRef<'tcx>,
 ) -> (BasicBlock, Place<'tcx>) {
     let body_to_insert: Body = tcx
         .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
@@ -273,24 +290,12 @@ fn new_call_block<'tcx>(
     // for store functions it can absolutely have a return type
     // should always be block 0 but let's be certain..
     println!("Target node is {:?}", target);
-    // let mut loc = Location {
-    //     block: start_node,
-    //     statement_index: 0,
-    // };
-    // while let Some(stmt) = body.stmt_at(loc).left() {
-    //     if let Statement { kind: StatementKind::StorageLive(_x), .. } = stmt {
-    //         println!("good :)");
-    //         loc.statement_index += 1;
-    //     } else {
-    //         break;
-    //     }
-    // }
 
     // variable to store result of function (altough we dont care about the result)
     let dest_place: Place = Place::from(patch.new_internal(ret_ty, DUMMY_SP));
 
-    let subst = ty::List::empty(); // potentially bad?
-    let func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(terminator_call, subst)); // do I need substs?
+    // find the substs that were used for the original call
+    let func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(terminator_call, substs)); // do I need substs?
     println!("Function type: {:?}", func_ty);
     let func = Operand::Constant(Box::new(Constant {
         span: DUMMY_SP,
@@ -303,7 +308,6 @@ fn new_call_block<'tcx>(
         args = arguments;
     } else {
         // determine the arguments!
-        // Todo: deal with result!
         // and make it less ugly.. But not sure how this is supposed to be done
         let caller_nr_args = attached_to_body.arg_count;
         // now the final mapping to operands:
@@ -345,83 +349,4 @@ fn new_call_block<'tcx>(
     };
     let blockdata = BasicBlockData::new(Some(terminator));
     (patch.new_block(blockdata), dest_place)
-}
-
-// If we re-order the IndexVec containing the basic blocks, we will need to adjust
-// some the basic blocks that terminators point to. This is what this function does
-fn replace_outgoing_edges(data: &mut BasicBlockData, from: BasicBlock, to: BasicBlock) {
-    match &mut data.terminator_mut().kind {
-        TerminatorKind::Goto { target } => update_if_equals(target, from, to),
-        TerminatorKind::SwitchInt { targets, .. } => {
-            for bb1 in &mut targets.all_targets_mut().iter_mut() {
-                update_if_equals(bb1, from, to);
-            }
-        }
-        TerminatorKind::Call {
-            target, cleanup, ..
-        } => {
-            if let Some(target) = target {
-                update_if_equals(target, from, to);
-            }
-            if let Some(cleanup) = cleanup {
-                update_if_equals(cleanup, from, to);
-            }
-        }
-        TerminatorKind::Assert {
-            target: target_bb,
-            cleanup: opt_bb,
-            ..
-        }
-        | TerminatorKind::DropAndReplace {
-            target: target_bb,
-            unwind: opt_bb,
-            ..
-        }
-        | TerminatorKind::Drop {
-            target: target_bb,
-            unwind: opt_bb,
-            ..
-        }
-        | TerminatorKind::Yield {
-            resume: target_bb,
-            drop: opt_bb,
-            ..
-        }
-        | TerminatorKind::FalseUnwind {
-            real_target: target_bb,
-            unwind: opt_bb,
-        } => {
-            update_if_equals(target_bb, from, to);
-            if let Some(bb) = opt_bb {
-                update_if_equals(bb, from, to);
-            }
-        }
-        TerminatorKind::InlineAsm {
-            destination,
-            cleanup,
-            ..
-        } => {
-            // is this prettier? does this even modify the blockdata?
-            destination.map(|mut x| update_if_equals(&mut x, from, to));
-            cleanup.map(|mut x| update_if_equals(&mut x, from, to));
-        }
-        TerminatorKind::FalseEdge {
-            real_target,
-            imaginary_target,
-        } => {
-            update_if_equals(real_target, from, to);
-            update_if_equals(imaginary_target, from, to);
-        }
-        TerminatorKind::Resume
-        | TerminatorKind::Abort
-        | TerminatorKind::Return
-        | TerminatorKind::Unreachable
-        | TerminatorKind::GeneratorDrop => {}
-    }
-}
-
-fn update_if_equals<T: PartialEq>(dest: &mut T, from: T, to: T) {
-    if *dest == from {
-        *dest = to;
-    }
 }

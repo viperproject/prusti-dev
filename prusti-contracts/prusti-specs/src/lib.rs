@@ -24,6 +24,7 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 mod runtime_checks;
+mod boundary_extraction;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};

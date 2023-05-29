@@ -150,13 +150,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 let kind = match check {
                     SpecIdRef::Precondition(id) => {
                         let fn_id = self.check_functions.get(id).unwrap();
-                        typed::CheckType::Pre(fn_id.to_def_id())
+                        typed::CheckKind::Pre(fn_id.to_def_id())
                     }
                     SpecIdRef::Postcondition(id) => {
                         let fn_id = self.check_functions.get(id).unwrap();
                         // postconditions always have a fn storing old values
                         let store_fn_id = self.store_functions.get(id).unwrap();
-                        typed::CheckType::Post {
+                        typed::CheckKind::Post {
                             check: fn_id.to_def_id(),
                             old_store: store_fn_id.to_def_id(),
                         }

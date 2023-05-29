@@ -14,7 +14,9 @@
 mod arg_value;
 mod callbacks;
 mod verifier;
+// move these 2 at some point
 mod mir_modify;
+mod mir_helper;
 
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;

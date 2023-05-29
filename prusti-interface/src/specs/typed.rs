@@ -20,11 +20,13 @@ pub struct DefSpecificationMap {
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
-    pub checks: FxHashMap<DefId, Vec<CheckType>>,
+    /// for every annotated method, maps to a list of check functions to check
+    /// its contracts
+    pub checks: FxHashMap<DefId, Vec<CheckKind>>,
 }
 
 #[derive(Debug, Clone)]
-pub enum CheckType {
+pub enum CheckKind {
     Pre(DefId),
     Post { check: DefId, old_store: DefId }, // actual check and old_store function
     Assume(DefId),
@@ -72,7 +74,7 @@ impl DefSpecificationMap {
         let checks_opt = self.checks.get(def_id);
         if let Some(checks) = checks_opt {
             checks.iter().filter_map(|el|
-                if let CheckType::Pre(id) = el {
+                if let CheckKind::Pre(id) = el {
                     Some(id)
                 } else {
                     None
@@ -87,7 +89,7 @@ impl DefSpecificationMap {
         let checks_opt = self.checks.get(def_id);
         if let Some(checks) = checks_opt {
             checks.iter().filter_map(|el|
-                if let CheckType::Post { check, old_store } = el {
+                if let CheckKind::Post { check, old_store } = el {
                     Some((*check, *old_store))
                 } else {
                     None
