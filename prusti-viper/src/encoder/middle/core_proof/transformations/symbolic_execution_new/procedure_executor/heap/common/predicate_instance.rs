@@ -8,7 +8,10 @@ use crate::encoder::{
             expression_interner::ExpressionInterner,
             procedure_executor::{
                 constraints::{BlockConstraints, ConstraintsMergeReport},
-                heap::{utils::matches_arguments, GlobalHeapState, HeapMergeReport},
+                heap::{
+                    global_heap_state::HeapVariables, utils::matches_arguments, GlobalHeapState,
+                    HeapMergeReport,
+                },
             },
             program_context::ProgramContext,
         },
@@ -17,7 +20,10 @@ use crate::encoder::{
 use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
 use vir_crate::{
-    common::{display, expression::BinaryOperationHelpers},
+    common::{
+        display,
+        expression::{BinaryOperationHelpers, ExpressionIterator},
+    },
     low::{self as vir_low},
 };
 
@@ -32,7 +38,7 @@ pub(in super::super) trait SnapshotType: Clone + std::fmt::Display {
     fn create_snapshot_variable(
         predicate_name: &str,
         program_context: &ProgramContext<impl EncoderContext>,
-        global_state: &mut GlobalHeapState,
+        heap_variables: &mut HeapVariables,
     ) -> SpannedEncodingResult<Self>;
     fn as_expression(&self) -> Option<vir_low::Expression>;
 }
@@ -104,7 +110,7 @@ impl SnapshotType for vir_low::VariableDecl {
     fn create_snapshot_variable(
         predicate_name: &str,
         program_context: &ProgramContext<impl EncoderContext>,
-        global_state: &mut GlobalHeapState,
+        global_state: &mut HeapVariables,
     ) -> SpannedEncodingResult<Self> {
         let Some(ty) = program_context.get_snapshot_type(predicate_name) else {
             unreachable!();
@@ -131,7 +137,7 @@ impl SnapshotType for NoSnapshot {
     fn create_snapshot_variable(
         _predicate_name: &str,
         _program_context: &ProgramContext<impl EncoderContext>,
-        _global_state: &mut GlobalHeapState,
+        _global_state: &mut HeapVariables,
     ) -> SpannedEncodingResult<Self> {
         Ok(NoSnapshot)
     }
@@ -250,6 +256,26 @@ impl<S: SnapshotType> PredicateInstance<S> {
             vir_low::Statement::inhale_no_pos(vir_low::Expression::and(permission, snapshot))
                 .set_default_position(position);
         Ok(statement)
+    }
+
+    pub(super) fn create_matches_check(
+        &self,
+        predicate_arguments: &[vir_low::Expression],
+        predicate_permission: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let guard = self
+            .arguments
+            .iter()
+            .zip(predicate_arguments.iter())
+            .map(|(instance_argument, predicate_argument)| {
+                vir_low::Expression::equals(instance_argument.clone(), predicate_argument.clone())
+            })
+            .chain(std::iter::once(vir_low::Expression::equals(
+                self.permission_variable.clone().into(),
+                (*predicate_permission).clone(),
+            )))
+            .conjoin();
+        Ok(guard)
     }
 }
 

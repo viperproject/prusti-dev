@@ -12,8 +12,9 @@ use crate::encoder::{
             procedure_executor::{
                 constraints::{BlockConstraints, ConstraintsMergeReport},
                 heap::{
-                    common::predicate_instance::PredicateInstance, utils::matches_arguments,
-                    GlobalHeapState, HeapMergeReport,
+                    common::predicate_instance::PredicateInstance,
+                    global_heap_state::HeapVariables, utils::matches_arguments, GlobalHeapState,
+                    HeapMergeReport,
                 },
             },
             program_context::ProgramContext,
@@ -48,6 +49,31 @@ impl<P: PermissionType, S: std::fmt::Display + SnapshotType> std::fmt::Display
             write!(f, "{}:\n{}", predicate_name, instances)?;
         }
         Ok(())
+    }
+}
+
+impl<P: PermissionType> NamedPredicateInstances<P, vir_low::VariableDecl> {
+    pub(in super::super) fn find_snapshot(
+        &self,
+        predicate_name: &str,
+        arguments: &[vir_low::Expression],
+        heap_variables: &mut HeapVariables,
+        constraints: &mut BlockConstraints,
+        expression_interner: &mut ExpressionInterner,
+        program_context: &ProgramContext<impl EncoderContext>,
+    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
+        if let Some(predicate_instances) = self.predicates.get(predicate_name) {
+            predicate_instances.find_snapshot(
+                predicate_name,
+                arguments,
+                heap_variables,
+                constraints,
+                expression_interner,
+                program_context,
+            )
+        } else {
+            Ok(None)
+        }
     }
 }
 
@@ -183,27 +209,6 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
             )?;
         }
         Ok(())
-    }
-
-    pub(in super::super) fn find_snapshot(
-        &self,
-        predicate_name: &str,
-        arguments: &[vir_low::Expression],
-        constraints: &mut BlockConstraints,
-        expression_interner: &mut ExpressionInterner,
-        program_context: &ProgramContext<impl EncoderContext>,
-    ) -> SpannedEncodingResult<Option<(S, Option<vir_low::Expression>)>> {
-        if let Some(predicate_instances) = self.predicates.get(predicate_name) {
-            predicate_instances.find_snapshot(
-                predicate_name,
-                arguments,
-                constraints,
-                expression_interner,
-                program_context,
-            )
-        } else {
-            Ok(None)
-        }
     }
 
     pub(in super::super) fn merge(

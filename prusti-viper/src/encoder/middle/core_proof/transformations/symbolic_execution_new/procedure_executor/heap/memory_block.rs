@@ -1,5 +1,6 @@
 use super::{
     common::{AliasedFractionalBool, PredicateInstances},
+    global_heap_state::HeapVariables,
     merge_report::HeapMergeReport,
     GlobalHeapState,
 };
@@ -126,13 +127,15 @@ impl MemoryBlock {
     pub(super) fn find_snapshot(
         &self,
         arguments: &[vir_low::Expression],
+        global_state: &mut HeapVariables,
         constraints: &mut BlockConstraints,
         expression_interner: &mut ExpressionInterner,
         program_context: &ProgramContext<impl EncoderContext>,
-    ) -> SpannedEncodingResult<Option<(vir_low::VariableDecl, Option<vir_low::Expression>)>> {
+    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
         self.predicates.find_snapshot(
             MEMORY_BLOCK_PREDICATE_NAME,
             arguments,
+            global_state,
             constraints,
             expression_interner,
             program_context,
