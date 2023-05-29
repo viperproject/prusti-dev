@@ -783,11 +783,12 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         &mut self,
         program_context: &mut ProgramContext<impl EncoderContext>,
         expression_interner: &mut ExpressionInterner,
-        _global_state: &mut GlobalHeapState,
+        global_state: &mut GlobalHeapState,
         predicate: vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
+        check_that_exists: bool,
     ) -> SpannedEncodingResult<()> {
         let mut found = false;
         for predicate_instance in &mut self.aliased_predicate_instances {
@@ -812,7 +813,54 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 block_builder.add_statement(statement)?;
             }
         }
-        assert!(found, "TODO: a proper error message {predicate}");
+        if check_that_exists {
+            assert!(
+                found,
+                "TODO: a proper error message {predicate} {check_that_exists}"
+            );
+        } else {
+            // Assert that the predicate exists and assume that its snapshot is
+            // the same as a freshly generated variable.
+            let snapshot_variable = <S as SnapshotType>::create_snapshot_variable(
+                &predicate.name,
+                program_context,
+                &mut global_state.heap_variables,
+            )?;
+            let permission_variable = global_state.create_permission_variable(&predicate.name);
+            let predicate_instance = PredicateInstance {
+                arguments: predicate.arguments.clone(),
+                snapshot_variable,
+                permission_amount: (*predicate.permission).clone(),
+                permission_variable,
+                is_unconditional: false,
+                is_materialized: true,
+            };
+            let predicate_name = predicate.name.clone();
+            block_builder.add_statement(
+                vir_low::Statement::assert_no_pos(vir_low::Expression::PredicateAccessPredicate(
+                    predicate,
+                ))
+                .set_default_position(position),
+            )?;
+            if let Some(snapshot) = predicate_instance.snapshot_variable.as_expression() {
+                let function_name =
+                    program_context.get_predicate_snapshot_function(&predicate_name);
+                let snapshot_type = program_context.get_snapshot_type(&predicate_name).unwrap();
+                let snapshot_equality = vir_low::Expression::equals(
+                    snapshot,
+                    vir_low::Expression::function_call(
+                        function_name,
+                        predicate_instance.arguments.clone(),
+                        snapshot_type,
+                    ),
+                );
+                block_builder.add_statement(
+                    vir_low::Statement::assume_no_pos(snapshot_equality)
+                        .set_default_position(position),
+                )?;
+            }
+            self.aliased_predicate_instances.push(predicate_instance);
+        }
         Ok(())
     }
 

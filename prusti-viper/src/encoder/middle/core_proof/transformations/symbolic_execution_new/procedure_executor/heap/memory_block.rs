@@ -91,6 +91,7 @@ impl MemoryBlock {
         position: vir_low::Position,
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
+        check_that_exists: bool,
     ) -> SpannedEncodingResult<()> {
         self.predicates.materialize(
             program_context,
@@ -100,6 +101,7 @@ impl MemoryBlock {
             position,
             constraints,
             block_builder,
+            check_that_exists,
         )
     }
 

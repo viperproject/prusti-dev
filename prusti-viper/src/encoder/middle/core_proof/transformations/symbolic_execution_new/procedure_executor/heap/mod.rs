@@ -326,6 +326,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn materialize_predicate(
         &mut self,
         predicate: vir_low::ast::expression::PredicateAccessPredicate,
+        check_that_exists: bool,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         let current_block = self.current_block.as_ref().unwrap();
@@ -344,6 +345,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     position,
                     &mut current_state.constraints,
                     block_builder,
+                    check_that_exists,
                 )?;
             }
             vir_low::PredicateKind::Owned => {
@@ -355,6 +357,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     position,
                     &mut current_state.constraints,
                     block_builder,
+                    check_that_exists,
                 )?;
             }
             vir_low::PredicateKind::LifetimeToken => {
@@ -372,6 +375,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     position,
                     &mut current_state.constraints,
                     block_builder,
+                    check_that_exists,
                 )?;
             }
             // vir_low::PredicateKind::WithoutSnapshotFrac => {
@@ -394,6 +398,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     position,
                     &mut current_state.constraints,
                     block_builder,
+                    check_that_exists,
                 )?;
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
@@ -408,6 +413,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                         position,
                         &mut current_state.constraints,
                         block_builder,
+                        check_that_exists,
                     )?;
             }
             vir_low::PredicateKind::EndBorrowViewShift => {
@@ -422,6 +428,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                         position,
                         &mut current_state.constraints,
                         block_builder,
+                        check_that_exists,
                     )?;
             }
         };

@@ -116,8 +116,12 @@ pub struct Conditional {
     pub position: Position,
 }
 
-#[display(fmt = "materialize_predicate({})", predicate)]
+#[display(fmt = "materialize_predicate({}, {})", predicate, check_that_exists)]
 pub struct MaterializePredicate {
     pub predicate: Expression,
+    /// Whether we should check that the predicate  chunk actually exists.
+    /// `materialize_predicate!` corresponds to `true` and `quantified_predicate!`
+    /// corresponds to `false`.
+    pub check_that_exists: bool,
     pub position: Position,
 }
