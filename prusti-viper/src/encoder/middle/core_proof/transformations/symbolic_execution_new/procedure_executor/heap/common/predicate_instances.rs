@@ -596,7 +596,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 panic!("failed to exhale: {predicate}\n{self}");
             } else {
                 block_builder.add_statement(vir_low::Statement::comment(format!(
-                    "failed to exhale: {predicate}"
+                    "failed to exhale (non-aliased): {predicate}"
                 )))?;
                 block_builder.add_statement(
                     vir_low::Statement::assert_no_pos(false.into()).set_default_position(position),
@@ -651,7 +651,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 panic!("failed to exhale: {predicate}\n{self}");
             } else if config::materialize_on_failed_exhale() {
                 block_builder.add_statement(vir_low::Statement::comment(format!(
-                    "failed to exhale: {predicate}"
+                    "failed to exhale (materializing): {predicate}"
                 )))?;
                 self.materialize_aliased_instances(
                     &predicate.name,
@@ -666,7 +666,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 ))?;
             } else {
                 block_builder.add_statement(vir_low::Statement::comment(format!(
-                    "failed to exhale: {predicate}"
+                    "failed to exhale (conditional exhale): {predicate}"
                 )))?;
                 self.emit_conditional_exhale(
                     predicate,
@@ -1094,9 +1094,9 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         block_builder: &mut BlockBuilder,
         program_context: &ProgramContext<impl EncoderContext>,
     ) -> SpannedEncodingResult<()> {
-        let mut statements = vec![vir_low::Statement::comment(
+        block_builder.add_statement(vir_low::Statement::comment(
             "Conditional exhale".to_string(),
-        )];
+        ))?;
         // Assert that we need to exhale exactly one heap chunk. This allows
         // making the encoding more performant (achieve the Silicon-like grouping
         // of summands).
@@ -1104,12 +1104,13 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         // We consider only instances that are not materialized and conditional:
         // 1. Materialized instances should be exhaled only by QPs.
         // 2. For now, we just assume that unconditional instances would be
-        //    always successfully matched.
+        //    always successfully matched. – this seems to be wrong.
         let mut predicate_instances =
             self.aliased_predicate_instances
                 .iter()
                 .filter(|predicate_instance| {
-                    !predicate_instance.is_materialized && !predicate_instance.is_unconditional
+                    !predicate_instance.is_materialized
+                    //  && !predicate_instance.is_unconditional
                 });
         let mut statement =
             vir_low::Statement::assert_no_pos(false.into()).set_default_position(position);

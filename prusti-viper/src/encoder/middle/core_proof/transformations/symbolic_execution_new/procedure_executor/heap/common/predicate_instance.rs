@@ -263,6 +263,12 @@ impl<S: std::fmt::Display + SnapshotType> std::fmt::Display for PredicateInstanc
             self.snapshot_variable,
             self.permission_variable,
         )?;
+        if self.is_materialized {
+            write!(f, " materialized")?;
+        }
+        if self.is_unconditional {
+            write!(f, " unconditional")?;
+        }
         Ok(())
     }
 }
