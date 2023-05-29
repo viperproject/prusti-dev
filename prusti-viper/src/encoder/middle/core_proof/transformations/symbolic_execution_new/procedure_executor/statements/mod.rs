@@ -150,7 +150,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let vir_low::Expression::PredicateAccessPredicate(predicate) = self.simplify_expression(&statement.predicate, statement.position)? else {
             unreachable!();
         };
-        self.materialize_predicate(predicate, statement.position)?;
+        self.materialize_predicate(predicate, statement.check_that_exists, statement.position)?;
         Ok(())
     }
 }

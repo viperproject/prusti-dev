@@ -1667,6 +1667,7 @@ impl IntoLow for vir_mid::Statement {
                     };
                     statements.push(vir_low::Statement::materialize_predicate(
                         predicate,
+                        statement.check_that_exists,
                         statement.position,
                     ));
                 }

@@ -4882,7 +4882,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             encoded_statements.push(statement);
                             Ok(true)
                         }
-                        "prusti_contracts::prusti_materialize_predicate" => {
+                        "prusti_contracts::prusti_materialize_predicate"
+                        | "prusti_contracts::prusti_quantified_predicate" => {
                             assert_eq!(args.len(), 1);
                             let mut encoded_args = extract_args(self.mir, args, block, self)?;
                             let ArgKind::String(predicate_spec_id) = encoded_args.pop().unwrap() else {
@@ -4898,10 +4899,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 unimplemented!("FIXME: A proper error message")
                             };
                             let predicate = *acc_predicate.predicate;
+                            let check_that_exists = match full_called_function_name.as_ref() {
+                                "prusti_contracts::prusti_materialize_predicate" => true,
+                                "prusti_contracts::prusti_quantified_predicate" => false,
+                                _ => unreachable!(),
+                            };
                             let statement = self.set_statement_error(
                                 location,
                                 ErrorCtxt::MaterializePredicate,
-                                vir_high::Statement::materialize_predicate_no_pos(predicate),
+                                vir_high::Statement::materialize_predicate_no_pos(
+                                    predicate,
+                                    check_that_exists,
+                                ),
                             )?;
                             encoded_statements.push(statement);
                             Ok(true)

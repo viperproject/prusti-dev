@@ -170,6 +170,7 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         position: vir_low::Position,
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
+        check_that_exists: bool,
     ) -> SpannedEncodingResult<()> {
         if let Some(predicate_instances) = self.predicates.get_mut(&predicate.name) {
             predicate_instances.materialize(
@@ -180,6 +181,7 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
                 position,
                 constraints,
                 block_builder,
+                check_that_exists,
             )?;
         } else {
             unimplemented!("TODO: A proper error message");
