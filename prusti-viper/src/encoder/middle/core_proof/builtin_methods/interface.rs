@@ -3889,7 +3889,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vec![vir_low::Trigger::new(vec![new_read_element_byte])],
                 bytes_equal_body,
             );
-            let assert_byte_equality = vir_low::Statement::assert(bytes_equal, position);
+            let assert_byte_equality =
+                vir_low::Statement::assert_no_pos(bytes_equal).set_default_position(position);
             statements.push(assert_byte_equality);
             let body = expr!(
                 (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==>

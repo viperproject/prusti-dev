@@ -4468,6 +4468,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     self.def_id,
                                 ),
                             ));
+                            let position = pointer.position();
+                            let pointer = vir_high::Expression::labelled_old(
+                                stash_name.clone(),
+                                pointer,
+                                position,
+                            );
                             assert!(self
                                 .stashed_ranges
                                 .insert(stash_name, (pointer, start_index, end_index))
