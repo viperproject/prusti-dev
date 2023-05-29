@@ -2,6 +2,7 @@ use self::{
     close_frac_ref::ClosedFracRef,
     common::{AliasedWholeBool, NamedPredicateInstances, NoSnapshot},
     dead_lifetimes::DeadLifetimeTokens,
+    global_heap_state::HeapVariables,
     lifetimes::LifetimeTokens,
     memory_block::MemoryBlock,
     owned::Owned,
@@ -54,7 +55,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let current_state = self.state_keeper.get_state_mut(current_block);
         self::purification::purify_snap_function_calls(
             &current_state.heap,
-            &self.global_heap_state,
+            &mut self.global_heap_state,
             self.program_context,
             &mut current_state.constraints,
             &mut self.expression_interner,
@@ -728,16 +729,18 @@ impl<'a> HeapRef<'a> {
         &self,
         predicate_name: &str,
         arguments: &[vir_low::Expression],
+        heap_variables: &mut HeapVariables,
         constraints: &mut BlockConstraints,
         expression_interner: &mut ExpressionInterner,
         program_context: &ProgramContext<impl EncoderContext>,
-    ) -> SpannedEncodingResult<Option<(vir_low::VariableDecl, Option<vir_low::Expression>)>> {
+    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
         match self {
             HeapRef::Current(heap) => match program_context.get_predicate_kind(predicate_name) {
                 vir_low::PredicateKind::MemoryBlock => {
                     debug_assert_eq!(predicate_name, MEMORY_BLOCK_PREDICATE_NAME);
                     heap.memory_block.find_snapshot(
                         arguments,
+                        heap_variables,
                         constraints,
                         expression_interner,
                         program_context,
@@ -746,6 +749,7 @@ impl<'a> HeapRef<'a> {
                 vir_low::PredicateKind::Owned => heap.owned.find_snapshot(
                     predicate_name,
                     arguments,
+                    heap_variables,
                     constraints,
                     expression_interner,
                     program_context,
@@ -763,6 +767,7 @@ impl<'a> HeapRef<'a> {
                     debug_assert_eq!(predicate_name, MEMORY_BLOCK_PREDICATE_NAME);
                     heap.memory_block.find_snapshot(
                         arguments,
+                        heap_variables,
                         constraints,
                         expression_interner,
                         program_context,
@@ -771,6 +776,7 @@ impl<'a> HeapRef<'a> {
                 vir_low::PredicateKind::Owned => heap.owned.find_snapshot(
                     predicate_name,
                     arguments,
+                    heap_variables,
                     constraints,
                     expression_interner,
                     program_context,

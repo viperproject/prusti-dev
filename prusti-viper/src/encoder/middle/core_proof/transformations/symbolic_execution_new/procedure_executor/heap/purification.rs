@@ -1,12 +1,15 @@
-use super::{BlockHeap, GlobalHeapState, HeapAtLabel, HeapRef};
+use super::{global_heap_state::HeapVariables, BlockHeap, GlobalHeapState, HeapAtLabel, HeapRef};
 use crate::encoder::{
     errors::{SpannedEncodingError, SpannedEncodingResult},
-    middle::core_proof::transformations::{
-        encoder_context::EncoderContext,
-        symbolic_execution_new::{
-            expression_interner::ExpressionInterner,
-            procedure_executor::constraints::BlockConstraints, program_context::ProgramContext,
+    middle::core_proof::{
+        transformations::{
+            encoder_context::EncoderContext,
+            symbolic_execution_new::{
+                expression_interner::ExpressionInterner,
+                procedure_executor::constraints::BlockConstraints, program_context::ProgramContext,
+            },
         },
+        utils::bound_variable_stack::{BoundVariableStack, BoundVariableStackLow},
     },
 };
 use std::collections::BTreeMap;
@@ -17,7 +20,7 @@ use vir_crate::{
 
 pub(in super::super) fn purify_snap_function_calls(
     heap: &BlockHeap,
-    global_snapshots: &GlobalHeapState,
+    global_heap_state: &mut GlobalHeapState,
     program_context: &ProgramContext<impl EncoderContext>,
     constraints: &mut BlockConstraints,
     expression_interner: &mut ExpressionInterner,
@@ -25,12 +28,14 @@ pub(in super::super) fn purify_snap_function_calls(
 ) -> SpannedEncodingResult<(vir_low::Expression, Vec<vir_low::Expression>)> {
     let mut purifier = Purifier {
         predicate_snapshots: heap,
-        predicate_snapshots_at_label: &global_snapshots.snapshots_at_label,
+        predicate_snapshots_at_label: &global_heap_state.snapshots_at_label,
+        heap_variables: &mut global_heap_state.heap_variables,
         constraints,
         expression_interner,
         program_context,
         path_condition: Vec::new(),
         guarded_assertions: Vec::new(),
+        bound_variables: Default::default(),
         label: None,
     };
     let mut expression = purifier.fallible_fold_expression(expression)?;
@@ -44,11 +49,13 @@ pub(in super::super) fn purify_snap_function_calls(
 struct Purifier<'a, EC: EncoderContext> {
     predicate_snapshots: &'a BlockHeap,
     predicate_snapshots_at_label: &'a BTreeMap<String, HeapAtLabel>,
+    heap_variables: &'a mut HeapVariables,
     constraints: &'a mut BlockConstraints,
     expression_interner: &'a mut ExpressionInterner,
     program_context: &'a ProgramContext<'a, EC>,
     path_condition: Vec<vir_low::Expression>,
     guarded_assertions: Vec<vir_low::Expression>,
+    bound_variables: BoundVariableStack,
     label: Option<String>,
 }
 
@@ -78,7 +85,7 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
                 Ok(vir_low::Expression::FuncApp(func_app))
             }
             vir_low::FunctionKind::MemoryBlockBytes | vir_low::FunctionKind::Snap => {
-                if let Some((snapshot_variable, assertion)) =
+                if let Some((snapshot, assertion)) =
                     self.resolve_snapshot(&func_app.function_name, &func_app.arguments)?
                 {
                     if let Some(assertion) = assertion {
@@ -88,10 +95,7 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
                         );
                         self.guarded_assertions.push(guarded_assertion);
                     }
-                    Ok(vir_low::Expression::local(
-                        snapshot_variable,
-                        func_app.position,
-                    ))
+                    Ok(snapshot.set_default_position(func_app.position))
                 } else {
                     Ok(vir_low::Expression::FuncApp(func_app))
                 }
@@ -108,6 +112,16 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
         std::mem::swap(&mut labelled_old.label, &mut self.label);
         Ok(labelled_old)
     }
+
+    fn fallible_fold_quantifier_enum(
+        &mut self,
+        quantifier: vir_low::Quantifier,
+    ) -> Result<vir_low::Expression, Self::Error> {
+        self.bound_variables.push(&quantifier.variables);
+        let quantifier = self.fallible_fold_quantifier(quantifier)?;
+        self.bound_variables.pop();
+        Ok(vir_low::Expression::Quantifier(quantifier))
+    }
 }
 
 impl<'a, EC: EncoderContext> Purifier<'a, EC> {
@@ -115,7 +129,13 @@ impl<'a, EC: EncoderContext> Purifier<'a, EC> {
         &mut self,
         function_name: &str,
         arguments: &[vir_low::Expression],
-    ) -> SpannedEncodingResult<Option<(vir_low::VariableDecl, Option<vir_low::Expression>)>> {
+    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
+        if self
+            .bound_variables
+            .expressions_contains_bound_variables(arguments)
+        {
+            return Ok(None);
+        }
         let predicate_snapshots = if let Some(label) = &self.label {
             HeapRef::AtLabel(self.predicate_snapshots_at_label.get(label).unwrap())
         } else {
@@ -129,6 +149,7 @@ impl<'a, EC: EncoderContext> Purifier<'a, EC> {
         predicate_snapshots.find_snapshot(
             predicate_name,
             arguments,
+            self.heap_variables,
             self.constraints,
             self.expression_interner,
             self.program_context,
