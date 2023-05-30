@@ -813,12 +813,11 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 block_builder.add_statement(statement)?;
             }
         }
-        if check_that_exists {
+        if !found {
             assert!(
-                found,
+                !check_that_exists,
                 "TODO: a proper error message {predicate} {check_that_exists}"
             );
-        } else {
             // Assert that the predicate exists and assume that its snapshot is
             // the same as a freshly generated variable.
             let snapshot_variable = <S as SnapshotType>::create_snapshot_variable(

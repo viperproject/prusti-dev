@@ -365,6 +365,9 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             vir_mid::expression::ConstantValue::BigInt(value) => {
                 vir_low::expression::ConstantValue::BigInt(value.clone())
             }
+            vir_mid::expression::ConstantValue::String(_value) => {
+                unimplemented!();
+            }
             vir_mid::expression::ConstantValue::Float(_value) => {
                 unimplemented!();
             }
@@ -1115,6 +1118,12 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             }
             BuiltinFunc::AfterExpiry => {
                 unreachable!("AfterExpiry should be desugard before");
+            }
+            BuiltinFunc::BuildingUniqueRefPredicate => {
+                unreachable!("UniqueRef should have been already built.")
+            }
+            BuiltinFunc::BuildingFracRefPredicate => {
+                unreachable!("FracRef should have been already built.")
             }
         }
     }

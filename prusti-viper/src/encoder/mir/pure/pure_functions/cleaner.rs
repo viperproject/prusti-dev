@@ -99,35 +99,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Cleaner<'p, 'v, 'tcx> {
         &mut self,
         mut acc_predicate: vir_high::AccPredicate,
     ) -> Result<vir_high::AccPredicate, Self::Error> {
-        // let predicate = match *acc_predicate.predicate {
-        //     vir_high::Predicate::OwnedNonAliased(mut predicate) => {
-        //         predicate.place = peel_addr_of(predicate.place);
-        //         vir_high::Predicate::OwnedNonAliased(predicate)
-        //     }
-        //     // vir_high::Predicate::OwnedNonAliased(vir_high::OwnedNonAliased {
-        //     //     place: vir_high::Expression::AddrOf(vir_high::AddrOf { base, .. }), position
-        //     // }) => {
-        //     //     vir_high::Predicate::owned_non_aliased(*base, position)
-        //     // }
-        //     vir_high::Predicate::MemoryBlockHeap(mut predicate) => {
-        //         predicate.address = peel_addr_of(predicate.address);
-        //         vir_high::Predicate::MemoryBlockHeap(predicate)
-        //     }
-        //     vir_high::Predicate::MemoryBlockHeapDrop(mut predicate) => {
-        //         predicate.address = peel_addr_of(predicate.address);
-        //         vir_high::Predicate::MemoryBlockHeapDrop(predicate)
-        //     }
-        //     _ => unimplemented!("{:?}", acc_predicate),
-        // };
         let predicate = clean_acc_predicate(*acc_predicate.predicate);
         acc_predicate.predicate = Box::new(predicate);
-
-        // if let box vir_high::Expression::AddrOf(vir_high::AddrOf { base, .. }) = acc_predicate.place
-        // {
-        //     acc_predicate.place = base;
-        // } else {
-        //     unreachable!("{:?}", acc_predicate);
-        // };
         default_fallible_fold_acc_predicate(self, acc_predicate)
     }
 
@@ -212,13 +185,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Cleaner<'p, 'v, 'tcx> {
                 return Ok(vir_high::Expression::Conditional(conditional));
             }
         };
-        // let expression =
-        //     vir_high::Expression::BinaryOp(default_fallible_fold_binary_op(self, binary_op)?);
-        // let expression = if conditional.else_expr.is_true() {
-        //     let binary_op = ;
-        //     vir_high::Expression::BinaryOp(default_fallible_fold_binary_op(self, binary_op)?)
-        // } else {
-        // };
         Ok(expression)
     }
 

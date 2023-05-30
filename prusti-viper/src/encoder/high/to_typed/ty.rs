@@ -115,6 +115,9 @@ impl<'v, 'tcx> TypedToHighTypeUpperer for crate::encoder::Encoder<'v, 'tcx> {
                     vir_typed::expression::ConstantValue::Float(value) => {
                         vir_high::expression::ConstantValue::Float(value)
                     }
+                    vir_typed::expression::ConstantValue::String(value) => {
+                        vir_high::expression::ConstantValue::String(value)
+                    }
                     vir_typed::expression::ConstantValue::FnPtr => {
                         vir_high::expression::ConstantValue::FnPtr
                     }

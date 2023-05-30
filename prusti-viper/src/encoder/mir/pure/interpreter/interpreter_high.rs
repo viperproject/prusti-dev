@@ -783,6 +783,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 subst_with(encoded_rhs)
             }
+            "prusti_contracts::prusti_unq" => {
+                assert_eq!(encoded_args.len(), 2);
+                let lifetime = encoded_args[0].clone();
+                let place = encoded_args[1].clone();
+                let position = place.position();
+                let encoded_rhs = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::BuildingUniqueRefPredicate,
+                    Vec::new(),
+                    vec![lifetime, place],
+                    vir_high::Type::Bool,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_shr" => {
+                assert_eq!(encoded_args.len(), 2);
+                let lifetime = encoded_args[0].clone();
+                let place = encoded_args[1].clone();
+                let position = place.position();
+                let encoded_rhs = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::BuildingFracRefPredicate,
+                    Vec::new(),
+                    vec![lifetime, place],
+                    vir_high::Type::Bool,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
             "prusti_contracts::prusti_bytes" => {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((MemoryBlockBytes, vir_high::Type::MBytes))
