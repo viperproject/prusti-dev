@@ -1,6 +1,6 @@
 use self::{
     close_frac_ref::ClosedFracRef,
-    common::{AliasedWholeBool, NamedPredicateInstances, NoSnapshot},
+    common::{AliasedWholeBool, FindSnapshotResult, NamedPredicateInstances, NoSnapshot},
     dead_lifetimes::DeadLifetimeTokens,
     global_heap_state::HeapVariables,
     lifetimes::LifetimeTokens,
@@ -36,7 +36,10 @@ mod purification;
 mod merge_report;
 mod global_heap_state;
 
-pub(super) use self::{global_heap_state::GlobalHeapState, merge_report::HeapMergeReport};
+pub(super) use self::{
+    global_heap_state::GlobalHeapState, merge_report::HeapMergeReport,
+    purification::PurificationResult,
+};
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn save_state(&mut self, label: String) -> SpannedEncodingResult<()> {
@@ -50,7 +53,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn purify_snap_function_calls(
         &mut self,
         expression: &vir_low::Expression,
-    ) -> SpannedEncodingResult<(vir_low::Expression, Vec<vir_low::Expression>)> {
+    ) -> SpannedEncodingResult<PurificationResult> {
         let current_block = self.current_block.as_ref().unwrap();
         let current_state = self.state_keeper.get_state_mut(current_block);
         self::purification::purify_snap_function_calls(
@@ -740,7 +743,7 @@ impl<'a> HeapRef<'a> {
         constraints: &mut BlockConstraints,
         expression_interner: &mut ExpressionInterner,
         program_context: &ProgramContext<impl EncoderContext>,
-    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
+    ) -> SpannedEncodingResult<FindSnapshotResult> {
         match self {
             HeapRef::Current(heap) => match program_context.get_predicate_kind(predicate_name) {
                 vir_low::PredicateKind::MemoryBlock => {

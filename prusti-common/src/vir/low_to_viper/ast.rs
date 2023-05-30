@@ -272,7 +272,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::ContainerOp(expression) => expression.to_viper(context, ast),
             Expression::Conditional(expression) => expression.to_viper(context, ast),
             Expression::Quantifier(expression) => expression.to_viper(context, ast),
-            // Expression::LetExpr(expression) => expression.to_viper(context, ast),
+            Expression::LetExpr(expression) => expression.to_viper(context, ast),
             Expression::FuncApp(expression) => expression.to_viper(context, ast),
             Expression::DomainFuncApp(expression) => expression.to_viper(context, ast),
             // Expression::InhaleExhale(expression) => expression.to_viper(context, ast),
@@ -559,6 +559,17 @@ impl<'v, 'a> ToViper<'v, viper::Trigger<'v>> for (&'a expression::Trigger, Posit
         );
         context.reset_inside_trigger(old_value);
         trigger
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::LetExpr {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.let_expr_with_pos(
+            self.variable.to_viper_decl(context, ast),
+            self.def.to_viper(context, ast),
+            self.body.to_viper(context, ast),
+            self.position.to_viper(context, ast),
+        )
     }
 }
 

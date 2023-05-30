@@ -1,4 +1,7 @@
-use super::{global_heap_state::HeapVariables, BlockHeap, GlobalHeapState, HeapAtLabel, HeapRef};
+use super::{
+    common::FindSnapshotResult, global_heap_state::HeapVariables, BlockHeap, GlobalHeapState,
+    HeapAtLabel, HeapRef,
+};
 use crate::encoder::{
     errors::{SpannedEncodingError, SpannedEncodingResult},
     middle::core_proof::{
@@ -14,9 +17,18 @@ use crate::encoder::{
 };
 use std::collections::BTreeMap;
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, ExpressionIterator},
+    common::{
+        expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
+        position::Positioned,
+    },
     low::{self as vir_low, expression::visitors::ExpressionFallibleFolder},
 };
+
+pub(in super::super) struct PurificationResult {
+    pub(in super::super) expression: vir_low::Expression,
+    pub(in super::super) guarded_assertions: Vec<vir_low::Expression>,
+    pub(in super::super) bindings: Vec<(vir_low::VariableDecl, vir_low::Expression)>,
+}
 
 pub(in super::super) fn purify_snap_function_calls(
     heap: &BlockHeap,
@@ -25,7 +37,7 @@ pub(in super::super) fn purify_snap_function_calls(
     constraints: &mut BlockConstraints,
     expression_interner: &mut ExpressionInterner,
     expression: vir_low::Expression,
-) -> SpannedEncodingResult<(vir_low::Expression, Vec<vir_low::Expression>)> {
+) -> SpannedEncodingResult<PurificationResult> {
     let mut purifier = Purifier {
         predicate_snapshots: heap,
         predicate_snapshots_at_label: &global_heap_state.snapshots_at_label,
@@ -35,15 +47,22 @@ pub(in super::super) fn purify_snap_function_calls(
         program_context,
         path_condition: Vec::new(),
         guarded_assertions: Vec::new(),
+        bindings: Vec::new(),
         bound_variables: Default::default(),
         label: None,
     };
     let mut expression = purifier.fallible_fold_expression(expression)?;
+    assert!(purifier.path_condition.is_empty());
     if !expression.is_heap_independent() {
         purifier.constraints.saturate_solver()?;
         expression = purifier.fallible_fold_expression(expression)?;
     }
-    Ok((expression, purifier.guarded_assertions))
+    assert!(purifier.path_condition.is_empty());
+    Ok(PurificationResult {
+        expression,
+        guarded_assertions: purifier.guarded_assertions,
+        bindings: purifier.bindings,
+    })
 }
 
 struct Purifier<'a, EC: EncoderContext> {
@@ -55,6 +74,7 @@ struct Purifier<'a, EC: EncoderContext> {
     program_context: &'a ProgramContext<'a, EC>,
     path_condition: Vec<vir_low::Expression>,
     guarded_assertions: Vec<vir_low::Expression>,
+    bindings: Vec<(vir_low::VariableDecl, vir_low::Expression)>,
     bound_variables: BoundVariableStack,
     label: Option<String>,
 }
@@ -85,19 +105,28 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
                 Ok(vir_low::Expression::FuncApp(func_app))
             }
             vir_low::FunctionKind::MemoryBlockBytes | vir_low::FunctionKind::Snap => {
-                if let Some((snapshot, assertion)) =
-                    self.resolve_snapshot(&func_app.function_name, &func_app.arguments)?
-                {
-                    if let Some(assertion) = assertion {
-                        let guarded_assertion = vir_low::Expression::implies(
-                            self.path_condition.clone().into_iter().conjoin(),
-                            assertion,
-                        );
-                        self.guarded_assertions.push(guarded_assertion);
+                match self.resolve_snapshot(&func_app.function_name, &func_app.arguments)? {
+                    FindSnapshotResult::NotFound => Ok(vir_low::Expression::FuncApp(func_app)),
+                    FindSnapshotResult::FoundGuarded {
+                        snapshot,
+                        precondition,
+                    } => {
+                        if let Some(assertion) = precondition {
+                            let guarded_assertion = vir_low::Expression::implies(
+                                self.path_condition.clone().into_iter().conjoin(),
+                                assertion,
+                            );
+                            self.guarded_assertions.push(guarded_assertion);
+                        }
+                        Ok(vir_low::Expression::local(snapshot, func_app.position))
                     }
-                    Ok(snapshot.set_default_position(func_app.position))
-                } else {
-                    Ok(vir_low::Expression::FuncApp(func_app))
+                    FindSnapshotResult::FoundConditional {
+                        binding,
+                        definition,
+                    } => {
+                        self.bindings.push((binding.clone(), definition));
+                        Ok(vir_low::Expression::local(binding, func_app.position))
+                    }
                 }
             }
         }
@@ -122,6 +151,36 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
         self.bound_variables.pop();
         Ok(vir_low::Expression::Quantifier(quantifier))
     }
+
+    fn fallible_fold_binary_op(
+        &mut self,
+        mut binary_op: vir_low::expression::BinaryOp,
+    ) -> Result<vir_low::expression::BinaryOp, Self::Error> {
+        binary_op.left = self.fallible_fold_expression_boxed(binary_op.left)?;
+        if binary_op.op_kind == vir_low::BinaryOpKind::Implies {
+            self.path_condition.push((*binary_op.left).clone());
+        }
+        binary_op.right = self.fallible_fold_expression_boxed(binary_op.right)?;
+        if binary_op.op_kind == vir_low::BinaryOpKind::Implies {
+            self.path_condition.pop();
+        }
+        Ok(binary_op)
+    }
+
+    fn fallible_fold_conditional(
+        &mut self,
+        mut conditional: vir_low::expression::Conditional,
+    ) -> Result<vir_low::expression::Conditional, Self::Error> {
+        conditional.guard = self.fallible_fold_expression_boxed(conditional.guard)?;
+        self.path_condition.push((*conditional.guard).clone());
+        conditional.then_expr = self.fallible_fold_expression_boxed(conditional.then_expr)?;
+        self.path_condition.pop();
+        self.path_condition
+            .push(vir_low::Expression::not((*conditional.guard).clone()));
+        conditional.else_expr = self.fallible_fold_expression_boxed(conditional.else_expr)?;
+        self.path_condition.pop();
+        Ok(conditional)
+    }
 }
 
 impl<'a, EC: EncoderContext> Purifier<'a, EC> {
@@ -129,12 +188,12 @@ impl<'a, EC: EncoderContext> Purifier<'a, EC> {
         &mut self,
         function_name: &str,
         arguments: &[vir_low::Expression],
-    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
+    ) -> SpannedEncodingResult<FindSnapshotResult> {
         if self
             .bound_variables
             .expressions_contains_bound_variables(arguments)
         {
-            return Ok(None);
+            return Ok(FindSnapshotResult::NotFound);
         }
         let predicate_snapshots = if let Some(label) = &self.label {
             HeapRef::AtLabel(self.predicate_snapshots_at_label.get(label).unwrap())
@@ -142,9 +201,10 @@ impl<'a, EC: EncoderContext> Purifier<'a, EC> {
             HeapRef::Current(self.predicate_snapshots)
         };
         let Some(predicate_name) = self.program_context.get_snapshot_predicate(function_name) else {
-            // The final snapshot function is already pure and,
-            // therefore, is not mapped to a predicate.
-            return Ok(None);
+            // The final snapshot function is already pure and, therefore, is
+            // not mapped to a predicate. This is the case for unique_ref final
+            // snapshot.
+            return Ok(FindSnapshotResult::NotFound);
         };
         predicate_snapshots.find_snapshot(
             predicate_name,
