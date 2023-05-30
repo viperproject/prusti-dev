@@ -394,7 +394,7 @@ pub(in super::super) enum FindSnapshotResult {
     },
     FoundConditional {
         binding: vir_low::VariableDecl,
-        definition: vir_low::Expression,
+        guarded_candidates: Vec<(vir_low::Expression, vir_low::VariableDecl)>,
     },
 }
 
@@ -476,17 +476,13 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
         }
         // We do not know which of the heap chunks is the one we need. Therefore, we return
         // a conditional.
-        let mut definition = <vir_low::VariableDecl as SnapshotType>::create_snapshot_variable(
-            predicate_name,
-            program_context,
-            heap_variables,
-        )?
-        .into();
-        let binding = <vir_low::VariableDecl as SnapshotType>::create_snapshot_variable(
-            predicate_name,
-            program_context,
-            heap_variables,
-        )?;
+        let mut guarded_candidates = Vec::new();
+        let binding: vir_low::VariableDecl =
+            <vir_low::VariableDecl as SnapshotType>::create_snapshot_variable(
+                predicate_name,
+                program_context,
+                heap_variables,
+            )?;
         let mut predicate_instances = self
             .aliased_predicate_instances
             .iter()
@@ -494,15 +490,11 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
         while let Some(predicate_instance) = predicate_instances.next() {
             let guard = predicate_instance
                 .create_matches_check(arguments, &predicate_instance.permission_amount)?;
-            definition = vir_low::Expression::conditional_no_pos(
-                guard,
-                predicate_instance.snapshot_variable.clone().into(),
-                definition,
-            );
+            guarded_candidates.push((guard, predicate_instance.snapshot_variable.clone()));
         }
         Ok(FindSnapshotResult::FoundConditional {
             binding,
-            definition,
+            guarded_candidates,
         })
     }
 }

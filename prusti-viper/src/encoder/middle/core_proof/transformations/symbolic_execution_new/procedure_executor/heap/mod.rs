@@ -37,8 +37,9 @@ mod merge_report;
 mod global_heap_state;
 
 pub(super) use self::{
-    global_heap_state::GlobalHeapState, merge_report::HeapMergeReport,
-    purification::PurificationResult,
+    global_heap_state::GlobalHeapState,
+    merge_report::HeapMergeReport,
+    purification::{PurificationResult, SnapshotBinding},
 };
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
