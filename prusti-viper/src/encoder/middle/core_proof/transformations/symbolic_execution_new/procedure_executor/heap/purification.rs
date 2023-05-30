@@ -24,10 +24,18 @@ use vir_crate::{
     low::{self as vir_low, expression::visitors::ExpressionFallibleFolder},
 };
 
+pub(in super::super) struct SnapshotBinding {
+    /// Under which condition this binding gets activated.
+    pub(in super::super) guard: vir_low::Expression,
+    /// A fresh variable to which the snapshot is bound.
+    pub(in super::super) variable: vir_low::VariableDecl,
+    pub(in super::super) guarded_candidates: Vec<(vir_low::Expression, vir_low::VariableDecl)>,
+}
+
 pub(in super::super) struct PurificationResult {
     pub(in super::super) expression: vir_low::Expression,
     pub(in super::super) guarded_assertions: Vec<vir_low::Expression>,
-    pub(in super::super) bindings: Vec<(vir_low::VariableDecl, vir_low::Expression)>,
+    pub(in super::super) bindings: Vec<SnapshotBinding>,
 }
 
 pub(in super::super) fn purify_snap_function_calls(
@@ -74,7 +82,7 @@ struct Purifier<'a, EC: EncoderContext> {
     program_context: &'a ProgramContext<'a, EC>,
     path_condition: Vec<vir_low::Expression>,
     guarded_assertions: Vec<vir_low::Expression>,
-    bindings: Vec<(vir_low::VariableDecl, vir_low::Expression)>,
+    bindings: Vec<SnapshotBinding>,
     bound_variables: BoundVariableStack,
     label: Option<String>,
 }
@@ -122,9 +130,13 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
                     }
                     FindSnapshotResult::FoundConditional {
                         binding,
-                        definition,
+                        guarded_candidates,
                     } => {
-                        self.bindings.push((binding.clone(), definition));
+                        self.bindings.push(SnapshotBinding {
+                            guard: self.path_condition.clone().into_iter().conjoin(),
+                            variable: binding.clone(),
+                            guarded_candidates,
+                        });
                         Ok(vir_low::Expression::local(binding, func_app.position))
                     }
                 }
