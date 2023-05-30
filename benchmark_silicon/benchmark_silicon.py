@@ -39,6 +39,7 @@ class Test:
         self.log_files = []
         self.trace_files = []
         self.event_kinds = []
+        self.smt2_events = []
 
     def into_row(self):
         return [
@@ -69,6 +70,7 @@ class Test:
             'log_files': self.log_files,
             'trace_files': self.trace_files,
             'event_kinds': self.event_kinds,
+            'smt2_events': self.smt2_events,
         }
 
     def execute(
@@ -139,8 +141,23 @@ class Test:
                     wands_count = line.split(' - Quantified wands: ')[1]
                     self.wands.append(int(wands_count))
 
+    def count_push_pop_operations(self, temp_directory):
+        for log_file in sorted(glob.glob(os.path.join(temp_directory, 'logfile-*.smt2'))):
+            push_count = 0
+            pop_count = 0
+            with open(log_file) as fp:
+                for line in fp:
+                    if line.startswith('(push) ;'):
+                        push_count += 1
+                    if line.startswith('(pop) ;'):
+                        pop_count += 1
+                self.smt2_events.append({
+                    'push': push_count,
+                    'pop': pop_count,
+                })
+
     def generate_z3_traces(self, z3_exe, temp_directory):
-        for log_file in glob.glob(os.path.join(temp_directory, 'logfile-*.smt2')):
+        for log_file in sorted(glob.glob(os.path.join(temp_directory, 'logfile-*.smt2'))):
             self.log_files.append(log_file)
             trace_file = log_file.replace('.smt2', '.trace')
             self.trace_files.append(trace_file)
@@ -242,6 +259,7 @@ def execute_tests(
                     silicon_flags,
                 )
                 test.analyze_log()
+                test.count_push_pop_operations(temp_directory)
                 test.generate_z3_traces(z3_exe, temp_directory)
                 test.parce_z3_traces()  # Call Rust SMT analyzer and use its CSV.
             except Exception as e:
