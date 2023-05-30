@@ -75,4 +75,9 @@ impl ExpressionWalker for UsedVariableCollector {
     fn walk_variable_decl(&mut self, variable_decl: &vir_low::VariableDecl) {
         self.used_variables.insert(variable_decl.name.clone());
     }
+    fn walk_trigger(&mut self, trigger: &vir_low::Trigger) {
+        for expression in &trigger.terms {
+            ExpressionWalker::walk_expression(self, expression);
+        }
+    }
 }
