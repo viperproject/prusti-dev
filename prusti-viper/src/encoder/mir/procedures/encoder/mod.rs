@@ -80,6 +80,7 @@ mod termination;
 mod specifications;
 mod utils;
 mod specification_regions;
+mod user_named_lifetimes;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(super) enum ProcedureEncodingKind {
@@ -4894,6 +4895,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 .get(&predicate_spec_id)
                                 .expect("FIXME: A proper error message")
                                 .clone();
+                            let predicate_expression =
+                                self.resolve_lifetimes(predicate_expression)?;
                             assert!(encoded_args.is_empty());
                             let vir_high::Expression::AccPredicate(acc_predicate) = predicate_expression else {
                                 unimplemented!("FIXME: A proper error message")

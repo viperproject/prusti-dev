@@ -127,6 +127,7 @@ pub enum ConstantValue {
     Int(i64),
     BigInt(String),
     Float(FloatConst),
+    String(String),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
@@ -291,6 +292,10 @@ pub enum BuiltinFunc {
     CastIntToInt,
     BeforeExpiry,
     AfterExpiry,
+    /// A function represents UniqueRef with its arguments not yet properly typed.
+    BuildingUniqueRefPredicate,
+    /// A function represents FracRef with its arguments not yet properly typed.
+    BuildingFracRefPredicate,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]

@@ -1646,24 +1646,49 @@ impl IntoLow for vir_mid::Statement {
             Self::MaterializePredicate(statement) => {
                 let mut statements = Vec::new();
                 if config::purify_with_symbolic_execution() {
-                    let predicate = if let vir_mid::Predicate::OwnedNonAliased(predicate) =
-                        statement.predicate
-                    {
-                        // OwnedNonAliased::into_low assumes that the predicate is non-aliased while here we
-                        // need an aliased version.
-                        let address =
-                            lowerer.encode_expression_as_place_address(&predicate.place)?;
-                        let ty = predicate.place.get_type();
-                        lowerer.owned_aliased(
-                            CallContext::Procedure,
-                            ty,
-                            ty,
-                            address,
-                            None,
-                            predicate.position,
-                        )?
-                    } else {
-                        statement.predicate.into_low(lowerer)?
+                    // Prediacte::into_low assumes that the predicate is non-aliased while here we
+                    // need an aliased version.
+                    let predicate = match statement.predicate {
+                        vir_mid::Predicate::OwnedNonAliased(predicate) => {
+                            let address =
+                                lowerer.encode_expression_as_place_address(&predicate.place)?;
+                            let ty = predicate.place.get_type();
+                            lowerer.owned_aliased(
+                                CallContext::Procedure,
+                                ty,
+                                ty,
+                                address,
+                                None,
+                                predicate.position,
+                            )?
+                        }
+                        vir_mid::Predicate::UniqueRef(predicate) => {
+                            let place =
+                                lowerer.place_option_none_constructor(statement.position)?;
+                            let mut assertion_encoder =
+                                SelfFramingAssertionToSnapshot::for_inhale_exhale_expression(None);
+                            let address = assertion_encoder
+                                .pointer_deref_into_address(lowerer, &predicate.place)?;
+                            let lifetime = lowerer.encode_lifetime_const_into_procedure_variable(
+                                predicate.lifetime,
+                            )?;
+                            let ty = predicate.place.get_type();
+                            lowerer.unique_ref(
+                                CallContext::Procedure,
+                                ty,
+                                ty,
+                                place,
+                                address,
+                                lifetime.into(),
+                                None,
+                                None,
+                                predicate.position,
+                            )?
+                        }
+                        vir_mid::Predicate::FracRef(predicate) => {
+                            unimplemented!("{predicate}");
+                        }
+                        _ => statement.predicate.into_low(lowerer)?,
                     };
                     statements.push(vir_low::Statement::materialize_predicate(
                         predicate,

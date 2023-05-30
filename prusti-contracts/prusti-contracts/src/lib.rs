@@ -783,14 +783,16 @@ macro_rules! shr {
 /// place.
 #[doc(hidden)]
 #[trusted]
-pub fn prusti_unq<T>(_place: T) -> bool {
+pub fn prusti_unq<T1, T2>(_lifetime: T1, _place: T2) -> bool {
     unreachable!();
 }
 
 #[macro_export]
 macro_rules! unq {
-    ($place:expr) => {
-        $crate::prusti_unq(unsafe { core::ptr::addr_of!($place) })
+    ($lifetime:ident, $place:expr) => {
+        $crate::prusti_unq(stringify!($lifetime), unsafe {
+            core::ptr::addr_of!($place)
+        })
     };
 }
 

@@ -173,6 +173,9 @@ impl IntoPolymorphic<vir_poly::Const> for vir_high::expression::ConstantValue {
             vir_high::expression::ConstantValue::BigInt(value) => {
                 vir_poly::Const::BigInt(value.clone())
             }
+            vir_high::expression::ConstantValue::String(_) => {
+                unreachable!("String constants are not supported");
+            }
             vir_high::expression::ConstantValue::FnPtr => vir_poly::Const::FnPtr,
         }
     }
