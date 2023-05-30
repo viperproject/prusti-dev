@@ -1,5 +1,7 @@
 use super::{
-    predicate_instance::SnapshotType, predicate_instances::PermissionType, PredicateInstances,
+    predicate_instance::SnapshotType,
+    predicate_instances::{FindSnapshotResult, PermissionType},
+    PredicateInstances,
 };
 use crate::encoder::{
     errors::SpannedEncodingResult,
@@ -61,7 +63,7 @@ impl<P: PermissionType> NamedPredicateInstances<P, vir_low::VariableDecl> {
         constraints: &mut BlockConstraints,
         expression_interner: &mut ExpressionInterner,
         program_context: &ProgramContext<impl EncoderContext>,
-    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
+    ) -> SpannedEncodingResult<FindSnapshotResult> {
         if let Some(predicate_instances) = self.predicates.get(predicate_name) {
             predicate_instances.find_snapshot(
                 predicate_name,
@@ -72,7 +74,7 @@ impl<P: PermissionType> NamedPredicateInstances<P, vir_low::VariableDecl> {
                 program_context,
             )
         } else {
-            Ok(None)
+            Ok(FindSnapshotResult::NotFound)
         }
     }
 }

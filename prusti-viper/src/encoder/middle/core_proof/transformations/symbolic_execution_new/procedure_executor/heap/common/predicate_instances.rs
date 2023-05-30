@@ -386,6 +386,18 @@ impl<P: PermissionType, S: std::fmt::Display + SnapshotType> std::fmt::Display
     }
 }
 
+pub(in super::super) enum FindSnapshotResult {
+    NotFound,
+    FoundGuarded {
+        snapshot: vir_low::VariableDecl,
+        precondition: Option<vir_low::Expression>,
+    },
+    FoundConditional {
+        binding: vir_low::VariableDecl,
+        definition: vir_low::Expression,
+    },
+}
+
 impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
     pub(in super::super) fn find_snapshot(
         &self,
@@ -395,7 +407,7 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
         constraints: &mut BlockConstraints,
         expression_interner: &mut ExpressionInterner,
         program_context: &ProgramContext<impl EncoderContext>,
-    ) -> SpannedEncodingResult<Option<(vir_low::Expression, Option<vir_low::Expression>)>> {
+    ) -> SpannedEncodingResult<FindSnapshotResult> {
         assert!(
             all_heap_independent(arguments),
             "arguments: {}",
@@ -414,16 +426,16 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
                     constraints,
                 )? {
                     MatchesResult::MatchesConditionally { assert } => {
-                        return Ok(Some((
-                            predicate_instance.snapshot_variable.clone().into(),
-                            Some(assert),
-                        )));
+                        return Ok(FindSnapshotResult::FoundGuarded {
+                            snapshot: predicate_instance.snapshot_variable.clone(),
+                            precondition: Some(assert),
+                        });
                     }
                     MatchesResult::MatchesUnonditionally => {
-                        return Ok(Some((
-                            predicate_instance.snapshot_variable.clone().into(),
-                            None,
-                        )));
+                        return Ok(FindSnapshotResult::FoundGuarded {
+                            snapshot: predicate_instance.snapshot_variable.clone(),
+                            precondition: None,
+                        });
                     }
                     MatchesResult::DoesNotMatch => {}
                 }
@@ -434,7 +446,10 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
                 program_context,
                 heap_variables,
             )?;
-            return Ok(Some((fresh_variable.into(), Some(false.into()))));
+            return Ok(FindSnapshotResult::FoundGuarded {
+                snapshot: fresh_variable,
+                precondition: Some(false.into()),
+            });
         }
 
         for predicate_instance in &self.aliased_predicate_instances {
@@ -448,25 +463,30 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
                 if predicate_instance.is_unconditional {
                     // We know for sure that we have a heap chunk and, therefore, this snapshot
                     // is unique and valid.
-                    return Ok(Some((
-                        predicate_instance.snapshot_variable.clone().into(),
-                        None,
-                    )));
+                    return Ok(FindSnapshotResult::FoundGuarded {
+                        snapshot: predicate_instance.snapshot_variable.clone(),
+                        precondition: None,
+                    });
                 }
                 if predicate_instance.is_materialized {
                     // The chunk is potentially aliased by a QP chunk. We cannot purify it out.
-                    return Ok(None);
+                    return Ok(FindSnapshotResult::NotFound);
                 }
             }
         }
         // We do not know which of the heap chunks is the one we need. Therefore, we return
         // a conditional.
-        let mut expression = <vir_low::VariableDecl as SnapshotType>::create_snapshot_variable(
+        let mut definition = <vir_low::VariableDecl as SnapshotType>::create_snapshot_variable(
             predicate_name,
             program_context,
             heap_variables,
         )?
         .into();
+        let binding = <vir_low::VariableDecl as SnapshotType>::create_snapshot_variable(
+            predicate_name,
+            program_context,
+            heap_variables,
+        )?;
         let mut predicate_instances = self
             .aliased_predicate_instances
             .iter()
@@ -474,13 +494,16 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
         while let Some(predicate_instance) = predicate_instances.next() {
             let guard = predicate_instance
                 .create_matches_check(arguments, &predicate_instance.permission_amount)?;
-            expression = vir_low::Expression::conditional_no_pos(
+            definition = vir_low::Expression::conditional_no_pos(
                 guard,
                 predicate_instance.snapshot_variable.clone().into(),
-                expression,
+                definition,
             );
         }
-        Ok(Some((expression, None)))
+        Ok(FindSnapshotResult::FoundConditional {
+            binding,
+            definition,
+        })
     }
 }
 

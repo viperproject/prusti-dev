@@ -11,6 +11,7 @@ pub(super) use self::{
         AliasedFractionalBool,
         //  AliasedFractionalBoundedPerm,
         AliasedWholeBool,
+        FindSnapshotResult,
         //    AliasedWholeNat,
         PredicateInstances,
     },

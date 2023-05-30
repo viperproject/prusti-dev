@@ -100,12 +100,6 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     &mut program,
                 );
             }
-            if config::expand_quantifiers() {
-                program = super::transformations::expand_quantifiers::expand_quantifiers(
-                    &source_filename,
-                    program,
-                );
-            }
             if config::trace_with_symbolic_execution() {
                 if config::trace_with_symbolic_execution_new() {
                     program =
@@ -157,6 +151,12 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     &mut program,
                     predicates_info.owned_predicates_info,
                 )?;
+            }
+            if config::expand_quantifiers() {
+                program = super::transformations::expand_quantifiers::expand_quantifiers(
+                    &source_filename,
+                    program,
+                );
             }
             // We have to execute this pass because some of the transformations
             // generate nested old expressions, which cause problems when

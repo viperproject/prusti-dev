@@ -1,4 +1,4 @@
-use super::{constraints::BlockConstraints, ProcedureExecutor};
+use super::{constraints::BlockConstraints, heap::PurificationResult, ProcedureExecutor};
 use crate::{
     encoder::{
         errors::{SpannedEncodingError, SpannedEncodingResult},
@@ -23,7 +23,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         expression: &vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let (expression, guarded_assertions) = self.purify_snap_function_calls(expression)?;
+        // self.add_statement(vir_low::Statement::comment(format!(
+        //     "simplify expression: {expression}"
+        // )))?;
+        let PurificationResult {
+            expression,
+            guarded_assertions,
+            bindings,
+        } = self.purify_snap_function_calls(expression)?;
         let current_block = self.current_block.as_ref().unwrap();
         let current_constraints = &mut self.state_keeper.get_state_mut(current_block).constraints;
         let mut simplifier = Simplifier {
@@ -32,6 +39,25 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             expression_interner: &mut self.expression_interner,
         };
         let expression = simplifier.fallible_fold_expression(expression)?;
+        if !bindings.is_empty() {
+            self.add_statement(vir_low::Statement::comment(
+                "Let bindings for conditional snapshots".to_string(),
+            ))?;
+        }
+        for (variable, definition) in bindings {
+            self.add_statement(
+                vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                    variable.into(),
+                    definition,
+                ))
+                .set_default_position(position),
+            )?;
+        }
+        if !guarded_assertions.is_empty() {
+            self.add_statement(vir_low::Statement::comment(
+                "Guarded assertions for snap function preconditions".to_string(),
+            ))?;
+        }
         for assertion in guarded_assertions {
             self.add_statement(
                 vir_low::Statement::assert_no_pos(assertion).set_default_position(position),
