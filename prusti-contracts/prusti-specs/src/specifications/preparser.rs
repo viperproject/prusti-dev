@@ -281,6 +281,8 @@ impl PrustiTokenStream {
                 let mut stream = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
                     error(span, "expected parenthesized expression after quantifier")
                 })?;
+                // attrs_opt is potentially None even if everything is good
+                let attrs_opt = stream.pop_quantifier_bound_attr();
                 let args = stream
                     .pop_closure_args()
                     .ok_or_else(|| error(span, "expected quantifier body"))?;
@@ -309,9 +311,14 @@ impl PrustiTokenStream {
                 if args.is_empty() {
                     return err(span, "a quantifier must have at least one argument");
                 }
+                let attr_parsed = if let Some(attr) = attrs_opt {
+                    attr.parse().ok()
+                } else {
+                    None
+                };
                 let args = args.parse()?;
                 let body = stream.parse()?;
-                kind.translate(span, triggers, args, body)
+                kind.translate(span, triggers, attr_parsed, args, body)
             }
 
             Some(PrustiToken::SpecEnt(span, _)) | Some(PrustiToken::CallDesc(span, _)) => {
@@ -432,6 +439,17 @@ impl PrustiTokenStream {
             tokens,
             source_span: self.source_span,
         })
+    }
+
+    fn pop_quantifier_bound_attr(&mut self) -> Option<Self> {
+        let start_token = self.tokens.pop_front()?;
+        if start_token.is_attribute_starter() {
+            self.pop_group(Delimiter::Bracket)
+        } else {
+            // put it back, no reason to fail, there might not be any
+            self.tokens.push_front(start_token);
+            None
+        }
     }
 
     fn pop_parenthesized_group(&mut self) -> syn::Result<Self> {
@@ -739,6 +757,7 @@ impl Quantifier {
         &self,
         span: Span,
         triggers: Vec<Vec<TokenStream>>,
+        attr: Option<TokenStream>,
         args: TokenStream,
         body: TokenStream,
     ) -> TokenStream {
@@ -754,14 +773,15 @@ impl Quantifier {
             })
             .collect::<Vec<_>>();
         let body = quote_spanned! { body.span() => ((#body): bool) };
+        let attr = attr.map(|attr| quote_spanned!{attr.span() => #[prusti::#attr]});
         match self {
             Self::Forall => quote_spanned! { full_span => ::prusti_contracts::forall(
                 ( #( #trigger_sets, )* ),
-                #[prusti::spec_only] | #args | -> bool { #body }
+                #[prusti::spec_only] #attr | #args | -> bool { #body }
             ) },
             Self::Exists => quote_spanned! { full_span => ::prusti_contracts::exists(
                 ( #( #trigger_sets, )* ),
-                #[prusti::spec_only] | #args | -> bool { #body }
+                #[prusti::spec_only] #attr | #args | -> bool { #body }
             ) },
         }
     }
@@ -812,6 +832,11 @@ impl PrustiToken {
     fn is_closure_brace(&self) -> bool {
         matches!(self, Self::Token(TokenTree::Punct(p))
             if p.as_char() == '|' && p.spacing() == proc_macro2::Spacing::Alone)
+    }
+
+    fn is_attribute_starter(&self) -> bool {
+        matches!(self, Self::Token(TokenTree::Punct(p))
+            if p.as_char() == '#')
     }
 
     fn parse_op2(p1: &Punct, p2: &Punct) -> Option<Self> {

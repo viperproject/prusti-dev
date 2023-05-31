@@ -5,8 +5,9 @@ use prusti_rustc_interface::{
     interface::DEFAULT_QUERY_PROVIDERS,
     middle::{
         mir::{
-            self, patch::MirPatch, visit::MutVisitor, BasicBlock, BasicBlockData, Body, Constant,
-            ConstantKind, Operand, Place, SourceInfo, SourceScope, Terminator, TerminatorKind,
+            self, patch::MirPatch, pretty, visit::MutVisitor, BasicBlock, BasicBlockData, Body,
+            Constant, ConstantKind, Operand, Place, SourceInfo, SourceScope, Terminator,
+            TerminatorKind,
         },
         ty::{self, TyCtxt, TyKind},
     },
@@ -15,6 +16,10 @@ use prusti_rustc_interface::{
         DUMMY_SP,
     },
 };
+
+// debugging dependencies?
+use std::io::prelude::*;
+use std::fs::File;
 
 pub static mut SPECS: Option<DefSpecificationMap> = None;
 
@@ -37,6 +42,10 @@ pub(crate) fn mir_checked(
         let mut visitor = InsertChecksVisitor::new(tcx, specs);
         visitor.visit_body(&mut stolen);
         println!("Custom modifications are done! Compiler back at work");
+
+        // print mir of body:
+        let mut dump_file = File::create("dump_mir_adjusted.txt").unwrap();
+        pretty::write_mir_fn(tcx, &stolen, &mut |_,_| Ok(()), &mut dump_file).unwrap();
 
         tcx.alloc_steal_mir(stolen)
     } else {
@@ -265,7 +274,6 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
         }
     }
 }
-
 
 fn new_call_block<'tcx>(
     tcx: TyCtxt<'tcx>,

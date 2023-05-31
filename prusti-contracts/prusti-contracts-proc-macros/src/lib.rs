@@ -130,6 +130,12 @@ pub fn body_variant(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
 // ----------------------
 // --- PRUSTI ENABLED ---
 
@@ -271,6 +277,12 @@ pub fn terminates(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn body_variant(tokens: TokenStream) -> TokenStream {
     prusti_specs::body_variant(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
 }
 
 // Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`

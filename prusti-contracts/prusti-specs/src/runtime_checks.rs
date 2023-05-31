@@ -1,5 +1,5 @@
 use crate::{
-    boundary_extraction::{BoundExtractor, Boundary, BoundaryKind, self},
+    boundary_extraction::{self, BoundExtractor, Boundary, BoundaryKind},
     common::HasSignature,
     rewriter::AstRewriter,
     specifications::untyped,
@@ -42,6 +42,13 @@ impl CheckTranslator {
     ) -> syn::ItemFn {
         let expr_to_check = &self.expression;
         let item_name_str = item_name.to_string();
+        let result_arg_opt = if has_result {
+            Some(AstRewriter::generate_result_arg(item))
+        } else {
+            None
+        };
+        let forget_statements = self.generate_forget_statements(item, &result_arg_opt);
+
         let mut check_item: syn::ItemFn = parse_quote_spanned! {item.span() =>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
@@ -49,14 +56,14 @@ impl CheckTranslator {
             fn #item_name() {
                 println!("check function {} is performed", #item_name_str);
                 assert!(#expr_to_check);
+                #forget_statements
+                // now forget about all the values
             }
         };
         check_item.sig.generics = item.sig().generics.clone();
-        // todo: make all types that are not already references, into references
         check_item.sig.inputs = item.sig().inputs.clone();
         if has_result {
-            let result_arg = AstRewriter::generate_result_arg(item);
-            check_item.sig.inputs.push(result_arg);
+            check_item.sig.inputs.push(result_arg_opt.unwrap());
         }
         if has_old_arg {
             let old_arg = self.construct_old_fnarg(item, true);
@@ -97,6 +104,7 @@ impl CheckTranslator {
         }
         let old_values_type = self.old_values_type(item);
         // println!("resulting tuple: {}", quote!{#tuple});
+        let forget_statements = self.generate_forget_statements(item, &None);
 
         let item_name_str = item_name.to_string();
         let mut res: syn::ItemFn = parse_quote_spanned! {item.span() =>
@@ -105,6 +113,7 @@ impl CheckTranslator {
             #[prusti::store_id = #check_id_str]
             fn #item_name() -> #old_values_type {
                 println!("store function {} is performed", #item_name_str);
+                #forget_statements
                 return (#tuple);
             }
         };
@@ -162,8 +171,36 @@ impl CheckTranslator {
         }
     }
 
-    // pub fn construct_function_args()
+    pub fn generate_forget_statements(
+        &self,
+        item: &untyped::AnyFnItem,
+        result_arg_opt: &Option<FnArg>,
+    ) -> syn::Block {
+        // go through all inputs, if they are not references add a forget
+        // statement
+        let mut stmts: Vec<syn::Stmt> = Vec::new();
+        for fn_arg in item.sig().inputs.clone() {
+            if let Ok(arg) = Argument::try_from(&fn_arg) {
+                let name: TokenStream = arg.name.parse().unwrap();
+                stmts.push(parse_quote! {
+                    std::mem::forget(#name);
+                })
+            }
+        }
 
+        if let Some(result) = result_arg_opt {
+            if let Ok(result_arg) = Argument::try_from(result) {
+                let name: TokenStream = result_arg.name.parse().unwrap();
+                stmts.push(parse_quote! {
+                    std::mem::forget(#name);
+                })
+            }
+        }
+        syn::Block {
+            brace_token: syn::token::Brace::default(),
+            stmts,
+        }
+    }
 }
 
 /// collects information about expression, but also transforms it
@@ -370,14 +407,12 @@ enum QuantifierKind {
     Exists,
 }
 
-fn translate_quantifier_expression(
-    closure: &syn::ExprClosure,
-    kind: QuantifierKind,
-) -> syn::Expr {
+fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierKind) -> syn::Expr {
     println!("translate is called");
     println!("quantifier nr args: {}", closure.inputs.len());
     let mut name_set: FxHashSet<String> = FxHashSet::default();
-    let bound_vars: Vec<(String, String)> = closure
+    // the variables that occurr as arguments
+    let bound_vars: Vec<(String, syn::Type)> = closure
         .inputs
         .iter()
         .map(|pat: &syn::Pat| {
@@ -389,10 +424,8 @@ fn translate_quantifier_expression(
             }) = pat
             {
                 let name_str = id.to_token_stream().to_string();
-                let type_str = ty.to_token_stream().to_string();
-                println!("quantifier arg: {}: {}", name_str, type_str);
                 name_set.insert(name_str.clone());
-                (name_str, type_str)
+                (name_str, ty.clone())
             } else {
                 // maybe we can throw a more sensible error and make the
                 // check function a dummy check function
@@ -401,108 +434,53 @@ fn translate_quantifier_expression(
         })
         .collect();
 
-    let expr = *closure.body.clone();
+    // look for the runtime_quantifier_bounds attribute:
+    println!("closure arguments: {:?}", bound_vars);
+    let manual_bounds = BoundExtractor::manual_bounds(closure.clone(), bound_vars.clone());
+    let bounds = manual_bounds.unwrap_or_else(|| BoundExtractor::derive_ranges(*closure.body.clone(), bound_vars));
 
-    // initially wanted to handle multiple, but for now we dont..
-    // for (name, ty) in bound_vars {
-    let (name, ty) = bound_vars.get(0).unwrap();
-    match ty.as_str() {
-        // runtime checks for quantifiers only work for a limited set currently
-        "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32" | "u64" | "u128"
-        | "usize" => {
-            let bounds = BoundExtractor::extract_bounds_top(expr.clone(), name, &name_set);
-            println!("bounds extracted!");
-            let mut upper_bound_opt = None;
-            let mut lower_bound_opt = None;
+    let mut expr = *closure.body.clone();
 
-            // if there are multiple variables, potentially with dependencies
-            // the loops need to be in a specific order
-            assert!(bounds.len() <= 2);
-            let mut include_upper = true; // if we have the MAX upper limit,
-            for Boundary {
-                kind,
-                bound,
-                included,
-                ..
-            } in bounds.iter()
-            {
-                println!("Trying to define boundaries");
-                                              // include it
-                match *kind {
-                    BoundaryKind::Upper => {
-                        // first idea was to add one here if inclusive, but
-                        // this can lead to overflows! Need to use ..=x syntax
-                        assert!(upper_bound_opt.is_none());
-                        println!("found upper bound, end included: {}", *included);
-                        upper_bound_opt = Some(bound.clone());
-                        include_upper = *included;
-                    }
-                    BoundaryKind::Lower => {
-                        lower_bound_opt = if *included {
-                            // lower bound works the other way around
-                            Some(bound.clone())
-                        } else {
-                            Some(parse_quote! {
-                                #bound + 1
-                            })
-                        }
-                    }
-                }
-            }
-            let name_token: TokenStream = name.parse().unwrap();
-            let ty_token: TokenStream = ty.parse().unwrap();
-            let upper_bound = upper_bound_opt.unwrap_or(parse_quote_spanned!{closure.span() =>
-                #ty_token::MAX
-            });
-            let lower_bound = lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
-                #ty_token::MIN
-            });
+    for ((name, _), range_expr) in bounds.iter().rev() {
+        let name_token: TokenStream = name.parse().unwrap();
+        println!("bounds extracted!");
 
-            let range_expr: syn::Expr = if include_upper {
-                parse_quote_spanned! {closure.span() =>
-                    (#lower_bound)..=(#upper_bound)
-                }
-            } else {
-                parse_quote_spanned! {closure.span() =>
-                    (#lower_bound)..(#upper_bound)
-                }
-            };
-            // maybe never turn them into strings in the first place..
-            match kind {
-                QuantifierKind::Forall => {
-                    let res = quote! {
-                        {
-                            let mut holds_forall = true;
-                            for #name_token in #range_expr {
-                                if !(#expr) {
-                                    holds_forall = false;
-                                    break;
-                                }
-                            }
-                            holds_forall
-                        }
-                    };
-                    println!("res: {}", res);
-                    syn::parse2(res).unwrap()
-                },
-                QuantifierKind::Exists => {
-                    println!("exists handled:");
-                    let res = quote! {
+        // maybe never turn them into strings in the first place..
+        expr = match kind {
+            QuantifierKind::Forall => {
+                let res = quote! {
                     {
-                        let mut exists = false;
+                        let mut holds_forall = true;
                         for #name_token in #range_expr {
-                            if #expr {
-                                exists = true;
+                            if !(#expr) {
+                                holds_forall = false;
                                 break;
                             }
                         }
-                        exists
+                        holds_forall
                     }
-                    };
-                    syn::parse2(res).unwrap()
-                },
+                };
+                println!("res: {}", res);
+                syn::parse2(res).unwrap()
+            }
+            QuantifierKind::Exists => {
+                println!("exists handled:");
+                let res = quote! {
+                {
+                    let mut exists = false;
+                    for #name_token in #range_expr {
+                        if #expr {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    exists
+                }
+                };
+                syn::parse2(res).unwrap()
             }
         }
-        _ => unimplemented!(),
     }
+    expr
 }
+

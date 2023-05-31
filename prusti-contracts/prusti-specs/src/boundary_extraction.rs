@@ -1,6 +1,7 @@
+use proc_macro2::TokenStream;
 use quote::ToTokens;
-use rustc_hash::FxHashSet;
-use syn::{self, visit::Visit, BinOp};
+use rustc_hash::{FxHashMap, FxHashSet};
+use syn::{self, parse_quote, parse_quote_spanned, spanned::Spanned, visit::Visit, BinOp};
 
 pub struct BoundExtractor {
     // the set of bound variables within that expression
@@ -8,7 +9,118 @@ pub struct BoundExtractor {
 }
 
 impl BoundExtractor {
-    pub fn extract_bounds_top(expr: syn::Expr, name: &String, name_set: &FxHashSet<String>) -> Vec<Boundary> {
+    pub fn manual_bounds(
+        expr: syn::ExprClosure,
+        bound_vars: Vec<(String, syn::Type)>,
+    ) -> Option<Vec<((String, syn::Type), syn::ExprRange)>> {
+        let manual_bounds = get_attribute_contents(
+            "prusti :: runtime_quantifier_bounds".to_string(),
+            &expr.attrs,
+        )?;
+        let bounds_expr: syn::Expr = simplify_expression(&syn::parse2(manual_bounds).ok()?);
+        println!("bounds expression: {:?}", bounds_expr);
+        // there is either one or multiple
+        let bounds_vec = match bounds_expr {
+            syn::Expr::Tuple(expr_tuple) => expr_tuple
+                .elems
+                .iter()
+                .cloned()
+                .map(|range| {
+                    // remove surrounding braces or things like that
+                    let range = simplify_expression(&range);
+                    if let syn::Expr::Range(expr_range) = range {
+                        expr_range
+                    } else {
+                        panic!("Bounds should only contain ranges");
+                    }
+                })
+                .collect(),
+            syn::Expr::Range(range_expr) => vec![range_expr],
+            _ => return None,
+        };
+        assert!(bounds_vec.len() == bound_vars.len());
+        Some(bound_vars.into_iter().zip(bounds_vec.into_iter()).collect())
+    }
+
+    // if this function is called, the ranges are mandatory!
+    pub fn derive_ranges(
+        closure: syn::Expr,
+        args: Vec<(String, syn::Type)>,
+    ) -> Vec<((String, syn::Type), syn::ExprRange)> {
+        if args.len() > 1 {
+            panic!("multiple args without manually defined boundaries are not allowed");
+        }
+        let name_set: FxHashSet<String> = args.iter().map(|el| el.0.clone()).collect();
+        args.into_iter().map(|(name, ty)| {
+            let range_expr = match ty.to_token_stream().to_string().as_str() {
+                "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32" | "u64"
+                | "u128" | "usize" => {
+                        let bounds = Self::extract_bounds(closure.clone(), &name, &name_set);
+                        let mut upper_bound_opt = None;
+                        let mut lower_bound_opt = None;
+
+                        // if there are multiple variables, potentially with dependencies
+                        // the loops need to be in a specific order
+                        assert!(bounds.len() <= 2);
+                        let mut include_upper = true; // if we have the MAX upper limit,
+                        for Boundary {
+                            kind,
+                            bound,
+                            included,
+                            ..
+                        } in bounds.iter()
+                        {
+                            println!("Trying to define boundaries");
+                            // include it
+                            match *kind {
+                                BoundaryKind::Upper => {
+                                    // first idea was to add one here if inclusive, but
+                                    // this can lead to overflows! Need to use ..=x syntax
+                                    assert!(upper_bound_opt.is_none());
+                                    println!("found upper bound, end included: {}", *included);
+                                    upper_bound_opt = Some(bound.clone());
+                                    include_upper = *included;
+                                }
+                                BoundaryKind::Lower => {
+                                    lower_bound_opt = if *included {
+                                        // lower bound works the other way around
+                                        Some(bound.clone())
+                                    } else {
+                                        Some(parse_quote! {
+                                            #bound + 1
+                                        })
+                                    }
+                                }
+                            }
+                        }
+                        let upper_bound = upper_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                            #ty::MAX
+                        });
+                        let lower_bound = lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                            #ty::MIN
+                        });
+
+                        if include_upper {
+                            parse_quote_spanned! {closure.span() =>
+                                (#lower_bound)..=(#upper_bound)
+                            }
+                        } else {
+                            parse_quote_spanned! {closure.span() =>
+                                (#lower_bound)..(#upper_bound)
+                            }
+                        }
+                },
+                _ => panic!("runtime checks only supported for primitive types"),
+            };
+        ((name, ty), range_expr)
+        }).collect()
+    }
+
+    pub fn extract_bounds(
+        expr: syn::Expr,
+        name: &String,
+        name_set: &FxHashSet<String>,
+    ) -> Vec<Boundary> {
         // first make sure the expression has the form A ==> B (or equivalent)
         // and then extract a bound from A
         let mut extractor = BoundExtractor {
@@ -41,8 +153,7 @@ impl BoundExtractor {
         }
     }
 
-
-    pub fn extract_bounds_recursive(&mut self, expr: syn::Expr, name: &String) -> Vec<Boundary> {
+    fn extract_bounds_recursive(&mut self, expr: syn::Expr, name: &String) -> Vec<Boundary> {
         let simplified = simplify_expression(&expr);
         match simplified {
             syn::Expr::Binary(syn::ExprBinary {
@@ -242,7 +353,6 @@ impl Boundary {
             dependent_vars: self.dependent_vars,
         }
     }
-
 }
 
 // a Visitor to extract identifiers that occurr in an expression
@@ -260,4 +370,14 @@ impl<'ast> syn::visit::Visit<'ast> for IdentifierFinder {
         // keep visiting :)
         syn::visit::visit_expr_path(self, expr_path);
     }
+}
+
+// potentially also create something like a syn helper:
+pub fn get_attribute_contents(name: String, attrs: &Vec<syn::Attribute>) -> Option<TokenStream> {
+    for attr in attrs {
+        if attr.path.to_token_stream().to_string() == name {
+            return Some(attr.tokens.clone());
+        }
+    }
+    None
 }
