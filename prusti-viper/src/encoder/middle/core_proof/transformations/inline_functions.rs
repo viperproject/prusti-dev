@@ -98,7 +98,7 @@ impl<'a> ExpressionFolder for Inliner<'a> {
                 trigger.terms = trigger
                     .terms
                     .into_iter()
-                    .map(|term| *self.fold_expression_boxed(box term))
+                    .map(|term| *self.fold_expression_boxed(Box::new(term)))
                     .collect();
                 trigger
             })
