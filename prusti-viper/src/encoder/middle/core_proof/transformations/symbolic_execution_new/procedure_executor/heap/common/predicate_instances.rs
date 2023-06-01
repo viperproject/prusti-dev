@@ -92,13 +92,15 @@ impl PermissionType for AliasedWholeBool {
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
-        block_builder.add_statement(
-            vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                old_permission_variable.clone().into(),
-                vir_low::Expression::no_permission(),
-            ))
-            .set_default_position(position),
-        )?;
+        // FIXME: This is currently commented out because we do know what is the
+        // first version of the SSA permission variable.
+        // block_builder.add_statement(
+        //     vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
+        //         old_permission_variable.clone().into(),
+        //         vir_low::Expression::no_permission(),
+        //     ))
+        //     .set_default_position(position),
+        // )?;
         self.inhale_fresh(
             new_permission_variable,
             permission_amount,
@@ -163,13 +165,15 @@ impl PermissionType for AliasedFractionalBool {
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
-        block_builder.add_statement(
-            vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                old_permission_variable.clone().into(),
-                vir_low::Expression::no_permission(),
-            ))
-            .set_default_position(position),
-        )?;
+        // FIXME: This is currently commented out because we do know what is the
+        // first version of the SSA permission variable.
+        // block_builder.add_statement(
+        //     vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
+        //         old_permission_variable.clone().into(),
+        //         vir_low::Expression::no_permission(),
+        //     ))
+        //     .set_default_position(position),
+        // )?;
         self.inhale_fresh(
             new_permission_variable,
             permission_amount,
