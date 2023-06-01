@@ -276,9 +276,12 @@ impl<S: SnapshotType> PredicateInstance<S> {
         Ok(statement)
     }
 
+    /// When this method is called, `self.permission_variable` is typically
+    /// already updated, so we need pass the old version as `self_permission_variable`.
     pub(super) fn create_matches_check(
         &self,
         predicate_arguments: &[vir_low::Expression],
+        self_permission_variable: &vir_low::VariableDecl,
         predicate_permission: &vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let guard = self
@@ -289,7 +292,7 @@ impl<S: SnapshotType> PredicateInstance<S> {
                 vir_low::Expression::equals(instance_argument.clone(), predicate_argument.clone())
             })
             .chain(std::iter::once(vir_low::Expression::equals(
-                self.permission_variable.clone().into(),
+                self_permission_variable.clone().into(),
                 (*predicate_permission).clone(),
             )))
             .conjoin();

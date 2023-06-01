@@ -57,18 +57,18 @@ impl HeapVariables {
         variable
     }
 
-    pub(in super::super::super) fn initialize_permission_variables(
-        &self,
-        position: vir_low::Position,
-    ) -> impl Iterator<Item = vir_low::Statement> + '_ {
-        self.permission_variables.iter().map(move |variable| {
-            vir_low::Statement::assign_no_pos(
-                variable.clone(),
-                vir_low::Expression::no_permission(),
-            )
-            .set_default_position(position)
-        })
-    }
+    // pub(in super::super::super) fn initialize_permission_variables(
+    //     &self,
+    //     position: vir_low::Position,
+    // ) -> impl Iterator<Item = vir_low::Statement> + '_ {
+    //     self.permission_variables.iter().map(move |variable| {
+    //         vir_low::Statement::assign_no_pos(
+    //             variable.clone(),
+    //             vir_low::Expression::no_permission(),
+    //         )
+    //         .set_default_position(position)
+    //     })
+    // }
 
     pub(in super::super::super) fn clone_variables(&self) -> Vec<vir_low::VariableDecl> {
         let mut variables = self.variables.clone();
@@ -125,13 +125,13 @@ impl GlobalHeapState {
     //     variable
     // }
 
-    pub(in super::super::super) fn initialize_permission_variables(
-        &self,
-        position: vir_low::Position,
-    ) -> impl Iterator<Item = vir_low::Statement> + '_ {
-        self.heap_variables
-            .initialize_permission_variables(position)
-    }
+    // pub(in super::super::super) fn initialize_permission_variables(
+    //     &self,
+    //     position: vir_low::Position,
+    // ) -> impl Iterator<Item = vir_low::Statement> + '_ {
+    //     self.heap_variables
+    //         .initialize_permission_variables(position)
+    // }
 
     pub(in super::super::super) fn clone_variables(&self) -> Vec<vir_low::VariableDecl> {
         self.heap_variables.clone_variables()

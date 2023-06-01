@@ -498,8 +498,11 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
             .iter()
             .filter(|predicate_instance| !predicate_instance.is_materialized);
         while let Some(predicate_instance) = predicate_instances.next() {
-            let guard = predicate_instance
-                .create_matches_check(arguments, &predicate_instance.permission_amount)?;
+            let guard = predicate_instance.create_matches_check(
+                arguments,
+                &predicate_instance.permission_variable,
+                &predicate_instance.permission_amount,
+            )?;
             guarded_candidates.push((guard, predicate_instance.snapshot_variable.clone()));
         }
         Ok(FindSnapshotResult::FoundConditional {
@@ -1313,11 +1316,14 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         let mut statement =
             vir_low::Statement::assert_no_pos(false.into()).set_default_position(position);
         while let Some((index, predicate_instance)) = predicate_instances.next() {
-            let guard = predicate_instance
-                .create_matches_check(&predicate.arguments, &predicate.permission)?;
+            let old_permission_variable = new_old_permission_variables[index].0.clone();
+            let guard = predicate_instance.create_matches_check(
+                &predicate.arguments,
+                &old_permission_variable,
+                &predicate.permission,
+            )?;
             let mut then_statements = Vec::new();
             // Perform the exhale updating the permission variable.
-            let old_permission_variable = new_old_permission_variables[index].0.clone();
             self.permission_type.exhale(
                 old_permission_variable,
                 &predicate_instance.permission_variable,
@@ -1326,7 +1332,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 &mut then_statements,
             )?;
             // All other permission variables preserve their values.
-            for (index2, (new_permission_variable, old_permission_variable)) in
+            for (index2, (old_permission_variable, new_permission_variable)) in
                 new_old_permission_variables.iter().enumerate()
             {
                 if index2 != index {
