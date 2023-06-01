@@ -53,33 +53,42 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 guarded_candidates,
             } in bindings
             {
-                let mut statement =
-                    vir_low::Statement::assert_no_pos(false.into()).set_default_position(position);
                 for (candidate_guard, candidate) in guarded_candidates {
-                    statement = vir_low::Statement::conditional_no_pos(
-                        candidate_guard,
-                        vec![
-                            vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
-                                variable.clone().into(),
-                                candidate.into(),
-                            ))
-                            .set_default_position(position),
-                        ],
-                        vec![statement],
+                    let equality =
+                        vir_low::Expression::equals(variable.clone().into(), candidate.into());
+                    let guarded_assume = vir_low::Statement::assume_no_pos(
+                        vir_low::Expression::implies(candidate_guard, equality),
                     )
                     .set_default_position(position);
+                    self.add_statement(guarded_assume)?;
                 }
-                // Putting this under binding_guard is not easy because it may
-                // contain quantified variables, which need to be dealt with.
-                // Omitting binding_guard is sound because the snapshot can have
-                // the values only from the existing heap chunks. However, it
-                // may be incomplete because the assert false branch may become
-                // reachable.
-                self.add_statement(statement)?;
-                // self.add_statement(
-                //     vir_low::Statement::conditional_no_pos(binding_guard, vec![statement], vec![])
-                //         .set_default_position(position),
-                // )?;
+                // let mut statement =
+                //     vir_low::Statement::assert_no_pos(false.into()).set_default_position(position);
+                // for (candidate_guard, candidate) in guarded_candidates {
+                //     statement = vir_low::Statement::conditional_no_pos(
+                //         candidate_guard,
+                //         vec![
+                //             vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                //                 variable.clone().into(),
+                //                 candidate.into(),
+                //             ))
+                //             .set_default_position(position),
+                //         ],
+                //         vec![statement],
+                //     )
+                //     .set_default_position(position);
+                // }
+                // // Putting this under binding_guard is not easy because it may
+                // // contain quantified variables, which need to be dealt with.
+                // // Omitting binding_guard is sound because the snapshot can have
+                // // the values only from the existing heap chunks. However, it
+                // // may be incomplete because the assert false branch may become
+                // // reachable.
+                // self.add_statement(statement)?;
+                // // self.add_statement(
+                // //     vir_low::Statement::conditional_no_pos(binding_guard, vec![statement], vec![])
+                // //         .set_default_position(position),
+                // // )?;
             }
         }
         if !guarded_assertions.is_empty() {

@@ -18,7 +18,7 @@ use crate::encoder::{
     },
 };
 use rustc_hash::FxHashMap;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::{
         display,
@@ -174,6 +174,7 @@ impl<S: SnapshotType> PredicateInstance<S> {
         other: &Self,
         self_edge_block: &mut Vec<vir_low::Statement>,
         other_edge_block: &mut Vec<vir_low::Statement>,
+        deleted_permission_variables: &BTreeSet<String>,
         predicate_name: &str,
         position: vir_low::Position,
         heap_merge_report: &mut HeapMergeReport,
@@ -210,7 +211,10 @@ impl<S: SnapshotType> PredicateInstance<S> {
             heap_merge_report,
             global_state,
         )?;
-        if self.permission_variable != other.permission_variable {
+        if self.permission_variable != other.permission_variable
+            || deleted_permission_variables.contains(&self.permission_variable.name)
+            || deleted_permission_variables.contains(&other.permission_variable.name)
+        {
             self.permission_variable = heap_merge_report.remap_permission_variable(
                 predicate_name,
                 &self.permission_variable,
@@ -218,6 +222,20 @@ impl<S: SnapshotType> PredicateInstance<S> {
                 global_state,
             );
         }
+        Ok(())
+    }
+
+    pub(super) fn bump_permission_variable_version(
+        &mut self,
+        predicate_name: &str,
+        heap_merge_report: &mut HeapMergeReport,
+        global_state: &mut GlobalHeapState,
+    ) -> SpannedEncodingResult<()> {
+        self.permission_variable = heap_merge_report.bump_self_permission_variable_version(
+            predicate_name,
+            &self.permission_variable,
+            global_state,
+        );
         Ok(())
     }
 
@@ -276,6 +294,17 @@ impl<S: SnapshotType> PredicateInstance<S> {
             )))
             .conjoin();
         Ok(guard)
+    }
+
+    pub(super) fn new_permission_variable(
+        &mut self,
+        global_state: &mut GlobalHeapState,
+        predicate_name: &str,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let new_permission_variable = global_state.create_permission_variable(predicate_name);
+        let old_permission_variable =
+            std::mem::replace(&mut self.permission_variable, new_permission_variable);
+        Ok(old_permission_variable)
     }
 }
 

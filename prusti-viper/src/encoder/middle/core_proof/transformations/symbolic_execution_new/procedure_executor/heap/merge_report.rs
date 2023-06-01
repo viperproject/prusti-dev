@@ -10,10 +10,11 @@ use vir_crate::{
 pub(in super::super) struct HeapMergeReport {
     snapshot_report: Report<SnapshotRemap>,
     permission_report: Report<PermissionRemap>,
-    new_dead_lifetime_token_permission_map: Option<vir_low::Expression>,
-    old_permission_maps: Vec<vir_low::Expression>,
+    // new_dead_lifetime_token_permission_map: Option<vir_low::Expression>,
+    // old_permission_maps: Vec<vir_low::Expression>,
     /// For each predecessor, a list of permission variables that got `write`
-    /// assigned to them.
+    /// assigned to them. It is used for tracking `DeadLifetimeToken`
+    /// permissions.
     write_written_in_predecessors: Vec<Vec<vir_low::VariableDecl>>,
 }
 
@@ -44,10 +45,15 @@ pub(in super::super) struct SnapshotRemap {
 pub(in super::super) struct PermissionRemap {
     old_snapshot: String,
     new_snapshot: String,
+    /// Whether `new_snapshot` is assigned `none` permission or the value of
+    /// `old_snapshot`. We keep the `old_snapshot` even when remapping to `none`
+    /// so that we know to what to remap elements from other incoming branches.
+    map_to_none: bool,
 }
 
 trait Remap {
     fn create(old: &vir_low::VariableDecl, new: String) -> Self;
+    fn create_map_to_none(old: &vir_low::VariableDecl, new: String) -> Self;
     fn old(&self) -> &str;
     fn new(&self) -> &str;
     fn create_variable(
@@ -64,6 +70,10 @@ impl Remap for SnapshotRemap {
             new_snapshot: new,
             ty: old.ty.clone(),
         }
+    }
+
+    fn create_map_to_none(_old: &vir_low::VariableDecl, _new: String) -> Self {
+        unreachable!("This should not be called for snapshots");
     }
 
     fn old(&self) -> &str {
@@ -88,6 +98,15 @@ impl Remap for PermissionRemap {
         Self {
             old_snapshot: old.name.clone(),
             new_snapshot: new,
+            map_to_none: false,
+        }
+    }
+
+    fn create_map_to_none(old: &vir_low::VariableDecl, new: String) -> Self {
+        Self {
+            old_snapshot: old.name.clone(),
+            new_snapshot: new,
+            map_to_none: true,
         }
     }
 
@@ -184,6 +203,31 @@ impl<R: Remap> Report<R> {
         variable
     }
 
+    fn bump_self_version(
+        &mut self,
+        predicate_name: &str,
+        first_predecessor_variable: &vir_low::VariableDecl,
+        global_state: &mut GlobalHeapState,
+    ) -> vir_low::VariableDecl {
+        let variable =
+            R::create_variable(global_state, predicate_name, &first_predecessor_variable.ty);
+        for i in 0..self.predecessors.len() - 1 {
+            self.predecessors[i].remaps.push(Remap::create(
+                &first_predecessor_variable,
+                variable.name.clone(),
+            ));
+        }
+        let last_index = self.predecessors.len() - 1;
+        self.predecessors[last_index]
+            .remaps
+            .push(Remap::create_map_to_none(
+                &first_predecessor_variable,
+                variable.name.clone(),
+            ));
+        // TODO: Similarly implement bump_other_version.
+        variable
+    }
+
     fn validate(&self) {
         let mut new_variables = BTreeSet::new();
         for remap in &self.predecessors[0].remaps {
@@ -211,8 +255,8 @@ impl HeapMergeReport {
         Self {
             snapshot_report: Report::new(),
             permission_report: Report::new(),
-            new_dead_lifetime_token_permission_map: None,
-            old_permission_maps: Vec::new(),
+            // new_dead_lifetime_token_permission_map: None,
+            // old_permission_maps: Vec::new(),
             write_written_in_predecessors: vec![Vec::new()],
         }
     }
@@ -223,21 +267,21 @@ impl HeapMergeReport {
         self.write_written_in_predecessors.push(Vec::new());
     }
 
-    pub(in super::super) fn is_new_dead_lifetime_token_permission_map_set(&self) -> bool {
-        self.new_dead_lifetime_token_permission_map.is_some()
-    }
+    // pub(in super::super) fn is_new_dead_lifetime_token_permission_map_set(&self) -> bool {
+    //     self.new_dead_lifetime_token_permission_map.is_some()
+    // }
 
-    pub(in super::super) fn set_new_dead_lifetime_token_permission_map(
-        &mut self,
-        new_map: vir_low::Expression,
-    ) {
-        assert!(self.new_dead_lifetime_token_permission_map.is_none());
-        self.new_dead_lifetime_token_permission_map = Some(new_map);
-    }
+    // pub(in super::super) fn set_new_dead_lifetime_token_permission_map(
+    //     &mut self,
+    //     new_map: vir_low::Expression,
+    // ) {
+    //     assert!(self.new_dead_lifetime_token_permission_map.is_none());
+    //     self.new_dead_lifetime_token_permission_map = Some(new_map);
+    // }
 
-    pub(in super::super) fn add_old_permission_map(&mut self, old_map: vir_low::Expression) {
-        self.old_permission_maps.push(old_map);
-    }
+    // pub(in super::super) fn add_old_permission_map(&mut self, old_map: vir_low::Expression) {
+    //     self.old_permission_maps.push(old_map);
+    // }
 
     pub(in super::super) fn remap_snapshot_variable(
         &mut self,
@@ -265,6 +309,19 @@ impl HeapMergeReport {
             predicate_name,
             self_permission_variable,
             other_permission_variable,
+            global_state,
+        )
+    }
+
+    pub(in super::super) fn bump_self_permission_variable_version(
+        &mut self,
+        predicate_name: &str,
+        self_permission_variable: &vir_low::VariableDecl,
+        global_state: &mut GlobalHeapState,
+    ) -> vir_low::VariableDecl {
+        self.permission_report.bump_self_version(
+            predicate_name,
+            self_permission_variable,
             global_state,
         )
     }
@@ -365,10 +422,18 @@ impl PermissionRemap {
         self,
         position: vir_low::Position,
     ) -> vir_low::Statement {
-        vir_low::Statement::assign_no_pos(
-            vir_low::VariableDecl::new(self.new_snapshot, vir_low::Type::Perm),
-            vir_low::VariableDecl::new(self.old_snapshot, vir_low::Type::Perm).into(),
-        )
-        .set_default_position(position)
+        if self.map_to_none {
+            vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                vir_low::VariableDecl::new(self.new_snapshot, vir_low::Type::Perm).into(),
+                vir_low::Expression::no_permission(),
+            ))
+            .set_default_position(position)
+        } else {
+            vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                vir_low::VariableDecl::new(self.new_snapshot, vir_low::Type::Perm).into(),
+                vir_low::VariableDecl::new(self.old_snapshot, vir_low::Type::Perm).into(),
+            ))
+            .set_default_position(position)
+        }
     }
 }

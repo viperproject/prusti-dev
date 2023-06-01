@@ -1,3 +1,5 @@
+use std::collections::{BTreeMap, BTreeSet};
+
 use super::predicate_instance::{PredicateInstance, SnapshotType};
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingResult},
@@ -33,21 +35,23 @@ use vir_crate::{
 pub(in super::super) trait PermissionType: Default + Clone {
     fn inhale(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        old_permission_variable: vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()>;
     fn inhale_fresh(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()>;
     fn exhale(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        old_permission_variable: vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut impl StatementsBuilder,
@@ -82,20 +86,21 @@ pub(in super::super) struct AliasedFractionalBool;
 impl PermissionType for AliasedWholeBool {
     fn inhale(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        old_permission_variable: vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                permission_variable.clone().into(),
+                old_permission_variable.clone().into(),
                 vir_low::Expression::no_permission(),
             ))
             .set_default_position(position),
         )?;
         self.inhale_fresh(
-            permission_variable,
+            new_permission_variable,
             permission_amount,
             position,
             block_builder,
@@ -104,16 +109,16 @@ impl PermissionType for AliasedWholeBool {
 
     fn inhale_fresh(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
+            vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                new_permission_variable.clone().into(),
                 permission_amount.clone(),
-            )
+            ))
             .set_default_position(position),
         )?;
         Ok(())
@@ -121,23 +126,24 @@ impl PermissionType for AliasedWholeBool {
 
     fn exhale(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        old_permission_variable: vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut impl StatementsBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                permission_variable.clone().into(),
+                old_permission_variable.clone().into(),
                 permission_amount.clone(),
             ))
             .set_default_position(position),
         )?;
         block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
+            vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                new_permission_variable.clone().into(),
                 vir_low::Expression::no_permission(),
-            )
+            ))
             .set_default_position(position),
         )?;
         Ok(())
@@ -151,20 +157,21 @@ impl PermissionType for AliasedWholeBool {
 impl PermissionType for AliasedFractionalBool {
     fn inhale(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        old_permission_variable: vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                permission_variable.clone().into(),
+                old_permission_variable.clone().into(),
                 vir_low::Expression::no_permission(),
             ))
             .set_default_position(position),
         )?;
         self.inhale_fresh(
-            permission_variable,
+            new_permission_variable,
             permission_amount,
             position,
             block_builder,
@@ -173,16 +180,16 @@ impl PermissionType for AliasedFractionalBool {
 
     fn inhale_fresh(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
+            vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                new_permission_variable.clone().into(),
                 permission_amount.clone(),
-            )
+            ))
             .set_default_position(position),
         )?;
         Ok(())
@@ -190,23 +197,24 @@ impl PermissionType for AliasedFractionalBool {
 
     fn exhale(
         &self,
-        permission_variable: &vir_low::VariableDecl,
+        old_permission_variable: vir_low::VariableDecl,
+        new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
         block_builder: &mut impl StatementsBuilder,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                permission_variable.clone().into(),
+                old_permission_variable.clone().into(),
                 permission_amount.clone(),
             ))
             .set_default_position(position),
         )?;
         block_builder.add_statement(
-            vir_low::Statement::assign_no_pos(
-                permission_variable.clone(),
+            vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                new_permission_variable.clone().into(),
                 vir_low::Expression::no_permission(),
-            )
+            ))
             .set_default_position(position),
         )?;
         Ok(())
@@ -358,6 +366,7 @@ pub(in super::super) struct PredicateInstances<P: PermissionType, S: SnapshotTyp
     permission_type: P,
     pub(super) aliased_predicate_instances: Vec<PredicateInstance<S>>,
     pub(super) non_aliased_predicate_instances: Vec<PredicateInstance<S>>,
+    deleted_permission_variables: BTreeSet<String>,
 }
 
 impl<P: PermissionType, S: SnapshotType> Default for PredicateInstances<P, S> {
@@ -366,6 +375,7 @@ impl<P: PermissionType, S: SnapshotType> Default for PredicateInstances<P, S> {
             permission_type: Default::default(),
             aliased_predicate_instances: Vec::new(),
             non_aliased_predicate_instances: Vec::new(),
+            deleted_permission_variables: BTreeSet::new(),
         }
     }
 }
@@ -559,7 +569,10 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                             !predicate_instance.is_materialized,
                             "non-aliased predicates should never be materialized"
                         );
+                        let old_permission_variable = predicate_instance
+                            .new_permission_variable(global_state, &predicate.name)?;
                         self.permission_type.inhale(
+                            old_permission_variable,
                             &predicate_instance.permission_variable,
                             &predicate.permission,
                             position,
@@ -591,7 +604,10 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                             .set_default_position(position),
                         )?;
                     } else {
+                        let old_permission_variable = predicate_instance
+                            .new_permission_variable(global_state, &predicate.name)?;
                         self.permission_type.inhale(
+                            old_permission_variable,
                             &predicate_instance.permission_variable,
                             &predicate.permission,
                             position,
@@ -636,7 +652,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         &mut self,
         program_context: &mut ProgramContext<impl EncoderContext>,
         expression_interner: &mut ExpressionInterner,
-        _global_state: &mut GlobalHeapState,
+        global_state: &mut GlobalHeapState,
         predicate: vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
         constraints: &mut BlockConstraints,
@@ -689,18 +705,24 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                                     .set_default_position(position),
                             )?;
                         }
-                        let predicate_instance = self.non_aliased_predicate_instances.remove(i);
+                        let mut predicate_instance = self.non_aliased_predicate_instances.remove(i);
                         assert_eq!(predicate_instance.permission_amount, *predicate.permission);
                         assert!(
                             !predicate_instance.is_materialized,
                             "non-aliased predicates should never be materialized"
                         );
+                        let old_permission_variable = predicate_instance
+                            .new_permission_variable(global_state, &predicate.name)?;
+                        let old_permission_variable_name = old_permission_variable.name.clone();
                         self.permission_type.exhale(
+                            old_permission_variable,
                             &predicate_instance.permission_variable,
                             &predicate.permission,
                             position,
                             block_builder,
                         )?;
+                        self.deleted_permission_variables
+                            .insert(old_permission_variable_name);
                         return Ok(());
                     }
                     MatchesResult::DoesNotMatch => {}
@@ -732,7 +754,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                         || predicate_instance.is_materialized
                         || self.aliased_predicate_instances.len() == 1
                     {
-                        let predicate_instance = self.aliased_predicate_instances.remove(i);
+                        let mut predicate_instance = self.aliased_predicate_instances.remove(i);
                         assert_eq!(predicate_instance.permission_amount, *predicate.permission);
                         if predicate_instance.is_materialized {
                             // The predicate instance is materialized, so we need to
@@ -745,12 +767,18 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                             )?;
                             return Ok(());
                         } else {
+                            let old_permission_variable = predicate_instance
+                                .new_permission_variable(global_state, &predicate.name)?;
+                            let old_permission_variable_name = old_permission_variable.name.clone();
                             self.permission_type.exhale(
+                                old_permission_variable,
                                 &predicate_instance.permission_variable,
                                 &predicate.permission,
                                 position,
                                 block_builder,
                             )?;
+                            self.deleted_permission_variables
+                                .insert(old_permission_variable_name);
                         }
                         return Ok(());
                     } else {
@@ -785,6 +813,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 self.emit_conditional_exhale(
                     predicate,
                     position,
+                    global_state,
                     constraints,
                     block_builder,
                     program_context,
@@ -914,6 +943,8 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         program_context: &ProgramContext<impl EncoderContext>,
         global_state: &mut GlobalHeapState,
     ) -> SpannedEncodingResult<()> {
+        self.deleted_permission_variables
+            .extend(other.deleted_permission_variables.iter().cloned());
         self.merge_non_aliased(
             other,
             self_edge_block,
@@ -940,6 +971,16 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             program_context,
             global_state,
         )?;
+        for predicate_instance in &self.aliased_predicate_instances {
+            assert!(!self
+                .deleted_permission_variables
+                .contains(&predicate_instance.permission_variable.name));
+        }
+        for predicate_instance in &self.non_aliased_predicate_instances {
+            assert!(!self
+                .deleted_permission_variables
+                .contains(&predicate_instance.permission_variable.name));
+        }
         Ok(())
     }
 
@@ -995,6 +1036,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                         other_instance,
                         self_edge_block,
                         other_edge_block,
+                        &self.deleted_permission_variables,
                         predicate_name,
                         position,
                         heap_merge_report,
@@ -1010,11 +1052,24 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             if !found {
                 // The permission amount is tracked by the verifier, so we do
                 // not need to do anything.
+                if self
+                    .deleted_permission_variables
+                    .contains(&self_instance.permission_variable.name)
+                {
+                    self_instance.bump_permission_variable_version(
+                        predicate_name,
+                        heap_merge_report,
+                        global_state,
+                    )?;
+                }
             }
         }
         for (i, used) in other_used.iter().enumerate() {
             if !*used {
                 let instance = other.non_aliased_predicate_instances[i].clone();
+                assert!(!self
+                    .deleted_permission_variables
+                    .contains(&instance.permission_variable.name));
                 self.non_aliased_predicate_instances.push(instance);
             }
         }
@@ -1066,6 +1121,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                         other_instance,
                         self_edge_block,
                         other_edge_block,
+                        &self.deleted_permission_variables,
                         predicate_name,
                         position,
                         heap_merge_report,
@@ -1082,12 +1138,25 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 // The permission amount is tracked by the verifier, so we only
                 // need to mark that the instance is conditional.
                 self_instance.is_unconditional = false;
+                if self
+                    .deleted_permission_variables
+                    .contains(&self_instance.permission_variable.name)
+                {
+                    self_instance.bump_permission_variable_version(
+                        predicate_name,
+                        heap_merge_report,
+                        global_state,
+                    )?;
+                }
             }
         }
         for (i, used) in other_used.iter().enumerate() {
             if !*used {
                 let mut instance = other.aliased_predicate_instances[i].clone();
                 instance.is_unconditional = false;
+                assert!(!self
+                    .deleted_permission_variables
+                    .contains(&instance.permission_variable.name));
                 self.aliased_predicate_instances.push(instance);
                 // This could mean that we have two elements in other that are
                 // equal to each other and, therefore, we may need to merge
@@ -1152,6 +1221,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 &second_instance,
                 self_edge_block,
                 &mut other_edge_block,
+                &self.deleted_permission_variables,
                 predicate_name,
                 position,
                 heap_merge_report,
@@ -1203,6 +1273,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         &mut self,
         predicate: vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
+        global_state: &mut GlobalHeapState,
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
         program_context: &ProgramContext<impl EncoderContext>,
@@ -1214,29 +1285,60 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         // making the encoding more performant (achieve the Silicon-like grouping
         // of summands).
         assert!(!self.permission_type.exhale_needs_to_add());
+        // We use this for cases when the permission amount did not change.
+        let mut new_old_permission_variables = Vec::new();
+        for predicate_instance in self
+            .aliased_predicate_instances
+            .iter_mut()
+            .filter(|predicate_instance| !predicate_instance.is_materialized)
+        {
+            let old_permission_variable =
+                predicate_instance.new_permission_variable(global_state, &predicate.name)?;
+            self.deleted_permission_variables
+                .insert(old_permission_variable.name.clone());
+            new_old_permission_variables.push((
+                old_permission_variable,
+                predicate_instance.permission_variable.clone(),
+            ));
+        }
         // We consider only instances that are not materialized and conditional:
         // 1. Materialized instances should be exhaled only by QPs.
         // 2. For now, we just assume that unconditional instances would be
         //    always successfully matched. – this seems to be wrong.
-        let mut predicate_instances =
-            self.aliased_predicate_instances
-                .iter()
-                .filter(|predicate_instance| {
-                    !predicate_instance.is_materialized
-                    //  && !predicate_instance.is_unconditional
-                });
+        let mut predicate_instances = self
+            .aliased_predicate_instances
+            .iter_mut()
+            .filter(|predicate_instance| !predicate_instance.is_materialized)
+            .enumerate();
         let mut statement =
             vir_low::Statement::assert_no_pos(false.into()).set_default_position(position);
-        while let Some(predicate_instance) = predicate_instances.next() {
+        while let Some((index, predicate_instance)) = predicate_instances.next() {
             let guard = predicate_instance
                 .create_matches_check(&predicate.arguments, &predicate.permission)?;
             let mut then_statements = Vec::new();
+            // Perform the exhale updating the permission variable.
+            let old_permission_variable = new_old_permission_variables[index].0.clone();
             self.permission_type.exhale(
+                old_permission_variable,
                 &predicate_instance.permission_variable,
                 &predicate.permission,
                 position,
                 &mut then_statements,
             )?;
+            // All other permission variables preserve their values.
+            for (index2, (new_permission_variable, old_permission_variable)) in
+                new_old_permission_variables.iter().enumerate()
+            {
+                if index2 != index {
+                    then_statements.push(
+                        vir_low::Statement::assume_no_pos(vir_low::Expression::equals(
+                            new_permission_variable.clone().into(),
+                            old_permission_variable.clone().into(),
+                        ))
+                        .set_default_position(position),
+                    );
+                }
+            }
             statement =
                 vir_low::Statement::conditional_no_pos(guard, then_statements, vec![statement])
                     .set_default_position(position);
