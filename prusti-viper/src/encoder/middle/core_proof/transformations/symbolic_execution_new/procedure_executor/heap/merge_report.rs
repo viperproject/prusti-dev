@@ -224,7 +224,28 @@ impl<R: Remap> Report<R> {
                 &first_predecessor_variable,
                 variable.name.clone(),
             ));
-        // TODO: Similarly implement bump_other_version.
+        variable
+    }
+
+    fn bump_other_version(
+        &mut self,
+        predicate_name: &str,
+        last_predecessor_variable: &vir_low::VariableDecl,
+        global_state: &mut GlobalHeapState,
+    ) -> vir_low::VariableDecl {
+        let variable =
+            R::create_variable(global_state, predicate_name, &last_predecessor_variable.ty);
+        for i in 0..self.predecessors.len() - 1 {
+            self.predecessors[i].remaps.push(Remap::create_map_to_none(
+                &last_predecessor_variable,
+                variable.name.clone(),
+            ));
+        }
+        let last_index = self.predecessors.len() - 1;
+        self.predecessors[last_index].remaps.push(Remap::create(
+            &last_predecessor_variable,
+            variable.name.clone(),
+        ));
         variable
     }
 
@@ -322,6 +343,19 @@ impl HeapMergeReport {
         self.permission_report.bump_self_version(
             predicate_name,
             self_permission_variable,
+            global_state,
+        )
+    }
+
+    pub(in super::super) fn bump_other_permission_variable_version(
+        &mut self,
+        predicate_name: &str,
+        other_permission_variable: &vir_low::VariableDecl,
+        global_state: &mut GlobalHeapState,
+    ) -> vir_low::VariableDecl {
+        self.permission_report.bump_other_version(
+            predicate_name,
+            other_permission_variable,
             global_state,
         )
     }

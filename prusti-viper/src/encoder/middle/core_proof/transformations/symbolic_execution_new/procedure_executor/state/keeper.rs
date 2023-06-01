@@ -100,6 +100,10 @@ impl StateKeeper {
                 let mut first_predecessor_edge_block = Vec::new();
                 let first_predecessor_state = self.states.get(first_predecessor).unwrap();
                 let mut state = first_predecessor_state.clone();
+                for predecessor in predecessors {
+                    let predecessor_state = self.states.get(predecessor).unwrap();
+                    state.pre_merge(predecessor_state)?;
+                }
                 let mut heap_merge_report = HeapMergeReport::new();
                 let mut predecessor_edge_blocks = VecDeque::new();
                 for predecessor in predecessors_iter {

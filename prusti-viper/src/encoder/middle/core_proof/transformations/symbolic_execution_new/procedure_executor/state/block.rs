@@ -33,6 +33,11 @@ impl State {
         })
     }
 
+    pub(super) fn pre_merge(&mut self, other: &Self) -> SpannedEncodingResult<()> {
+        self.heap.pre_merge(&other.heap)?;
+        Ok(())
+    }
+
     pub(super) fn merge(
         &mut self,
         other: &Self,

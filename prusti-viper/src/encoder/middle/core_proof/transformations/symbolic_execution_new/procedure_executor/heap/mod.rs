@@ -585,6 +585,24 @@ impl std::fmt::Display for BlockHeap {
 }
 
 impl BlockHeap {
+    pub(super) fn pre_merge(&mut self, other: &Self) -> SpannedEncodingResult<()> {
+        // self.lifetimes
+        //     .merge_deleted_permission_variables(&other.lifetimes)?;
+        // self.dead_lifetimes
+        //     .merge_deleted_permission_variables(&other.dead_lifetimes)?;
+        self.owned
+            .merge_deleted_permission_variables(&other.owned)?;
+        self.memory_block
+            .merge_deleted_permission_variables(&other.memory_block)?;
+        self.close_frac_ref
+            .merge_deleted_permission_variables(&other.close_frac_ref)?;
+        self.without_snapshot_whole
+            .merge_deleted_permission_variables(&other.without_snapshot_whole)?;
+        self.without_snapshot_whole_non_aliased
+            .merge_deleted_permission_variables(&other.without_snapshot_whole_non_aliased)?;
+        Ok(())
+    }
+
     pub(super) fn merge(
         &mut self,
         other: &Self,
