@@ -294,13 +294,13 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         locals.extend(self.global_heap_state.clone_variables());
         let mut custom_labels = self.procedure.custom_labels.clone();
         custom_labels.extend(std::mem::take(&mut self.custom_labels));
-        let entry_block = basic_blocks.get_mut(&self.procedure.entry).unwrap();
-        let permission_variable_initialization = self
-            .global_heap_state
-            .initialize_permission_variables(self.procedure.position);
-        entry_block
-            .statements
-            .splice(0..0, permission_variable_initialization);
+        // let entry_block = basic_blocks.get_mut(&self.procedure.entry).unwrap();
+        // let permission_variable_initialization = self
+        //     .global_heap_state
+        //     .initialize_permission_variables(self.procedure.position);
+        // entry_block
+        //     .statements
+        //     .splice(0..0, permission_variable_initialization);
         let procedure = vir_low::ProcedureDecl::new(
             self.procedure.name.clone(),
             locals,
@@ -375,13 +375,13 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             locals.extend(self.global_heap_state.clone_variables());
             let mut custom_labels = self.procedure.custom_labels.clone();
             custom_labels.extend(self.custom_labels.clone());
-            let entry_block = basic_blocks.get_mut(&self.procedure.entry).unwrap();
-            let permission_variable_initialization = self
-                .global_heap_state
-                .initialize_permission_variables(self.procedure.position);
-            entry_block
-                .statements
-                .splice(0..0, permission_variable_initialization);
+            // let entry_block = basic_blocks.get_mut(&self.procedure.entry).unwrap();
+            // let permission_variable_initialization = self
+            //     .global_heap_state
+            //     .initialize_permission_variables(self.procedure.position);
+            // entry_block
+            //     .statements
+            //     .splice(0..0, permission_variable_initialization);
             let procedure = vir_low::ProcedureDecl::new(
                 format!("{}$trace{}", self.procedure.name, i),
                 locals,
