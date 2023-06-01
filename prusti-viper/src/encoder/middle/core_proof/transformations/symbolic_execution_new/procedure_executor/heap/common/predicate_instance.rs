@@ -225,13 +225,27 @@ impl<S: SnapshotType> PredicateInstance<S> {
         Ok(())
     }
 
-    pub(super) fn bump_permission_variable_version(
+    pub(super) fn bump_self_permission_variable_version(
         &mut self,
         predicate_name: &str,
         heap_merge_report: &mut HeapMergeReport,
         global_state: &mut GlobalHeapState,
     ) -> SpannedEncodingResult<()> {
         self.permission_variable = heap_merge_report.bump_self_permission_variable_version(
+            predicate_name,
+            &self.permission_variable,
+            global_state,
+        );
+        Ok(())
+    }
+
+    pub(super) fn bump_other_permission_variable_version(
+        &mut self,
+        predicate_name: &str,
+        heap_merge_report: &mut HeapMergeReport,
+        global_state: &mut GlobalHeapState,
+    ) -> SpannedEncodingResult<()> {
+        self.permission_variable = heap_merge_report.bump_other_permission_variable_version(
             predicate_name,
             &self.permission_variable,
             global_state,

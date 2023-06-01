@@ -932,6 +932,15 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         Ok(())
     }
 
+    pub(in super::super) fn merge_deleted_permission_variables(
+        &mut self,
+        other: &Self,
+    ) -> SpannedEncodingResult<()> {
+        self.deleted_permission_variables
+            .extend(other.deleted_permission_variables.iter().cloned());
+        Ok(())
+    }
+
     pub(in super::super) fn merge(
         &mut self,
         other: &Self,
@@ -946,8 +955,6 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         program_context: &ProgramContext<impl EncoderContext>,
         global_state: &mut GlobalHeapState,
     ) -> SpannedEncodingResult<()> {
-        self.deleted_permission_variables
-            .extend(other.deleted_permission_variables.iter().cloned());
         self.merge_non_aliased(
             other,
             self_edge_block,
@@ -980,9 +987,13 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 .contains(&predicate_instance.permission_variable.name));
         }
         for predicate_instance in &self.non_aliased_predicate_instances {
-            assert!(!self
-                .deleted_permission_variables
-                .contains(&predicate_instance.permission_variable.name));
+            assert!(
+                !self
+                    .deleted_permission_variables
+                    .contains(&predicate_instance.permission_variable.name),
+                "{}",
+                predicate_instance.permission_variable
+            );
         }
         Ok(())
     }
@@ -1059,7 +1070,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                     .deleted_permission_variables
                     .contains(&self_instance.permission_variable.name)
                 {
-                    self_instance.bump_permission_variable_version(
+                    self_instance.bump_self_permission_variable_version(
                         predicate_name,
                         heap_merge_report,
                         global_state,
@@ -1069,10 +1080,17 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         }
         for (i, used) in other_used.iter().enumerate() {
             if !*used {
-                let instance = other.non_aliased_predicate_instances[i].clone();
-                assert!(!self
+                let mut instance = other.non_aliased_predicate_instances[i].clone();
+                if self
                     .deleted_permission_variables
-                    .contains(&instance.permission_variable.name));
+                    .contains(&instance.permission_variable.name)
+                {
+                    instance.bump_other_permission_variable_version(
+                        predicate_name,
+                        heap_merge_report,
+                        global_state,
+                    )?;
+                }
                 self.non_aliased_predicate_instances.push(instance);
             }
         }
@@ -1145,7 +1163,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                     .deleted_permission_variables
                     .contains(&self_instance.permission_variable.name)
                 {
-                    self_instance.bump_permission_variable_version(
+                    self_instance.bump_self_permission_variable_version(
                         predicate_name,
                         heap_merge_report,
                         global_state,

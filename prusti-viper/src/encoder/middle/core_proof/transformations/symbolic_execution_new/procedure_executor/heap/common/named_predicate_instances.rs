@@ -215,6 +215,27 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         Ok(())
     }
 
+    pub(in super::super) fn merge_deleted_permission_variables(
+        &mut self,
+        other: &Self,
+    ) -> SpannedEncodingResult<()> {
+        for (predicate_name, self_instances) in &mut self.predicates {
+            if let Some(other_instances) = other.predicates.get(predicate_name) {
+                self_instances.merge_deleted_permission_variables(other_instances)?;
+            }
+        }
+        for predicate_name in other.predicates.keys() {
+            if !self.predicates.contains_key(predicate_name) {
+                let mut fresh_predicate_instances = PredicateInstances::default();
+                fresh_predicate_instances
+                    .merge_deleted_permission_variables(&other.predicates[predicate_name])?;
+                self.predicates
+                    .insert(predicate_name.clone(), fresh_predicate_instances);
+            }
+        }
+        Ok(())
+    }
+
     pub(in super::super) fn merge(
         &mut self,
         other: &Self,
@@ -250,20 +271,21 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         }
         for predicate_name in other.predicates.keys() {
             if !self.predicates.contains_key(predicate_name) {
-                // let mut self_predicate_instances = Vec::new();
-                // for other_instance in &other.predicates[predicate_name].predicate_instances {
-                //     let instance = other_instance.clone();
-                //     self_predicate_instances.push(instance);
-                // }
+                unreachable!("merge_deleted_permission_variables should have already created");
+                // // let mut self_predicate_instances = Vec::new();
+                // // for other_instance in &other.predicates[predicate_name].predicate_instances {
+                // //     let instance = other_instance.clone();
+                // //     self_predicate_instances.push(instance);
+                // // }
+                // // self.predicates.insert(
+                // //     predicate_name.clone(),
+                // //     PredicateInstances::new(self_predicate_instances),
+                // // );
                 // self.predicates.insert(
                 //     predicate_name.clone(),
-                //     PredicateInstances::new(self_predicate_instances),
+                //     other.predicates[predicate_name].clone(),
                 // );
-                self.predicates.insert(
-                    predicate_name.clone(),
-                    other.predicates[predicate_name].clone(),
-                );
-                // FIXME: Check whether we need to `PredicateInstance::remap_arguments` here.
+                // // FIXME: Check whether we need to `PredicateInstance::remap_arguments` here.
             }
         }
         Ok(())

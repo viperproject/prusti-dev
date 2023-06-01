@@ -143,6 +143,15 @@ impl Owned {
         )
     }
 
+    pub(super) fn merge_deleted_permission_variables(
+        &mut self,
+        other: &Self,
+    ) -> SpannedEncodingResult<()> {
+        self.predicates
+            .merge_deleted_permission_variables(&other.predicates)?;
+        Ok(())
+    }
+
     pub(super) fn merge(
         &mut self,
         other: &Self,
