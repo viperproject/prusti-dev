@@ -1179,9 +1179,16 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             if !*used {
                 let mut instance = other.aliased_predicate_instances[i].clone();
                 instance.is_unconditional = false;
-                assert!(!self
+                if self
                     .deleted_permission_variables
-                    .contains(&instance.permission_variable.name));
+                    .contains(&instance.permission_variable.name)
+                {
+                    instance.bump_other_permission_variable_version(
+                        predicate_name,
+                        heap_merge_report,
+                        global_state,
+                    )?;
+                }
                 self.aliased_predicate_instances.push(instance);
                 // This could mean that we have two elements in other that are
                 // equal to each other and, therefore, we may need to merge
