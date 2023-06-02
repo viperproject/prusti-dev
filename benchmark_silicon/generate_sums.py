@@ -85,41 +85,49 @@ class State:
         print(f"  duration: {end-start}")
         return result
 
+def construct_sum(exhaled_location, locations, permission, no_permission):
+    sum_expr = no_permission
+    for location in locations:
+        sum_expr = sum_expr + z3.If(
+            exhaled_location == location,
+            permission,
+            no_permission,
+        )
+    return sum_expr
+
+def check_size(size):
+    print(f"size: {size}")
+    state = State()
+    locations = []
+    for _ in range(size):
+        locations.append(state.fresh_location())
+    assertion = z3.BoolVal(True)
+    for (i, exhaled_location) in enumerate(locations):
+    #   print(i, exhaled_location)
+        inhaled_sum = construct_sum(
+            exhaled_location, locations, state._full_permission, state._no_permission)
+    #   print(inhaled_sum)
+        exhaled_sum = construct_sum(
+            exhaled_location, locations[:i], -state._full_permission, state._no_permission)
+    #   print(exhaled_sum)
+        assertion = z3.And(assertion, inhaled_sum + exhaled_sum >= state._full_permission)
+
+    #print(assertion)
+    assertion = z3.Not(assertion)
+    state.solver.add(assertion)
+    start = datetime.datetime.now()
+    result = state.solver.check()
+    end = datetime.datetime.now()
+    print(f"  start: {start}")
+    print(f"  end: {end}")
+    print(f"  duration: {end-start}")
+
+
 def main():
     state = State()
 
-    full_permission = state.full_permission()
-
-    # TODO: If the original program does not have disjunctive aliasing, it
-    # is always enought to do experiment with non-negativity.
-
-#   TODO: check unsat of a sequence of implications:
-#       s1 = 0
-#       s1 >= 0
-#       s2 = s1 + ...
-#       s1 >= 0 ==> s2 >= 0
-#       s3 = s2 + ...
-#       s2 >= 0 and s1 >= 0 ==> s3 >= 0
-
-    sum_expr = state._no_permission
-    sum_expr_assume = z3.BoolVal(True)
-
-    for i in range(3):
-        print(f"size: {i}")
-        location = state.fresh_location()
-
-        sum_expr_add = sum_expr + z3.If(state.exhaled_location == location, state._full_permission, state._no_permission)
-        sum_expr_assume_add = z3.And(sum_expr_assume, sum_expr_add >= 0)
-
-        sum_expr_sub = sum_expr_add + z3.If(state.exhaled_location == location, -state._full_permission, state._no_permission)
-        sum_expr_assume_sub = z3.And(sum_expr_assume_add, sum_expr_sub >= 0)
-
-        sum_expr = sum_expr_sub
-        sum_expr_assume = sum_expr_assume_sub
-
-        print(sum_expr_assume)
-        if i % 10 == 0:
-            print(state.check_assertion2(sum_expr_assume))
+    for i in range(1, 50):
+        check_size(i)
 
 if __name__ == '__main__':
     main()
