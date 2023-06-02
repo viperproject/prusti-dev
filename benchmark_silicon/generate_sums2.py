@@ -20,10 +20,16 @@ no_permission = z3.RealVal("0")
 
 def location(index):
     return z3.Const(f"address${index}", address_sort)
-def perm_mask(index):
-    return z3.Const(f"perm_mask${index}", permission_mask_sort)
-def perm_amount(index):
-    return z3.Const(f"perm_amount${index}", perm_sort)
+permission_mask_counter = 0
+def perm_mask():
+    global permission_mask_counter
+    permission_mask_counter += 1
+    return z3.Const(f"perm_mask${permission_mask_counter}", permission_mask_sort)
+perm_counter = 0
+def perm_amount():
+    global perm_counter
+    perm_counter += 1
+    return z3.Const(f"perm_amount${perm_counter}", perm_sort)
 
 class PermissionGrouping(z3.UserPropagateBase):
 
@@ -121,25 +127,29 @@ def check_size(size):
     solver = z3.Solver()
     pg = PermissionGrouping(solver)
 
-    p0 = perm_mask(0)
-    p1 = perm_mask(1)
-    p2 = perm_mask(2)
-    p3 = perm_mask(3)
-    p4 = perm_mask(4)
+    mask = perm_mask()
+    solver.add(perm_empty(mask))
 
-    a0 = location(0)
-    a1 = location(1)
+    addresses = []
+    for i in range(size):
+        address = location(i)
+        addresses.append(address)
+        # inhale acc(address)
+        new_mask = perm_mask()
+        solver.add(perm_update(mask, address, 1.0, new_mask))
+        mask = new_mask
 
-    v0 = perm_amount(0)
+    checks = z3.BoolVal(True)
+    for (i, address) in enumerate(addresses):
+        # exhale acc(address)
+        value = perm_amount()
+        solver.add(perm_read(mask, address, value))
+        checks = z3.And(checks, value >= 1)
+        new_mask = perm_mask()
+        solver.add(perm_update(mask, address, -1.0, new_mask))
+        mask = new_mask
 
-    solver.add(perm_empty(p0))
-    # inhale acc(a0)
-    solver.add(perm_update(p0, a0, 1.0, p1))
-    # inhale acc(a1)
-    solver.add(perm_update(p1, a1, 1.0, p2))
-    # exhale acc(a0)
-    solver.add(perm_read(p2, a0, v0))
-    solver.add(z3.Not(v0 >= 1.0))
+    solver.add(z3.Not(checks))
 
     print(solver)
     print(solver.check())
