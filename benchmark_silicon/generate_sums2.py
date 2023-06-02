@@ -4,6 +4,26 @@ import datetime
 
 import z3
 
+address_sort = z3.DeclareSort('Address')
+permission_mask_sort = z3.DeclareSort('PermissionMask')
+perm_sort = z3.RealSort()
+prop_sort = z3.BoolSort()
+perm_empty = z3.PropagateFunction(
+    "perm_empty", permission_mask_sort, prop_sort)
+perm_update = z3.PropagateFunction(
+    "perm_update", permission_mask_sort, address_sort, perm_sort, permission_mask_sort, prop_sort)
+# perm_lookup = z3.PropagateFunction(
+#     "perm_lookup", permission_mask_sort, address_sort, perm_sort)
+perm_read = z3.PropagateFunction(
+    "perm_read", permission_mask_sort, address_sort, perm_sort, prop_sort)
+no_permission = z3.RealVal("0")
+
+def location(index):
+    return z3.Const(f"address${index}", address_sort)
+def perm_mask(index):
+    return z3.Const(f"perm_mask${index}", permission_mask_sort)
+def perm_amount(index):
+    return z3.Const(f"perm_amount${index}", perm_sort)
 
 class PermissionGrouping(z3.UserPropagateBase):
 
@@ -13,6 +33,8 @@ class PermissionGrouping(z3.UserPropagateBase):
         self.add_final(lambda : self._final())
         self.add_eq(lambda x, y : self._eq(x, y))
         self.add_created(lambda t : self._created(t))
+        self._empty_masks = set()
+        self._mask_derived_from = {}
         print("created")
 
     def push(self):
@@ -25,207 +47,105 @@ class PermissionGrouping(z3.UserPropagateBase):
         print("fresh!")
 
     def _fixed(self, x, v):
-        print("_fixed!")
+        print("fixed: ", x, " := ", v)
+        assert z3.is_true(v)
+        if x.decl().eq(perm_empty):
+            mask = x.arg(0)
+            assert mask in self._empty_masks
+        elif x.decl().eq(perm_update):
+            mask = x.arg(0)
+            address = x.arg(1)
+            permission = x.arg(2)
+            new_mask = x.arg(3)
+            self._mask_derived_from[new_mask] = (mask, address, permission)
+        # elif x.decl().eq(perm_lookup):
+        #     mask = x.arg(0)
+        #     address = x.arg(1)
+        #     self.add(mask)
+        #     self.add(address)
+        #     self.add(x)
+        elif x.decl().eq(perm_read):
+            mask = x.arg(0)
+            address = x.arg(1)
+            value = x.arg(2)
+            def compute_sum(mask):
+                if mask in self._empty_masks:
+                    return 0
+                else:
+                    (update_mask, update_address, update_permission) = self._mask_derived_from[mask]
+                    return z3.If(address == update_address, update_permission, no_permission) + compute_sum(update_mask)
+            assumption = value == compute_sum(mask)
+            print("learned assumption:", assumption)
+            self.propagate(assumption, [x])
+        else:
+            TODO
 
-    def _final(self, x, v):
-        print("_final!")
+    def _final(self):
+        print("Final")
 
     def _eq(self, x, v):
         print(f"_eq!: {x} {v}")
 
-    def _created(self, x, v):
-        print("_created!")
+    def _created(self, t):
+        print("Created", t)
+        if t.decl().eq(perm_empty):
+            mask = t.arg(0)
+            self.add(mask)
+            self._empty_masks.add(mask)
+        elif t.decl().eq(perm_update):
+            mask = t.arg(0)
+            address = t.arg(1)
+            permission = t.arg(2)
+            new_mask = t.arg(3)
+            self.add(mask)
+            self.add(address)
+            self.add(permission)
+            self.add(new_mask)
+        # elif t.decl().eq(perm_lookup):
+        #     mask = t.arg(0)
+        #     address = t.arg(1)
+        #     self.add(mask)
+        #     self.add(address)
+        #     self.add(t)
+        elif t.decl().eq(perm_read):
+            mask = t.arg(0)
+            address = t.arg(1)
+            value = t.arg(2)
+            self.add(mask)
+            self.add(address)
+            self.add(value)
+        else:
+            TODO
 
-class State:
-    def __init__(self):
-        self.address_sort = z3.DeclareSort('Address')
-        self.perm_sort = z3.RealSort()
-        self._full_permission = z3.RealVal("1")
-        self._no_permission = z3.RealVal("0")
-        self.solver = z3.Solver()
-        self.permission_grouping = PermissionGrouping(self.solver)
-        self.locations = []
-        self.permissions = []
-        self.sum = []
-        self.non_negativity_assumptions = []
-        self.exhaled_location = self.fresh_location()
+def check_size(size):
+    solver = z3.Solver()
+    pg = PermissionGrouping(solver)
 
-    def fresh_location(self):
-        location = z3.Const(f"address${len(self.locations)}", self.address_sort)
-        self.locations.append(location)
-        self.permission_grouping.add(location)
-        return location
+    p0 = perm_mask(0)
+    p1 = perm_mask(1)
+    p2 = perm_mask(2)
+    p3 = perm_mask(3)
+    p4 = perm_mask(4)
 
-    def fresh_permission(self):
-        permission = z3.Const(f"permission${len(self.permissions)}", self.perm_sort)
-        self.permissions.append(permission)
-        return permission
+    a0 = location(0)
+    a1 = location(1)
 
-    def full_permission(self):
-        return self._full_permission
+    v0 = perm_amount(0)
 
-    def add_summand(self, location, permission):
-        self.sum.append(
-            z3.If(self.exhaled_location == location, permission, self._no_permission)
-        )
+    solver.add(perm_empty(p0))
+    # inhale acc(a0)
+    solver.add(perm_update(p0, a0, 1.0, p1))
+    # inhale acc(a1)
+    solver.add(perm_update(p1, a1, 1.0, p2))
+    # exhale acc(a0)
+    solver.add(perm_read(p2, a0, v0))
+    solver.add(z3.Not(v0 >= 1.0))
 
-    def is_non_negative_assertion(self):
-        sum_expr = self._no_permission
-        for summand in self.sum:
-            sum_expr = sum_expr + summand
-        return sum_expr >= self._no_permission
-
-    def generate_sum(self):
-        sum_expr = self._no_permission
-        for summand in self.sum:
-            sum_expr = sum_expr + summand
-        return sum_expr
-
-    def is_full_assertion(self):
-        sum_expr = self._no_permission
-        for summand in self.sum:
-            sum_expr = sum_expr + summand
-        return sum_expr >= self._full_permission
-
-    def add_non_negativity_assumption(self):
-        self.solver.push()
-        assertion = self.is_non_negative_assertion()
-        self.solver.add(assertion)
-
-    # def check_assertion(self, assertion):
-    #     assertion = z3.Not(assertion)
-    #     # print(assertion)
-    #     self.solver.push()
-    #     self.solver.add(assertion)
-    #     print("checking: {assertion}")
-    #     print(self.solver)
-    #     start = datetime.datetime.now()
-    #     result = self.solver.check()
-    #     self.solver.pop()
-    #     end = datetime.datetime.now()
-    #     print(f"  start: {start}")
-    #     print(f"  end: {end}")
-    #     print(f"  duration: {end-start}")
-    #     return result
-
-    # def check_assertion2(self, assertion):
-    #     assertion = z3.Not(assertion)
-    #     solver = z3.Solver()
-    #     solver.add(assertion)
-    #     start = datetime.datetime.now()
-    #     result = solver.check()
-    #     end = datetime.datetime.now()
-    #     print(f"  start: {start}")
-    #     print(f"  end: {end}")
-    #     print(f"  duration: {end-start}")
-    #     return result
-
-def construct_sum(exhaled_location, locations, permission, no_permission):
-    sum_expr = no_permission
-    for location in locations:
-        sum_expr = sum_expr + z3.If(
-            exhaled_location == location,
-            permission,
-            no_permission,
-        )
-    return sum_expr
-
-def check_size(size, add_group_assumptions):
-#   print(f"size: {size}")
-    state = State()
-    state.solver.push()
-    locations = []
-    for _ in range(size):
-        locations.append(state.fresh_location())
-    assertion = z3.BoolVal(True)
-    for (i, exhaled_location) in enumerate(locations):
-    #   print(i, exhaled_location)
-        inhaled_sum = construct_sum(
-            exhaled_location, locations, state._full_permission, state._no_permission)
-    #   print(inhaled_sum)
-        exhaled_sum = construct_sum(
-            exhaled_location, locations[:i], -state._full_permission, state._no_permission)
-    #   print(exhaled_sum)
-        check = inhaled_sum + exhaled_sum >= state._full_permission
-    #   print(check)
-        assertion = z3.And(assertion, check)
-
-        if add_group_assumptions:
-            for (j, location_group) in enumerate(locations):
-                inhaled = z3.If(
-                    exhaled_location == location_group,
-                    state._full_permission,
-                    state._no_permission,
-                )
-                exhaled = z3.If(
-                    exhaled_location == location_group,
-                    -state._full_permission,
-                    state._no_permission,
-                )
-                if j < i:
-                    conjunct = inhaled + exhaled >= 0
-                else:
-                    conjunct = inhaled >= 0
-        #       print(conjunct)
-                assertion = z3.And(assertion, conjunct)
-
-#   print(assertion)
-    assertion = z3.Not(assertion)
-    state.solver.add(assertion)
-    start = datetime.datetime.now()
-    result = state.solver.check()
-    end = datetime.datetime.now()
-    print(f"  start: {start}")
-    print(f"  end: {end}")
-    print(f"  duration: {end-start}")
-    print(result)
-#   print(f"Size {size} completed in {end-start}")
-    # add_group_assumptions=False
-    # Size 1 completed in 0:00:00.005373
-    # Size 2 completed in 0:00:00.006233
-    # Size 3 completed in 0:00:00.006431
-    # Size 4 completed in 0:00:00.009251
-    # Size 5 completed in 0:00:00.011879
-    # Size 6 completed in 0:00:00.013903
-    # Size 7 completed in 0:00:00.018198
-    # Size 8 completed in 0:00:00.020426
-    # Size 9 completed in 0:00:00.027054
-    # Size 10 completed in 0:00:00.045473
-    # Size 11 completed in 0:00:00.078226
-    # Size 12 completed in 0:00:00.149595
-    # Size 13 completed in 0:00:00.280547
-    # Size 14 completed in 0:00:00.558921
-    # Size 15 completed in 0:00:01.145783
-    # Size 16 completed in 0:00:02.419031
-    # Size 17 completed in 0:00:05.444189
-    # Size 18 completed in 0:00:10.202696
-    # Size 19 completed in 0:00:28.442166
-    # Size 20 completed in 0:01:32.388904
-    # add_group_assumptions=True
-    # Size 1 completed in 0:00:00.006661
-    # Size 2 completed in 0:00:00.008673
-    # Size 3 completed in 0:00:00.008395
-    # Size 4 completed in 0:00:00.012773
-    # Size 5 completed in 0:00:00.012729
-    # Size 6 completed in 0:00:00.014022
-    # Size 7 completed in 0:00:00.012290
-    # Size 8 completed in 0:00:00.016343
-    # Size 9 completed in 0:00:00.021220
-    # Size 10 completed in 0:00:00.024776
-    # Size 11 completed in 0:00:00.032785
-    # Size 12 completed in 0:00:00.041238
-    # Size 13 completed in 0:00:00.046568
-    # Size 14 completed in 0:00:00.069082
-    # Size 15 completed in 0:00:00.457555
-    # Size 16 completed in 0:00:00.212668
-    # Size 17 completed in 0:00:00.139427
-    # Size 18 completed in 0:00:00.176176
-    # Size 19 completed in 0:00:00.180726
+    print(solver)
+    print(solver.check())
 
 def main():
-    # for i in range(1, 10):
-    #     check_size(i, False)
-    check_size(3, False)
+    check_size(3)
 
 if __name__ == '__main__':
     main()
