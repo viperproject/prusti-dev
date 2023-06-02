@@ -96,7 +96,7 @@ def construct_sum(exhaled_location, locations, permission, no_permission):
     return sum_expr
 
 def check_size(size):
-    print(f"size: {size}")
+    #print(f"size: {size}")
     state = State()
     locations = []
     for _ in range(size):
@@ -118,10 +118,30 @@ def check_size(size):
     start = datetime.datetime.now()
     result = state.solver.check()
     end = datetime.datetime.now()
-    print(f"  start: {start}")
-    print(f"  end: {end}")
-    print(f"  duration: {end-start}")
-
+   #print(f"  start: {start}")
+   #print(f"  end: {end}")
+   #print(f"  duration: {end-start}")
+    print(f"Size {size} completed in {end-start}")
+    # Size 1 completed in 0:00:00.005373
+    # Size 2 completed in 0:00:00.006233
+    # Size 3 completed in 0:00:00.006431
+    # Size 4 completed in 0:00:00.009251
+    # Size 5 completed in 0:00:00.011879
+    # Size 6 completed in 0:00:00.013903
+    # Size 7 completed in 0:00:00.018198
+    # Size 8 completed in 0:00:00.020426
+    # Size 9 completed in 0:00:00.027054
+    # Size 10 completed in 0:00:00.045473
+    # Size 11 completed in 0:00:00.078226
+    # Size 12 completed in 0:00:00.149595
+    # Size 13 completed in 0:00:00.280547
+    # Size 14 completed in 0:00:00.558921
+    # Size 15 completed in 0:00:01.145783
+    # Size 16 completed in 0:00:02.419031
+    # Size 17 completed in 0:00:05.444189
+    # Size 18 completed in 0:00:10.202696
+    # Size 19 completed in 0:00:28.442166
+    # Size 20 completed in 0:01:32.388904
 
 def main():
     state = State()
