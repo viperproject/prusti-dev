@@ -113,8 +113,9 @@ impl CheckTranslator {
             #[prusti::store_id = #check_id_str]
             fn #item_name() -> #old_values_type {
                 println!("store function {} is performed", #item_name_str);
+                let old_values = (#tuple);
                 #forget_statements
-                return (#tuple);
+                return old_values;
             }
         };
         // store function has the same generics and arguments as the
