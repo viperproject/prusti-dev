@@ -1,7 +1,9 @@
 #!env/bin/python3
 
-import datetime
+# Based on https://microsoft.github.io/z3guide/programming/Example%20Programs/User%20Propagator/
 
+import datetime
+import union_find
 import z3
 
 address_sort = z3.DeclareSort('Address')
@@ -41,19 +43,29 @@ class PermissionGrouping(z3.UserPropagateBase):
         self.add_created(lambda t : self._created(t))
         self._empty_masks = set()
         self._mask_derived_from = {}
-        print("created")
+        self.push_count = 0
+        self.pop_count = 0
+        self.lim = []
+        self.trail = []
+        self.uf = union_find.UnionFind(self.trail)
 
     def push(self):
-        print("push!")
+        self.push_count += 1
+        self.lim += [len(self.trail)]
 
     def pop(self, n):
-        print("pop!")
+        self.pop_count += n
+        head = self.lim[len(self.lim) - n]
+        while len(self.trail) > head:
+            self.trail[-1]()
+            self.trail.pop(-1)
+        self.lim = self.lim[0:len(self.lim)-n]
 
     def fresh(self, new_ctx):
-        print("fresh!")
+        TODO
 
     def _fixed(self, x, v):
-        print("fixed: ", x, " := ", v)
+        # print("fixed: ", x, " := ", v)
         assert z3.is_true(v)
         if x.decl().eq(perm_empty):
             mask = x.arg(0)
@@ -81,19 +93,19 @@ class PermissionGrouping(z3.UserPropagateBase):
                     (update_mask, update_address, update_permission) = self._mask_derived_from[mask]
                     return z3.If(address == update_address, update_permission, no_permission) + compute_sum(update_mask)
             assumption = value == compute_sum(mask)
-            print("learned assumption:", assumption)
+            # print("learned assumption:", assumption)
             self.propagate(assumption, [x])
         else:
             TODO
 
     def _final(self):
-        print("Final")
+        TODO
 
-    def _eq(self, x, v):
-        print(f"_eq!: {x} {v}")
+    def _eq(self, x, y):
+        # print(f"_eq!: {x} {v}")
+        self.uf.merge(x, y)
 
     def _created(self, t):
-        print("Created", t)
         if t.decl().eq(perm_empty):
             mask = t.arg(0)
             self.add(mask)
@@ -103,6 +115,7 @@ class PermissionGrouping(z3.UserPropagateBase):
             address = t.arg(1)
             permission = t.arg(2)
             new_mask = t.arg(3)
+            self.uf.node(address)
             self.add(mask)
             self.add(address)
             self.add(permission)
@@ -116,6 +129,7 @@ class PermissionGrouping(z3.UserPropagateBase):
         elif t.decl().eq(perm_read):
             mask = t.arg(0)
             address = t.arg(1)
+            self.uf.node(address)
             value = t.arg(2)
             self.add(mask)
             self.add(address)
@@ -151,11 +165,17 @@ def check_size(size):
 
     solver.add(z3.Not(checks))
 
-    print(solver)
-    print(solver.check())
+    start = datetime.datetime.now()
+    result = solver.check()
+    end = datetime.datetime.now()
+
+    # print(solver)
+    # print(solver.check())
+    print(f"Size {size} completed in {end-start} (push: {pg.push_count} pop: {pg.pop_count}) with {result}")
 
 def main():
-    check_size(3)
+    for i in range(3, 20):
+        check_size(i)
 
 if __name__ == '__main__':
     main()
