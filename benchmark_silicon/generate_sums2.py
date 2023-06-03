@@ -42,11 +42,14 @@ class PermissionGrouping(z3.UserPropagateBase):
         self.add_final(lambda : self._final())
         self.add_eq(lambda x, y : self._eq(x, y))
         self.add_created(lambda t : self._created(t))
+        self.decide = None  # It seems that UserPropagateBase is missing a field declaration. Monkey Patch for the resque!
+        self.add_decide(lambda t : self._decide(t))
         self._empty_masks = set()
         self._mask_derived_from = {}
         self._group_terms = group_terms
         self.push_count = 0
         self.pop_count = 0
+        self.decide_count = 0
         self.lim = []
         self.trail = []
         self.uf = union_find.UnionFind(self.trail)
@@ -62,6 +65,10 @@ class PermissionGrouping(z3.UserPropagateBase):
             self.trail[-1]()
             self.trail.pop(-1)
         self.lim = self.lim[0:len(self.lim)-n]
+
+    def _decide(self, _):
+        # This callback seems to be broken in the current version of z3.
+        self.decide_count += 1
 
     def fresh(self, new_ctx):
         TODO
@@ -188,7 +195,7 @@ def check_size(size, group_terms):
 
     # print(solver)
     # print(solver.check())
-    print(f"Size {size} completed in {end-start} (push: {pg.push_count} pop: {pg.pop_count}) with {result}")
+    print(f"Size {size} completed in {end-start} (decide: {pg.decide_count} push: {pg.push_count} pop: {pg.pop_count}) with {result}")
 
 def main():
     # check_size(3, False)
