@@ -143,7 +143,7 @@ def check_size(size, add_group_assumptions):
 #   print(f"  end: {end}")
 #   print(f"  duration: {end-start}")
 #   print(result)
-    print(f"Size {size} completed in {end-start}")
+    print(f"Size {size} completed in {end-start} with {result}")
     # add_group_assumptions=False
     # Size 1 completed in 0:00:00.005373
     # Size 2 completed in 0:00:00.006233
