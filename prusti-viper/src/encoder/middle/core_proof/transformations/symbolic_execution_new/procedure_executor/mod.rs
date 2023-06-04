@@ -301,13 +301,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         // entry_block
         //     .statements
         //     .splice(0..0, permission_variable_initialization);
-        let procedure = vir_low::ProcedureDecl::new(
+        let procedure = vir_low::ProcedureDecl::new_with_pos(
             self.procedure.name.clone(),
             locals,
             custom_labels,
             self.procedure.entry.clone(),
             self.procedure.exit.clone(),
             basic_blocks,
+            self.procedure.position,
         );
         Ok(procedure)
     }
@@ -382,13 +383,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             // entry_block
             //     .statements
             //     .splice(0..0, permission_variable_initialization);
-            let procedure = vir_low::ProcedureDecl::new(
+            let procedure = vir_low::ProcedureDecl::new_with_pos(
                 format!("{}$trace{}", self.procedure.name, i),
                 locals,
                 custom_labels,
                 self.procedure.entry.clone(),
                 self.procedure.exit.clone(),
                 basic_blocks,
+                self.procedure.position,
             );
             procedures.push(procedure);
         }
