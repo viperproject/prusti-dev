@@ -10,7 +10,7 @@ use core::panic;
 use lazy_static::lazy_static;
 use log::{self, debug};
 use prusti_common::vir::program::Program;
-use prusti_utils::{report::log::report_with_writer, run_timed};
+use prusti_utils::{config, report::log::report_with_writer, run_timed};
 use regex::Regex;
 use std::{
     error::Error,
@@ -39,6 +39,10 @@ impl Verifier {
         let Program::Low(program) = program else {
             panic!("Lithium backend only supports low programs");
         };
+
+        if !config::unsafe_core_proof() {
+            panic!("Lithium backend only supports unsafe_core_proof=true");
+        }
 
         let is_z3 = self.smt_solver_exe.ends_with("z3");
 

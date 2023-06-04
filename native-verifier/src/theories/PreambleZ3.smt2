@@ -1,5 +1,7 @@
 ; ===== Static preamble =====
 
+(set-info :smt-lib-version 2.6)
+
 (set-option :global-decls true) ; Boogie: default
 (set-option :auto_config false) ; Usually a good idea
 (set-option :smt.restart_strategy 0)

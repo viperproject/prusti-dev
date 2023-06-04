@@ -1,5 +1,7 @@
 ; ===== Static preamble =====
 
+(set-info :smt-lib-version 2.6)
+
 (set-logic ALL)
 
 (set-option :tlimit-per 5000)
