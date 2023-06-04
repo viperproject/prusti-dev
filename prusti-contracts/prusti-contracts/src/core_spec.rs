@@ -26,6 +26,17 @@ impl<T, E: ::core::fmt::Debug> ::core::result::Result<T, E> {
     fn unwrap(self) -> T;
 }
 
+#[extern_spec]
+impl<T> ::core::option::Option<T> {
+    #[requires(matches!(self, Some(_)))]
+    #[ensures(match self {
+        Some(value) => result === value,
+        None => false,
+    })]
+    #[no_panic_ensures_postcondition]
+    fn unwrap(self) -> T;
+}
+
 // Crashes ☹
 type Pointer<T> = *const T;
 #[extern_spec]
@@ -98,6 +109,18 @@ impl usize {
     #[no_panic]
     #[no_panic_ensures_postcondition]
     fn is_power_of_two(self) -> bool;
+
+    #[terminates]
+    #[pure]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    #[ensures(if Int::new_usize(self) * Int::new_usize(rhs) <= Int::new_usize(usize::MAX) {
+        result == Some(self * rhs)
+    } else {
+        let none = None;
+        result == none
+    })]
+    fn checked_mul(self, rhs: usize) -> Option<usize>;
 }
 
 #[extern_spec]
