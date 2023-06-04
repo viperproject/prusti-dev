@@ -166,12 +166,8 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
         &mut self,
         quantifier: vir_low::Quantifier,
     ) -> Result<vir_low::Expression, Self::Error> {
-        let mut remaps = FxHashMap::default();
-        for bound_variable in &quantifier.variables {
-            let remap = self.heap_encoder.fresh_variable(&bound_variable)?;
-            remaps.insert(bound_variable.clone(), remap);
-        }
-        self.heap_encoder.bound_variable_remap_stack.push(remaps);
+        self.heap_encoder
+            .create_quantifier_variables_remap(&quantifier.variables)?;
         let quantifier = self.fallible_fold_quantifier(quantifier)?;
         self.heap_encoder.bound_variable_remap_stack.pop();
         Ok(vir_low::Expression::Quantifier(quantifier))

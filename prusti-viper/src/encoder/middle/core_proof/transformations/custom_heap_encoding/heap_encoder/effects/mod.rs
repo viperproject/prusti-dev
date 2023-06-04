@@ -8,7 +8,7 @@ use super::{
 };
 use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, SyntacticEvaluation},
+    common::expression::{BinaryOperationHelpers, QuantifierHelpers, SyntacticEvaluation},
     low::{self as vir_low},
 };
 
@@ -545,6 +545,94 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     }
                     _ => unreachable!("expression: {}", expression),
                 },
+                vir_low::Expression::Quantifier(expression) => {
+                    if let vir_low::Expression::BinaryOp(vir_low::BinaryOp {
+                        op_kind: vir_low::BinaryOpKind::Implies,
+                        left: box guard,
+                        right: box vir_low::Expression::PredicateAccessPredicate(predicate),
+                        ..
+                    }) = *expression.body
+                    {
+                        self.create_quantifier_variables_remap(&expression.variables)?;
+                        let guard = self.encode_pure_expression(
+                            statements,
+                            guard,
+                            expression_evaluation_state_label.clone(),
+                            position,
+                            false,
+                        )?;
+                        eprintln!("guard: {guard}");
+                        eprintln!("body: {predicate}");
+                        match self.get_predicate_permission_mask_kind(&predicate.name)? {
+                            PredicatePermissionMaskKind::AliasedWholeBool
+                            | PredicatePermissionMaskKind::AliasedFractionalBool => {
+                                let operations =
+                                    PermissionMaskOperations::<PermissionMaskKindAliasedBool>::new(
+                                        self,
+                                        statements,
+                                        &predicate,
+                                        expression_evaluation_state_label.clone(),
+                                        position,
+                                    )?;
+                                self.encode_expression_inhale_quantified_predicate(
+                                    statements,
+                                    expression.variables,
+                                    guard,
+                                    &predicate,
+                                    expression.triggers,
+                                    position,
+                                    expression_evaluation_state_label,
+                                    operations,
+                                )?
+                            }
+                            PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => {
+                                let operations = PermissionMaskOperations::<
+                                    PermissionMaskKindAliasedFractionalBoundedPerm,
+                                >::new(
+                                    self,
+                                    statements,
+                                    &predicate,
+                                    expression_evaluation_state_label.clone(),
+                                    position,
+                                )?;
+                                self.encode_expression_inhale_quantified_predicate(
+                                    statements,
+                                    expression.variables,
+                                    guard,
+                                    &predicate,
+                                    expression.triggers,
+                                    position,
+                                    expression_evaluation_state_label,
+                                    operations,
+                                )?
+                            }
+                            PredicatePermissionMaskKind::AliasedWholeDuplicable => {
+                                let operations = PermissionMaskOperations::<
+                                    PermissionMaskKindAliasedDuplicableBool,
+                                >::new(
+                                    self,
+                                    statements,
+                                    &predicate,
+                                    expression_evaluation_state_label.clone(),
+                                    position,
+                                )?;
+                                self.encode_expression_inhale_quantified_predicate(
+                                    statements,
+                                    expression.variables,
+                                    guard,
+                                    &predicate,
+                                    expression.triggers,
+                                    position,
+                                    expression_evaluation_state_label,
+                                    operations,
+                                )?
+                            }
+                        }
+                        self.bound_variable_remap_stack.pop();
+                    } else {
+                        unimplemented!("expression: {:?}", expression);
+                    }
+                }
                 vir_low::Expression::Conditional(_) => todo!(),
                 vir_low::Expression::FuncApp(_) => todo!(),
                 vir_low::Expression::DomainFuncApp(_) => todo!(),
@@ -595,6 +683,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             expression_evaluation_state_label,
             perm_new_value,
         )?;
+        Ok(())
+    }
+
+    fn encode_expression_inhale_quantified_predicate<Kind: PermissionMaskKind>(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        variables: Vec<vir_low::VariableDecl>,
+        guard: vir_low::Expression,
+        predicate: &vir_low::ast::expression::PredicateAccessPredicate,
+        triggers: Vec<vir_low::Trigger>,
+        position: vir_low::Position,
+        expression_evaluation_state_label: Option<String>,
+        operations: PermissionMaskOperations<Kind>,
+    ) -> SpannedEncodingResult<()>
+    where
+        PermissionMaskOperations<Kind>: TPermissionMaskOperations,
+    {
+        statements.push(vir_low::Statement::comment(format!(
+            "inhale-qp-predicate {guard} ==> {predicate}"
+        )));
+        if operations.can_assume_old_permission_is_none(&predicate.permission) {
+            statements.push(vir_low::Statement::assume(
+                vir_low::Expression::forall(
+                    variables.clone(),
+                    triggers.clone(),
+                    vir_low::Expression::implies(guard.clone(), operations.perm_old_equal_none(),)
+                ),
+                position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+            ));
+        }
+        let perm_new_value = operations.perm_old_add(&predicate.permission);
+        // // Compared to `encode_expression_inhale_predicate`, the setting of the new value and
+        // // transfering the old values is merged into a single quantifer:
+        // // ```
+        // // assume forall variables ::
+        // //     {triggers}
+        // //     guard ?
+        // //     perm<P>(variables, v_new) == perm<P>(variables, v_old) + p
+        // //     perm<P>(arg1, arg2, v_new) == perm<P>(arg1, arg2, v_old)
+        // // ```
+        // statements.push(vir_low::Statement::assume(
+        //     vir_low::Expression::forall(
+        //         variables.clone(),
+        //         triggers.clone(),
+        //         vir_low::Expression::equals(operations.perm_new(), perm_new_value.clone()),
+        //     ),
+        //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+        // ));
+        unimplemented!("TODO: axiomatize inverse functions and use them to quantify over the permission mask");
         Ok(())
     }
 }
