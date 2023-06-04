@@ -84,7 +84,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                     }
                     _ => {
                         error_unsupported!(
-                            "unsupported constant type {:?} {:?} {:?}",
+                            "unsupported constant type (3) {:?} {:?} {:?}",
                             mir_type.kind(),
                             ty.kind(),
                             constant.literal
@@ -93,14 +93,14 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                 },
                 _ => {
                     error_unsupported!(
-                        "unsupported constant type {:?} {:?}",
+                        "unsupported constant type (2) {:?} {:?}",
                         mir_type.kind(),
                         ty.kind()
                     );
                 }
             },
             _ => {
-                error_unsupported!("unsupported constant type {:?}", mir_type.kind());
+                error_unsupported!("unsupported constant type (1) {:?}", mir_type.kind());
             }
         };
         Ok(expr)
