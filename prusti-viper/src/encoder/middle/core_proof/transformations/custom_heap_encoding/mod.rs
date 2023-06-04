@@ -46,6 +46,7 @@ fn custom_heap_encoding_for_procedure<'p, 'v: 'p, 'tcx: 'v>(
     heap_encoder: &mut HeapEncoder<'p, 'v, 'tcx>,
     mut procedure: vir_low::ProcedureDecl,
 ) -> SpannedEncodingResult<vir_low::ProcedureDecl> {
+    assert!(!procedure.position.is_default());
     let predecessors = procedure.predecessors_owned();
     let traversal_order = procedure.get_topological_sort();
     let mut basic_block_edges = BTreeMap::new();
