@@ -12,6 +12,8 @@ pub(in super::super) struct PermissionMaskKindAliasedFractionalBoundedPerm {}
 impl PermissionMaskKind for PermissionMaskKindAliasedFractionalBoundedPerm {}
 pub(in super::super) struct PermissionMaskKindAliasedBool {}
 impl PermissionMaskKind for PermissionMaskKindAliasedBool {}
+pub(in super::super) struct PermissionMaskKindAliasedDuplicableBool {}
+impl PermissionMaskKind for PermissionMaskKindAliasedDuplicableBool {}
 
 pub(in super::super) struct PermissionMaskOperations<Kind: PermissionMaskKind> {
     _kind: std::marker::PhantomData<Kind>,
@@ -165,5 +167,42 @@ impl TPermissionMaskOperations for PermissionMaskOperations<PermissionMaskKindAl
 
     fn can_assume_old_permission_is_none(&self, _: &vir_low::Expression) -> bool {
         true
+    }
+}
+
+impl TPermissionMaskOperations
+    for PermissionMaskOperations<PermissionMaskKindAliasedDuplicableBool>
+{
+    fn perm_old_greater_equals(
+        &self,
+        permission_amount: &vir_low::Expression,
+    ) -> vir_low::Expression {
+        assert!(permission_amount.is_full_permission());
+        self.perm_old.clone()
+    }
+
+    fn perm_old_positive(&self) -> vir_low::Expression {
+        self.perm_old.clone()
+    }
+
+    fn perm_old_sub(&self, permission_amount: &vir_low::Expression) -> vir_low::Expression {
+        assert!(permission_amount.is_full_permission());
+        // The permission is duplicable, so exhale does nothing.
+        true.into()
+    }
+
+    fn perm_old_add(&self, permission_amount: &vir_low::Expression) -> vir_low::Expression {
+        assert!(permission_amount.is_full_permission());
+        true.into()
+    }
+
+    fn perm_old_equal_none(&self) -> vir_low::Expression {
+        vir_low::Expression::equals(self.perm_old.clone(), false.into())
+    }
+
+    fn can_assume_old_permission_is_none(&self, _: &vir_low::Expression) -> bool {
+        // We may inhale the same permission multiple times, so we cannot assume that the old
+        // permission is none.
+        false
     }
 }

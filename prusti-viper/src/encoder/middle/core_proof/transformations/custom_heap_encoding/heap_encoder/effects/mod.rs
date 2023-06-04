@@ -1,6 +1,6 @@
 use super::{
     permission_mask::{
-        PermissionMaskKind, PermissionMaskKindAliasedBool,
+        PermissionMaskKind, PermissionMaskKindAliasedBool, PermissionMaskKindAliasedDuplicableBool,
         PermissionMaskKindAliasedFractionalBoundedPerm, PermissionMaskOperations,
         PredicatePermissionMaskKind, TPermissionMaskOperations,
     },
@@ -32,6 +32,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 expression,
                 expression_evaluation_state_label,
                 position,
+                false,
             )?;
             statements.push(vir_low::Statement::assert(expression, position));
         } else {
@@ -71,6 +72,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 expression,
                 expression_evaluation_state_label,
                 position,
+                true,
             )?;
             statements.push(vir_low::Statement::assert(expression, position));
         } else {
@@ -109,6 +111,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 expression,
                 Some(expression_evaluation_state_label.to_string()),
                 position,
+                true,
             )?;
             statements.push(vir_low::Statement::assert(expression, position));
         } else {
@@ -150,7 +153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 operations,
                             )?
                         }
-                        PredicatePermissionMaskKind::AliasedWholeNat => unimplemented!(),
+                        PredicatePermissionMaskKind::AliasedWholeDuplicable => unimplemented!(),
                     }
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
@@ -191,6 +194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             *expression.left,
                             Some(expression_evaluation_state_label.to_string()),
                             position,
+                            true,
                         )?;
                         statements.push(vir_low::Statement::conditional(
                             guard,
@@ -247,6 +251,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 expression,
                 Some(expression_evaluation_state_label.to_string()),
                 position,
+                false,
             )?;
             statements.push(vir_low::Statement::assert(expression, position));
         } else {
@@ -290,7 +295,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 operations,
                             )?
                         }
-                        PredicatePermissionMaskKind::AliasedWholeNat => unimplemented!(),
+                        PredicatePermissionMaskKind::AliasedWholeDuplicable => {
+                            let operations = PermissionMaskOperations::<
+                                PermissionMaskKindAliasedDuplicableBool,
+                            >::new(
+                                self,
+                                statements,
+                                &expression,
+                                Some(expression_evaluation_state_label.to_string()),
+                                position,
+                            )?;
+                            self.encode_expression_exhale_predicate(
+                                statements,
+                                &expression,
+                                position,
+                                Some(expression_evaluation_state_label.to_string()),
+                                operations,
+                            )?
+                        }
                     }
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
@@ -419,6 +441,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 expression,
                 expression_evaluation_state_label,
                 position,
+                false,
             )?;
             statements.push(vir_low::Statement::assume(expression, position));
         } else {
@@ -461,7 +484,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 operations,
                             )?
                         }
-                        PredicatePermissionMaskKind::AliasedWholeNat => unimplemented!(),
+                        PredicatePermissionMaskKind::AliasedWholeDuplicable => {
+                            let operations = PermissionMaskOperations::<
+                                PermissionMaskKindAliasedDuplicableBool,
+                            >::new(
+                                self,
+                                statements,
+                                &expression,
+                                expression_evaluation_state_label.clone(),
+                                position,
+                            )?;
+                            self.encode_expression_inhale_predicate(
+                                statements,
+                                &expression,
+                                position,
+                                expression_evaluation_state_label,
+                                operations,
+                            )?
+                        }
                     }
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
@@ -487,6 +527,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             *expression.left,
                             expression_evaluation_state_label.clone(),
                             position,
+                            false,
                         )?;
                         let mut body = Vec::new();
                         self.encode_expression_inhale(
