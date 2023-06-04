@@ -8,6 +8,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         statements: &mut Vec<vir_low::Statement>,
         statement: vir_low::Statement,
     ) -> SpannedEncodingResult<()> {
+        assert!(self.bound_variable_remap_stack.is_empty());
         match statement {
             vir_low::Statement::Comment(_)
             | vir_low::Statement::LogEvent(_)
@@ -25,6 +26,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     statement.expression,
                     None,
                     statement.position,
+                    false,
                 )?;
                 statements.push(vir_low::Statement::assume(expression, statement.position));
             }

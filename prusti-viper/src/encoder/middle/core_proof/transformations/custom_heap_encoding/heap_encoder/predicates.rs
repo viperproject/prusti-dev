@@ -141,6 +141,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 argument.clone(),
                 expression_evaluation_state_label.clone(),
                 position,
+                false,
             )?);
         }
         Ok(arguments)
@@ -166,7 +167,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 PredicatePermissionMaskKind::AliasedWholeBool
             }
             vir_low::PredicateKind::DeadLifetimeToken => {
-                PredicatePermissionMaskKind::AliasedWholeNat
+                PredicatePermissionMaskKind::AliasedWholeDuplicable
             }
         };
         Ok(mask_kind)

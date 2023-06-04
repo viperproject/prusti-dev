@@ -8,7 +8,7 @@ use vir_crate::{
 };
 
 pub(super) use self::operations::{
-    PermissionMaskKind, PermissionMaskKindAliasedBool,
+    PermissionMaskKind, PermissionMaskKindAliasedBool, PermissionMaskKindAliasedDuplicableBool,
     PermissionMaskKindAliasedFractionalBoundedPerm, PermissionMaskOperations,
     TPermissionMaskOperations,
 };
@@ -28,8 +28,8 @@ pub(super) enum PredicatePermissionMaskKind {
     /// by `write` and, therefore, when inhaling `write` we can assume that the
     /// current amount is `none`.
     AliasedFractionalBoundedPerm,
-    /// The permission amounts are natural numbers.
-    AliasedWholeNat,
+    /// The permission is duplicable.
+    AliasedWholeDuplicable,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
@@ -40,18 +40,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     fn mask_function_return_type(&self, kind: PredicatePermissionMaskKind) -> vir_low::Type {
         match kind {
             PredicatePermissionMaskKind::AliasedWholeBool
-            | PredicatePermissionMaskKind::AliasedFractionalBool => vir_low::Type::Bool,
-            PredicatePermissionMaskKind::AliasedWholeNat
-            | PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => vir_low::Type::Perm,
+            | PredicatePermissionMaskKind::AliasedFractionalBool
+            | PredicatePermissionMaskKind::AliasedWholeDuplicable => vir_low::Type::Bool,
+            PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => vir_low::Type::Perm,
         }
     }
 
     fn no_permission(&self, kind: PredicatePermissionMaskKind) -> vir_low::Expression {
         match kind {
             PredicatePermissionMaskKind::AliasedWholeBool
-            | PredicatePermissionMaskKind::AliasedFractionalBool => false.into(),
-            PredicatePermissionMaskKind::AliasedWholeNat
-            | PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => {
+            | PredicatePermissionMaskKind::AliasedFractionalBool
+            | PredicatePermissionMaskKind::AliasedWholeDuplicable => false.into(),
+            PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => {
                 vir_low::Expression::no_permission()
             }
         }
@@ -62,11 +62,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         kind: PredicatePermissionMaskKind,
     ) -> Option<vir_low::VariableDecl> {
         match kind {
-            PredicatePermissionMaskKind::AliasedWholeNat
-            | PredicatePermissionMaskKind::AliasedFractionalBool => Some(
-                vir_low::VariableDecl::new("permission_amount", vir_low::Type::Perm),
-            ),
+            PredicatePermissionMaskKind::AliasedFractionalBool => Some(vir_low::VariableDecl::new(
+                "permission_amount",
+                vir_low::Type::Perm,
+            )),
             PredicatePermissionMaskKind::AliasedWholeBool
+            | PredicatePermissionMaskKind::AliasedWholeDuplicable
             | PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => None,
         }
     }
@@ -164,7 +165,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => {
                 vir_low::Expression::greater_than(perm_call, vir_low::Expression::no_permission())
             }
-            PredicatePermissionMaskKind::AliasedWholeNat => unimplemented!(),
+            PredicatePermissionMaskKind::AliasedWholeDuplicable => unimplemented!(),
         };
         Ok(positivity_check)
     }

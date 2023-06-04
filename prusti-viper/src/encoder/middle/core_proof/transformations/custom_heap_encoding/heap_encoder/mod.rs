@@ -4,8 +4,9 @@ mod heap;
 mod effects;
 mod predicates;
 mod permission_mask;
+mod bound_variable_stack;
 
-use self::predicates::Predicates;
+use self::{bound_variable_stack::BoundVariableRemapStack, predicates::Predicates};
 use super::variable_declarations::VariableDeclarations;
 use crate::encoder::{
     errors::SpannedEncodingResult, middle::core_proof::predicates::OwnedPredicateInfo, Encoder,
@@ -24,6 +25,7 @@ pub(super) struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
     heap_names: FxHashMap<String, String>,
     /// A counter used for generating fresh labels.
     fresh_label_counter: u64,
+    bound_variable_remap_stack: BoundVariableRemapStack,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
@@ -57,6 +59,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 .collect(),
             ssa_state: Default::default(),
             fresh_label_counter: 0,
+            bound_variable_remap_stack: Default::default(),
         }
     }
 
@@ -120,6 +123,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         self.new_variables
             .create_variable(variable_name, ty, version)
+    }
+
+    pub(super) fn fresh_variable(
+        &mut self,
+        variable: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        self.new_variables
+            .fresh_variable(&variable.name, &variable.ty)
     }
 
     pub(super) fn take_variables(&mut self) -> FxHashSet<vir_low::VariableDecl> {

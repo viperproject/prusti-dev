@@ -1,5 +1,6 @@
 use super::HeapEncoder;
 use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
+use rustc_hash::FxHashMap;
 use vir_crate::{
     common::{
         builtin_constants::MEMORY_BLOCK_PREDICATE_NAME,
@@ -15,6 +16,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         expression: vir_low::Expression,
         expression_evaluation_state_label: Option<String>,
         position: vir_low::Position,
+        is_in_frame_check: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let mut purifier = Purifier {
             expression_evaluation_state_label,
@@ -22,6 +24,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             statements,
             path_condition: Vec::new(),
             position,
+            is_in_frame_check,
         };
         purifier.fallible_fold_expression(expression)
     }
@@ -29,12 +32,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
 
 struct Purifier<'e, 'p, 'v: 'p, 'tcx: 'v> {
     /// The state in which we should evaluate the heap expressions. If `None`,
-    /// takes the latest heap.
+    /// takes the latest heap._
     expression_evaluation_state_label: Option<String>,
     heap_encoder: &'e mut HeapEncoder<'p, 'v, 'tcx>,
     statements: &'e mut Vec<vir_low::Statement>,
     path_condition: Vec<vir_low::Expression>,
     position: vir_low::Position,
+    is_in_frame_check: bool,
 }
 
 impl<'e, 'p, 'v: 'p, 'tcx: 'v> Purifier<'e, 'p, 'v, 'tcx> {
@@ -158,11 +162,34 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
         Ok(vir_low::Expression::LabelledOld(labelled_old))
     }
 
-    fn fallible_fold_quantifier(
+    fn fallible_fold_quantifier_enum(
         &mut self,
         quantifier: vir_low::Quantifier,
-    ) -> Result<vir_low::Quantifier, Self::Error> {
-        // TODO: Generate a fresh variable for each bound variable and use them instead when checking preconditions.
-        unimplemented!("quantifier: {quantifier}");
+    ) -> Result<vir_low::Expression, Self::Error> {
+        let mut remaps = FxHashMap::default();
+        for bound_variable in &quantifier.variables {
+            let remap = self.heap_encoder.fresh_variable(&bound_variable)?;
+            remaps.insert(bound_variable.clone(), remap);
+        }
+        self.heap_encoder.bound_variable_remap_stack.push(remaps);
+        let quantifier = self.fallible_fold_quantifier(quantifier)?;
+        self.heap_encoder.bound_variable_remap_stack.pop();
+        Ok(vir_low::Expression::Quantifier(quantifier))
+    }
+
+    fn fallible_fold_variable_decl(
+        &mut self,
+        variable_decl: vir_low::VariableDecl,
+    ) -> Result<vir_low::VariableDecl, Self::Error> {
+        if self.is_in_frame_check {
+            if let Some(remap) = self
+                .heap_encoder
+                .bound_variable_remap_stack
+                .get(&variable_decl)
+            {
+                return Ok(remap.clone());
+            }
+        }
+        Ok(variable_decl)
     }
 }
