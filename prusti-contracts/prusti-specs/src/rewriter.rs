@@ -1,6 +1,6 @@
 use crate::{
     common::HasSignature,
-    runtime_checks::CheckTranslator,
+    runtime_checks::{RuntimeFunctions, translate_runtime_checks},
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
@@ -145,94 +145,6 @@ impl AstRewriter {
         Ok(syn::Item::Fn(spec_item))
     }
 
-    pub fn generate_check_item_fn(
-        &mut self,
-        spec_type: SpecItemType,
-        check_id: SpecificationId,
-        expr: TokenStream,
-        item: &untyped::AnyFnItem,
-    ) -> syn::Result<(syn::Item, Option<syn::Item>)> {
-        if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
-            return Err(syn::Error::new(
-                span,
-                "it is not allowed to use the keyword `result` as a function argument".to_string(),
-            ));
-        }
-        let item_span = expr.span();
-        let check_item_name = syn::Ident::new(
-            &format!(
-                "prusti_{}_check_item_{}_{}",
-                spec_type,
-                item.sig().ident,
-                check_id
-            ),
-            item_span,
-        );
-
-        let store_old_item_name = syn::Ident::new(
-            &format!(
-                "prusti_{}_store_old_item_{}_{}",
-                spec_type,
-                item.sig().ident,
-                check_id
-            ),
-            item_span,
-        );
-        let check_id_str = check_id.to_string();
-
-        // about the span and expression chosen here:
-        // - `item_span` is set to `expr.span()` so that any errors reported
-        //   for the spec item will be reported on the span of the expression
-        //   written by the user
-        // - `((#expr) : bool)` syntax is used to report type errors in the
-        //   expression with the correct error message, i.e. that the expected
-        //   type is `bool`, not that the expected *return* type is `bool`
-        // - `!!(...)` is used to fix an edge-case when the expression consists
-        //   of a single identifier; without the double negation, the `Return`
-        //   terminator in MIR has a span set to the one character just after
-        //   the identifier
-        // let (return_type, return_modifier) = match &spec_type {
-        //     SpecItemType::Termination => (
-        //         quote_spanned! {item_span => Int},
-        //         quote_spanned! {item_span => Int::new(0) + },
-        //     ),
-        //     SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
-        //     _ => (
-        //         quote_spanned! {item_span => bool},
-        //         quote_spanned! {item_span => !!},
-        //     ),
-        // };
-        let check_translator = CheckTranslator::new(item, expr);
-
-        match spec_type {
-            SpecItemType::Postcondition | SpecItemType::Pledge => {
-                let check_item = check_translator.generate_check_function(
-                    item,
-                    check_item_name,
-                    &check_id_str,
-                    true,
-                    true,
-                );
-                let store_item = check_translator.generate_store_function(
-                    item,
-                    store_old_item_name,
-                    check_id_str,
-                );
-                Ok((syn::Item::Fn(check_item), Some(syn::Item::Fn(store_item))))
-            }
-            _ => {
-                let check_item = check_translator.generate_check_function(
-                    item,
-                    check_item_name,
-                    &check_id_str,
-                    false,
-                    false,
-                );
-                Ok((syn::Item::Fn(check_item), None))
-            }
-        }
-    }
-
     /// Parse an assertion into a Rust expression
     pub fn process_assertion<T: HasSignature + Spanned>(
         &mut self,
@@ -250,8 +162,10 @@ impl AstRewriter {
         check_id: SpecificationId,
         tokens: TokenStream,
         item: &untyped::AnyFnItem,
-    ) -> syn::Result<(syn::Item, Option<syn::Item>)> {
-        self.generate_check_item_fn(spec_type, check_id, parse_prusti(tokens)?, item)
+    ) -> syn::Result<syn::Item> {
+        let res = translate_runtime_checks(spec_type, check_id, parse_prusti(tokens)?, None, item)?;
+        // precondition will only have check_fn
+        syn::Result::Ok(res.check_fn)
     }
 
     pub fn create_post_check(
@@ -261,22 +175,31 @@ impl AstRewriter {
         tokens: TokenStream,
         item: &untyped::AnyFnItem,
     ) -> syn::Result<(syn::Item, Option<syn::Item>)> {
-        self.generate_check_item_fn(spec_type, check_id, parse_prusti(tokens)?, item)
+        let res = translate_runtime_checks(spec_type, check_id, parse_prusti(tokens)?, None, item)?;
+        syn::Result::Ok((res.check_fn, res.store_fn))
     }
 
     /// Parse a pledge with lhs into a Rust expression
     pub fn process_pledge(
         &mut self,
         spec_id: SpecificationId,
+        check_id_opt: Option<SpecificationId>,
         tokens: TokenStream,
         item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
-        self.generate_spec_item_fn(
+    ) -> syn::Result<(syn::Item, Option<RuntimeFunctions>)> {
+        let parsed = parse_prusti_pledge(tokens)?;
+        let spec_item = self.generate_spec_item_fn(
             SpecItemType::Pledge,
             spec_id,
-            parse_prusti_pledge(tokens)?,
+            parsed.clone(),
             item,
-        )
+        )?;
+        let check = if let Some(check_id) = check_id_opt {
+            Some(translate_runtime_checks(SpecItemType::Pledge, check_id, parsed, None, item)?)
+        } else {
+            None
+        };
+        syn::Result::Ok((spec_item, check))
     }
 
     pub fn process_pure_refinement(
@@ -308,13 +231,19 @@ impl AstRewriter {
         &mut self,
         spec_id_lhs: SpecificationId,
         spec_id_rhs: SpecificationId,
+        check_id: Option<SpecificationId>,
         tokens: TokenStream,
         item: &untyped::AnyFnItem,
-    ) -> syn::Result<(syn::Item, syn::Item)> {
+    ) -> syn::Result<(syn::Item, syn::Item, Option<RuntimeFunctions>)> {
         let (lhs, rhs) = parse_prusti_assert_pledge(tokens)?;
-        let lhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs, item)?;
-        let rhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs, item)?;
-        Ok((lhs_item, rhs_item))
+        let lhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs.clone(), item)?;
+        let rhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs.clone(), item)?;
+        if let Some(check_id) = check_id {
+            let checks = translate_runtime_checks(SpecItemType::Pledge, check_id, rhs, Some(lhs), item)?;
+            syn::Result::Ok((lhs_item, rhs_item, Some(checks)))
+        } else {
+            syn::Result::Ok((lhs_item, rhs_item, None))
+        }
     }
 
     /// Parse a loop invariant into a Rust expression

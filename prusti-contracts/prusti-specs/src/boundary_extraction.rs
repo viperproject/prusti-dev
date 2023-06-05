@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashSet;
 use syn::{self, parse_quote, parse_quote_spanned, spanned::Spanned, visit::Visit, BinOp};
 
 pub struct BoundExtractor {

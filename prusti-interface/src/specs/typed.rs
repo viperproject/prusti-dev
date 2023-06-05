@@ -28,9 +28,17 @@ pub struct DefSpecificationMap {
 #[derive(Debug, Clone)]
 pub enum CheckKind {
     Pre(DefId),
-    Post { check: DefId, old_store: DefId }, // actual check and old_store function
+    Post {
+        check: DefId,
+        old_store: DefId,
+    }, // actual check and old_store function
     Assume(DefId),
-    Pledge{rhs: DefId, lhs: DefId},
+    Pledge {
+        check: DefId,
+        old_store: DefId,
+        check_before_expiry: Option<DefId>,
+        store_before_expiry: DefId,
+    },
 }
 
 impl DefSpecificationMap {
@@ -70,16 +78,23 @@ impl DefSpecificationMap {
         self.ghost_end.get(def_id)
     }
 
+    pub fn get_runtime_checks(&self, def_id: &DefId) -> Vec<CheckKind> {
+        self.checks.get(def_id).cloned().unwrap_or(Vec::new())
+    }
     pub fn get_pre_checks(&self, def_id: &DefId) -> Vec<DefId> {
         let checks_opt = self.checks.get(def_id);
         if let Some(checks) = checks_opt {
-            checks.iter().filter_map(|el|
-                if let CheckKind::Pre(id) = el {
-                    Some(id)
-                } else {
-                    None
-                }
-            ).cloned().collect()
+            checks
+                .iter()
+                .filter_map(|el| {
+                    if let CheckKind::Pre(id) = el {
+                        Some(id)
+                    } else {
+                        None
+                    }
+                })
+                .cloned()
+                .collect()
         } else {
             Vec::new()
         }
@@ -88,13 +103,16 @@ impl DefSpecificationMap {
     pub fn get_post_checks(&self, def_id: &DefId) -> Vec<(DefId, DefId)> {
         let checks_opt = self.checks.get(def_id);
         if let Some(checks) = checks_opt {
-            checks.iter().filter_map(|el|
-                if let CheckKind::Post { check, old_store } = el {
-                    Some((*check, *old_store))
-                } else {
-                    None
-                }
-            ).collect()
+            checks
+                .iter()
+                .filter_map(|el| {
+                    if let CheckKind::Post { check, old_store } = el {
+                        Some((*check, *old_store))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
         } else {
             Vec::new()
         }

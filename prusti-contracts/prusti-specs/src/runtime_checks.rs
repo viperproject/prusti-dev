@@ -1,8 +1,8 @@
 use crate::{
-    boundary_extraction::{self, BoundExtractor, Boundary, BoundaryKind},
+    boundary_extraction::{self, BoundExtractor},
     common::HasSignature,
-    rewriter::AstRewriter,
-    specifications::untyped,
+    rewriter::{AstRewriter, SpecItemType},
+    specifications::{common::SpecificationId, untyped},
 };
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
@@ -15,19 +15,116 @@ use syn::{
 pub struct CheckTranslator {
     /// The expression within the specification
     expression: Expr,
+    lhs_expression: Option<Expr>,
     visitor: CheckVisitor,
+    spec_type: SpecItemType,
+}
+
+/// this struct contains all possible items needed to check certain
+/// specifications at runtime
+pub struct RuntimeFunctions {
+    /// the actual check function. For pledges, this is the check after
+    /// expiration
+    pub check_fn: syn::Item,
+    /// store old state function
+    pub store_fn: Option<syn::Item>,
+    /// store expressions evaluated in before expiry expression
+    pub store_before_expiry: Option<syn::Item>,
+    /// for assert_after_expiry(), this is the lhs of the magic wand
+    pub check_before_expiry: Option<syn::Item>,
+}
+
+impl RuntimeFunctions {
+    /// consumes self, and returns vector of items
+    pub fn to_item_vec(self) -> Vec<syn::Item> {
+        let RuntimeFunctions {
+            check_fn,
+            store_fn,
+            store_before_expiry,
+            check_before_expiry,
+        } = self;
+        let mut res = vec![check_fn];
+        if let Some(store_fn) = store_fn {
+            res.push(store_fn);
+        }
+        if let Some(store_before_expiry) = store_before_expiry {
+            res.push(store_before_expiry);
+        }
+        if let Some(check_before_expiry) = check_before_expiry {
+            res.push(check_before_expiry);
+        }
+        res
+    }
+}
+
+/// Generates a bunch of functions that can be used to check specifications
+/// at runtime.
+pub fn translate_runtime_checks(
+    spec_type: SpecItemType,
+    check_id: SpecificationId,
+    expr: TokenStream,
+    lhs: Option<TokenStream>,
+    item: &untyped::AnyFnItem,
+) -> syn::Result<RuntimeFunctions> {
+    let check_translator = CheckTranslator::new(item, expr, lhs, spec_type.clone());
+    let check_fn = check_translator.generate_check_function(item, check_id, false);
+    let (store_fn, store_before_expiry, check_before_expiry) = match spec_type {
+        SpecItemType::Pledge => {
+            // most things to generate:
+            let store_item = check_translator.generate_store_function(item, check_id);
+            let check_before_expiry =
+                check_translator.generate_check_function(item, check_id, true);
+            let store_before_expiry = check_translator.generate_store_before_expiry(item, check_id);
+
+            (
+                Some(store_item),
+                Some(store_before_expiry),
+                Some(check_before_expiry),
+            )
+        }
+        SpecItemType::Postcondition => {
+            let store_item = check_translator.generate_store_function(item, check_id);
+            (Some(store_item), None, None)
+        }
+        SpecItemType::Precondition => (None, None, None),
+        _ => unreachable!(),
+    };
+    syn::Result::Ok(RuntimeFunctions {
+        check_fn,
+        store_fn,
+        store_before_expiry,
+        check_before_expiry,
+    })
 }
 
 impl CheckTranslator {
-    pub fn new(item: &untyped::AnyFnItem, tokens: TokenStream) -> Self {
+    pub fn new(
+        item: &untyped::AnyFnItem,
+        tokens: TokenStream,
+        lhs_tokens_opt: Option<TokenStream>,
+        spec_type: SpecItemType,
+    ) -> Self {
         // figure out keywords
         let mut expression: syn::Expr = syn::parse2::<syn::Expr>(tokens).unwrap();
-        let mut visitor = CheckVisitor::new(item);
+        let executed_after = match spec_type {
+            SpecItemType::Pledge | SpecItemType::Postcondition => true,
+            _ => false,
+        };
+        let mut visitor = CheckVisitor::new(item, executed_after);
         // Does it make sense to already run the visitor here?
         visitor.visit_expr_mut(&mut expression);
+        // transform the pledge lhs too. Not sure if this is needed
+        let lhs_expression = lhs_tokens_opt.map(|tokens| {
+            let mut expr = syn::parse2::<syn::Expr>(tokens).unwrap();
+            visitor.visit_expr_mut(&mut expr);
+            expr
+        });
+
         Self {
             expression,
+            lhs_expression,
             visitor,
+            spec_type,
         }
     }
 
@@ -35,53 +132,109 @@ impl CheckTranslator {
     pub fn generate_check_function(
         &self,
         item: &untyped::AnyFnItem,
-        item_name: syn::Ident,
-        check_id_str: &String,
-        has_old_arg: bool,
-        has_result: bool,
-    ) -> syn::ItemFn {
-        let expr_to_check = &self.expression;
+        check_id: SpecificationId,
+        is_before_expiry_check: bool,
+    ) -> syn::Item {
+        // lhs is true for assert_on_expire only! Re-use this method to create
+        // a check function for the pre-expiry check
+        let lhs_str = if is_before_expiry_check { "_lhs" } else { "" };
+        let item_name = syn::Ident::new(
+            &format!(
+                "prusti_{}{}_check_item_{}_{}",
+                self.spec_type,
+                lhs_str,
+                item.sig().ident,
+                check_id
+            ),
+            item.span(),
+        );
+        let check_id_str = check_id.to_string();
+        // we differentiate items that are executed after a function
+        // -> have result
+        // -> have old values
+        // -> moved values need to be stored too
+        let executed_after = match self.spec_type {
+            SpecItemType::Postcondition | SpecItemType::Pledge => true,
+            _ => false,
+        };
+        let expr_to_check: syn::Expr = if is_before_expiry_check {
+            // if lhs is true, there has to be a lhs expression
+            if let Some(expr) = self.lhs_expression.as_ref() {
+                expr.clone()
+            } else {
+                parse_quote_spanned! {item.span() =>
+                    true
+                }
+            }
+        } else {
+            self.expression.clone()
+        };
+
         let item_name_str = item_name.to_string();
-        let result_arg_opt = if has_result {
+        let result_arg_opt = if executed_after {
             Some(AstRewriter::generate_result_arg(item))
         } else {
             None
         };
-        let forget_statements = self.generate_forget_statements(item, &result_arg_opt);
+        let forget_statements =
+            self.generate_forget_statements(item, &result_arg_opt, executed_after);
+        let contract_string = expr_to_check.to_token_stream().to_string();
+        let failure_message = format!("Contract {} was violated at runtime", contract_string);
+        println!("Failure message: {}", failure_message);
+        let id_attr: syn::Attribute = if is_before_expiry_check {
+            parse_quote_spanned! {item.span() =>
+                #[prusti::check_before_expiry_id = #check_id_str]
+            }
+        } else {
+            parse_quote_spanned! { item.span() =>
+                #[prusti::check_id = #check_id_str]
+
+            }
+        };
 
         let mut check_item: syn::ItemFn = parse_quote_spanned! {item.span() =>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
-            #[prusti::check_id = #check_id_str]
+            #id_attr
             fn #item_name() {
                 println!("check function {} is performed", #item_name_str);
-                assert!(#expr_to_check);
+                if !(#expr_to_check) {
+                    #forget_statements
+                    panic!(#failure_message)
+                };
+                // now forget about all the values since they are still owned
+                // by the calling function
                 #forget_statements
-                // now forget about all the values
             }
         };
         check_item.sig.generics = item.sig().generics.clone();
         check_item.sig.inputs = item.sig().inputs.clone();
-        if has_result {
+        if executed_after {
             check_item.sig.inputs.push(result_arg_opt.unwrap());
-        }
-        if has_old_arg {
-            let old_arg = self.construct_old_fnarg(item, true);
+            let old_arg = self.construct_old_fnarg(item, false);
             // put it inside a reference:
-            let old_arg_ref: syn::FnArg = parse_quote_spanned! {item.span() =>
-                #old_arg
-            };
-            check_item.sig.inputs.push(old_arg_ref);
+            check_item.sig.inputs.push(old_arg);
         }
-        check_item
+        println!("Check function: {}", check_item.to_token_stream());
+        syn::Item::Fn(check_item)
     }
 
+    // generate the function that clones old values and returns them.
     pub fn generate_store_function(
         &self,
         item: &untyped::AnyFnItem,
-        item_name: syn::Ident,
-        check_id_str: String,
-    ) -> syn::ItemFn {
+        check_id: SpecificationId,
+    ) -> syn::Item {
+        let item_name = syn::Ident::new(
+            &format!(
+                "prusti_{}_store_old_item_{}_{}",
+                self.spec_type,
+                item.sig().ident,
+                check_id,
+            ),
+            item.span(),
+        );
+        let check_id_str = check_id.to_string();
         let mut exprs = self
             .visitor
             .inputs
@@ -104,7 +257,7 @@ impl CheckTranslator {
         }
         let old_values_type = self.old_values_type(item);
         // println!("resulting tuple: {}", quote!{#tuple});
-        let forget_statements = self.generate_forget_statements(item, &None);
+        let forget_statements = self.generate_forget_statements(item, &None, false);
 
         let item_name_str = item_name.to_string();
         let mut res: syn::ItemFn = parse_quote_spanned! {item.span() =>
@@ -118,11 +271,50 @@ impl CheckTranslator {
                 return old_values;
             }
         };
+        println!("Store fn: {}", res.to_token_stream());
         // store function has the same generics and arguments as the
         // original annotated function
         res.sig.generics = item.sig().generics.clone();
         res.sig.inputs = item.sig().inputs.clone();
-        res
+        syn::Item::Fn(res)
+    }
+
+    pub fn generate_store_before_expiry(
+        &self,
+        item: &untyped::AnyFnItem,
+        check_id: SpecificationId,
+    ) -> syn::Item {
+        let item_name = syn::Ident::new(
+            &format!(
+                "prusti_{}_store_before_expiry_item_{}_{}",
+                self.spec_type,
+                item.sig().ident,
+                check_id,
+            ),
+            item.span(),
+        );
+        let check_id_str = check_id.to_string();
+        let item_name_str = item_name.to_string();
+
+        let result_arg = AstRewriter::generate_result_arg(item);
+        let arg = Argument::try_from(&result_arg).unwrap();
+        let (result_type, arg_ty) = if let syn::Type::Reference(ty) = arg.ty {
+            let mut ty_ref = ty.clone();
+            ty_ref.mutability = None;
+            ((*ty_ref.elem).clone(), syn::Type::Reference(ty_ref))
+        } else {
+            panic!("result of pledge does not look like a pointer")
+        };
+        let res: syn::ItemFn = parse_quote_spanned! { item.span() =>
+            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
+            #[prusti::spec_only]
+            #[prusti::store_before_expiry_id = #check_id_str]
+            fn #item_name (res : #arg_ty) -> #result_type {
+                println!("store before expiry function {} is performed", #item_name_str);
+                res.clone()
+            }
+        };
+        syn::Item::Fn(res)
     }
 
     /// After the visitor was run on an expression, this function
@@ -158,7 +350,7 @@ impl CheckTranslator {
         old_values_type
     }
 
-    // at the moment deref is true in all use cases. Remove
+    // at the moment deref is false in all use cases. Remove
     pub fn construct_old_fnarg<T: Spanned>(&self, item: &T, deref: bool) -> syn::FnArg {
         let old_values_type: syn::Type = self.old_values_type(item);
         if deref {
@@ -176,6 +368,7 @@ impl CheckTranslator {
         &self,
         item: &untyped::AnyFnItem,
         result_arg_opt: &Option<FnArg>,
+        has_old_arg: bool,
     ) -> syn::Block {
         // go through all inputs, if they are not references add a forget
         // statement
@@ -183,12 +376,15 @@ impl CheckTranslator {
         for fn_arg in item.sig().inputs.clone() {
             if let Ok(arg) = Argument::try_from(&fn_arg) {
                 let name: TokenStream = arg.name.parse().unwrap();
-                stmts.push(parse_quote! {
-                    std::mem::forget(#name);
-                })
+                if !arg.is_ref {
+                    stmts.push(parse_quote! {
+                        std::mem::forget(#name);
+                    })
+                }
             }
         }
 
+        // result might be double freed too if moved into a check function
         if let Some(result) = result_arg_opt {
             if let Ok(result_arg) = Argument::try_from(result) {
                 let name: TokenStream = result_arg.name.parse().unwrap();
@@ -196,6 +392,11 @@ impl CheckTranslator {
                     std::mem::forget(#name);
                 })
             }
+        }
+        if has_old_arg {
+            stmts.push(parse_quote! {
+                std::mem::forget(old_values);
+            })
         }
         syn::Block {
             brace_token: syn::token::Brace::default(),
@@ -211,10 +412,11 @@ pub struct CheckVisitor {
     pub within_old: bool,
     pub inputs: FxHashMap<String, Argument>,
     pub highest_old_index: usize,
+    pub executed_after: bool,
 }
 
 impl CheckVisitor {
-    pub fn new(item: &untyped::AnyFnItem) -> Self {
+    pub fn new(item: &untyped::AnyFnItem, executed_after: bool) -> Self {
         let inputs = item
             .sig()
             .inputs
@@ -229,6 +431,7 @@ impl CheckVisitor {
             within_old: false,
             inputs,
             highest_old_index: 0,
+            executed_after,
         }
     }
 }
@@ -245,7 +448,7 @@ impl VisitMut for CheckVisitor {
                     if let Some(arg) = self.inputs.get_mut(&name) {
                         // argument used within an old expression?
                         // not already marked as used in old?
-                        if self.within_old {
+                        if self.executed_after && (self.within_old || !arg.is_ref) {
                             // if it was not already marked to be stored
                             // needs to be checked for indeces to be correct
                             if !arg.used_in_old {
@@ -259,11 +462,11 @@ impl VisitMut for CheckVisitor {
                                 arg.old_store_index.to_string().parse().unwrap();
                             let tokens = if arg.is_ref {
                                 // cloning will deref the value..
-                                quote! {(&(&old_values.#index_token).clone())}
+                                quote! {(&old_values.#index_token)}
                             } else {
                                 // unfortunately it could still be a reference..
                                 // no real solution at this level
-                                quote! {((&old_values.#index_token).clone())}
+                                quote! {(old_values.#index_token)}
                             };
                             println!("tokens: {}", tokens);
                             let new_path: syn::Expr = syn::parse2(tokens).unwrap();
@@ -438,7 +641,8 @@ fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierK
     // look for the runtime_quantifier_bounds attribute:
     println!("closure arguments: {:?}", bound_vars);
     let manual_bounds = BoundExtractor::manual_bounds(closure.clone(), bound_vars.clone());
-    let bounds = manual_bounds.unwrap_or_else(|| BoundExtractor::derive_ranges(*closure.body.clone(), bound_vars));
+    let bounds = manual_bounds
+        .unwrap_or_else(|| BoundExtractor::derive_ranges(*closure.body.clone(), bound_vars));
 
     let mut expr = *closure.body.clone();
 
@@ -484,4 +688,3 @@ fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierK
     }
     expr
 }
-

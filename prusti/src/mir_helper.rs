@@ -37,6 +37,11 @@ pub fn get_local_from_name(body: &Body<'_>, name: String) -> Option<mir::Local> 
     None
 }
 
+pub fn fn_return_ty<'tcx>(tcx: TyCtxt<'tcx>, def_id: DefId) -> ty::Ty<'tcx> {
+    let fn_sig = tcx.fn_sig(def_id).subst_identity();
+    fn_sig.output().skip_binder()
+}
+
 /// Just creates an erased region. Needed to create a borrow statement
 /// in the MIR
 pub fn dummy_region(tcx: TyCtxt<'_>) -> ty::Region<'_> {

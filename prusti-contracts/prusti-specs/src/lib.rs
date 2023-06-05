@@ -207,12 +207,8 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
         attr.clone(),
         item,
     )?;
-    let (check_item, _) = rewriter.create_pre_check(
-        rewriter::SpecItemType::Precondition,
-        check_id,
-        attr,
-        item,
-    )?;
+    let check_item =
+        rewriter.create_pre_check(rewriter::SpecItemType::Precondition, check_id, attr, item)?;
     Ok((
         vec![spec_item, check_item],
         vec![
@@ -247,12 +243,8 @@ fn generate_for_ensures(
     let check_id = rewriter.generate_spec_id();
     let check_id_str = check_id.to_string();
     // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
-    let (check_item, store_item_opt) = rewriter.create_post_check(
-        rewriter::SpecItemType::Postcondition,
-        check_id,
-        attr,
-        item,
-    )?;
+    let (check_item, store_item_opt) =
+        rewriter.create_post_check(rewriter::SpecItemType::Postcondition, check_id, attr, item)?;
     if let Some(store_item) = store_item_opt {
         Ok((
             vec![spec_item, check_item, store_item],
@@ -275,13 +267,21 @@ fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let spec_item = rewriter.process_pledge(spec_id, attr, item)?;
-    Ok((
-        vec![spec_item],
-        vec![parse_quote_spanned! {item.span()=>
-            #[prusti::pledge_spec_id_ref = #spec_id_str]
-        }],
-    ))
+    let check_id = rewriter.generate_spec_id();
+    let check_id_str = check_id.to_string();
+    let (spec_item, check) = rewriter.process_pledge(spec_id, Some(check_id), attr, item)?;
+    let mut res_items = vec![spec_item];
+    let mut res_attrs: Vec<syn::Attribute> = vec![parse_quote_spanned! { item.span() =>
+        #[prusti::pledge_spec_id_ref = #spec_id_str]
+    }];
+    if let Some(check_items) = check {
+        let mut check_item_vec = check_items.to_item_vec();
+        res_items.append(&mut check_item_vec);
+        res_attrs.push(parse_quote_spanned! {item.span() =>
+            #[prusti::assert_pledge_check_ref = #check_id_str]
+        })
+    }
+    Ok((res_items, res_attrs))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
@@ -291,19 +291,31 @@ fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -
     let spec_id_lhs_str = spec_id_lhs.to_string();
     let spec_id_rhs = rewriter.generate_spec_id();
     let spec_id_rhs_str = spec_id_rhs.to_string();
-    let (spec_item_lhs, spec_item_rhs) =
-        rewriter.process_assert_pledge(spec_id_lhs, spec_id_rhs, attr, item)?;
-    Ok((
-        vec![spec_item_lhs, spec_item_rhs],
-        vec![
-            parse_quote_spanned! {item.span()=>
-                #[prusti::assert_pledge_spec_id_ref_lhs = #spec_id_lhs_str]
-            },
-            parse_quote_spanned! {item.span()=>
-                #[prusti::assert_pledge_spec_id_ref_rhs = #spec_id_rhs_str]
-            },
-        ],
-    ))
+    // TODO: conditional on runtime checks being enabled
+    // this is ugly though..
+    let check_id = rewriter.generate_spec_id();
+    let check_id_str = check_id.to_string();
+
+    let (spec_item_lhs, spec_item_rhs, check_items_opt) =
+        rewriter.process_assert_pledge(spec_id_lhs, spec_id_rhs, Some(check_id), attr, item)?;
+
+    let mut res_items = vec![spec_item_lhs, spec_item_rhs];
+    let mut res_attrs: Vec<syn::Attribute> = vec![
+        parse_quote_spanned! {item.span()=>
+            #[prusti::assert_pledge_spec_id_ref_lhs = #spec_id_lhs_str]
+        },
+        parse_quote_spanned! {item.span()=>
+            #[prusti::assert_pledge_spec_id_ref_rhs = #spec_id_rhs_str]
+        },
+    ];
+    if let Some(check_items) = check_items_opt {
+        let mut check_item_vec = check_items.to_item_vec();
+        res_items.append(&mut check_item_vec);
+        res_attrs.push(parse_quote_spanned! {item.span()=>
+            #[prusti::assert_pledge_check_ref = #check_id_str]
+        });
+    }
+    Ok((res_items, res_attrs))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "terminates" annotations.
