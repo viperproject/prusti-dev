@@ -8,7 +8,7 @@ pub(super) mod interface;
 
 use vir_crate::polymorphic::{
     BinOp, BinaryOpKind, Cond, Expr, ExprFolder, ExprIterator, FallibleExprWalker,
-    ResourceAccessPredicate, UnaryOp, UnaryOpKind,
+    ObligationAccessPredicate, ResourceAccessPredicate, UnaryOp, UnaryOpKind,
 };
 
 use super::errors::{EncodingError, EncodingResult};
@@ -18,6 +18,13 @@ struct Changer<'a> {
 }
 impl<'a> ExprFolder for Changer<'a> {
     fn fold_resource_access_predicate(&mut self, expr: ResourceAccessPredicate) -> Expr {
+        self.scope_ids
+            .iter()
+            .map(|&scope_id| expr.replace_scope_id(scope_id))
+            .conjoin()
+    }
+
+    fn fold_obligation_access_predicate(&mut self, expr: ObligationAccessPredicate) -> Expr {
         self.scope_ids
             .iter()
             .map(|&scope_id| expr.replace_scope_id(scope_id))
@@ -76,6 +83,28 @@ impl FallibleExprWalker for ResourceFinder {
         if self.depth > 0 {
             return Err(EncodingError::incorrect(
                 "Found a resource predicate in the condition of a conditional, \
+                 or in the guard of an implication, or a resource predicate inside an other!",
+            ));
+        }
+        self.resource_found = true;
+        self.inc_depth();
+        self.fallible_walk(&expr.amount)?;
+        self.dec_depth();
+        Ok(())
+    }
+
+    fn fallible_walk_obligation_access_predicate(
+        &mut self,
+        expr: &ObligationAccessPredicate,
+    ) -> Result<(), Self::Error> {
+        if self.negativity % 2 == 1 {
+            return Err(EncodingError::incorrect(
+                "Found an obligation predicate in a negative position!",
+            ));
+        }
+        if self.depth > 0 {
+            return Err(EncodingError::incorrect(
+                "Found an obligation predicate in the condition of a conditional, \
                  or in the guard of an implication, or a resource predicate inside an other!",
             ));
         }

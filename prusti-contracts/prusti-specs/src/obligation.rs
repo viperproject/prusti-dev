@@ -6,7 +6,7 @@ use crate::{
 };
 use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};
-use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
+use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned, FnArg, Type};
 
 /*
 #[derive(Debug)]
@@ -89,6 +89,17 @@ impl ToTokens for ParsedObligation {
     }
 }
 
+fn has_valid_amount_arg(obligation_sig: &syn::Signature) -> bool {
+    obligation_sig.inputs.first().map_or(false, |arg| {
+        let token_strings = arg
+            .into_token_stream()
+            .into_iter()
+            .map(|tok| tok.to_string())
+            .collect::<Vec<_>>();
+        token_strings == vec!["amount", ":", "usize"]
+    })
+}
+
 pub fn parse_obligation(//_internal(
     tokens: TokenStream,
     //in_spec_refinement: bool,
@@ -157,6 +168,11 @@ pub fn parse_obligation(//_internal(
             }))
         }
         */
+    } else if !has_valid_amount_arg(&input.fn_sig) {
+        return Err(syn::Error::new(
+                input.body.span(),
+                "the first argument of an obligation in `obligation!` must be `amount: usize`",
+        ));
     } else {
         let signature = input.fn_sig;
         let patched = parse_quote_spanned!(span=>

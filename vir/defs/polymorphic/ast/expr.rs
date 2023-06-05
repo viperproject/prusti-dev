@@ -2174,6 +2174,24 @@ pub struct ObligationAccess {
     pub formal_arguments: Vec<LocalVar>,
 }
 
+impl ObligationAccess {
+    pub fn replace_scope_id(&self, new_scope_id: isize) -> Self {
+        ObligationAccess {
+            args: self.args.iter().enumerate().map(|(i, arg)| {
+                if i == 0 {
+                    Expr::Const(ConstExpr {
+                        value: Const::Int(new_scope_id.try_into().unwrap()),
+                        position: Position::default(),
+                    })
+                } else {
+                    arg.clone()
+                }
+            }).collect(),
+            ..self.clone()
+        }
+    }
+}
+
 impl fmt::Display for ObligationAccess {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -2196,6 +2214,15 @@ pub struct ObligationAccessPredicate {
     pub access: ObligationAccess,
     pub amount: Box<Expr>,
     pub position: Position,
+}
+
+impl ObligationAccessPredicate {
+    pub fn replace_scope_id(&self, new_scope_id: isize) -> Expr {
+        Expr::ObligationAccessPredicate(ObligationAccessPredicate {
+            access: self.access.replace_scope_id(new_scope_id),
+            ..self.clone()
+        })
+    }
 }
 
 impl fmt::Display for ObligationAccessPredicate {

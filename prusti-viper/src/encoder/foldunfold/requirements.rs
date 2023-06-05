@@ -354,6 +354,23 @@ fn get_all_required_expr_permissions(
             }
         }
 
+        vir::Expr::ObligationAccessPredicate(vir::ObligationAccessPredicate {
+            access: vir::ObligationAccess {
+                args: inners, ..
+            },
+            amount: amount_inner,
+            ..
+        }) => {
+            for inner in inners {
+                let (inner_reqs, inner_discr) = get_all_required_expr_permissions(inner, preds);
+                reqs.extend(inner_reqs);
+                discr.extend(inner_discr);
+            }
+            let (am_inner_reqs, am_inner_discr) = get_all_required_expr_permissions(amount_inner, preds);
+            reqs.extend(am_inner_reqs);
+            discr.extend(am_inner_discr);
+        }
+
         vir::Expr::Unfolding(vir::Unfolding {
             arguments,
             base,

@@ -347,9 +347,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
             let sig = self.env().query.get_fn_sig_resolved(proc_def_id, substs, parent_def_id);
             let obligation_name = self.encode_item_name(proc_def_id);
-            let mut args = vec![];
-            let mut concrete_args = vec![];
-            for local_idx in 0..sig.skip_binder().inputs().len() {
+            let mut args = vec![vir::LocalVar::new("scope_id", vir::Type::Int)];
+            let mut check_args = vec![];
+            let mut concrete_args = vec![vir::Expr::Const(vir::ConstExpr {
+                value: vir::Const::Int(-1),
+                position: vir::Position::default(),
+            })];
+            for local_idx in 1..sig.skip_binder().inputs().len() {
                 let local_ty = sig.input(local_idx);
                 let local = prusti_rustc_interface::middle::mir::Local::from_usize(local_idx + 1);
                 let var_name = format!("{local:?}_l_check"); // TODO: *ensure* that there are no local
@@ -358,6 +362,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 let var_type = self.encode_snapshot_type(local_ty.skip_binder()).with_span(var_span)?;
                 let local_var = vir::LocalVar::new(var_name, var_type);
                 args.push(local_var.clone());
+                check_args.push(local_var.clone());
                 concrete_args.push(vir::Expr::local(local_var));
             }
             let obligation = vir::Predicate::new_obligation(obligation_name.clone(), args.clone());
@@ -371,7 +376,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             };
             let check = vir::Stmt::Assert(vir::Assert {
                 expr: vir::Expr::ForPerm(vir::ForPerm {
-                    variables: args,
+                    variables: check_args,
                     access: obligation_access,
                     body: Box::new(vir::Expr::Const(vir::ConstExpr {
                         value: vir::Const::Bool(false),

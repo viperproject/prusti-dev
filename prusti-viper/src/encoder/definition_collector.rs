@@ -117,9 +117,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             .map(|mut method| -> SpannedEncodingResult<vir::CfgMethod> {
                 let ret_index = method.basic_blocks_labels
                     .iter()
-                    .position(|label| label == "return")
-                    .unwrap();
-                let ret_index = method.block_index(ret_index);
+                    .position(|label| label == "return");
+                if ret_index.is_none() {
+                    return Err(SpannedEncodingError::internal("encoded method does not contain a `return` label; cannot add leak checks", self.error_span));
+                }
+                let ret_index = method.block_index(ret_index.unwrap());
                 for identifier in &self.used_obligations {
                     let leak_check = self.encoder.get_obligation_leak_check(identifier)?;
                     let leak_check = (*leak_check).clone();

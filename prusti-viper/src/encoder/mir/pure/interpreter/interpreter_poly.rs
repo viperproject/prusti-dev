@@ -645,7 +645,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encode_generic_arguments(called_def_id, call_substs)
                                     .with_span(term.source_info.span)?;
                                 let encoded_rhs = if is_obligation {
-                                    vir::Expr::unit_obligation_access_predicate(function_name, encoded_args, formal_args)
+                                    assert!(encoded_args.len() >= 1);
+                                    let amount = encoded_args[0].clone();
+                                    let encoded_args = encoded_args.into_iter().enumerate().map(|(i, arg)| {
+                                        if i == 0 {
+                                            vir::Expr::Const(vir::ConstExpr {
+                                                value: vir::Const::Int(-1),
+                                                position: vir::Position::default(),
+                                            })
+                                        } else {
+                                            arg
+                                        }
+                                    }).collect::<Vec<_>>();
+                                    let formal_args = formal_args.into_iter().enumerate().map(|(i, arg)| {
+                                        if i == 0 {
+                                            vir::LocalVar::new("scope_id", vir::Type::Int)
+                                        } else {
+                                            arg
+                                        }
+                                    }).collect::<Vec<_>>();
+                                    vir::Expr::obligation_access_predicate(function_name, encoded_args, formal_args, amount)
                                 } else {
                                     vir::Expr::func_app(
                                         function_name,
