@@ -26,6 +26,7 @@ pub(super) struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// A counter used for generating fresh labels.
     fresh_label_counter: u64,
     bound_variable_remap_stack: BoundVariableRemapStack,
+    inverse_function_domain: vir_low::DomainDecl,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
@@ -60,6 +61,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             ssa_state: Default::default(),
             fresh_label_counter: 0,
             bound_variable_remap_stack: Default::default(),
+            inverse_function_domain: vir_low::DomainDecl::new("QPInverseFunctions", Vec::new(), Vec::new(), Vec::new()),
         }
     }
 
@@ -112,6 +114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let mut domains = Vec::new();
         self.generate_permission_mask_domains(&mut domains)?;
         self.generate_heap_domains(&mut domains)?;
+        domains.push(self.inverse_function_domain.clone());
         Ok(domains)
     }
 
