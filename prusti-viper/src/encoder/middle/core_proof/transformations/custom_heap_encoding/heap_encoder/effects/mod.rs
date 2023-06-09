@@ -8,7 +8,9 @@ use super::{
 };
 use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, QuantifierHelpers, SyntacticEvaluation},
+    common::expression::{
+        BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers, SyntacticEvaluation,
+    },
     low::{self as vir_low, operations::ty::Typed},
 };
 
@@ -714,40 +716,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             ));
         }
         // Generate inverse functions for the variables.
-        let mut equalities = Vec::new();
+        let mut equalities: Vec<vir_low::Expression> = Vec::new();
         for variable in &variables {
-            let parameters: Vec<_> = predicate.arguments.iter().enumerate().map(|(index, argument)| {
-                vir_low::VariableDecl::new(
-                    format!("_{index}"),
-                    argument.get_type().clone(),
-                )
-            }).collect();
+            let parameters: Vec<_> = predicate
+                .arguments
+                .iter()
+                .enumerate()
+                .map(|(index, argument)| {
+                    vir_low::VariableDecl::new(format!("_{index}"), argument.get_type().clone())
+                })
+                .collect();
             let inverse_function = vir_low::DomainFunctionDecl::new(
-                format!("inverse$qp${}${}${}", predicate.name, variable.name, self.inverse_function_domain.functions.len()),
+                format!(
+                    "inverse$qp${}${}${}",
+                    predicate.name,
+                    variable.name,
+                    self.inverse_function_domain.functions.len()
+                ),
                 false,
                 parameters.clone(),
                 variable.ty.clone(),
             );
 
-            self.inverse_function_domain.functions.push(inverse_function);
-            equalities = unimplemented!;
+            self.inverse_function_domain
+                .functions
+                .push(inverse_function);
+            equalities = unimplemented!();
         }
         let axiom = vir_low::DomainAxiomDecl::new(
             None,
-            format!("inverse_function_definitional_axiom${}", self.inverse_function_domain.axioms.len()),
+            format!(
+                "inverse_function_definitional_axiom${}",
+                self.inverse_function_domain.axioms.len()
+            ),
             vir_low::Expression::forall(
                 variables.clone(),
                 triggers.clone(),
-                vir_low::Expression::implies(
-                    guard.clone(),
-                    equalities.into_iter().conjoin(),
-                ),
+                vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
             ),
         );
         self.inverse_function_domain.axioms.push(axiom);
-
-
-
 
         let perm_new_value = operations.perm_old_add(&predicate.permission);
         // // Compared to `encode_expression_inhale_predicate`, the setting of the new value and
