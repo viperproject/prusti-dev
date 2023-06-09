@@ -170,6 +170,7 @@ impl ExpressionFallibleFolder for Ensurer {
                         | vir_typed::Predicate::MemoryBlockStackDrop(_)
                         | vir_typed::Predicate::MemoryBlockHeap(_)
                         | vir_typed::Predicate::MemoryBlockHeapRange(_)
+                        | vir_typed::Predicate::MemoryBlockHeapRangeGuarded(_)
                         | vir_typed::Predicate::MemoryBlockHeapDrop(_) => {
                             default_fallible_fold_binary_op(self, binary_op)
                         }

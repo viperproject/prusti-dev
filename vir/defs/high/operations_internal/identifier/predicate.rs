@@ -15,6 +15,7 @@ impl WithIdentifier for Predicate {
             Self::MemoryBlockStackDrop(predicate) => predicate.get_identifier(),
             Self::MemoryBlockHeap(predicate) => predicate.get_identifier(),
             Self::MemoryBlockHeapRange(predicate) => predicate.get_identifier(),
+            Self::MemoryBlockHeapRangeGuarded(predicate) => predicate.get_identifier(),
             Self::MemoryBlockHeapDrop(predicate) => predicate.get_identifier(),
             Self::OwnedNonAliased(predicate) => predicate.get_identifier(),
             Self::OwnedRange(predicate) => predicate.get_identifier(),
@@ -54,6 +55,12 @@ impl WithIdentifier for predicate::MemoryBlockHeap {
 impl WithIdentifier for predicate::MemoryBlockHeapRange {
     fn get_identifier(&self) -> String {
         "MemoryBlockHeapRange".to_string()
+    }
+}
+
+impl WithIdentifier for predicate::MemoryBlockHeapRangeGuarded {
+    fn get_identifier(&self) -> String {
+        "MemoryBlockHeapRangeGuarded".to_string()
     }
 }
 

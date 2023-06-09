@@ -1716,6 +1716,9 @@ impl IntoLow for vir_mid::Predicate {
             Self::MemoryBlockHeapRange(predicate) => {
                 unimplemented!("predicate: {}", predicate);
             }
+            Self::MemoryBlockHeapRangeGuarded(predicate) => {
+                unimplemented!("predicate: {}", predicate);
+            }
             Self::MemoryBlockHeapDrop(predicate) => predicate.into_low(lowerer)?,
             Self::OwnedNonAliased(predicate) => predicate.into_low(lowerer)?,
             Self::OwnedRange(_) => todo!(),

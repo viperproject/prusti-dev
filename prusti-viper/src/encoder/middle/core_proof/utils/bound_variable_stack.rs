@@ -14,6 +14,7 @@ pub(in super::super) struct BoundVariableStack {
 
 pub(in super::super) trait BoundVariableStackMiddle {
     fn contains(&self, variable: &vir_mid::VariableDecl) -> bool;
+    fn push_single(&mut self, variable: &vir_mid::VariableDecl);
     fn push(&mut self, variables: &[vir_mid::VariableDecl]);
     fn pop(&mut self);
 }
@@ -51,6 +52,10 @@ impl BoundVariableStackMiddle for BoundVariableStack {
                 .map(|variable| variable.name.clone())
                 .collect(),
         )
+    }
+
+    fn push_single(&mut self, variable: &vir_mid::VariableDecl) {
+        self.push_names(std::iter::once(variable.name.clone()).collect())
     }
 
     fn pop(&mut self) {

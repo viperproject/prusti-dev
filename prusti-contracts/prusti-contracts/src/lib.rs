@@ -832,6 +832,12 @@ pub fn read_byte(_bytes: Bytes, _index: usize) -> Byte {
     unreachable!();
 }
 
+/// Check whether `element_address` is contained in the range starting at
+/// `start_address` and having the specified size.
+pub fn range_contains<T>(_start_address: T, _range_size: usize, _element_address: T) -> bool {
+    unreachable!();
+}
+
 /// Indicates that we have the `raw` capability to the specified address.
 #[doc(hidden)]
 #[trusted]
@@ -853,11 +859,17 @@ pub fn prusti_raw_range<T>(_address: T, _size: usize, _start: usize, _end: usize
     unreachable!();
 }
 
-#[macro_export]
-macro_rules! raw_range {
-    ($address:expr, $size:expr, $start:expr, $end:expr) => {
-        $crate::prusti_raw_range($address, $size, $start, $end)
-    };
+/// Indicates that we have the `raw` capability for locations for which the
+/// condition holds.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_raw_range_guarded<T, S, F>(
+    _address: T,
+    _size: usize,
+    _trigger_set: S,
+    _closure: F,
+) -> bool {
+    unreachable!();
 }
 
 /// Indicates that we have the capability to deallocate.

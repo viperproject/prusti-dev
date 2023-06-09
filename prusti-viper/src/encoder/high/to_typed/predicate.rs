@@ -29,4 +29,18 @@ impl<'v, 'tcx> HighToTypedPredicateLowerer for crate::encoder::Encoder<'v, 'tcx>
             name: lifetime_const.name,
         })
     }
+
+    fn high_to_typed_predicate_trigger(
+        &mut self,
+        trigger: vir_high::Trigger,
+    ) -> Result<vir_typed::Trigger, Self::Error> {
+        trigger.high_to_typed_expression(self)
+    }
+
+    fn high_to_typed_predicate_variable_decl(
+        &mut self,
+        variable: vir_high::VariableDecl,
+    ) -> Result<vir_typed::VariableDecl, Self::Error> {
+        variable.high_to_typed_expression(self)
+    }
 }

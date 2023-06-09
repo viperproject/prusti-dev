@@ -669,6 +669,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     vir_typed::Predicate::MemoryBlockStackDrop(_) => todo!(),
                     vir_typed::Predicate::MemoryBlockHeap(_) => todo!(),
                     vir_typed::Predicate::MemoryBlockHeapRange(_) => todo!(),
+                    vir_typed::Predicate::MemoryBlockHeapRangeGuarded(_) => todo!(),
                     vir_typed::Predicate::MemoryBlockHeapDrop(_) => todo!(),
                     vir_typed::Predicate::OwnedNonAliased(predicate) => {
                         // TODO: Take into account whether the reference is opened or not.

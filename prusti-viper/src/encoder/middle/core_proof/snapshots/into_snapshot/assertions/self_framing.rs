@@ -743,6 +743,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                     acc_predicate.position,
                 )?
             }
+            vir_mid::Predicate::MemoryBlockHeapRangeGuarded(predicate) => {
+                let pointer_value =
+                    self.expression_to_snapshot(lowerer, &predicate.address, true)?;
+                let address = lowerer.pointer_address(
+                    predicate.address.get_type(),
+                    pointer_value,
+                    predicate.position,
+                )?;
+                let size = self.expression_to_snapshot(lowerer, &predicate.size, true)?;
+                self.bound_variable_stack
+                    .push_single(&predicate.index_variable);
+                let index_variable =
+                    self.variable_to_snapshot(lowerer, &predicate.index_variable)?;
+                let guard = self.expression_to_snapshot(lowerer, &predicate.guard, true)?;
+                assert_eq!(
+                    predicate.triggers.len(),
+                    0,
+                    "Triggers are currently not supported"
+                );
+                let expression = lowerer.encode_memory_block_range_guarded_acc(
+                    address,
+                    size,
+                    index_variable,
+                    guard,
+                    acc_predicate.position,
+                )?;
+                self.bound_variable_stack.pop();
+                expression
+            }
             _ => unimplemented!("{acc_predicate}"),
         };
         if self.is_target_pure {

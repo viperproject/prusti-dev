@@ -1096,6 +1096,7 @@ impl Expression {
                     | Predicate::MemoryBlockStackDrop(_)
                     | Predicate::MemoryBlockHeap(_)
                     | Predicate::MemoryBlockHeapRange(_)
+                    | Predicate::MemoryBlockHeapRangeGuarded(_)
                     | Predicate::MemoryBlockHeapDrop(_) => {}
                     Predicate::OwnedNonAliased(predicate) => {
                         self.owned_places.push(predicate.place.clone());
@@ -1143,6 +1144,7 @@ impl Expression {
                     | Predicate::MemoryBlockStackDrop(_)
                     | Predicate::MemoryBlockHeap(_)
                     | Predicate::MemoryBlockHeapRange(_)
+                    | Predicate::MemoryBlockHeapRangeGuarded(_)
                     | Predicate::MemoryBlockHeapDrop(_) => {}
                     Predicate::OwnedNonAliased(predicate) => {
                         self.owned_places.push((

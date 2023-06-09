@@ -126,6 +126,10 @@ pub(super) fn inline_spec_item_high<'tcx>(
     Ok(simplify(expression))
 }
 
+/// This encodes not only quantifiers, but also quantifier-like things such as
+/// quantified permissions. It assumes that the last substitution is the closure
+/// representing the quantifier body and the second-to-last substitution
+/// represents triggers.
 pub(super) fn encode_quantifier_high<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     _span: Span, // TODO: use span somehow? or remove arg
@@ -146,7 +150,8 @@ pub(super) fn encode_quantifier_high<'tcx>(
     //     |qvars...| -> bool { <body expr> },
     //   )
 
-    let cl_type_body = substs.type_at(1);
+    let last_substitution_index = substs.len() - 1;
+    let cl_type_body = substs.type_at(last_substitution_index);
     let (body_def_id, body_substs, _, args, _) =
         extract_closure_from_ty(encoder.env().query, cl_type_body);
 
@@ -170,9 +175,14 @@ pub(super) fn encode_quantifier_high<'tcx>(
     }
 
     // TODO: implement trigger and trigger set checks
+    let second_to_last_substitution_index = substs.len() - 2;
+    let second_to_last_encoded_arg_index = encoded_args.len() - 2;
     let mut encoded_trigger_sets = vec![];
-    for (trigger_set_idx, ty_trigger_set) in
-        substs.type_at(0).tuple_fields().into_iter().enumerate()
+    for (trigger_set_idx, ty_trigger_set) in substs
+        .type_at(second_to_last_substitution_index)
+        .tuple_fields()
+        .into_iter()
+        .enumerate()
     {
         let mut encoded_triggers = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
@@ -194,7 +204,10 @@ pub(super) fn encode_quantifier_high<'tcx>(
                 // FIXME: check whether the closure expression does not need to
                 // be wrapped in `addr_of` like in `encode_invariant_high`.
                 vir_high::Expression::field_no_pos(
-                    vir_high::Expression::field_no_pos(encoded_args[0].clone(), set_field),
+                    vir_high::Expression::field_no_pos(
+                        encoded_args[second_to_last_encoded_arg_index].clone(),
+                        set_field,
+                    ),
                     trigger_field,
                 ),
                 encoded_qvars.clone(),
@@ -207,10 +220,11 @@ pub(super) fn encode_quantifier_high<'tcx>(
         encoded_trigger_sets.push(vir_high::Trigger::new(encoded_triggers));
     }
 
+    let last_encoded_arg_index = encoded_args.len() - 1;
     let encoded_body = inline_closure_high(
         encoder,
         body_def_id,
-        encoded_args[1].clone(),
+        encoded_args[last_encoded_arg_index].clone(),
         encoded_qvars.clone(),
         parent_def_id,
         body_substs,

@@ -1,7 +1,13 @@
 pub(crate) use super::super::{
-    ast::{expression::Expression, position::Position, ty::LifetimeConst},
+    ast::{
+        expression::{Expression, Trigger},
+        position::Position,
+        ty::LifetimeConst,
+        variable::VariableDecl,
+    },
     operations_internal::ty::Typed,
 };
+use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
@@ -12,6 +18,7 @@ pub enum Predicate {
     MemoryBlockStackDrop(MemoryBlockStackDrop),
     MemoryBlockHeap(MemoryBlockHeap),
     MemoryBlockHeapRange(MemoryBlockHeapRange),
+    MemoryBlockHeapRangeGuarded(MemoryBlockHeapRangeGuarded),
     MemoryBlockHeapDrop(MemoryBlockHeapDrop),
     OwnedNonAliased(OwnedNonAliased),
     OwnedRange(OwnedRange),
@@ -79,6 +86,23 @@ pub struct MemoryBlockHeapRange {
     pub size: Expression,
     pub start_index: Expression,
     pub end_index: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "MemoryBlockHeapRangeGuarded({}, {}, |{}| {}, triggers=[{}])",
+    address,
+    size,
+    index_variable,
+    guard,
+    "display::join(\"; \", triggers)"
+)]
+pub struct MemoryBlockHeapRangeGuarded {
+    pub address: Expression,
+    pub size: Expression,
+    pub index_variable: VariableDecl,
+    pub guard: Expression,
+    pub triggers: Vec<Trigger>,
     pub position: Position,
 }
 

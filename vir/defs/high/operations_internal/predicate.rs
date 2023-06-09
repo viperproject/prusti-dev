@@ -40,6 +40,14 @@ impl Predicate {
                     predicate.size.get_type().clone(),
                 ]
             }
+            Self::MemoryBlockHeapRangeGuarded(predicate) => {
+                // FIXME: This is probably wrong: we need to use the type of the
+                // target.
+                vec![
+                    predicate.address.get_type().clone(),
+                    predicate.size.get_type().clone(),
+                ]
+            }
             Self::MemoryBlockHeapDrop(predicate) => {
                 vec![
                     predicate.address.get_type().clone(),
