@@ -453,6 +453,7 @@ impl<'a, 'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx>
             }
             vir_mid::Predicate::MemoryBlockHeap(_)
             | vir_mid::Predicate::MemoryBlockHeapRange(_)
+            | vir_mid::Predicate::MemoryBlockHeapRangeGuarded(_)
             | vir_mid::Predicate::MemoryBlockHeapDrop(_) => {
                 // Do nothing.
             }

@@ -32,6 +32,14 @@ pub(in super::super) trait AddressesInterface {
         offset: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn address_range_contains(
+        &mut self,
+        start_address: vir_low::Expression,
+        type_size: vir_low::Expression,
+        range_length: vir_low::Expression,
+        checked_address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     /// Constructs a variable representing the address of the given MIR-level
     /// variable.
     fn root_address(
@@ -150,6 +158,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
             ADDRESS_DOMAIN_NAME,
             "offset_address$",
             vec![size, address, offset],
+            address_type,
+            position,
+        )
+    }
+    fn address_range_contains(
+        &mut self,
+        start_address: vir_low::Expression,
+        type_size: vir_low::Expression,
+        range_length: vir_low::Expression,
+        checked_address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let address_type = self.address_type()?;
+        if !self.address_state.is_address_range_contains_axiom_encoded {
+            self.address_state.is_address_range_contains_axiom_encoded = true;
+        }
+        self.create_domain_func_app(
+            ADDRESS_DOMAIN_NAME,
+            "address_range_contains$",
+            vec![start_address, type_size, range_length, checked_address],
             address_type,
             position,
         )

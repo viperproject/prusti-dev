@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
@@ -11,7 +13,7 @@ use crate::encoder::{
         type_layouts::TypeLayoutsInterface,
     },
 };
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 use vir_crate::{
     common::{
         builtin_constants::{BYTES_DOMAIN_NAME, BYTE_DOMAIN_NAME, MEMORY_BLOCK_PREDICATE_NAME},
@@ -128,6 +130,14 @@ pub(in super::super::super) trait PredicatesMemoryBlockInterface {
         address: vir_low::Expression,
         start_index: vir_low::Expression,
         end_index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_memory_block_range_guarded_acc(
+        &mut self,
+        address: vir_low::Expression,
+        size: vir_low::Expression,
+        index_variable: vir_low::VariableDecl,
+        guard: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_memory_block_stack_drop_acc(
@@ -253,6 +263,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             end_index,
             position,
         )
+    }
+    fn encode_memory_block_range_guarded_acc(
+        &mut self,
+        address: vir_low::Expression,
+        size: vir_low::Expression,
+        index_variable: vir_low::VariableDecl,
+        guard: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        use vir_low::macros::*;
+        let size_type = self.size_type_mid()?;
+        var_decls! {
+            index: Int
+        }
+        let element_address =
+            self.address_offset(size.clone(), address, index.clone().into(), position)?;
+        let predicate = self.encode_memory_block_acc(element_address.clone(), size, position)?;
+        let index_variable_replacement =
+            self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
+        let replacements = std::iter::once((&index_variable, &index_variable_replacement))
+            .collect::<FxHashMap<_, _>>();
+        let guard = guard.substitute_variables(&replacements);
+        let body = expr!([guard] ==> [predicate]);
+        let expression = vir_low::Expression::forall(
+            vec![index],
+            vec![vir_low::Trigger::new(vec![element_address])],
+            body,
+        );
+        Ok(expression)
     }
     fn encode_memory_block_stack_drop_acc(
         &mut self,

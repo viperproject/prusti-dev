@@ -1009,6 +1009,32 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                 let new_address = lowerer.address_offset(size, address, offset, app.position)?;
                 lowerer.address_to_pointer(ty, new_address, app.position)
             }
+            BuiltinFunc::PtrRangeContains => {
+                let args = construct_args(self, lowerer)?;
+                assert_eq!(args.len(), 3);
+                let ty = app.arguments[0].get_type();
+                let start_address = lowerer.pointer_address(ty, args[0].clone(), app.position)?;
+                let vir_mid::Type::Pointer(pointer_type) = ty else {
+                    unreachable!()
+                };
+                let type_size = lowerer.encode_type_size_expression2(
+                    &pointer_type.target_type,
+                    &*pointer_type.target_type,
+                )?;
+                let range_length = lowerer.obtain_constant_value(
+                    app.arguments[1].get_type(),
+                    args[1].clone(),
+                    app.position,
+                )?;
+                let checked_address = lowerer.pointer_address(ty, args[2].clone(), app.position)?;
+                lowerer.address_range_contains(
+                    start_address,
+                    type_size,
+                    range_length,
+                    checked_address,
+                    app.position,
+                )
+            }
             BuiltinFunc::IsValid => {
                 let mut args = construct_args(self, lowerer)?;
                 assert_eq!(app.arguments.len(), 1);

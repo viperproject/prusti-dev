@@ -286,6 +286,7 @@ fn extract_managed_predicate_place(
         | vir_typed::Predicate::LifetimeToken(_)
         | vir_typed::Predicate::MemoryBlockHeap(_)
         | vir_typed::Predicate::MemoryBlockHeapRange(_)
+        | vir_typed::Predicate::MemoryBlockHeapRangeGuarded(_)
         | vir_typed::Predicate::MemoryBlockHeapDrop(_)
         | vir_typed::Predicate::OwnedRange(_)
         | vir_typed::Predicate::OwnedSet(_)

@@ -772,6 +772,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 subst_with(encoded_rhs)
             }
+            "prusti_contracts::prusti_raw_range_guarded" => {
+                assert_eq!(encoded_args.len(), 4);
+                let address = encoded_args[0].clone();
+                let size = encoded_args[1].clone();
+                let vir_high::Expression::Quantifier(quantifier) = self.encoder.encode_prusti_operation_high(
+                    proc_name,
+                    span,
+                    encoded_args.to_vec(),
+                    self.caller_def_id,
+                    substs,
+                )? else {
+                    unreachable!();
+                };
+                assert_eq!(
+                    quantifier.kind,
+                    vir_high::expression::QuantifierKind::ForAll
+                );
+                assert_eq!(quantifier.variables.len(), 1);
+                let index_variable = quantifier.variables[0].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::memory_block_heap_range_guarded(
+                        address,
+                        size,
+                        index_variable,
+                        *quantifier.body,
+                        quantifier.triggers,
+                        position,
+                    ),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
             "prusti_contracts::prusti_raw_dealloc" => {
                 assert_eq!(encoded_args.len(), 2);
                 let address = encoded_args[0].clone();
@@ -822,6 +855,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             "prusti_contracts::address_offset" | "prusti_contracts::address_offset_mut" => {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((PtrAddressOffset, encoded_args[0].get_type().clone()))
+            }
+            "prusti_contracts::range_contains" => {
+                assert_eq!(encoded_args.len(), 3);
+                builtin((PtrRangeContains, vir_high::Type::Bool))
             }
             "prusti_contracts::prusti_unpacking" => {
                 assert_eq!(encoded_args.len(), 2);

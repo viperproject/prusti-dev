@@ -275,6 +275,9 @@ pub enum BuiltinFunc {
     PtrOffset,
     /// Special-cased `is_null` function on pointers.
     PtrIsNull,
+    /// Special-cased function whether a range of addresses contains another
+    /// address.
+    PtrRangeContains,
     IsValid, // TODO: Delete.
     EnsureOwnedPredicate,
     // GetSnapshot,

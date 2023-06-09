@@ -76,6 +76,9 @@ fn clean_acc_predicate(predicate: vir_high::Predicate) -> vir_high::Predicate {
             // predicate.address = peel_addr_of(predicate.address);
             vir_high::Predicate::MemoryBlockHeapRange(predicate)
         }
+        vir_high::Predicate::MemoryBlockHeapRangeGuarded(predicate) => {
+            vir_high::Predicate::MemoryBlockHeapRangeGuarded(predicate)
+        }
         vir_high::Predicate::MemoryBlockHeapDrop(mut predicate) => {
             predicate.address = peel_addr_of(predicate.address);
             if !predicate.address.is_behind_pointer_dereference() {

@@ -115,6 +115,11 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 parent_def_id,
                 substs,
             ),
+            "prusti_contracts::prusti_raw_range_guarded" => {
+                // We just pretend that this is a regular quantifier and then
+                // transform it later.
+                encode_quantifier_high(self, span, encoded_args, false, parent_def_id, substs)
+            }
             _ => unimplemented!(),
         }
     }

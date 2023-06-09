@@ -117,6 +117,7 @@ impl<'l, 'p, 'v, 'tcx> vir_mid::visitors::ExpressionFolder
             | vir_mid::Predicate::MemoryBlockStackDrop(_)
             | vir_mid::Predicate::MemoryBlockHeap(_)
             | vir_mid::Predicate::MemoryBlockHeapRange(_)
+            | vir_mid::Predicate::MemoryBlockHeapRangeGuarded(_)
             | vir_mid::Predicate::MemoryBlockHeapDrop(_) => true.into(),
             vir_mid::Predicate::OwnedNonAliased(predicate) => {
                 let position = predicate.place.position();
