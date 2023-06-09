@@ -61,7 +61,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             ssa_state: Default::default(),
             fresh_label_counter: 0,
             bound_variable_remap_stack: Default::default(),
-            inverse_function_domain: vir_low::DomainDecl::new("QPInverseFunctions", Vec::new(), Vec::new(), Vec::new()),
+            inverse_function_domain: vir_low::DomainDecl::new(
+                "QPInverseFunctions",
+                Vec::new(),
+                Vec::new(),
+                Vec::new(),
+            ),
         }
     }
 
