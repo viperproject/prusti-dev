@@ -755,30 +755,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     &operand_value,
                     position,
                 )?;
-                // let compute_address = ty!(Address);
-                // let address =
-                //     expr! { ComputeAddress::compute_address(operand_place, operand_address) };
                 pres.push(non_aliased_predicate);
-                let _aliased_root_place = self.encode_aliased_place_root(position)?;
-                let _aliased_predicate: vir_low::Expression = unimplemented!();
-                // let aliased_predicate = self.owned_aliased(
-                //     CallContext::BuiltinMethod,
-                //     ty,
-                //     ty,
-                //     aliased_root_place,
-                //     address.clone(),
-                //     operand_value.clone().into(),
-                //     None,
-                // )?;
+                let aliased_predicate = self.owned_aliased(
+                    CallContext::BuiltinMethod,
+                    ty,
+                    ty,
+                    operand_address.clone().into(),
+                    None,
+                    position,
+                )?;
+                let aliased_predicate_snapshot = self.owned_aliased_snap(
+                    CallContext::BuiltinMethod,
+                    ty,
+                    ty,
+                    operand_address.clone().into(),
+                    position,
+                )?;
                 let restore_raw_borrowed = self.restore_raw_borrowed(
                     ty,
                     operand_place.clone().into(),
                     operand_address.clone().into(),
                 )?;
-                posts.push(_aliased_predicate);
+                posts.push(aliased_predicate);
                 posts.push(restore_raw_borrowed);
+                posts.push(expr! { [aliased_predicate_snapshot] == operand_value });
                 parameters.push(operand_place);
-                parameters.push(operand_address);
+                parameters.push(operand_address.clone());
                 parameters.push(operand_value);
                 self.construct_constant_snapshot(
                     result_type,

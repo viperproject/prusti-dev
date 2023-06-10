@@ -740,34 +740,44 @@ impl IntoLow for vir_mid::Statement {
             Self::RestoreRawBorrowed(statement) => {
                 let ty = statement.restored_place.get_type();
                 lowerer.encode_restore_raw_borrowed_method(ty)?;
-                let borrowing_place_parent = statement.borrowing_place.get_parent_ref().unwrap();
-                let borrowing_snapshot = borrowing_place_parent.to_procedure_snapshot(lowerer)?;
-                let borrowing_address = lowerer.pointer_address(
-                    borrowing_place_parent.get_type(),
-                    borrowing_snapshot,
-                    statement.position,
-                )?;
+                // let borrowing_place_parent = statement.borrowing_place.get_parent_ref().unwrap();
+                // let borrowing_snapshot = borrowing_place_parent.to_procedure_snapshot(lowerer)?;
+                // let borrowing_address = lowerer.pointer_address(
+                //     borrowing_place_parent.get_type(),
+                //     borrowing_snapshot,
+                //     statement.position,
+                // )?;
                 let restored_place =
                     lowerer.encode_expression_as_place(&statement.restored_place)?;
                 let restored_address =
                     lowerer.encode_expression_as_place_address(&statement.restored_place)?;
                 // let restored_root_address =
                 //     lowerer.extract_root_address(&statement.restored_place)?;
-                let snapshot = statement.borrowing_place.to_procedure_snapshot(lowerer)?;
+                // let snapshot = statement.borrowing_place.to_procedure_snapshot(lowerer)?;
+                let mut place_encoder = PlaceToSnapshot::for_place(PredicateKind::Owned);
+                let aliased_snapshot = place_encoder.expression_to_snapshot(
+                    lowerer,
+                    &statement.borrowing_place,
+                    false,
+                )?;
+                let restored_snapshot = place_encoder.expression_to_snapshot(
+                    lowerer,
+                    &statement.restored_place,
+                    false,
+                )?;
                 let mut statements = vec![lowerer.call_restore_raw_borrowed_method(
                     CallContext::Procedure,
                     ty,
                     ty,
                     statement.position,
-                    borrowing_address,
-                    restored_place,
                     restored_address,
-                    snapshot.clone(),
+                    restored_place,
+                    aliased_snapshot.clone(),
                 )?];
                 lowerer.encode_snapshot_update(
                     &mut statements,
                     &statement.restored_place,
-                    snapshot,
+                    restored_snapshot,
                     statement.position,
                 )?;
                 Ok(statements)

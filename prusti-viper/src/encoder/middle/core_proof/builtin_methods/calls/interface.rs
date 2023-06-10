@@ -106,9 +106,8 @@ pub(in super::super::super) trait BuiltinMethodCallsInterface {
         ty: &vir_mid::Type,
         generics: &G,
         position: vir_low::Position,
-        borrowing_address: vir_low::Expression,
+        address: vir_low::Expression,
         restored_place: vir_low::Expression,
-        restored_root_address: vir_low::Expression,
         snapshot: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Statement>
     where
@@ -271,9 +270,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodCallsInterface for Lowerer<'p, 'v, 'tcx>
         ty: &vir_mid::Type,
         generics: &G,
         position: vir_low::Position,
-        borrowing_address: vir_low::Expression,
+        address: vir_low::Expression,
         restored_place: vir_low::Expression,
-        restored_root_address: vir_low::Expression,
         snapshot: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Statement>
     where
@@ -287,9 +285,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodCallsInterface for Lowerer<'p, 'v, 'tcx>
             generics,
             position,
         )?;
-        builder.add_argument(borrowing_address);
+        builder.add_argument(address);
         builder.add_argument(restored_place);
-        builder.add_argument(restored_root_address);
         builder.add_argument(snapshot);
         Ok(builder.build())
     }

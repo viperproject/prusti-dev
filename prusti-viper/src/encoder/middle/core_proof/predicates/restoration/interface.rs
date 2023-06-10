@@ -44,7 +44,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> RestorationInterface for Lowerer<'p, 'v, 'tcx> {
             let predicate = vir_low::PredicateDecl::new(
                 predicate_name! { RestoreRawBorrowed<ty> },
                 vir_low::PredicateKind::WithoutSnapshotWhole,
-                vars!(place: Place, address: Address),
+                vars!(place: PlaceOption, address: Address),
                 None,
             );
             self.declare_predicate(predicate)?;

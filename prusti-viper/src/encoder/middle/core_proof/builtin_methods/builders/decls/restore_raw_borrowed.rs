@@ -19,7 +19,7 @@ pub(in super::super::super::super) struct RestoreRawBorrowedMethodBuilder<'l, 'p
     inner: BuiltinMethodBuilder<'l, 'p, 'v, 'tcx>,
     borrowing_address: vir_low::VariableDecl,
     restored_place: vir_low::VariableDecl,
-    restored_root_address: vir_low::VariableDecl,
+    // restored_root_address: vir_low::VariableDecl,
     snapshot: vir_low::VariableDecl,
 }
 
@@ -40,11 +40,11 @@ impl<'l, 'p, 'v, 'tcx> RestoreRawBorrowedMethodBuilder<'l, 'p, 'v, 'tcx> {
         type_decl: &'l vir_mid::TypeDecl,
         error_kind: BuiltinMethodKind,
     ) -> SpannedEncodingResult<Self> {
-        let borrowing_address =
-            vir_low::VariableDecl::new("borrowing_address", lowerer.address_type()?);
-        let restored_place = vir_low::VariableDecl::new("restored_place", lowerer.place_type()?);
-        let restored_root_address =
-            vir_low::VariableDecl::new("restored_root_address", lowerer.address_type()?);
+        let borrowing_address = vir_low::VariableDecl::new("address", lowerer.address_type()?);
+        let restored_place =
+            vir_low::VariableDecl::new("restored_place", lowerer.place_option_type()?);
+        // let restored_root_address =
+        //     vir_low::VariableDecl::new("restored_root_address", lowerer.address_type()?);
         let snapshot = vir_low::VariableDecl::new("snapshot", ty.to_snapshot(lowerer)?);
         let inner =
             BuiltinMethodBuilder::new(lowerer, kind, method_name, ty, type_decl, error_kind)?;
@@ -52,7 +52,7 @@ impl<'l, 'p, 'v, 'tcx> RestoreRawBorrowedMethodBuilder<'l, 'p, 'v, 'tcx> {
             inner,
             borrowing_address,
             restored_place,
-            restored_root_address,
+            // restored_root_address,
             snapshot,
         })
     }
@@ -66,9 +66,9 @@ impl<'l, 'p, 'v, 'tcx> RestoreRawBorrowedMethodBuilder<'l, 'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.inner.parameters.push(self.borrowing_address.clone());
         self.inner.parameters.push(self.restored_place.clone());
-        self.inner
-            .parameters
-            .push(self.restored_root_address.clone());
+        // self.inner
+        //     .parameters
+        //     .push(self.restored_root_address.clone());
         self.inner.parameters.push(self.snapshot.clone());
         self.create_lifetime_parameters()?;
         self.create_const_parameters()?;
@@ -78,21 +78,15 @@ impl<'l, 'p, 'v, 'tcx> RestoreRawBorrowedMethodBuilder<'l, 'p, 'v, 'tcx> {
     pub(in super::super::super::super) fn add_aliased_source_precondition(
         &mut self,
     ) -> SpannedEncodingResult<()> {
-        let _aliased_root_place = self
-            .inner
-            .lowerer
-            .encode_aliased_place_root(self.inner.position)?;
-        unimplemented!();
-        // let aliased_predicate = self.inner.lowerer.owned_aliased(
-        //     CallContext::BuiltinMethod,
-        //     self.inner.ty,
-        //     self.inner.ty,
-        //     aliased_root_place,
-        //     self.borrowing_address.clone().into(),
-        //     self.snapshot.clone().into(),
-        //     None,
-        // )?;
-        // self.add_precondition(aliased_predicate);
+        let aliased_predicate = self.inner.lowerer.owned_aliased(
+            CallContext::BuiltinMethod,
+            self.inner.ty,
+            self.inner.ty,
+            self.borrowing_address.clone().into(),
+            None,
+            self.inner.position,
+        )?;
+        self.add_precondition(aliased_predicate);
         Ok(())
     }
 
@@ -102,7 +96,8 @@ impl<'l, 'p, 'v, 'tcx> RestoreRawBorrowedMethodBuilder<'l, 'p, 'v, 'tcx> {
         let restore_raw_borrowed = self.inner.lowerer.restore_raw_borrowed(
             self.inner.ty,
             self.restored_place.clone().into(),
-            self.restored_root_address.clone().into(),
+            self.borrowing_address.clone().into(),
+            // self.restored_root_address.clone().into(),
         )?;
         self.add_precondition(restore_raw_borrowed);
         Ok(())
@@ -117,7 +112,8 @@ impl<'l, 'p, 'v, 'tcx> RestoreRawBorrowedMethodBuilder<'l, 'p, 'v, 'tcx> {
                 self.inner.ty,
                 self.inner.ty,
                 &self.restored_place,
-                &self.restored_root_address,
+                &self.borrowing_address,
+                // &self.restored_root_address,
                 &self.snapshot,
                 self.inner.position,
             )?;
