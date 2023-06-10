@@ -834,7 +834,11 @@ pub fn read_byte(_bytes: Bytes, _index: usize) -> Byte {
 
 /// Check whether `element_address` is contained in the range starting at
 /// `start_address` and having the specified size.
-pub fn range_contains<T>(_start_address: T, _range_size: usize, _element_address: T) -> bool {
+pub fn range_contains<T>(
+    _start_address: *const T,
+    _range_size: usize,
+    _element_address: *const T,
+) -> bool {
     unreachable!();
 }
 

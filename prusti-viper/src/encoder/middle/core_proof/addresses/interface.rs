@@ -170,15 +170,57 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         checked_address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let address_type = self.address_type()?;
         if !self.address_state.is_address_range_contains_axiom_encoded {
             self.address_state.is_address_range_contains_axiom_encoded = true;
+            use vir_low::macros::*;
+            let size_type = self.size_type()?;
+            var_decls! {
+                start_address: Address,
+                type_size: {size_type},
+                range_length: Int,
+                checked_address: Address,
+                index: Int
+            }
+            let call = self.create_domain_func_app(
+                ADDRESS_DOMAIN_NAME,
+                "address_range_contains$",
+                vec![
+                    type_size.clone().into(),
+                    start_address.clone().into(),
+                    range_length.clone().into(),
+                    checked_address.clone().into(),
+                ],
+                vir_low::Type::Bool,
+                position,
+            )?;
+            let offset_call = self.address_offset(
+                type_size.clone().into(),
+                start_address.clone().into(),
+                index.clone().into(),
+                position,
+            )?;
+            let exists_body = expr! {
+                (([0.into()] <= index) && (index < range_length)) &&
+                ([offset_call.clone()] == checked_address)
+            };
+            let exists = vir_low::Expression::exists(
+                vec![index],
+                vec![vir_low::Trigger::new(vec![offset_call])],
+                exists_body,
+            );
+            let forall = vir_low::Expression::forall(
+                vec![start_address, type_size, range_length, checked_address],
+                vec![vir_low::Trigger::new(vec![call.clone()])],
+                expr! { [call] == [exists] },
+            );
+            let axiom = vir_low::DomainAxiomDecl::new(None, "address_range_contains$axiom", forall);
+            self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
         }
         self.create_domain_func_app(
             ADDRESS_DOMAIN_NAME,
             "address_range_contains$",
-            vec![start_address, type_size, range_length, checked_address],
-            address_type,
+            vec![type_size, start_address, range_length, checked_address],
+            vir_low::Type::Bool,
             position,
         )
     }

@@ -284,7 +284,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
         let replacements = std::iter::once((&index_variable, &index_variable_replacement))
             .collect::<FxHashMap<_, _>>();
-        let guard = guard.substitute_variables(&replacements);
+        let guard = expr! {
+            ([0.into()] <= index) && [guard.substitute_variables(&replacements)]
+        };
         let body = expr!([guard] ==> [predicate]);
         let expression = vir_low::Expression::forall(
             vec![index],
