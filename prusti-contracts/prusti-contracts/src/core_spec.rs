@@ -121,6 +121,13 @@ impl usize {
         result == none
     })]
     fn checked_mul(self, rhs: usize) -> Option<usize>;
+
+    #[terminates]
+    #[pure]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    #[ensures(self >= rhs ==> result == self - rhs)]
+    fn wrapping_sub(self, rhs: usize) -> usize;
 }
 
 #[extern_spec]
