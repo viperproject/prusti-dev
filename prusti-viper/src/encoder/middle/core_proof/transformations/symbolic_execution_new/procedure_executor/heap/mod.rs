@@ -616,8 +616,13 @@ impl BlockHeap {
         program_context: &ProgramContext<impl EncoderContext>,
         global_state: &mut GlobalHeapState,
     ) -> SpannedEncodingResult<()> {
-        self.lifetimes
-            .merge(&other.lifetimes, &constraints_merge_report)?;
+        self.lifetimes.merge(
+            &other.lifetimes,
+            self_edge_block,
+            other_edge_block,
+            position,
+            &constraints_merge_report,
+        )?;
         // self.dead_lifetimes
         //     .merge(&other.dead_lifetimes, &constraints_merge_report)?;
         self.dead_lifetimes

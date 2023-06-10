@@ -157,6 +157,9 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
     pub(super) fn merge(
         &mut self,
         other: &Self,
+        self_edge_block: &mut Vec<vir_low::Statement>,
+        other_edge_block: &mut Vec<vir_low::Statement>,
+        position: vir_low::Position,
         constraints_merge_report: &ConstraintsMergeReport,
     ) -> SpannedEncodingResult<()> {
         for (mut lifetime, amount) in std::mem::take(&mut self.token_permission_amounts) {
@@ -211,11 +214,20 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                         // continue;
                     }
                 } else {
-                    // This can happen if the reference was not closed on some
-                    // (potentially unreachable) trace.
-                    unimplemented!("{lifetime}\n{self}");
-                    // // Did not find the lifetime in the other block, leak it.
-                    // continue;
+                    // Did not find the lifetime in the other block, mark that
+                    // edge as unreachable. This can happen if the reference was
+                    // not closed on some (potentially unreachable) trace.
+                    other_edge_block.push(
+                        vir_low::Statement::comment(format!(
+                            "marking as unreachable because not found in other: {lifetime}"
+                        ))
+                        .set_default_position(position),
+                    );
+                    other_edge_block.push(
+                        vir_low::Statement::assert_no_pos(false.into())
+                            .set_default_position(position),
+                    );
+                    continue;
                 }
             };
             assert_eq!(self_amount, amount);
