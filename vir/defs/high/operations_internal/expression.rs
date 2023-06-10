@@ -327,8 +327,7 @@ impl Expression {
     }
 
     pub fn get_last_dereferenced_pointer(&self) -> Option<&Expression> {
-        assert!(self.is_place());
-        if let Some(parent) = self.get_parent_ref() {
+        if let Some(parent) = self.get_parent_ref_of_place_like() {
             if self.is_deref() && parent.get_type().is_pointer() {
                 return Some(parent);
             }
