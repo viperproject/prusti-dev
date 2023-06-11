@@ -68,6 +68,15 @@ impl<T> Pointer<T> {
     #[no_panic]
     #[no_panic_ensures_postcondition]
     fn wrapping_offset(self, count: isize) -> *const T;
+
+    #[trusted]
+    #[terminates]
+    #[pure]
+    // FIXME: Check provenance.
+    #[ensures(result == address_offset(self, count as isize))]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    unsafe fn add(self, count: usize) -> *const T;
 }
 
 type MutPointer<T> = *mut T;
@@ -100,6 +109,15 @@ impl<T> MutPointer<T> {
     #[no_panic]
     #[no_panic_ensures_postcondition]
     fn wrapping_offset(self, count: isize) -> *mut T;
+
+    #[trusted]
+    #[terminates]
+    #[pure]
+    // FIXME: Check provenance.
+    #[ensures(result == address_offset_mut(self, count as isize))]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    unsafe fn add(self, count: usize) -> *mut T;
 }
 
 #[extern_spec]
