@@ -7,7 +7,7 @@ use crate::encoder::{
 };
 use log::{debug, error};
 use prusti_common::config;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
     low::{self as vir_low},
@@ -186,11 +186,20 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                         // continue;
                     }
                 } else {
-                    // This can happen if the reference was not closed on some
-                    // (potentially unreachable) trace.
-                    unimplemented!("{lifetime}\nself:\n{self}other:\n{other}");
-                    // // Did not find the lifetime in the other block, leak it.
-                    // continue;
+                    // Did not find the lifetime in the other block, mark that
+                    // edge as unreachable. This can happen if the reference was
+                    // not closed on some (potentially unreachable) trace.
+                    other_edge_block.push(
+                        vir_low::Statement::comment(format!(
+                            "marking as unreachable because not found in other: {lifetime}"
+                        ))
+                        .set_default_position(position),
+                    );
+                    other_edge_block.push(
+                        vir_low::Statement::assert_no_pos(false.into())
+                            .set_default_position(position),
+                    );
+                    continue;
                 }
             };
             assert_eq!(&amount, other_amount);
@@ -207,11 +216,20 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                     if let Some(self_amount) = self.token_permission_amounts.get(self_lifetime) {
                         self_amount
                     } else {
-                        // This can happen if the reference was not closed on some
-                        // (potentially unreachable) trace.
-                        unimplemented!("{self_lifetime}\n{self}");
-                        // // Did not find the lifetime in the other block, leak it.
-                        // continue;
+                        // Did not find the lifetime in the other block, mark that
+                        // edge as unreachable. This can happen if the reference was
+                        // not closed on some (potentially unreachable) trace.
+                        other_edge_block.push(
+                            vir_low::Statement::comment(format!(
+                                "marking as unreachable because not found in self: {lifetime}"
+                            ))
+                            .set_default_position(position),
+                        );
+                        self_edge_block.push(
+                            vir_low::Statement::assert_no_pos(false.into())
+                                .set_default_position(position),
+                        );
+                        continue;
                     }
                 } else {
                     // Did not find the lifetime in the other block, mark that
@@ -219,11 +237,11 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                     // not closed on some (potentially unreachable) trace.
                     other_edge_block.push(
                         vir_low::Statement::comment(format!(
-                            "marking as unreachable because not found in other: {lifetime}"
+                            "marking as unreachable because not found in self: {lifetime}"
                         ))
                         .set_default_position(position),
                     );
-                    other_edge_block.push(
+                    self_edge_block.push(
                         vir_low::Statement::assert_no_pos(false.into())
                             .set_default_position(position),
                     );
