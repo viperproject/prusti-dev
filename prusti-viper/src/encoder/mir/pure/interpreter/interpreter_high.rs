@@ -357,6 +357,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 state.substitute_value(&encoded_lhs, expr);
             }
+            mir::Rvalue::Cast(mir::CastKind::PtrToPtr, operand, _cast_ty) => {
+                let arg = self.encode_operand(operand, span)?;
+                let expr = vir_high::Expression::builtin_func_app_no_pos(
+                    vir_high::BuiltinFunc::CastPtrToPtr,
+                    Vec::new(),
+                    vec![arg],
+                    encoded_lhs.get_type().clone(),
+                );
+                state.substitute_value(&encoded_lhs, expr);
+            }
             mir::Rvalue::Cast(kind, _, _) => {
                 return Err(SpannedEncodingError::unsupported(
                     format!("unsupported kind of cast: {kind:?}"),

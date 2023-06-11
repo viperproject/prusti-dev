@@ -1130,6 +1130,11 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                 // )?;
                 // lowerer.address_to_pointer(&app.return_type, address, app.position)
             }
+            BuiltinFunc::CastPtrToPtr => {
+                let mut args = construct_args(self, lowerer)?;
+                // FIXME: This encoding is probably wrong because we are not doing any casting.
+                Ok(args.pop().unwrap())
+            }
             BuiltinFunc::CastIntToInt => {
                 let mut args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 1);
@@ -1172,13 +1177,41 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         place: &vir_mid::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        if let Some(deref_place) = place.get_last_dereferenced_pointer() {
-            let base_snapshot = self.expression_to_snapshot(lowerer, deref_place, true)?;
-            let ty = deref_place.get_type();
-            lowerer.pointer_address(ty, base_snapshot, place.position())
+        if let Some(parent) = place.get_parent_ref_of_place_like() {
+            let parent_type = parent.get_type();
+            if place.is_deref() && parent_type.is_pointer() {
+                let base_snapshot = self.expression_to_snapshot(lowerer, parent, true)?;
+                let ty = parent.get_type();
+                lowerer.pointer_address(ty, base_snapshot, place.position())
+            } else {
+                let base_address = self.pointer_deref_into_address(lowerer, parent)?;
+                let position = place.position();
+                match place {
+                    vir_mid::Expression::Field(place) => lowerer.encode_field_address(
+                        parent_type,
+                        &place.field,
+                        base_address,
+                        position,
+                    ),
+                    vir_mid::Expression::Variant(place) => lowerer.encode_enum_variant_address(
+                        parent_type,
+                        &place.variant_index,
+                        base_address,
+                        position,
+                    ),
+                    _ => unreachable!("place: {place}"),
+                }
+            }
         } else {
             unreachable!("place: {place}");
         }
+        // if let Some(deref_place) = place.get_last_dereferenced_pointer() {
+        //     let base_snapshot = self.expression_to_snapshot(lowerer, deref_place, true)?;
+        //     let ty = deref_place.get_type();
+        //     lowerer.pointer_address(ty, base_snapshot, place.position())
+        // } else {
+        //     unreachable!("place: {place}");
+        // }
     }
 
     fn acc_predicate_to_snapshot(

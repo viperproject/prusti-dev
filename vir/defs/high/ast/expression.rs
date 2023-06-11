@@ -291,6 +291,8 @@ pub enum BuiltinFunc {
     DerefOwn,
     /// Cast `*mut T` to `*const T`.
     CastMutToConstPointer,
+    /// Change the type of the pointer.
+    CastPtrToPtr,
     /// Cast from some integer type to another.
     CastIntToInt,
     BeforeExpiry,
