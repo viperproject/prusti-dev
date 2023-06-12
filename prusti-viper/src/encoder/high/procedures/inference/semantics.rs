@@ -1202,7 +1202,7 @@ impl CollectPermissionChanges for vir_typed::RestoreMutBorrowed {
         _consumed_permissions: &mut Vec<Permission>,
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
-        produced_permissions.push(Permission::Owned(self.borrowed_place.clone()));
+        produced_permissions.push(Permission::Owned(self.referenced_place.clone()));
         Ok(())
     }
 }

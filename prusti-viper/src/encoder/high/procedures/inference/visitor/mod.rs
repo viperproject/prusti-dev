@@ -882,7 +882,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                         lifetime.typed_to_middle_type(self.encoder)?,
                         place.typed_to_middle_expression(self.encoder)?,
                         is_reborrow,
-                        false,
+                        None,
                         condition,
                         position,
                     )

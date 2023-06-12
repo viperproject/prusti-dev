@@ -4761,39 +4761,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             Ok(true)
                         }
                         "prusti_contracts::prusti_restore_mut_borrowed" => {
-                            assert_eq!(args.len(), 3);
+                            assert_eq!(args.len(), 2);
                             let mut encoded_args = extract_args(self.mir, args, block, self)?;
-                            let ArgKind::String(lifetime_name) = encoded_args.pop().unwrap() else {
+                            let ArgKind::String(referenced_place_spec_id) = encoded_args.pop().unwrap() else {
                                 unreachable!()
                             };
-                            let ArgKind::String(place_spec_id) = encoded_args.pop().unwrap() else {
+                            let ArgKind::String(referencing_place_spec_id) = encoded_args.pop().unwrap() else {
                                 unreachable!()
                             };
-                            let Some(lifetime) = self
-                                .user_named_lifetimes
-                                .get(&lifetime_name)
-                                .cloned() else {
-                                    return Err(SpannedEncodingError::incorrect(
-                                        format!("Lifetime name `{lifetime_name}` not defined"), span));
-                                };
-                            let user_place = self
+                            let referencing_place = self
                                 .specification_expressions
-                                .get(&place_spec_id)
+                                .get(&referencing_place_spec_id)
                                 .expect("FIXME: A proper error message")
                                 .clone();
-                            let vir_high::Expression::AddrOf(vir_high::AddrOf { base: box user_place, .. }) =
-                            user_place else {
-                                    unreachable!("place: {user_place}");
+                            let referenced_place = self
+                                .specification_expressions
+                                .get(&referenced_place_spec_id)
+                                .expect("FIXME: A proper error message")
+                                .clone();
+                            let vir_high::Expression::AddrOf(vir_high::AddrOf { base: box referencing_place, .. }) =
+                            referencing_place else {
+                                    unreachable!("place: {referencing_place}");
+                                };
+                            let vir_high::Type::Reference(vir_high::ty::Reference {
+                                lifetime,
+                            ..} ) = referencing_place.get_type() else {
+                                    unreachable!("TODO: a proper error message that {referencing_place} needs to be a reference");
+                                };
+                            let vir_high::Expression::AddrOf(vir_high::AddrOf { base: box referenced_place, .. }) =
+                            referenced_place else {
+                                    unreachable!("place: {referenced_place}");
                                 };
                             assert!(encoded_args.is_empty());
                             let statement = self.set_statement_error(
                                 location,
                                 ErrorCtxt::RestoreMutBorrowed,
-                                unimplemented!(),
-                                // vir_high::Statement::restore_mut_borrowed_no_pos(
-                                //     lifetime.clone(),
-                                //     user_place.clone(),
-                                // ),
+                                vir_high::Statement::restore_mut_borrowed_no_pos(
+                                    lifetime.clone(),
+                                    referenced_place,
+                                    referencing_place,
+                                ),
                             )?;
                             encoded_statements.push(statement);
                             Ok(true)

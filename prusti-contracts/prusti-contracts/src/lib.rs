@@ -655,9 +655,7 @@ pub fn prusti_open_mut_ref_place<T>(_lifetime: &'static str, _arg: T, _witness: 
 
 #[doc(hidden)]
 #[trusted]
-/// We need to pass `_arg` to make sure the lifetime covers the closing of the
-/// reference.
-pub fn prusti_restore_mut_borrowed<T>(_arg: T, _lifetime_name: &'static str) {
+pub fn prusti_restore_mut_borrowed<T1, T2>(_referencing: T1, _referenced: T2) {
     unreachable!();
 }
 

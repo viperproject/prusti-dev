@@ -1739,16 +1739,20 @@ pub fn open_mut_ref(tokens: TokenStream) -> TokenStream {
 }
 
 pub fn restore_mut_borrowed(tokens: TokenStream) -> TokenStream {
-    parse_expressions!(tokens, syn::Token![,] => referenced_place, lifetime_name);
-    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
-    let (spec_id, referenced_place_closure) = handle_result!(prusti_specification_expression(
-        quote! { unsafe { &#referenced_place } }
-    ));
-    let spec_id_str = spec_id.to_string();
+    parse_expressions!(tokens, syn::Token![,] => referencing_place, referenced_place);
+    let (referencing_place_spec_id, referencing_place_closure) = handle_result!(
+        prusti_specification_expression(quote! { unsafe { &#referencing_place } })
+    );
+    let (referenced_place_spec_id, referenced_place_closure) = handle_result!(
+        prusti_specification_expression(quote! { unsafe { &#referenced_place } })
+    );
+    let referencing_place_spec_id_str = referencing_place_spec_id.to_string();
+    let referenced_place_spec_id_str = referenced_place_spec_id.to_string();
     let call = unsafe_spec_function_call(
-        quote! { prusti_restore_mut_borrowed(#spec_id_str, #lifetime_name_str) },
+        quote! { prusti_restore_mut_borrowed(#referencing_place_spec_id_str, #referenced_place_spec_id_str) },
     );
     quote! {
+        #referencing_place_closure;
         #call;
         #referenced_place_closure
     }

@@ -617,12 +617,17 @@ impl IntoLow for vir_mid::Statement {
                 // let root_address = lowerer.extract_root_address(&statement.place)?;
                 let borrowing_lifetime = lowerer
                     .encode_lifetime_const_into_procedure_variable(statement.lifetime.clone())?;
-                let current_snapshot = if statement.is_user_written {
+                let current_snapshot = if let Some(borrowing_place) = statement.borrowing_place {
+                    let vir_mid::Type::Reference(reference_type) = borrowing_place.get_type() else {
+                        unreachable!();
+                    };
+                    let target_type = (*reference_type.target_type).clone();
+                    let deref_place = borrowing_place.deref_no_pos(target_type);
                     let mut place_encoder = PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
                         lifetime: borrowing_lifetime.clone().into(),
                         is_final: true,
                     });
-                    place_encoder.expression_to_snapshot(lowerer, &statement.place, false)?
+                    place_encoder.expression_to_snapshot(lowerer, &deref_place, false)?
                 } else {
                     statement.place.to_procedure_snapshot(lowerer)?
                 };
