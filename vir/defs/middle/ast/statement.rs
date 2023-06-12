@@ -307,18 +307,18 @@ pub struct RangeConvertOwnedIntoMemoryBlock {
 
 /// Restore a mutably borrowed place.
 #[display(
-    fmt = "restore-mut-borrowed{} &{} {} {} {}",
+    fmt = "restore-mut-borrowed{} {} &{} {} {}",
     "display::option!(condition, \"<{}>\", \"\")",
+    "display::option!(borrowing_place, \"({})\", \"\")",
     lifetime,
     "if *is_reborrow { \"reborrow\" } else { \"\" }",
-    "if *is_user_written { \"user\" } else { \"\" }",
     place
 )]
 pub struct RestoreMutBorrowed {
     pub lifetime: LifetimeConst,
     pub place: Expression,
     pub is_reborrow: bool,
-    pub is_user_written: bool,
+    pub borrowing_place: Option<Expression>,
     pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }

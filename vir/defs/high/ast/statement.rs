@@ -572,14 +572,14 @@ pub struct CloseFracRef {
 
 #[display(
     fmt = "restore-mut-borrowed({} = &{} {})",
-    borrowing_place,
+    referencing_place,
     lifetime,
-    borrowed_place
+    referenced_place
 )]
 pub struct RestoreMutBorrowed {
     pub lifetime: LifetimeConst,
-    pub borrowed_place: Expression,
-    pub borrowing_place: Expression,
+    pub referenced_place: Expression,
+    pub referencing_place: Expression,
     pub position: Position,
 }
 
