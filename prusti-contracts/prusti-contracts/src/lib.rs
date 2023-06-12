@@ -176,6 +176,9 @@ pub use prusti_contracts_proc_macros::close_mut_ref;
 /// A macro to manually open a reference.
 pub use prusti_contracts_proc_macros::open_mut_ref;
 
+/// A macro to apply the inheritance rule to the specified place.
+pub use prusti_contracts_proc_macros::restore_mut_borrowed;
+
 /// A macro to manually resolve a reference.
 pub use prusti_contracts_proc_macros::resolve;
 
@@ -647,6 +650,14 @@ pub fn prusti_close_mut_ref_place<T>(_arg: T, _witness: &'static str) {
 #[doc(hidden)]
 #[trusted]
 pub fn prusti_open_mut_ref_place<T>(_lifetime: &'static str, _arg: T, _witness: &'static str) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+/// We need to pass `_arg` to make sure the lifetime covers the closing of the
+/// reference.
+pub fn prusti_restore_mut_borrowed<T>(_arg: T, _lifetime_name: &'static str) {
     unreachable!();
 }
 

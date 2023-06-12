@@ -338,6 +338,12 @@ pub fn open_mut_ref(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn restore_mut_borrowed(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn resolve(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -719,6 +725,12 @@ pub fn close_mut_ref(tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn open_mut_ref(tokens: TokenStream) -> TokenStream {
     prusti_specs::open_mut_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn restore_mut_borrowed(tokens: TokenStream) -> TokenStream {
+    prusti_specs::restore_mut_borrowed(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

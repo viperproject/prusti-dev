@@ -218,6 +218,8 @@ pub enum ErrorCtxt {
     ForgetInitialization,
     /// Restore a place borrowed via raw pointer.
     RestoreRawBorrowed,
+    /// Restore a place borrowed via mutable reference.
+    RestoreMutBorrowed,
     /// An error in the definition of the type invariant.
     TypeInvariantDefinition,
     /// Pointer dereference in the postcondition is not framed by permissions.

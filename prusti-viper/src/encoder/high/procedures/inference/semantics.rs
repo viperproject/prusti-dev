@@ -195,6 +195,9 @@ impl CollectPermissionChanges for vir_typed::Statement {
             vir_typed::Statement::CloseFracRef(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_typed::Statement::RestoreMutBorrowed(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_typed::Statement::BorShorten(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
@@ -1188,6 +1191,18 @@ impl CollectPermissionChanges for vir_typed::CloseFracRef {
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
         produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_typed::RestoreMutBorrowed {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        produced_permissions.push(Permission::Owned(self.borrowed_place.clone()));
         Ok(())
     }
 }

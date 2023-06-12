@@ -73,6 +73,7 @@ pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
                         | vir_high::Statement::ForgetInitialization(_)
                         | vir_high::Statement::ForgetInitializationRange(_)
                         | vir_high::Statement::RestoreRawBorrowed(_)
+                        | vir_high::Statement::RestoreMutBorrowed(_)
                         | vir_high::Statement::Assume(_)
                         | vir_high::Statement::InhalePredicate(_)
                         | vir_high::Statement::InhaleExpression(_)

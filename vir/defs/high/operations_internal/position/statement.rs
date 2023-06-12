@@ -50,6 +50,7 @@ impl Positioned for Statement {
             Self::OpenFracRef(statement) => statement.position(),
             Self::CloseMutRef(statement) => statement.position(),
             Self::CloseFracRef(statement) => statement.position(),
+            Self::RestoreMutBorrowed(statement) => statement.position(),
             Self::BorShorten(statement) => statement.position(),
             Self::MaterializePredicate(statement) => statement.position(),
         }
@@ -327,6 +328,12 @@ impl Positioned for CloseMutRef {
 }
 
 impl Positioned for CloseFracRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for RestoreMutBorrowed {
     fn position(&self) -> Position {
         self.position
     }
