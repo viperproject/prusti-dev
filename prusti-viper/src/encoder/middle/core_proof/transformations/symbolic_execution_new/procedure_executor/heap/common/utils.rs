@@ -51,10 +51,6 @@ pub(super) fn is_non_aliased(
     if program_context.is_predicate_kind_non_aliased(predicate_name) {
         return Ok(true);
     }
-    // FIXME: use program_context.
-    if predicate_name.starts_with("view_shift$end$borrow$") {
-        unimplemented!();
-    }
     // fn construct_predicate_address_non_aliased_call(
     //     predicate_address: &vir_low::Expression,
     // ) -> vir_low::Expression {
