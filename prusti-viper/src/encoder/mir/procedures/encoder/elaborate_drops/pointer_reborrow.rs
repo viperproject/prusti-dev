@@ -1,4 +1,5 @@
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
+use log::debug;
 use prusti_interface::environment::{
     borrowck::facts::Loan,
     mir_body::borrowck::facts::{AllInputFacts, LocationTable, RichLocation},
@@ -141,7 +142,7 @@ pub(super) fn add_pointer_reborrow_facts<'v, 'tcx: 'v>(
                             *place,
                             &mut loan_counter,
                         );
-                        eprintln!("{block:?} {statement_index:?} {stmt:?} {new_loan:?}");
+                        debug!("{block:?} {statement_index:?} {stmt:?} {new_loan:?}");
                     }
                 }
             }
