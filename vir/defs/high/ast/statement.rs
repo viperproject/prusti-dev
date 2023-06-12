@@ -64,6 +64,7 @@ pub enum Statement {
     RestoreMutBorrowed(RestoreMutBorrowed),
     BorShorten(BorShorten),
     MaterializePredicate(MaterializePredicate),
+    EncodingAction(EncodingAction),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -605,5 +606,23 @@ pub struct MaterializePredicate {
     /// `materialize_predicate!` corresponds to `true` and `quantified_predicate!`
     /// corresponds to `false`.
     pub check_that_exists: bool,
+    pub position: Position,
+}
+
+#[derive_helpers]
+#[derive_visitors]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
+pub enum Action {
+    EndLoan(EndLoan),
+}
+
+pub struct EndLoan {
+    pub lifetime: LifetimeConst,
+}
+
+/// An action to be performed when generating the encoding.
+#[display(fmt = "encoding-action {}", action)]
+pub struct EncodingAction {
+    pub action: Action,
     pub position: Position,
 }

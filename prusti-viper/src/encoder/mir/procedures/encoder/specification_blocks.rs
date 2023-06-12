@@ -23,7 +23,8 @@ pub(super) struct TryFinallyRegion {
     pub(super) function_panic_exit_edges: BTreeSet<(mir::BasicBlock, mir::BasicBlock)>,
     body: BTreeSet<mir::BasicBlock>,
     pub(super) on_panic_specification_region_id: SpecificationId,
-    pub(super) finally_specification_region_id: SpecificationId,
+    pub(super) finally_at_panic_start_specification_region_id: SpecificationId,
+    pub(super) finally_at_resume_specification_region_id: SpecificationId,
 }
 
 /// Information about the specification blocks.
@@ -147,15 +148,19 @@ impl SpecificationBlocks {
         let mut try_finally_regions = Vec::new();
         {
             for (bb, data) in mir::traversal::reverse_postorder(body) {
-                if let Some((on_panic_specification_region_id, finally_specification_region_id)) =
-                    is_try_finally_begin_marker(env_query, data)
+                if let Some((
+                    on_panic_specification_region_id,
+                    finally_at_panic_start_specification_region_id,
+                    finally_at_resume_specification_region_id,
+                )) = is_try_finally_begin_marker(env_query, data)
                 {
                     let region = collect_try_finally_region(
                         env_query,
                         body,
                         bb,
                         on_panic_specification_region_id,
-                        finally_specification_region_id,
+                        finally_at_panic_start_specification_region_id,
+                        finally_at_resume_specification_region_id,
                     );
                     try_finally_regions.push(region);
                 }
@@ -336,7 +341,8 @@ fn collect_try_finally_region(
     body: &mir::Body,
     entry_block: mir::BasicBlock,
     on_panic_specification_region_id: SpecificationId,
-    finally_specification_region_id: SpecificationId,
+    finally_at_panic_start_specification_region_id: SpecificationId,
+    finally_at_resume_specification_region_id: SpecificationId,
 ) -> TryFinallyRegion {
     let mut region = BTreeSet::new();
     let mut work_queue = vec![entry_block];
@@ -383,7 +389,8 @@ fn collect_try_finally_region(
         function_panic_exit_edges,
         body: region,
         on_panic_specification_region_id,
-        finally_specification_region_id,
+        finally_at_panic_start_specification_region_id,
+        finally_at_resume_specification_region_id,
     }
 }
 
@@ -525,8 +532,9 @@ pub(super) fn specification_blocks_to_graph(
         for region in &specification_blocks.try_finally_regions {
             if region.entry_block == bb {
                 flags.push_str(&format!(
-                    "try_finally_region_entry({}) ",
-                    region.finally_specification_region_id
+                    "try_finally_region_entry({}, {}) ",
+                    region.finally_at_panic_start_specification_region_id,
+                    region.finally_at_resume_specification_region_id
                 ));
             }
             if region.body.contains(&bb) {

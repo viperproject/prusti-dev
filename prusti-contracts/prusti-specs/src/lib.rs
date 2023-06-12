@@ -1341,13 +1341,16 @@ pub fn with_finally(tokens: TokenStream) -> TokenStream {
     let WithFinally {
         executed_block,
         on_panic_block,
-        finally_block,
+        finally_block_at_panic_start,
+        finally_block_at_resume,
     } = handle_result!(syn::parse2(tokens));
     let mut rewriter = rewriter::AstRewriter::new();
     let on_panic_spec_id = rewriter.generate_spec_id();
     let on_panic_spec_id_str = on_panic_spec_id.to_string();
-    let finally_spec_id = rewriter.generate_spec_id();
-    let finally_spec_id_str = finally_spec_id.to_string();
+    let finally_at_panic_start_spec_id = rewriter.generate_spec_id();
+    let finally_at_panic_start_spec_id_str = finally_at_panic_start_spec_id.to_string();
+    let finally_at_resume_spec_id = rewriter.generate_spec_id();
+    let finally_at_resume_spec_id_str = finally_at_resume_spec_id.to_string();
     let make_closure = |kind| {
         quote! {
             #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
@@ -1355,7 +1358,8 @@ pub fn with_finally(tokens: TokenStream) -> TokenStream {
                 #[prusti::spec_only]
                 #[prusti::#kind]
                 #[prusti::on_panic_spec_id = #on_panic_spec_id_str]
-                #[prusti::finally_spec_id = #finally_spec_id_str]
+                #[prusti::finally_at_panic_start_spec_id = #finally_at_panic_start_spec_id_str]
+                #[prusti::finally_at_resume_spec_id = #finally_at_resume_spec_id_str]
                 || -> () {};
             }
         }
@@ -1370,20 +1374,29 @@ pub fn with_finally(tokens: TokenStream) -> TokenStream {
         quote! {specification_region_end},
         Some(on_panic_spec_id),
     );
-    let finally_ghost_block = ghost_with_annotation(
-        quote! { #finally_block },
+    let finally_at_panic_start_ghost_block = ghost_with_annotation(
+        quote! { #finally_block_at_panic_start },
         quote! {},
         false,
         quote! {specification_region_begin},
         quote! {specification_region_end},
-        Some(finally_spec_id),
+        Some(finally_at_panic_start_spec_id),
+    );
+    let finally_at_resume_ghost_block = ghost_with_annotation(
+        quote! { #finally_block_at_resume },
+        quote! {},
+        false,
+        quote! {specification_region_begin},
+        quote! {specification_region_end},
+        Some(finally_at_resume_spec_id),
     );
     quote! {
         #executed_block_begin
         #(#executed_block)*
         #executed_block_end
         #on_panic_ghost_block
-        #finally_ghost_block
+        #finally_at_panic_start_ghost_block
+        #finally_at_resume_ghost_block
     }
 }
 
@@ -1605,6 +1618,14 @@ pub fn take_lifetime(tokens: TokenStream) -> TokenStream {
     //         unsafe { prusti_take_lifetime(std::ptr::addr_of!(#reference), #lifetime_str) };
     //     }
     // }
+}
+
+pub fn end_loan(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => lifetime_name);
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    unsafe_spec_function_call(quote! {
+        prusti_end_loan(#lifetime_name_str)
+    })
 }
 
 pub fn set_lifetime_for_raw_pointer_reference_casts(tokens: TokenStream) -> TokenStream {

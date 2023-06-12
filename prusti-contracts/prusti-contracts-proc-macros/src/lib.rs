@@ -272,6 +272,12 @@ pub fn take_lifetime(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn end_loan(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn set_lifetime_for_raw_pointer_reference_casts(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -659,6 +665,12 @@ pub fn unpack_mut_ref(tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn take_lifetime(tokens: TokenStream) -> TokenStream {
     prusti_specs::take_lifetime(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn end_loan(tokens: TokenStream) -> TokenStream {
+    prusti_specs::end_loan(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

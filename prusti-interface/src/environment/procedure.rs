@@ -303,7 +303,7 @@ pub fn is_specification_end_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockDat
 pub fn is_try_finally_begin_marker<'tcx>(
     env_query: EnvQuery,
     bb_data: &BasicBlockData<'tcx>,
-) -> Option<(SpecificationId, SpecificationId)> {
+) -> Option<(SpecificationId, SpecificationId, SpecificationId)> {
     let kind = "try_finally_executed_block_begin";
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (
@@ -316,10 +316,19 @@ pub fn is_try_finally_begin_marker<'tcx>(
                 let on_panic_spec_id_string =
                     crate::utils::read_prusti_attr("on_panic_spec_id", attrs).unwrap();
                 let on_panic_spec_id = on_panic_spec_id_string.try_into().unwrap();
-                let finally_spec_id_string =
-                    crate::utils::read_prusti_attr("finally_spec_id", attrs).unwrap();
-                let finally_spec_id = finally_spec_id_string.try_into().unwrap();
-                return Some((on_panic_spec_id, finally_spec_id));
+                let finally_at_panic_spec_id_string =
+                    crate::utils::read_prusti_attr("finally_at_panic_start_spec_id", attrs)
+                        .unwrap();
+                let finally_at_panic_spec_id = finally_at_panic_spec_id_string.try_into().unwrap();
+                let finally_at_resume_spec_id_string =
+                    crate::utils::read_prusti_attr("finally_at_resume_spec_id", attrs).unwrap();
+                let finally_at_resume_spec_id =
+                    finally_at_resume_spec_id_string.try_into().unwrap();
+                return Some((
+                    on_panic_spec_id,
+                    finally_at_panic_spec_id,
+                    finally_at_resume_spec_id,
+                ));
             }
         }
     }
