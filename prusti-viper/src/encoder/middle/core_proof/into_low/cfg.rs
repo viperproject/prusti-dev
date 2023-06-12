@@ -615,9 +615,17 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.encode_expression_as_place_address(&statement.place)?;
                 // let root_address = lowerer.extract_root_address(&statement.place)?;
-                let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
                 let borrowing_lifetime = lowerer
                     .encode_lifetime_const_into_procedure_variable(statement.lifetime.clone())?;
+                let current_snapshot = if statement.is_user_written {
+                    let mut place_encoder = PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
+                        lifetime: borrowing_lifetime.clone().into(),
+                        is_final: true,
+                    });
+                    place_encoder.expression_to_snapshot(lowerer, &statement.place, false)?
+                } else {
+                    statement.place.to_procedure_snapshot(lowerer)?
+                };
                 // let validity =
                 //     lowerer.encode_snapshot_valid_call_for_type(current_snapshot.clone(), ty)?;
                 // let restored_predicate = if let Some((deref_lifetime, uniqueness)) =

@@ -1,6 +1,7 @@
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
-use prusti_interface::environment::mir_body::borrowck::facts::{
-    AllInputFacts, LocationTable, RichLocation,
+use prusti_interface::environment::{
+    borrowck::facts::Loan,
+    mir_body::borrowck::facts::{AllInputFacts, LocationTable, RichLocation},
 };
 use prusti_rustc_interface::middle::{
     mir,
@@ -92,12 +93,15 @@ pub(super) fn add_pointer_reborrow_facts<'v, 'tcx: 'v>(
             _ => {}
         }
     }
+    let mut loan_counter = 0xFFFF_FF00u32;
     for (block, data) in body.basic_blocks.iter_enumerated() {
         for (statement_index, stmt) in data.statements.iter().enumerate() {
             if let mir::StatementKind::Assign(box (_, source)) = &stmt.kind {
                 if let mir::Rvalue::Ref(reborrow_lifetime, _, place) = &source {
                     if let Some((reference_lifetime, borrow_use)) = lifetime_with_borrow_use {
                         if is_raw_pointer_deref(tcx, body, *place) {
+                            // Add subset_base fact for the case when we are reborrowing from a raw pointer and
+                            // the user set a lifetime to use for this case.
                             add_subset_base_fact(
                                 borrowck_input_facts,
                                 location_table,
@@ -110,6 +114,8 @@ pub(super) fn add_pointer_reborrow_facts<'v, 'tcx: 'v>(
                         }
                     }
                     if let Some(reference_lifetime) = raw_pointer_reborrow(tcx, body, *place) {
+                        // Add subset_base fact for the case when we are reborrowing from a place that
+                        // originiates in a reference, but also contains a raw pointer.
                         add_subset_base_fact(
                             borrowck_input_facts,
                             location_table,
@@ -119,6 +125,23 @@ pub(super) fn add_pointer_reborrow_facts<'v, 'tcx: 'v>(
                             reference_lifetime,
                             None,
                         );
+                    } else if lifetime_with_borrow_use.is_none()
+                        && is_raw_pointer_deref(tcx, body, *place)
+                    {
+                        // We have a reborrow via raw pointer, but we cannot determine the lifetime
+                        // because neither user told us to use one, nor it is a raw pointer rebborow.
+                        // Therefore, we assume that this is a borrow of a memory location behind a
+                        // raw pointer and create a new loan for that.
+                        let new_loan = create_new_loan(
+                            borrowck_input_facts,
+                            location_table,
+                            block,
+                            statement_index,
+                            *reborrow_lifetime,
+                            *place,
+                            &mut loan_counter,
+                        );
+                        eprintln!("{block:?} {statement_index:?} {stmt:?} {new_loan:?}");
                     }
                 }
             }
@@ -160,12 +183,36 @@ fn add_subset_base_fact(
     }
 }
 
+fn create_new_loan(
+    borrowck_input_facts: &mut AllInputFacts,
+    location_table: &LocationTable,
+    block: mir::BasicBlock,
+    statement_index: usize,
+    reborrow_lifetime: ty::Region,
+    place: mir::Place,
+    loan_counter: &mut u32,
+) -> Loan {
+    let point = location_table.location_to_point(RichLocation::Mid(mir::Location {
+        block,
+        statement_index,
+    }));
+    let ty::RegionKind::ReVar(reborrow_lifetime_id) = reborrow_lifetime.kind() else {
+        unreachable!("reborrow_lifetime: {:?}", reborrow_lifetime);
+    };
+    let loan = (*loan_counter).into();
+    *loan_counter -= 1;
+    borrowck_input_facts
+        .loan_issued_at
+        .push((reborrow_lifetime_id, loan, point));
+    loan
+}
+
 fn is_raw_pointer_deref<'tcx>(
     tcx: TyCtxt<'tcx>,
     body: &mir::Body<'tcx>,
     place: mir::Place<'tcx>,
 ) -> bool {
-    let mut projections = place.iter_projections().rev();
+    let projections = place.iter_projections().rev();
     for (place, projection) in projections {
         if projection == mir::ProjectionElem::Deref && place.ty(body, tcx).ty.is_unsafe_ptr() {
             return true;

@@ -1738,6 +1738,22 @@ pub fn open_mut_ref(tokens: TokenStream) -> TokenStream {
     open_any_ref(tokens, quote! {prusti_open_mut_ref_place})
 }
 
+pub fn restore_mut_borrowed(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => referenced_place, lifetime_name);
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    let (spec_id, referenced_place_closure) = handle_result!(prusti_specification_expression(
+        quote! { unsafe { &#referenced_place } }
+    ));
+    let spec_id_str = spec_id.to_string();
+    let call = unsafe_spec_function_call(
+        quote! { prusti_restore_mut_borrowed(#spec_id_str, #lifetime_name_str) },
+    );
+    quote! {
+        #call;
+        #referenced_place_closure
+    }
+}
+
 pub fn resolve(tokens: TokenStream) -> TokenStream {
     generate_place_function(tokens, quote! {prusti_resolve})
 }

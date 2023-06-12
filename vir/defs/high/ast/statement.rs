@@ -61,6 +61,7 @@ pub enum Statement {
     OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
     CloseFracRef(CloseFracRef),
+    RestoreMutBorrowed(RestoreMutBorrowed),
     BorShorten(BorShorten),
     MaterializePredicate(MaterializePredicate),
 }
@@ -566,6 +567,19 @@ pub struct CloseFracRef {
     /// The permission amount that we get for accessing `Owned`.
     pub predicate_permission_amount: VariableDecl,
     pub is_user_written: bool,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "restore-mut-borrowed({} = &{} {})",
+    borrowing_place,
+    lifetime,
+    borrowed_place
+)]
+pub struct RestoreMutBorrowed {
+    pub lifetime: LifetimeConst,
+    pub borrowed_place: Expression,
+    pub borrowing_place: Expression,
     pub position: Position,
 }
 

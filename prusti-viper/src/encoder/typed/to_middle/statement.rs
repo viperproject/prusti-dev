@@ -221,6 +221,20 @@ impl<'v, 'tcx> TypedToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tc
         })
     }
 
+    fn typed_to_middle_statement_restore_mut_borrowed(
+        &self,
+        statement: vir_typed::RestoreMutBorrowed,
+    ) -> Result<vir_mid::statement::RestoreMutBorrowed, Self::Error> {
+        Ok(vir_mid::statement::RestoreMutBorrowed {
+            lifetime: statement.lifetime.typed_to_middle_type(self)?,
+            place: unimplemented!(), //statement.place.typed_to_middle_expression(self)?,
+            is_reborrow: false,
+            is_user_written: true,
+            condition: None,
+            position: statement.position,
+        })
+    }
+
     // fn typed_to_middle_statement_statement_restore(
     //             &self,
     //             _statement: vir_typed::Restore,
