@@ -172,6 +172,85 @@ impl ExprSimplifier {
                 right: Box::new(Self::apply_rules(op2)),
                 position: pos,
             }),
+            // added to satisfy Viper because we don't do desugaring of quantified permissions
+            // elsewhere; consider calling the Viper functions that does that instead
+            ast::Expr::ForAll(ast::ForAll {
+                variables: vars,
+                triggers: trigs,
+                body:
+                    box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::Implies,
+                        left: box c0,
+                        right:
+                            box ast::Expr::BinOp(ast::BinOp {
+                                op_kind: ast::BinaryOpKind::Implies,
+                                left: box c1,
+                                right: box ex,
+                                position: pos1,
+                            }),
+                            position: pos0,
+                    }),
+                position: pos_quant
+            }) => Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
+                variables: vars,
+                triggers: trigs,
+                body:
+                    box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::Implies,
+                        left: box ast::Expr::BinOp(ast::BinOp {
+                            op_kind: ast::BinaryOpKind::And,
+                            left: box c0,
+                            right: box c1,
+                            position: pos1 // TODO: not great
+                        }),
+                        right: box ex,
+                        position: pos0 // TODO: not great
+                    }),
+                position: pos_quant
+            })),
+            // same comment as above
+            ast::Expr::ForAll(ast::ForAll {
+                variables: vars,
+                triggers: trigs,
+                body:
+                    box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::Implies,
+                        left: box cond,
+                        right: box ast::Expr::BinOp(ast::BinOp {
+                            op_kind: ast::BinaryOpKind::And,
+                            left: box part0,
+                            right: box part1,
+                            position: pos_and,
+                        }),
+                        position: pos_imp,
+                    }),
+                position: pos_quant
+            }) => ast::Expr::BinOp(ast::BinOp {
+                op_kind: ast::BinaryOpKind::And,
+                left: box Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
+                    variables: vars.clone(),
+                    triggers: trigs.clone(),
+                    body: box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::Implies,
+                        left: box cond.clone(),
+                        right: box part0,
+                        position: pos_quant, // TODO: not great?
+                    }),
+                    position: pos_quant,
+                })),
+                right: box Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
+                    variables: vars,
+                    triggers: trigs,
+                    body: box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::Implies,
+                        left: box cond,
+                        right: box part1,
+                        position: pos_quant, // TODO: not great?
+                    }),
+                    position: pos_quant, // TODO: not great?
+                })),
+                position: pos_quant, // TODO: not great?
+            }),
             r => r,
         }
     }

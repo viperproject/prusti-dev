@@ -58,7 +58,7 @@ pub fn optimize_method_encoding(
         cfg
     };
     let cfg = apply!(fix_unfoldings, cfg);
-    let cfg = apply!(fix_quantifiers, cfg);
+    //let cfg = apply!(fix_quantifiers, cfg);
     let cfg = apply!(simplify_exprs, cfg);
     let cfg = apply!(remove_empty_if, cfg);
     let cfg = apply!(remove_unused_vars, cfg);
