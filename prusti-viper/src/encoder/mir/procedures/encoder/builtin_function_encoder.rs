@@ -13,6 +13,8 @@ pub(super) trait BuiltinFuncAppEncoder<'p, 'v, 'tcx> {
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<bool>;
 }
 
@@ -29,6 +31,8 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<bool> {
         let full_called_function_name = self
             .encoder
@@ -38,6 +42,8 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
 
         let make_manual_assign = |encoder: &mut Self,
                                   block_builder: &mut BasicBlockBuilder,
+                                  original_lifetimes: &mut BTreeSet<String>,
+                                  derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
                                   rhs_gen: &mut dyn FnMut(
             _,
             Vec<vir_high::Expression>,
@@ -120,7 +126,13 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 ErrorCtxt::ProcedureCall,
                 encoder.def_id,
             )?);
-            encoder.encode_lft_for_block(target_block, location, block_builder)?;
+            encoder.encode_lft_for_block(
+                target_block,
+                location,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+            )?;
             let target_label = encoder.encode_basic_block_label(target_block);
             let successor = vir_high::Successor::Goto(target_label);
             block_builder.set_successor_jump(successor);
@@ -129,21 +141,43 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
 
         let make_builtin_call = |encoder: &mut Self,
                                  block_builder: &mut BasicBlockBuilder,
+                                 original_lifetimes: &mut BTreeSet<String>,
+                                 derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
                                  function|
          -> SpannedEncodingResult<()> {
-            make_manual_assign(encoder, block_builder, &mut |ty_args, args, target_ty| {
-                vir_high::Expression::builtin_func_app_no_pos(function, ty_args, args, target_ty)
-            })?;
+            make_manual_assign(
+                encoder,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                &mut |ty_args, args, target_ty| {
+                    vir_high::Expression::builtin_func_app_no_pos(
+                        function, ty_args, args, target_ty,
+                    )
+                },
+            )?;
             Ok(())
         };
 
         let make_binop = |encoder: &mut Self,
                           block_builder: &mut BasicBlockBuilder,
+                          original_lifetimes: &mut BTreeSet<String>,
+                          derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
                           op_kind|
          -> SpannedEncodingResult<()> {
-            make_manual_assign(encoder, block_builder, &mut |_ty_args, args, _target_ty| {
-                vir_high::Expression::binary_op_no_pos(op_kind, args[0].clone(), args[1].clone())
-            })?;
+            make_manual_assign(
+                encoder,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                &mut |_ty_args, args, _target_ty| {
+                    vir_high::Expression::binary_op_no_pos(
+                        op_kind,
+                        args[0].clone(),
+                        args[1].clone(),
+                    )
+                },
+            )?;
             Ok(())
         };
 
@@ -170,7 +204,13 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 ];
                 for op in ops {
                     if op_name == op.0 {
-                        make_binop(self, block_builder, op.1)?;
+                        make_binop(
+                            self,
+                            block_builder,
+                            original_lifetimes,
+                            derived_lifetimes,
+                            op.1,
+                        )?;
                         return Ok(true);
                     }
                 }
@@ -201,52 +241,104 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     unimplemented!();
                 }
             }
-            "prusti_contracts::prusti_take_lifetime" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::TakeLifetime)?
-            }
+            "prusti_contracts::prusti_take_lifetime" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::TakeLifetime,
+            )?,
             "prusti_contracts::prusti_set_lifetime_for_raw_pointer_reference_casts" => {
                 // Do nothing, this function is used only by the drop
                 // elaboration pass.
             }
-            "prusti_contracts::Int::new" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::NewInt)?
-            }
-            "prusti_contracts::Int::new_usize" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::NewInt)?
-            }
-            "prusti_contracts::Map::<K, V>::empty" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::EmptyMap)?
-            }
-            "prusti_contracts::Map::<K, V>::insert" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::UpdateMap)?
-            }
+            "prusti_contracts::Int::new" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::NewInt,
+            )?,
+            "prusti_contracts::Int::new_usize" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::NewInt,
+            )?,
+            "prusti_contracts::Map::<K, V>::empty" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::EmptyMap,
+            )?,
+            "prusti_contracts::Map::<K, V>::insert" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::UpdateMap,
+            )?,
             "prusti_contracts::Map::<K, V>::delete" => {
                 unimplemented!()
             }
-            "prusti_contracts::Map::<K, V>::len" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::MapLen)?
-            }
-            "prusti_contracts::Map::<K, V>::contains" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::MapContains)?
-            }
-            "prusti_contracts::Map::<K, V>::lookup" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::LookupMap)?
-            }
-            "prusti_contracts::Seq::<T>::empty" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::EmptySeq)?
-            }
-            "prusti_contracts::Seq::<T>::single" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::SingleSeq)?
-            }
-            "prusti_contracts::Seq::<T>::concat" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::ConcatSeq)?
-            }
-            "prusti_contracts::Seq::<T>::lookup" => {
-                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::LookupSeq)?
-            }
-            "prusti_contracts::Ghost::<T>::new" => {
-                make_manual_assign(self, block_builder, &mut |_, args, _| args[0].clone())?
-            }
+            "prusti_contracts::Map::<K, V>::len" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::MapLen,
+            )?,
+            "prusti_contracts::Map::<K, V>::contains" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::MapContains,
+            )?,
+            "prusti_contracts::Map::<K, V>::lookup" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::LookupMap,
+            )?,
+            "prusti_contracts::Seq::<T>::empty" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::EmptySeq,
+            )?,
+            "prusti_contracts::Seq::<T>::single" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::SingleSeq,
+            )?,
+            "prusti_contracts::Seq::<T>::concat" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::ConcatSeq,
+            )?,
+            "prusti_contracts::Seq::<T>::lookup" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::LookupSeq,
+            )?,
+            "prusti_contracts::Ghost::<T>::new" => make_manual_assign(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                &mut |_, args, _| args[0].clone(),
+            )?,
             "prusti_contracts::snapshot_equality" => {
                 unreachable!();
             }
@@ -261,12 +353,20 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     _ => unreachable!(),
                 };
                 match typ {
-                    vir_high::Type::Sequence(..) => {
-                        make_builtin_call(self, block_builder, vir_high::BuiltinFunc::LookupSeq)?
-                    }
-                    vir_high::Type::Map(..) => {
-                        make_builtin_call(self, block_builder, vir_high::BuiltinFunc::LookupMap)?
-                    }
+                    vir_high::Type::Sequence(..) => make_builtin_call(
+                        self,
+                        block_builder,
+                        original_lifetimes,
+                        derived_lifetimes,
+                        vir_high::BuiltinFunc::LookupSeq,
+                    )?,
+                    vir_high::Type::Map(..) => make_builtin_call(
+                        self,
+                        block_builder,
+                        original_lifetimes,
+                        derived_lifetimes,
+                        vir_high::BuiltinFunc::LookupMap,
+                    )?,
                     _ => return Ok(false),
                 }
             }
@@ -284,7 +384,13 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                         ..
                     })
                 ) {
-                    make_binop(self, block_builder, vir_high::BinaryOpKind::EqCmp)?;
+                    make_binop(
+                        self,
+                        block_builder,
+                        original_lifetimes,
+                        derived_lifetimes,
+                        vir_high::BinaryOpKind::EqCmp,
+                    )?;
                     return Ok(true);
                 } else {
                     return Ok(false);

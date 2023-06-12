@@ -49,6 +49,8 @@ pub(super) trait LifetimesEncoder<'tcx> {
         target: mir::BasicBlock,
         location: mir::Location,
         block_builder: &mut BasicBlockBuilder,
+        current_original_lifetimes: &mut BTreeSet<String>,
+        current_derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()>;
     fn encode_lft_for_block_with_edge(
         &mut self,
@@ -362,11 +364,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         target: mir::BasicBlock,
         location: mir::Location,
         block_builder: &mut BasicBlockBuilder,
+        current_original_lifetimes: &mut BTreeSet<String>,
+        current_derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
         let mut needed_derived_lifetimes = self.needed_derived_lifetimes_for_block(&target);
-        let mut current_derived_lifetimes =
-            self.lifetimes.get_origin_contains_loan_at_mid(location);
-        let mut current_original_lifetimes = self.lifetimes.get_loan_live_at_start(location);
+        // let mut current_derived_lifetimes =
+        //     self.lifetimes.get_origin_contains_loan_at_mid(location);
+        // let mut current_original_lifetimes = self.lifetimes.get_loan_live_at_start(location);
         block_builder.add_comment(format!("Prepare lifetimes for block {target:?}"));
         self.encode_lifetimes_dead_on_edge(
             block_builder,
@@ -379,8 +383,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         self.encode_lft(
             block_builder,
             location,
-            &mut current_original_lifetimes,
-            &mut current_derived_lifetimes,
+            current_original_lifetimes,
+            current_derived_lifetimes,
             &mut needed_derived_lifetimes,
             true,
             None,
@@ -882,11 +886,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         to: RichLocation,
     ) -> SpannedEncodingResult<()> {
         for lifetime in self.lifetimes.get_lifetimes_dead_on_edge(from, to) {
-            self.encode_dead_lifetime(
-                block_builder,
-                from.into_inner(),
-                vir_high::ty::LifetimeConst::new(lifetime.to_text()),
-            )?;
+            let lifetime = vir_high::ty::LifetimeConst::new(lifetime.to_text());
+            if let Some(entries) = self.already_dead_lifetimes.get(&(from, to)) {
+                if entries.contains(&lifetime) {
+                    continue;
+                }
+            }
+            self.encode_dead_lifetime(block_builder, from.into_inner(), lifetime)?;
         }
         Ok(())
     }

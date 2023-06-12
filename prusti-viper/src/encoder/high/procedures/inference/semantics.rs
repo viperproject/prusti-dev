@@ -207,6 +207,9 @@ impl CollectPermissionChanges for vir_typed::Statement {
             vir_typed::Statement::MaterializePredicate(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_typed::Statement::EncodingAction(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
         }
     }
 }
@@ -1125,6 +1128,17 @@ impl CollectPermissionChanges for vir_typed::MaterializePredicate {
     ) -> SpannedEncodingResult<()> {
         // Materialize predicate is applied only to non-managed predicates.
         Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_typed::EncodingAction {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        unreachable!();
     }
 }
 

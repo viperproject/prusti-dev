@@ -241,6 +241,13 @@ impl<'v, 'tcx> TypedToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tc
         })
     }
 
+    fn typed_to_middle_statement_statement_encoding_action(
+        &self,
+        _action: vir_typed::EncodingAction,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("EncodingAction statement must be desugared in high-level VIR");
+    }
+
     // fn typed_to_middle_statement_statement_restore(
     //             &self,
     //             _statement: vir_typed::Restore,

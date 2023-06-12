@@ -150,7 +150,8 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         specification_region_exit_target_block: Default::default(),
         specification_on_drop_unwind: Default::default(),
         add_specification_before_terminator: Default::default(),
-        add_function_panic_specification_before_terminator: Default::default(),
+        add_function_panic_specification_before_lifetime_effects: Default::default(),
+        add_function_panic_specification_after_lifetime_effects: Default::default(),
         locals_used_only_in_specification_regions: Default::default(),
         loop_invariant_encoding: Default::default(),
         check_panics: config::check_panics() && check_mode.check_specifications(),
@@ -166,6 +167,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         derived_lifetimes_yet_to_kill,
         points_to_reborrow,
         reborrow_lifetimes_to_remove_for_block,
+        already_dead_lifetimes: Default::default(),
         current_basic_block,
         termination_variable: None,
         encoding_kind,
@@ -215,8 +217,14 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// specified block.
     add_specification_before_terminator: BTreeMap<mir::BasicBlock, Vec<vir_high::Statement>>,
     /// The specification statements to be added before the terminator of the
-    /// panic edge of the function call.
-    add_function_panic_specification_before_terminator:
+    /// panic edge of the function call and before the lifetime updates for that
+    /// edge are done.
+    add_function_panic_specification_before_lifetime_effects:
+        BTreeMap<(mir::BasicBlock, mir::BasicBlock), Vec<vir_high::Statement>>,
+    /// The specification statements to be added before the terminator of the
+    /// panic edge of the function call, but after the lifetime updates for that
+    /// edge are done.
+    add_function_panic_specification_after_lifetime_effects:
         BTreeMap<(mir::BasicBlock, mir::BasicBlock), Vec<vir_high::Statement>>,
     /// The locals that are used only in the specification regions and,
     /// therefore, `StorageLive`/`StorageDead` are not generated for them.
@@ -252,6 +260,10 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     derived_lifetimes_yet_to_kill: BTreeMap<String, BTreeSet<String>>,
     points_to_reborrow: BTreeSet<vir_high::Local>,
     reborrow_lifetimes_to_remove_for_block: BTreeMap<mir::BasicBlock, BTreeSet<String>>,
+    /// A set of lifetimes, which we already ended on the given edge because the
+    /// user told us to do so.
+    already_dead_lifetimes:
+        BTreeMap<(RichLocation, RichLocation), Vec<vir_high::ty::LifetimeConst>>,
     current_basic_block: Option<mir::BasicBlock>,
     termination_variable: Option<vir_high::VariableDecl>,
     /// A map from opened reference place to the corresponding permission
@@ -1615,7 +1627,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encode_lifetimes_dead_on_edge(
                 &mut block_builder,
                 RichLocation::Mid(location),
-                RichLocation::Mid(mir::Location {
+                RichLocation::Start(mir::Location {
                     block: location.block,
                     statement_index: location.statement_index + 1,
                 }),
@@ -1632,7 +1644,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
         if let Some(statements) = self.add_specification_before_terminator.remove(&bb) {
-            block_builder.add_statements(statements);
+            self.apply_encoding_actions_on_edge(
+                &mut block_builder,
+                statements,
+                RichLocation::Mid(location),
+                RichLocation::Start(mir::Location {
+                    block: location.block,
+                    statement_index: location.statement_index + 1,
+                }),
+                &mut original_lifetimes,
+                &mut derived_lifetimes,
+            )?;
+            // block_builder.add_statements(statements);
         }
         if let Some(terminator) = terminator {
             self.encode_lft_for_statement_mid(
@@ -1643,7 +1666,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None,
             )?;
             let terminator = &terminator.kind;
-            self.encode_terminator(&mut block_builder, location, terminator)?;
+            self.encode_terminator(
+                &mut block_builder,
+                location,
+                terminator,
+                &mut original_lifetimes,
+                &mut derived_lifetimes,
+            )?;
         }
         if let Some(statement) = self.loop_invariant_encoding.remove(&bb) {
             if self.needs_termination(bb)
@@ -2451,13 +2480,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         terminator: &mir::TerminatorKind<'tcx>,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_comment(format!("{location:?} {terminator:?}"));
         let span = self.encoder.get_span_of_location(self.mir, location);
         use prusti_rustc_interface::middle::mir::TerminatorKind;
         let successor = match &terminator {
             TerminatorKind::Goto { target } => {
-                self.encode_lft_for_block(*target, location, block_builder)?;
+                self.encode_lft_for_block(
+                    *target,
+                    location,
+                    block_builder,
+                    original_lifetimes,
+                    derived_lifetimes,
+                )?;
                 SuccessorBuilder::jump(vir_high::Successor::Goto(
                     self.encode_basic_block_label(*target),
                 ))
@@ -2471,6 +2508,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     targets,
                     discr,
                     switch_ty,
+                    original_lifetimes,
+                    derived_lifetimes,
                 )?
             }
             TerminatorKind::Resume => SuccessorBuilder::exit_resume_panic(),
@@ -2516,6 +2555,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     target,
                     cleanup,
                     *fn_span,
+                    original_lifetimes,
+                    derived_lifetimes,
                 )?;
                 // The encoding of the call is expected to set the successor.
                 return Ok(());
@@ -2535,6 +2576,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 msg,
                 *target,
                 *cleanup,
+                original_lifetimes,
+                derived_lifetimes,
             )?,
             // TerminatorKind::Yield { .. } => {
             //     graph.add_exit_edge(bb, "yield");
@@ -2550,7 +2593,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 real_target,
                 unwind: _,
             } => {
-                self.encode_lft_for_block(*real_target, location, block_builder)?;
+                self.encode_lft_for_block(
+                    *real_target,
+                    location,
+                    block_builder,
+                    original_lifetimes,
+                    derived_lifetimes,
+                )?;
                 SuccessorBuilder::jump(vir_high::Successor::Goto(
                     self.encode_basic_block_label(*real_target),
                 ))
@@ -2573,6 +2622,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         targets: &mir::SwitchTargets,
         discr: &mir::Operand<'tcx>,
         switch_ty: ty::Ty<'tcx>,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
         {
             // Special handling of specifications:
@@ -2598,7 +2649,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         // We have the specification region, use it as a real target.
                         real_target = *exit_target_block;
                     }
-                    self.encode_lft_for_block(real_target, location, block_builder)?;
+                    self.encode_lft_for_block(
+                        real_target,
+                        location,
+                        block_builder,
+                        original_lifetimes,
+                        derived_lifetimes,
+                    )?;
                     return Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
                         self.encode_basic_block_label(real_target),
                     )));
@@ -2882,6 +2939,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
         _fn_span: Span,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
         if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
             if !self.try_encode_builtin_call(
@@ -2894,6 +2953,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 destination,
                 target,
                 cleanup,
+                original_lifetimes,
+                derived_lifetimes,
             )? {
                 self.encode_function_call(
                     block_builder,
@@ -2905,6 +2966,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     destination,
                     target,
                     cleanup,
+                    original_lifetimes.clone(),
+                    derived_lifetimes.clone(),
                 )?;
             }
         } else {
@@ -2926,6 +2989,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
+        original_lifetimes: BTreeSet<String>,
+        derived_lifetimes: BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
         // The called method might be a trait method.
         // We try to resolve it to the concrete implementation
@@ -3174,7 +3239,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             assert_eq!(args.len(), 2);
             unimplemented!();
         }
-
         if let Some(target_block) = target {
             let position = self.register_error(location, ErrorCtxt::ProcedureCall);
             let encoded_target_place = self
@@ -3255,7 +3319,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?;
                 post_call_block_builder.add_statement(function_lifetime_return);
 
-                self.encode_lft_for_block(*target_block, location, &mut post_call_block_builder)?;
+                self.encode_lft_for_block(
+                    *target_block,
+                    location,
+                    &mut post_call_block_builder,
+                    &mut original_lifetimes.clone(),
+                    &mut derived_lifetimes.clone(),
+                )?;
 
                 let result_place = vec![encoded_target_place.clone()];
                 let mut postcondition_conjuncts = Vec::new();
@@ -3383,6 +3453,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         &lifetimes_to_exhale_inhale,
                         &derived_from,
                         function_call_lifetime,
+                        &mut original_lifetimes.clone(),
+                        &mut derived_lifetimes.clone(),
                     )?;
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(
                         fresh_destination_label,
@@ -3406,6 +3478,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &lifetimes_to_exhale_inhale,
                 &derived_from,
                 function_call_lifetime,
+                &mut original_lifetimes.clone(),
+                &mut derived_lifetimes.clone(),
             )?;
             block_builder.set_successor_jump(vir_high::Successor::Goto(fresh_cleanup_label));
         } else {
@@ -3428,6 +3502,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         lifetimes_to_exhale_inhale: &[String],
         derived_from: &[vir_high::VariableDecl],
         function_call_lifetime: vir_high::VariableDecl,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<vir_high::BasicBlockId> {
         let encoded_cleanup_block = self.encode_basic_block_label(cleanup_block);
         let fresh_cleanup_label = self.fresh_basic_block_label();
@@ -3476,18 +3552,105 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         cleanup_block_builder.add_statement(function_lifetime_return);
 
         if let Some(statements) = self
-            .add_function_panic_specification_before_terminator
+            .add_function_panic_specification_before_lifetime_effects
             .get(&(location.block, cleanup_block))
         {
             // We need to add the statements before the expiration
             // of the lifetime. Otherwise, the fold-unfold crashes.
+            self.apply_encoding_actions_on_edge(
+                &mut cleanup_block_builder,
+                statements.clone(),
+                RichLocation::Mid(location),
+                RichLocation::Start(mir::Location {
+                    block: cleanup_block,
+                    statement_index: 0,
+                }),
+                original_lifetimes,
+                derived_lifetimes,
+            )?;
+        }
+
+        self.encode_lft_for_block(
+            cleanup_block,
+            location,
+            &mut cleanup_block_builder,
+            original_lifetimes,
+            derived_lifetimes,
+        )?;
+
+        if let Some(statements) = self
+            .add_function_panic_specification_after_lifetime_effects
+            .get(&(location.block, cleanup_block))
+        {
+            // FIXME: Is this needed?
             cleanup_block_builder.add_statements(statements.clone());
         }
 
-        self.encode_lft_for_block(cleanup_block, location, &mut cleanup_block_builder)?;
-
         cleanup_block_builder.build();
         Ok(fresh_cleanup_label)
+    }
+
+    fn apply_encoding_actions_on_edge(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        actions: Vec<vir_high::Statement>,
+        from: RichLocation,
+        to: RichLocation,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
+    ) -> SpannedEncodingResult<()> {
+        for action in actions {
+            if let vir_high::Statement::EncodingAction(encoding_action) = action {
+                match encoding_action.action {
+                    vir_high::Action::EndLoan(action) => {
+                        let location = from.into_inner();
+                        let mut new_original_lifetimes = original_lifetimes.clone();
+                        let mut new_derived_lifetimes = derived_lifetimes.clone();
+                        if let Some(mut loans) = new_derived_lifetimes.remove(&action.lifetime.name)
+                        {
+                            assert_eq!(
+                                loans.len(),
+                                1,
+                                "Currently only one loan per lifetime is supported"
+                            );
+                            let loan = loans.pop_first().unwrap();
+                            assert!(new_original_lifetimes.remove(&loan));
+                            new_derived_lifetimes.retain(|_, loans| !loans.contains(&loan));
+                            self.encode_dead_lifetime(
+                                block_builder,
+                                from.into_inner(),
+                                action.lifetime.clone(),
+                            )?;
+                            self.encode_lft_return(
+                                block_builder,
+                                location,
+                                derived_lifetimes,
+                                &new_derived_lifetimes,
+                            )?;
+                            self.encode_end_lft(
+                                block_builder,
+                                location,
+                                original_lifetimes,
+                                &new_original_lifetimes,
+                            )?;
+                            self.encode_dead_inclusion(
+                                block_builder,
+                                location,
+                                &new_original_lifetimes,
+                            )?;
+                            // let entries =
+                            //     self.already_dead_lifetimes.entry((from, to)).or_default();
+                            // entries.push(action.lifetime);
+                            *original_lifetimes = new_original_lifetimes;
+                            *derived_lifetimes = new_derived_lifetimes;
+                        }
+                    }
+                }
+            } else {
+                block_builder.add_statement(action);
+            }
+        }
+        Ok(())
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -3501,6 +3664,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         msg: &mir::AssertMessage<'tcx>,
         target: mir::BasicBlock,
         cleanup: Option<mir::BasicBlock>,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
         let condition = self
             .encoder
@@ -3551,7 +3716,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let successors = vec![(guard, target_label), (true.into(), cleanup_label)];
             SuccessorBuilder::jump(vir_high::Successor::GotoSwitch(successors))
         } else {
-            self.encode_lft_for_block(target, location, block_builder)?;
+            self.encode_lft_for_block(
+                target,
+                location,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+            )?;
             SuccessorBuilder::jump(vir_high::Successor::Goto(target_label))
         };
         Ok(successor)
@@ -3666,33 +3837,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .specification_region_encoding_statements
                 .remove(&on_panic_specification_region_entry_block)
                 .unwrap();
-            let finally_specification_region_entry_block = self
+            let finally_at_panic_start_specification_region_entry_block = self
                 .specification_blocks
-                .spec_id_to_entry_block(&region.finally_specification_region_id);
-            let finally_statements = self
+                .spec_id_to_entry_block(&region.finally_at_panic_start_specification_region_id);
+            let finally_at_panic_start_statements = self
                 .specification_region_encoding_statements
-                .remove(&finally_specification_region_entry_block)
+                .remove(&finally_at_panic_start_specification_region_entry_block)
+                .unwrap();
+            let finally_at_resume_specification_region_entry_block = self
+                .specification_blocks
+                .spec_id_to_entry_block(&region.finally_at_resume_specification_region_id);
+            let finally_at_resume_statements = self
+                .specification_region_encoding_statements
+                .remove(&finally_at_resume_specification_region_entry_block)
                 .unwrap();
             for edge in &region.function_panic_exit_edges {
                 let mut unwind_statements = on_panic_statements.clone();
-                unwind_statements.extend(finally_statements.clone());
+                unwind_statements.extend(finally_at_panic_start_statements.clone());
                 assert!(self
-                    .add_function_panic_specification_before_terminator
+                    .add_function_panic_specification_before_lifetime_effects
                     .insert(*edge, unwind_statements)
+                    .is_none());
+                assert!(self
+                    .add_function_panic_specification_after_lifetime_effects
+                    .insert(*edge, finally_at_resume_statements.clone())
                     .is_none());
             }
             for (_source, target) in &region.panic_exit_edges {
                 let mut unwind_statements = on_panic_statements.clone();
-                unwind_statements.extend(finally_statements.clone());
+                unwind_statements.extend(finally_at_panic_start_statements.clone());
+                unwind_statements.extend(finally_at_resume_statements.clone());
                 // FIXME: Not using source is probably wrong.
                 assert!(self
                     .add_specification_before_terminator
                     .insert(*target, unwind_statements)
                     .is_none());
             }
+            let mut statements = finally_at_panic_start_statements;
+            statements.extend(finally_at_resume_statements);
             assert!(self
                 .add_specification_before_terminator
-                .insert(region.regular_exit_target_block, finally_statements)
+                .insert(region.regular_exit_target_block, statements)
                 .is_none());
         }
 
@@ -4309,6 +4494,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 .user_named_lifetimes
                                 .insert(lifetime_name, lifetime)
                                 .is_none());
+                            Ok(true)
+                        }
+                        "prusti_contracts::prusti_end_loan" => {
+                            assert_eq!(args.len(), 1);
+                            let mut encoded_args = extract_args(self.mir, args, block, self)?;
+                            let ArgKind::String(lifetime_name) = encoded_args.pop().unwrap() else {
+                                unreachable!("Wrong function parameters?");
+                            };
+                            assert!(encoded_args.is_empty());
+                            let lifetime: vir_high::ty::LifetimeConst = self
+                                .user_named_lifetimes
+                                .get(&lifetime_name)
+                                .unwrap()
+                                .clone();
+                            let statement = self.encoder.set_statement_error_ctxt(
+                                vir_high::Statement::encoding_action_no_pos(
+                                    vir_high::Action::end_loan(lifetime),
+                                ),
+                                span,
+                                ErrorCtxt::Unpack,
+                                self.def_id,
+                            )?;
+                            encoded_statements.push(statement);
                             Ok(true)
                         }
                         "prusti_contracts::prusti_set_lifetime_for_raw_pointer_reference_casts" => {

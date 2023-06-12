@@ -81,6 +81,7 @@ pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
                         | vir_high::Statement::StashRangeRestore(_)
                         | vir_high::Statement::MaterializePredicate(_) => false,
                         vir_high::Statement::LoopInvariant(_) => unreachable!(),
+                        vir_high::Statement::EncodingAction(_) => unreachable!(),
                     };
                 }
                 if statement_index == 0 {

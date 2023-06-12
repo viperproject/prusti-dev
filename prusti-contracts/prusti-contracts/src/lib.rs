@@ -141,6 +141,10 @@ pub use prusti_contracts_proc_macros::unpack_mut_ref;
 /// A macro to obtain a lifetime of a place.
 pub use prusti_contracts_proc_macros::take_lifetime;
 
+/// A macro to end a lifetime. Note: this macro can be used only in on panic and
+/// finally blocks of `with_finally!`.
+pub use prusti_contracts_proc_macros::end_loan;
+
 /// Set the lifetime of the place to be used for all raw pointer to reference
 /// casts.
 pub use prusti_contracts_proc_macros::set_lifetime_for_raw_pointer_reference_casts;
@@ -575,6 +579,12 @@ pub fn prusti_unpack_mut_ref_place<T>(_lifetime_name: &'static str, _arg: T) {
 #[doc(hidden)]
 #[trusted]
 pub fn prusti_take_lifetime<T>(_arg: T, _lifetime_name: &'static str) -> Lifetime {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_end_loan(_lifetime_name: &'static str) {
     unreachable!();
 }
 
