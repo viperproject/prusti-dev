@@ -69,9 +69,9 @@ impl Verifier {
                 let path = path.to_str().unwrap();
 
                 if is_z3 {
-                    command.args(&["-smt2", path]);
+                    command.args(["-smt2", path]);
                 } else {
-                    command.args(&["--incremental", path]);
+                    command.args(["--incremental", path]);
                 }
 
                 let mut child = command.stderr(Stdio::piped())
@@ -85,7 +85,7 @@ impl Verifier {
                         Err::<String, String>("Child process terminated prematurely.".into())?;
                     } else {
                         let err = format!("Child process failed to start with exit status: {}", exit_status);
-                        Err::<String, String>(err.into())?;
+                        Err::<String, String>(err)?;
                     }
                 }
 
@@ -132,7 +132,7 @@ impl Verifier {
                     Some("0".to_string()),
                     Some(last_pos.0.to_string()),
                     last_pos.1.map(|r| r.to_string()),
-                    format!("Assert might fail. Assertion might not hold."),
+                    "Assert might fail. Assertion might not hold.".to_string(),
                     None,
                 ));
             }

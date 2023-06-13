@@ -1,5 +1,4 @@
 use rustc_hash::FxHashMap;
-use serde;
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct SiliconCounterexample {

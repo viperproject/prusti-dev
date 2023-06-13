@@ -231,7 +231,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 // it is not a function, just a struct that remembers the arguments at entry time
                 let mut parameters = Vec::new();
                 for (ix, argument) in closure.arguments.iter().enumerate() {
-                    self.ensure_type_definition(&argument)?;
+                    self.ensure_type_definition(argument)?;
                     parameters.push(vir_low::VariableDecl::new(
                         format!("_{}", ix),
                         argument.to_snapshot(self)?,

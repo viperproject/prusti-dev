@@ -219,8 +219,8 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         let actions = ensure_required_permissions(self, state, consumed_permissions.clone())?;
         self.process_actions(actions)?;
         // TODO: Remove permission reasoning
-        // state.remove_permissions(&consumed_permissions)?;
-        // state.insert_permissions(produced_permissions)?;
+        state.remove_permissions(&consumed_permissions)?;
+        state.insert_permissions(produced_permissions)?;
         match &statement {
             vir_typed::Statement::ObtainMutRef(_) => {
                 // The requirements already performed the needed changes.

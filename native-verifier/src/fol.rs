@@ -250,7 +250,7 @@ fn vir_statement_to_fol_statements(
 }
 
 pub fn vir_to_fol(
-    statements: &Vec<Statement>,
+    statements: &[Statement],
     known_methods: &HashMap<String, MethodDecl>,
 ) -> Vec<FolStatement> {
     statements

@@ -282,7 +282,7 @@ fn mk_app<T>(name: &String, args: &Vec<T>) -> String
 where
     T: SMTTranslatable,
 {
-    if args.len() == 0 {
+    if args.is_empty() {
         name.clone()
     } else {
         format!(
@@ -301,8 +301,10 @@ impl SMTTranslatable for Program {
         self.domains.iter().for_each(|d| d.build_smt(smt));
         self.methods.iter().for_each(|d| d.build_smt(smt));
         self.procedures.iter().for_each(|d| d.build_smt(smt));
-        assert!(self.functions.len() == 0); // TODO: Implement
-        assert!(self.predicates.len() == 0);
+
+        // the following are empty in vir::low + snapshot-based encoding
+        assert!(self.functions.is_empty());
+        assert!(self.predicates.is_empty());
     }
 }
 
@@ -389,7 +391,7 @@ impl SMTTranslatable for ProcedureDecl {
         // find a starting block
         let mut start_blocks = smt.blocks.keys().collect::<HashSet<_>>();
 
-        for (_, block) in &smt.blocks {
+        for block in smt.blocks.values() {
             match &block.successor {
                 Successor::Goto(label) => {
                     start_blocks.remove(&label.name);
@@ -474,8 +476,8 @@ impl SMTTranslatable for Expression {
                     )
                 }
                 ConstantValue::BigInt(s) => {
-                    if s.starts_with("-") {
-                        format!("(- {})", &s[1..])
+                    if let Some(abs_val) = s.strip_prefix('-') {
+                        format!("(- {})", abs_val)
                     } else {
                         s.clone()
                     }
@@ -576,7 +578,7 @@ impl SMTTranslatable for Expression {
 
                 if triggers.is_empty() {
                     quant.push_str(&quantifier.body.to_smt());
-                    quant.push_str(")");
+                    quant.push(')');
                 } else {
                     // triggers are :pattern
                     quant.push_str("(! ");
@@ -594,7 +596,7 @@ impl SMTTranslatable for Expression {
                                 .join(" "),
                         );
 
-                        quant.push_str(")");
+                        quant.push(')');
                     }
 
                     quant.push_str("))");
@@ -607,7 +609,7 @@ impl SMTTranslatable for Expression {
                 let mut app = "(".to_string();
 
                 app.push_str(&func.function_name);
-                app.push_str(" ");
+                app.push(' ');
 
                 app.push_str(
                     &func
@@ -618,7 +620,7 @@ impl SMTTranslatable for Expression {
                         .join(" "),
                 );
 
-                app.push_str(")");
+                app.push(')');
                 app
             }
             Expression::DomainFuncApp(domain_func_app) => {

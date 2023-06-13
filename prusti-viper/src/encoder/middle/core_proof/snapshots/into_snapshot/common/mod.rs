@@ -166,8 +166,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                         right: Box::new(result),
                         position: *position,
                         op_kind: vir_low::expression::BinaryOpKind::And,
-                    }
-                    .into(),
+                    },
                 );
             }
             result
@@ -179,8 +178,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 right: Box::new(body),
                 position: *position,
                 op_kind: vir_low::expression::BinaryOpKind::Implies,
-            }
-            .into(),
+            },
         );
 
         let kind = match kind {
@@ -204,7 +202,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         // wrap in snapshot bool constructor if not expect_math_bool
         if !expect_math_bool {
             let pos = qtfy.position();
-            lowerer.construct_struct_snapshot(&quantifier.get_type(), vec![qtfy], pos)
+            lowerer.construct_struct_snapshot(quantifier.get_type(), vec![qtfy], pos)
         } else {
             Ok(qtfy)
         }

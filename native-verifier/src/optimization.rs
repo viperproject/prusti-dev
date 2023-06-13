@@ -78,9 +78,7 @@ impl ExpressionFolder for Optimizer {
                         argument: Box::new(new_left),
                         position: binary_op.position,
                     })
-                } else if new_left == false.into() {
-                    true.into()
-                } else if new_right == true.into() {
+                } else if new_left == false.into() || new_right == true.into() {
                     true.into()
                 } else {
                     vir::low::Expression::BinaryOp(BinaryOp {
@@ -166,9 +164,7 @@ impl ExpressionFolder for Optimizer {
                 argument: Box::new(new_left),
                 position: magic_wand.position,
             })
-        } else if new_left == false.into() {
-            true.into()
-        } else if new_right == true.into() {
+        } else if new_left == false.into() || new_right == true.into() {
             true.into()
         } else {
             vir::low::Expression::MagicWand(MagicWand {
