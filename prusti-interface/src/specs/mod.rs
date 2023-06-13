@@ -43,6 +43,7 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+    non_verified_pure: bool,
     no_panic: bool,
     no_panic_ensures_postcondition: bool,
 }
@@ -199,6 +200,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             }
 
             spec.set_trusted(refs.trusted);
+            spec.set_non_verified_pure(refs.non_verified_pure);
             spec.set_no_panic(refs.no_panic);
             spec.set_no_panic_ensures_postcondition(refs.no_panic_ensures_postcondition);
 
@@ -517,6 +519,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     let pure = has_prusti_attr(attrs, "pure");
     let trusted = has_prusti_attr(attrs, "trusted")
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
+    let non_verified_pure = has_prusti_attr(attrs, "non_verified_pure");
     let no_panic = has_prusti_attr(attrs, "no_panic");
     let no_panic_ensures_postcondition = has_prusti_attr(attrs, "no_panic_ensures_postcondition");
     let abstract_predicate = has_abstract_predicate_attr(attrs);
@@ -524,6 +527,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     if abstract_predicate
         || pure
         || trusted
+        || non_verified_pure
         || no_panic
         || no_panic_ensures_postcondition
         || !spec_id_refs.is_empty()
@@ -533,6 +537,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
             pure,
             abstract_predicate,
             trusted,
+            non_verified_pure,
             no_panic,
             no_panic_ensures_postcondition,
         })

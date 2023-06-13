@@ -80,6 +80,8 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
+    fn is_non_verified_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
     fn no_panic(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
     fn no_panic_ensures_postcondition(
@@ -197,6 +199,22 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.trusted.extract_with_selective_replacement().copied())
+            .unwrap_or(false)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self), ret)]
+    fn is_non_verified_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
+        let query = SpecQuery::GetProcKind(def_id, substs);
+        self.specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), query)
+            .and_then(|spec| {
+                spec.non_verified_pure
+                    .extract_with_selective_replacement()
+                    .copied()
+            })
             .unwrap_or(false)
     }
 

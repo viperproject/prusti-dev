@@ -80,6 +80,12 @@ pub fn verified(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
+pub fn non_verified_pure(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
 pub fn no_panic(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
@@ -456,6 +462,17 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn verified(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     rewrite_prusti_attributes(SpecAttributeKind::Verified, attr.into(), tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn non_verified_pure(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(
+        SpecAttributeKind::NonVerifiedPure,
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
 }
 
 #[cfg(feature = "prusti")]

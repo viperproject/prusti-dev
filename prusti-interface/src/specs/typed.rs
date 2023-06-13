@@ -113,7 +113,10 @@ impl DefSpecificationMap {
                     specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
                     specs.extend(pledges.iter().map(|pledge| pledge.rhs));
                 }
-                let is_trusted = spec.trusted.extract_inherit().expect("Expected trusted")
+                let is_trusted = (
+                    spec.trusted.extract_inherit().expect("Expected trusted") &&
+                    !spec.non_verified_pure.extract_inherit().expect("Expected non_verified_pure")
+                )
                 // It has to be non-extern_spec which is trusted (since extern_specs are always trusted)
                     && (*def_id == spec.source || !def_id.is_local());
                 if spec.kind.is_pure().expect("Expected pure") && !is_trusted {
@@ -242,6 +245,7 @@ pub struct ProcedureSpecification {
     pub posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
+    pub non_verified_pure: SpecificationItem<bool>,
     pub no_panic: SpecificationItem<bool>,
     pub no_panic_ensures_postcondition: SpecificationItem<bool>,
     pub broken_pres: SpecificationItem<Vec<DefId>>,
@@ -263,6 +267,7 @@ impl ProcedureSpecification {
             broken_posts: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
+            non_verified_pure: SpecificationItem::Inherent(false),
             no_panic: SpecificationItem::Inherent(false),
             no_panic_ensures_postcondition: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
@@ -551,6 +556,14 @@ impl SpecGraph<ProcedureSpecification> {
         self.specs_with_constraints
             .values_mut()
             .for_each(|s| s.trusted.set(trusted));
+    }
+
+    /// Sets the non_verified_pure flag for the base spec and all constrained specs.
+    pub fn set_non_verified_pure(&mut self, non_verified_pure: bool) {
+        self.base_spec.non_verified_pure.set(non_verified_pure);
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.non_verified_pure.set(non_verified_pure));
     }
 
     /// Sets the no_panic flag for the base spec and all constrained specs.
@@ -872,6 +885,7 @@ impl Refinable for ProcedureSpecification {
             pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
+            non_verified_pure: self.non_verified_pure.refine(&other.non_verified_pure),
             no_panic: self.no_panic.refine(&other.no_panic),
             no_panic_ensures_postcondition: self
                 .no_panic_ensures_postcondition

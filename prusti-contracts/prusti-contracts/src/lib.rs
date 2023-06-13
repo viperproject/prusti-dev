@@ -40,6 +40,10 @@ pub use prusti_contracts_proc_macros::no_panic_ensures_postcondition;
 /// A macro for marking a function as opted into verification.
 pub use prusti_contracts_proc_macros::verified;
 
+/// A macro for marking a pure function as to be non-verified, but axiomatized
+/// when the configuration flag `opt_in_verification` is true.
+pub use prusti_contracts_proc_macros::non_verified_pure;
+
 /// A macro for type invariants.
 pub use prusti_contracts_proc_macros::invariant;
 

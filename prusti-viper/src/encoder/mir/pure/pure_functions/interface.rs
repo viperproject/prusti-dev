@@ -333,7 +333,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let proc_kind = self.get_proc_kind(proc_def_id, Some(substs));
-                let is_bodyless = self.is_trusted(proc_def_id, Some(substs))
+                let is_bodyless = (self.is_trusted(proc_def_id, Some(substs))
+                    && !self.is_non_verified_pure(proc_def_id, Some(substs)))
                     || !self.env().query.has_body(proc_def_id);
                 let mut function = if is_bodyless {
                     pure_function_encoder.encode_bodyless_function()?
