@@ -3,6 +3,7 @@ use crate::encoder::middle::core_proof::{
     snapshots::{SnapshotDomainInfo, SnapshotDomainsInfo},
     transformations::encoder_context::EncoderContext,
 };
+use prusti_common::config;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::BTreeMap;
 use vir_crate::{
