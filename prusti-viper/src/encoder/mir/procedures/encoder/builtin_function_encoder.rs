@@ -133,6 +133,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 original_lifetimes,
                 derived_lifetimes,
             )?;
+            encoder.add_predecessor(location.block, target_block)?;
             let target_label = encoder.encode_basic_block_label(target_block);
             let successor = vir_high::Successor::Goto(target_label);
             block_builder.set_successor_jump(successor);
