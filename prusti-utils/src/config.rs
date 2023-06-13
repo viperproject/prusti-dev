@@ -129,6 +129,7 @@ lazy_static::lazy_static! {
         settings.set_default("symbolic_execution_leak_check", true).unwrap();
         settings.set_default("panic_on_failed_exhale", false).unwrap();
         settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
+        settings.set_default("end_borrow_view_shift_non_aliased", true).unwrap();
         settings.set_default("materialize_on_failed_exhale", false).unwrap();
         settings.set_default("ignore_whether_exhale_is_unconditional", false).unwrap();
         settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
@@ -988,6 +989,17 @@ pub fn panic_on_failed_exhale() -> bool {
 /// `purify_with_symbolic_execution` is true.
 pub fn panic_on_failed_exhale_materialization() -> bool {
     read_setting("panic_on_failed_exhale_materialization")
+}
+
+/// Treat end-borrow view shift as non-aliased.
+///
+/// **Note:** This option does not affect soundness. Setting it to true makes
+/// the encoding faster, but more incomplete.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn end_borrow_view_shift_non_aliased() -> bool {
+    read_setting("end_borrow_view_shift_non_aliased")
 }
 
 /// If symbolic execution fails to purify out an exhale, materialize the exhale.
