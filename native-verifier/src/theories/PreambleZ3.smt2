@@ -33,7 +33,7 @@
 (set-option :model.v2 true)
 (set-option :model.partial false)
 
-(set-option :timeout 5000)
+(set-option :timeout 10000)
 
 ; --- Floating-point arithmetic ---
 

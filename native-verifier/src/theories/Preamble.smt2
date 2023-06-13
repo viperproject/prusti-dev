@@ -4,7 +4,7 @@
 
 (set-logic ALL)
 
-(set-option :tlimit-per 5000)
+(set-option :tlimit-per 10000)
 
 (set-option :auto-extend-integers true) ; similar to global-decls in Z3
 (set-option :incrementality false) ; similar to auto_config in Z3

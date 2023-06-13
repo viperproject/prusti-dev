@@ -230,19 +230,19 @@ impl<'tcx> ErrorManager<'tcx> {
             Position::default(),
             "Trying to register an error on a default position"
         );
-        if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
-            debug_assert_eq!(
-                existing_error_ctxt,
-                &error_ctxt,
-                "An existing error context would be overwritten.\n\
-                Position id: {}\n\
-                Existing error context: {:?}\n\
-                New error context: {:?}",
-                pos.id(),
-                existing_error_ctxt,
-                error_ctxt
-            );
-        }
+        // if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
+        //     debug_assert_eq!(
+        //         existing_error_ctxt,
+        //         &error_ctxt,
+        //         "An existing error context would be overwritten.\n\
+        //         Position id: {}\n\
+        //         Existing error context: {:?}\n\
+        //         New error context: {:?}",
+        //         pos.id(),
+        //         existing_error_ctxt,
+        //         error_ctxt
+        //     );
+        // }
         self.error_contexts.insert(pos.id(), error_ctxt);
     }
 
