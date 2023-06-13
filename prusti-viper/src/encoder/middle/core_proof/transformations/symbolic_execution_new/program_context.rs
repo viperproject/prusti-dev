@@ -162,11 +162,17 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
     }
 
     pub(super) fn is_predicate_kind_non_aliased(&self, predicate_name: &str) -> bool {
-        self.predicate_decls
+        let kind = self
+            .predicate_decls
             .get(predicate_name)
             .unwrap_or_else(|| panic!("{predicate_name}"))
-            .kind
-            .is_non_aliased()
+            .kind;
+        if kind.is_non_aliased() {
+            true
+        } else {
+            config::end_borrow_view_shift_non_aliased()
+                && matches!(kind, vir_low::PredicateKind::EndBorrowViewShift)
+        }
     }
 
     pub(super) fn get_binary_operator(
