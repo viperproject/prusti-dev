@@ -225,3 +225,26 @@ impl StatementSequenceBuilder for Vec<vir_high::Statement> {
         self.push(statement);
     }
 }
+
+impl<'a> std::fmt::Display for BasicBlockBuilder<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "BasicBlockBuilder {{")?;
+        writeln!(f, "  id: {}", self.id)?;
+        for statement in &self.statements {
+            writeln!(f, "  {}", statement)?;
+        }
+        writeln!(f, "  successor: {}", self.successor)?;
+        writeln!(f, "}}")
+    }
+}
+
+impl std::fmt::Display for SuccessorBuilder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SuccessorBuilder::Exit(SuccessorExitKind::Return) => write!(f, "return"),
+            SuccessorBuilder::Exit(SuccessorExitKind::ResumePanic) => write!(f, "resume_panic"),
+            SuccessorBuilder::Jump(successor) => write!(f, "{}", successor),
+            SuccessorBuilder::Undefined => write!(f, "undefined"),
+        }
+    }
+}

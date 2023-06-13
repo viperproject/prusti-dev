@@ -144,6 +144,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         allocation,
         lifetimes,
         reachable_blocks: Default::default(),
+        reachable_predecessors: Default::default(),
         specification_blocks,
         specification_block_encoding: Default::default(),
         specification_region_encoding_statements: Default::default(),
@@ -200,6 +201,9 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     lifetimes: Lifetimes,
     /// Blocks that we managed to reach when traversing from the entry block.
     reachable_blocks: FxHashSet<mir::BasicBlock>,
+    /// Predecessors that we managed to reach and encode when traversing from
+    /// the entry block. For example, the specification blocks are not encoded.
+    reachable_predecessors: FxHashMap<mir::BasicBlock, FxHashSet<mir::BasicBlock>>,
     /// Information about the specification blocks.
     specification_blocks: SpecificationBlocks,
     /// Specifications to be inserted at the given point.
@@ -407,9 +411,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if !config::create_missing_storage_live() {
             return Ok(());
         }
-        let predecessors = self.mir.basic_blocks.predecessors();
+        // let predecessors = self.mir.basic_blocks.predecessors();
+        let predecessors = self.reachable_predecessors.clone();
         for (block, missing_local) in std::mem::take(&mut self.missing_live_locals) {
-            for predecessor in &predecessors[block] {
+            for predecessor in &predecessors[&block] {
                 if let Some(locals_live_in_block) = self.locals_live_in_block.get(predecessor) {
                     if !locals_live_in_block.contains(&missing_local) {
                         let statements = self.encode_statement_storage_live(
@@ -1270,7 +1275,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if !self.specification_blocks.is_specification_block(bb)
                 && self.reachable_blocks.contains(&bb)
             {
-                self.create_locals_live_entry(bb, predecessors.get(bb).unwrap())?;
+                self.create_locals_live_entry(bb)?;
                 self.encode_basic_block(procedure_builder, bb, data)?;
             }
         }
@@ -1548,17 +1553,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn create_locals_live_entry(
-        &mut self,
-        bb: mir::BasicBlock,
-        predecessors: &[mir::BasicBlock],
-    ) -> SpannedEncodingResult<()> {
-        let mut predecessors_iter = predecessors.iter().filter(|predecessor| {
-            !self
-                .specification_blocks
-                .is_specification_block(**predecessor)
-                && self.reachable_blocks.contains(predecessor)
-        });
+    fn create_locals_live_entry(&mut self, bb: mir::BasicBlock) -> SpannedEncodingResult<()> {
+        let mut predecessors_iter = self
+            .reachable_predecessors
+            .entry(bb)
+            .or_default()
+            .iter()
+            .filter(|predecessor| {
+                !self
+                    .specification_blocks
+                    .is_specification_block(**predecessor)
+                    && self.reachable_blocks.contains(predecessor)
+            });
         let locals_live_in_block = if let Some(first_predecessor) = predecessors_iter.next() {
             let mut locals_live_in_block = self.locals_live_in_block[first_predecessor].clone();
             for predecessor in predecessors_iter {
@@ -2495,6 +2501,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     original_lifetimes,
                     derived_lifetimes,
                 )?;
+                self.add_predecessor(location.block, *target)?;
                 SuccessorBuilder::jump(vir_high::Successor::Goto(
                     self.encode_basic_block_label(*target),
                 ))
@@ -2600,6 +2607,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     original_lifetimes,
                     derived_lifetimes,
                 )?;
+                self.add_predecessor(location.block, *real_target)?;
                 SuccessorBuilder::jump(vir_high::Successor::Goto(
                     self.encode_basic_block_label(*real_target),
                 ))
@@ -2656,6 +2664,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         original_lifetimes,
                         derived_lifetimes,
                     )?;
+                    self.add_predecessor(location.block, real_target)?;
                     return Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
                         self.encode_basic_block_label(real_target),
                     )));
@@ -2672,6 +2681,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let mut successors = Vec::new();
         for (value, target) in targets.iter() {
+            self.add_predecessor(location.block, target)?;
             // self.encode_lifetimes_dead_on_edge(
             //     block_builder,
             //     RichLocation::Mid(location),
@@ -2726,6 +2736,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location,
             block_builder,
         )?;
+        self.add_predecessor(location.block, targets.otherwise())?;
         successors.push((true.into(), otherwise));
         Ok(SuccessorBuilder::jump(vir_high::Successor::GotoSwitch(
             successors,
@@ -2893,6 +2904,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.add_specification_before_terminator
                     .insert(*unwind_block, close_ref_statements);
             }
+            self.add_predecessor(location.block, target)?;
+            self.add_predecessor(location.block, *unwind_block)?;
             Ok(SuccessorBuilder::jump(vir_high::Successor::NonDetChoice(
                 target_block_label,
                 encoded_unwind_block_label,
@@ -2921,6 +2934,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?;
                 block_builder.add_statement(inhale_statement);
             }
+            self.add_predecessor(location.block, target)?;
             Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
                 target_block_label,
             )))
@@ -3240,6 +3254,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             unimplemented!();
         }
         if let Some(target_block) = target {
+            self.add_predecessor(location.block, *target_block)?;
             let position = self.register_error(location, ErrorCtxt::ProcedureCall);
             let encoded_target_place = self
                 .encode_place(destination, None)?
@@ -3270,6 +3285,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let fresh_destination_label = self.fresh_basic_block_label();
                 let mut post_call_block_builder =
                     block_builder.create_basic_block_builder(fresh_destination_label.clone());
+                self.add_predecessor(location.block, *target_block)?;
                 post_call_block_builder.set_successor_jump(vir_high::Successor::Goto(target_label));
                 for memory_block in broken_invariant_address_memory_blocks {
                     let statement = vir_high::Statement::inhale_predicate_no_pos(memory_block);
@@ -3456,6 +3472,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         &mut original_lifetimes.clone(),
                         &mut derived_lifetimes.clone(),
                     )?;
+                    self.add_predecessor(location.block, *target_block)?;
+                    self.add_predecessor(location.block, *cleanup_block)?;
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(
                         fresh_destination_label,
                         fresh_cleanup_label,
@@ -3481,6 +3499,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &mut original_lifetimes.clone(),
                 &mut derived_lifetimes.clone(),
             )?;
+            self.add_predecessor(location.block, *cleanup_block)?;
             block_builder.set_successor_jump(vir_high::Successor::Goto(fresh_cleanup_label));
         } else {
             // TODO: Can we always soundly assume false here?
@@ -3509,6 +3528,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let fresh_cleanup_label = self.fresh_basic_block_label();
         let mut cleanup_block_builder =
             block_builder.create_basic_block_builder(fresh_cleanup_label.clone());
+        self.add_predecessor(location.block, cleanup_block)?;
         cleanup_block_builder.set_successor_jump(vir_high::Successor::Goto(encoded_cleanup_block));
 
         if is_precondition_checked || no_panic {
@@ -3713,6 +3733,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 location,
                 block_builder,
             )?;
+            self.add_predecessor(location.block, target)?;
+            self.add_predecessor(location.block, cleanup)?;
             let successors = vec![(guard, target_label), (true.into(), cleanup_label)];
             SuccessorBuilder::jump(vir_high::Successor::GotoSwitch(successors))
         } else {
@@ -3723,6 +3745,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 original_lifetimes,
                 derived_lifetimes,
             )?;
+            self.add_predecessor(location.block, target)?;
             SuccessorBuilder::jump(vir_high::Successor::Goto(target_label))
         };
         Ok(successor)
@@ -5185,6 +5208,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             _ => unreachable!("terminator {:?} at {:?} ", terminator_kind, bb),
         }
+    }
+
+    fn add_predecessor(
+        &mut self,
+        predecessor: mir::BasicBlock,
+        block: mir::BasicBlock,
+    ) -> SpannedEncodingResult<()> {
+        self.reachable_predecessors
+            .entry(block)
+            .or_default()
+            .insert(predecessor);
+        Ok(())
     }
 
     // fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
