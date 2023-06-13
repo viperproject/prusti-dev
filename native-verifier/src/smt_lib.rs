@@ -383,7 +383,7 @@ impl SMTTranslatable for ProcedureDecl {
         smt.blocks.clear();
 
         self.basic_blocks.iter().for_each(|b| {
-            smt.blocks.insert(b.label.name.clone(), b.clone()); // TODO: Inefficient copy
+            smt.blocks.insert(b.label.name.clone(), b.clone());
         });
 
         // find a starting block
@@ -436,7 +436,13 @@ impl SMTTranslatable for Expression {
             Expression::LabelledOld(_) => unimplemented!("old expressions"),
             Expression::Constant(constant) => match &constant.value {
                 ConstantValue::Bool(bool) => bool.to_string(),
-                ConstantValue::Int(i64) => i64.to_string(),
+                ConstantValue::Int(i) => {
+                    if *i < 0 {
+                        format!("(- {})", i.abs())
+                    } else {
+                        i.to_string()
+                    }
+                }
                 ConstantValue::Float32(u32) => {
                     let bits = u32.to_le_bytes();
                     let bits = bits
@@ -467,7 +473,13 @@ impl SMTTranslatable for Expression {
                         &bits[12..=63]
                     )
                 }
-                ConstantValue::BigInt(s) => s.clone(),
+                ConstantValue::BigInt(s) => {
+                    if s.starts_with("-") {
+                        format!("(- {})", &s[1..])
+                    } else {
+                        s.clone()
+                    }
+                }
             },
             Expression::MagicWand(wand) => {
                 // if left is just constant true, we can ignore it
@@ -759,7 +771,6 @@ impl SMTTranslatable for ContainerOpKind {
     }
 }
 
-// TODO: Check if these make sense
 impl SMTTranslatable for Type {
     fn to_smt(&self) -> String {
         match self {

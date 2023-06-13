@@ -45,6 +45,7 @@ impl Verifier {
         }
 
         let is_z3 = self.smt_solver_exe.ends_with("z3");
+        let solver_name = if is_z3 { "Z3" } else { "CVC5" };
 
         run_timed!("Translation to SMT-LIB", debug,
             let mut smt = SMTLib::new(is_z3);
@@ -60,25 +61,33 @@ impl Verifier {
             );
         );
 
-        run_timed!(format!("SMT verification with {}", if is_z3 {"Z3"} else {"CVC5"}), debug,
+        run_timed!(format!("SMT verification with {}", solver_name), debug,
             let result: Result<String, Box<dyn Error>> = try {
                 let mut command = Command::new(self.smt_solver_exe.clone());
 
+                let path = config::log_dir().join("smt").join(format!("lithium_{}.smt2", program.name));
+                let path = path.to_str().unwrap();
+
                 if is_z3 {
-                    command.args(&["-smt2", "-in"]);
+                    command.args(&["-smt2", path]);
                 } else {
-                    command.args(&["--incremental"]);
+                    command.args(&["--incremental", path]);
                 }
 
-                let mut child = command.stdin(Stdio::piped())
-                    .stderr(Stdio::piped())
+                let mut child = command.stderr(Stdio::piped())
                     .stdout(Stdio::piped())
                     .spawn()?;
 
-                child.stdin
-                    .as_mut()
-                    .ok_or("Child process stdin has not been captured!")?
-                    .write_all(smt_program.as_bytes())?;
+                // Check if child process is running
+                let child_status = child.try_wait()?;
+                if let Some(exit_status) = child_status {
+                    if exit_status.success() {
+                        Err::<String, String>("Child process terminated prematurely.".into())?;
+                    } else {
+                        let err = format!("Child process failed to start with exit status: {}", exit_status);
+                        Err::<String, String>(err.into())?;
+                    }
+                }
 
                 let output = child.wait_with_output()?;
 
@@ -104,7 +113,7 @@ impl Verifier {
                 Some("0".to_string()),
                 Some("0".to_string()),
                 Some("0".to_string()),
-                format!("Z3 failed with error: {}", err),
+                format!("{} failed with error: {}", solver_name, err),
                 None,
             ));
 

@@ -1,4 +1,5 @@
 // compile-flags: -Pviper_backend=Lithium
+
 use prusti_contracts::*;
 
 #[pure]
