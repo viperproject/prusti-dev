@@ -197,7 +197,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
     #[tracing::instrument(level = "debug", skip(self), fields(proc_def_id = ?self.proc_def_id))]
     fn encode_function_decl(&self) -> SpannedEncodingResult<vir_high::FunctionDecl> {
-        let is_bodyless = self.encoder.is_trusted(self.proc_def_id, Some(self.substs))
+        let is_bodyless = (self.encoder.is_trusted(self.proc_def_id, Some(self.substs))
+            && !self
+                .encoder
+                .is_non_verified_pure(self.proc_def_id, Some(self.substs)))
             || !self.encoder.env().query.has_body(self.proc_def_id);
         let body = if is_bodyless {
             None

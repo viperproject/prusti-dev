@@ -22,6 +22,7 @@ pub enum SpecAttributeKind {
     NoPanicEnsuresPostcondition = 14,
     NotRequire = 15,
     NotEnsure = 16,
+    NonVerifiedPure = 17,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -41,6 +42,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             "verified" => Ok(SpecAttributeKind::Verified),
+            "non_verified_pure" => Ok(SpecAttributeKind::NonVerifiedPure),
             "no_panic" => Ok(SpecAttributeKind::NoPanic),
             "no_panic_ensures_postcondition" => Ok(SpecAttributeKind::NoPanicEnsuresPostcondition),
             "not_require" => Ok(SpecAttributeKind::NotRequire),

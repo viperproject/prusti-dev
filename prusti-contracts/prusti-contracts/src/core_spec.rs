@@ -209,6 +209,10 @@ mod core {
         #[ensures(own!(*dst))]
         #[ensures(unsafe { old(eval_in!(own!(*dst), &*dst)) } === &src)]
         pub unsafe fn write<T>(dst: *mut T, src: T);
+
+        #[requires(own!(*to_drop))]
+        #[ensures(raw!(*to_drop, std::mem::size_of::<T>()))]
+        pub unsafe fn drop_in_place<T>(to_drop: *mut T);
     }
 }
 
