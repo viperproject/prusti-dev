@@ -67,26 +67,31 @@ pub fn translate_runtime_checks(
     item: &untyped::AnyFnItem,
 ) -> syn::Result<RuntimeFunctions> {
     let check_translator = CheckTranslator::new(item, expr, lhs, spec_type.clone());
-    let check_fn = check_translator.generate_check_function(item, check_id, false);
-    let (store_fn, store_before_expiry, check_before_expiry) = match spec_type {
+    let (check_fn, store_fn, store_before_expiry, check_before_expiry) = match spec_type {
         SpecItemType::Pledge => {
             // most things to generate:
+            let check_fn = check_translator.generate_check_function(item, check_id, false, true);
             let store_item = check_translator.generate_store_function(item, check_id);
             let check_before_expiry =
-                check_translator.generate_check_function(item, check_id, true);
+                check_translator.generate_check_function(item, check_id, true, false);
             let store_before_expiry = check_translator.generate_store_before_expiry(item, check_id);
 
             (
+                check_fn,
                 Some(store_item),
                 Some(store_before_expiry),
                 Some(check_before_expiry),
             )
         }
         SpecItemType::Postcondition => {
+            let check_fn = check_translator.generate_check_function(item, check_id, false, false);
             let store_item = check_translator.generate_store_function(item, check_id);
-            (Some(store_item), None, None)
+            (check_fn, Some(store_item), None, None)
         }
-        SpecItemType::Precondition => (None, None, None),
+        SpecItemType::Precondition => {
+            let check_fn = check_translator.generate_check_function(item, check_id, false, false);
+            (check_fn, None, None, None)
+        },
         _ => unreachable!(),
     };
     syn::Result::Ok(RuntimeFunctions {
@@ -134,6 +139,7 @@ impl CheckTranslator {
         item: &untyped::AnyFnItem,
         check_id: SpecificationId,
         is_before_expiry_check: bool,
+        before_expiry_argument: bool,
     ) -> syn::Item {
         // lhs is true for assert_on_expire only! Re-use this method to create
         // a check function for the pre-expiry check
@@ -208,12 +214,24 @@ impl CheckTranslator {
             }
         };
         check_item.sig.generics = item.sig().generics.clone();
-        check_item.sig.inputs = item.sig().inputs.clone();
+        if !is_before_expiry_check {
+            check_item.sig.inputs = item.sig().inputs.clone();
+        }
         if executed_after {
             check_item.sig.inputs.push(result_arg_opt.unwrap());
             let old_arg = self.construct_old_fnarg(item, false);
             // put it inside a reference:
             check_item.sig.inputs.push(old_arg);
+        }
+        if before_expiry_argument {
+            let output_ty = match &item.sig().output {
+                syn::ReturnType::Type(_, box syn::Type::Reference(syn::TypeReference{ elem: box ty, ..})) => ty.clone(),
+                _ => panic!("a pledge that doesnt return a reference?"),
+            };
+            let before_expiry_arg = parse_quote_spanned!{item.span() =>
+                result_before_expiry: #output_ty
+            };
+            check_item.sig.inputs.push(before_expiry_arg);
         }
         println!("Check function: {}", check_item.to_token_stream());
         syn::Item::Fn(check_item)
@@ -305,7 +323,7 @@ impl CheckTranslator {
         } else {
             panic!("result of pledge does not look like a pointer")
         };
-        let res: syn::ItemFn = parse_quote_spanned! { item.span() =>
+        let mut res: syn::ItemFn = parse_quote_spanned! { item.span() =>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
             #[prusti::store_before_expiry_id = #check_id_str]
@@ -314,6 +332,7 @@ impl CheckTranslator {
                 res.clone()
             }
         };
+        res.sig.generics = item.sig().generics.clone();
         syn::Item::Fn(res)
     }
 
@@ -408,8 +427,8 @@ impl CheckTranslator {
 /// collects information about expression, but also transforms it
 /// for check
 pub struct CheckVisitor {
-    pub rust_only: bool,
     pub within_old: bool,
+    pub within_before_expiry: bool,
     pub inputs: FxHashMap<String, Argument>,
     pub highest_old_index: usize,
     pub executed_after: bool,
@@ -427,8 +446,8 @@ impl CheckVisitor {
             .collect();
         println!("collected inputs: {:?}", inputs);
         Self {
-            rust_only: true,
             within_old: false,
+            within_before_expiry: false,
             inputs,
             highest_old_index: 0,
             executed_after,
@@ -472,6 +491,11 @@ impl VisitMut for CheckVisitor {
                             let new_path: syn::Expr = syn::parse2(tokens).unwrap();
                             *expr = new_path;
                         }
+                    } else if self.within_before_expiry && name == "result".to_string() {
+                        let new_path: syn::Expr = parse_quote! {
+                            (&result_before_expiry)
+                        };
+                        *expr = new_path;
                     } else {
                         println!("identifier {} was not found in args\n\n", name);
                     }
@@ -500,7 +524,6 @@ impl VisitMut for CheckVisitor {
                         // remove old-call and replace with content expression
                         *expr = sub_expr.unwrap().value().clone();
                         println!("recognized old with sub_expr: {}!", quote! {#expr});
-                        self.rust_only = false; // no translation is not enough..
                         self.within_old = true;
                         syn::visit_mut::visit_expr_mut(self, expr);
                         // will cause all variables below to be replaced by old_value.some_field
@@ -510,6 +533,19 @@ impl VisitMut for CheckVisitor {
                             quote! {#expr}
                         );
                     }
+                    ":: prusti_contracts :: before_expiry" | "prusti_contracts :: before_expiry" | "before_expiry" => {
+                        let sub_expr = call.args.pop();
+                        *expr = sub_expr.unwrap().value().clone();
+                        println!("recognized before_expiry with sub_expr: {}!", quote! {#expr});
+                        self.within_before_expiry = true;
+                        syn::visit_mut::visit_expr_mut(self, expr);
+                        // will cause all variables below to be replaced by old_value.some_field
+                        self.within_before_expiry = false;
+                        println!(
+                            "done searching contents of before_expiry(), expression now: {}",
+                            quote! {#expr}
+                        );
+                    },
                     ":: prusti_contracts :: forall" => {
                         syn::visit_mut::visit_expr_call_mut(self, call);
                         // arguments are triggers and then the closure:
@@ -535,7 +571,7 @@ impl VisitMut for CheckVisitor {
                             );
                             *expr = check_expr
                         }
-                    }
+                    },
                     _ => syn::visit_mut::visit_expr_mut(self, expr),
                 }
             }
