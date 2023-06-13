@@ -66,21 +66,16 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     errors::MultiSpan,
-    index::IndexSlice,
     middle::{
         mir,
         mir::{Mutability, TerminatorKind},
-        ty::{self, GenericArgsRef},
+        ty::{self, subst::SubstsRef},
     },
     span::Span,
-    target::abi::{FieldIdx, Integer},
+    target::abi::Integer,
 };
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{
-    collections::BTreeMap,
-    convert::TryInto,
-    fmt::{Debug, Write},
-};
+use std::{collections::BTreeMap, convert::TryInto, fmt::Debug};
 use vir_crate::polymorphic::{
     self as vir, borrows::Borrow, collect_assigned_vars, compute_identifier, CfgBlockIndex,
     ExprIterator, Float, Successor, Type,

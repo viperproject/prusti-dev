@@ -211,9 +211,10 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
 /// Verify a list of programs.
 /// Returns a list of (program_name, verification_result) tuples.
-fn verify_programs(env: &Environment, programs: Vec<Program>)
-    -> Vec<(String, backend_common::VerificationResult)>
-{
+fn verify_programs(
+    env: &Environment,
+    programs: Vec<Program>,
+) -> Vec<(String, backend_common::VerificationResult)> {
     let source_path = env.name.source_path();
     let rust_program_name = source_path
         .file_name()

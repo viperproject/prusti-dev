@@ -160,26 +160,23 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         let recursive_apply_and = |mut exprs: Vec<vir_low::Expression>| {
             let mut result = exprs.pop().unwrap();
             for expr in exprs.into_iter().rev() {
-                result = vir_low::Expression::BinaryOp(
-                    vir_low::expression::BinaryOp {
-                        left: Box::new(expr),
-                        right: Box::new(result),
-                        position: *position,
-                        op_kind: vir_low::expression::BinaryOpKind::And,
-                    },
-                );
+                result = vir_low::Expression::BinaryOp(vir_low::expression::BinaryOp {
+                    left: Box::new(expr),
+                    right: Box::new(result),
+                    position: *position,
+                    op_kind: vir_low::expression::BinaryOpKind::And,
+                });
             }
             result
         };
 
-        let validity_call_imply_body = vir_low::Expression::BinaryOp(
-            vir_low::expression::BinaryOp {
+        let validity_call_imply_body =
+            vir_low::Expression::BinaryOp(vir_low::expression::BinaryOp {
                 left: Box::new(recursive_apply_and(validity_calls)),
                 right: Box::new(body),
                 position: *position,
                 op_kind: vir_low::expression::BinaryOpKind::Implies,
-            },
-        );
+            });
 
         let kind = match kind {
             vir_mid::expression::QuantifierKind::ForAll => {

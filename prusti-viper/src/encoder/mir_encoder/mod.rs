@@ -25,7 +25,7 @@ use prusti_interface::environment::mir_utils::MirPlace;
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    index::IndexVec,
+    index::vec::IndexVec,
     middle::{mir, ty},
     span::{Span, DUMMY_SP},
     target::abi,

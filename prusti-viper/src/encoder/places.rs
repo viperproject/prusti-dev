@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
-    index::{Idx, IndexVec},
+    index::vec::{Idx, IndexVec},
     middle::{mir, ty::Ty},
 };
 use std::iter;
