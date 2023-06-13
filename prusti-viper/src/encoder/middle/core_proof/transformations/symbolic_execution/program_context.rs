@@ -3,6 +3,7 @@ use crate::encoder::middle::core_proof::{
     snapshots::{SnapshotDomainInfo, SnapshotDomainsInfo},
     transformations::encoder_context::EncoderContext,
 };
+use prusti_common::config;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::BTreeMap;
 use vir_crate::{
@@ -149,11 +150,17 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
     }
 
     pub(super) fn is_predicate_kind_non_aliased(&self, predicate_name: &str) -> bool {
-        self.predicate_decls
+        let kind = self
+            .predicate_decls
             .get(predicate_name)
             .unwrap_or_else(|| panic!("{predicate_name}"))
-            .kind
-            .is_non_aliased()
+            .kind;
+        if kind.is_non_aliased() {
+            true
+        } else {
+            config::end_borrow_view_shift_non_aliased()
+                && matches!(kind, vir_low::PredicateKind::EndBorrowViewShift)
+        }
     }
 
     pub(super) fn get_purification_round(&self) -> u32 {
