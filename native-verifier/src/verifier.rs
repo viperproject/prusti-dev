@@ -47,6 +47,9 @@ impl Verifier {
         let is_z3 = self.smt_solver_exe.ends_with("z3");
         let solver_name = if is_z3 { "Z3" } else { "CVC5" };
 
+        let program_name = prusti_common::report::log::to_legal_file_name(&program.name);
+        let program_name = format!("lithium_{}.smt2", program_name);
+
         run_timed!("Translation to SMT-LIB", debug,
             let mut smt = SMTLib::new(is_z3);
             program.build_smt(&mut smt);
@@ -54,7 +57,7 @@ impl Verifier {
 
             report_with_writer(
                 "smt",
-                format!("lithium_{}.smt2", program.name),
+                program_name.clone(),
                 |writer| {
                     writer.write_all(smt_program.as_bytes()).unwrap();
                 },
@@ -65,7 +68,7 @@ impl Verifier {
             let result: Result<String, Box<dyn Error>> = try {
                 let mut command = Command::new(self.smt_solver_exe.clone());
 
-                let path = config::log_dir().join("smt").join(format!("lithium_{}.smt2", program.name));
+                let path = config::log_dir().join("smt").join(program_name);
                 let path = path.to_str().unwrap();
 
                 if is_z3 {
