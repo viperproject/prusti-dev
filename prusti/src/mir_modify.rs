@@ -20,6 +20,7 @@ use prusti_rustc_interface::{
     },
 };
 use prusti_viper::encoder::Encoder;
+use rustc_hash::FxHashMap;
 
 // debugging dependencies?
 use std::{env, fs, io};
@@ -32,6 +33,9 @@ fn folder_present(name: &str) -> io::Result<bool> {
 }
 
 pub static mut SPECS: Option<DefSpecificationMap> = None;
+pub static mut EXPIRATION_LOCATIONS: Option<
+    FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
+> = None;
 
 pub(crate) fn mir_checked(
     tcx: TyCtxt<'_>,
@@ -46,20 +50,21 @@ pub(crate) fn mir_checked(
     let specs_opt = unsafe { SPECS.clone() };
 
     if let Some(specs) = specs_opt {
+        let expiration_locations = unsafe { EXPIRATION_LOCATIONS.clone().unwrap() };
         // let def_id = def.def_id_for_type_of();
         // let env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
         // let encoder = Encoder::new(&env, specs.clone());
         // let procedure = Procedure::new(&env, def_id);
         let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
         let mut stolen = steal.steal();
+        let def_id = stolen.source.def_id();
+        println!("Processing function {:?}", def_id);
 
-        let mut visitor = InsertChecksVisitor::new(tcx, specs);
+        let mut visitor = InsertChecksVisitor::new(tcx, specs, expiration_locations);
         visitor.visit_body(&mut stolen);
-        println!("Custom modifications are done! Compiler back at work");
 
         // print mir of body:
         if let Ok(true) = folder_present("dump") {
-            let def_id = stolen.source.def_id();
             let mut dump_file =
                 fs::File::create(format!("dump/dump_mir_adjusted_{:?}.txt", def_id)).unwrap();
             pretty::write_mir_fn(tcx, &stolen, &mut |_, _| Ok(()), &mut dump_file).unwrap();
@@ -73,7 +78,13 @@ pub(crate) fn mir_checked(
 }
 
 #[derive(Debug, Clone)]
+pub enum ModificationToProcess<'tcx> {
+    Pledge(PledgeToProcess<'tcx>),
+}
+
+#[derive(Debug, Clone)]
 pub struct PledgeToProcess<'tcx> {
+    insert_location: mir::Location,
     check: DefId,
     store_before_expiry: DefId,
     check_before_expiry: Option<DefId>,
@@ -87,17 +98,25 @@ pub struct PledgeToProcess<'tcx> {
 pub struct InsertChecksVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
     specs: DefSpecificationMap,
+    expiration_locations: FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
     current_patcher: Option<MirPatch<'tcx>>,
-    pledges_to_process: Vec<PledgeToProcess<'tcx>>,
+    modifications_to_process: Vec<(mir::Location, ModificationToProcess<'tcx>)>,
+    current_def_id: Option<DefId>,
 }
 
 impl<'tcx> InsertChecksVisitor<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, specs: DefSpecificationMap) -> Self {
+    pub fn new(
+        tcx: TyCtxt<'tcx>,
+        specs: DefSpecificationMap,
+        expiration_locations: FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
+    ) -> Self {
         Self {
             tcx,
             specs,
             current_patcher: None,
-            pledges_to_process: Vec::new(),
+            modifications_to_process: Vec::new(),
+            expiration_locations,
+            current_def_id: None,
         }
     }
 }
@@ -109,24 +128,35 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
 
     fn visit_body(&mut self, body: &mut Body<'tcx>) {
         // visit body, apply patches, possibly find pledges that need to be processed here:
+        let def_id = body.source.def_id();
+        self.current_def_id = Some(def_id);
         self.current_patcher = Some(MirPatch::new(body));
         self.super_body(body);
         let mir_patch = self.current_patcher.take();
         mir_patch.unwrap().apply(body);
 
-        for pledge_to_process in &self.pledges_to_process {
-            println!(
-                "found a pledge {:#?}, currently not processing it",
-                pledge_to_process
-            );
-            let location = mir::Location {
-                block: BasicBlock::from_usize(1),
-                statement_index: 1,
-            };
-            insert_pledge_call_chain(self.tcx, pledge_to_process.clone(), location, body).unwrap();
+        // sort descending
+        self.modifications_to_process.sort_by(|a, b| {
+            a.0.partial_cmp(&b.0).unwrap().reverse()
+        });
+
+        for (location, modification) in &self.modifications_to_process {
+            match modification {
+                ModificationToProcess::Pledge(pledge_to_process) => {
+                    println!(
+                        "found a pledge {:#?}, currently not processing it",
+                        pledge_to_process
+                    );
+                    // let location = mir::Location {
+                    //     block: BasicBlock::from_usize(1),
+                    //     statement_index: 1,
+                    // };
+                    insert_pledge_call_chain(self.tcx, pledge_to_process.clone(), *location, body)
+                        .unwrap();
+                }
+            }
         }
 
-        let def_id = body.source.def_id();
         // try to find specification function:
         let substs = ty::subst::InternalSubsts::identity_for_item(self.tcx, def_id);
         let args = args_from_body(body);
@@ -272,10 +302,18 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     original_terminator.clone(),
                                     old_values_place,
                                 );
+                                println!("Trying to find expiration location for function: {:?}", ty);
 
+                                let expiration_location = self
+                                    .expiration_locations
+                                    .get(&self.current_def_id.unwrap())
+                                    .unwrap()
+                                    .get(&destination.local)
+                                    .unwrap();
                                 // *destination is the loan!
                                 // figure out where it expires!
                                 let pledge_to_process = PledgeToProcess {
+                                    insert_location: *expiration_location,
                                     check,
                                     check_before_expiry,
                                     store_before_expiry,
@@ -285,7 +323,10 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     args: args.clone(),
                                     substs,
                                 };
-                                self.pledges_to_process.push(pledge_to_process);
+                                self.modifications_to_process.push((
+                                    *expiration_location,
+                                    ModificationToProcess::Pledge(pledge_to_process),
+                                ));
 
                                 // Insert the 3 functions (all but old_store)
                                 // where the reference goes out of scope

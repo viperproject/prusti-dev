@@ -9,6 +9,8 @@ use prusti_interface::{
 };
 use prusti_viper::verifier::Verifier;
 
+use crate::mir_modify;
+
 #[tracing::instrument(name = "prusti::verify", level = "debug", skip(env))]
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
     if env.diagnostic.has_errors() {
@@ -52,6 +54,9 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
 
                 let mut verifier = Verifier::new(&env, def_spec);
                 let verification_result = verifier.verify(&verification_task);
+                unsafe {
+                    mir_modify::EXPIRATION_LOCATIONS = Some(verifier.get_expiration_locations());
+                }
                 debug!("Verifier returned {:?}", verification_result);
 
                 verification_result

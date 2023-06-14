@@ -91,7 +91,7 @@ pub fn translate_runtime_checks(
         SpecItemType::Precondition => {
             let check_fn = check_translator.generate_check_function(item, check_id, false, false);
             (check_fn, None, None, None)
-        },
+        }
         _ => unreachable!(),
     };
     syn::Result::Ok(RuntimeFunctions {
@@ -155,6 +155,7 @@ impl CheckTranslator {
             item.span(),
         );
         let check_id_str = check_id.to_string();
+        let include_item_args = !is_before_expiry_check;
         // we differentiate items that are executed after a function
         // -> have result
         // -> have old values
@@ -182,8 +183,13 @@ impl CheckTranslator {
         } else {
             None
         };
-        let forget_statements =
-            self.generate_forget_statements(item, &result_arg_opt, executed_after);
+        let forget_statements = self.generate_forget_statements(
+            item,
+            include_item_args,
+            executed_after,
+            executed_after,
+            before_expiry_argument,
+        );
         let contract_string = expr_to_check.to_token_stream().to_string();
         let failure_message = format!("Contract {} was violated at runtime", contract_string);
         println!("Failure message: {}", failure_message);
@@ -214,7 +220,7 @@ impl CheckTranslator {
             }
         };
         check_item.sig.generics = item.sig().generics.clone();
-        if !is_before_expiry_check {
+        if include_item_args {
             check_item.sig.inputs = item.sig().inputs.clone();
         }
         if executed_after {
@@ -225,10 +231,13 @@ impl CheckTranslator {
         }
         if before_expiry_argument {
             let output_ty = match &item.sig().output {
-                syn::ReturnType::Type(_, box syn::Type::Reference(syn::TypeReference{ elem: box ty, ..})) => ty.clone(),
+                syn::ReturnType::Type(
+                    _,
+                    box syn::Type::Reference(syn::TypeReference { elem: box ty, .. }),
+                ) => ty.clone(),
                 _ => panic!("a pledge that doesnt return a reference?"),
             };
-            let before_expiry_arg = parse_quote_spanned!{item.span() =>
+            let before_expiry_arg = parse_quote_spanned! {item.span() =>
                 result_before_expiry: #output_ty
             };
             check_item.sig.inputs.push(before_expiry_arg);
@@ -275,7 +284,7 @@ impl CheckTranslator {
         }
         let old_values_type = self.old_values_type(item);
         // println!("resulting tuple: {}", quote!{#tuple});
-        let forget_statements = self.generate_forget_statements(item, &None, false);
+        let forget_statements = self.generate_forget_statements(item, true, false, false, false);
 
         let item_name_str = item_name.to_string();
         let mut res: syn::ItemFn = parse_quote_spanned! {item.span() =>
@@ -289,11 +298,11 @@ impl CheckTranslator {
                 return old_values;
             }
         };
-        println!("Store fn: {}", res.to_token_stream());
         // store function has the same generics and arguments as the
         // original annotated function
         res.sig.generics = item.sig().generics.clone();
         res.sig.inputs = item.sig().inputs.clone();
+        println!("Store fn: {}", res.to_token_stream());
         syn::Item::Fn(res)
     }
 
@@ -386,35 +395,41 @@ impl CheckTranslator {
     pub fn generate_forget_statements(
         &self,
         item: &untyped::AnyFnItem,
-        result_arg_opt: &Option<FnArg>,
+        forget_item_args: bool,
+        has_result_arg: bool,
         has_old_arg: bool,
+        has_before_expiry_arg: bool,
     ) -> syn::Block {
         // go through all inputs, if they are not references add a forget
         // statement
         let mut stmts: Vec<syn::Stmt> = Vec::new();
-        for fn_arg in item.sig().inputs.clone() {
-            if let Ok(arg) = Argument::try_from(&fn_arg) {
-                let name: TokenStream = arg.name.parse().unwrap();
-                if !arg.is_ref {
-                    stmts.push(parse_quote! {
-                        std::mem::forget(#name);
-                    })
+        if forget_item_args {
+            for fn_arg in item.sig().inputs.clone() {
+                if let Ok(arg) = Argument::try_from(&fn_arg) {
+                    let name: TokenStream = arg.name.parse().unwrap();
+                    if !arg.is_ref {
+                        stmts.push(parse_quote! {
+                            std::mem::forget(#name);
+                        })
+                    }
                 }
             }
         }
 
         // result might be double freed too if moved into a check function
-        if let Some(result) = result_arg_opt {
-            if let Ok(result_arg) = Argument::try_from(result) {
-                let name: TokenStream = result_arg.name.parse().unwrap();
-                stmts.push(parse_quote! {
-                    std::mem::forget(#name);
-                })
-            }
+        if has_result_arg {
+            stmts.push(parse_quote! {
+                std::mem::forget(result);
+            })
         }
         if has_old_arg {
             stmts.push(parse_quote! {
                 std::mem::forget(old_values);
+            })
+        }
+        if has_before_expiry_arg {
+            stmts.push(parse_quote! {
+                std::mem::forget(result_before_expiry);
             })
         }
         syn::Block {

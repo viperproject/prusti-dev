@@ -133,6 +133,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Type substitutions inside this procedure. Most likely identity for the
     /// given proc_def_id.
     substs: SubstsRef<'tcx>,
+    place_to_loan: FxHashMap<mir::Local, Option<facts::Loan>>,
+    loan_expiration_location: FxHashMap<facts::Loan, mir::Location>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -192,6 +194,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             old_ghost_vars: FxHashMap::default(),
             cached_loop_invariant_block: FxHashMap::default(),
             substs,
+            loan_expiration_location: FxHashMap::default(),
+            place_to_loan: FxHashMap::default(),
         })
     }
 
@@ -399,7 +403,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(name = self.cfg_method.name()))]
-    pub fn encode(mut self) -> SpannedEncodingResult<vir::CfgMethod> {
+    pub fn encode(mut self) -> SpannedEncodingResult<(vir::CfgMethod, FxHashMap<mir::Local, mir::Location>)> {
         let mir_span = self.mir.span;
 
         // Retrieve the contract
@@ -559,6 +563,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.mir.span,
                 ErrorCtxt::Unexpected
             );
+        let loan_expirations = self.collect_loan_expirations();
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
             self.encoder,
             self.cfg_method,
@@ -592,8 +597,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 |writer| method_with_fold_unfold.to_graphviz(writer),
             );
         }
-
-        Ok(method_with_fold_unfold)
+        Ok((method_with_fold_unfold, loan_expirations))
     }
 
     /// Encodes a topologically ordered group of blocks.
@@ -2141,6 +2145,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         (post_label, lhs, rhs)
                     })
                     .unwrap();
+                println!("Found magic wand with label: {}", post_label);
 
                 // Obtain the LHS permission.
                 for (path, _) in &borrow_info.blocking_paths {
@@ -2221,6 +2226,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let mut stmts: Vec<vir::Stmt> = vec![];
+        for loan in &loans {
+            self.loan_expiration_location.insert(loan.clone(), location);
+        }
         if !loans.is_empty() {
             let vir_reborrowing_dag =
                 self.construct_vir_reborrowing_dag(&loans, zombie_loans, location, end_location, is_in_package_stmt)?;
@@ -3507,6 +3515,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loan,
             false,
             substs,
+            Some(destination),
         )?;
         // We inhale the magic wand just before applying it because we need
         // a magic wand that depends on the current value of ghost variables.
@@ -3554,6 +3563,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         self.procedure_contracts
             .insert(location, (procedure_contract, fake_exprs));
+
+        println!("Encoding impure function result: {:?}", stmts);
 
         Ok(stmts)
     }
@@ -4363,6 +4374,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loan: Option<facts::Loan>,
         function_end: bool,
         substs: SubstsRef<'tcx>,
+        destination: Option<mir::Place<'tcx>>,
     ) -> SpannedEncodingResult<(
         vir::Expr,                   // Returned permissions from types.
         Option<vir::Expr>,           // Permission of the return value.
@@ -4440,6 +4452,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             substs,
         ).with_span(span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
+                println!("found location {:?} for expression: {:?}", location, fake_exprs);
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
                     for (fake_arg, arg_expr) in fake_exprs.iter() {
                         expr = expr.replace_place(fake_arg, arg_expr);
@@ -4457,6 +4470,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .insert(location, (post_label.to_string(), lhs.clone(), rhs.clone()));
             }
             magic_wands.push(vir::Expr::magic_wand(lhs, rhs, loan.map(|l| l.index().into())));
+            // keep track of magic wands for runtime checks
+            if let Some(dest) = destination {
+                self.place_to_loan.insert(dest.local, loan);
+            }
         }
 
         // Encode permissions for return type
@@ -4743,6 +4760,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             None,
             true,
             self.substs,
+            None,
         )?;
 
         let type_inv_pos = self.register_error(
@@ -6967,6 +6985,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts)
             }
         })
+    }
+
+    pub fn collect_loan_expirations(&self) -> FxHashMap<mir::Local, mir::Location> {
+        let mut res = FxHashMap::default();
+        for (place, loan_opt) in &self.place_to_loan {
+            if let Some(loan) = loan_opt {
+                if let Some(expiration_location) = self.loan_expiration_location.get(loan) {
+                    println!("place: {:?} expires at location {:?}", place, expiration_location);
+                    res.insert(place.clone(), *expiration_location);
+                }
+            }
+        }
+        res
     }
 
     fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
