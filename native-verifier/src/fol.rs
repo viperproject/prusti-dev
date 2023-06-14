@@ -82,42 +82,22 @@ fn vir_statement_to_fol_statements(
             vec![FolStatement::Assume(eq)]
         }
         Statement::Conditional(cond) => {
-            // handle trivial cases where the guard is constant true or false, emit the branches instead
-            if let Expression::Constant(Constant {
-                value: ConstantValue::Bool(true),
-                ..
-            }) = cond.guard
-            {
-                return cond
-                    .then_branch
-                    .iter()
-                    .flat_map(|s| vir_statement_to_fol_statements(s, known_methods))
-                    .collect();
-            } else if let Expression::Constant(Constant {
-                value: ConstantValue::Bool(false),
-                ..
-            }) = cond.guard
-            {
-                return cond
-                    .else_branch
-                    .iter()
-                    .flat_map(|s| vir_statement_to_fol_statements(s, known_methods))
-                    .collect();
-            }
+            let negate_guard = Expression::UnaryOp(UnaryOp {
+                op_kind: UnaryOpKind::Not,
+                argument: Box::new(cond.guard.clone()),
+                position: cond.guard.position(),
+            });
 
-            if cond.then_branch.is_empty() ^ cond.else_branch.is_empty() {
-                let branch = if cond.then_branch.is_empty() {
-                    &cond.else_branch
-                } else {
-                    &cond.then_branch
-                };
-                // if the branch is an assertion, emit it as an implication from the guard
-                let mut statements = vec![];
+            let mut statements = vec![];
+            for (guard, branch) in [
+                (cond.guard.clone(), &cond.then_branch),
+                (negate_guard, &cond.else_branch),
+            ] {
                 for s in branch {
                     if let Statement::Assert(assert) = s {
                         let implication = Expression::BinaryOp(BinaryOp {
                             op_kind: BinaryOpKind::Implies,
-                            left: Box::new(cond.guard.clone()),
+                            left: Box::new(guard.clone()),
                             right: Box::new(assert.expression.clone()),
                             position: assert.position,
                         });
@@ -128,39 +108,20 @@ fn vir_statement_to_fol_statements(
                     } else if let Statement::Inhale(inhale) = s {
                         let implication = Expression::BinaryOp(BinaryOp {
                             op_kind: BinaryOpKind::Implies,
-                            left: Box::new(cond.guard.clone()),
+                            left: Box::new(guard.clone()),
                             right: Box::new(inhale.expression.clone()),
                             position: inhale.position,
                         });
                         statements.push(FolStatement::Assume(implication));
                     } else {
                         unimplemented!(
-                            "Non-assertion statements in conditional branches not supported: {}",
+                            "Non-assertion statements in conditionals not supported: {}",
                             s
                         )
                     }
                 }
-                return statements;
             }
-
-            if !(cond.then_branch.is_empty() && cond.else_branch.is_empty()) {
-                unimplemented!(
-                    "Non-trivial conditional statements not supported!!\nGuard: {}\n\nThen-branch:\n{}\n\nElse-branch:\n{}\n",
-                    cond.guard,
-                    cond.then_branch
-                        .iter()
-                        .map(|s| format!("{}", s))
-                        .collect::<Vec<_>>()
-                        .join(";\n"),
-                    cond.else_branch
-                        .iter()
-                        .map(|s| format!("{}", s))
-                        .collect::<Vec<_>>()
-                        .join(";\n")
-                );
-            }
-
-            vec![]
+            return statements;
         }
         Statement::MethodCall(method_call) => {
             let method_decl = known_methods
