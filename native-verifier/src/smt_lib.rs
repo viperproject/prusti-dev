@@ -439,8 +439,8 @@ impl SMTTranslatable for Expression {
             Expression::Constant(constant) => match &constant.value {
                 ConstantValue::Bool(bool) => bool.to_string(),
                 ConstantValue::Int(i) => {
-                    if *i < 0 {
-                        format!("(- {})", i.abs())
+                    if let Some(abs_val) = i.to_string().strip_prefix('-') {
+                        format!("(- {})", abs_val)
                     } else {
                         i.to_string()
                     }

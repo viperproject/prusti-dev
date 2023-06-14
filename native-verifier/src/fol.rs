@@ -34,6 +34,8 @@ fn vir_statement_to_fol_statements(
     known_methods: &HashMap<String, MethodDecl>,
 ) -> Vec<FolStatement> {
     match statement {
+        Statement::Assume(expr) => vec![FolStatement::Assume(expr.expression.clone())],
+        Statement::Inhale(expr) => vec![FolStatement::Assume(expr.expression.clone())],
         Statement::Assert(expr) => {
             let reason_pos = expr.expression.position();
             let failure_pos = expr.position;
@@ -50,12 +52,22 @@ fn vir_statement_to_fol_statements(
                 }]
             }
         }
-        Statement::Assume(expr) => vec![FolStatement::Assume(expr.expression.clone())],
-        Statement::Inhale(expr) => vec![FolStatement::Assume(expr.expression.clone())],
-        Statement::Exhale(expr) => vec![FolStatement::Assert {
-            expression: expr.expression.clone(),
-            reason: None,
-        }],
+        Statement::Exhale(expr) => {
+            let reason_pos = expr.expression.position();
+            let failure_pos = expr.position;
+
+            if reason_pos != failure_pos {
+                vec![FolStatement::Assert {
+                    expression: set_position(expr.expression.clone(), failure_pos),
+                    reason: Some(reason_pos),
+                }]
+            } else {
+                vec![FolStatement::Assert {
+                    expression: expr.expression.clone(),
+                    reason: None,
+                }]
+            }
+        }
         Statement::Assign(assign) => {
             let eq = Expression::BinaryOp(BinaryOp {
                 op_kind: BinaryOpKind::EqCmp,
