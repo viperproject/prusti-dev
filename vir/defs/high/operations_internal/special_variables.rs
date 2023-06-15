@@ -19,6 +19,10 @@ impl VariableDecl {
         VariableDecl::new(crate::common::builtin_constants::RESULT_VARIABLE_NAME, ty)
     }
 
+    pub fn is_result_variable(&self) -> bool {
+        self.name == crate::common::builtin_constants::RESULT_VARIABLE_NAME
+    }
+
     pub fn discriminant_variable() -> Self {
         VariableDecl::new(
             crate::common::builtin_constants::DISCRIMINANT_VARIABLE_NAME,

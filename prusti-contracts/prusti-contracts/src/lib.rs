@@ -13,6 +13,9 @@ pub use prusti_contracts_proc_macros::not_require;
 /// A macro for writing a functional postcondition on a function.
 pub use prusti_contracts_proc_macros::ensures;
 
+/// A macro for writing a functional panic postcondition on a function.
+pub use prusti_contracts_proc_macros::panic_ensures;
+
 /// A macro for writing a structural postcondition on an unsafe function.
 pub use prusti_contracts_proc_macros::structural_ensures;
 
