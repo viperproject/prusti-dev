@@ -103,6 +103,9 @@ impl DefSpecificationMap {
                 if let Some(posts) = spec.posts.extract_with_selective_replacement() {
                     specs.extend(posts);
                 }
+                if let Some(posts) = spec.panic_posts.extract_with_selective_replacement() {
+                    specs.extend(posts);
+                }
                 if let Some(posts) = spec.structural_posts.extract_with_selective_replacement() {
                     specs.extend(posts);
                 }
@@ -250,6 +253,7 @@ pub struct ProcedureSpecification {
     pub pres: SpecificationItem<Vec<DefId>>,
     pub structural_pres: SpecificationItem<Vec<DefId>>,
     pub posts: SpecificationItem<Vec<DefId>>,
+    pub panic_posts: SpecificationItem<Vec<DefId>>,
     pub structural_posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
@@ -272,6 +276,7 @@ impl ProcedureSpecification {
             pres: SpecificationItem::Empty,
             structural_pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
+            panic_posts: SpecificationItem::Empty,
             structural_posts: SpecificationItem::Empty,
             broken_pres: SpecificationItem::Empty,
             broken_posts: SpecificationItem::Empty,
@@ -540,6 +545,27 @@ impl SpecGraph<ProcedureSpecification> {
             Some(obligation) => {
                 self.get_constrained_spec_mut(obligation)
                     .posts
+                    .push(post.to_def_id());
+            }
+        }
+    }
+
+    /// Attaches the panic postcondition `panic_post` to this [SpecGraph].
+    ///
+    /// If this panic postcondition has a constraint it will be attached to the
+    /// corresponding constrained spec **and** the base spec, otherwise just to
+    /// the base spec.
+    pub fn add_panic_postcondition<'tcx>(&mut self, post: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(post, env) {
+            None => {
+                self.base_spec.panic_posts.push(post.to_def_id());
+                self.specs_with_constraints
+                    .values_mut()
+                    .for_each(|s| s.panic_posts.push(post.to_def_id()));
+            }
+            Some(obligation) => {
+                self.get_constrained_spec_mut(obligation)
+                    .panic_posts
                     .push(post.to_def_id());
             }
         }
@@ -935,6 +961,9 @@ impl Refinable for ProcedureSpecification {
                 .structural_pres
                 .refine(replace_empty(&EMPTYL, &other.structural_pres)),
             posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
+            panic_posts: self
+                .panic_posts
+                .refine(replace_empty(&EMPTYL, &other.panic_posts)),
             structural_posts: self
                 .structural_posts
                 .refine(replace_empty(&EMPTYL, &other.structural_posts)),

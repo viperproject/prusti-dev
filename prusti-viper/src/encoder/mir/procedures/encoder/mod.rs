@@ -2,8 +2,9 @@ use self::{
     builtin_function_encoder::BuiltinFuncAppEncoder,
     initialisation::InitializationData,
     lifetimes::LifetimesEncoder,
-    specification_blocks::SpecificationBlocks,
+    postcondition_mode::PostconditionMode,
     // specification_regions::SpecificationRegionEncoding,
+    specification_blocks::SpecificationBlocks,
 };
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
@@ -81,6 +82,7 @@ mod specifications;
 mod utils;
 mod specification_regions;
 mod user_named_lifetimes;
+mod postcondition_mode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(super) enum ProcedureEncodingKind {
@@ -326,7 +328,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (allocate_returns, deallocate_returns) = self.encode_returns()?;
         self.lifetime_token_permission =
             Some(self.fresh_ghost_variable("lifetime_token_perm_amount", vir_high::Type::MPerm));
-        let (assume_preconditions, assert_postconditions, assert_structural_postconditions) =
+        let (assume_preconditions, assert_postconditions, assert_panic_postconditions) =
             self.encode_functional_specifications()?;
         let dead_references = self.encode_dead_references_for_parameters()?;
         // match self.check_mode {
@@ -368,7 +370,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.def_id,
             )?);
         } else {
-            resume_panic_statements.extend(assert_structural_postconditions);
+            resume_panic_statements.extend(assert_panic_postconditions);
         }
         let procedure_position =
             self.encoder
@@ -867,8 +869,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
         call_substs: SubstsRef<'tcx>,
-        is_unsafe: bool,
-        include_functional: bool,
+        mode: PostconditionMode,
         arguments: Vec<vir_high::Expression>,
         result: &vir_high::Expression,
         precondition_label: &str,
@@ -897,7 +898,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect();
         let structural_postconditions =
             procedure_contract.structural_postcondition(self.encoder.env(), call_substs);
-        if is_unsafe {
+        if mode.is_unsafe_function() {
             for (assertion, assertion_substs) in structural_postconditions {
                 let expression = self.encoder.encode_assertion_high(
                     assertion,
@@ -913,15 +914,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     expression,
                     &broken_invariants,
                 )?;
+                assert!(!expression.find(result), "TODO: A proper error message that postconditions must not contain the result ({:?}): {expression}", procedure_contract.def_id);
                 postconditions.push(expression);
             }
         } else {
             assert!(structural_postconditions.is_empty(), "TODO: A proper error message that structural postconditions allowed only in unsafe functions");
         }
-        if include_functional {
-            for (assertion, assertion_substs) in
-                procedure_contract.functional_postcondition(self.encoder.env(), call_substs)
-            {
+        if mode.include_functional_ensures() {
+            let postcondition_assertions =
+                procedure_contract.functional_postcondition(self.encoder.env(), call_substs);
+            if mode.is_drop_implementation() {
+                assert!(
+                    postcondition_assertions.is_empty(),
+                    "TODO: implement support for non-structural postconditions on drop"
+                );
+            }
+            for (assertion, assertion_substs) in postcondition_assertions {
                 let expression = self.encoder.encode_assertion_high(
                     assertion,
                     Some(precondition_label),
@@ -937,7 +945,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &broken_invariants,
                 )?;
                 assert!(
-                    expression.is_pure() || is_unsafe,
+                    expression.is_pure() || mode.is_unsafe_function(),
                     "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
                     procedure_contract.def_id,
                 );
@@ -984,10 +992,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &broken_invariants,
                 )?;
                 assert!(
-                    expression.is_pure() || is_unsafe,
+                    expression.is_pure() || mode.is_unsafe_function(),
                     "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
                     procedure_contract.def_id,
                 );
+                postconditions.push(expression);
+            }
+        }
+        if mode.include_panic_ensures() {
+            let postcondition_assertions =
+                procedure_contract.panic_postcondition(self.encoder.env(), call_substs);
+            if mode.is_drop_implementation() {
+                assert!(
+                    postcondition_assertions.is_empty(),
+                    "TODO: implement support for panic postconditions on drop"
+                );
+                if !postconditions.is_empty() {
+                    // We have drop with postconditions, so make sure it does
+                    // not panic.
+                    postconditions.push(false.into());
+                }
+            }
+            for (assertion, assertion_substs) in postcondition_assertions {
+                let expression = self.encoder.encode_assertion_high(
+                    assertion,
+                    Some(precondition_label),
+                    &arguments_in_old,
+                    Some(result),
+                    self.def_id,
+                    assertion_substs,
+                )?;
+                let expression = self.desugar_pledges_in_postcondition(
+                    precondition_label,
+                    result,
+                    expression,
+                    &broken_invariants,
+                )?;
+                assert!(
+                        expression.is_pure() || mode.is_unsafe_function(),
+                        "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
+                        procedure_contract.def_id,
+                    );
                 postconditions.push(expression);
             }
         }
@@ -1062,8 +1107,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut postconditions = vec![vir_high::Statement::comment(
             "Assert functional postconditions.".to_string(),
         )];
-        let mut structural_postconditions = vec![vir_high::Statement::comment(
-            "Assert structural postconditions.".to_string(),
+        let mut panic_postconditions = vec![vir_high::Statement::comment(
+            "Assert panic postconditions.".to_string(),
         )];
         let mut postcondition_conjuncts = Vec::new();
         let result_variable = self.encode_local(mir::RETURN_PLACE)?;
@@ -1080,8 +1125,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for expression in self.encode_postcondition_expressions(
             &procedure_contract,
             substs,
-            self.is_unsafe_function,
-            self.check_mode.check_specifications() || self.no_panic_ensures_postcondition,
+            PostconditionMode::regular_exit_on_definition_side(
+                self.is_unsafe_function,
+                self.check_mode,
+                self.no_panic_ensures_postcondition,
+                self.is_drop_impl,
+            ),
             arguments.clone(),
             &result,
             PRECONDITION_LABEL,
@@ -1130,12 +1179,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.def_id,
         )?;
         postconditions.push(exhale_statement);
-        let mut structural_postcondition_conjuncts = Vec::new();
+        let mut panic_postcondition_conjuncts = Vec::new();
         for expression in self.encode_postcondition_expressions(
             &procedure_contract,
             substs,
-            self.is_unsafe_function,
-            false,
+            PostconditionMode::panic_exit_on_definition_side(
+                self.is_unsafe_function,
+                self.check_mode,
+                self.is_drop_impl,
+            ),
             arguments,
             &result,
             PRECONDITION_LABEL,
@@ -1161,24 +1213,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         postcondition_context.clone(),
                         self.def_id,
                     )?;
-                    structural_postconditions.push(exhale_statement);
+                    panic_postconditions.push(exhale_statement);
                 } else {
-                    structural_postcondition_conjuncts.push(expression);
+                    panic_postcondition_conjuncts.push(expression);
                 }
             }
         }
         let exhale_statement = self.encoder.set_statement_error_ctxt(
             vir_high::Statement::exhale_expression_no_pos(
-                structural_postcondition_conjuncts.into_iter().conjoin(),
+                panic_postcondition_conjuncts.into_iter().conjoin(),
                 None,
             ),
             mir_span,
             postcondition_context,
             self.def_id,
         )?;
-        structural_postconditions.push(exhale_statement);
+        panic_postconditions.push(exhale_statement);
 
-        Ok((preconditions, postconditions, structural_postconditions))
+        Ok((preconditions, postconditions, panic_postconditions))
     }
 
     /// Returns a list of reference-typed parameters for which the invariant is
@@ -1439,7 +1491,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // FIXME: code duplication with encode_function_call.
         let entry_label = vir_high::BasicBlockId::new("label_entry".to_string());
         let mut block_builder = procedure_builder.create_basic_block_builder(entry_label.clone());
-        block_builder.set_successor_exit(SuccessorExitKind::Return);
         let location = mir::Location {
             block: 0usize.into(),
             statement_index: 0,
@@ -1595,8 +1646,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let postcondition_expressions = self.encode_postcondition_expressions(
             &procedure_contract,
             call_substs,
-            self.is_unsafe_function,
-            self.check_mode.check_specifications() || self.no_panic_ensures_postcondition,
+            PostconditionMode::regular_exit_on_definition_side(
+                self.is_unsafe_function,
+                self.check_mode,
+                self.no_panic_ensures_postcondition,
+                self.is_drop_impl,
+            ),
+            arguments.clone(),
+            &encoded_target_place,
+            &old_label,
+        )?;
+        let panic_postcondition_expressions = self.encode_postcondition_expressions(
+            &procedure_contract,
+            call_substs,
+            PostconditionMode::panic_exit_on_definition_side(
+                self.is_unsafe_function,
+                self.check_mode,
+                self.is_drop_impl,
+            ),
             arguments.clone(),
             &encoded_target_place,
             &old_label,
@@ -1612,10 +1679,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ErrorCtxt::ProcedureCall,
             self.def_id,
         )?);
+        let fresh_destination_label = self.fresh_basic_block_label();
+        let mut destination_block =
+            block_builder.create_basic_block_builder(fresh_destination_label.clone());
         let statement = vir_high::Statement::inhale_predicate_no_pos(
             vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
         );
-        block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+        destination_block.add_statement(self.encoder.set_statement_error_ctxt(
             statement,
             span,
             ErrorCtxt::ProcedureCall,
@@ -1623,7 +1693,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?);
         for memory_block in broken_invariant_address_memory_blocks {
             let statement = vir_high::Statement::inhale_predicate_no_pos(memory_block);
-            block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+            destination_block.add_statement(self.encoder.set_statement_error_ctxt(
                 statement,
                 span,
                 ErrorCtxt::ProcedureCall,
@@ -1634,7 +1704,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let statement = vir_high::Statement::inhale_predicate_no_pos(
                 vir_high::Predicate::owned_non_aliased_no_pos(encoded_place),
             );
-            block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+            destination_block.add_statement(self.encoder.set_statement_error_ctxt(
                 statement,
                 span,
                 ErrorCtxt::ProcedureCall,
@@ -1675,15 +1745,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ErrorCtxt::MethodPostconditionFraming,
             self.def_id,
         )?;
-        block_builder.add_statement(inhale_statement);
-
+        destination_block.add_statement(inhale_statement);
         let assume_statement = self.encoder.set_statement_error_ctxt(
             vir_high::Statement::assume_no_pos(false.into()),
             span,
             ErrorCtxt::UnexpectedAssumeEndMethodPostconditionFraming,
             self.def_id,
         )?;
-        block_builder.add_statement(assume_statement);
+        destination_block.add_statement(assume_statement.clone());
+        destination_block.set_successor_exit(SuccessorExitKind::Return);
+        destination_block.build();
+
+        let mut panic_postcondition_conjuncts = Vec::new();
+        for expression in panic_postcondition_expressions {
+            if let Some(expression) = self.convert_expression_to_check_mode_call_site(
+                expression,
+                is_unsafe,
+                is_checked,
+                &result_place,
+            )? {
+                let conjunct = self.encoder.set_expression_error_ctxt(
+                    expression,
+                    span,
+                    ErrorCtxt::MethodPostconditionFraming,
+                    self.def_id,
+                );
+                panic_postcondition_conjuncts.push(conjunct);
+            }
+        }
+        let panic_inhale_statement = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::inhale_expression_no_pos(
+                panic_postcondition_conjuncts.into_iter().conjoin(),
+                None,
+            ),
+            span,
+            ErrorCtxt::MethodPostconditionFraming,
+            self.def_id,
+        )?;
+        let fresh_cleanup_label = self.fresh_basic_block_label();
+        let mut cleanup_block =
+            block_builder.create_basic_block_builder(fresh_cleanup_label.clone());
+        cleanup_block.add_statement(panic_inhale_statement);
+        cleanup_block.add_statement(assume_statement);
+        cleanup_block.set_successor_exit(SuccessorExitKind::Return);
+        cleanup_block.build();
+
+        block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(
+            fresh_destination_label,
+            fresh_cleanup_label,
+        ));
 
         block_builder.build();
         procedure_builder.set_entry(entry_label);
@@ -2917,8 +3027,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let postconditions = self.encode_postcondition_expressions(
                 &procedure_contract,
                 substs,
-                self.is_unsafe_function,
-                true,
+                PostconditionMode::regular_exit_on_call_side(
+                    self.is_unsafe_function,
+                    self.check_mode,
+                    self.no_panic_ensures_postcondition,
+                ),
                 arguments,
                 &result,
                 precondition_label,
@@ -3402,17 +3515,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             assert_eq!(args.len(), 2);
             unimplemented!();
         }
+        let position = self.register_error(location, ErrorCtxt::ProcedureCall);
+        let encoded_target_place = self
+            .encode_place(destination, None)?
+            .set_default_position(position);
         if let Some(target_block) = target {
             self.add_predecessor(location.block, *target_block)?;
-            let position = self.register_error(location, ErrorCtxt::ProcedureCall);
-            let encoded_target_place = self
-                .encode_place(destination, None)?
-                .set_default_position(position);
             let postcondition_expressions = self.encode_postcondition_expressions(
                 &procedure_contract,
                 call_substs,
-                is_unsafe,
-                self.check_mode.check_specifications() || no_panic_ensures_postcondition,
+                PostconditionMode::regular_exit_on_call_side(
+                    is_unsafe,
+                    self.check_mode,
+                    no_panic_ensures_postcondition,
+                ),
                 arguments.clone(),
                 &encoded_target_place,
                 &old_label,
@@ -3553,11 +3669,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .encode_generic_arguments_high(called_def_id, call_substs)
                         .with_span(span)?;
                     let expression = vir_high::Expression::equals(
-                        encoded_target_place,
+                        encoded_target_place.clone(),
                         vir_high::Expression::function_call(
                             function_name,
                             type_arguments,
-                            arguments,
+                            arguments.clone(),
                             return_type,
                         ),
                     );
@@ -3609,6 +3725,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 post_call_block_builder.build();
 
                 if let Some(cleanup_block) = cleanup {
+                    let panic_postcondition_expressions = self.encode_postcondition_expressions(
+                        &procedure_contract,
+                        call_substs,
+                        PostconditionMode::panic_exit_on_call_side(is_unsafe, self.check_mode),
+                        arguments.clone(),
+                        &encoded_target_place,
+                        &old_label,
+                    )?;
                     let fresh_cleanup_label = self.encode_function_call_cleanup_block(
                         *cleanup_block,
                         block_builder,
@@ -3622,6 +3746,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         function_call_lifetime,
                         &mut original_lifetimes.clone(),
                         &mut derived_lifetimes.clone(),
+                        panic_postcondition_expressions,
                     )?;
                     self.add_predecessor(location.block, *target_block)?;
                     self.add_predecessor(location.block, *cleanup_block)?;
@@ -3636,6 +3761,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 unimplemented!();
             }
         } else if let Some(cleanup_block) = cleanup {
+            let panic_postcondition_expressions = self.encode_postcondition_expressions(
+                &procedure_contract,
+                call_substs,
+                PostconditionMode::panic_exit_on_call_side(is_unsafe, self.check_mode),
+                arguments.clone(),
+                &encoded_target_place,
+                &old_label,
+            )?;
             let fresh_cleanup_label = self.encode_function_call_cleanup_block(
                 *cleanup_block,
                 block_builder,
@@ -3649,6 +3782,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 function_call_lifetime,
                 &mut original_lifetimes.clone(),
                 &mut derived_lifetimes.clone(),
+                panic_postcondition_expressions,
             )?;
             self.add_predecessor(location.block, *cleanup_block)?;
             block_builder.set_successor_jump(vir_high::Successor::Goto(fresh_cleanup_label));
@@ -3674,6 +3808,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         function_call_lifetime: vir_high::VariableDecl,
         original_lifetimes: &mut BTreeSet<String>,
         derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
+        panic_postcondition_expressions: Vec<vir_high::Expression>,
     ) -> SpannedEncodingResult<vir_high::BasicBlockId> {
         let encoded_cleanup_block = self.encode_basic_block_label(cleanup_block);
         let fresh_cleanup_label = self.fresh_basic_block_label();
@@ -3721,6 +3856,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.def_id,
         )?;
         cleanup_block_builder.add_statement(function_lifetime_return);
+
+        let mut postcondition_conjuncts = Vec::new();
+        for expression in panic_postcondition_expressions {
+            let conjunct = self.encoder.set_expression_error_ctxt(
+                expression,
+                span,
+                ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+                self.def_id,
+            );
+            postcondition_conjuncts.push(conjunct);
+        }
+        let inhale_statement = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::inhale_expression_no_pos(
+                postcondition_conjuncts.into_iter().conjoin(),
+                None,
+            ),
+            span,
+            ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+            self.def_id,
+        )?;
+        cleanup_block_builder.add_statement(inhale_statement);
 
         if let Some(statements) = self
             .add_function_panic_specification_before_lifetime_effects

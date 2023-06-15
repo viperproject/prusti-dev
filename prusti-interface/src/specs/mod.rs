@@ -172,6 +172,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             self.env,
                         );
                     }
+                    SpecIdRef::PanicPostcondition(spec_id) => {
+                        spec.add_panic_postcondition(
+                            *self.spec_functions.get(spec_id).unwrap(),
+                            self.env,
+                        );
+                    }
                     SpecIdRef::StructuralPostcondition(spec_id) => {
                         spec.add_structural_postcondition(
                             *self.spec_functions.get(spec_id).unwrap(),
@@ -481,6 +487,11 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
         read_prusti_attrs("post_spec_id_ref", attrs)
             .into_iter()
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
+    );
+    spec_id_refs.extend(
+        read_prusti_attrs("post_panic_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::PanicPostcondition(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
         read_prusti_attrs("post_structural_spec_id_ref", attrs)

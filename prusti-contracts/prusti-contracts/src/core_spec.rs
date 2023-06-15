@@ -267,10 +267,11 @@ mod std {
         // “It’s undefined behavior if global allocators unwind.”
         // https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html
         #[no_panic]
+        #[no_panic_ensures_postcondition]
         #[structural_requires(
             layout.size() > 0
         )]
-        #[structural_ensures(
+        #[ensures(
             !result.is_null() ==> (
                 raw!(*result, layout.size()) &&
                 raw_dealloc!(*result, layout.size(), layout.align())

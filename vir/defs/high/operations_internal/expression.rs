@@ -1077,6 +1077,27 @@ impl Expression {
         checker.walk_expression(self);
         checker.is_pure
     }
+
+    pub fn contains_result(&self) -> bool {
+        struct Checker {
+            contains_result: bool,
+        }
+        impl ExpressionWalker for Checker {
+            fn walk_variable_decl(&mut self, variable: &VariableDecl) {
+                if variable.is_result_variable() {
+                    self.contains_result = true;
+                }
+            }
+            fn walk_eval_in(&mut self, eval_in: &EvalIn) {
+                self.walk_expression(&eval_in.body);
+            }
+        }
+        let mut checker = Checker {
+            contains_result: false,
+        };
+        checker.walk_expression(self);
+        checker.contains_result
+    }
 }
 
 /// Methods for collecting places.
