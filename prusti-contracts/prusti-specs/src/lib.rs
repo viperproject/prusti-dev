@@ -72,7 +72,9 @@ fn extract_prusti_attributes(
             if let Ok(attr_kind) = attr.path.segments[idx].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
+                    | SpecAttributeKind::StructuralRequires
                     | SpecAttributeKind::Ensures
+                    | SpecAttributeKind::StructuralEnsures
                     | SpecAttributeKind::NotRequire
                     | SpecAttributeKind::NotEnsure
                     | SpecAttributeKind::AfterExpiry
@@ -169,7 +171,13 @@ fn generate_spec_and_assertions(
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
+            SpecAttributeKind::StructuralRequires => {
+                generate_for_structural_requires(attr_tokens, item)
+            }
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
+            SpecAttributeKind::StructuralEnsures => {
+                generate_for_structural_ensures(attr_tokens, item)
+            }
             SpecAttributeKind::NotRequire => generate_for_not_require(attr_tokens, item),
             SpecAttributeKind::NotEnsure => generate_for_not_ensure(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
@@ -215,6 +223,24 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
     ))
 }
 
+/// Generate spec items and attributes to typecheck the and later retrieve "structural_requires" annotations.
+fn generate_for_structural_requires(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr, item)?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pre_structural_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
 /// Generate spec items and attributes to typecheck and later retrieve
 /// "not_require" annotations.
 fn generate_for_not_require(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
@@ -247,6 +273,25 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         vec![spec_item],
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::post_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck the and later retrieve
+/// "structural_ensures" annotations.
+fn generate_for_structural_ensures(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Postcondition, spec_id, attr, item)?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::post_structural_spec_id_ref = #spec_id_str]
         }],
     ))
 }
@@ -1012,7 +1057,13 @@ fn extract_prusti_attributes_for_types(
             if let Ok(attr_kind) = attr.path.segments[0].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires => unreachable!("requires on type"),
+                    SpecAttributeKind::StructuralRequires => {
+                        unreachable!("structural requires on type")
+                    }
                     SpecAttributeKind::Ensures => unreachable!("ensures on type"),
+                    SpecAttributeKind::StructuralEnsures => {
+                        unreachable!("structural ensures on type")
+                    }
                     SpecAttributeKind::AfterExpiry => unreachable!("after_expiry on type"),
                     SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
                     SpecAttributeKind::RefineSpec => unreachable!("refine_spec on type"),
@@ -1068,7 +1119,9 @@ fn generate_spec_and_assertions_for_types(
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => unreachable!(),
+            SpecAttributeKind::StructuralRequires => unreachable!(),
             SpecAttributeKind::Ensures => unreachable!(),
+            SpecAttributeKind::StructuralEnsures => unreachable!(),
             SpecAttributeKind::AfterExpiry => unreachable!(),
             SpecAttributeKind::AssertOnExpiry => unreachable!(),
             SpecAttributeKind::Pure => unreachable!(),

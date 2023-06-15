@@ -10,6 +10,12 @@ pub fn requires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
 
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn structural_requires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
 /// FIXME: Remove
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
@@ -38,6 +44,12 @@ pub fn broken_invariant(_attr: TokenStream, tokens: TokenStream) -> TokenStream 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
 pub fn ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn structural_ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
 
@@ -402,6 +414,17 @@ pub fn requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     rewrite_prusti_attributes(SpecAttributeKind::Requires, attr.into(), tokens.into()).into()
 }
 
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn structural_requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(
+        SpecAttributeKind::StructuralRequires,
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
+}
+
 /// FIXME: Remove.
 #[cfg(feature = "prusti")]
 #[proc_macro_attribute]
@@ -413,6 +436,17 @@ pub fn not_require(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     rewrite_prusti_attributes(SpecAttributeKind::Ensures, attr.into(), tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn structural_ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(
+        SpecAttributeKind::StructuralEnsures,
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
 }
 
 /// FIXME: Remove.

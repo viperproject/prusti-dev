@@ -198,20 +198,20 @@ mod core {
 
         #[no_panic]
         #[no_panic_ensures_postcondition]
-        #[requires(own!(*src))]
-        #[ensures(raw!(*src, std::mem::size_of::<T>()))]
-        #[ensures(unsafe { old(eval_in!(own!(*src), &*src)) } === &result)]
+        #[structural_requires(own!(*src))]
+        #[structural_ensures(raw!(*src, std::mem::size_of::<T>()))]
+        #[structural_ensures(unsafe { old(eval_in!(own!(*src), &*src)) } === &result)]
         pub unsafe fn read<T>(src: *const T) -> T;
 
         #[no_panic]
         #[no_panic_ensures_postcondition]
-        #[requires(raw!(*dst, std::mem::size_of::<T>()))]
-        #[ensures(own!(*dst))]
-        #[ensures(unsafe { old(eval_in!(own!(*dst), &*dst)) } === &src)]
+        #[structural_requires(raw!(*dst, std::mem::size_of::<T>()))]
+        #[structural_ensures(own!(*dst))]
+        #[structural_ensures(unsafe { old(eval_in!(own!(*dst), &*dst)) } === &src)]
         pub unsafe fn write<T>(dst: *mut T, src: T);
 
-        #[requires(own!(*to_drop))]
-        #[ensures(raw!(*to_drop, std::mem::size_of::<T>()))]
+        #[structural_requires(own!(*to_drop))]
+        #[structural_ensures(raw!(*to_drop, std::mem::size_of::<T>()))]
         pub unsafe fn drop_in_place<T>(to_drop: *mut T);
     }
 }
@@ -255,23 +255,27 @@ impl std::alloc::Layout {
 #[extern_spec]
 mod std {
     mod alloc {
-        #[requires(
+        // “It’s undefined behavior if global allocators unwind.”
+        // https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html
+        #[no_panic]
+        #[structural_requires(
             raw!(*ptr, layout.size()) &&
             raw_dealloc!(*ptr, layout.size(), layout.align())
         )]
-        #[no_panic_ensures_postcondition]
         pub unsafe fn dealloc(ptr: *mut u8, layout: std::alloc::Layout);
 
-        #[requires(
+        // “It’s undefined behavior if global allocators unwind.”
+        // https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html
+        #[no_panic]
+        #[structural_requires(
             layout.size() > 0
         )]
-        #[ensures(
+        #[structural_ensures(
             !result.is_null() ==> (
                 raw!(*result, layout.size()) &&
                 raw_dealloc!(*result, layout.size(), layout.align())
             )
         )]
-        #[no_panic_ensures_postcondition]
         pub unsafe fn alloc(layout: std::alloc::Layout) -> *mut u8;
     }
 }

@@ -454,48 +454,63 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     .push(vir_mid::Statement::InhalePredicate(inhale_statement));
             }
             vir_typed::Statement::InhaleExpression(mut inhale_statement) => {
-                if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
-                    // inhale_statement.expression =
-                    //     super::unfolding_expressions::add_unfolding_expressions(
-                    //         inhale_statement.expression,
-                    //     )?;
-                    inhale_statement.expression = super::eval_using::wrap_in_eval_using(
-                        self.encoder,
-                        state,
-                        inhale_statement.expression,
-                    )?;
-                }
+                // if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
+                //     // inhale_statement.expression =
+                //     //     super::unfolding_expressions::add_unfolding_expressions(
+                //     //         inhale_statement.expression,
+                //     //     )?;
+                //     inhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                //         self.encoder,
+                //         state,
+                //         inhale_statement.expression,
+                //     )?;
+                // }
+                inhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                    self.encoder,
+                    state,
+                    inhale_statement.expression,
+                )?;
                 let inhale_statement = inhale_statement.typed_to_middle_statement(self.encoder)?;
                 self.current_statements
                     .push(vir_mid::Statement::InhaleExpression(inhale_statement));
             }
             vir_typed::Statement::ExhaleExpression(mut exhale_statement) => {
-                if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
-                    // exhale_statement.expression =
-                    //     super::unfolding_expressions::add_unfolding_expressions(
-                    //         exhale_statement.expression,
-                    //     )?;
-                    exhale_statement.expression = super::eval_using::wrap_in_eval_using(
-                        self.encoder,
-                        state,
-                        exhale_statement.expression,
-                    )?;
-                }
+                // if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
+                //     // exhale_statement.expression =
+                //     //     super::unfolding_expressions::add_unfolding_expressions(
+                //     //         exhale_statement.expression,
+                //     //     )?;
+                //     exhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                //         self.encoder,
+                //         state,
+                //         exhale_statement.expression,
+                //     )?;
+                // }
+                exhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                    self.encoder,
+                    state,
+                    exhale_statement.expression,
+                )?;
                 let exhale_statement = exhale_statement.typed_to_middle_statement(self.encoder)?;
                 self.current_statements
                     .push(vir_mid::Statement::ExhaleExpression(exhale_statement));
             }
             vir_typed::Statement::Assert(mut assert_statement) => {
-                if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
-                    assert_statement.expression = super::eval_using::wrap_in_eval_using(
-                        self.encoder,
-                        state,
-                        assert_statement.expression,
-                    )?;
-                    // super::unfolding_expressions::add_unfolding_expressions(
-                    //     assert_statement.expression,
-                    // )?;
-                }
+                // if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
+                //     assert_statement.expression = super::eval_using::wrap_in_eval_using(
+                //         self.encoder,
+                //         state,
+                //         assert_statement.expression,
+                //     )?;
+                //     // super::unfolding_expressions::add_unfolding_expressions(
+                //     //     assert_statement.expression,
+                //     // )?;
+                // }
+                assert_statement.expression = super::eval_using::wrap_in_eval_using(
+                    self.encoder,
+                    state,
+                    assert_statement.expression,
+                )?;
                 let assert_statement = assert_statement.typed_to_middle_statement(self.encoder)?;
                 self.current_statements
                     .push(vir_mid::Statement::Assert(assert_statement));
