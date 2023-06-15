@@ -1551,7 +1551,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             &procedure_contract,
             call_substs,
             self.is_unsafe_function,
-            self.check_mode.check_core_proof(),
+            self.check_mode.check_specifications(),
             &arguments,
         )?;
         let mut precondition_conjuncts = Vec::new();
