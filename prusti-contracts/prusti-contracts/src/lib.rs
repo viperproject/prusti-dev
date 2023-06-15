@@ -1,14 +1,20 @@
 // #![no_std]  FIXME
 
-/// A macro for writing a precondition on a function.
+/// A macro for writing a functional precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
+
+/// A macro for writing a structural precondition on an unsafe function.
+pub use prusti_contracts_proc_macros::structural_requires;
 
 /// A macro to indicate that the type invariant is not required by the function.
 /// FIXME: Remove
 pub use prusti_contracts_proc_macros::not_require;
 
-/// A macro for writing a postcondition on a function.
+/// A macro for writing a functional postcondition on a function.
 pub use prusti_contracts_proc_macros::ensures;
+
+/// A macro for writing a structural postcondition on an unsafe function.
+pub use prusti_contracts_proc_macros::structural_ensures;
 
 /// A macro to indicate that the type invariant is not ensured by the function.
 /// FIXME: Remove

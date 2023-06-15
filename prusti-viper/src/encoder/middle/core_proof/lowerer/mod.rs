@@ -282,10 +282,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         }
         let entry = procedure.entry.clone().into_low(&mut self)?;
         let exit = procedure.exit.clone().into_low(&mut self)?;
-        let mut removed_functions = FxHashSet::default();
-        if procedure.check_mode == CheckMode::PurificationFunctional {
-            removed_functions.insert(self.encode_memory_block_bytes_function_name()?);
-        }
+        // let mut removed_functions = FxHashSet::default();
+        // if procedure.check_mode == CheckMode::PurificationFunctional {
+        //     removed_functions.insert(self.encode_memory_block_bytes_function_name()?);
+        // }
         let bool_type = (vir_mid::Type::Bool).to_snapshot(&mut self)?;
         let extensionality_gas_constant = self.function_gas_constant(3)?;
         let (mut predicates, owned_predicates_info) = self.collect_owned_predicate_decls()?;
@@ -321,21 +321,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         };
         let mut methods = self.methods_state.destruct();
         let mut functions = self.functions_state.destruct();
-        if procedure.check_mode == CheckMode::PurificationFunctional {
-            removed_functions.extend(
-                functions
-                    .iter()
-                    .filter(|function| function.kind == vir_low::FunctionKind::Snap)
-                    .map(|function| function.name.clone()),
-            );
-            super::transformations::remove_predicates::remove_predicates(
-                &mut lowered_procedure,
-                &mut methods,
-                &removed_functions,
-                std::mem::take(&mut predicates),
-            );
-            functions.retain(|function| !removed_functions.contains(&function.name));
-        };
+        // if procedure.check_mode == CheckMode::PurificationFunctional {
+        //     removed_functions.extend(
+        //         functions
+        //             .iter()
+        //             .filter(|function| function.kind == vir_low::FunctionKind::Snap)
+        //             .map(|function| function.name.clone()),
+        //     );
+        //     super::transformations::remove_predicates::remove_predicates(
+        //         &mut lowered_procedure,
+        //         &mut methods,
+        //         &removed_functions,
+        //         std::mem::take(&mut predicates),
+        //     );
+        //     functions.retain(|function| !removed_functions.contains(&function.name));
+        // };
         let result = LoweringResult {
             procedures: vec![lowered_procedure],
             domains,

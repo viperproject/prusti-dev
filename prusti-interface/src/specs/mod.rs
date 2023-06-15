@@ -160,8 +160,20 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     SpecIdRef::Precondition(spec_id) => {
                         spec.add_precondition(*self.spec_functions.get(spec_id).unwrap(), self.env);
                     }
+                    SpecIdRef::StructuralPrecondition(spec_id) => {
+                        spec.add_structural_precondition(
+                            *self.spec_functions.get(spec_id).unwrap(),
+                            self.env,
+                        );
+                    }
                     SpecIdRef::Postcondition(spec_id) => {
                         spec.add_postcondition(
+                            *self.spec_functions.get(spec_id).unwrap(),
+                            self.env,
+                        );
+                    }
+                    SpecIdRef::StructuralPostcondition(spec_id) => {
+                        spec.add_structural_postcondition(
                             *self.spec_functions.get(spec_id).unwrap(),
                             self.env,
                         );
@@ -459,9 +471,23 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
             .map(|raw_spec_id| SpecIdRef::Precondition(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
+        read_prusti_attrs("pre_structural_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| {
+                SpecIdRef::StructuralPrecondition(parse_spec_id(raw_spec_id, def_id))
+            }),
+    );
+    spec_id_refs.extend(
         read_prusti_attrs("post_spec_id_ref", attrs)
             .into_iter()
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
+    );
+    spec_id_refs.extend(
+        read_prusti_attrs("post_structural_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| {
+                SpecIdRef::StructuralPostcondition(parse_spec_id(raw_spec_id, def_id))
+            }),
     );
     spec_id_refs.extend(
         read_prusti_attrs("pre_broken_spec_id_ref", attrs)

@@ -49,6 +49,11 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
         &mut self,
         decl: vir_high::type_decl::Tuple,
     ) -> Result<vir_typed::TypeDecl, Self::Error> {
+        let size = if decl.arguments.is_empty() {
+            Some(0)
+        } else {
+            None
+        };
         let arguments = decl.arguments.high_to_typed_type(self)?;
         Ok(vir_typed::TypeDecl::struct_(
             self.generate_tuple_name(&arguments)?,
@@ -60,7 +65,7 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
                 .enumerate()
                 .map(|(index, ty)| vir_typed::FieldDecl::new(format!("tuple_{index}"), index, ty))
                 .collect(),
-            None,
+            size,
             Default::default(),
         ))
     }

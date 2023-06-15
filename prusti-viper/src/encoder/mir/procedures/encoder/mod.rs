@@ -326,7 +326,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (allocate_returns, deallocate_returns) = self.encode_returns()?;
         self.lifetime_token_permission =
             Some(self.fresh_ghost_variable("lifetime_token_perm_amount", vir_high::Type::MPerm));
-        let (assume_preconditions, assert_postconditions) =
+        let (assume_preconditions, assert_postconditions, assert_structural_postconditions) =
             self.encode_functional_specifications()?;
         let dead_references = self.encode_dead_references_for_parameters()?;
         // match self.check_mode {
@@ -367,6 +367,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::NoPanicPanics,
                 self.def_id,
             )?);
+        } else {
+            resume_panic_statements.extend(assert_structural_postconditions);
         }
         let procedure_position =
             self.encoder
@@ -808,33 +810,65 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    /// * `is_unsafe` – whether the function is unsafe and can have structural preconditions.
+    /// * `include_functional` – whether to include functional preconditions.
     fn encode_precondition_expressions(
         &mut self,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
         call_substs: SubstsRef<'tcx>,
+        is_unsafe: bool,
+        include_functional: bool,
         arguments: &[vir_high::Expression],
     ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
         let mut preconditions = Vec::new();
-        for (assertion, assertion_substs) in
-            procedure_contract.functional_precondition(self.encoder.env(), call_substs)
-        {
-            let expression = self.encoder.encode_assertion_high(
-                assertion,
-                None,
-                arguments,
-                None,
-                self.def_id,
-                assertion_substs,
-            )?;
-            preconditions.push(expression);
+        let structural_preconditions =
+            procedure_contract.structural_precondition(self.encoder.env(), call_substs);
+        if is_unsafe {
+            for (assertion, assertion_substs) in structural_preconditions {
+                let expression = self.encoder.encode_assertion_high(
+                    assertion,
+                    None,
+                    arguments,
+                    None,
+                    self.def_id,
+                    assertion_substs,
+                )?;
+                preconditions.push(expression);
+            }
+        } else {
+            assert!(structural_preconditions.is_empty(), "TODO: A proper error message that structural preconditions allowed only in unsafe functions");
+        }
+        if include_functional {
+            for (assertion, assertion_substs) in
+                procedure_contract.functional_precondition(self.encoder.env(), call_substs)
+            {
+                let expression = self.encoder.encode_assertion_high(
+                    assertion,
+                    None,
+                    arguments,
+                    None,
+                    self.def_id,
+                    assertion_substs,
+                )?;
+                assert!(
+                    expression.is_pure() || is_unsafe,
+                    "TODO: A proper error message that functional preconditions must be pure ({:?}): {expression}",
+                    procedure_contract.def_id,
+                );
+                preconditions.push(expression);
+            }
         }
         Ok(preconditions)
     }
 
+    /// * `is_unsafe` – whether the function is unsafe and can have structural postconditions.
+    /// * `include_functional` – whether to include functional postconditions.
     fn encode_postcondition_expressions(
         &mut self,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
         call_substs: SubstsRef<'tcx>,
+        is_unsafe: bool,
+        include_functional: bool,
         arguments: Vec<vir_high::Expression>,
         result: &vir_high::Expression,
         precondition_label: &str,
@@ -861,73 +895,112 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             })
             .collect();
-        for (assertion, assertion_substs) in
-            procedure_contract.functional_postcondition(self.encoder.env(), call_substs)
-        {
-            let expression = self.encoder.encode_assertion_high(
-                assertion,
-                Some(precondition_label),
-                &arguments_in_old,
-                Some(result),
-                self.def_id,
-                assertion_substs,
-            )?;
-            let expression = self.desugar_pledges_in_postcondition(
-                precondition_label,
-                result,
-                expression,
-                &broken_invariants,
-            )?;
-            postconditions.push(expression);
+        let structural_postconditions =
+            procedure_contract.structural_postcondition(self.encoder.env(), call_substs);
+        if is_unsafe {
+            for (assertion, assertion_substs) in structural_postconditions {
+                let expression = self.encoder.encode_assertion_high(
+                    assertion,
+                    Some(precondition_label),
+                    &arguments_in_old,
+                    Some(result),
+                    self.def_id,
+                    assertion_substs,
+                )?;
+                let expression = self.desugar_pledges_in_postcondition(
+                    precondition_label,
+                    result,
+                    expression,
+                    &broken_invariants,
+                )?;
+                postconditions.push(expression);
+            }
+        } else {
+            assert!(structural_postconditions.is_empty(), "TODO: A proper error message that structural postconditions allowed only in unsafe functions");
         }
-        let pledges = procedure_contract.pledges();
-        for Pledge {
-            reference,
-            lhs: body_lhs,
-            rhs: body_rhs,
-        } in pledges
-        {
-            trace!(
-                "pledge reference={:?} lhs={:?} rhs={:?}",
+        if include_functional {
+            for (assertion, assertion_substs) in
+                procedure_contract.functional_postcondition(self.encoder.env(), call_substs)
+            {
+                let expression = self.encoder.encode_assertion_high(
+                    assertion,
+                    Some(precondition_label),
+                    &arguments_in_old,
+                    Some(result),
+                    self.def_id,
+                    assertion_substs,
+                )?;
+                let expression = self.desugar_pledges_in_postcondition(
+                    precondition_label,
+                    result,
+                    expression,
+                    &broken_invariants,
+                )?;
+                assert!(
+                    expression.is_pure() || is_unsafe,
+                    "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
+                    procedure_contract.def_id,
+                );
+                postconditions.push(expression);
+            }
+            let pledges = procedure_contract.pledges();
+            for Pledge {
                 reference,
-                body_lhs,
-                body_rhs
-            );
-            assert!(
-                reference.is_none(),
-                "The reference should be none in postcondition."
-            );
-            assert!(body_lhs.is_none(), "assert on expiry is not supported yet.");
-            let assertion_rhs = self.encoder.encode_assertion_high(
-                *body_rhs,
-                Some(precondition_label),
-                &arguments_in_old,
-                Some(result),
-                self.def_id,
-                call_substs,
-            )?;
-            let position = assertion_rhs.position();
-            let expression = vir_high::Expression::builtin_func_app(
-                vir_high::BuiltinFunc::AfterExpiry,
-                Vec::new(),
-                vec![assertion_rhs],
-                vir_high::Type::Bool,
-                position,
-            );
-            let expression = self.desugar_pledges_in_postcondition(
-                precondition_label,
-                result,
-                expression,
-                &broken_invariants,
-            )?;
-            postconditions.push(expression);
+                lhs: body_lhs,
+                rhs: body_rhs,
+            } in pledges
+            {
+                trace!(
+                    "pledge reference={:?} lhs={:?} rhs={:?}",
+                    reference,
+                    body_lhs,
+                    body_rhs
+                );
+                assert!(
+                    reference.is_none(),
+                    "The reference should be none in postcondition."
+                );
+                assert!(body_lhs.is_none(), "assert on expiry is not supported yet.");
+                let assertion_rhs = self.encoder.encode_assertion_high(
+                    *body_rhs,
+                    Some(precondition_label),
+                    &arguments_in_old,
+                    Some(result),
+                    self.def_id,
+                    call_substs,
+                )?;
+                let position = assertion_rhs.position();
+                let expression = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::AfterExpiry,
+                    Vec::new(),
+                    vec![assertion_rhs],
+                    vir_high::Type::Bool,
+                    position,
+                );
+                let expression = self.desugar_pledges_in_postcondition(
+                    precondition_label,
+                    result,
+                    expression,
+                    &broken_invariants,
+                )?;
+                assert!(
+                    expression.is_pure() || is_unsafe,
+                    "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
+                    procedure_contract.def_id,
+                );
+                postconditions.push(expression);
+            }
         }
         Ok(postconditions)
     }
 
     fn encode_functional_specifications(
         &mut self,
-    ) -> SpannedEncodingResult<(Vec<vir_high::Statement>, Vec<vir_high::Statement>)> {
+    ) -> SpannedEncodingResult<(
+        Vec<vir_high::Statement>,
+        Vec<vir_high::Statement>,
+        Vec<vir_high::Statement>,
+    )> {
         let mir_span = self.mir.span;
         let substs = self.encoder.env().query.identity_substs(self.def_id);
         // Retrieve the contract
@@ -947,9 +1020,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             arguments.push(parameter.into());
         }
         self.check_refinement(&procedure_contract.specification.pres)?;
-        for expression in
-            self.encode_precondition_expressions(&procedure_contract, substs, &arguments)?
-        {
+        for expression in self.encode_precondition_expressions(
+            &procedure_contract,
+            substs,
+            self.is_unsafe_function,
+            self.check_mode.check_specifications(),
+            &arguments,
+        )? {
             if let Some(expression) = self.convert_expression_to_check_mode(
                 expression,
                 !self.is_unsafe_function,
@@ -985,6 +1062,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut postconditions = vec![vir_high::Statement::comment(
             "Assert functional postconditions.".to_string(),
         )];
+        let mut structural_postconditions = vec![vir_high::Statement::comment(
+            "Assert structural postconditions.".to_string(),
+        )];
         let mut postcondition_conjuncts = Vec::new();
         let result_variable = self.encode_local(mir::RETURN_PLACE)?;
         framing_variables.push(result_variable.variable.clone());
@@ -1000,7 +1080,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for expression in self.encode_postcondition_expressions(
             &procedure_contract,
             substs,
-            arguments,
+            self.is_unsafe_function,
+            self.check_mode.check_specifications() || self.no_panic_ensures_postcondition,
+            arguments.clone(),
             &result,
             PRECONDITION_LABEL,
         )? {
@@ -1044,11 +1126,59 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None,
             ),
             mir_span,
-            postcondition_context,
+            postcondition_context.clone(),
             self.def_id,
         )?;
         postconditions.push(exhale_statement);
-        Ok((preconditions, postconditions))
+        let mut structural_postcondition_conjuncts = Vec::new();
+        for expression in self.encode_postcondition_expressions(
+            &procedure_contract,
+            substs,
+            self.is_unsafe_function,
+            false,
+            arguments,
+            &result,
+            PRECONDITION_LABEL,
+        )? {
+            if let Some(expression) = self.convert_expression_to_check_mode(
+                expression,
+                !self.is_unsafe_function,
+                self.no_panic_ensures_postcondition,
+                &framing_variables,
+            )? {
+                // We use different encoding based on purity because:
+                // * Silicon reports a failing exhale statement. Therefore,
+                //   having multiple statements allows having more precise error
+                //   messages.
+                // * However, if we have permissions in the postcondition, we
+                //   have to exhale it as a single statement to ensure that the
+                //   permission frames what is following it.
+                all_pure = all_pure && expression.is_pure();
+                if all_pure {
+                    let exhale_statement = self.encoder.set_statement_error_ctxt(
+                        vir_high::Statement::exhale_expression_no_pos(expression, None),
+                        mir_span,
+                        postcondition_context.clone(),
+                        self.def_id,
+                    )?;
+                    structural_postconditions.push(exhale_statement);
+                } else {
+                    structural_postcondition_conjuncts.push(expression);
+                }
+            }
+        }
+        let exhale_statement = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::exhale_expression_no_pos(
+                structural_postcondition_conjuncts.into_iter().conjoin(),
+                None,
+            ),
+            mir_span,
+            postcondition_context,
+            self.def_id,
+        )?;
+        structural_postconditions.push(exhale_statement);
+
+        Ok((preconditions, postconditions, structural_postconditions))
     }
 
     /// Returns a list of reference-typed parameters for which the invariant is
@@ -1417,8 +1547,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         assert_eq!(arguments.len(), broken_invariants.len());
 
         self.check_refinement(&procedure_contract.specification.pres)?;
-        let precondition_expressions =
-            self.encode_precondition_expressions(&procedure_contract, call_substs, &arguments)?;
+        let precondition_expressions = self.encode_precondition_expressions(
+            &procedure_contract,
+            call_substs,
+            self.is_unsafe_function,
+            self.check_mode.check_core_proof(),
+            &arguments,
+        )?;
         let mut precondition_conjuncts = Vec::new();
         for expression in precondition_expressions {
             if let Some(expression) = self.convert_expression_to_check_mode_call_site(
@@ -1460,6 +1595,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let postcondition_expressions = self.encode_postcondition_expressions(
             &procedure_contract,
             call_substs,
+            self.is_unsafe_function,
+            self.check_mode.check_specifications() || self.no_panic_ensures_postcondition,
             arguments.clone(),
             &encoded_target_place,
             &old_label,
@@ -2765,8 +2902,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self_place,
                 reference_type,
             )];
-            let preconditions =
-                self.encode_precondition_expressions(&procedure_contract, substs, &arguments)?;
+            let preconditions = self.encode_precondition_expressions(
+                &procedure_contract,
+                substs,
+                self.is_unsafe_function,
+                true,
+                &arguments,
+            )?;
             let result = vir_high::VariableDecl::new(
                 "non-existant-result",
                 vir_high::Type::tuple(Vec::new(), Vec::new()),
@@ -2775,6 +2917,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let postconditions = self.encode_postcondition_expressions(
                 &procedure_contract,
                 substs,
+                self.is_unsafe_function,
+                true,
                 arguments,
                 &result,
                 precondition_label,
@@ -3198,8 +3342,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
         }
 
-        let precondition_expressions =
-            self.encode_precondition_expressions(&procedure_contract, call_substs, &arguments)?;
+        let precondition_expressions = self.encode_precondition_expressions(
+            &procedure_contract,
+            call_substs,
+            is_unsafe,
+            self.check_mode.check_specifications(),
+            &arguments,
+        )?;
         // let has_no_precondition = precondition_expressions.is_empty();
         let is_precondition_checked =
             self.check_mode.check_specifications() || is_unsafe || is_checked; // || has_no_precondition;
@@ -3237,15 +3386,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder.add_statements(consume_arguments);
 
         let is_pure = self.encoder.is_pure(called_def_id, Some(call_substs));
-        if !is_pure && self.check_mode.is_purification_group() {
-            let heap_havoc_statement = self.encoder.set_statement_error_ctxt(
-                vir_high::Statement::heap_havoc_no_pos(),
-                span,
-                ErrorCtxt::ExhaleMethodPrecondition,
-                self.def_id,
-            )?;
-            block_builder.add_statement(heap_havoc_statement);
-        }
+        // if !is_pure && self.check_mode.is_purification_group() {
+        //     let heap_havoc_statement = self.encoder.set_statement_error_ctxt(
+        //         vir_high::Statement::heap_havoc_no_pos(),
+        //         span,
+        //         ErrorCtxt::ExhaleMethodPrecondition,
+        //         self.def_id,
+        //     )?;
+        //     block_builder.add_statement(heap_havoc_statement);
+        // }
 
         if self.encoder.env().query.is_closure(called_def_id) {
             // Closure calls are wrapped around std::ops::Fn::call(), which receives
@@ -3262,6 +3411,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let postcondition_expressions = self.encode_postcondition_expressions(
                 &procedure_contract,
                 call_substs,
+                is_unsafe,
+                self.check_mode.check_specifications() || no_panic_ensures_postcondition,
                 arguments.clone(),
                 &encoded_target_place,
                 &old_label,

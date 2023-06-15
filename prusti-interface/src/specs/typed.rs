@@ -97,7 +97,13 @@ impl DefSpecificationMap {
                 if let Some(pres) = spec.pres.extract_with_selective_replacement() {
                     specs.extend(pres);
                 }
+                if let Some(pres) = spec.structural_pres.extract_with_selective_replacement() {
+                    specs.extend(pres);
+                }
                 if let Some(posts) = spec.posts.extract_with_selective_replacement() {
+                    specs.extend(posts);
+                }
+                if let Some(posts) = spec.structural_posts.extract_with_selective_replacement() {
                     specs.extend(posts);
                 }
                 if let Some(broken_pres) = spec.broken_pres.extract_with_selective_replacement() {
@@ -242,7 +248,9 @@ pub struct ProcedureSpecification {
     pub source: DefId,
     pub kind: SpecificationItem<ProcedureSpecificationKind>,
     pub pres: SpecificationItem<Vec<DefId>>,
+    pub structural_pres: SpecificationItem<Vec<DefId>>,
     pub posts: SpecificationItem<Vec<DefId>>,
+    pub structural_posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
     pub non_verified_pure: SpecificationItem<bool>,
@@ -262,7 +270,9 @@ impl ProcedureSpecification {
             // defaults to an impure function
             kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
             pres: SpecificationItem::Empty,
+            structural_pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
+            structural_posts: SpecificationItem::Empty,
             broken_pres: SpecificationItem::Empty,
             broken_posts: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
@@ -495,6 +505,26 @@ impl SpecGraph<ProcedureSpecification> {
         }
     }
 
+    /// Attaches the structural precondition `structural_pre` to this
+    /// [SpecGraph].
+    ///
+    /// If this precondition has a constraint it will be attached to the
+    /// corresponding constrained spec, otherwise just to the base spec.
+    pub fn add_structural_precondition<'tcx>(&mut self, pre: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(pre, env) {
+            None => {
+                self.base_spec.structural_pres.push(pre.to_def_id());
+                // Preconditions are explicitly not copied (as opposed to postconditions)
+                // This would always violate behavioral subtyping rules
+            }
+            Some(constraint) => {
+                self.get_constrained_spec_mut(constraint)
+                    .structural_pres
+                    .push(pre.to_def_id());
+            }
+        }
+    }
+
     /// Attaches the postcondition `post` to this [SpecGraph].
     ///
     /// If this postcondition has a constraint it will be attached to the corresponding
@@ -510,6 +540,32 @@ impl SpecGraph<ProcedureSpecification> {
             Some(obligation) => {
                 self.get_constrained_spec_mut(obligation)
                     .posts
+                    .push(post.to_def_id());
+            }
+        }
+    }
+
+    /// Attaches the structural postcondition `structural_post` to this
+    /// [SpecGraph].
+    ///
+    /// If this structural postcondition has a constraint it will be attached to
+    /// the corresponding constrained spec **and** the base spec, otherwise just
+    /// to the base spec.
+    pub fn add_structural_postcondition<'tcx>(
+        &mut self,
+        post: LocalDefId,
+        env: &Environment<'tcx>,
+    ) {
+        match self.get_constraint(post, env) {
+            None => {
+                self.base_spec.structural_posts.push(post.to_def_id());
+                self.specs_with_constraints
+                    .values_mut()
+                    .for_each(|s| s.structural_posts.push(post.to_def_id()));
+            }
+            Some(obligation) => {
+                self.get_constrained_spec_mut(obligation)
+                    .structural_posts
                     .push(post.to_def_id());
             }
         }
@@ -875,7 +931,13 @@ impl Refinable for ProcedureSpecification {
         ProcedureSpecification {
             source: self.source,
             pres: self.pres.refine(replace_empty(&EMPTYL, &other.pres)),
+            structural_pres: self
+                .structural_pres
+                .refine(replace_empty(&EMPTYL, &other.structural_pres)),
             posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
+            structural_posts: self
+                .structural_posts
+                .refine(replace_empty(&EMPTYL, &other.structural_posts)),
             broken_pres: self
                 .broken_pres
                 .refine(replace_empty(&EMPTYL, &other.broken_pres)),

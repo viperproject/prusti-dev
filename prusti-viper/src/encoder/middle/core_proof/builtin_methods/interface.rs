@@ -266,61 +266,58 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 // arguments.push(self.extract_root_address(&value.deref_place)?);
                 arguments.push(self.encode_expression_as_place_address(&value.deref_place)?);
                 // self.encode_place_arguments(arguments, &value.deref_place, false)?;
-                if self.check_mode.unwrap() == CheckMode::PurificationFunctional {
-                    arguments.push(value.deref_place.to_procedure_snapshot(self)?);
-                } else {
-                    let place = self.encode_expression_as_place(&value.deref_place)?;
-                    // let root_address = self.extract_root_address(&value.deref_place)?;
-                    let address = self.encode_expression_as_place_address(&value.deref_place)?;
-                    let ty = value.deref_place.get_type();
-                    let TODO_target_slice_len = None;
-                    match value
-                        .deref_place
-                        .get_deref_uniqueness()
-                        .unwrap_or(value.uniqueness)
-                    {
-                        vir_mid::ty::Uniqueness::Unique => {
-                            let snapshot_current = self.unique_ref_snap(
-                                CallContext::Procedure,
-                                ty,
-                                ty,
-                                place,
-                                address,
-                                deref_lifetime.clone().into(),
-                                TODO_target_slice_len,
-                                false,
-                                value.deref_place.position(),
-                            )?;
-                            arguments.push(snapshot_current);
-                            let mut place_encoder =
-                                PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
-                                    lifetime: deref_lifetime.clone().into(),
-                                    is_final: true,
-                                });
-                            let snapshot_final = place_encoder.expression_to_snapshot(
-                                self,
-                                &value.deref_place,
-                                true,
-                            )?;
-                            // let snapshot_final =
-                            //     value.deref_place.to_procedure_final_snapshot(self)?;
-                            arguments.push(snapshot_final);
-                        }
-                        vir_mid::ty::Uniqueness::Shared => {
-                            let snapshot_current = self.frac_ref_snap(
-                                CallContext::Procedure,
-                                ty,
-                                ty,
-                                place,
-                                address,
-                                deref_lifetime.clone().into(),
-                                TODO_target_slice_len,
-                                value.deref_place.position(),
-                            )?;
-                            arguments.push(snapshot_current);
-                        }
+                // if self.check_mode.unwrap() == CheckMode::PurificationFunctional {
+                //     arguments.push(value.deref_place.to_procedure_snapshot(self)?);
+                // } else {
+                let place = self.encode_expression_as_place(&value.deref_place)?;
+                // let root_address = self.extract_root_address(&value.deref_place)?;
+                let address = self.encode_expression_as_place_address(&value.deref_place)?;
+                let ty = value.deref_place.get_type();
+                let TODO_target_slice_len = None;
+                match value
+                    .deref_place
+                    .get_deref_uniqueness()
+                    .unwrap_or(value.uniqueness)
+                {
+                    vir_mid::ty::Uniqueness::Unique => {
+                        let snapshot_current = self.unique_ref_snap(
+                            CallContext::Procedure,
+                            ty,
+                            ty,
+                            place,
+                            address,
+                            deref_lifetime.clone().into(),
+                            TODO_target_slice_len,
+                            false,
+                            value.deref_place.position(),
+                        )?;
+                        arguments.push(snapshot_current);
+                        let mut place_encoder =
+                            PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
+                                lifetime: deref_lifetime.clone().into(),
+                                is_final: true,
+                            });
+                        let snapshot_final =
+                            place_encoder.expression_to_snapshot(self, &value.deref_place, true)?;
+                        // let snapshot_final =
+                        //     value.deref_place.to_procedure_final_snapshot(self)?;
+                        arguments.push(snapshot_final);
+                    }
+                    vir_mid::ty::Uniqueness::Shared => {
+                        let snapshot_current = self.frac_ref_snap(
+                            CallContext::Procedure,
+                            ty,
+                            ty,
+                            place,
+                            address,
+                            deref_lifetime.clone().into(),
+                            TODO_target_slice_len,
+                            value.deref_place.position(),
+                        )?;
+                        arguments.push(snapshot_current);
                     }
                 }
+                // }
                 arguments.extend(self.create_lifetime_arguments(
                     CallContext::Procedure,
                     value.deref_place.get_type(),
