@@ -944,11 +944,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     expression,
                     &broken_invariants,
                 )?;
-                assert!(
-                    expression.is_pure() || mode.is_unsafe_function(),
-                    "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
-                    procedure_contract.def_id,
-                );
+                if !(expression.is_pure() || mode.is_unsafe_function()) {
+                    let span = self
+                        .encoder
+                        .error_manager()
+                        .position_manager()
+                        .get_span(expression.position().into())
+                        .cloned()
+                        .unwrap();
+                    return Err(SpannedEncodingError::incorrect(
+                        "only unsafe functions can use permissions in their contracts",
+                        span,
+                    ));
+                }
                 postconditions.push(expression);
             }
             let pledges = procedure_contract.pledges();
