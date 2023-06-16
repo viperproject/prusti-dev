@@ -11,24 +11,24 @@ use prusti_rustc_interface::{
 
 pub struct DefSpecsEncoder<'tcx> {
     tcx: TyCtxt<'tcx>,
-    opaque: opaque::MemEncoder,
+    opaque: opaque::FileEncoder,
     type_shorthands: FxHashMap<Ty<'tcx>, usize>,
     predicate_shorthands: FxHashMap<PredicateKind<'tcx>, usize>,
     interpret_allocs: FxIndexSet<AllocId>,
 }
 
 impl<'tcx> DefSpecsEncoder<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        DefSpecsEncoder {
+    pub fn new(tcx: TyCtxt<'tcx>, file: &std::path::Path) -> std::io::Result<Self> {
+        Ok(DefSpecsEncoder {
             tcx,
-            opaque: opaque::MemEncoder::new(),
+            opaque: opaque::FileEncoder::new(file)?,
             type_shorthands: Default::default(),
             predicate_shorthands: Default::default(),
             interpret_allocs: Default::default(),
-        }
+        })
     }
 
-    pub fn into_inner(self) -> Vec<u8> {
+    pub fn finish(self) -> std::io::Result<usize> {
         self.opaque.finish()
     }
 }
@@ -59,8 +59,8 @@ impl<'tcx> Encoder for DefSpecsEncoder<'tcx> {
         emit_i8(i8);
 
         emit_bool(bool);
-        emit_f64(f64);
-        emit_f32(f32);
+        // emit_f64(f64);
+        // emit_f32(f32);
         emit_char(char);
         emit_str(&str);
         emit_raw_bytes(&[u8]);

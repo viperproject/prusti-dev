@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::middle::mir::{self, TerminatorKind};
 
-use prusti_rustc_interface::index::vec::IndexVec;
+use prusti_rustc_interface::index::IndexVec;
 
 /// A data structure to store the non-virtual CFG edges of a MIR body.
 pub struct RealEdges {
@@ -53,7 +53,7 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
         TerminatorKind::SwitchInt { ref targets, .. } => targets.all_targets().to_vec(),
 
         TerminatorKind::Resume
-        | TerminatorKind::Abort
+        | TerminatorKind::Terminate
         | TerminatorKind::Return
         | TerminatorKind::GeneratorDrop
         | TerminatorKind::Unreachable => vec![],
