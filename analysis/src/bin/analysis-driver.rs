@@ -19,8 +19,8 @@ use prusti_rustc_interface::{
     hir::def_id::{DefId, LocalDefId},
     interface::{interface, Config, Queries},
     middle::{
-        ty,
         query::{queries::mir_borrowck::ProvidedValue, ExternProviders, Providers},
+        ty,
     },
     polonius_engine::{Algorithm, Output},
     session::{Attribute, Session},
@@ -196,7 +196,12 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                     Algorithm::Naive,
                     true,
                 )));
-                assert!(!body_with_facts.input_facts.as_ref().unwrap().cfg_edge.is_empty());
+                assert!(!body_with_facts
+                    .input_facts
+                    .as_ref()
+                    .unwrap()
+                    .cfg_edge
+                    .is_empty());
                 let body = &body_with_facts.body;
 
                 match abstract_domain {

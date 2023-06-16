@@ -25,13 +25,13 @@ impl<'tcx> EnvDiagnostic<'tcx> {
     ) {
         diagnostic.set_span(sp);
         if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
+            diagnostic.help(help_msg.clone());
         }
         for (note_msg, opt_note_sp) in notes {
             if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
+                diagnostic.span_note(note_sp.clone(), note_msg.clone());
             } else {
-                diagnostic.note(note_msg);
+                diagnostic.note(note_msg.clone());
             }
         }
     }

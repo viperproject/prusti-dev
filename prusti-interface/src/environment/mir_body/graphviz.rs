@@ -191,9 +191,7 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
                 graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
-        TerminatorKind::Call {
-            target, unwind, ..
-        } => {
+        TerminatorKind::Call { target, unwind, .. } => {
             if let Some(target) = target {
                 graph.add_regular_edge(bb.to_text(), target.to_text());
             }
@@ -201,9 +199,7 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
                 graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
-        TerminatorKind::Assert {
-            target, unwind, ..
-        } => {
+        TerminatorKind::Assert { target, unwind, .. } => {
             graph.add_regular_edge(bb.to_text(), target.to_text());
             if let mir::UnwindAction::Cleanup(target) = unwind {
                 graph.add_unwind_edge(bb.to_text(), target.to_text());

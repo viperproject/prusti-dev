@@ -7,8 +7,8 @@
 //! `'tcx`.
 
 use prusti_rustc_interface::{
-    borrowck::consumers::BodyWithBorrowckFacts, data_structures::fx::FxHashMap, hir::def_id::LocalDefId,
-    middle::ty::TyCtxt,
+    borrowck::consumers::BodyWithBorrowckFacts, data_structures::fx::FxHashMap,
+    hir::def_id::LocalDefId, middle::ty::TyCtxt,
 };
 use std::{cell::RefCell, thread_local};
 
