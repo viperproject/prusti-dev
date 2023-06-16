@@ -55,7 +55,7 @@ impl<T> Pointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
-    #[ensures(result == address_offset(self, count))]
+    #[ensures(result == address_offset(self, Int::new_isize(count)))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     unsafe fn offset(self, count: isize) -> *const T;
@@ -64,7 +64,7 @@ impl<T> Pointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Properly specify the wrapping arithmetic.
-    #[ensures(result == address_offset(self, count))]
+    #[ensures(result == address_offset(self, Int::new_isize(count)))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     fn wrapping_offset(self, count: isize) -> *const T;
@@ -73,7 +73,7 @@ impl<T> Pointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
-    #[ensures(result == address_offset(self, count as isize))]
+    #[ensures(result == address_offset(self, Int::new_usize(count)))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     unsafe fn add(self, count: usize) -> *const T;
@@ -96,7 +96,7 @@ impl<T> MutPointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
-    #[ensures(result == address_offset_mut(self, count))]
+    #[ensures(result == address_offset_mut(self, Int::new_isize(count)))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     unsafe fn offset(self, count: isize) -> *mut T;
@@ -105,7 +105,7 @@ impl<T> MutPointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Properly specify the wrapping arithmetic.
-    #[ensures(result == address_offset_mut(self, count))]
+    #[ensures(result == address_offset_mut(self, Int::new_isize(count)))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     fn wrapping_offset(self, count: isize) -> *mut T;
@@ -114,7 +114,7 @@ impl<T> MutPointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
-    #[ensures(result == address_offset_mut(self, count as isize))]
+    #[ensures(result == address_offset_mut(self, Int::new_usize(count)))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
     unsafe fn add(self, count: usize) -> *mut T;

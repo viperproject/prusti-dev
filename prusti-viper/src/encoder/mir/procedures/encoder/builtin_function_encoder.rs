@@ -253,14 +253,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 // Do nothing, this function is used only by the drop
                 // elaboration pass.
             }
-            "prusti_contracts::Int::new" => make_builtin_call(
-                self,
-                block_builder,
-                original_lifetimes,
-                derived_lifetimes,
-                vir_high::BuiltinFunc::NewInt,
-            )?,
-            "prusti_contracts::Int::new_usize" => make_builtin_call(
+            "prusti_contracts::Int::new"
+            | "prusti_contracts::Int::new_usize"
+            | "prusti_contracts::Int::new_isize" => make_builtin_call(
                 self,
                 block_builder,
                 original_lifetimes,

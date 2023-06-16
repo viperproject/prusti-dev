@@ -318,6 +318,10 @@ mod private {
         pub fn new_usize(_: usize) -> Self {
             panic!()
         }
+
+        pub fn new_isize(_: isize) -> Self {
+            panic!()
+        }
     }
 
     macro_rules! __int_dummy_trait_impls__ {
@@ -937,12 +941,12 @@ macro_rules! unpacking {
 }
 
 /// A ghost operation for computing an offset of the pointer.
-pub fn address_offset_mut<T>(_ptr: *mut T, _count: isize) -> *mut T {
+pub fn address_offset_mut<T>(_ptr: *mut T, _count: Int) -> *mut T {
     unreachable!();
 }
 
 /// A ghost operation for computing an offset of the pointer.
-pub fn address_offset<T>(_ptr: *const T, _count: isize) -> *const T {
+pub fn address_offset<T>(_ptr: *const T, _count: Int) -> *const T {
     unreachable!();
 }
 
