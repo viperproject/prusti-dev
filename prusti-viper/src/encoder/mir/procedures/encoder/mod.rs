@@ -898,7 +898,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect();
         let structural_postconditions =
             procedure_contract.structural_postcondition(self.encoder.env(), call_substs);
-        if mode.is_unsafe_function() {
+        // if mode.is_unsafe_function()
+        {
+            // Note: it is fine to have structural postconditions on both safe
+            // and unsafe functions. Only structural preconditions are not
+            // allowed on safe functions. Structural postconditions are useful
+            // for specifying that some additional property is preserved no
+            // matter how the function exits. Alternatively, the user would need
+            // to duplicate the specification in `#[ensures]` and
+            // `#[panic_ensures]`.
             for (assertion, assertion_substs) in structural_postconditions {
                 let expression = self.encoder.encode_assertion_high(
                     assertion,
@@ -917,9 +925,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert!(!expression.find(result), "TODO: A proper error message that postconditions must not contain the result ({:?}): {expression}", procedure_contract.def_id);
                 postconditions.push(expression);
             }
-        } else {
-            assert!(structural_postconditions.is_empty(), "TODO: A proper error message that structural postconditions allowed only in unsafe functions");
         }
+        //  else {
+        //     assert!(structural_postconditions.is_empty(), "TODO: A proper error message that structural postconditions allowed only in unsafe functions");
+        // }
         if mode.include_functional_ensures() {
             let postcondition_assertions =
                 procedure_contract.functional_postcondition(self.encoder.env(), call_substs);
