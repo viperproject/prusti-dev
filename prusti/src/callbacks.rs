@@ -35,10 +35,10 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
         // (anon) const bodies at all, and if so, how to get them?
         if !is_anon_const {
             let body_with_facts = consumers::get_body_with_borrowck_facts(
-                    tcx,
-                    def_id,
-                    consumers::ConsumerOptions::PoloniusOutputFacts,
-                );
+                tcx,
+                def_id,
+                consumers::ConsumerOptions::PoloniusOutputFacts,
+            );
             // SAFETY: This is safe because we are feeding in the same `tcx` that is
             // going to be used as a witness when pulling out the data.
             unsafe {

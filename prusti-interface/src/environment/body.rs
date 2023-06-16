@@ -139,10 +139,7 @@ impl<'tcx> EnvBody<'tcx> {
     /// Get local MIR body of spec or pure functions. Retrieves the body from
     /// the compiler (relatively cheap).
     fn load_local_mir(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBody<'tcx> {
-        let body = tcx
-            .mir_promoted(ty::WithOptConstParam::unknown(def_id))
-            .0
-            .borrow();
+        let body = tcx.mir_promoted(def_id).0.borrow();
         MirBody(Rc::new(body.clone()))
     }
 
