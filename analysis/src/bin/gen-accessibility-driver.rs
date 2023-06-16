@@ -13,8 +13,8 @@ use prusti_rustc_interface::{
     hir::def_id::LocalDefId,
     interface::{interface, Config, Queries},
     middle::{
-        ty,
         query::{queries::mir_borrowck::ProvidedValue, ExternProviders, Providers},
+        ty,
     },
     polonius_engine::{Algorithm, Output},
     session::Session,
@@ -176,7 +176,12 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
 
             // Generate and print the programs with the additional statements to check accessibility.
             for (num, (local_def_id, body_with_facts)) in def_ids_with_body.iter().enumerate() {
-                assert!(!body_with_facts.input_facts.as_ref().unwrap().cfg_edge.is_empty());
+                assert!(!body_with_facts
+                    .input_facts
+                    .as_ref()
+                    .unwrap()
+                    .cfg_edge
+                    .is_empty());
                 let body = &body_with_facts.body;
 
                 if num > 0 {
