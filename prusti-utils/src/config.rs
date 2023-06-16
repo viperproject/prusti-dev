@@ -126,6 +126,7 @@ lazy_static::lazy_static! {
         settings.set_default("trace_with_symbolic_execution_new", true).unwrap();
         settings.set_default("purify_with_symbolic_execution", false).unwrap();
         settings.set_default("symbolic_execution_single_method", true).unwrap();
+        settings.set_default("symbolic_execution_multiple_methods_max", 100).unwrap();
         settings.set_default("symbolic_execution_leak_check", true).unwrap();
         settings.set_default("panic_on_failed_exhale", false).unwrap();
         settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
@@ -964,6 +965,15 @@ pub fn purify_with_symbolic_execution() -> bool {
 /// true.
 pub fn symbolic_execution_single_method() -> bool {
     read_setting("symbolic_execution_single_method")
+}
+
+/// If `symbolic_execution_single_method` is true, this option specifies the
+/// upper bound on the number of generated methods.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn symbolic_execution_multiple_methods_max() -> u16 {
+    read_setting("symbolic_execution_multiple_methods_max")
 }
 
 /// Performs predicate leak check during symbolic execution.

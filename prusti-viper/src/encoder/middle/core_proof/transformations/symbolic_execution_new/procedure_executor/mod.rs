@@ -321,6 +321,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             trace: &mut Vec<vir_low::Label>,
             traces: &mut Vec<Vec<vir_low::Label>>,
         ) {
+            assert!(
+                traces.len() < config::symbolic_execution_multiple_methods_max() as usize,
+                "Too many traces"
+            );
             trace.push(current_block.clone());
             // Check if we have assume false and terminate if we do.
             for statement in &builder.blocks[current_block].statements {
