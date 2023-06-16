@@ -88,7 +88,7 @@ impl PostconditionMode {
         let panic = self.compute_include_panic_ensures();
         assert!(
             !(functional && panic),
-            "Functional and panic postconditions are incompatible"
+            "Functional and panic postconditions are incompatible: {self:?}"
         );
         functional
     }
@@ -98,7 +98,7 @@ impl PostconditionMode {
         let panic = self.compute_include_panic_ensures();
         assert!(
             !(functional && panic),
-            "Functional and panic postconditions are incompatible"
+            "Functional and panic postconditions are incompatible: {self:?}"
         );
         panic
     }
