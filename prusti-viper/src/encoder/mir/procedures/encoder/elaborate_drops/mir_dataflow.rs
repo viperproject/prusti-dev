@@ -18,7 +18,7 @@ use prusti_rustc_interface::{
     dataflow::elaborate_drops::{DropFlagMode, DropStyle, Unwind},
     hir,
     hir::lang_items::LangItem,
-    index::vec::Idx,
+    index::Idx,
     middle::{
         mir::*,
         traits::Reveal,

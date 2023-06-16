@@ -11,7 +11,7 @@ use crate::{
 use log::{debug, trace};
 use prusti_rustc_interface::{
     data_structures::graph::dominators::Dominators,
-    index::vec::{Idx, IndexVec},
+    index::{Idx, IndexVec},
     middle::{mir, mir::visit::Visitor},
 };
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -257,7 +257,7 @@ pub type ReadAndWriteLeaves<'tcx> = (
 impl ProcedureLoops {
     #[tracing::instrument(name = "ProcedureLoops::new", level = "trace", skip(mir, real_edges))]
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>, real_edges: &RealEdges) -> ProcedureLoops {
-        let dominators = mir.basic_blocks.dominators();
+        let dominators = mir.basic_blocks.dominators().clone();
 
         let mut back_edges: FxHashSet<(_, _)> = FxHashSet::default();
         for bb in mir.basic_blocks.indices() {

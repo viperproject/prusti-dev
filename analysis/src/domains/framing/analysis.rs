@@ -11,7 +11,7 @@ use crate::{
     PointwiseState,
 };
 use prusti_rustc_interface::{
-    borrowck::BodyWithBorrowckFacts,
+    borrowck::consumers::BodyWithBorrowckFacts,
     middle::{
         mir,
         mir::visit::{NonMutatingUseContext, PlaceContext, Visitor},
