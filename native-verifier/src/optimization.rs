@@ -136,9 +136,13 @@ impl ExpressionFolder for Optimizer {
     ) -> vir::low::Expression {
         if quantifier.triggers.is_empty() {
             let new_body = self.fold_expression(*quantifier.body);
-            if new_body == true.into() {
+            if new_body == true.into()
+                && quantifier.kind == vir::low::expression::QuantifierKind::ForAll
+            {
                 true.into()
-            } else if new_body == false.into() {
+            } else if new_body == false.into()
+                && quantifier.kind == vir::low::expression::QuantifierKind::Exists
+            {
                 false.into()
             } else {
                 vir::low::Expression::Quantifier(vir::low::expression::Quantifier {
