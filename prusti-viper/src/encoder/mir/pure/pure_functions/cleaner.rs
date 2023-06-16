@@ -257,6 +257,15 @@ fn check_permission_always_positive(
                 }
             }
         }
+        vir_high::Expression::Conditional(conditional_expression) => {
+            assert!(
+                conditional_expression.guard.is_pure(),
+                "{proc_def_id:?} {}",
+                conditional_expression.guard
+            );
+            check_permission_always_positive(proc_def_id, &conditional_expression.then_expr)?;
+            check_permission_always_positive(proc_def_id, &conditional_expression.else_expr)?;
+        }
         _ => {
             assert!(expression.is_pure(), "{proc_def_id:?} {expression}");
         }
