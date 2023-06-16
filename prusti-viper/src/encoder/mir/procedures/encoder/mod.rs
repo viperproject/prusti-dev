@@ -5232,7 +5232,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (place, lifetime) = self
                                 .opened_reference_witnesses
                                 .get(&witness)
-                                .expect("FIXME: a proper error message");
+                                .unwrap_or_else(|| {
+                                    unimplemented!("FIXME: A proper error message: {witness}")
+                                });
                             assert_eq!(place, &user_place, "FIXME: a proper error message");
                             // let variable = self
                             //     .opened_reference_place_permissions
