@@ -29,7 +29,7 @@ use log::{debug, trace};
 use prusti_common::config;
 use prusti_rustc_interface::{
     borrowck::consumers::RustcFacts,
-    index::vec::Idx,
+    index::Idx,
     middle::{mir, ty},
     polonius_engine::{Algorithm, AllFacts, Output},
     span::{def_id::DefId, Span},

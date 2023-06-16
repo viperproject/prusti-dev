@@ -125,9 +125,9 @@ impl<'tcx> EnvBody<'tcx> {
         let body_with_facts = unsafe { mir_storage::retrieve_mir_body(tcx, def_id) };
 
         let facts = BorrowckFacts {
-            input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-            output_facts: body_with_facts.output_facts,
-            location_table: RefCell::new(Some(body_with_facts.location_table)),
+            input_facts: RefCell::new(body_with_facts.input_facts.map(|f| *f)),
+            output_facts: body_with_facts.output_facts.unwrap(),
+            location_table: RefCell::new(body_with_facts.location_table),
         };
 
         BodyWithBorrowckFacts {

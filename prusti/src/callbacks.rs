@@ -5,6 +5,7 @@ use prusti_interface::{
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
 };
 use prusti_rustc_interface::{
+    borrowck::consumers,
     driver::Compilation,
     hir::{def::DefKind, def_id::LocalDefId},
     interface::{interface::Compiler, Config, Queries},
@@ -33,10 +34,10 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
         // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
         // (anon) const bodies at all, and if so, how to get them?
         if !is_anon_const {
-            let body_with_facts =
-                prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
+            let body_with_facts = consumers::get_body_with_borrowck_facts(
                     tcx,
-                    ty::WithOptConstParam::unknown(def_id),
+                    def_id,
+                    consumers::ConsumerOptions::PoloniusOutputFacts,
                 );
             // SAFETY: This is safe because we are feeding in the same `tcx` that is
             // going to be used as a witness when pulling out the data.

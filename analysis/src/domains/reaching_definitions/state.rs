@@ -128,7 +128,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
             mir::TerminatorKind::Call {
                 ref destination,
                 target,
-                cleanup,
+                unwind,
                 ..
             } => {
                 if let Some(bb) = target {
@@ -144,7 +144,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
                     res_vec.push((bb, dest_state));
                 }
 
-                if let Some(bb) = cleanup {
+                if let mir::UnwindAction::Cleanup(bb) = unwind {
                     let mut cleanup_state = self.clone();
                     // error state -> be conservative & add destination as possible reaching def
                     // while keeping all others

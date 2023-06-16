@@ -12,7 +12,7 @@
 
 use log::debug;
 use prusti_rustc_interface::{
-    index::vec::{Idx, IndexVec},
+    index::{Idx, IndexVec},
     middle::{mir::*, ty::Ty},
     span::Span,
 };

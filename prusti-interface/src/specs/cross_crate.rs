@@ -84,16 +84,13 @@ impl CrossCrateSpecs {
         def_spec: &DefSpecificationMap,
         path: &path::PathBuf,
     ) -> io::Result<usize> {
-        use std::io::Write;
-        let mut encoder = DefSpecsEncoder::new(env.tcx());
+        // Probably not needed; dir should already exist?
+        fs::create_dir_all(path.parent().unwrap())?;
+        let mut encoder = DefSpecsEncoder::new(env.tcx(), path)?;
         def_spec.proc_specs.encode(&mut encoder);
         def_spec.type_specs.encode(&mut encoder);
         CrossCrateBodies::from(&env.body).encode(&mut encoder);
-
-        // Probably not needed; dir should already exist?
-        fs::create_dir_all(path.parent().unwrap())?;
-        let mut file = fs::File::create(path)?;
-        file.write(&encoder.into_inner())
+        encoder.finish()
     }
 
     #[tracing::instrument(level = "debug", skip(env, def_spec))]
