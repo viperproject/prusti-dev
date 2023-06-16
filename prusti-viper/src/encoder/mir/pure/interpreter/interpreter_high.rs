@@ -666,6 +666,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             return match proc_name {
                 "new" => builtin((NewInt, Type::Int(Int::Unbounded))),
                 "new_usize" => builtin((NewInt, Type::Int(Int::Unbounded))),
+                "new_isize" => builtin((NewInt, Type::Int(Int::Unbounded))),
                 _ => unreachable!("no further int functions"),
             };
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Ghost::<T>::") {
