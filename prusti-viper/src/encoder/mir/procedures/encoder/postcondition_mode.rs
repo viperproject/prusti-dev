@@ -74,9 +74,9 @@ impl PostconditionMode {
     }
 
     fn compute_include_functional_ensures(&self) -> bool {
-        self.check_mode.check_specifications()
+        (self.check_mode.check_specifications()
             || self.no_panic_ensures_postcondition
-            || self.is_checked
+            || self.is_checked) && !self.panic_ensures
     }
 
     fn compute_include_panic_ensures(&self) -> bool {
