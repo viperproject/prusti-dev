@@ -3339,7 +3339,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let function_lifetime_take = vir_high::Statement::lifetime_take_no_pos(
             function_call_lifetime.clone(),
             derived_from.clone(),
-            self.lifetime_token_fractional_permission(self.lifetime_count * derived_from.len()),
+            self.lifetime_token_fractional_permission(2 * self.lifetime_count),
         );
         block_builder.add_statement(self.set_statement_error(
             location,
@@ -3457,11 +3457,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             //     self.def_id,
             // )?);
         }
-        self.encode_exhale_lifetime_tokens(
-            block_builder,
-            &lifetimes_to_exhale_inhale,
-            derived_from.len() + 1,
-        )?;
+        self.encode_exhale_lifetime_tokens(block_builder, &lifetimes_to_exhale_inhale, 4)?;
 
         if self.encoder.terminates(self.def_id, None) {
             self.encode_termination_measure_call_assertion(
@@ -3605,15 +3601,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.encode_inhale_lifetime_tokens(
                     &mut post_call_block_builder,
                     &lifetimes_to_exhale_inhale,
-                    derived_from.len() + 1,
+                    4,
                 )?;
                 let function_lifetime_return = self.encoder.set_statement_error_ctxt(
                     vir_high::Statement::lifetime_return_no_pos(
                         function_call_lifetime.clone(),
                         derived_from.clone(),
-                        self.lifetime_token_fractional_permission(
-                            self.lifetime_count * derived_from.len(),
-                        ),
+                        self.lifetime_token_fractional_permission(self.lifetime_count * 2),
                     ),
                     self.mir.span,
                     ErrorCtxt::LifetimeInhale,
@@ -3862,7 +3856,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_inhale_lifetime_tokens(
             &mut cleanup_block_builder,
             lifetimes_to_exhale_inhale,
-            derived_from.len() + 1,
+            4,
         )?;
         let function_lifetime_return = self.encoder.set_statement_error_ctxt(
             vir_high::Statement::lifetime_return_no_pos(
