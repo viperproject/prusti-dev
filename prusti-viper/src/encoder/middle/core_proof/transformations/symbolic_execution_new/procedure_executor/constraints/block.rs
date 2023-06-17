@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
     consistency_tracker::ConsistencyTracker,
@@ -29,7 +29,13 @@ pub(in super::super) struct BlockConstraints {
     /// overriding the `clone` method.
     pub(super) block_consistency_tracker: ConsistencyTracker,
     /// The lifetime equalities.
-    pub(super) lifetime_equality_classes: FxHashMap<String, String>,
+    pub(super) lifetime_equality_classes: BTreeMap<String, String>,
+    /// The lifetime equalities based on the intersect function applications.
+    /// The map is from the equality class to the set of lifetimes that are part
+    /// of the equality class.
+    pub(super) derived_lifetime_equality_classes: BTreeMap<BTreeSet<String>, BTreeSet<String>>,
+    /// To which version an old lifetime SSA version was mapped.
+    pub(super) lifetime_version_updates: BTreeMap<(String, u32), u32>,
     /// The equalities of everything that are not lifetimes.
     pub(super) equality_classes: EqualityState,
 }
@@ -41,6 +47,8 @@ impl Clone for BlockConstraints {
             block_consistency_tracker: Default::default(),
             consistency_tracker: self.consistency_tracker.clone(),
             lifetime_equality_classes: self.lifetime_equality_classes.clone(),
+            derived_lifetime_equality_classes: self.derived_lifetime_equality_classes.clone(),
+            lifetime_version_updates: Default::default(),
             equality_classes: self.equality_classes.clone(),
         }
     }
@@ -55,7 +63,9 @@ impl BlockConstraints {
             visited_blocks: Default::default(),
             block_consistency_tracker: Default::default(),
             consistency_tracker: Default::default(),
-            lifetime_equality_classes: FxHashMap::default(),
+            lifetime_equality_classes: Default::default(),
+            derived_lifetime_equality_classes: Default::default(),
+            lifetime_version_updates: Default::default(),
             equality_classes,
         })
     }
@@ -132,6 +142,11 @@ impl BlockConstraints {
                 equality_class.insert(cannonical_name.clone());
             }
         }
+        for lifetimes in self.derived_lifetime_equality_classes.values() {
+            if lifetimes.contains(lifetime_name) {
+                equality_class.extend(lifetimes.iter().cloned());
+            }
+        }
         equality_class.insert(lifetime_name.to_string());
         Ok(equality_class)
     }
@@ -144,29 +159,47 @@ impl BlockConstraints {
             .extend(other.visited_blocks.iter().cloned());
         self.consistency_tracker.merge(&other.consistency_tracker)?;
         // Keep only the lifetime equalities that are present in both states.
-        let dropped_self_lifetime_equalities = self
-            .lifetime_equality_classes
-            .drain_filter(|name, cannonical_name| {
-                !other
+        self.lifetime_equality_classes
+            .retain(|name, cannonical_name| {
+                other
                     .lifetime_equality_classes
                     .get(name)
                     .map(|other_cannonical_name| other_cannonical_name == cannonical_name)
                     .unwrap_or(false)
-            })
-            .map(|(name, cannonical_name)| (cannonical_name, name))
-            .collect();
-        let dropped_other_lifetime_equalities = other
-            .lifetime_equality_classes
-            .iter()
-            .filter(|(name, cannonical_name)| {
-                !self
-                    .lifetime_equality_classes
-                    .get(*name)
-                    .map(|self_cannonical_name| self_cannonical_name == *cannonical_name)
-                    .unwrap_or(false)
-            })
-            .map(|(name, cannonical_name)| (cannonical_name.clone(), name.clone()))
-            .collect();
+            });
+        for (equality_class, lifetimes) in &mut self.derived_lifetime_equality_classes {
+            if let Some(other_lifetimes) =
+                other.derived_lifetime_equality_classes.get(equality_class)
+            {
+                lifetimes.retain(|lifetime| other_lifetimes.contains(lifetime));
+            } else {
+                lifetimes.clear();
+            }
+        }
+        // // Keep only the lifetime equalities that are present in both states.
+        // let dropped_self_lifetime_equalities = self
+        //     .lifetime_equality_classes
+        //     .drain_filter(|name, cannonical_name| {
+        //         !other
+        //             .lifetime_equality_classes
+        //             .get(name)
+        //             .map(|other_cannonical_name| other_cannonical_name == cannonical_name)
+        //             .unwrap_or(false)
+        //     })
+        //     .map(|(name, cannonical_name)| (cannonical_name, name))
+        //     .collect();
+        // let dropped_other_lifetime_equalities = other
+        //     .lifetime_equality_classes
+        //     .iter()
+        //     .filter(|(name, cannonical_name)| {
+        //         !self
+        //             .lifetime_equality_classes
+        //             .get(*name)
+        //             .map(|self_cannonical_name| self_cannonical_name == *cannonical_name)
+        //             .unwrap_or(false)
+        //     })
+        //     .map(|(name, cannonical_name)| (cannonical_name.clone(), name.clone()))
+        //     .collect();
         // Merge equality graphs.
         let EqualityStateMergeReport {
             self_remaps,
@@ -175,8 +208,8 @@ impl BlockConstraints {
             dropped_other_equalities,
         } = self.equality_classes.merge(&other.equality_classes)?;
         Ok(ConstraintsMergeReport {
-            dropped_self_lifetime_equalities,
-            dropped_other_lifetime_equalities,
+            // dropped_self_lifetime_equalities,
+            // dropped_other_lifetime_equalities,
             self_remaps,
             other_remaps,
             dropped_self_equalities,
@@ -189,8 +222,40 @@ impl BlockConstraints {
     }
 
     fn assume_lifetimes_equal(&mut self, left: &vir_low::Expression, right: &vir_low::Expression) {
+        fn parse_variable_version(name_with_version: &str) -> (&str, u32) {
+            // FIXME: This is a hack. We should use proper versioned variables. The
+            // version is the number after the last `$`.
+            let mut split = name_with_version.rsplitn(2, '$');
+            let version = split.next().unwrap().parse::<u32>().unwrap();
+            let name = split.next().unwrap();
+            (name, version)
+        }
         match (left, right) {
             (vir_low::Expression::Local(left), vir_low::Expression::Local(right)) => {
+                let (left_name, left_version) = parse_variable_version(&left.variable.name);
+                let (right_name, right_version) = parse_variable_version(&right.variable.name);
+                assert_eq!(left_name, right_name);
+                if left_version < right_version {
+                    if let Some(old_right_version) = self
+                        .lifetime_version_updates
+                        .insert((left_name.to_string(), left_version), right_version)
+                    {
+                        assert_eq!(
+                            old_right_version, right_version,
+                            "{left_name}:{left_version} → {right_version}"
+                        );
+                    }
+                } else {
+                    if let Some(old_left_version) = self
+                        .lifetime_version_updates
+                        .insert((right_name.to_string(), right_version), left_version)
+                    {
+                        assert_eq!(
+                            old_left_version, left_version,
+                            "{right_name}:{right_version} → {left_version}"
+                        );
+                    }
+                }
                 let mut cannonical_name = &right.variable.name;
                 while let Some(base) = self.lifetime_equality_classes.get(cannonical_name) {
                     cannonical_name = base;
@@ -198,8 +263,45 @@ impl BlockConstraints {
                 self.lifetime_equality_classes
                     .insert(left.variable.name.clone(), cannonical_name.to_string());
             }
+            (
+                vir_low::Expression::Local(left),
+                vir_low::Expression::DomainFuncApp(vir_low::DomainFuncApp {
+                    domain_name,
+                    function_name,
+                    arguments,
+                    ..
+                }),
+            ) if domain_name == "Lifetime" && function_name == "intersect" => {
+                // FIXME: Do not rely on string comparisons.
+                assert_eq!(arguments.len(), 1);
+                let intersected_lifetimes: BTreeSet<_> =
+                    if let vir_low::Expression::ContainerOp(set_constructor) = &arguments[0] {
+                        assert_eq!(
+                            set_constructor.kind,
+                            vir_low::ContainerOpKind::SetConstructor
+                        );
+                        set_constructor
+                            .operands
+                            .iter()
+                            .map(|element| {
+                                if let vir_low::Expression::Local(local) = element {
+                                    local.variable.name.clone()
+                                } else {
+                                    unreachable!();
+                                }
+                            })
+                            .collect()
+                    } else {
+                        unreachable!();
+                    };
+                let entry = self
+                    .derived_lifetime_equality_classes
+                    .entry(intersected_lifetimes)
+                    .or_default();
+                entry.insert(left.variable.name.clone());
+            }
             _ => {
-                // We do not track intersected lifetimes.
+                unimplemented!("{left:?}\n{right:?}")
             }
         }
     }
