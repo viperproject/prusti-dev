@@ -264,8 +264,8 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                 );
                 assert_eq!(
                     token.permission_amount, other_token.permission_amount,
-                    "lifetime: {}",
-                    lifetime
+                    "lifetime: {}\nself: {}\nother: {}",
+                    lifetime, token.permission_amount, other_token.permission_amount
                 );
             } else {
                 // Did not find the lifetime token in the other block, mark that
@@ -420,7 +420,6 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
         // TODO: Problem: Lifetime tokens can be aliased and in that case I need to sum their permissions, which I do not do. As a result,
         // when some lifetime token is exhaled, it may also exhale aliased lifetime tokens.
 
-        eprintln!("after merge:\n{self}");
         Ok(())
     }
 
