@@ -112,7 +112,7 @@ impl DeadLifetimeTokens {
             }
         }
         for eq in constraints.get_equal_lifetimes(&lifetime)? {
-            eprintln!("  {eq} == {lifetime}");
+            error!("  {eq} == {lifetime}");
         }
         unimplemented!(
             "TODO: this should be unreachable: {lifetime} → {cannonical_lifetime:?}\n{self}"

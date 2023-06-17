@@ -3862,7 +3862,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir_high::Statement::lifetime_return_no_pos(
                 function_call_lifetime,
                 derived_from.to_vec(),
-                self.lifetime_token_fractional_permission(self.lifetime_count * derived_from.len()),
+                self.lifetime_token_fractional_permission(2 * self.lifetime_count),
             ),
             self.mir.span,
             ErrorCtxt::LifetimeInhale,
