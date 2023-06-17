@@ -151,6 +151,19 @@ impl BlockConstraints {
         Ok(equality_class)
     }
 
+    pub(in super::super) fn get_dependent_lifetimes_for(
+        &self,
+        lifetime_name: &str,
+    ) -> SpannedEncodingResult<BTreeSet<String>> {
+        let mut dependent_lifetimes = BTreeSet::new();
+        for (equality_class, lifetimes) in &self.derived_lifetime_equality_classes {
+            if equality_class.contains(lifetime_name) {
+                dependent_lifetimes.extend(lifetimes.iter().cloned());
+            }
+        }
+        Ok(dependent_lifetimes)
+    }
+
     pub(in super::super) fn merge(
         &mut self,
         other: &Self,
@@ -246,26 +259,29 @@ impl BlockConstraints {
             (vir_low::Expression::Local(left), vir_low::Expression::Local(right)) => {
                 let (left_name, left_version) = parse_variable_version(&left.variable.name);
                 let (right_name, right_version) = parse_variable_version(&right.variable.name);
-                assert_eq!(left_name, right_name);
-                if left_version < right_version {
-                    if let Some(old_right_version) = self
-                        .lifetime_version_updates
-                        .insert((left_name.to_string(), left_version), right_version)
-                    {
-                        assert_eq!(
-                            old_right_version, right_version,
-                            "{left_name}:{left_version} → {right_version}"
-                        );
-                    }
-                } else {
-                    if let Some(old_left_version) = self
-                        .lifetime_version_updates
-                        .insert((right_name.to_string(), right_version), left_version)
-                    {
-                        assert_eq!(
-                            old_left_version, left_version,
-                            "{right_name}:{right_version} → {left_version}"
-                        );
+                if !left_name.starts_with("old_") {
+                    // FIXME: This is a hack, we should not rely on string comparisons.
+                    assert_eq!(left_name, right_name);
+                    if left_version < right_version {
+                        if let Some(old_right_version) = self
+                            .lifetime_version_updates
+                            .insert((left_name.to_string(), left_version), right_version)
+                        {
+                            assert_eq!(
+                                old_right_version, right_version,
+                                "{left_name}:{left_version} → {right_version}"
+                            );
+                        }
+                    } else {
+                        if let Some(old_left_version) = self
+                            .lifetime_version_updates
+                            .insert((right_name.to_string(), right_version), left_version)
+                        {
+                            assert_eq!(
+                                old_left_version, left_version,
+                                "{right_name}:{right_version} → {left_version}"
+                            );
+                        }
                     }
                 }
                 let mut cannonical_name = &right.variable.name;

@@ -708,11 +708,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             block_builder.add_statement(self.set_statement_error(
                 location,
                 ErrorCtxt::LifetimeEncoding,
-                vir_high::Statement::lifetime_take_no_pos(
-                    backup_var,
-                    vec![lifetime_var],
-                    self.lifetime_token_fractional_permission(self.lifetime_count),
-                ),
+                vir_high::Statement::ghost_assign_no_pos(backup_var.into(), lifetime_var.into()),
             )?);
         }
         Ok(())

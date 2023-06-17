@@ -133,7 +133,10 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
             unimplemented!("TODO: A proper error message.");
         };
         let lifetime: LifetimeVariable = local.variable.name.clone().into();
-        let mut token = self.tokens.remove(&lifetime.name).unwrap();
+        let mut token = self
+            .tokens
+            .remove(&lifetime.name)
+            .unwrap_or_else(|| panic!("Missing lifetime token for lifetime: {}", lifetime.name));
         assert_eq!(
             token.latest_variable_version, lifetime.version,
             "lifetime: {}",

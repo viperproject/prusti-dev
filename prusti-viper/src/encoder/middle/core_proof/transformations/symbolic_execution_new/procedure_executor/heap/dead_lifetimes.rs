@@ -129,6 +129,8 @@ impl DeadLifetimeTokens {
         for lifetime in std::mem::take(&mut self.dead_lifetime_tokens) {
             let equality_class = constraints.get_equal_lifetimes(&lifetime)?;
             self.dead_lifetime_tokens.extend(equality_class);
+            self.dead_lifetime_tokens
+                .extend(constraints.get_dependent_lifetimes_for(&lifetime)?);
             self.dead_lifetime_tokens.insert(lifetime);
         }
         for (lifetime, permission) in
@@ -141,6 +143,15 @@ impl DeadLifetimeTokens {
                 {
                     self.potentially_dead_lifetime_token_permissions
                         .insert(equal_lifetime, permission.clone());
+                }
+            }
+            for dependent_lifetime in constraints.get_dependent_lifetimes_for(&lifetime)? {
+                if !self
+                    .potentially_dead_lifetime_token_permissions
+                    .contains_key(&dependent_lifetime)
+                {
+                    self.potentially_dead_lifetime_token_permissions
+                        .insert(dependent_lifetime, permission.clone());
                 }
             }
             self.potentially_dead_lifetime_token_permissions
