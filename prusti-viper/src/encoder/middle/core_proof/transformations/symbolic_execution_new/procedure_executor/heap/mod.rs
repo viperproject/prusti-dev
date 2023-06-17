@@ -120,6 +120,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     &mut self.global_heap_state,
                     predicate,
                     position,
+                    &mut current_state.constraints,
                     block_builder,
                 )?;
                 // current_state.heap.dead_lifetimes.inhale(

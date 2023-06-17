@@ -40,6 +40,7 @@ impl DeadLifetimeTokens {
         global_state: &mut GlobalHeapState,
         mut predicate: vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
+        constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
         assert_eq!(predicate.arguments.len(), 1);
@@ -47,6 +48,10 @@ impl DeadLifetimeTokens {
             unimplemented!("TODO: A proper error message.");
         };
         let lifetime = local.variable.name;
+        // Spread over equality class.
+        let equality_class = constraints.get_equal_lifetimes(&lifetime)?;
+        self.dead_lifetime_tokens.extend(equality_class);
+        // Insert the lifetime itself.
         self.dead_lifetime_tokens.insert(lifetime);
         Ok(())
     }
@@ -109,7 +114,9 @@ impl DeadLifetimeTokens {
         for eq in constraints.get_equal_lifetimes(&lifetime)? {
             eprintln!("  {eq} == {lifetime}");
         }
-        unimplemented!("TODO: this should be unreachable: {lifetime}\n{self}");
+        unimplemented!(
+            "TODO: this should be unreachable: {lifetime} → {cannonical_lifetime:?}\n{self}"
+        );
     }
 
     /// This function spreads the permission over known e-classes of lifetimes
@@ -119,8 +126,8 @@ impl DeadLifetimeTokens {
         constraints: &mut BlockConstraints,
     ) -> SpannedEncodingResult<()> {
         for lifetime in std::mem::take(&mut self.dead_lifetime_tokens) {
-            self.dead_lifetime_tokens
-                .extend(constraints.get_equal_lifetimes(&lifetime)?);
+            let equality_class = constraints.get_equal_lifetimes(&lifetime)?;
+            self.dead_lifetime_tokens.extend(equality_class);
             self.dead_lifetime_tokens.insert(lifetime);
         }
         for (lifetime, permission) in
