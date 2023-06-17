@@ -179,11 +179,22 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                     if let Some(other_amount) = other.token_permission_amounts.get(other_lifetime) {
                         other_amount
                     } else {
-                        // This can happen if the reference was not closed on
-                        // some (potentially unreachable) trace.
-                        unimplemented!("{other_lifetime}\n{self}");
-                        // // Did not find the lifetime in the other block, leak it.
-                        // continue;
+                        // Did not find the lifetime in the other block, mark that
+                        // edge as unreachable. This can happen if the reference was
+                        // not closed on some (potentially unreachable) trace.
+                        other_edge_block.push(
+                            vir_low::Statement::comment(format!(
+                                "marking as unreachable because not found in other: {lifetime}"
+                            ))
+                            .set_default_position(position),
+                        );
+                        other_edge_block.push(
+                            vir_low::Statement::assert_no_pos(false.into())
+                                .set_default_position(position),
+                        );
+                        self.token_permission_amounts
+                            .insert(lifetime.clone(), amount.clone());
+                        continue;
                     }
                 } else {
                     // Did not find the lifetime in the other block, mark that
