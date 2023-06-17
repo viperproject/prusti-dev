@@ -181,6 +181,7 @@ impl ExpressionEGraph {
         constant_constructors: &FxHashSet<String>,
     ) -> SpannedEncodingResult<Option<(Option<String>, vir_low::Expression)>> {
         let id = self.intern(expression)?;
+        self.saturate_solver()?;
         self.egraph.resolve_constant(id, constant_constructors)
     }
 
