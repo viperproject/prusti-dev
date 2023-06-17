@@ -6,6 +6,7 @@ use crate::encoder::{
     },
 };
 use std::collections::{BTreeMap, BTreeSet};
+use log::error;
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
     low::{self as vir_low},
