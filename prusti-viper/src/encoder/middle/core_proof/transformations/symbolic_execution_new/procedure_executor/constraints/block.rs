@@ -48,7 +48,7 @@ impl Clone for BlockConstraints {
             consistency_tracker: self.consistency_tracker.clone(),
             lifetime_equality_classes: self.lifetime_equality_classes.clone(),
             derived_lifetime_equality_classes: self.derived_lifetime_equality_classes.clone(),
-            lifetime_version_updates: Default::default(),
+            lifetime_version_updates: self.lifetime_version_updates.clone(),
             equality_classes: self.equality_classes.clone(),
         }
     }
@@ -176,6 +176,16 @@ impl BlockConstraints {
                 lifetimes.clear();
             }
         }
+        // Keep only the lifetime version updates that are present in both states.
+        let self_lifetime_version_updates = self.lifetime_version_updates.clone();
+        self.lifetime_version_updates
+            .retain(|name_with_version, version| {
+                other
+                    .lifetime_version_updates
+                    .get(name_with_version)
+                    .map(|other_version| other_version == version)
+                    .unwrap_or(false)
+            });
         // // Keep only the lifetime equalities that are present in both states.
         // let dropped_self_lifetime_equalities = self
         //     .lifetime_equality_classes
@@ -210,6 +220,8 @@ impl BlockConstraints {
         Ok(ConstraintsMergeReport {
             // dropped_self_lifetime_equalities,
             // dropped_other_lifetime_equalities,
+            self_lifetime_version_updates,
+            other_lifetime_version_updates: other.lifetime_version_updates.clone(),
             self_remaps,
             other_remaps,
             dropped_self_equalities,

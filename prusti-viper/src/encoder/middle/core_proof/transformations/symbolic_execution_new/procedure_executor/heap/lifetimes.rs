@@ -50,7 +50,7 @@ impl std::fmt::Display for LifetimeVariable {
 
 #[derive(Clone, Debug)]
 struct LifetimeToken {
-    lastest_variable_version: u32,
+    latest_variable_version: u32,
     permission_amount: vir_low::Expression,
 }
 
@@ -59,7 +59,7 @@ impl std::fmt::Display for LifetimeToken {
         write!(
             f,
             "{{version={version} amount={permission_amount}}}",
-            version = self.lastest_variable_version,
+            version = self.latest_variable_version,
             permission_amount = self.permission_amount
         )
     }
@@ -96,7 +96,7 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
         );
         if let Some(token) = self.tokens.get_mut(&lifetime.name) {
             assert_eq!(
-                token.lastest_variable_version, lifetime.version,
+                token.latest_variable_version, lifetime.version,
                 "lifetime: {}",
                 lifetime.name
             );
@@ -111,7 +111,7 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
             self.tokens.insert(
                 lifetime.name.clone(),
                 LifetimeToken {
-                    lastest_variable_version: lifetime.version,
+                    latest_variable_version: lifetime.version,
                     permission_amount: *predicate.permission,
                 },
             );
@@ -135,7 +135,7 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
         let lifetime: LifetimeVariable = local.variable.name.clone().into();
         let mut token = self.tokens.remove(&lifetime.name).unwrap();
         assert_eq!(
-            token.lastest_variable_version, lifetime.version,
+            token.latest_variable_version, lifetime.version,
             "lifetime: {}",
             lifetime.name
         );
@@ -245,10 +245,20 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
         position: vir_low::Position,
         constraints_merge_report: &ConstraintsMergeReport,
     ) -> SpannedEncodingResult<()> {
-        for (lifetime, token) in &self.tokens {
+        for (lifetime, token) in &mut self.tokens {
+            token.latest_variable_version = constraints_merge_report
+                .resolve_self_latest_lifetime_variable_version(
+                    lifetime,
+                    token.latest_variable_version,
+                );
             if let Some(other_token) = other.tokens.get(lifetime) {
+                let latest_other_version = constraints_merge_report
+                    .resolve_other_latest_lifetime_variable_version(
+                        lifetime,
+                        other_token.latest_variable_version,
+                    );
                 assert_eq!(
-                    token.lastest_variable_version, other_token.lastest_variable_version,
+                    token.latest_variable_version, latest_other_version,
                     "lifetime: {}",
                     lifetime
                 );
@@ -273,18 +283,7 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
             }
         }
         for (lifetime, token) in &other.tokens {
-            if let Some(self_token) = self.tokens.get(lifetime) {
-                assert_eq!(
-                    token.lastest_variable_version, self_token.lastest_variable_version,
-                    "lifetime: {}",
-                    lifetime
-                );
-                assert_eq!(
-                    token.permission_amount, self_token.permission_amount,
-                    "lifetime: {}",
-                    lifetime
-                );
-            } else {
+            if !self.tokens.contains_key(lifetime) {
                 // Did not find the lifetime token in the self block, mark that
                 // edge as unreachable. This can happen if the reference was not
                 // closed on some (potentially unreachable) path.
@@ -297,7 +296,16 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                 self_edge_block.push(
                     vir_low::Statement::assert_no_pos(false.into()).set_default_position(position),
                 );
-                self.tokens.insert(lifetime.clone(), token.clone());
+                let latest_other_version = constraints_merge_report
+                    .resolve_other_latest_lifetime_variable_version(
+                        lifetime,
+                        token.latest_variable_version,
+                    );
+                let token = LifetimeToken {
+                    latest_variable_version: latest_other_version,
+                    permission_amount: token.permission_amount.clone(),
+                };
+                self.tokens.insert(lifetime.clone(), token);
             }
         }
         // for (mut lifetime, amount) in std::mem::take(&mut self.token_permission_amounts) {
