@@ -5,8 +5,8 @@ use crate::encoder::{
         block_builder::BlockBuilder, procedure_executor::constraints::BlockConstraints,
     },
 };
-use std::collections::{BTreeMap, BTreeSet};
 use log::error;
+use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
     low::{self as vir_low},
