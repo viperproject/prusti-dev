@@ -1380,75 +1380,75 @@ impl IntoLow for vir_mid::Statement {
                 )])
             }
             Self::LifetimeTake(statement) => {
-                if statement.value.len() == 1 {
-                    let value = vir_low::Expression::local_no_pos(
-                        statement
-                            .value
-                            .first()
-                            .unwrap()
-                            .to_procedure_snapshot(lowerer)?,
-                    );
-                    let statements = vec![Statement::assume(
-                        vir_low::Expression::equals(
-                            lowerer
-                                .new_snapshot_variable_version(
-                                    &statement.target,
-                                    statement.position,
-                                )?
-                                .into(),
-                            value,
-                        ),
-                        statement.position,
-                    )];
-                    Ok(statements)
-                } else {
-                    lowerer.encode_lft_tok_sep_take_method(statement.value.len())?;
-                    let mut arguments: Vec<vir_low::Expression> = vec![];
-                    for lifetime in &statement.value {
-                        arguments.push(vir_low::Expression::local_no_pos(
-                            lifetime.to_procedure_snapshot(lowerer)?,
-                        ));
-                    }
-                    let perm_amount = statement
-                        .lifetime_token_permission
-                        .to_procedure_snapshot(lowerer)?;
-                    arguments.push(perm_amount);
-                    let statements = vec![Statement::method_call(
-                        format!("lft_tok_sep_take${}", statement.value.len()),
-                        arguments.clone(),
-                        vec![lowerer
-                            .new_snapshot_variable_version(&statement.target, statement.position)?
-                            .into()],
-                        statement.position,
-                    )];
-                    Ok(statements)
+                // if statement.value.len() == 1 {
+                //     let value = vir_low::Expression::local_no_pos(
+                //         statement
+                //             .value
+                //             .first()
+                //             .unwrap()
+                //             .to_procedure_snapshot(lowerer)?,
+                //     );
+                //     let statements = vec![Statement::assume(
+                //         vir_low::Expression::equals(
+                //             lowerer
+                //                 .new_snapshot_variable_version(
+                //                     &statement.target,
+                //                     statement.position,
+                //                 )?
+                //                 .into(),
+                //             value,
+                //         ),
+                //         statement.position,
+                //     )];
+                //     Ok(statements)
+                // } else {
+                lowerer.encode_lft_tok_sep_take_method(statement.value.len())?;
+                let mut arguments: Vec<vir_low::Expression> = vec![];
+                for lifetime in &statement.value {
+                    arguments.push(vir_low::Expression::local_no_pos(
+                        lifetime.to_procedure_snapshot(lowerer)?,
+                    ));
                 }
+                let perm_amount = statement
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(lowerer)?;
+                arguments.push(perm_amount);
+                let statements = vec![Statement::method_call(
+                    format!("lft_tok_sep_take${}", statement.value.len()),
+                    arguments.clone(),
+                    vec![lowerer
+                        .new_snapshot_variable_version(&statement.target, statement.position)?
+                        .into()],
+                    statement.position,
+                )];
+                Ok(statements)
+                // }
             }
             Self::LifetimeReturn(statement) => {
-                if statement.value.len() > 1 {
-                    lowerer.encode_lft_tok_sep_return_method(statement.value.len())?;
-                    let mut arguments: Vec<vir_low::Expression> =
-                        vec![vir_low::Expression::local_no_pos(
-                            statement.target.to_procedure_snapshot(lowerer)?,
-                        )];
-                    for lifetime in &statement.value {
-                        arguments.push(vir_low::Expression::local_no_pos(
-                            lifetime.to_procedure_snapshot(lowerer)?,
-                        ));
-                    }
-                    let perm_amount = statement
-                        .lifetime_token_permission
-                        .to_procedure_snapshot(lowerer)?;
-                    arguments.push(perm_amount);
-                    Ok(vec![Statement::method_call(
-                        format!("lft_tok_sep_return${}", statement.value.len()),
-                        arguments,
-                        vec![],
-                        statement.position,
-                    )])
-                } else {
-                    Ok(vec![])
+                // if statement.value.len() > 1 {
+                lowerer.encode_lft_tok_sep_return_method(statement.value.len())?;
+                let mut arguments: Vec<vir_low::Expression> =
+                    vec![vir_low::Expression::local_no_pos(
+                        statement.target.to_procedure_snapshot(lowerer)?,
+                    )];
+                for lifetime in &statement.value {
+                    arguments.push(vir_low::Expression::local_no_pos(
+                        lifetime.to_procedure_snapshot(lowerer)?,
+                    ));
                 }
+                let perm_amount = statement
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(lowerer)?;
+                arguments.push(perm_amount);
+                Ok(vec![Statement::method_call(
+                    format!("lft_tok_sep_return${}", statement.value.len()),
+                    arguments,
+                    vec![],
+                    statement.position,
+                )])
+                // } else {
+                //     Ok(vec![])
+                // }
             }
             Self::OpenFracRef(statement) => {
                 let ty = statement.place.get_type();
