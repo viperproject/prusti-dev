@@ -199,6 +199,8 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                         vir_low::Statement::assert_no_pos(false.into())
                             .set_default_position(position),
                     );
+                    self.token_permission_amounts
+                        .insert(lifetime.clone(), amount.clone());
                     continue;
                 }
             };
@@ -219,7 +221,7 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                         // Did not find the lifetime in the other block, mark that
                         // edge as unreachable. This can happen if the reference was
                         // not closed on some (potentially unreachable) trace.
-                        other_edge_block.push(
+                        self_edge_block.push(
                             vir_low::Statement::comment(format!(
                                 "marking as unreachable because not found in self: {lifetime}"
                             ))
@@ -229,13 +231,15 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                             vir_low::Statement::assert_no_pos(false.into())
                                 .set_default_position(position),
                         );
+                        self.token_permission_amounts
+                            .insert(lifetime.clone(), amount.clone());
                         continue;
                     }
                 } else {
                     // Did not find the lifetime in the other block, mark that
                     // edge as unreachable. This can happen if the reference was
                     // not closed on some (potentially unreachable) trace.
-                    other_edge_block.push(
+                    self_edge_block.push(
                         vir_low::Statement::comment(format!(
                             "marking as unreachable because not found in self: {lifetime}"
                         ))
@@ -245,6 +249,8 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
                         vir_low::Statement::assert_no_pos(false.into())
                             .set_default_position(position),
                     );
+                    self.token_permission_amounts
+                        .insert(lifetime.clone(), amount.clone());
                     continue;
                 }
             };
