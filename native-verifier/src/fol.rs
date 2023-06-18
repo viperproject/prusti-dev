@@ -105,6 +105,17 @@ fn vir_statement_to_fol_statements(
                             expression: implication,
                             reason: None, // TODO: Reason?
                         });
+                    } else if let Statement::Exhale(exhale) = s {
+                        let exhaling = Expression::BinaryOp(BinaryOp {
+                            op_kind: BinaryOpKind::Implies,
+                            left: Box::new(guard.clone()),
+                            right: Box::new(exhale.expression.clone()),
+                            position: exhale.position,
+                        });
+                        statements.push(FolStatement::Assert {
+                            expression: exhaling,
+                            reason: None, // TODO: Reason?
+                        });
                     } else if let Statement::Inhale(inhale) = s {
                         let implication = Expression::BinaryOp(BinaryOp {
                             op_kind: BinaryOpKind::Implies,
@@ -113,11 +124,17 @@ fn vir_statement_to_fol_statements(
                             position: inhale.position,
                         });
                         statements.push(FolStatement::Assume(implication));
+                    } else if let Statement::Assume(assume) = s {
+                        let assumption = Expression::BinaryOp(BinaryOp {
+                            op_kind: BinaryOpKind::Implies,
+                            left: Box::new(guard.clone()),
+                            right: Box::new(assume.expression.clone()),
+                            position: assume.position,
+                        });
+                        statements.push(FolStatement::Assume(assumption));
                     } else {
-                        unimplemented!(
-                            "Non-assertion statements in conditionals not supported: {}",
-                            s
-                        )
+                        statements.push(FolStatement::Comment("Generated within a conditional:".to_string()));
+                        statements.extend(vir_statement_to_fol_statements(s, known_methods));
                     }
                 }
             }

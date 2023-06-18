@@ -92,7 +92,7 @@ lazy_static::lazy_static! {
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
         settings.set_default("dump_nll_facts", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
-        settings.set_default("max_log_file_name_length", 60).unwrap();
+        settings.set_default("max_log_file_name_length", 240).unwrap();
         settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
         settings.set_default("dump_reborrowing_dag_in_debug_info", false).unwrap();
         settings.set_default("dump_borrowck_info", false).unwrap();

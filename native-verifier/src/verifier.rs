@@ -48,7 +48,7 @@ impl Verifier {
         let solver_name = if is_z3 { "Z3" } else { "CVC5" };
 
         let program_name = prusti_common::report::log::to_legal_file_name(&program.name);
-        let program_name = format!("lithium_{}.smt2", program_name);
+        let program_name = format!("{}.smt2", program_name); // TODO: path mismatch when over config length
 
         run_timed!("Translation to SMT-LIB", debug,
             let mut smt = SMTLib::new(is_z3);

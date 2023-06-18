@@ -1,34 +1,8 @@
 ; ===== Static preamble =====
 
 (set-info :smt-lib-version 2.6)
-
 (set-logic ALL)
-
 (set-option :tlimit-per 10000)
-
-(set-option :auto-extend-integers true) ; similar to global-decls in Z3
-(set-option :incrementality false) ; similar to auto_config in Z3
-
-; Note: restart_strategy and restart_factor do not have direct equivalents in CVC5. 
-; Similar functionality might be achieved through tuning the various options for decision strategies, but there is no one-to-one mapping.
-
-(set-option :bitvector-div-zero-const false) ; similar to smt.bv.reflect in Z3
-(set-option :mbqi-mode none) ; similar to smt.mbqi in Z3
-
-; The options smt.qi.cost, smt.qi.eager_threshold, and smt.qi.max_multi_patterns might correspond to 
-; configuring quantifier instantiation strategies in CVC5, but there are no direct equivalents.
-
-(set-option :decision-random-frequency 0) ; similar to sat.phase caching in Z3
-
-; There are no direct equivalents in CVC5 for sat.random_seed, nlsat.* options.
-
-; Note: fp.spacer.* options are related to Z3's Spacer, a software model checker. CVC5 doesn't have Spacer.
-
-(set-option :random-seed 0) ; similar to smt.random_seed in Z3
-
-; The sls.* options in Z3 are related to stochastic local search. 
-; CVC5 has options for tuning its decision strategy, but these are quite different from SLS and do not directly correspond to these options.
-
 (set-option :produce-models true) ; equivalent to model.v2 in Z3
 (set-option :produce-assignments false) ; similar to model.partial in Z3
 
