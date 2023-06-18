@@ -57,34 +57,29 @@ impl DeadLifetimeTokens {
         Ok(())
     }
 
-    pub(super) fn exhale(
+    pub(super) fn exhale_attempt(
         &mut self,
-        mut predicate: vir_low::PredicateAccessPredicate,
+        lifetime: &str,
         position: vir_low::Position,
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
-    ) -> SpannedEncodingResult<()> {
-        assert_eq!(predicate.arguments.len(), 1);
-        let Some(vir_low::Expression::Local(local)) = predicate.arguments.pop() else {
-            unimplemented!("TODO: A proper error message.");
-        };
-        let lifetime = local.variable.name;
+    ) -> SpannedEncodingResult<bool> {
         // Since DeadLifetimeToken is duplicable, we only need to assert that we
         // have the permission.
-        if self.dead_lifetime_tokens.contains(&lifetime) {
+        if self.dead_lifetime_tokens.contains(lifetime) {
             // We certainly have the permission, nothing to do.
-            return Ok(());
+            return Ok(true);
         }
-        let cannonical_lifetime = constraints.resolve_cannonical_lifetime_name(&lifetime)?;
+        let cannonical_lifetime = constraints.resolve_cannonical_lifetime_name(lifetime)?;
         if let Some(cannonical_lifetime) = &cannonical_lifetime {
             if self.dead_lifetime_tokens.contains(*cannonical_lifetime) {
                 // We certainly have the permission, nothing to do.
-                return Ok(());
+                return Ok(true);
             }
         }
         if let Some(permission) = self
             .potentially_dead_lifetime_token_permissions
-            .get(&lifetime)
+            .get(lifetime)
         {
             // We potentially have the permission, but the verifier needs to check.
             block_builder.add_statement(
@@ -94,7 +89,7 @@ impl DeadLifetimeTokens {
                 )
                 .set_default_position(position),
             )?;
-            return Ok(());
+            return Ok(true);
         }
         if let Some(cannonical_lifetime) = &cannonical_lifetime {
             if let Some(permission) = self
@@ -109,15 +104,50 @@ impl DeadLifetimeTokens {
                     )
                     .set_default_position(position),
                 )?;
-                return Ok(());
+                return Ok(true);
             }
         }
-        for eq in constraints.get_equal_lifetimes(&lifetime)? {
-            error!("  {eq} == {lifetime}");
+        Ok(false)
+    }
+
+    pub(super) fn exhale(
+        &mut self,
+        mut predicate: vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+        constraints: &mut BlockConstraints,
+        block_builder: &mut BlockBuilder,
+    ) -> SpannedEncodingResult<()> {
+        assert_eq!(predicate.arguments.len(), 1);
+        let Some(vir_low::Expression::Local(local)) = predicate.arguments.pop() else {
+            unimplemented!("TODO: A proper error message.");
+        };
+        let lifetime = local.variable.name;
+        if !self.exhale_attempt(&lifetime, position, constraints, block_builder)? {
+            self.spread_permission_over_eclasses(constraints)?;
+            if !self.exhale_attempt(&lifetime, position, constraints, block_builder)? {
+                for eq in constraints.get_equal_lifetimes(&lifetime)? {
+                    error!("  {eq} == {lifetime}");
+                }
+                for dead_lifetime in &self.dead_lifetime_tokens {
+                    for dependent_lifetime in
+                        constraints.get_dependent_lifetimes_for(&dead_lifetime)?
+                    {
+                        error!("  dead lifetime {dead_lifetime}: {dependent_lifetime}");
+                    }
+                }
+                for (potentially_dead_lifetime, _) in
+                    &self.potentially_dead_lifetime_token_permissions
+                {
+                    for dependent_lifetime in constraints.get_dependent_lifetimes_for(&lifetime)? {
+                        error!(
+                            "  potentially dead lifetime {potentially_dead_lifetime}: {dependent_lifetime}"
+                        );
+                    }
+                }
+                unimplemented!("TODO: this should be unreachable: {lifetime}\n{self}");
+            }
         }
-        unimplemented!(
-            "TODO: this should be unreachable: {lifetime} → {cannonical_lifetime:?}\n{self}"
-        );
+        Ok(())
     }
 
     /// This function spreads the permission over known e-classes of lifetimes
