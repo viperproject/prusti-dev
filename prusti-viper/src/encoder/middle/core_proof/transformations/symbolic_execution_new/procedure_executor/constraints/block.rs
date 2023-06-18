@@ -164,6 +164,20 @@ impl BlockConstraints {
         Ok(dependent_lifetimes)
     }
 
+    pub(in super::super) fn get_latest_lifetime_version(
+        &self,
+        lifetime_name: &str,
+        mut current_version: u32,
+    ) -> SpannedEncodingResult<u32> {
+        while let Some(version) = self
+            .lifetime_version_updates
+            .get(&(lifetime_name.to_string(), current_version))
+        {
+            current_version = *version;
+        }
+        Ok(current_version)
+    }
+
     pub(in super::super) fn merge(
         &mut self,
         other: &Self,

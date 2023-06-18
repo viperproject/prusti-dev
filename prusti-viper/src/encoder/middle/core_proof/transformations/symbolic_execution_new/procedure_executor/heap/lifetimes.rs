@@ -137,6 +137,8 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
             .tokens
             .remove(&lifetime.name)
             .unwrap_or_else(|| panic!("Missing lifetime token for lifetime: {}", lifetime.name));
+        token.latest_variable_version = constraints
+            .get_latest_lifetime_version(&lifetime.name, token.latest_variable_version)?;
         assert_eq!(
             token.latest_variable_version, lifetime.version,
             "lifetime: {}",
