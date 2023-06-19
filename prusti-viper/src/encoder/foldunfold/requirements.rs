@@ -214,6 +214,10 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
                 base.get_required_stmt_permissions(predicates)
             }
 
+            &vir::Stmt::LeakCheck(..) => {
+                FxHashSet::default()
+            }
+
             ref x => unimplemented!("{}", x),
         }
     }

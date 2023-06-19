@@ -514,6 +514,8 @@ impl ApplyOnState for vir::Stmt {
                 }
             }
 
+            &vir::Stmt::LeakCheck(..) => {}
+
             ref x => unimplemented!("{}", x),
         }
         Ok(())

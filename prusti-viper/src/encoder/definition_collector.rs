@@ -115,21 +115,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let leak_checked_methods = methods
             .into_iter()
             .map(|mut method| -> SpannedEncodingResult<vir::CfgMethod> {
-                let ret_index = method.basic_blocks_labels
-                    .iter()
-                    .position(|label| label == "return");
-                if ret_index.is_none() {
-                    return Err(SpannedEncodingError::internal("encoded method does not contain a `return` label; cannot add leak checks", self.error_span));
-                }
-                let ret_index = method.block_index(ret_index.unwrap());
-                for identifier in &self.used_obligations {
-                    let leak_check = self.encoder.get_obligation_leak_check(identifier)?;
-                    let leak_check = (*leak_check).clone();
-                    method.add_stmt(
-                        ret_index,
-                        leak_check
-                    );
-                }
+                method = method.patch_statements(|stmt| -> SpannedEncodingResult::<_> {
+                    match stmt {
+                        vir::Stmt::LeakCheck(vir::LeakCheck { scope_id }) => {
+                            let mut check_body = vir::Expr::Const(vir::ConstExpr { value: vir::Const::Bool(true), position: vir::Position::default() });
+                            for identifier in &self.used_obligations {
+                                let current_check = self.encoder.get_obligation_leak_check(identifier, scope_id)?;
+                                check_body = vir::Expr::BinOp(vir::BinOp {
+                                    op_kind: vir::BinaryOpKind::And,
+                                    left: Box::new(check_body),
+                                    right: Box::new(current_check),
+                                    position: vir::Position::default(),
+                                })
+                            }
+                            Ok(vir::Stmt::Assert(vir::Assert { expr: check_body, position: vir::Position::default() }))
+                        },
+                        _ => { Ok(stmt) }
+                    }
+                }).unwrap();
                 Ok(method)
             }).collect::<SpannedEncodingResult<Vec<_>>>()?;
         Ok(vir::Program {

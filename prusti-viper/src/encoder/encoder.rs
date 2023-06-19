@@ -71,7 +71,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
     obligations: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Predicate>>>,
-    obligation_checks: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Stmt>>>,
+    obligation_checks: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::ForPerm>>>,
     builtin_domains: RefCell<FxHashMap<BuiltinDomainKind, vir::Domain>>,
     builtin_domains_in_progress: RefCell<FxHashSet<BuiltinDomainKind>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -350,7 +350,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let mut args = vec![vir::LocalVar::new("scope_id", vir::Type::Int)];
             let mut check_args = vec![];
             let mut concrete_args = vec![vir::Expr::Const(vir::ConstExpr {
-                value: vir::Const::Int(-1),
+                value: vir::Const::Int(-2),
                 position: vir::Position::default(),
             })];
             for local_idx in 1..sig.skip_binder().inputs().len() {
@@ -374,18 +374,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 args: concrete_args,
                 formal_arguments: args.clone(),
             };
-            let check = vir::Stmt::Assert(vir::Assert {
-                expr: vir::Expr::ForPerm(vir::ForPerm {
-                    variables: check_args,
-                    access: obligation_access,
-                    body: Box::new(vir::Expr::Const(vir::ConstExpr {
-                        value: vir::Const::Bool(false),
-                        position: vir::Position::default(),
-                    })),
+            let check = vir::ForPerm {
+                variables: check_args,
+                access: obligation_access,
+                body: Box::new(vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::Bool(false),
                     position: vir::Position::default(),
-                }),
+                })),
                 position: vir::Position::default(),
-            });
+            };
             self.obligation_checks.borrow_mut().insert(ident.clone()/*obligation_name.clone().into()*/, Rc::new(check));
         }
         Ok(())
@@ -401,11 +398,41 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub(super) fn get_obligation_leak_check(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Stmt>> {
+    pub(super) fn get_obligation_leak_check(&self, identifier: &vir::FunctionIdentifier, scope_id: isize) -> SpannedEncodingResult<vir::Expr> {
         self.ensure_obligation_encoded(identifier)?;
         if self.obligation_checks.borrow().contains_key(identifier) {
             let map = self.obligation_checks.borrow();
-            Ok(map[identifier].clone())
+            let check = map[identifier].clone();
+            Ok(match (*check).clone() {
+                vir::ForPerm {
+                    variables,
+                    access: vir::ObligationAccess {
+                        name,
+                        args,
+                        formal_arguments,
+                    },
+                    body,
+                    position,
+                } => vir::Expr::ForPerm(vir::ForPerm {
+                    variables,
+                    access: vir::ObligationAccess {
+                        name,
+                        args: args.into_iter().enumerate().map(|(i, a)| {
+                            if i == 0 {
+                                vir::Expr::Const(vir::ConstExpr {
+                                    value: vir::Const::Int(scope_id.try_into().unwrap()),
+                                    position: vir::Position::default(),
+                                })
+                            } else {
+                                a
+                            }
+                        }).collect(),
+                        formal_arguments,
+                    },
+                    body,
+                    position,
+                })
+            })
         } else {
             unreachable!("Not found obligation check: {:?}", identifier);
         }

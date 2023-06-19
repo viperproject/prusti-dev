@@ -1054,6 +1054,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.cfg_method.add_stmts(inv_post_block_perms, stmts);
         }
 
+        // TODO: also check for obligations in postconditions here
         let mid_groups = if preconds.is_empty() {
             // Encode the mid G group (start - G - B1 - invariant_perm - *G* - B1 - invariant_fnspec - B2 - G - B1 - end)
             let mid_g = self.encode_blocks_group(
@@ -1173,6 +1174,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &scope_ids,
             )?;
             self.cfg_method.add_stmts(end_body_block, stmts);
+            self.cfg_method.add_stmt(end_body_block, vir::Stmt::LeakCheck(vir::LeakCheck { scope_id: loop_head.index() as isize }));
         }
         self.cfg_method.add_stmt(
             end_body_block,
@@ -5172,6 +5174,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 position: func_pos,
             }),
         );
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::LeakCheck(vir::LeakCheck { scope_id: -1 }));
 
         // Assert type invariants
         self.cfg_method.add_stmt(

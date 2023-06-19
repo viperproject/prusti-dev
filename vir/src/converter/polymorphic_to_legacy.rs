@@ -756,7 +756,10 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
             ),
             polymorphic::Stmt::Downcast(downcast) => {
                 legacy::Stmt::Downcast(downcast.base.into(), downcast.field.into())
-            }
+            },
+            polymorphic::Stmt::LeakCheck(_) => {
+                panic!("all leak check markers needs to removed before convering polymorphic VIR to legacy!");
+            },
         }
     }
 }
