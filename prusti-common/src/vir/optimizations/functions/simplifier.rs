@@ -195,17 +195,17 @@ impl ExprSimplifier {
                 variables: vars,
                 triggers: trigs,
                 body:
-                    box ast::Expr::BinOp(ast::BinOp {
+                    Box::new(ast::Expr::BinOp(ast::BinOp {
                         op_kind: ast::BinaryOpKind::Implies,
-                        left: box ast::Expr::BinOp(ast::BinOp {
+                        left: Box::new(ast::Expr::BinOp(ast::BinOp {
                             op_kind: ast::BinaryOpKind::And,
-                            left: box c0,
-                            right: box c1,
+                            left: Box::new(c0),
+                            right: Box::new(c1),
                             position: pos1 // TODO: not great
-                        }),
-                        right: box ex,
+                        })),
+                        right: Box::new(ex),
                         position: pos0 // TODO: not great
-                    }),
+                    })),
                 position: pos_quant
             })),
             // same comment as above
@@ -227,28 +227,28 @@ impl ExprSimplifier {
                 position: pos_quant
             }) => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
-                left: box Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
+                left: Box::new(Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
                     variables: vars.clone(),
                     triggers: trigs.clone(),
-                    body: box ast::Expr::BinOp(ast::BinOp {
+                    body: Box::new(ast::Expr::BinOp(ast::BinOp {
                         op_kind: ast::BinaryOpKind::Implies,
-                        left: box cond.clone(),
-                        right: box part0,
+                        left: Box::new(cond.clone()),
+                        right: Box::new(part0),
                         position: pos_quant, // TODO: not great?
-                    }),
+                    })),
                     position: pos_quant,
-                })),
-                right: box Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
+                }))),
+                right: Box::new(Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
                     variables: vars,
                     triggers: trigs,
-                    body: box ast::Expr::BinOp(ast::BinOp {
+                    body: Box::new(ast::Expr::BinOp(ast::BinOp {
                         op_kind: ast::BinaryOpKind::Implies,
-                        left: box cond,
-                        right: box part1,
+                        left: Box::new(cond),
+                        right: Box::new(part1),
                         position: pos_quant, // TODO: not great?
-                    }),
+                    })),
                     position: pos_quant, // TODO: not great?
-                })),
+                }))),
                 position: pos_quant, // TODO: not great?
             }),
             r => r,

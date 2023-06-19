@@ -505,7 +505,7 @@ impl Expr {
 
     pub fn resource_access_predicate<S: ToString>(name: S, amount: Expr, scope_id: isize) -> Self {
         let pos = amount.pos();
-        Expr::ResourceAccessPredicate(name.to_string(), box amount, scope_id, pos)
+        Expr::ResourceAccessPredicate(name.to_string(), Box::new(amount), scope_id, pos)
     }
 
     pub fn field_access_predicate(place: Expr, perm: PermAmount) -> Self {

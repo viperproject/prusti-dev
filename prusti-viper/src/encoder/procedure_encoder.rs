@@ -2585,19 +2585,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (stmts, MirSuccessor::Goto(real_target))
             }
 
-            TerminatorKind::DropAndReplace {
-                target,
-                place: lhs,
-                ref value,
-                ..
-            } => {
-                let (encoded_lhs, pre_stmts, _, _) =
-                    self.encode_place(lhs, ArrayAccessKind::Mutable(None, location), location)?;
-                stmts.extend(pre_stmts);
-                stmts.extend(self.encode_assign_operand(&encoded_lhs, value, location)?);
-                (stmts, MirSuccessor::Goto(target))
-            }
-
             TerminatorKind::Call {
                 ref args,
                 destination,
