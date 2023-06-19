@@ -14,6 +14,7 @@ mod block;
 mod merge_report;
 mod equality_manager;
 mod consistency_tracker;
+mod validity_tracker;
 mod visited_blocks;
 
 pub(super) use self::{block::BlockConstraints, merge_report::ConstraintsMergeReport};
@@ -82,7 +83,16 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 _ if expression.is_false() && value => {
                     self.assume_false()?;
                 }
-                _ => {}
+                _ => {
+                    let current_block = self.current_block.as_ref().unwrap();
+                    let current_constraints =
+                        &mut self.state_keeper.get_state_mut(current_block).constraints;
+                    current_constraints.try_assume_valid(
+                        &mut self.expression_interner,
+                        expression,
+                        value,
+                    )?;
+                }
             }
         }
         Ok(())
@@ -103,15 +113,23 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let expression_id = self
             .expression_interner
             .intern_bool_expression(expression)?;
-        let current_constraints = self.current_block_constraints_mut();
-        current_constraints.assume(expression, expression_id, value)?;
+        let current_block = self.current_block.as_ref().unwrap();
+        let current_constraints = &mut self.state_keeper.get_state_mut(current_block).constraints;
+        // let current_constraints = self.current_block_constraints_mut();
+        current_constraints.assume(
+            &mut self.expression_interner,
+            expression,
+            expression_id,
+            value,
+        )?;
         if !current_constraints.is_inconsistent()? {
             let current_constraints = self.current_block_constraints();
-            let result = self.check_inconsistencies_with_visited_blocks(
-                current_constraints.get_visited_blocks(),
-                expression_id,
-                value,
-            )?;
+            let result: Option<(BTreeSet<vir_low::Label>, BTreeSet<vir_low::Label>)> = self
+                .check_inconsistencies_with_visited_blocks(
+                    current_constraints.get_visited_blocks(),
+                    expression_id,
+                    value,
+                )?;
             if let Some((new_visited_blocks, new_dominators)) = result {
                 let mut equalities = BTreeMap::new();
                 for new_dominator in new_dominators {

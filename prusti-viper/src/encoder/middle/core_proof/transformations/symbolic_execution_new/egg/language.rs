@@ -5,6 +5,7 @@ define_language! {
         "true" = True,
         "false" = False,
         "NON_ALIASED_ADDRESS" = NonAliasedAddress,
+        "VALID_EXPRESSION" = ValidExpression,
         "==" = EqCmp([Id; 2]),
         "!=" = NeCmp([Id; 2]),
         ">" = GtCmp([Id; 2]),

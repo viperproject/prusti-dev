@@ -88,12 +88,12 @@ impl EqualityState {
         Ok(self.equalities_in_block.clone())
     }
 
-    pub(super) fn is_non_aliased_address(
-        &mut self,
-        address: &vir_low::Expression,
-    ) -> SpannedEncodingResult<bool> {
-        self.egraph.is_non_aliased_address(address)
-    }
+    // pub(super) fn is_non_aliased_address(
+    //     &mut self,
+    //     address: &vir_low::Expression,
+    // ) -> SpannedEncodingResult<bool> {
+    //     self.egraph.is_non_aliased_address(address)
+    // }
 
     pub(super) fn assume_equal(
         &mut self,
@@ -120,6 +120,21 @@ impl EqualityState {
         right: &vir_low::Expression,
     ) -> SpannedEncodingResult<bool> {
         self.egraph.is_equal(left, right)
+    }
+
+    pub(super) fn assume_expression_valid(
+        &mut self,
+        _expression_interner: &mut ExpressionInterner,
+        expression: &vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
+        self.egraph.assume_expression_valid(expression)
+    }
+
+    pub(super) fn is_expression_valid(
+        &mut self,
+        expression: &vir_low::Expression,
+    ) -> SpannedEncodingResult<bool> {
+        self.egraph.is_expression_valid(expression)
     }
 
     pub(super) fn resolve_constant(

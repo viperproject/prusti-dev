@@ -147,6 +147,23 @@ impl ExpressionEGraph {
         Ok(())
     }
 
+    pub(in super::super) fn assume_expression_valid(
+        &mut self,
+        expression: &vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
+        let expression_id = self.intern(expression)?;
+        self.egraph.assume_expression_valid(expression_id)?;
+        Ok(())
+    }
+
+    pub(in super::super) fn is_expression_valid(
+        &mut self,
+        expression: &vir_low::Expression,
+    ) -> SpannedEncodingResult<bool> {
+        let expression_id = self.intern(expression)?;
+        self.egraph.is_expression_valid(expression_id)
+    }
+
     pub(in super::super) fn is_equal(
         &mut self,
         left: &vir_low::Expression,
@@ -158,22 +175,22 @@ impl ExpressionEGraph {
         self.egraph.is_equal(left_id, right_id)
     }
 
-    pub(in super::super) fn is_non_aliased_address(
-        &mut self,
-        address: &vir_low::Expression,
-    ) -> SpannedEncodingResult<bool> {
-        let address_id = self.intern(address)?;
-        if self
-            .egraph
-            .is_equal(address_id, self.egraph.non_aliased_address_id)?
-        {
-            return Ok(true);
-        } else {
-            self.saturate_solver()?;
-            self.egraph
-                .is_equal(address_id, self.egraph.non_aliased_address_id)
-        }
-    }
+    // pub(in super::super) fn is_non_aliased_address(
+    //     &mut self,
+    //     address: &vir_low::Expression,
+    // ) -> SpannedEncodingResult<bool> {
+    //     let address_id = self.intern(address)?;
+    //     if self
+    //         .egraph
+    //         .is_equal(address_id, self.egraph.non_aliased_address_id)?
+    //     {
+    //         return Ok(true);
+    //     } else {
+    //         self.saturate_solver()?;
+    //         self.egraph
+    //             .is_equal(address_id, self.egraph.non_aliased_address_id)
+    //     }
+    // }
 
     pub(in super::super) fn resolve_constant(
         &mut self,

@@ -219,6 +219,10 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
         self.domain_functions[destructor_name]
     }
 
+    pub(super) fn is_constant_constructor(&self, function_name: &str) -> bool {
+        self.constant_constructor_names.contains(function_name)
+    }
+
     pub(super) fn get_constant_constructor_names(&self) -> &FxHashSet<String> {
         &self.constant_constructor_names
     }

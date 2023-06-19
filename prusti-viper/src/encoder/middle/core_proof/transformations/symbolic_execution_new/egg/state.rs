@@ -18,6 +18,7 @@ pub(in super::super) struct EGraphState {
     pub(super) false_id: Id,
     pub(super) true_id: Id,
     pub(super) non_aliased_address_id: Id,
+    pub(super) valid_expression_id: Id,
 }
 
 impl EGraphState {
@@ -30,6 +31,7 @@ impl EGraphState {
         let true_id = egraph.add(ExpressionLanguage::True);
         let false_id = egraph.add(ExpressionLanguage::False);
         let non_aliased_address_id = egraph.add(ExpressionLanguage::NonAliasedAddress);
+        let valid_expression_id = egraph.add(ExpressionLanguage::ValidExpression);
         let mut simplification_rules = Vec::new();
         for domain in domains {
             for rule in &domain.rewrite_rules {
@@ -84,13 +86,14 @@ impl EGraphState {
             true_id,
             false_id,
             non_aliased_address_id,
+            valid_expression_id,
         })
     }
 
-    pub(in super::super) fn merge_in(&mut self, other: &EGraphState) -> SpannedEncodingResult<()> {
-        self.egraph.egraph_union(&other.egraph);
-        Ok(())
-    }
+    // pub(in super::super) fn merge_in(&mut self, other: &EGraphState) -> SpannedEncodingResult<()> {
+    //     self.egraph.egraph_union(&other.egraph);
+    //     Ok(())
+    // }
 
     pub(in super::super) fn intersect_with(
         &mut self,
@@ -217,5 +220,20 @@ impl EGraphState {
     ) -> SpannedEncodingResult<Option<Id>> {
         self.egraph
             .try_intern_term(term, self.true_id, self.false_id)
+    }
+
+    pub(in super::super) fn assume_expression_valid(
+        &mut self,
+        expression_id: Id,
+    ) -> SpannedEncodingResult<()> {
+        self.egraph.union(expression_id, self.valid_expression_id);
+        Ok(())
+    }
+
+    pub(in super::super) fn is_expression_valid(
+        &mut self,
+        expression_id: Id,
+    ) -> SpannedEncodingResult<bool> {
+        Ok(self.egraph.find(expression_id) == self.egraph.find(self.valid_expression_id))
     }
 }
