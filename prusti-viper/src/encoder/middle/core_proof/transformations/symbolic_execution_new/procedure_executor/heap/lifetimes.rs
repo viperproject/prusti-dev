@@ -133,34 +133,44 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
             unimplemented!("TODO: A proper error message.");
         };
         let lifetime: LifetimeVariable = local.variable.name.clone().into();
-        let mut token = self
-            .tokens
-            .remove(&lifetime.name)
-            .unwrap_or_else(|| panic!("Missing lifetime token for lifetime: {}", lifetime.name));
-        token.latest_variable_version = constraints
-            .get_latest_lifetime_version(&lifetime.name, token.latest_variable_version)?;
-        assert_eq!(
-            token.latest_variable_version, lifetime.version,
-            "lifetime: {}",
-            lifetime.name
-        );
-        token.permission_amount = vir_low::Expression::perm_binary_op(
-            vir_low::PermBinaryOpKind::Sub,
-            token.permission_amount,
-            *predicate.permission,
-            position,
-        );
-        token.permission_amount = token.permission_amount.simplify_perm();
-        if !token.permission_amount.is_no_permission() {
-            let permission_amount_is_non_negative = vir_low::Statement::assert(
-                vir_low::Expression::greater_equals(
-                    token.permission_amount.clone(),
-                    vir_low::Expression::no_permission(),
-                ),
+        if let Some(mut token) = self.tokens.remove(&lifetime.name) {
+            token.latest_variable_version = constraints
+                .get_latest_lifetime_version(&lifetime.name, token.latest_variable_version)?;
+            assert_eq!(
+                token.latest_variable_version, lifetime.version,
+                "lifetime: {}",
+                lifetime.name
+            );
+            token.permission_amount = vir_low::Expression::perm_binary_op(
+                vir_low::PermBinaryOpKind::Sub,
+                token.permission_amount,
+                *predicate.permission,
                 position,
             );
-            block_builder.add_statement(permission_amount_is_non_negative)?;
-            self.tokens.insert(lifetime.name.clone(), token);
+            token.permission_amount = token.permission_amount.simplify_perm();
+            if !token.permission_amount.is_no_permission() {
+                let permission_amount_is_non_negative = vir_low::Statement::assert(
+                    vir_low::Expression::greater_equals(
+                        token.permission_amount.clone(),
+                        vir_low::Expression::no_permission(),
+                    ),
+                    position,
+                );
+                block_builder.add_statement(permission_amount_is_non_negative)?;
+                self.tokens.insert(lifetime.name.clone(), token);
+            }
+        } else if config::panic_on_failed_exhale() {
+            panic!("failed to exhale: {predicate}\n{self}");
+        } else {
+            // This can happen if code panics when a reference is not
+            // closed. Either this is a bug or this trace is unreachable.
+            // Emit assert false.
+            block_builder.add_statement(vir_low::Statement::comment(format!(
+                "Did not find the predicate instance: {predicate} {lifetime} at {position}"
+            )))?;
+            block_builder.add_statement(
+                vir_low::Statement::assert_no_pos(false.into()).set_default_position(position),
+            )?;
         }
         // let latest_version = self
         //     .latest_variable_versions
