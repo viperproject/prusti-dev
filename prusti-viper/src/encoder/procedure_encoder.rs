@@ -4,85 +4,88 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::{
-    counterexamples::DiscriminantsStateInterface, high::generics::HighGenericsEncoderInterface,
+use crate::encoder::mir::spans::interface::SpanInterface;
+use crate::encoder::builtin_encoder::{BuiltinMethodKind};
+use crate::encoder::errors::{
+    SpannedEncodingError, ErrorCtxt, EncodingError, WithSpan,
+    EncodingResult, SpannedEncodingResult
 };
-use crate::{
-    encoder::{
-        builtin_encoder::BuiltinMethodKind,
-        errors::{
-            error_manager::PanicCause, EncodingError, EncodingErrorKind, EncodingResult, ErrorCtxt,
-            SpannedEncodingError, SpannedEncodingResult, WithSpan,
-        },
-        foldunfold,
-        high::types::HighTypeEncoderInterface,
-        initialisation::InitInfo,
-        loop_encoder::{LoopEncoder, LoopEncoderError},
-        mir::{
-            contracts::{ContractsEncoderInterface, ProcedureContract},
-            procedures::encoder::specification_blocks::SpecificationBlocks,
-            pure::{PureFunctionEncoderInterface, SpecificationEncoderInterface},
-            sequences::MirSequencesEncoderInterface,
-            spans::interface::SpanInterface,
-            specifications::SpecificationsInterface,
-            type_invariants::TypeInvariantEncoderInterface,
-            types::MirTypeEncoderInterface,
-        },
-        mir_encoder::{
-            ExprOrArrayBase, FakeMirEncoder, MirEncoder, PlaceEncoder, PlaceEncoding,
-            PRECONDITION_LABEL,
-        },
-        mir_successor::MirSuccessor,
-        places::{Local, LocalVariableManager, Place},
-        resources,
-        resources::interface::ResourcesEncoderInterface,
-        snapshot::interface::SnapshotEncoderInterface,
-        Encoder,
-    },
-    error_unsupported,
-    utils::is_reference,
-};
-use ::log::{debug, trace};
+use crate::encoder::errors::error_manager::PanicCause;
+use crate::encoder::foldunfold;
+use crate::encoder::high::types::HighTypeEncoderInterface;
+use crate::encoder::initialisation::InitInfo;
+use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
+use crate::encoder::mir_encoder::{MirEncoder, FakeMirEncoder, PlaceEncoder, PlaceEncoding, ExprOrArrayBase};
+use crate::encoder::mir_encoder::PRECONDITION_LABEL;
+use crate::encoder::mir_successor::MirSuccessor;
+use crate::encoder::places::{Local, LocalVariableManager, Place};
+use crate::encoder::Encoder;
+use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
+use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
+use crate::encoder::resources;
+use crate::encoder::resources::interface::ResourcesEncoderInterface;
+use crate::error_unsupported;
 use prusti_common::{
     config,
     utils::to_string::ToString,
-    vir::{fixes::fix_ghost_vars, ToGraphViz},
-    vir_expr, vir_local, vir_stmt,
+    vir::{ToGraphViz, fixes::fix_ghost_vars},
+    vir_local, vir_expr, vir_stmt
+};
+use vir_crate::{
+    polymorphic::{
+        self as vir,
+        compute_identifier,
+        borrows::Borrow,
+        collect_assigned_vars,
+        CfgBlockIndex, ExprIterator, Successor, Type},
 };
 use prusti_interface::{
     data::ProcedureDefId,
     environment::{
-        borrowck::{facts, regions::PlaceRegionsError},
-        mir_utils::SliceOrArrayRef,
+        borrowck::facts,
         polonius_info::{
             LoanPlaces, PoloniusInfo, PoloniusInfoError, ReborrowingDAG, ReborrowingDAGNode,
             ReborrowingKind, ReborrowingZombity,
         },
         BasicBlockIndex, LoopAnalysisError, PermissionKind, Procedure,
     },
-    specs::{
-        typed,
-        typed::{Pledge, SpecificationItem},
-    },
-    utils, PrustiError,
+    PrustiError,
 };
-use prusti_rustc_interface::{
-    errors::MultiSpan,
-    middle::{
-        mir,
-        mir::{Mutability, TerminatorKind},
-        ty::{self, subst::SubstsRef},
-    },
-    span::Span,
-    target::abi::Integer,
-};
-use rustc_hash::{FxHashMap, FxHashSet};
-use std::{collections::BTreeMap, convert::TryInto, iter::once};
+use std::collections::{BTreeMap};
 use std::fmt::Debug;
-use vir_crate::polymorphic::{
-    self as vir, borrows::Borrow, collect_assigned_vars, compute_identifier, CfgBlockIndex,
-    ExprIterator, Float, Successor, Type,
+use std::iter::once;
+use prusti_interface::utils;
+use prusti_rustc_interface::middle::mir::Mutability;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::mir::{TerminatorKind};
+use prusti_rustc_interface::middle::ty::{self, subst::SubstsRef};
+use prusti_rustc_interface::target::abi::Integer;
+use rustc_hash::{FxHashMap, FxHashSet};
+use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::errors::MultiSpan;
+use prusti_interface::specs::typed;
+use ::log::{trace, debug};
+use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
+use crate::encoder::errors::EncodingErrorKind;
+use std::convert::TryInto;
+use prusti_interface::specs::typed::{Pledge, SpecificationItem};
+use vir_crate::polymorphic::Float;
+use crate::utils::is_reference;
+use crate::encoder::mir::{
+    sequences::MirSequencesEncoderInterface,
+    contracts::{
+        ContractsEncoderInterface,
+        ProcedureContract,
+    },
+    pure::PureFunctionEncoderInterface,
+    types::MirTypeEncoderInterface,
+    pure::SpecificationEncoderInterface,
+    specifications::SpecificationsInterface,
+    type_invariants::TypeInvariantEncoderInterface,
 };
+use super::high::generics::HighGenericsEncoderInterface;
+use super::counterexamples::DiscriminantsStateInterface;
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
