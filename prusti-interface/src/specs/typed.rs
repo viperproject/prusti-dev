@@ -322,7 +322,10 @@ impl ProcedureSpecificationKind {
 
 #[derive(Debug, Clone)]
 pub enum LoopSpecification {
-    Invariant(LocalDefId),
+    Invariant {
+        def_id: LocalDefId,
+        is_structural: bool,
+    },
     Variant(LocalDefId),
 }
 

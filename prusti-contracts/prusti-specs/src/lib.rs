@@ -597,6 +597,10 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_loop_invariant, tokens)
 }
 
+pub fn structural_body_invariant(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_structural_loop_invariant, tokens)
+}
+
 pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens)
 }

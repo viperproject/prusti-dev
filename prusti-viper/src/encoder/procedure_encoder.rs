@@ -5320,7 +5320,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             cl_substs,
                         )?);
                         let invariant = match spec {
-                            prusti_interface::specs::typed::LoopSpecification::Invariant(inv) => inv,
+                            // Poly does not distinguish between structural and
+                            // non-structural loop invariants.
+                            prusti_interface::specs::typed::LoopSpecification::Invariant{ def_id: inv, ..} => inv,
                             _ => continue,
                         };
                         encoded_spec_spans.push(self.encoder.env().tcx().def_span(invariant));

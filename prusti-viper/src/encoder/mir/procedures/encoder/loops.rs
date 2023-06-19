@@ -37,7 +37,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 {
                     let specification = self.encoder.get_loop_specs(cl_def_id).unwrap();
                     let (spec, encoding_vec, err_ctxt) = match specification {
-                        LoopSpecification::Invariant(inv) => {
+                        LoopSpecification::Invariant {
+                            def_id: inv,
+                            is_structural,
+                        } => {
+                            if !self.check_mode.check_specifications() && !is_structural {
+                                // Skip non-structural invariants in non-specification mode.
+                                continue;
+                            }
                             (inv, &mut encoded_invariant_specs, ErrorCtxt::LoopInvariant)
                         }
                         LoopSpecification::Variant(var) => {
