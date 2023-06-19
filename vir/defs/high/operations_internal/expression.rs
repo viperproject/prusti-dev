@@ -47,7 +47,7 @@ impl BinaryOpKind {
 impl Expression {
     /// Only defined for places.
     pub fn get_base(&self) -> VariableDecl {
-        debug_assert!(self.is_place());
+        debug_assert!(self.is_place(), "{self} is not a place");
         match self {
             Expression::Local(Local { variable, .. }) => variable.clone(),
             Expression::LabelledOld(LabelledOld { base, .. }) => base.get_base(),
@@ -592,8 +592,8 @@ impl Expression {
                 // (1) skip replacements where `src` uses a quantified variable;
                 // (2) rename with a fresh name the quantified variables that conflict with `dst`.
                 for (src, dst) in self.replacements.iter() {
-                    if quantifier.variables.contains(&src.get_base())
-                        || quantifier.variables.contains(&dst.get_base())
+                    if src.any_variable(|variable| quantifier.variables.contains(&variable))
+                        || dst.any_variable(|variable| quantifier.variables.contains(&variable))
                     {
                         unimplemented!(
                             "replace_multiple_places doesn't handle replacements that conflict \
@@ -1300,5 +1300,34 @@ impl Expression {
         };
         collector.walk_expression(self);
         collector.deref_places
+    }
+
+    pub fn any_variable<F>(&self, predicate: F) -> bool
+    where
+        F: Fn(&VariableDecl) -> bool,
+    {
+        struct Collector<F>
+        where
+            F: Fn(&VariableDecl) -> bool,
+        {
+            predicate: F,
+            found: bool,
+        }
+        impl<'a, F> ExpressionWalker for Collector<F>
+        where
+            F: Fn(&VariableDecl) -> bool,
+        {
+            fn walk_variable_decl(&mut self, variable: &VariableDecl) {
+                if (self.predicate)(variable) {
+                    self.found = true;
+                }
+            }
+        }
+        let mut collector = Collector {
+            predicate,
+            found: false,
+        };
+        collector.walk_expression(self);
+        collector.found
     }
 }
