@@ -170,6 +170,12 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                 program =
                     super::transformations::clean_labels::clean_labels(&source_filename, program);
             }
+            if config::merge_consequative_statements() {
+                program = super::transformations::merge_statements::merge_statements(
+                    &source_filename,
+                    program,
+                );
+            }
             self.mid_core_proof_encoder_state
                 .encoded_programs
                 .push((Some(proc_def_id), program));

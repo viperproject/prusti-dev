@@ -10,6 +10,7 @@ pub(super) mod symbolic_execution_new;
 pub(super) mod clean_old;
 pub(super) mod clean_labels;
 pub(super) mod clean_variables;
+pub(super) mod merge_statements;
 pub(super) mod desugar_implications;
 pub(super) mod expand_quantifiers;
 pub(super) mod encoder_context;

@@ -69,7 +69,6 @@ impl ValidityTracker {
     ) -> SpannedEncodingResult<()> {
         debug_assert!(expression.is_heap_independent());
         let expression_id = expression_interner.intern_snapshot_expression(expression)?;
-        eprintln!("Assuming {expression_id:?} is valid: {expression}");
         self.valid_expressions.insert(expression_id);
         Ok(())
     }
