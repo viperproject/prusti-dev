@@ -646,7 +646,7 @@ impl SMTTranslatable for IntBinaryOpKind {
             BinaryOpKind::Add => "+",
             BinaryOpKind::Sub => "-",
             BinaryOpKind::Mul => "*",
-            BinaryOpKind::Div => "/",
+            BinaryOpKind::Div => "div",
             BinaryOpKind::Mod => "mod",
             BinaryOpKind::And => "and",
             BinaryOpKind::Or => "or",

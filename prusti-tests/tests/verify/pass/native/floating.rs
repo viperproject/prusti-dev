@@ -86,7 +86,7 @@ fn test_neg_inf_64_is_nan() {
     assert!(!is_nan_64(a));
 }
 
-// THEORY OF INIFINITY
+// THEORY OF INFINITY
 
 #[requires(is_nan_32(f))]
 #[ensures(!is_infinite_32(f))]
