@@ -251,6 +251,7 @@ pub fn get_loop_invariant<'tcx>(
 ) -> Option<(
     ProcedureDefId,
     prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
+    bool,
 )> {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (
@@ -258,13 +259,19 @@ pub fn get_loop_invariant<'tcx>(
             Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _),
         )) = &stmt.kind
         {
-            if is_spec_closure(env_query, *def_id)
-                && crate::utils::has_prusti_attr(
+            if is_spec_closure(env_query, *def_id) {
+                if crate::utils::has_prusti_attr(
                     env_query.get_attributes(def_id),
                     "loop_body_invariant_spec",
-                )
-            {
-                return Some((*def_id, substs));
+                ) {
+                    return Some((*def_id, substs, false));
+                }
+                if crate::utils::has_prusti_attr(
+                    env_query.get_attributes(def_id),
+                    "loop_structural_body_invariant_spec",
+                ) {
+                    return Some((*def_id, substs, true));
+                }
             }
         }
     }

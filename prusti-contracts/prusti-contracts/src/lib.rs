@@ -63,6 +63,9 @@ pub use prusti_contracts_proc_macros::structural_invariant;
 /// A macro for writing a loop body invariant.
 pub use prusti_contracts_proc_macros::body_invariant;
 
+/// A macro for writing a structural loop body invariant.
+pub use prusti_contracts_proc_macros::structural_body_invariant;
+
 /// A macro for writing assertions using the full prusti specifications
 pub use prusti_contracts_proc_macros::prusti_assert;
 

@@ -122,6 +122,12 @@ pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn structural_body_invariant(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn prusti_assert(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -542,6 +548,12 @@ pub fn no_panic_ensures_postcondition(attr: TokenStream, tokens: TokenStream) ->
 #[proc_macro]
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     prusti_specs::body_invariant(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn structural_body_invariant(tokens: TokenStream) -> TokenStream {
+    prusti_specs::structural_body_invariant(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]
