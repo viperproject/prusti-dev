@@ -8,6 +8,7 @@ pub(super) mod desugar_conditionals;
 pub(super) mod symbolic_execution;
 pub(super) mod symbolic_execution_new;
 pub(super) mod clean_old;
+pub(super) mod clean_labels;
 pub(super) mod clean_variables;
 pub(super) mod desugar_implications;
 pub(super) mod expand_quantifiers;

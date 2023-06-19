@@ -57,7 +57,6 @@ impl ExpressionInterner {
         } else {
             let id = self.snapshot_expression_ids.len() as u64;
             let expression_id = ExpressionId(id);
-            eprintln!("Interning: {expression} → {expression_id:?}");
             self.snapshot_expression_ids
                 .insert(expression, expression_id);
             Ok(expression_id)
@@ -69,16 +68,10 @@ impl ExpressionInterner {
         expression: &vir_low::Expression,
     ) -> SpannedEncodingResult<Option<ExpressionId>> {
         if !expression.is_heap_independent() {
-            eprintln!("heap dependent: {expression}");
             return Ok(None);
         }
         let expression = expression.clone().remove_unnecessary_old();
         let id = self.snapshot_expression_ids.get(&expression).copied();
-        eprintln!(
-            "expression: {expression}; ids: {:?}; id: {:?}",
-            0, //self.snapshot_expression_ids.iter(),
-            id
-        );
         Ok(id)
     }
 }
