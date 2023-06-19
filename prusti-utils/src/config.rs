@@ -128,7 +128,7 @@ lazy_static::lazy_static! {
         settings.set_default("symbolic_execution_single_method", true).unwrap();
         settings.set_default("symbolic_execution_multiple_methods_max", 100).unwrap();
         settings.set_default("symbolic_execution_leak_check", true).unwrap();
-        settings.set_default("symbolic_execution_simp_valid_expr", true).unwrap();
+        settings.set_default("symbolic_execution_simp_valid_expr", false).unwrap();
         settings.set_default("panic_on_failed_exhale", false).unwrap();
         settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
         settings.set_default("end_borrow_view_shift_non_aliased", true).unwrap();
