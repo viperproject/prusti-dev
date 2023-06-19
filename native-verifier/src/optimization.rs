@@ -1,11 +1,35 @@
-use vir::low::{
-    expression::{visitors::ExpressionFolder, BinaryOp, MagicWand, UnaryOp},
-    Expression,
+use vir::{
+    common::position::Positioned,
+    low::{
+        expression::{visitors::ExpressionFolder, BinaryOp, Constant, MagicWand, UnaryOp},
+        Expression, Position,
+    },
 };
 
 use crate::fol::FolStatement;
 
 struct Optimizer {}
+
+fn constant_at(value: bool, position: Position) -> Expression {
+    vir::low::Expression::Constant(Constant {
+        value: value.into(),
+        ty: vir::low::Type::Bool,
+        position,
+    })
+}
+
+fn equal_to_const(value: &Expression, constant: bool) -> bool {
+    if let vir::low::Expression::Constant(Constant {
+        value: vir::low::ConstantValue::Bool(b),
+        ty: vir::low::Type::Bool,
+        ..
+    }) = value
+    {
+        *b == constant
+    } else {
+        false
+    }
+}
 
 impl ExpressionFolder for Optimizer {
     fn fold_binary_op_enum(&mut self, binary_op: BinaryOp) -> Expression {
@@ -15,85 +39,85 @@ impl ExpressionFolder for Optimizer {
         match binary_op.op_kind {
             vir::low::BinaryOpKind::EqCmp => {
                 if new_left == new_right {
-                    true.into()
+                    constant_at(true, binary_op.position)
                 } else {
                     vir::low::Expression::BinaryOp(BinaryOp {
-                        op_kind: vir::low::BinaryOpKind::EqCmp,
                         left: Box::new(new_left),
                         right: Box::new(new_right),
-                        position: binary_op.position,
+                        ..binary_op
                     })
                 }
             }
             vir::low::BinaryOpKind::NeCmp => {
                 if new_left == new_right {
-                    false.into()
+                    constant_at(false, binary_op.position)
                 } else {
                     vir::low::Expression::BinaryOp(BinaryOp {
-                        op_kind: vir::low::BinaryOpKind::NeCmp,
                         left: Box::new(new_left),
                         right: Box::new(new_right),
-                        position: binary_op.position,
+                        ..binary_op
                     })
                 }
             }
             vir::low::BinaryOpKind::And => {
-                if new_left == true.into() {
+                if equal_to_const(&new_left, true) {
                     new_right
-                } else if new_right == true.into() {
+                } else if equal_to_const(&new_right, true) {
                     new_left
-                } else if new_left == false.into() || new_right == false.into() {
-                    false.into()
+                } else if equal_to_const(&new_left, false) {
+                    constant_at(false, new_right.position())
+                } else if equal_to_const(&new_right, false) {
+                    constant_at(false, new_left.position())
                 } else {
                     vir::low::Expression::BinaryOp(BinaryOp {
-                        op_kind: vir::low::BinaryOpKind::And,
                         left: Box::new(new_left),
                         right: Box::new(new_right),
-                        position: binary_op.position,
+                        ..binary_op
                     })
                 }
             }
             vir::low::BinaryOpKind::Or => {
-                if new_left == true.into() || new_right == true.into() {
-                    true.into()
-                } else if new_left == false.into() {
+                if equal_to_const(&new_left, true) {
+                    constant_at(true, new_right.position())
+                } else if equal_to_const(&new_right, true) {
+                    constant_at(true, new_left.position())
+                } else if equal_to_const(&new_left, false) {
                     new_right
-                } else if new_right == false.into() {
+                } else if equal_to_const(&new_right, false) {
                     new_left
                 } else {
                     vir::low::Expression::BinaryOp(BinaryOp {
-                        op_kind: vir::low::BinaryOpKind::Or,
                         left: Box::new(new_left),
                         right: Box::new(new_right),
-                        position: binary_op.position,
+                        ..binary_op
                     })
                 }
             }
             vir::low::BinaryOpKind::Implies => {
-                if new_left == true.into() {
+                if equal_to_const(&new_left, true) {
                     new_right
-                } else if new_right == false.into() {
-                    vir::low::Expression::UnaryOp(UnaryOp {
+                } else if equal_to_const(&new_right, false) {
+                    self.fold_unary_op_enum(UnaryOp {
                         op_kind: vir::low::UnaryOpKind::Not,
+                        position: new_left.position(),
                         argument: Box::new(new_left),
-                        position: binary_op.position,
                     })
-                } else if new_left == false.into() || new_right == true.into() {
-                    true.into()
+                } else if equal_to_const(&new_left, false) {
+                    constant_at(true, new_right.position())
+                } else if equal_to_const(&new_right, true) {
+                    constant_at(true, new_left.position())
                 } else {
                     vir::low::Expression::BinaryOp(BinaryOp {
-                        op_kind: vir::low::BinaryOpKind::Implies,
                         left: Box::new(new_left),
                         right: Box::new(new_right),
-                        position: binary_op.position,
+                        ..binary_op
                     })
                 }
             }
-            typ => vir::low::Expression::BinaryOp(BinaryOp {
-                op_kind: typ,
+            _ => vir::low::Expression::BinaryOp(BinaryOp {
                 left: Box::new(new_left),
                 right: Box::new(new_right),
-                position: binary_op.position,
+                ..binary_op
             }),
         }
     }
@@ -103,10 +127,10 @@ impl ExpressionFolder for Optimizer {
 
         match unary_op.op_kind {
             vir::low::UnaryOpKind::Not => {
-                if new_argument == true.into() {
-                    false.into()
-                } else if new_argument == false.into() {
-                    true.into()
+                if equal_to_const(&new_argument, true) {
+                    constant_at(false, new_argument.position())
+                } else if equal_to_const(&new_argument, false) {
+                    constant_at(true, new_argument.position())
                 } else if let vir::low::Expression::UnaryOp(UnaryOp {
                     op_kind: vir::low::UnaryOpKind::Not,
                     argument,
@@ -116,16 +140,14 @@ impl ExpressionFolder for Optimizer {
                     *argument
                 } else {
                     vir::low::Expression::UnaryOp(UnaryOp {
-                        op_kind: vir::low::UnaryOpKind::Not,
                         argument: Box::new(new_argument),
-                        position: unary_op.position,
+                        ..unary_op
                     })
                 }
             }
-            typ => vir::low::Expression::UnaryOp(UnaryOp {
-                op_kind: typ,
+            _ => vir::low::Expression::UnaryOp(UnaryOp {
                 argument: Box::new(new_argument),
-                position: unary_op.position,
+                ..unary_op
             }),
         }
     }
@@ -136,14 +158,14 @@ impl ExpressionFolder for Optimizer {
     ) -> vir::low::Expression {
         if quantifier.triggers.is_empty() {
             let new_body = self.fold_expression(*quantifier.body);
-            if new_body == true.into()
+            if equal_to_const(&new_body, true)
                 && quantifier.kind == vir::low::expression::QuantifierKind::ForAll
             {
-                true.into()
-            } else if new_body == false.into()
+                constant_at(true, new_body.position())
+            } else if equal_to_const(&new_body, false)
                 && quantifier.kind == vir::low::expression::QuantifierKind::Exists
             {
-                false.into()
+                constant_at(false, new_body.position())
             } else {
                 vir::low::Expression::Quantifier(vir::low::expression::Quantifier {
                     body: Box::new(new_body),
@@ -160,16 +182,18 @@ impl ExpressionFolder for Optimizer {
         let new_left = self.fold_expression(*magic_wand.left);
         let new_right = self.fold_expression(*magic_wand.right);
 
-        if new_left == true.into() {
+        if equal_to_const(&new_left, true) {
             new_right
-        } else if new_right == false.into() {
-            vir::low::Expression::UnaryOp(UnaryOp {
+        } else if equal_to_const(&new_right, false) {
+            self.fold_unary_op_enum(UnaryOp {
                 op_kind: vir::low::UnaryOpKind::Not,
+                position: new_left.position(),
                 argument: Box::new(new_left),
-                position: magic_wand.position,
             })
-        } else if new_left == false.into() || new_right == true.into() {
-            true.into()
+        } else if equal_to_const(&new_left, false) {
+            constant_at(true, new_right.position())
+        } else if equal_to_const(&new_right, true) {
+            constant_at(true, new_left.position())
         } else {
             vir::low::Expression::MagicWand(MagicWand {
                 left: Box::new(new_left),
@@ -187,12 +211,20 @@ impl ExpressionFolder for Optimizer {
         let new_true = self.fold_expression(*conditional.then_expr);
         let new_false = self.fold_expression(*conditional.else_expr);
 
-        if new_cond == true.into() {
+        if equal_to_const(&new_cond, true) {
             new_true
-        } else if new_cond == false.into() {
+        } else if equal_to_const(&new_cond, false) {
             new_false
         } else if new_true == new_false {
             new_true
+        } else if equal_to_const(&new_true, true) && equal_to_const(&new_false, false) {
+            new_cond
+        } else if equal_to_const(&new_true, false) && equal_to_const(&new_false, true) {
+            self.fold_unary_op_enum(UnaryOp {
+                op_kind: vir::low::UnaryOpKind::Not,
+                position: new_cond.position(),
+                argument: Box::new(new_cond),
+            })
         } else {
             vir::low::Expression::Conditional(vir::low::expression::Conditional {
                 guard: Box::new(new_cond),
@@ -211,7 +243,7 @@ pub fn optimize_statements(statements: Vec<FolStatement>) -> Vec<FolStatement> {
             FolStatement::Assume(expr) => {
                 let mut optimizer = Optimizer {};
                 let expr = optimizer.fold_expression(expr);
-                if expr == true.into() {
+                if equal_to_const(&expr, true) {
                     None
                 } else {
                     Some(FolStatement::Assume(expr))
@@ -220,7 +252,7 @@ pub fn optimize_statements(statements: Vec<FolStatement>) -> Vec<FolStatement> {
             FolStatement::Assert { expression, reason } => {
                 let mut optimizer = Optimizer {};
                 let expression = optimizer.fold_expression(expression);
-                if expression == true.into() {
+                if equal_to_const(&expression, true) {
                     None
                 } else {
                     Some(FolStatement::Assert { expression, reason })

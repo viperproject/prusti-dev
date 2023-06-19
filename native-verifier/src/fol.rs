@@ -133,7 +133,9 @@ fn vir_statement_to_fol_statements(
                         });
                         statements.push(FolStatement::Assume(assumption));
                     } else {
-                        statements.push(FolStatement::Comment("Generated within a conditional:".to_string()));
+                        statements.push(FolStatement::Comment(
+                            "Generated within a conditional:".to_string(),
+                        ));
                         statements.extend(vir_statement_to_fol_statements(s, known_methods));
                     }
                 }

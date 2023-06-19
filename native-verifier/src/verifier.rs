@@ -116,7 +116,7 @@ impl Verifier {
                 Some("0".to_string()),
                 Some("0".to_string()),
                 Some("0".to_string()),
-                format!("{} failed with error: {}", solver_name, err),
+                format!("{} failed with unexpected error: {}", solver_name, err),
                 None,
             ));
 
