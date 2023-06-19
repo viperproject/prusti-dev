@@ -136,6 +136,7 @@ lazy_static::lazy_static! {
         settings.set_default("ignore_whether_exhale_is_unconditional", false).unwrap();
         settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
         settings.set_default("expand_quantifiers", false).unwrap();
+        settings.set_default("clean_labels", true).unwrap();
         settings.set_default("report_symbolic_execution_failures", false).unwrap();
         settings.set_default("report_symbolic_execution_purification", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
@@ -1059,6 +1060,14 @@ pub fn error_non_linear_arithmetic_simp() -> bool {
 /// is true.
 pub fn expand_quantifiers() -> bool {
     read_setting("expand_quantifiers")
+}
+
+/// Whether to remove unused label statements.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof`
+/// is true.
+pub fn clean_labels() -> bool {
+    read_setting("clean_labels")
 }
 
 /// Report an error when failing to purify a predicate in symbolic execution.

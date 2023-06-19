@@ -329,7 +329,7 @@ impl<'a, 'c: 'a, EC: EncoderContext> ExpressionFallibleFolder for ValiditySimpli
             if !left.is_heap_independent() || !right.is_heap_independent() {
                 return Ok(vir_low::Expression::DomainFuncApp(domain_func_app));
             }
-                if !self
+            if !self
                 .constraints
                 .is_expression_valid(self.expression_interner, left)?
                 || !self
