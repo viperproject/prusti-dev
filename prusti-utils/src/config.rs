@@ -992,6 +992,10 @@ pub fn symbolic_execution_leak_check() -> bool {
 ///
 /// **Note:** This option is taken into account only when
 /// `purify_with_symbolic_execution` is true.
+///
+/// **Note:** This optimization is not fully implemented and benchmarking on a
+/// completely safe Rust code shows only negligible performance difference
+/// (Silicon: 35s → 36s, Carbon: 23s → 22s).
 pub fn symbolic_execution_simp_valid_expr() -> bool {
     read_setting("symbolic_execution_simp_valid_expr")
 }
