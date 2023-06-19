@@ -137,6 +137,7 @@ lazy_static::lazy_static! {
         settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
         settings.set_default("expand_quantifiers", false).unwrap();
         settings.set_default("clean_labels", true).unwrap();
+        settings.set_default("merge_consequative_statements", true).unwrap();
         settings.set_default("report_symbolic_execution_failures", false).unwrap();
         settings.set_default("report_symbolic_execution_purification", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
@@ -1068,6 +1069,25 @@ pub fn expand_quantifiers() -> bool {
 /// is true.
 pub fn clean_labels() -> bool {
     read_setting("clean_labels")
+}
+
+/// Whether to merge consequative Viper statements. For example:
+///
+/// ```viper
+/// inhale A
+/// inhale B
+/// ```
+///
+/// becomes
+///
+/// ```viper
+/// inhale A && B
+/// ```
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof`
+/// is true.
+pub fn merge_consequative_statements() -> bool {
+    read_setting("merge_consequative_statements")
 }
 
 /// Report an error when failing to purify a predicate in symbolic execution.
