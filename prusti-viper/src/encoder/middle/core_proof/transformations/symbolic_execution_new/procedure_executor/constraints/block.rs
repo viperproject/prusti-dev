@@ -4,6 +4,7 @@ use super::{
     consistency_tracker::ConsistencyTracker,
     equality_manager::{EqualityState, EqualityStateMergeReport},
     merge_report::ConstraintsMergeReport,
+    validity_tracker::ValidityTracker,
 };
 use crate::encoder::{
     errors::SpannedEncodingResult,
@@ -28,6 +29,7 @@ pub(in super::super) struct BlockConstraints {
     /// Consistency tracker only for this block. The difference is achieved by
     /// overriding the `clone` method.
     pub(super) block_consistency_tracker: ConsistencyTracker,
+    pub(super) validity_tracker: ValidityTracker,
     /// The lifetime equalities.
     pub(super) lifetime_equality_classes: BTreeMap<String, String>,
     /// The lifetime equalities based on the intersect function applications.
@@ -46,6 +48,7 @@ impl Clone for BlockConstraints {
             visited_blocks: self.visited_blocks.clone(),
             block_consistency_tracker: Default::default(),
             consistency_tracker: self.consistency_tracker.clone(),
+            validity_tracker: self.validity_tracker.clone(),
             lifetime_equality_classes: self.lifetime_equality_classes.clone(),
             derived_lifetime_equality_classes: self.derived_lifetime_equality_classes.clone(),
             lifetime_version_updates: self.lifetime_version_updates.clone(),
@@ -63,6 +66,7 @@ impl BlockConstraints {
             visited_blocks: Default::default(),
             block_consistency_tracker: Default::default(),
             consistency_tracker: Default::default(),
+            validity_tracker: Default::default(),
             lifetime_equality_classes: Default::default(),
             derived_lifetime_equality_classes: Default::default(),
             lifetime_version_updates: Default::default(),
@@ -99,6 +103,7 @@ impl BlockConstraints {
 
     pub(super) fn assume(
         &mut self,
+        expression_interner: &mut ExpressionInterner,
         expression: &vir_low::Expression,
         expression_id: ExpressionId,
         value: bool,
@@ -106,7 +111,9 @@ impl BlockConstraints {
         self.block_consistency_tracker
             .assume(expression, expression_id, value)?;
         self.consistency_tracker
-            .assume(expression, expression_id, value)
+            .assume(expression, expression_id, value)?;
+        self.try_assume_valid(expression_interner, expression, value)?;
+        Ok(())
     }
 
     pub(super) fn assuming_makes_block_inconsistent(
@@ -116,6 +123,88 @@ impl BlockConstraints {
     ) -> SpannedEncodingResult<bool> {
         self.consistency_tracker
             .assuming_makes_inconsistent(expression_id, value)
+    }
+
+    /// Extracts validity expressions and assumes them to be valid.
+    pub(super) fn try_assume_valid(
+        &mut self,
+        expression_interner: &mut ExpressionInterner,
+        expression: &vir_low::Expression,
+        value: bool,
+    ) -> SpannedEncodingResult<()> {
+        if !expression.is_heap_independent() {
+            return Ok(());
+        }
+        match expression {
+            // FIXME: Do not rely on string comparisons. Use program_context
+            // instead.
+            vir_low::Expression::DomainFuncApp(domain_func_app)
+                if domain_func_app.function_name.starts_with("valid$") =>
+            {
+                assert_eq!(domain_func_app.arguments.len(), 1);
+                assert!(value, "Not valid?: {expression}");
+                self.validity_tracker
+                    .assume_expression_valid(expression_interner, &domain_func_app.arguments[0])?;
+                self.equality_classes
+                    .assume_expression_valid(expression_interner, &domain_func_app.arguments[0])?;
+            }
+            _ => {}
+        }
+        // self.validity_tracker
+        //     .assume(expression_interner, expression, value)?;
+        Ok(())
+    }
+
+    fn try_propagate_validity(
+        &mut self,
+        expression_interner: &mut ExpressionInterner,
+        left: &vir_low::Expression,
+        right: &vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
+        if !left.is_heap_independent() || right.is_heap_independent() {
+            return Ok(());
+        }
+        if self
+            .validity_tracker
+            .is_valid_expression(expression_interner, left)?
+        {
+            self.validity_tracker
+                .assume_expression_valid(expression_interner, right)?;
+        }
+        if self
+            .validity_tracker
+            .is_valid_expression(expression_interner, right)?
+        {
+            self.validity_tracker
+                .assume_expression_valid(expression_interner, left)?;
+        }
+        Ok(())
+    }
+
+    /// Assumes that the given expression is valid.
+    pub(in super::super) fn assume_expression_valid(
+        &mut self,
+        expression_interner: &mut ExpressionInterner,
+        expression: &vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
+        self.validity_tracker
+            .assume_expression_valid(expression_interner, expression)?;
+        Ok(())
+    }
+
+    pub(in super::super) fn is_expression_valid(
+        &mut self,
+        expression_interner: &mut ExpressionInterner,
+        expression: &vir_low::Expression,
+    ) -> SpannedEncodingResult<bool> {
+        if let Some(expression_id) =
+            expression_interner.lookup_snapshot_expression_id(expression)?
+        {
+            if self.validity_tracker.is_valid(expression_id)? {
+                return Ok(true);
+            }
+        }
+        self.equality_classes.is_expression_valid(expression)
     }
 
     pub(in super::super) fn resolve_cannonical_lifetime_name(
@@ -185,6 +274,7 @@ impl BlockConstraints {
         self.visited_blocks
             .extend(other.visited_blocks.iter().cloned());
         self.consistency_tracker.merge(&other.consistency_tracker)?;
+        self.validity_tracker.merge(&other.validity_tracker)?;
         // Keep only the lifetime equalities that are present in both states.
         self.lifetime_equality_classes
             .retain(|name, cannonical_name| {
@@ -354,12 +444,12 @@ impl BlockConstraints {
         self.equality_classes.get_equalities()
     }
 
-    pub(in super::super) fn is_non_aliased_address(
-        &mut self,
-        address: &vir_low::Expression,
-    ) -> SpannedEncodingResult<bool> {
-        self.equality_classes.is_non_aliased_address(address)
-    }
+    // pub(in super::super) fn is_non_aliased_address(
+    //     &mut self,
+    //     address: &vir_low::Expression,
+    // ) -> SpannedEncodingResult<bool> {
+    //     self.equality_classes.is_non_aliased_address(address)
+    // }
 
     pub(in super::super) fn assume_equal(
         &mut self,
@@ -397,6 +487,7 @@ impl BlockConstraints {
                 self.consistency_tracker.assume(left, left_id, false)?;
             }
         }
+        self.try_propagate_validity(expression_interner, left, right)?;
         Ok(())
     }
 

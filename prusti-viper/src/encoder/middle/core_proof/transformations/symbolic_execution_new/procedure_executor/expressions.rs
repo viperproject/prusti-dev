@@ -18,7 +18,7 @@ use crate::{
 use prusti_common::config;
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
-    low::{self as vir_low, expression::visitors::ExpressionFallibleFolder},
+    low::{self as vir_low, expression::visitors::ExpressionFallibleFolder, operations::ty::Typed},
 };
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
@@ -42,7 +42,15 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             constraints: current_constraints,
             expression_interner: &mut self.expression_interner,
         };
-        let expression = simplifier.fallible_fold_expression(expression)?;
+        let mut expression = simplifier.fallible_fold_expression(expression)?;
+        if config::symbolic_execution_simp_valid_expr() {
+            let mut validity_simplifier = ValiditySimplifier {
+                program_context: self.program_context,
+                constraints: current_constraints,
+                expression_interner: &mut self.expression_interner,
+            };
+            expression = validity_simplifier.fallible_fold_expression(expression)?;
+        }
         if !bindings.is_empty() {
             self.add_statement(vir_low::Statement::comment(
                 "Let bindings for conditional snapshots".to_string(),
@@ -248,5 +256,97 @@ impl<'a, 'c: 'a, EC: EncoderContext> ExpressionFallibleFolder for Simplifier<'a,
         }
         self.fallible_fold_binary_op(binary_op)
             .map(vir_low::Expression::BinaryOp)
+    }
+}
+
+struct ValiditySimplifier<'a, 'c: 'a, EC: EncoderContext> {
+    program_context: &'a mut ProgramContext<'c, EC>,
+    constraints: &'a mut BlockConstraints,
+    expression_interner: &'a mut ExpressionInterner,
+}
+
+impl<'a, 'c: 'a, EC: EncoderContext> ValiditySimplifier<'a, 'c, EC> {
+    fn apply_destructor(
+        &self,
+        argument: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        match argument {
+            vir_low::Expression::DomainFuncApp(domain_func_app)
+                if self
+                    .program_context
+                    .is_constant_constructor(&domain_func_app.function_name) =>
+            {
+                assert_eq!(domain_func_app.arguments.len(), 1);
+                Ok(domain_func_app.arguments[0].clone())
+            }
+            _ => {
+                let vir_low::Type::Domain(domain) = argument.get_type() else {
+                    unreachable!("expected domain type: {argument}: {}", argument.get_type());
+                };
+                let destructor_decl = self.program_context.get_constant_destructor(&domain.name);
+                let destructor_call = vir_low::Expression::domain_function_call(
+                    &domain.name,
+                    destructor_decl.name.clone(),
+                    vec![argument.clone()],
+                    destructor_decl.return_type.clone(),
+                );
+                Ok(destructor_call)
+            }
+        }
+    }
+
+    fn apply_constructor(
+        &self,
+        domain_name: &str,
+        argument: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let constructor_decl = self.program_context.get_constant_constructor(domain_name);
+        let constructor_call = vir_low::Expression::domain_function_call(
+            domain_name,
+            constructor_decl.name.clone(),
+            vec![argument],
+            constructor_decl.return_type.clone(),
+        );
+        Ok(constructor_call)
+    }
+}
+
+impl<'a, 'c: 'a, EC: EncoderContext> ExpressionFallibleFolder for ValiditySimplifier<'a, 'c, EC> {
+    type Error = SpannedEncodingError;
+
+    fn fallible_fold_domain_func_app_enum(
+        &mut self,
+        domain_func_app: vir_low::DomainFuncApp,
+    ) -> Result<vir_low::Expression, Self::Error> {
+        let domain_func_app = self.fallible_fold_domain_func_app(domain_func_app)?;
+        if let Some(op) = self
+            .program_context
+            .get_binary_operator(&domain_func_app.domain_name, &domain_func_app.function_name)
+        {
+            assert_eq!(domain_func_app.arguments.len(), 2);
+            let left = &domain_func_app.arguments[0];
+            let right = &domain_func_app.arguments[1];
+            if !left.is_heap_independent() || !right.is_heap_independent() {
+                return Ok(vir_low::Expression::DomainFuncApp(domain_func_app));
+            }
+                if !self
+                .constraints
+                .is_expression_valid(self.expression_interner, left)?
+                || !self
+                    .constraints
+                    .is_expression_valid(self.expression_interner, right)?
+            {
+                return Ok(vir_low::Expression::DomainFuncApp(domain_func_app));
+            }
+            let left = self.apply_destructor(left)?;
+            let right = self.apply_destructor(right)?;
+            let operation =
+                vir_low::Expression::binary_op(op, left, right, domain_func_app.position);
+            let constructor = self.apply_constructor(&domain_func_app.domain_name, operation)?;
+            self.constraints
+                .assume_expression_valid(self.expression_interner, &constructor)?;
+            return Ok(constructor);
+        }
+        Ok(vir_low::Expression::DomainFuncApp(domain_func_app))
     }
 }

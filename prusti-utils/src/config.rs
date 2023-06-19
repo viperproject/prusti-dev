@@ -128,6 +128,7 @@ lazy_static::lazy_static! {
         settings.set_default("symbolic_execution_single_method", true).unwrap();
         settings.set_default("symbolic_execution_multiple_methods_max", 100).unwrap();
         settings.set_default("symbolic_execution_leak_check", true).unwrap();
+        settings.set_default("symbolic_execution_simp_valid_expr", true).unwrap();
         settings.set_default("panic_on_failed_exhale", false).unwrap();
         settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
         settings.set_default("end_borrow_view_shift_non_aliased", true).unwrap();
@@ -982,6 +983,15 @@ pub fn symbolic_execution_multiple_methods_max() -> u16 {
 /// `purify_with_symbolic_execution` is true.
 pub fn symbolic_execution_leak_check() -> bool {
     read_setting("symbolic_execution_leak_check")
+}
+
+/// Simmplifies snapshot expressions by using knowledge what expressions are
+/// valid.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn symbolic_execution_simp_valid_expr() -> bool {
+    read_setting("symbolic_execution_simp_valid_expr")
 }
 
 /// Panics if symbolic execution failed to purify out an exhale.
