@@ -273,6 +273,8 @@ pub enum BuiltinFunc {
     PtrWrappingOffset,
     /// Special-cased `offset` function on pointers.
     PtrOffset,
+    /// Special-cased `add` function on pointers.
+    PtrAdd,
     /// Special-cased `is_null` function on pointers.
     PtrIsNull,
     /// Special-cased function whether a range of addresses contains another

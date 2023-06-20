@@ -999,6 +999,7 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             }
             BuiltinFunc::PtrOffset
             | BuiltinFunc::PtrWrappingOffset
+            | BuiltinFunc::PtrAdd
             | BuiltinFunc::PtrAddressOffset => {
                 let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 2);

@@ -71,6 +71,7 @@ impl<'a> FramedExpressionToSnapshot<'a> {
             function:
                 vir_mid::BuiltinFunc::PtrOffset
                 | vir_mid::BuiltinFunc::PtrWrappingOffset
+                | vir_mid::BuiltinFunc::PtrAdd
                 | vir_mid::BuiltinFunc::PtrAddressOffset,
             type_arguments: _,
             arguments,
