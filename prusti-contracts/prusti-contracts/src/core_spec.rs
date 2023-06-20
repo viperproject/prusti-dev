@@ -149,7 +149,7 @@ impl usize {
     #[no_panic]
     #[no_panic_ensures_postcondition]
     #[ensures(if Int::new_usize(self) + Int::new_usize(rhs) <= Int::new_usize(usize::MAX) {
-        result == Some(self + rhs)
+    result == Some(self + rhs)
     } else {
         let none = None;
         result == none
