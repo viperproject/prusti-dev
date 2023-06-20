@@ -401,13 +401,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(context, ast),
                 )
             }
-            Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => {
-                ast.predicate_access_predicate_with_pos(
+            Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => ast
+                .predicate_access_predicate_with_pos(
                     ast.predicate_access(&[arg.to_viper(context, ast)], predicate_name),
                     perm.to_viper(context, ast),
                     pos.to_viper(context, ast),
-                )
-            },
+                ),
             Expr::ResourceAccessPredicate(ref resource_name, ref amount, scope_id, ref pos) => {
                 let id = ast.int_lit(*scope_id as i64);
                 // resources are encoded as predicates with the integer scope_id as arguments

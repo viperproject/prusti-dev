@@ -30,7 +30,7 @@ fn collect_info_from_methods_and_functions(
     collector
 }
 
-/// Computes a map of Predicate to the predicates used in that predicate
+/// Computes a map of Predicate to the predicates used  in that predicate
 fn get_used_predicates_in_predicate_map(
     predicates: &[Predicate],
 ) -> FxHashMap<Type, FxHashSet<Type>> {

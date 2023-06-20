@@ -3908,7 +3908,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         contract: &ProcedureContract<'tcx>,
         substs: SubstsRef<'tcx>,
-        override_spans: FxHashMap<Local, Span>, // spans for fake locals
+        override_spans: FxHashMap<Local, Span> // spans for fake locals
     ) -> SpannedEncodingResult<(
         vir::Expr,
         Vec<vir::Expr>,

@@ -96,10 +96,12 @@ impl ExprSimplifier {
                         position: inner_pos,
                     }),
                 position: pos,
-            }) => if b {
-                conjunct
-            } else {
-                Into::<ast::Expr>::into(false).set_pos(inner_pos)
+            }) => {
+                if b {
+                    conjunct
+                } else {
+                    Into::<ast::Expr>::into(false).set_pos(inner_pos)
+                }
             }
             .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
@@ -121,10 +123,12 @@ impl ExprSimplifier {
                         position: inner_pos,
                     }),
                 position: pos,
-            }) => if b {
-                Into::<ast::Expr>::into(true).set_pos(inner_pos)
-            } else {
-                disjunct
+            }) => {
+                if b {
+                    Into::<ast::Expr>::into(true).set_pos(inner_pos)
+                } else {
+                    disjunct
+                }
             }
             .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
@@ -136,14 +140,16 @@ impl ExprSimplifier {
                         position: inner_pos,
                     }),
                 position: pos,
-            }) => if b {
-                Into::<ast::Expr>::into(true).set_pos(pos)
-            } else {
-                ast::Expr::UnaryOp(ast::UnaryOp {
-                    op_kind: ast::UnaryOpKind::Not,
-                    argument: guard,
-                    position: pos,
-                })
+            }) => {
+                if b {
+                    Into::<ast::Expr>::into(true).set_pos(pos)
+                } else {
+                    ast::Expr::UnaryOp(ast::UnaryOp {
+                        op_kind: ast::UnaryOpKind::Not,
+                        argument: guard,
+                        position: pos,
+                    })
+                }
             }
             .set_default_pos(inner_pos),
             ast::Expr::BinOp(ast::BinOp {
@@ -155,10 +161,12 @@ impl ExprSimplifier {
                     }),
                 right: box body,
                 position: pos,
-            }) => if b {
-                body
-            } else {
-                Into::<ast::Expr>::into(true).set_pos(inner_pos)
+            }) => {
+                if b {
+                    body
+                } else {
+                    Into::<ast::Expr>::into(true).set_pos(inner_pos)
+                }
             }
             .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {

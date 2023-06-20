@@ -148,6 +148,7 @@ pub fn walk_functions(functions: &[Function], walker: &mut impl ExprWalker) {
         }
     }
 }
+
 /// Walks all Statements and Expressions in the provided methods
 pub fn fallible_walk_methods<E>(
     methods: &[CfgMethod],

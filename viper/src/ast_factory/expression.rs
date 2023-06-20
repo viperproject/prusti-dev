@@ -1219,15 +1219,14 @@ impl<'a> AstFactory<'a> {
         access: Expr,
         body: Expr,
     ) -> Expr<'a> {
-        let res = build_ast_node!(
+        build_ast_node!(
             self,
             Expr,
             ast::ForPerm,
             self.jni.new_seq(&map_to_jobjects!(variables)),
             access.to_jobject(),
             body.to_jobject()
-        );
-        res
+        )
     }
 
     pub fn trigger_with_pos(&self, exps: &[Expr], pos: Position) -> Trigger<'a> {
