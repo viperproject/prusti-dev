@@ -139,6 +139,7 @@ lazy_static::lazy_static! {
         settings.set_default("clean_labels", true).unwrap();
         settings.set_default("merge_consecutive_statements", true).unwrap();
         settings.set_default("merge_consecutive_statements_same_pos", true).unwrap();
+        settings.set_default("merge_consecutive_statements_only_inhale", true).unwrap();
         settings.set_default("report_symbolic_execution_failures", false).unwrap();
         settings.set_default("report_symbolic_execution_purification", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
@@ -1098,6 +1099,12 @@ pub fn merge_consecutive_statements() -> bool {
 /// When merging consequative statements, merge only statements that have the same position.
 pub fn merge_consecutive_statements_same_pos() -> bool {
     read_setting("merge_consecutive_statements_same_pos")
+}
+
+/// When merging consequative statements, merge only inhale and assume
+/// statements.
+pub fn merge_consecutive_statements_only_inhale() -> bool {
+    read_setting("merge_consecutive_statements_only_inhale")
 }
 
 /// Report an error when failing to purify a predicate in symbolic execution.
