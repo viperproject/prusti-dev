@@ -682,11 +682,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(still_unresolved_edges)
     }
 
-    fn stmt_preconditions(&self, stmt: &vir::Stmt) -> Vec<(Option<String>, vir::Expr)> {
+    fn stmt_preconditions_and_impure_postconditions(&self, stmt: &vir::Stmt) -> Vec<(Option<String>, vir::Expr)> {
         use vir::{ExprFolder, StmtWalker};
         struct FindFnApps<'a, 'b, 'c> {
             recurse: bool,
-            preconds: Vec<(Option<String>, vir::Expr)>,
+            conds: Vec<(Option<String>, vir::Expr)>,
             encoder: &'a Encoder<'b, 'c>,
         }
         fn is_const_true(expr: &vir::Expr) -> bool {
@@ -698,16 +698,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )
         }
         impl<'a, 'b, 'c> FindFnApps<'a, 'b, 'c> {
-            fn push_precond(&mut self, expr: vir::Expr, fn_name: Option<String>) {
+            fn push_cond(&mut self, expr: vir::Expr, fn_name: Option<String>) {
                 let expr = self.fold(expr);
                 if !is_const_true(&expr) {
-                    self.preconds.push((fn_name, expr));
+                    self.conds.push((fn_name, expr));
                 }
             }
         }
         impl<'a, 'b, 'c> StmtWalker for FindFnApps<'a, 'b, 'c> {
             fn walk_exhale(&mut self, statement: &vir::Exhale) {
-                self.push_precond(statement.expr.clone(), None);
+                self.push_cond(statement.expr.clone(), None);
+            }
+            fn walk_inhale(&mut self, statement: &vir::Inhale) {
+                let expr = statement.expr.clone();
+                if !expr.is_pure() {
+                    self.push_cond(expr, None);
+                }
             }
             fn walk_expr(&mut self, expr: &vir::Expr) {
                 self.fold(expr.clone());
@@ -723,7 +729,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // Avoid recursively collecting preconditions: they should be self-framing anyway
                     self.recurse = false;
                     let pres: vir::Expr = pres.into_iter().fold(true.into(), |acc, expr| vir_expr! { [acc] && [expr] });
-                    self.push_precond(pres, Some(function_name));
+                    self.push_cond(pres, Some(function_name));
                     self.recurse = true;
 
                     for arg in arguments {
@@ -760,23 +766,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
         let mut walker = FindFnApps {
-            recurse: true, preconds: Vec::new(), encoder: self.encoder
+            recurse: true, conds: Vec::new(), encoder: self.encoder
         };
         walker.walk(stmt);
-        walker.preconds
+        walker.conds
     }
-    fn block_preconditions(&self, block: &CfgBlockIndex) -> Vec<(Option<String>, vir::Expr)> {
+    fn block_preconditions_and_impure_postconditions(&self, block: &CfgBlockIndex) -> Vec<(Option<String>, vir::Expr)> {
         let bb = &self.cfg_method.basic_blocks[block.block_index];
-        let mut preconds: Vec<_> = bb.stmts.iter().flat_map(|stmt| self.stmt_preconditions(stmt)).collect();
+        let mut preconds: Vec<_> = bb.stmts.iter().flat_map(|stmt| self.stmt_preconditions_and_impure_postconditions(stmt)).collect();
         match &bb.successor {
             Successor::Undefined => (),
             Successor::Return => (),
-            Successor::Goto(cbi) => preconds.extend(self.block_preconditions(cbi)),
+            Successor::Goto(cbi) => preconds.extend(self.block_preconditions_and_impure_postconditions(cbi)),
             Successor::GotoSwitch(succs, def) => {
                 preconds.extend(
-                    succs.iter().flat_map(|cond_bb| self.block_preconditions(&cond_bb.1))
+                    succs.iter().flat_map(|cond_bb| self.block_preconditions_and_impure_postconditions(&cond_bb.1))
                 );
-                preconds.extend(self.block_preconditions(def));
+                preconds.extend(self.block_preconditions_and_impure_postconditions(def));
             }
         }
         preconds
@@ -947,8 +953,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         heads.push(first_b1_head);
 
         // Calculate if `G` and `B1` are safe to include as the first `body_invariant!(...)`
-        let mut preconds = first_g_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default();
-        preconds.extend(first_b1_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default());
+        let mut preconds = first_g_head.map(|cbi| self.block_preconditions_and_impure_postconditions(&cbi)).unwrap_or_default();
+        preconds.extend(first_b1_head.map(|cbi| self.block_preconditions_and_impure_postconditions(&cbi)).unwrap_or_default());
 
         // Build the "invariant" CFG block (start - G - B1 - *invariant* - B2 - G - B1 - end)
         // (1) checks the loop invariant on entry

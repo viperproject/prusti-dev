@@ -873,6 +873,12 @@ impl Expr {
             ) {
                 self.non_pure = true;
             }
+            fn walk_obligation_access_predicate(
+                &mut self,
+                _obligation_access_predicate: &ObligationAccessPredicate,
+            ) {
+                self.non_pure = true;
+            }
         }
         let mut walker = PurityFinder { non_pure: false };
         walker.walk(self);
