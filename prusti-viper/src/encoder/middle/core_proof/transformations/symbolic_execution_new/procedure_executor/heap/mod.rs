@@ -19,6 +19,7 @@ use crate::encoder::{
     },
 };
 use std::collections::{BTreeMap, BTreeSet};
+use log::debug;
 use vir_crate::{
     common::builtin_constants::MEMORY_BLOCK_PREDICATE_NAME,
     low::{self as vir_low},
@@ -738,6 +739,10 @@ impl BlockHeap {
     ) -> SpannedEncodingResult<()> {
         self.dead_lifetimes
             .spread_permission_over_eclasses(constraints)
+    }
+
+    pub(super) fn debug_print_memory_block(&self) {
+        debug!("Memory block state:\n{}", self.memory_block);
     }
 }
 

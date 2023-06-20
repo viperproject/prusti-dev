@@ -65,6 +65,10 @@ impl State {
         Ok(())
     }
 
+    pub(super) fn debug_print_memory_block(&self) {
+        self.heap.debug_print_memory_block();
+    }
+
     // pub(super) fn get_dead_lifetime_equality_classes(
     //     &self,
     // ) -> SpannedEncodingResult<BTreeMap<String, BTreeSet<String>>> {

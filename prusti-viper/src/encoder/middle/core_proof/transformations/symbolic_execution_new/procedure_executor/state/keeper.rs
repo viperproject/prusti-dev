@@ -31,6 +31,7 @@ impl StateKeeper {
         trace_builder: &mut TraceBuilder,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
+        trace!("create_state_for_block: {}", new_block);
         match predecessors.len() {
             0 => {
                 self.states
@@ -144,6 +145,10 @@ impl StateKeeper {
                 self.states.insert(new_block.clone(), state);
             }
         }
+        self.states
+            .get(&new_block)
+            .unwrap()
+            .debug_print_memory_block();
         Ok(())
     }
 
