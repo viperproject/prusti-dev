@@ -179,20 +179,17 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         check_that_exists: bool,
     ) -> SpannedEncodingResult<()> {
         trace!("materialize: {}", predicate.name);
-        if let Some(predicate_instances) = self.predicates.get_mut(&predicate.name) {
-            predicate_instances.materialize(
-                program_context,
-                expression_interner,
-                global_state,
-                predicate,
-                position,
-                constraints,
-                block_builder,
-                check_that_exists,
-            )?;
-        } else {
-            unimplemented!("TODO: A proper error message");
-        }
+        let predicate_instances = self.predicates.entry(predicate.name.clone()).or_default();
+        predicate_instances.materialize(
+            program_context,
+            expression_interner,
+            global_state,
+            predicate,
+            position,
+            constraints,
+            block_builder,
+            check_that_exists,
+        )?;
         Ok(())
     }
 
