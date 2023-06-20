@@ -137,7 +137,8 @@ lazy_static::lazy_static! {
         settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
         settings.set_default("expand_quantifiers", false).unwrap();
         settings.set_default("clean_labels", true).unwrap();
-        settings.set_default("merge_consequative_statements", true).unwrap();
+        settings.set_default("merge_consecutive_statements", true).unwrap();
+        settings.set_default("merge_consecutive_statements_same_pos", true).unwrap();
         settings.set_default("report_symbolic_execution_failures", false).unwrap();
         settings.set_default("report_symbolic_execution_purification", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
@@ -1090,8 +1091,13 @@ pub fn clean_labels() -> bool {
 ///
 /// **Note:** This option is taken into account only when `unsafe_core_proof`
 /// is true.
-pub fn merge_consequative_statements() -> bool {
-    read_setting("merge_consequative_statements")
+pub fn merge_consecutive_statements() -> bool {
+    read_setting("merge_consecutive_statements")
+}
+
+/// When merging consequative statements, merge only statements that have the same position.
+pub fn merge_consecutive_statements_same_pos() -> bool {
+    read_setting("merge_consecutive_statements_same_pos")
 }
 
 /// Report an error when failing to purify a predicate in symbolic execution.

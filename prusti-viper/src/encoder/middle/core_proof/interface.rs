@@ -170,7 +170,7 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                 program =
                     super::transformations::clean_labels::clean_labels(&source_filename, program);
             }
-            if config::merge_consequative_statements() {
+            if config::merge_consecutive_statements() {
                 program = super::transformations::merge_statements::merge_statements(
                     &source_filename,
                     program,

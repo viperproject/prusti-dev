@@ -1,11 +1,7 @@
-use rustc_hash::FxHashSet;
+use prusti_common::config;
 use vir_crate::{
-    common::{expression::ExpressionIterator, graphviz::ToGraphviz},
-    low::{
-        self as vir_low,
-        ast::statement::visitors::{StatementFolder, StatementWalker},
-        expression::visitors::ExpressionWalker,
-    },
+    common::{expression::ExpressionIterator, graphviz::ToGraphviz, position::Positioned},
+    low::{self as vir_low},
 };
 
 /// The transformations performed:
@@ -61,6 +57,17 @@ fn merge_statements_in_block(
     let mut expression_kind = ExpressionKind::None;
     let mut last_position = vir_low::Position::default();
     for statement in statements {
+        if config::merge_consecutive_statements_same_pos()
+            && !conjuncts.is_empty()
+            && statement.position() != last_position
+        {
+            new_statements.push(create_statement(
+                expression_kind,
+                &mut conjuncts,
+                last_position,
+            ));
+            expression_kind = ExpressionKind::None;
+        }
         match statement {
             vir_low::Statement::Comment(_) => {}
             vir_low::Statement::Assume(statement) => {
