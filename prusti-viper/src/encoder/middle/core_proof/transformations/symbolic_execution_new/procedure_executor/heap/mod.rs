@@ -18,8 +18,8 @@ use crate::encoder::{
         expression_interner::ExpressionInterner, program_context::ProgramContext,
     },
 };
-use std::collections::{BTreeMap, BTreeSet};
 use log::debug;
+use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::builtin_constants::MEMORY_BLOCK_PREDICATE_NAME,
     low::{self as vir_low},
