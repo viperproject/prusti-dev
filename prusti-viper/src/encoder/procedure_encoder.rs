@@ -2145,7 +2145,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         (post_label, lhs, rhs)
                     })
                     .unwrap();
-                println!("Found magic wand with label: {}", post_label);
 
                 // Obtain the LHS permission.
                 for (path, _) in &borrow_info.blocking_paths {
@@ -3564,8 +3563,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.procedure_contracts
             .insert(location, (procedure_contract, fake_exprs));
 
-        println!("Encoding impure function result: {:?}", stmts);
-
         Ok(stmts)
     }
 
@@ -4452,7 +4449,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             substs,
         ).with_span(span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
-                println!("found location {:?} for expression: {:?}", location, fake_exprs);
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
                     for (fake_arg, arg_expr) in fake_exprs.iter() {
                         expr = expr.replace_place(fake_arg, arg_expr);

@@ -51,16 +51,14 @@ pub(crate) fn mir_checked(
 
     if let Some(specs) = specs_opt {
         let expiration_locations = unsafe { EXPIRATION_LOCATIONS.clone().unwrap() };
-        // let def_id = def.def_id_for_type_of();
-        // let env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
-        // let encoder = Encoder::new(&env, specs.clone());
-        // let procedure = Procedure::new(&env, def_id);
+        // get mir body before invoking drops_elaborated query, otherwise it will
+        // be stolen
+        let mir_promoted = tcx.mir_promoted(def).0.borrow().clone();
         let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
         let mut stolen = steal.steal();
         let def_id = stolen.source.def_id();
-        println!("Processing function {:?}", def_id);
 
-        let mut visitor = InsertChecksVisitor::new(tcx, specs, expiration_locations);
+        let mut visitor = InsertChecksVisitor::new(tcx, specs, expiration_locations, mir_promoted);
         visitor.visit_body(&mut stolen);
 
         // print mir of body:
@@ -109,6 +107,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         tcx: TyCtxt<'tcx>,
         specs: DefSpecificationMap,
         expiration_locations: FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
+        mir_promoted: Body<'tcx>,
     ) -> Self {
         Self {
             tcx,
@@ -136,17 +135,12 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
         mir_patch.unwrap().apply(body);
 
         // sort descending
-        self.modifications_to_process.sort_by(|a, b| {
-            a.0.partial_cmp(&b.0).unwrap().reverse()
-        });
+        self.modifications_to_process
+            .sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap().reverse());
 
         for (location, modification) in &self.modifications_to_process {
             match modification {
                 ModificationToProcess::Pledge(pledge_to_process) => {
-                    println!(
-                        "found a pledge {:#?}, currently not processing it",
-                        pledge_to_process
-                    );
                     // let location = mir::Location {
                     //     block: BasicBlock::from_usize(1),
                     //     statement_index: 1,
@@ -203,7 +197,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
             // that calls this function is potentially moved several times,
             // this variable keeps track of that.
             let mut caller_block = block;
-            let original_terminator = data.terminator.clone().unwrap().clone();
+            let mut call_fn_terminator = data.terminator.clone().unwrap().clone();
 
             if let TerminatorKind::Call {
                 func:
@@ -217,7 +211,6 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                 ..
             } = terminator_kind
             {
-                println!("Call terminator: {:?}", ty);
                 // if it's a static function call, we start looking if there are
                 // post-conditions we could check
                 if let Some((call_id, substs)) = func.const_fn_def() {
@@ -267,8 +260,10 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     args.clone(),
                                     substs,
                                     &called_body,
-                                    original_terminator.clone(),
+                                    call_fn_terminator.clone(),
                                 );
+                                replace_target(&mut call_fn_terminator, current_target.unwrap());
+
                                 // If there are multiple checks, this also should behave
                                 // correctly, since on the second iteration this target
                                 // is already the new block
@@ -292,17 +287,20 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                 let before_expiry_place =
                                     Place::from(patch.new_internal(before_expiry_ty, DUMMY_SP));
 
-                                prepend_store(
+                                caller_block = prepend_store(
                                     self.tcx,
                                     &mut patch,
                                     old_store,
                                     caller_block,
                                     args.clone(),
                                     substs,
-                                    original_terminator.clone(),
+                                    call_fn_terminator.clone(),
                                     old_values_place,
                                 );
-                                println!("Trying to find expiration location for function: {:?}", ty);
+                                println!(
+                                    "Trying to find expiration location for function: {:?}",
+                                    ty
+                                );
 
                                 let expiration_location = self
                                     .expiration_locations
@@ -328,12 +326,6 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     ModificationToProcess::Pledge(pledge_to_process),
                                 ));
 
-                                // Insert the 3 functions (all but old_store)
-                                // where the reference goes out of scope
-                                // this can probably not be done here!
-                                // Goal: Given a location, split that block into
-                                // two, insert before_expiry_store and before_expiry_check,
-                                // and then the check function
                                 self.current_patcher = Some(patch);
                             }
                             _ => {}
@@ -345,7 +337,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
     }
 }
 
-/// Block current_caller is calling an annotated function. This function creates
+/// caller_block is calling an annotated function. This function creates
 /// a new block (new_block), moves the call to the annotated function into
 /// the new block, adjusts the original block to call a store function and sets
 /// its target to this new block
@@ -384,6 +376,8 @@ fn prepend_store<'tcx>(
         from_hir_call: false,
         fn_span: old_store_body.span,
     };
+    // the block that initially calls the check function, now calls the store
+    // function
     patcher.patch_terminator(caller_block, store_terminator);
     new_block
 }
@@ -499,14 +493,14 @@ fn surround_call_with_store_and_check<'tcx>(
     // we store the target, create a new block per check function
     // chain these with the final call having the original target,
     // change the target of the call to the first block of our chain.
-    let (block, _) =
+    let (check_block, _) =
         create_call_block(tcx, patch, check_id, new_args, substs, None, target).unwrap();
-    let next_target = Some(block);
+    let next_target = Some(check_block);
 
     // the terminator that calls the original function, but in this case jumps to
     // a check function after instead of original target
     let mut call_fn_terminator = original_terminator;
-    replace_target(&mut call_fn_terminator, block);
+    replace_target(&mut call_fn_terminator, check_block);
 
     let new_caller_block = prepend_store(
         tcx,
@@ -515,11 +509,9 @@ fn surround_call_with_store_and_check<'tcx>(
         caller_block,
         args,
         substs,
-        call_fn_terminator,
+        call_fn_terminator.clone(),
         old_dest_place,
     );
-
-    // let generics = self.tcx.generics_of(def_id);
 
     // If there are multiple checks, this also should behave
     // correctly, since on the second iteration this target
