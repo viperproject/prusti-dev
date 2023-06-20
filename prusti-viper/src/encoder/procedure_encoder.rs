@@ -6280,6 +6280,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        trace!(
+            "encode_assign_slice(lhs={:?}, operand={:?}, ty={:?})",
+            encoded_lhs,
+            operand,
+            ty
+        );
         debug_assert!(ty.is_slice_ref());
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = Vec::new();
