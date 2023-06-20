@@ -120,6 +120,14 @@ fn merge_statements_in_block(
                 last_position = statement.position;
             }
             _ => {
+                if !conjuncts.is_empty() {
+                    new_statements.push(create_statement(
+                        expression_kind,
+                        &mut conjuncts,
+                        last_position,
+                    ));
+                    expression_kind = ExpressionKind::None;
+                }
                 new_statements.push(statement);
             }
         }
