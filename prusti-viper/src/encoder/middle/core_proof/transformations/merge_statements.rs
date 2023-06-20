@@ -54,19 +54,20 @@ fn merge_statements_in_block(
 ) {
     let mut conjuncts = Vec::new();
     let mut expression_kind = ExpressionKind::None;
-    let mut last_position = vir_low::Position::default();
+    let mut last_position = None;
     for statement in statements {
-        if config::merge_consecutive_statements_same_pos()
-            && !conjuncts.is_empty()
-            && statement.position() != last_position
-            && expression_kind != ExpressionKind::Inhale
-        {
-            new_statements.push(create_statement(
-                expression_kind,
-                &mut conjuncts,
-                last_position,
-            ));
-            expression_kind = ExpressionKind::None;
+        if let Some(current_last_position) = last_position {
+            if config::merge_consecutive_statements_same_pos()
+                && !conjuncts.is_empty()
+                && statement.position() != current_last_position
+                && expression_kind != ExpressionKind::Inhale
+            {
+                new_statements.push(create_statement(
+                    &mut expression_kind,
+                    &mut conjuncts,
+                    &mut last_position,
+                ));
+            }
         }
         match statement {
             vir_low::Statement::Comment(_) => {}
@@ -75,65 +76,74 @@ fn merge_statements_in_block(
                     && expression_kind != ExpressionKind::None
                 {
                     new_statements.push(create_statement(
-                        expression_kind,
+                        &mut expression_kind,
                         &mut conjuncts,
-                        last_position,
+                        &mut last_position,
                     ));
                 }
                 expression_kind = ExpressionKind::Inhale;
                 conjuncts.push(statement.expression);
-                last_position = statement.position;
+                last_position = Some(statement.position);
             }
             vir_low::Statement::Inhale(statement) => {
                 if expression_kind != ExpressionKind::Inhale
                     && expression_kind != ExpressionKind::None
                 {
                     new_statements.push(create_statement(
-                        expression_kind,
+                        &mut expression_kind,
                         &mut conjuncts,
-                        last_position,
+                        &mut last_position,
                     ));
                 }
                 expression_kind = ExpressionKind::Inhale;
                 conjuncts.push(statement.expression);
-                last_position = statement.position;
+                last_position = Some(statement.position);
             }
-            vir_low::Statement::Assert(statement) => {
+            vir_low::Statement::Assert(statement)
+                if !config::merge_consecutive_statements_only_inhale() =>
+            {
                 if expression_kind != ExpressionKind::Assert
                     && expression_kind != ExpressionKind::None
                 {
                     new_statements.push(create_statement(
-                        expression_kind,
+                        &mut expression_kind,
                         &mut conjuncts,
-                        last_position,
+                        &mut last_position,
                     ));
                 }
                 expression_kind = ExpressionKind::Assert;
                 conjuncts.push(statement.expression);
-                last_position = statement.position;
+                if let Some(last_position) = last_position {
+                    assert_eq!(last_position, statement.position);
+                }
+                last_position = Some(statement.position);
             }
-            vir_low::Statement::Exhale(statement) => {
+            vir_low::Statement::Exhale(statement)
+                if !config::merge_consecutive_statements_only_inhale() =>
+            {
                 if expression_kind != ExpressionKind::Exhale
                     && expression_kind != ExpressionKind::None
                 {
                     new_statements.push(create_statement(
-                        expression_kind,
+                        &mut expression_kind,
                         &mut conjuncts,
-                        last_position,
+                        &mut last_position,
                     ));
                 }
                 expression_kind = ExpressionKind::Exhale;
                 conjuncts.push(statement.expression);
-                last_position = statement.position;
+                if let Some(last_position) = last_position {
+                    assert_eq!(last_position, statement.position);
+                }
+                last_position = Some(statement.position);
             }
             _ => {
                 if !conjuncts.is_empty() {
                     new_statements.push(create_statement(
-                        expression_kind,
+                        &mut expression_kind,
                         &mut conjuncts,
-                        last_position,
+                        &mut last_position,
                     ));
-                    expression_kind = ExpressionKind::None;
                 }
                 new_statements.push(statement);
             }
@@ -141,23 +151,26 @@ fn merge_statements_in_block(
     }
     if !conjuncts.is_empty() {
         new_statements.push(create_statement(
-            expression_kind,
+            &mut expression_kind,
             &mut conjuncts,
-            last_position,
+            &mut last_position,
         ));
     }
 }
 
 fn create_statement(
-    expression_kind: ExpressionKind,
+    expression_kind: &mut ExpressionKind,
     conjuncts: &mut Vec<vir_low::Expression>,
-    position: vir_low::Position,
+    position: &mut Option<vir_low::Position>,
 ) -> vir_low::Statement {
+    let position = position.take().unwrap();
     let expression = std::mem::take(conjuncts).into_iter().conjoin();
-    match expression_kind {
+    let statement = match expression_kind {
         ExpressionKind::Assert => vir_low::Statement::assert(expression, position),
         ExpressionKind::Inhale => vir_low::Statement::inhale(expression, position),
         ExpressionKind::Exhale => vir_low::Statement::exhale(expression, position),
         ExpressionKind::None => unreachable!(),
-    }
+    };
+    *expression_kind = ExpressionKind::None;
+    statement
 }
