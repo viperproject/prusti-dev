@@ -23,6 +23,7 @@ use crate::encoder::{
         },
     },
 };
+use log::trace;
 use prusti_common::config;
 use std::collections::BTreeMap;
 use vir_crate::{
@@ -64,6 +65,7 @@ impl<P: PermissionType> NamedPredicateInstances<P, vir_low::VariableDecl> {
         expression_interner: &mut ExpressionInterner,
         program_context: &ProgramContext<impl EncoderContext>,
     ) -> SpannedEncodingResult<FindSnapshotResult> {
+        trace!("find_snapshot: {}", predicate_name);
         if let Some(predicate_instances) = self.predicates.get(predicate_name) {
             predicate_instances.find_snapshot(
                 predicate_name,
@@ -97,6 +99,7 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
+        trace!("inhale: {}", predicate.name);
         let predicate_instances = self.predicates.entry(predicate.name.clone()).or_default();
         predicate_instances.inhale(
             program_context,
@@ -120,6 +123,7 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
+        trace!("exhale: {}", predicate.name);
         if let Some(predicate_instances) = self.predicates.get_mut(&predicate.name) {
             predicate_instances.exhale(
                 program_context,
@@ -174,6 +178,7 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         block_builder: &mut BlockBuilder,
         check_that_exists: bool,
     ) -> SpannedEncodingResult<()> {
+        trace!("materialize: {}", predicate.name);
         if let Some(predicate_instances) = self.predicates.get_mut(&predicate.name) {
             predicate_instances.materialize(
                 program_context,
@@ -201,6 +206,7 @@ impl<P: PermissionType, S: SnapshotType> NamedPredicateInstances<P, S> {
         constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
+        trace!("prepare_for_unhandled_exhale: {}", predicate_name);
         if let Some(predicate_instances) = self.predicates.get_mut(predicate_name) {
             predicate_instances.prepare_for_unhandled_exhale(
                 program_context,

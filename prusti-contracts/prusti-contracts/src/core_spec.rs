@@ -223,7 +223,7 @@ mod core {
         #[no_panic_ensures_postcondition]
         #[structural_requires(raw!(*dst, std::mem::size_of::<T>()))]
         #[structural_ensures(own!(*dst))]
-        #[structural_ensures(unsafe { old(eval_in!(own!(*dst), &*dst)) } === &src)]
+        #[structural_ensures(unsafe { eval_in!(own!(*dst), &*dst) } === &src)]
         pub unsafe fn write<T>(dst: *mut T, src: T);
 
         #[structural_requires(own!(*to_drop))]
