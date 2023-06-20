@@ -11,6 +11,7 @@ use crate::encoder::{
         },
     },
 };
+use log::trace;
 use prusti_common::config;
 use std::collections::{BTreeMap, VecDeque};
 use vir_crate::low::{self as vir_low};
