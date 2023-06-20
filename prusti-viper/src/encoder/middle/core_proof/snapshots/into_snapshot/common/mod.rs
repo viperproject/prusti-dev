@@ -721,6 +721,16 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                             app.position,
                         )
                     }
+                    vir_mid::Type::Bool => {
+                        let size = 1;
+                        let constant =
+                            vir_low::Expression::constant_no_pos(size.into(), vir_low::Type::Int);
+                        lowerer.construct_constant_snapshot(
+                            &app.return_type,
+                            constant,
+                            app.position,
+                        )
+                    }
                     vir_mid::Type::Struct(_ty) => {
                         let type_decl = lowerer
                             .encoder
