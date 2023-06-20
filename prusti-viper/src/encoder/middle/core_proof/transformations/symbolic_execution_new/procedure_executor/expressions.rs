@@ -61,6 +61,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 guarded_candidates,
             } in bindings
             {
+                assert!(!guarded_candidates.is_empty());
                 for (candidate_guard, candidate) in guarded_candidates {
                     let equality =
                         vir_low::Expression::equals(variable.clone().into(), candidate.into());

@@ -509,6 +509,9 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
             )?;
             guarded_candidates.push((guard, predicate_instance.snapshot_variable.clone()));
         }
+        assert!(!guarded_candidates.is_empty(), "TODO: A proper error messages that did not find any candidate for purifying \
+                snapshot. Suggest to either use quantified_predicate! or check whether the expression is evaluated \
+                in the right state.");
         Ok(FindSnapshotResult::FoundConditional {
             binding,
             guarded_candidates,
@@ -578,6 +581,12 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                         );
                         let old_permission_variable = predicate_instance
                             .new_permission_variable(global_state, &predicate.name)?;
+                        block_builder.add_statement(
+                            vir_low::Statement::comment(format!(
+                                "inhaling {} to existing non-aliased predicate: snapshot={} old_permission={}",
+                                predicate, predicate_instance.snapshot_variable, old_permission_variable
+                            ))
+                        )?;
                         self.permission_type.inhale(
                             old_permission_variable,
                             &predicate_instance.permission_variable,
@@ -605,6 +614,12 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                         // Predicate instance is materialized, so we should keep the
                         // inhale.
                         block_builder.add_statement(
+                            vir_low::Statement::comment(format!(
+                                "inhaling {} to existing aliased materialized predicate: snapshot={} old_permission={}",
+                                predicate, predicate_instance.snapshot_variable, predicate_instance.permission_variable
+                            ))
+                        )?;
+                        block_builder.add_statement(
                             vir_low::Statement::inhale_no_pos(
                                 vir_low::Expression::PredicateAccessPredicate(predicate),
                             )
@@ -613,6 +628,12 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                     } else {
                         let old_permission_variable = predicate_instance
                             .new_permission_variable(global_state, &predicate.name)?;
+                        block_builder.add_statement(
+                            vir_low::Statement::comment(format!(
+                                "inhaling {} to existing aliased predicate: snapshot={} old_permission={}",
+                                predicate, predicate_instance.snapshot_variable, old_permission_variable
+                            ))
+                        )?;
                         self.permission_type.inhale(
                             old_permission_variable,
                             &predicate_instance.permission_variable,
@@ -647,9 +668,17 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             is_unconditional: true,
         };
         if is_non_aliased {
+            block_builder.add_statement(vir_low::Statement::comment(format!(
+                "inhaling fresh non-aliased predicate instance: snapshot={} old_permission={}",
+                predicate_instance.snapshot_variable, predicate_instance.permission_variable
+            )))?;
             self.non_aliased_predicate_instances
                 .push(predicate_instance);
         } else {
+            block_builder.add_statement(vir_low::Statement::comment(format!(
+                "inhaling fresh aliased predicate instance: snapshot={} old_permission={}",
+                predicate_instance.snapshot_variable, predicate_instance.permission_variable
+            )))?;
             self.aliased_predicate_instances.push(predicate_instance);
         }
         Ok(())
@@ -856,6 +885,10 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                     "TODO: a proper error message {predicate}"
                 );
                 predicate_instance.is_materialized = true;
+                block_builder.add_statement(vir_low::Statement::comment(format!(
+                    "materializing found predicate with snapshot={} permission={}",
+                    predicate_instance.snapshot_variable, predicate_instance.permission_variable
+                )))?;
                 let statement = predicate_instance.create_materialization_statement(
                     &predicate.name,
                     position,
@@ -877,6 +910,10 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
                 &mut global_state.heap_variables,
             )?;
             let permission_variable = global_state.create_permission_variable(&predicate.name);
+            block_builder.add_statement(vir_low::Statement::comment(format!(
+                "materializing not-found predicate with snapshot={} permission={}",
+                snapshot_variable, permission_variable
+            )))?;
             let predicate_instance = PredicateInstance {
                 arguments: predicate.arguments.clone(),
                 snapshot_variable,

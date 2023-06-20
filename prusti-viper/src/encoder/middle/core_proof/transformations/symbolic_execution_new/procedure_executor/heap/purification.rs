@@ -132,6 +132,7 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
                         binding,
                         guarded_candidates,
                     } => {
+                        assert!(!guarded_candidates.is_empty());
                         self.bindings.push(SnapshotBinding {
                             guard: self.path_condition.clone().into_iter().conjoin(),
                             variable: binding.clone(),
