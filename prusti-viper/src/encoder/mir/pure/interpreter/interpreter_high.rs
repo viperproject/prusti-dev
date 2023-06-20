@@ -1006,6 +1006,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((PtrOffset, encoded_args[0].get_type().clone()))
             }
+            "std::ptr::const_ptr::<impl *const T>::add"
+            | "std::ptr::mut_ptr::<impl *mut T>::add" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((PtrAdd, encoded_args[0].get_type().clone()))
+            }
             "std::mem::size_of" => {
                 assert_eq!(encoded_args.len(), 0);
                 assert_eq!(type_arguments.len(), 1);
