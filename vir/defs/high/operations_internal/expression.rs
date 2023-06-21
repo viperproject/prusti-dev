@@ -284,6 +284,29 @@ impl Expression {
         }
     }
 
+    pub fn drop_last_reference_dereference(self) -> Self {
+        assert!(self.is_place());
+        struct Folder {
+            found_reference_dereference: bool,
+        }
+        impl ExpressionFolder for Folder {
+            fn fold_deref_enum(&mut self, expr: Deref) -> Expression {
+                if self.found_reference_dereference {
+                    Expression::Deref(expr)
+                } else {
+                    self.found_reference_dereference = true;
+                    *expr.base
+                }
+            }
+        }
+        let mut folder = Folder {
+            found_reference_dereference: false,
+        };
+        let result = folder.fold_expression(self);
+        assert!(folder.found_reference_dereference);
+        result
+    }
+
     /// Same as `get_last_dereferenced_reference`, just returns the first
     /// reference.
     pub fn get_first_dereferenced_reference(&self) -> Option<&Expression> {

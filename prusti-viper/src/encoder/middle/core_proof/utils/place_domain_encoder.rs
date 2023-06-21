@@ -93,6 +93,10 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
             vir_mid::Expression::EvalIn(expression) => {
                 self.encode_expression(&expression.body, lowerer)?
             }
+            vir_mid::Expression::AddrOf(expression) => {
+                let parent = expression.base.clone().drop_last_reference_dereference();
+                self.encode_expression(&parent, lowerer)?
+            }
             x => unimplemented!("{}", x),
         };
         Ok(result)
