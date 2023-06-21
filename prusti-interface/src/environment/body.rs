@@ -138,11 +138,15 @@ impl<'tcx> EnvBody<'tcx> {
     /// Get local MIR body of spec or pure functions. Retrieves the body from
     /// the compiler (relatively cheap).
     fn load_local_mir(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBody<'tcx> {
-        let body = tcx
-            .mir_promoted(ty::WithOptConstParam::unknown(def_id))
-            .0
-            .borrow();
-        MirBody(Rc::new(body.clone()))
+        if config::unsafe_core_proof() {
+            Self::load_local_mir_with_facts(tcx, def_id).body
+        } else {
+            let body = tcx
+                .mir_promoted(ty::WithOptConstParam::unknown(def_id))
+                .0
+                .borrow();
+            MirBody(Rc::new(body.clone()))
+        }
     }
 
     fn get_monomorphised(
@@ -286,7 +290,13 @@ impl<'tcx> EnvBody<'tcx> {
             return body;
         }
         let body = self.pure_fns.expect(def_id);
-        self.set_monomorphised(def_id, substs, Some(caller_def_id), body, false)
+        self.set_monomorphised(
+            def_id,
+            substs,
+            Some(caller_def_id),
+            body,
+            config::unsafe_core_proof(),
+        )
     }
 
     /// Get the MIR body of a local or external expression (e.g. any spec or predicate),
@@ -304,7 +314,13 @@ impl<'tcx> EnvBody<'tcx> {
             .specs
             .get(def_id)
             .unwrap_or_else(|| self.predicates.expect(def_id));
-        self.set_monomorphised(def_id, substs, Some(caller_def_id), body, false)
+        self.set_monomorphised(
+            def_id,
+            substs,
+            Some(caller_def_id),
+            body,
+            config::unsafe_core_proof(),
+        )
     }
 
     /// Get the MIR body of a local or external spec (pres/posts/pledges/type-specs),
@@ -319,7 +335,13 @@ impl<'tcx> EnvBody<'tcx> {
             return body;
         }
         let body = self.specs.expect(def_id);
-        self.set_monomorphised(def_id, substs, Some(caller_def_id), body, false)
+        self.set_monomorphised(
+            def_id,
+            substs,
+            Some(caller_def_id),
+            body,
+            config::unsafe_core_proof(),
+        )
     }
 
     /// Get Polonius facts of a local procedure.
@@ -356,9 +378,14 @@ impl<'tcx> EnvBody<'tcx> {
 
     pub(crate) fn load_predicate_body(&mut self, def_id: LocalDefId) {
         assert!(!self.predicates.local.contains_key(&def_id));
-        self.predicates
-            .local
-            .insert(def_id, Self::load_local_mir(self.tcx, def_id));
+        self.predicates.local.insert(
+            def_id,
+            if config::unsafe_core_proof() {
+                Self::load_local_mir_with_facts(self.tcx, def_id).body
+            } else {
+                Self::load_local_mir(self.tcx, def_id)
+            },
+        );
     }
 
     pub(crate) fn load_pure_fn_body(&mut self, def_id: LocalDefId) {

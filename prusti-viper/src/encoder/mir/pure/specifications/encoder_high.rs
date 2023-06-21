@@ -15,6 +15,7 @@ use crate::encoder::{
     Encoder,
 };
 
+use prusti_common::config;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{ty, ty::subst::SubstsRef},
@@ -213,7 +214,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
                 encoded_qvars.clone(),
                 parent_def_id,
                 trigger_substs,
-                false,
+                config::unsafe_core_proof(),
             )?;
             encoded_triggers.push(encoded_trigger);
         }
@@ -228,7 +229,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
         encoded_qvars.clone(),
         parent_def_id,
         body_substs,
-        false,
+        config::unsafe_core_proof(),
     )?;
 
     // TODO: implement cache-friendly qvar renaming

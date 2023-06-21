@@ -4389,7 +4389,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         bb,
                         self.def_id,
                         cl_substs,
-                        false,
+                        true,
                     )?,
                     span,
                     error_ctxt.clone(),
