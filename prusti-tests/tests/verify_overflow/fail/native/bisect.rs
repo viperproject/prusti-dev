@@ -26,7 +26,7 @@ fn bisect(f: &Function, target: i32) -> Option<usize> {
     assert!(high == f.domain_size());
     while low < high {
         body_invariant!(low < high && high <= f.domain_size());
-        let mid = (low + high) / 2;
+        let mid = (low + high) / 2; //~ ERROR attempt to add with overflow
         let mid_val = f.eval(mid);
         if mid_val < target {
             low = mid + 1;
