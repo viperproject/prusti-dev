@@ -1,7 +1,10 @@
-use super::state::PredicateState;
+use super::{ensurer::Context, state::PredicateState};
 use crate::{
     encoder::{
-        errors::SpannedEncodingResult, high::procedures::inference::permission::PermissionKind,
+        errors::SpannedEncodingResult,
+        high::procedures::inference::{
+            ensurer::ExpandedPermissionKind, permission::PermissionKind,
+        },
         Encoder,
     },
     error_incorrect, error_internal,
@@ -12,7 +15,7 @@ use vir_crate::{
 };
 
 pub(super) fn wrap_in_eval_using(
-    encoder: &mut Encoder<'_, '_>,
+    context: &mut impl Context,
     state: &mut super::state::FoldUnfoldState,
     mut expression: vir_typed::Expression,
 ) -> SpannedEncodingResult<vir_typed::Expression> {
@@ -48,7 +51,7 @@ pub(super) fn wrap_in_eval_using(
         match predicates_state {
             PredicateState::Unconditional(state) => {
                 collect_framing_places_from_a_state(
-                    encoder,
+                    context,
                     state,
                     &accessed_place,
                     &mut framing_places,
@@ -65,7 +68,7 @@ pub(super) fn wrap_in_eval_using(
                         && state.blocked_equal(first_state)
                 }) {
                     collect_framing_places_from_a_state(
-                        encoder,
+                        context,
                         first_state,
                         &accessed_place,
                         &mut framing_places,
@@ -101,7 +104,7 @@ pub(super) fn wrap_in_eval_using(
 }
 
 fn collect_framing_places_from_a_state(
-    encoder: &Encoder<'_, '_>,
+    context: &mut impl Context,
     state: &super::state::PredicateStateOnPath,
     accessed_place: &vir_typed::Expression,
     framing_places: &mut Vec<vir_typed::Expression>,
@@ -118,41 +121,56 @@ fn collect_framing_places_from_a_state(
             }
         }
     } else if let Some(_) = state.find_prefix(PermissionKind::MemoryBlock, accessed_place) {
-        let span = encoder
-            .error_manager()
-            .position_manager()
-            .get_span(position.into())
-            .cloned()
-            .unwrap();
+        let span = context.get_span(position.into()).unwrap();
         error_internal!(span => "found an uninitialized place in specification: {accessed_place}");
     } else if state.contains_blocked(accessed_place)?.is_some() {
-        let span = encoder
-            .error_manager()
-            .position_manager()
-            .get_span(position.into())
-            .cloned()
-            .unwrap();
+        let span = context.get_span(position.into()).unwrap();
         error_incorrect!(span => "cannot use specifications to trigger unblocking of a blocked place");
     } else {
-        let constituent_places = state.collect_owned_with_prefix(accessed_place)?;
-        for framing_place in &constituent_places {
-            if !framing_places.contains(framing_place) {
-                framing_places.push(framing_place.clone());
-                context_kinds.push(vir_typed::EvalInContextKind::Predicate);
+        // Find a lowest place that can be a parent of `accessed_place` and that
+        // could be assembled from `state`.
+        let mut root_framing_place = accessed_place;
+        while state
+            .contains_non_discriminant_with_prefix(PermissionKind::Owned, root_framing_place)
+            .is_none()
+        {
+            if let Some(parent_accessed_place) = root_framing_place.get_parent_ref() {
+                root_framing_place = parent_accessed_place;
+            } else {
+                break;
             }
         }
-        for mut framing_place in &constituent_places {
-            while let Some(parent_framing_place) = framing_place.get_parent_ref() {
-                framing_place = parent_framing_place;
-                if !framing_places.contains(framing_place) {
-                    framing_places.push(framing_place.clone());
-                    context_kinds.push(vir_typed::EvalInContextKind::SafeConstructor);
-                    unimplemented!();
-                }
-                if framing_place == accessed_place {
-                    break;
+        // TODO: Make generic by making recursive.
+        if let Some(witness) =
+            state.contains_non_discriminant_with_prefix(PermissionKind::Owned, root_framing_place)
+        {
+            assert!(
+                !root_framing_place.get_type().has_variants(),
+                "unimplemented"
+            );
+            for (kind, framing_place) in context.expand_place(&root_framing_place, &witness)? {
+                assert_eq!(kind, ExpandedPermissionKind::Same);
+                assert!(
+                    state.contains(PermissionKind::Owned, &framing_place),
+                    "TODO: make recursive"
+                );
+
+                // FIXME: Code duplication.
+                if !framing_places.contains(&framing_place) {
+                    framing_places.push(framing_place);
+                    if state.is_opened_ref(accessed_place)?.is_some() {
+                        context_kinds.push(vir_typed::EvalInContextKind::OpenedRefPredicate);
+                    } else {
+                        context_kinds.push(vir_typed::EvalInContextKind::Predicate);
+                    }
                 }
             }
+            framing_places.push(root_framing_place.clone());
+            context_kinds.push(vir_typed::EvalInContextKind::SafeConstructor);
+        } else {
+            unimplemented!(
+                "TODO: A proper error message that failed to assemble a place from a state"
+            );
         }
     }
     Ok(())

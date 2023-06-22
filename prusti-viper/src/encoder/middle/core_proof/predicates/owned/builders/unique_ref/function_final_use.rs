@@ -6,6 +6,7 @@ use crate::encoder::{
         snapshots::IntoSnapshot,
     },
 };
+use prusti_common::config;
 use vir_crate::{
     common::identifier::WithIdentifier,
     low::{self as vir_low},
@@ -43,7 +44,7 @@ where
             arguments.push(len);
         }
         let name = "snap_final_unique_ref";
-        let gas_amount = lowerer.function_gas_constant(2)?;
+        let gas_amount = lowerer.function_gas_constant(config::function_gas_amount())?;
         let inner =
             FunctionCallBuilder::new(lowerer, name, context, ty, generics, arguments, position)?;
         Ok(Self { inner, gas_amount })
