@@ -560,7 +560,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
             "{variable} must be self"
         );
         if self.use_ssa && !self.bound_variable_stack.contains(variable) {
-            if variable.ty.is_lifetime() {
+            if matches!(
+                variable.ty,
+                vir_mid::Type::MBool
+                    | vir_mid::Type::MInt
+                    | vir_mid::Type::MFloat32
+                    | vir_mid::Type::MFloat64
+                    | vir_mid::Type::MPerm
+                    | vir_mid::Type::MByte
+                    | vir_mid::Type::MBytes
+                    | vir_mid::Type::Lifetime
+                    | vir_mid::Type::Int(vir_mid::ty::Int::Unbounded)
+            ) {
                 if let Some(label) = &self.old_label {
                     lowerer.snapshot_variable_version_at_label(variable, label)
                 } else {
