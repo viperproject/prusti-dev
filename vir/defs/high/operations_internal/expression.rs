@@ -191,9 +191,17 @@ impl Expression {
                     default_walk_expression(self, expression)
                 }
             }
+            fn walk_predicate(&mut self, predicate: &Predicate) {
+                PredicateWalker::walk_predicate(self, predicate)
+            }
+        }
+        impl PredicateWalker for Collector {
+            fn walk_expression(&mut self, expr: &Expression) {
+                ExpressionWalker::walk_expression(self, expr)
+            }
         }
         let mut collector = Collector { places: Vec::new() };
-        collector.walk_expression(self);
+        ExpressionWalker::walk_expression(&mut collector, self);
         collector.places
     }
     /// Check whether the place is a dereference of a reference and if that is
