@@ -26,6 +26,7 @@ pub(crate) fn inline_caller_for(source_filename: &str, program: &mut vir_low::Pr
             caller_for_functions: &caller_for_functions,
             statements: Vec::new(),
             path_condition: Vec::new(),
+            inside_trigger: false,
             bound_variable_stack: Default::default(),
             failed_to_inline_functions: &mut failed_to_inline_functions,
         };
@@ -112,6 +113,7 @@ struct Inliner<'a> {
     caller_for_functions: &'a FxHashMap<String, vir_low::FunctionDecl>,
     statements: Vec<vir_low::Statement>,
     path_condition: Vec<vir_low::Expression>,
+    inside_trigger: bool,
     bound_variable_stack: BoundVariableStack,
     failed_to_inline_functions: &'a mut BTreeSet<String>,
 }
@@ -168,19 +170,30 @@ impl<'a> ExpressionFolder for Inliner<'a> {
         conditional
     }
 
+    fn fold_trigger(&mut self, mut trigger: vir_low::Trigger) -> vir_low::Trigger {
+        let old_inside_trigger = self.inside_trigger;
+        self.inside_trigger = true;
+        for term in std::mem::take(&mut trigger.terms) {
+            let term = self.fold_expression(term);
+            trigger.terms.push(term);
+        }
+        self.inside_trigger = old_inside_trigger;
+        trigger
+    }
+
     fn fold_func_app_enum(
         &mut self,
         func_app: vir_low::expression::FuncApp,
     ) -> vir_low::Expression {
         if let Some(function) = self.caller_for_functions.get(&func_app.function_name) {
-            if !self
+            if (!self
                 .bound_variable_stack
                 .expressions_contains_bound_variables(&func_app.arguments)
                 && !self
                     .bound_variable_stack
-                    .expressions_contains_bound_variables(&self.path_condition)
+                    .expressions_contains_bound_variables(&self.path_condition))
+                || self.inside_trigger
             {
-                let path_condition = self.path_condition.iter().cloned().conjoin();
                 assert_eq!(function.parameters.len(), func_app.arguments.len());
                 let arguments: Vec<_> = func_app
                     .arguments
@@ -188,16 +201,19 @@ impl<'a> ExpressionFolder for Inliner<'a> {
                     .map(|argument| self.fold_expression(argument))
                     .collect();
                 let replacements = function.parameters.iter().zip(arguments.iter()).collect();
-                let pres = function
-                    .pres
-                    .iter()
-                    .cloned()
-                    .conjoin()
-                    .substitute_variables(&replacements);
-                use vir_low::macros::*;
-                self.statements.push(stmtp! { func_app.position =>
-                    assert ([path_condition] ==> [pres])
-                });
+                if !self.inside_trigger {
+                    let path_condition = self.path_condition.iter().cloned().conjoin();
+                    let pres = function
+                        .pres
+                        .iter()
+                        .cloned()
+                        .conjoin()
+                        .substitute_variables(&replacements);
+                    use vir_low::macros::*;
+                    self.statements.push(stmtp! { func_app.position =>
+                        assert ([path_condition] ==> [pres])
+                    });
+                }
                 let new_function = function
                     .body
                     .clone()

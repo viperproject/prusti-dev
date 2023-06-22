@@ -560,10 +560,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
             "{variable} must be self"
         );
         if self.use_ssa && !self.bound_variable_stack.contains(variable) {
-            if let Some(label) = &self.old_label {
-                lowerer.snapshot_variable_version_at_label(variable, label)
+            if variable.ty.is_lifetime() {
+                if let Some(label) = &self.old_label {
+                    lowerer.snapshot_variable_version_at_label(variable, label)
+                } else {
+                    lowerer.current_snapshot_variable_version(variable)
+                }
             } else {
-                lowerer.current_snapshot_variable_version(variable)
+                if let Some(label) = &self.old_label {
+                    unreachable!("Should be covered by eval_in: {variable} in {label}");
+                } else {
+                    unreachable!("Should be covered by eval_in: {variable}");
+                }
             }
         } else {
             Ok(vir_low::VariableDecl {
