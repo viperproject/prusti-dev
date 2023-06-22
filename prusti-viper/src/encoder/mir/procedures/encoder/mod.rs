@@ -4334,12 +4334,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         bb,
                         self.def_id,
                         cl_substs,
-                        false,
+                        true,
                     )?,
                     span,
                     error_ctxt.clone(),
                     self.def_id,
                 );
+
+                let assert_expr = self.desugar_pledges_in_asertion(assert_expr)?;
 
                 let assert_stmt = vir_high::Statement::assert_no_pos(assert_expr);
                 let assert_stmt = self.encoder.set_statement_error_ctxt(
@@ -4395,6 +4397,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     error_ctxt.clone(),
                     self.def_id,
                 );
+
+                let expr = self.desugar_pledges_in_asertion(expr)?;
 
                 let stmt = vir_high::Statement::assume_no_pos(expr);
                 let stmt =
