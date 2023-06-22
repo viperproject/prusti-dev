@@ -11,6 +11,7 @@ use crate::encoder::{
         types::TypesInterface,
     },
 };
+use prusti_common::config;
 use std::collections::BTreeMap;
 use vir_crate::{
     common::expression::{ExpressionIterator, QuantifierHelpers},
@@ -57,7 +58,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             posts.push(result_validity);
             let gas = self.function_gas_parameter()?;
             let gas_expression = gas.clone().into();
-            let gas_amount = self.function_gas_constant(2)?;
+            let gas_amount = self.function_gas_constant(config::function_gas_amount())?;
             let caller_for_pres: Vec<_> = pres
                 .clone()
                 .into_iter()

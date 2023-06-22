@@ -6,6 +6,7 @@ use crate::encoder::{
         snapshots::IntoSnapshot,
     },
 };
+use prusti_common::config;
 use vir_crate::{
     common::identifier::WithIdentifier,
     low::{self as vir_low},
@@ -63,7 +64,10 @@ where
         };
         let element_type = pointer_type.target_type.to_snapshot(self.inner.lowerer)?;
         let return_type = vir_low::Type::seq(element_type);
-        let gas_amount = self.inner.lowerer.function_gas_constant(2)?;
+        let gas_amount = self
+            .inner
+            .lowerer
+            .function_gas_constant(config::function_gas_amount())?;
         let mut arguments = self.inner.arguments;
         arguments.push(gas_amount);
         let call = vir_low::Expression::domain_function_call(

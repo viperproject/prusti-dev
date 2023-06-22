@@ -466,7 +466,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 //     )?;
                 // }
                 inhale_statement.expression = super::eval_using::wrap_in_eval_using(
-                    self.encoder,
+                    self,
                     state,
                     inhale_statement.expression,
                 )?;
@@ -487,7 +487,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 //     )?;
                 // }
                 exhale_statement.expression = super::eval_using::wrap_in_eval_using(
-                    self.encoder,
+                    self,
                     state,
                     exhale_statement.expression,
                 )?;
@@ -507,7 +507,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 //     // )?;
                 // }
                 assert_statement.expression = super::eval_using::wrap_in_eval_using(
-                    self.encoder,
+                    self,
                     state,
                     assert_statement.expression,
                 )?;

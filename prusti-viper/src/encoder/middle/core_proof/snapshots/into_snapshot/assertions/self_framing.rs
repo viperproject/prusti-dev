@@ -990,8 +990,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 }
                 vir_mid::TypeDecl::Struct(decl) => {
                     assert!(decl.structural_invariant.is_none(), "report a proper error message that structs with invariants cannot be automatically folded");
+                    let mut arguments = Vec::new();
+                    for field in &decl.fields {
+                        let field_place = vir_mid::Expression::field(
+                            place.clone(),
+                            field.clone(),
+                            eval_in.position,
+                        );
+                        arguments.push(field_place);
+                    }
+                    let constructor_call =
+                        vir_mid::Expression::constructor(ty.clone(), arguments, eval_in.position);
                     // TODO: construct_struct_snapshot
-                    unimplemented!("{decl}");
+                    self.expression_to_snapshot(lowerer, &constructor_call, false)?
                 }
                 _ => unimplemented!("{type_decl}"),
             };

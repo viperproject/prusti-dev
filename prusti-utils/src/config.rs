@@ -154,6 +154,7 @@ lazy_static::lazy_static! {
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
+        settings.set_default("function_gas_amount", 2).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
 
@@ -1225,6 +1226,14 @@ pub fn check_no_drops() -> bool {
 /// then setting this flag to `false` may help.
 pub fn use_new_encoder() -> bool {
     read_setting("use_new_encoder")
+}
+
+/// How many times to unroll the pure function definitions.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn function_gas_amount() -> u32 {
+    read_setting("function_gas_amount")
 }
 
 /// How many parallel verifiers Silicon should use.
