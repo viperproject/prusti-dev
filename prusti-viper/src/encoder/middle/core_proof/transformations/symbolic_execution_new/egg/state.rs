@@ -178,7 +178,15 @@ impl EGraphState {
                     ExpressionLanguage::Int(constant) => {
                         return Ok(Some((Some(name.to_string()), constant.into())));
                     }
-                    ExpressionLanguage::BigInt(_) => todo!(),
+                    ExpressionLanguage::BigInt(constant) => {
+                        return Ok(Some((
+                            Some(name.to_string()),
+                            vir_low::Expression::constant_no_pos(
+                                vir_low::ConstantValue::BigInt(constant.to_string()),
+                                vir_low::Type::Int,
+                            ),
+                        )));
+                    }
                     _ => {}
                 }
             }
