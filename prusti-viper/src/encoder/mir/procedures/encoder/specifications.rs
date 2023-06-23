@@ -181,4 +181,15 @@ impl<'a, 'v, 'tcx> ExpressionFallibleFolder for Rewriter<'a, 'v, 'tcx> {
         };
         Ok(expression)
     }
+
+    fn fallible_fold_trigger(
+        &mut self,
+        mut trigger: vir_high::Trigger,
+    ) -> Result<vir_high::Trigger, Self::Error> {
+        for term in std::mem::take(&mut trigger.terms) {
+            let term = self.fallible_fold_expression(term)?;
+            trigger.terms.push(term);
+        }
+        Ok(trigger)
+    }
 }
