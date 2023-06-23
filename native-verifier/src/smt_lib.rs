@@ -67,8 +67,13 @@ impl SMTLib {
                 self.add_code(format!("(assert {})", expression.to_smt()));
             }
             FolStatement::Assert { expression, reason } => {
-                // negate predicate
                 let position = expression.position();
+
+                if position.id == 0 {
+                    return;
+                }
+
+                // negate predicate
                 let negated = Expression::UnaryOp(UnaryOp {
                     op_kind: UnaryOpKind::Not,
                     argument: Box::new(expression.clone()),
@@ -647,7 +652,7 @@ impl SMTTranslatable for IntBinaryOpKind {
             BinaryOpKind::Sub => "-",
             BinaryOpKind::Mul => "*",
             BinaryOpKind::Div => "div",
-            BinaryOpKind::Mod => "mod",
+            BinaryOpKind::Mod => "rust_mod",
             BinaryOpKind::And => "and",
             BinaryOpKind::Or => "or",
             BinaryOpKind::Implies => "=>",
