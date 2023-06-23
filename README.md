@@ -81,4 +81,4 @@ Quick example
 3. Fix the buggy line with `let mid = low + ((high - low) / 2);`
 4. Run Prusti. Now the `bisect` function verifies.
 
-Congratulations! You just proved absence of panics and integer overflows in the `bisect` function. To additionally prove that the result is correct (i.e. such that `f(x) == target`), see [this example](prusti-tests/tests/verify_overflow/pass/overflow/bisect.rs).
+Congratulations! You just proved absence of panics and integer overflows in the `bisect` function. To additionally prove that the result is correct (i.e. such that `f(x) == target`), see [this example](https://github.com/viperproject/prusti-dev/blob/master/prusti-tests/tests/verify_overflow/pass/overflow/bisect.rs).
