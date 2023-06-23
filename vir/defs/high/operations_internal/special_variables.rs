@@ -65,6 +65,14 @@ impl Expression {
             false
         }
     }
+
+    pub fn is_address_field(&self) -> bool {
+        if let Expression::Field(Field { field, .. }) = self {
+            field.is_address()
+        } else {
+            false
+        }
+    }
 }
 
 const DISCRIMINANT_INDEX: usize = 100000;

@@ -126,6 +126,8 @@ fn collect_framing_places_from_a_state(
     } else if state.contains_blocked(accessed_place)?.is_some() {
         let span = context.get_span(position.into()).unwrap();
         error_incorrect!(span => "cannot use specifications to trigger unblocking of a blocked place");
+    } else if accessed_place.is_address_field() {
+        // Address field, just ignore it.
     } else {
         // Find a lowest place that can be a parent of `accessed_place` and that
         // could be assembled from `state`.
