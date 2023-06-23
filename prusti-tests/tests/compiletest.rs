@@ -197,6 +197,11 @@ fn test_runner(_tests: &[&()]) {
     run_verification_overflow("verify_overflow", &filter);
     save_verification_cache();
 
+    // Test the verifier with overflow checks enabled.
+    println!("[verify_overflow]");
+    run_verification_overflow("verify_overflow_core_proof", &filter);
+    save_verification_cache();
+
     // Test the verifier with test cases that only partially verify due to known open issues.
     // The purpose of these tests is two-fold: 1. these tests help prevent potential further
     // regressions, because the tests also test code paths not covered by other tests; and
