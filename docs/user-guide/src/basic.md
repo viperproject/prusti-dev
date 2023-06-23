@@ -9,7 +9,7 @@ When the Prusti Assistant extension is active, Rust files can be verified in one
 - By saving a Rust document, if "Verify on save" is enabled.
 - By opening a Rust document, if "Verify on open" is enabled.
 
-See the [following chapter](verify/summary.md) for a list of verification features available in Prusti.
+See the [Verification Features chapter](verify/summary.md) for a list of verification features available in Prusti.
 
 ## Command line
 

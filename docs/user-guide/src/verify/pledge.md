@@ -58,4 +58,4 @@ In some cases, a condition must be checked at the point of expiry, like for exam
 The syntax for this is `#[assert_on_expiry(condition, invariant)]`.
 This means that the `invariant` holds, given that `condition` is true when the reference expires.
 
-Note that for some condition `A`, `after_expiry(A)` is equal to `assert_one_expiry(true, A)`.
+Note that for any assertion `A`, `after_expiry(A)` is equivalent to `assert_on_expiry(true, A)`.

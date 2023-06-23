@@ -42,7 +42,7 @@ That is, we attach the [postcondition](../verify/prepost.md)
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/impl_new_spec_1.rs:first_spec_2}}
 ```
 
-Unfortunately, Prusti—or rather: the Rust compiler—will complain about
+Unfortunately, Prusti—or rather, the Rust compiler—will complain about
 the postcondition:
 
 ```plain
@@ -55,7 +55,7 @@ error: cannot find attribute `ensures` in this scope
 
 Prusti's specifications consist of Rust
 [macros and attributes](https://doc.rust-lang.org/reference/procedural-macros.html)
-that are defined in a separate crate called `prusti_contracts`. To see how to add this crate to your project, check out [Setup](setup.md).
+that are defined in a separate crate called `prusti-contracts`. To see how to add this crate to your project, see the [Setup chapter](setup.md).
 Before we can use these specifications, we need to make the path to these
 macros and attributes visible:
 
@@ -63,7 +63,7 @@ macros and attributes visible:
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/impl_new_spec_2.rs:import_prusti}}
 ```
 
-Declaring that we use the `prusti_contracts` crate removes the compiler error but
+Declaring that we use the `prusti_contracts` module removes the compiler error but
 leads to a new error. This time it is an error raised by Prusti:
 
 ```markdown
@@ -114,7 +114,7 @@ To fix this issue, it suffices to mark `Link::len()` as pure as well.
 ```
 
 ```plain
-$ cargo-prusti
+$ cargo prusti
 // ...
 Successful verification of 4 items
 ```
@@ -125,21 +125,22 @@ this is hardly surprising since `len()` ultimately always returns 0.)
 
 ## Proper implementation of `len`
 
-We will now properly implement `len()`, and while we're at it, `is_empty()` for `Link`. Both of them are pure functions, so we will add the `#[pure]` annotation. Both functions can be called without any restrictions, so they have the default postcondition `#[requires(true)]`, which we don't have to add manually. We also don't need to add any additional postconditions, since pure functions will be inlined wherever they are used during verification.
+We will now properly implement `len()`, and while we're at it, `is_empty()` for `Link`. Both of them are pure functions, so we will add the `#[pure]` annotation. Both functions can be called without any restrictions, so they have the default postcondition `#[requires(true)]`, which we don't have to add manually. We also don't need to add any additional postconditions, since the body of pure functions is considered to be part of their contract.
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/impl_new_full_code.rs:implementation}}
 ```
 
-Here we use the [`matches` macro](https://doc.rust-lang.org/std/macro.matches.html) in `is_empty`, which is true if and only if the first argument matches the pattern in the second argument.
+Here we use the [`matches!` macro](https://doc.rust-lang.org/std/macro.matches.html) in `is_empty`, which is true if and only if the first argument matches the pattern in the second argument.
 
 We can now check if the specification is working, by writing a function that panics if the specification is wrong:
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/impl_new_full_code.rs:test_len}}
 ```
 
-The last line asserts, that the `is_empty` function only returns `true`, if the `len` function returns `0`.
+The last line asserts that the `is_empty` function only returns `true` if the `len` function returns `0`.
 And Prusti can verify it! Now we know that this assert statement holds for any `link` that is passed to the `test_len` function.
+Note that we wrote this function only for demonstration purposes—the contract is checked even without the `test_len` function. We will consider the relationship between testing and static verification further in the [Testing chapter](testing.md).
 
 ### Overflow checks
 
@@ -153,9 +154,9 @@ This overflow could happen, if you call `len` on a list with more than `usize::M
 
 ## Full code listing
 
-Before we continue, we provide the full code implented in this chapter.
+Before we continue, we provide the full code implemented in this chapter.
 It should successfully verify with Prusti and we will further extend it throughout
-the next four chapters.
+the next chapters.
 
 ```rust,noplaypen
 // Expand to see full code up to this chapter

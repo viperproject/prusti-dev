@@ -1,4 +1,4 @@
-## Adding specification `impl` blocks
+## Specifications in trait `impl` blocks
 
 Adding specifications to trait functions requires the `impl` block to be annotated with `#[refine_trait_spec]`:
 

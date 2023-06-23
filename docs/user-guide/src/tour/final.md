@@ -1,6 +1,6 @@
-# Final List Code
+# Final Code
 
-## Full Code
+Here you can see the full implementation we have thus far.
 
 ```rust,noplaypen
 // Expand to see the full code

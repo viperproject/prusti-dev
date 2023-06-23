@@ -7,7 +7,7 @@ function (via an assumption).
 
 ## Assertions
 
-The macros `prusti_assert!`, `prusti_assert_eq` and `prusti_assert_ne` instruct Prusti to verify that a certain property holds at a specific point within the body of a function. In contrast to the `assert!`, `assert_eq` and `assert_ne` macros, which only accept Rust expressions, the Prusti variants accept [specification](../syntax.md) expressions as arguments. Therefore, [quantifiers](../syntax.md#quantifiers), [`old`](../syntax.md#old-expressions) expressions and other Prusti specification syntax is allowed within a call to `prusti_assert!`, as in the following example:
+The macros `prusti_assert!`, `prusti_assert_eq!` and `prusti_assert_ne!` instruct Prusti to verify that a certain property holds at a specific point within the body of a function. In contrast to the `assert!`, `assert_eq!` and `assert_ne!` macros, which only accept Rust expressions, the Prusti variants accept [specification](../syntax.md) expressions as arguments. Therefore, [quantifiers](../syntax.md#quantifiers), [`old`](../syntax.md#old-expressions) expressions and other Prusti specification syntax is allowed within a call to `prusti_assert!`, as in the following example:
 
 ```rust,noplaypen,ignore
 # use prusti_contracts::*;
@@ -19,7 +19,7 @@ fn go(x: &mut u32) {
 }
 ```
 
-The two macros `prusti_assert_eq` and `prusti_assert_ne` are also slightly different than their standard counterparts, in that they use [snapshot equality](../syntax.md#snapshot-equality) `===` instead of [Partial Equality](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html) `==`.
+The two macros `prusti_assert_eq!` and `prusti_assert_ne!` are also slightly different than their standard counterparts, in that they use [snapshot equality](../syntax.md#snapshot-equality) `===` instead of [Partial Equality](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html) `==`.
 
 ```rust,noplaypen,ignore
 # use prusti_contracts::*;
@@ -50,11 +50,11 @@ prusti_assert!(map.insert(5)); // error
 # }
 ```
 
-Using Prusti assertions instead of normal assertions can speed up verification, because every `assert` results in a branch in the code, while `prusti_assert` does not.
+Using Prusti assertions instead of normal assertions can speed up verification, because every `assert!` results in a branch in the code, while `prusti_assert!` does not.
 
 ## Refutations
 
-> Refutation **should not be relied upon for soundness** as it may succeed even when it should fail; Prusti may not be able to prove the property being refuted and thus won't complain even though the property actually holds (e.g. if the property is difficult to prove).
+> Refutation **should not be relied upon for soundness** as they may succeed even when expected to fail; Prusti may not be able to prove the property being refuted and thus won't complain even though the property actually holds (e.g. if the property is difficult to prove).
 
 The `prusti_refute!` macro is similar to `prusti_assert!` in its format, conditions of use and what expressions it accepts. It instructs Prusti to verify that a certain property at a specific point within the body of a function might hold in some, but not all cases. For example the following code will verify:
 

@@ -11,7 +11,7 @@ Attempting to verify this file will result in an error:
 [Prusti: verification error] postcondition might not hold.
 ```
 
-One way to help with debugging such a verification failure, is to have Prusti print a **counterexample**. This can be enabled by adding the `counterexample = true` flag in your `Prusti.toml` file.
+One way to help with debugging such a verification failure, is to have Prusti print a **counterexample**. This can be enabled by adding the `counterexample = true` flag in the `Prusti.toml` file.
 
 A counterexample is any combination of values, which will cause some postcondition or assertion to fail (there are no guarantees on which values get chosen).
 

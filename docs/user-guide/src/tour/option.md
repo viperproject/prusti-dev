@@ -16,7 +16,7 @@ In order to use the `Option::take` function, we also have to implement the `exte
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:option_take_extern_spec}}
 ```
 
-Changing the `Link` type requires some adjustments of the code and specifications. With the new type alias for `Link`, we cannot have an `impl Link` block anymore, so our `lookup` and `len` functions on `Link` are now normal, non-associated functions:
+Changing the `Link` type requires some adjustments of the code and specifications. With the new type alias for `Link`, we cannot have an `impl Link` block anymore, so our `lookup` and `len` functions on `Link` are now normal, free-standing functions:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:rewrite_link_impl}}
