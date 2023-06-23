@@ -1669,7 +1669,7 @@ impl IntoLow for vir_mid::Statement {
             Self::MaterializePredicate(statement) => {
                 let mut statements = Vec::new();
                 if config::purify_with_symbolic_execution() {
-                    // Prediacte::into_low assumes that the predicate is non-aliased while here we
+                    // Predicate::into_low assumes that the predicate is non-aliased while here we
                     // need an aliased version.
                     let predicate = match statement.predicate {
                         vir_mid::Predicate::OwnedNonAliased(predicate) => {

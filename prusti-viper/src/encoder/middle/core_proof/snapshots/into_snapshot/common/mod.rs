@@ -121,9 +121,12 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             vir_mid::Expression::Unfolding(expression) => {
                 self.unfolding_to_snapshot(lowerer, expression, expect_math_bool)
             }
-            vir_mid::Expression::EvalIn(expression) => {
-                self.eval_in_to_snapshot(lowerer, expression, expect_math_bool)
-            }
+            vir_mid::Expression::EvalIn(expression) => self.eval_in_to_snapshot(
+                lowerer,
+                expression,
+                expect_math_bool,
+                Self::expression_to_snapshot,
+            ),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -1188,6 +1191,13 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         place: &vir_mid::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        if let vir_mid::Expression::EvalIn(eval_in) = place {
+            let result =
+                self.eval_in_to_snapshot(lowerer, eval_in, false, |this, lowerer, place, _| {
+                    this.pointer_deref_into_address(lowerer, place)
+                });
+            return result;
+        }
         if let Some(parent) = place.get_parent_ref_of_place_like() {
             let parent_type = parent.get_type();
             if place.is_deref() && parent_type.is_pointer() {
@@ -1311,12 +1321,21 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
         // Ok(expression)
     }
 
-    fn eval_in_to_snapshot(
+    fn eval_in_to_snapshot<F>(
         &mut self,
         _lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         _eval_in: &vir_mid::EvalIn,
         _expect_math_bool: bool,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
+        _body_to_snapshot: F,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        F: FnOnce(
+            &mut Self,
+            &mut Lowerer<'p, 'v, 'tcx>,
+            &vir_mid::Expression,
+            bool,
+        ) -> SpannedEncodingResult<vir_low::Expression>,
+    {
         unimplemented!("FIXME: Make this abstract.");
     }
 

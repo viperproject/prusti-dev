@@ -723,6 +723,21 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     vir_mid::Statement::havoc(predicate, havoc_statement.position);
                 self.current_statements.push(encoded_statement);
             }
+            vir_typed::Statement::MaterializePredicate(mut materialize_predicate_statement) => {
+                let Some(location) = materialize_predicate_statement.predicate.get_heap_location_mut() else {
+                    unreachable!();
+                };
+                *location = super::eval_using::wrap_in_eval_using(self, state, location.clone())?;
+                let predicate = materialize_predicate_statement
+                    .predicate
+                    .typed_to_middle_predicate(self.encoder)?;
+                let encoded_statement = vir_mid::Statement::materialize_predicate(
+                    predicate,
+                    materialize_predicate_statement.check_that_exists,
+                    materialize_predicate_statement.position,
+                );
+                self.current_statements.push(encoded_statement);
+            }
             _ => {
                 self.current_statements
                     .push(statement.typed_to_middle_statement(self.encoder)?);

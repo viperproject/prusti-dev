@@ -85,6 +85,7 @@ impl Predicate {
             }
         }
     }
+
     pub fn check_no_default_position(&self) {
         struct Checker;
         impl PredicateWalker for Checker {
@@ -96,5 +97,24 @@ impl Predicate {
             }
         }
         Checker.walk_predicate(self)
+    }
+
+    pub fn get_heap_location_mut(&mut self) -> Option<&mut Expression> {
+        match self {
+            Self::LifetimeToken(_) => None,
+            Self::MemoryBlockStack(_) => None,
+            Self::MemoryBlockStackDrop(_) => None,
+            Self::MemoryBlockHeap(predicate) => Some(&mut predicate.address),
+            Self::MemoryBlockHeapRange(predicate) => Some(&mut predicate.address),
+            Self::MemoryBlockHeapRangeGuarded(predicate) => Some(&mut predicate.address),
+            Self::MemoryBlockHeapDrop(predicate) => Some(&mut predicate.address),
+            Self::OwnedNonAliased(predicate) => Some(&mut predicate.place),
+            Self::OwnedRange(predicate) => Some(&mut predicate.address),
+            Self::OwnedSet(predicate) => Some(&mut predicate.set),
+            Self::UniqueRef(predicate) => Some(&mut predicate.place),
+            Self::UniqueRefRange(predicate) => Some(&mut predicate.address),
+            Self::FracRef(predicate) => Some(&mut predicate.place),
+            Self::FracRefRange(predicate) => Some(&mut predicate.address),
+        }
     }
 }
