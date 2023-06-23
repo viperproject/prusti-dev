@@ -20,9 +20,9 @@ When verification succeeds, you are guaranteed to not have a bug like a crash, o
 This assumes that you have manually verified any `#[trusted]` functions and have checked for correct termination of all functions.
 If the verification fails, you may have a bug, or your specifications are not strong enough.
 
-In other words: Testing can show the *presence* of bugs, verification can show the *absence* of bugs.
-
 The guarantees of testing are different. If a test fails, you know that you have a bug (either in the code or the test), but if all your tests pass, you might still have some bugs, just not with the specific inputs used in the tests.
+
+In other words: Testing can show the *presence* of bugs, verification can show the *absence* of bugs.
 
 It might still be worth writing (and running) some unit tests even for verified code, as they can serve as documentation on using a function. If you made some mistake in both the code and the specification, you may notice it if you write a test for it or use that function in another verified function.
 
@@ -42,14 +42,14 @@ The specification for a function could have a precondition that is too restricti
 
 This function is correct (ignoring potential overflows), but it is not useful, since the input must be `10`.
 
-Another potential problem could be an incomplete postcondition. The `abs` function should take the absolute value of `x`, but it only works for positive values. The verification will still succeed, because the postcondition does not specify the result for `x < 0`:
+Another potential problem could be an incomplete postcondition. The `abs` function below should return the absolute value of `x`, but it only works for positive values. The verification will still succeed, because the postcondition does not specify the result for `x < 0`:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/testing_incorrect_specs.rs:code}}
 ```
 
 This bug will be noticed as soon as you try using `abs` with a negative input.
-For functions internal to a project, you will likely notice mistakes in the specification when you try to use the function in other code. However, when you have public functions, like for example in a library, you might want to write some test functions for your specification. Specifications errors sometimes only show up when they are actually used.
+For functions internal to a project, you will likely notice mistakes in the specification when you try to use the function in other code. However, when you have public functions, like for example in a library, you might want to write some test functions for your specification. Specification errors sometimes only show up when they are actually used.
 
 
 
@@ -72,5 +72,3 @@ Note the `#[cfg(prusti)]` on the module `prusti_tests`. This makes the module on
 
 
 Our test code can be verified, so it appears that our specification is not too restrictive or incomplete.
-
-Let's continue now with allowing different types of values to be stored in the linked list, not just `i32`.

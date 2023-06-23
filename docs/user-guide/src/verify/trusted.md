@@ -16,7 +16,7 @@ fn xor_swap(a: &mut i32, b: &mut i32) {
 
 In the above example, the contract for `xor_swap` is correct, but Prusti would not be able to verify it because it uses currently unsupported XOR operations.
 
-While a common application of `#[trusted]` is to wrap functions from the standard library or external libraries, notice that [external specifications](external.md) provide a more robust solution for this use case.
+While a common application of `#[trusted]` is to wrap functions from the standard library or external libraries, note that [external specifications](external.md) provide a more robust solution for this use case.
 
 ## Why trusted functions are dangerous
 

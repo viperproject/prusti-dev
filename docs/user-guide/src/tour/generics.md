@@ -10,7 +10,7 @@ If you do this process with Prusti, at some point you will encounter the followi
 ```
 This is because the generic type `T` might not implement [`PartialEq`](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html) and thus not have an equality function `==` that could be called on it like `i32` does. Since we only used `==` inside of specifications, we can fix this problems by using [snapshot equality `===`](../syntax.md#snapshot-equality) instead.
 
-Here you can see where some of the changes where done (expand to see full changes):
+Here you can see where some of the changes were done (expand to see the full changes):
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/generic.rs:generic_types}}
@@ -30,7 +30,7 @@ In addition to returning a reference, we will have to adjust some of the places 
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/generic.rs:lookup_reference}}
 ```
 
-After all these changes, Prusti is able to verify the code again, so we now our linked list can be used to store elements of any type, not just `i32`!
+After all these changes, Prusti is able to verify the code again, so now our linked list can be used to store elements of any type, not just `i32`!
 If you want to see the full code after all the changes, expand the following code block.
 
 ```rust,noplaypen

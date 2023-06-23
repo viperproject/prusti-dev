@@ -34,29 +34,6 @@ fn some_client(some_struct: &mut SomeStruct) {
 This means that a model cannot be instantiated or directly manipulated with runtime code. Instead, the _source_ of a
 model is always a [trusted function](trusted.md) or an [external specification](external.md).
 
-## Generic models
-
-Models can be generic over type parameters or concrete type arguments. That is, given a struct `SomeGenericStruct<A, B>`
-, you can define models for:
-
-* Concrete type arguments, e.g. `SomeGenericStruct<i32, u32>` and `SomeGenericStruct<u32, usize>`
-* Generic type parameters, e.g. `SomeGenericStruct<A, B>`
-* Mix the two concepts, e.g. `SomeGenericStruct<A, i32>`
-
-Different (generic) models for the same type can have different fields. In order to correctly parse the model, Prusti
-needs attributes attached to the generics. A type argument needs to be attributed with `#[concrete]`, a type parameter
-with `#[generic]`. In the last example above, we would create a model with:
-
-```rust,noplaypen,ignore
-#[model]
-struct SomeGenericStruct<#[generic] A: Copy, #[concrete] i32> {
-    field_a: A
-    // ... fields
-}
-```
-
-Note: If you create ambiguous models, you can get a compile error when accessing the model via the `.model()` method.
-
 ## Further remarks
 
 * A model needs to be copyable, i.e. all fields need to be `Copy`. That also applies to type parameters where you need

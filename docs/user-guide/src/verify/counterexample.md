@@ -1,7 +1,7 @@
 # Printing Counterexamples
 
 Prusti can print counterexamples for verification failures, i.e., values for variables that violate some assertion or pre-/postcondition.
-This can be enabled by setting [`counterexample = true`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#counterexample) in your `Prusti.toml` file, or with the `PRUSTI_COUNTEREXAMPLES=true` environment variable.
+This can be enabled by setting [`counterexample = true`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#counterexample) in the `Prusti.toml` file, or with the `PRUSTI_COUNTEREXAMPLES=true` environment variable.
 
 For example:
 ```rust,noplaypen
@@ -23,7 +23,7 @@ Note 2: Verification will be slower with `counterexamples = true`.
 
 # Customizable counterexamples
 
-A counterexample for structs and enums can be formatted by annotating the type with `#[print_counterexample()]`. This is only available if the [`unsafe_core_proof`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#unsafe_core_proof) flag is set to `true`.
+A counterexample for structs and enums can be formatted by annotating the type with `#[print_counterexample(..)]`. This is only available if the [`unsafe_core_proof`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#unsafe_core_proof) flag is set to `true`.
 
 ## Syntax structs
 

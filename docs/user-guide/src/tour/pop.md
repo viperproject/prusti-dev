@@ -18,26 +18,22 @@ But, since we are verifying that there will never be `None` passed to `unwrap`, 
 
 ## Properties of `try_pop`
 
-Lets start by (informally) listing the properties we want our `try_pop` method to have.
+Let's start by (informally) listing the properties we want our `try_pop` method to have.
 We do not need a precondition for `try_pop`, since it can be called on any list.
 This just leaves all the postconditions, which can be put into two categories:
 
 - If the input list is empty before the call:
-  1. The `result` will be `None`
-  2. The list will still be empty afterwards
+  1. The `result` will be `None`.
+  2. The list will still be empty afterwards.
 - If the input list is not empty before the call:
-  1. The `result` will be `Some(value)` and `value` is the element that was the first element of the list
-  2. The length will get reduced by one
-  3. All elements will be shifted forwards by one
+  1. The `result` will be `Some(value)` and `value` is the element that was the first element of the list.
+  2. The length will get reduced by one.
+  3. All elements will be shifted forwards by one.
 
 ## Properties of `pop`
 
 For `pop`, we will add a precondition that the list is not empty.
-The postconditions are similar to those of `try_pop`, but we can skip all those that only apply to empty lists:
-
-1. The `result` will be the first value of the old list
-2. The length will get reduced by one
-3. All elements will be shifted forwards by one
+The postconditions are similar to those of `try_pop`, but we can skip all those that only apply to empty lists.
 
 ## Preparations
 
@@ -51,7 +47,7 @@ Since we will need to check if a list is empty, we can implement a `#[pure]` fun
 
 ### Writing the external specifications for `Option`
 
-Since we use `Option::unwrap`, we will need an external specification for it. While we're at it, lets also write the `#[extern_spec]` for `Option::is_some` and `Option::is_none`:
+Since we use `Option::unwrap`, we will need an external specification for it. While we're at it, let's also write the `#[extern_spec]` for `Option::is_some` and `Option::is_none`:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/pop.rs:extern_spec}}
@@ -105,7 +101,7 @@ For `try_pop`, the condition only holds if the list was *not* empty before the c
 
 You may have noticed that the last two conditions for `pop` are the same as the last two of `try_pop`. We could just write the same conditions twice, but we can also place them in a Prusti [`predicate`](../verify/predicate.md), and then use that `predicate` in both specifications.
 
-A `predicate` is basically just a [`pure`](../verify/pure.md) function that returns a `bool`, but it can use all the additional syntax available in Prusti specifications. Lets look at an example:
+A `predicate` is basically just a [`pure`](../verify/pure.md) function that returns a `bool`, but it can use all the additional syntax available in Prusti specifications. Let's look at an example:
 
 ```rust,noplaypen
 # // The next line is only required for doctests, you can ignore/remove it
@@ -124,7 +120,7 @@ fn ten() -> i32 {
 }
 ```
 
-In our specific case, we want to have a predicate to compare the state of the list before the call to the state afterwards. The `old` function cannot be used inside a predicate, so we have to pass the two states as separate arguments. For this we write a `predicate` with 2 parameters, which represent the state before and after the function. Such a predicate is also called a `two-state predicate`.
+In our specific case, we want to have a predicate to compare the state of the list before the call to the state afterwards. The `old` function cannot be used inside a predicate, so we have to pass the two states as separate arguments. For this we write a `predicate` with two parameters, which represent the state before and after the function. Such a predicate is also called a "two-state predicate".
 Note that we take both arguments by (immutable) reference, since we don't need the predicate to take ownership over the arguments:
 
 ```rust,noplaypen,ignore
@@ -140,12 +136,12 @@ impl List {
 }
 ```
 
-The 2 parameters are called `self` and `prev`, both with the type `&Self`.
+The two parameters are called `self` and `prev`, both with the type `&Self`.
 
 The goal of this predicate is to check if the head of a list was correctly removed.
 For this we need check two properties:
-1. The new length is the old length minus one
-2. Each element is shifted forwards by one
+1. The new length is the old length minus one.
+2. Each element is shifted forwards by one.
 
 We combine these two properties into a single expression using `&&`:
 
@@ -162,7 +158,7 @@ To use this predicate, we call it on the list `self`, and then pass in a snapsho
 ```
 
 Prusti can now successfully verify the postconditions of both `try_pop` and `pop`, and ensure that they will not panic!
-But there might still be a chance that our specifications don't fully match what we expect the code to do, so we will look at how to test your specifications in the next chapter.
+But there might still be a chance that our specifications don't fully match what we expect the code to do, so we will look at how to test specifications in the next chapter.
 
 ## Full Code Listing
 

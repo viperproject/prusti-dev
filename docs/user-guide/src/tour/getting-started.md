@@ -1,7 +1,7 @@
 # Getting Started
 
 Our first goal is to implement and verify a simple singly-linked stack that stores
-32 bit integers *without* relying on existing data structures 
+32-bit integers *without* relying on existing data structures 
 provided by Rust's standard library.
 
 For readers that are unfamiliar with Rust, this is a good time to additionally
@@ -38,12 +38,12 @@ and makes sure that all list elements are uniformly allocated on the heap.
 
 Prusti automatically checks that no statement or macro that causes
 an explicit runtime error, such as
-[`panic`](https://doc.rust-lang.org/std/macro.panic.html),
-[`unreachable`](https://doc.rust-lang.org/std/macro.unreachable.html),
-[`unimplemented`](https://doc.rust-lang.org/std/macro.unimplemented.html),
-[`todo`](https://doc.rust-lang.org/std/macro.todo.html), or
+[`panic!`](https://doc.rust-lang.org/std/macro.panic.html),
+[`unreachable!`](https://doc.rust-lang.org/std/macro.unreachable.html),
+[`unimplemented!`](https://doc.rust-lang.org/std/macro.unimplemented.html),
+[`todo!`](https://doc.rust-lang.org/std/macro.todo.html), or
 possibly a failing [assertion](https://doc.rust-lang.org/std/macro.assert.html),
-is reachable. [Prusti assertions](../verify/assert_assume.md) are also checked. These are like the normal `assert` statements, but they can use the full Prusti specification syntax and will not result in any runtime checks or code when compiled normally.
+is reachable. [Prusti assertions](../verify/assert_assume.md) are also checked. These are like the normal `assert!` statements, but they can use the full Prusti specification syntax and will not result in any runtime checks or code when compiled normally.
 
 For example, the following test function creates a node with no successor and panics
 if the node's payload is greater than 23:
@@ -63,7 +63,7 @@ with an arbitrary integer:
 // Prusti: FAILS
 ```
 
-Prusti reports errors in the same fashion as the Rust compiler (although with the prefix
+Prusti reports errors in the same fashion as the Rust compiler (with the prefix
 `Prusti: verification error`). For example, the error produced for the above function
 is:
 

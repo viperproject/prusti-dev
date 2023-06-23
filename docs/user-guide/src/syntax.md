@@ -1,6 +1,6 @@
 # Specification syntax
 
-Prusti specifications are a superset of Rust boolean expressions. They must be deterministic and side-effect free. Therefore, they can only call only [pure functions](verify/pure.md). The extensions to Rust expressions are summarized below:
+Prusti specifications are a superset of Rust Boolean expressions. They must be deterministic and side-effect free. Therefore, they can call only [pure functions](verify/pure.md) and [predicates](verify/predicate.md). The extensions to Rust expressions are summarized below:
 
 | Syntax | Meaning |
 | --- | --- |
@@ -202,6 +202,19 @@ and the syntax of existential ones:
 exists(|<bound variable>: <bound variable type>, ...| <expression>)
 ```
 
+### Triggers
+
+To specify triggers for a quantifier, the syntax is `triggers=[..]`:
+
+```plain
+forall(|<bound variable>: <bound variable type>, ...| <filter> ==> <expression>, triggers=[<trigger sets>])
+```
+
+There may be multiple trigger sets. Each trigger set is a tuple of expressions. For example:
+
+```plain
+forall(|x: usize| foo(x) ==> bar(x), triggers=[(foo(x),), (bar(x),)])
+```
 
 ## Specification entailments
 

@@ -18,14 +18,14 @@ impl List {
 }
 ```
 
-Since `push` modifies `self`, it cannot be marked as a `#[pure]` function. This means we will not be able to use `push` inside specifications for other functions later.
+Since `push` modifies `self`, it cannot be marked as a `#[pure]` function (it has a side effect on `self`). This means we will not be able to use `push` inside specifications for other functions later.
 
 Before we implement `push`, let us briefly think of possible specifications.
 Ideally, our implementation satisfies at least the following properties:
 
 1. Executing `push` increases the length of the underlying list by one. [(Chapter link)](push.md#first-property)
 2. After `push(elem)` the first element of the list stores the value `elem`. [(Chapter link)](push.md#second-property)
-3. After executing `push(elem)`, the elements of the original list remain unchanged (just moved back by 1). [(Chapter link)](push.md#third-property)
+3. After executing `push(elem)`, the elements of the original list remain unchanged, but are moved back by 1 position. [(Chapter link)](push.md#third-property)
 
 ## Initial code
 
@@ -86,13 +86,13 @@ This can be done with another piece of Prusti syntax, the [extern_spec](../verif
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/push_property_1.rs:extern_spec}}
 ```
 
-Lets break this code down step by step:
-- First we write the Prusti annotation `#[extern_spec]` to denote that we are writing an external specification. This requires `prusti_contracts::*` to be imported first.
-- Next we need to figure out where the function is located. In this case it is `std::mem`, which we then put as the parameter in `#[extern_spec(std::mem)]`
+Let's break this snippet down step by step:
+- First, we write the Prusti annotation `#[extern_spec]` to denote that we are writing an external specification. This requires `prusti_contracts::*` to be imported first.
+- Next, we need to declare where the original function is located. In this case it is the module `std::mem`, so we put its path in  the parameter: `#[extern_spec(std::mem)]`
 - After a quick search for *\"rust std mem replace\"* we can find the [documentation for std::mem::replace](https://doc.rust-lang.org/std/mem/fn.replace.html). Here we can get the function signature: `pub fn replace<T>(dest: &mut T, src: T) -> T`. We then write down the signature in the inner module, followed by a `;`.
 - Since there are no preconditions to `replace`, we can use the (implicit) default `#[requires(true)]`.
 - For writing the postcondition, we use four pieces of Prusti syntax:
-  - [`===`](../syntax.md#snapshot-equality) is called **snapshot equality** or **logical equality**. Is essentially checks if the left and right sides are structurally equal. `===` does not require the type of the compared elements to implement [PartialEq](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html), which would be required if we used the standard equality operator `==`.
+  - [`===`](../syntax.md#snapshot-equality) is called **snapshot equality** or **logical equality**. Is means that the left and right operands are structurally equal. `===` does not require the type of the compared elements to implement [PartialEq](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html), which would be required if we used the standard equality operator `==`.
   - The [`snap()`](../syntax.md#snap-function) function takes a snapshot of a reference. It has a similar functionality to the [`clone()`](https://doc.rust-lang.org/std/clone/trait.Clone.html) method, but does not require the type of the reference it is called on to implement the `Clone` trait. `snap` should only be used in specifications, since it ignores the borrow checker.
   - Lastly, we have the [`old()` function](../syntax.md#old-expressions), which denotes that we want to refer to the state of `snap(dest)` from before the function was called.
   - The identifier [`result`](../syntax.md#result-variable) is used to refer to the return parameter of the function.
@@ -165,13 +165,13 @@ Let's get back to our code. After adding the external specification for `std::me
 // Prusti: Verifies
 ```
 
-With this, the first of our three property of `push` is verified, but we still have 2 more to prove.
+With this, the first of the three properties of `push` is verified, but we still have two more to prove.
 
 ## Second property
 
 Recall the second property of our specification:
 
-> 2. After `push(elem)` the first element of the list stores the value `elem`.
+> 2. After `push(elem)`, the first element of the list stores the value `elem`.
 
 To formally specify the above property, we first introduce another pure function, called 
 `lookup`, that recursively traverses the list and returns its i-th element.
@@ -221,16 +221,15 @@ the postcondition:
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/push_final_code.rs:shifted_back}}
 ```
 
-Lets break this expression down like before:
+Let's break this expression down like before:
 - We start with the `ensures` annotation, to denote a postcondition.
-- `forall(..)` denotes a [quantifier](../syntax.md#quantifiers), and it takes a [closure](https://doc.rust-lang.org/book/ch13-01-closures.html).
-- The closure is denoted by the two vertical bars: `||`, which contain the parameters that the closure takes. Here we only have one parameter `i: usize`. The return type of the closure is `bool`. You can think of the `forall` expression as follows: *Any parameter passed to the closure makes it return `true`*.
-  - Closures in a `forall` expression can take any number of parameters, separated by a comma: `|i: usize, j: usize|`.
-- In this case, the closure uses the [implication operator `==>`](../syntax.md#implications). It takes a left and right argument of type `bool` and is true, if the left side is false, or both sides are true.
-  - The left side of the implication is `(1 <= i && i < self.len())`, which is the range where the right side must hold. If the index `i` is outside of this range, we don't care about it, so the condition will be false, making the entire implication true.
-  - The right side is the condition for everything being shifted back by one element: `old(self.lookup(i - 1)) == self.lookup(i)))`. Note that the right side is only evaluated if the left side is true, otherwise you could get an overflow in `i - 1` for `i == 0`, or a panic if `i` is out of bounds.
+- `forall(..)` denotes a [quantifier](../syntax.md#quantifiers). The variables and body of a quantifier use a syntax similar to Rust [closures](https://doc.rust-lang.org/book/ch13-01-closures.html).
+- The two vertical bars: `||` contain the variables that the quantifier quantifies over. Here we only have one parameter `i: usize`. The type of the quantifier body is `bool`. You can think of the `forall` expression as follows: *Any values chosen for the quantified variables should result in the expression evaluating to `true`*.
+- In this case, the quantifier uses the [implication operator `==>`](../syntax.md#implications). It takes a left and right argument of type `bool` and is true if the left-hand side is false, or both sides are true.
+  - The left-hand side of the implication is `(1 <= i && i < self.len())`, which is the range where the right side must hold. If the index `i` is outside of this range, we don't care about it, so the condition will be false, making the entire implication true.
+  - The right-hand side is the condition for everything being shifted back by one element: `old(self.lookup(i - 1)) == self.lookup(i)))`. Note that the right side is only evaluated if the left side is true, otherwise there would be an overflow in `i - 1` for `i == 0`, or a panic if `i` is out of bounds.
 
-This code is verified successfully by Prusti, so we know that the `lookup` function correctly implements the three postconditions!
+This code is verified successfully by Prusti, so we know that the `lookup` function satisfies the three postconditions!
 
 
 ## Full code listing

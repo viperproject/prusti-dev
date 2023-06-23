@@ -44,8 +44,8 @@ are as follows:
 6. [Testing](testing.md): Showing guarantees of verification vs running tests, and how to test specifications
 7. [Option](option.md): Changing `Link` to use `Option` type
 8. [Generics](generics.md): Prusti and generics
-9.  [Peek](peek.md): Verifying a `peek` function
+9. [Peek](peek.md): Verifying a `peek` function
 10. [Pledges (mutable peek)](pledges.md): Demonstrating Prusti's pledges for functions returning mutable references
-11.  [Final Code](final.md): Final code for the verified linked list
-12.  [Loop Invariants](loop_invariants.md): Verifying code containing loops by writing loop invariants
-13.  [Counterexamples](counterexamples.md): Getting counterexamples for failing assertions
+11. [Final Code](final.md): Final code for the verified linked list
+12. [Loop Invariants](loop_invariants.md): Verifying code containing loops by writing loop invariants
+13. [Counterexamples](counterexamples.md): Getting counterexamples for failing assertions

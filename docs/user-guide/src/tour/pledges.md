@@ -2,7 +2,7 @@
 
 Now we will look at [`pledges`](../verify/pledge.md). Pledges are used for functions that return mutable references into some datastructure.
 With a pledge you can explain to Prusti how the original object gets affected by changes to the returned reference.
-We will demonstrate it by implementing a function that gives you a mutable reference to the first element in the list:
+We will demonstrate by implementing a function that gives you a mutable reference to the first element in the list.
 
 ## Implementing `peek_mut`
 
@@ -19,7 +19,7 @@ Note that `peek_mut` cannot be `#[pure]`, since it returns a mutable reference.
 
 ## Writing a test for our specification
 
-Lets write a test to see if our specification works:
+Let's write a test to see if our specification works:
 - Create a list with two elements: [16, 8]
 - Get a mutable reference to the first element (16)
 - Change the first element to 5
@@ -32,38 +32,38 @@ Lets write a test to see if our specification works:
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/fail/user-guide/peek_mut_pledges.rs:test_peek_mut}}
 ```
 
-But this fails, Prusti cannot verify any of our last three `prusti_assert` statements. This is where `pledges` come in. We have to tell Prusti how the `result` affects the original list. Without this, Prusti assumes that changes to the reference can change every property of the original list, so nothing can be known about it after the reference gets dropped.
+But this fails, Prusti cannot verify any of our last three `prusti_assert` statements. This is where pledges come in. We have to tell Prusti how the `result` affects the original list. Without this, Prusti assumes that changes to the reference can change every property of the original list, so nothing can be known about it after the reference gets dropped.
 
 ## Writing the pledge
 
-The pledge gets written with an annotation like for `ensures` and `requires`, but with the keyword `after_expiry`.
+The pledge is written using an annotation, like `ensures` and `requires`, but with the keyword `after_expiry`.
 Inside we have all the conditions that hold after the returned reference gets dropped:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/peek_mut_pledges.rs:pledge}}
 ```
 
-We have 3 conditions here:
-1. The list will have the same length afterwards
-2. Any element of the list with index `1..list.len()` will not be changed
-3. The element at the head of the list is the value that was assigned to the returned reference. This is denoted with the `before_expiry` function
+We have three properties here:
+1. The list will have the same length afterwards.
+2. Any element of the list with index `1..list.len()` will not be changed.
+3. The element at the head of the list is the value that was assigned to the returned reference. This is denoted with the `before_expiry` function.
 
-With these 3 conditions, our test verifies successfully!
+With these three properties specified, our test verifies successfully!
 
 ## Assert on expiry
 
-Like `after_expiry`, there is also `assert_on_expiry`. It is used to check for conditions that have to be true when the returned reference expires, in order to uphold some type invariant.
+Like `after_expiry`, there is also `assert_on_expiry`. It is used to check for conditions that have to be true when the returned reference expires, usually in order to uphold some type invariant.
 
 As an example, we could use this to make sure that our list of `i32` can only contain elements between 0 and 16.
-Given that this invariant held before the reference was given out, it will hold again if the changed element is still in the correct range:
+Given that this invariant held before the reference was given out, it will hold again only if the element, potentially changed by the caller, is still in the correct range:
 
 ```rust,noplaypen,ignore
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/assert_on_expiry.rs:assert_on_expiry}}
 ```
-The syntax here is `#[assert_on_expiry(condition, invariant)]`.
-This means that the `invariant` holds, given that `condition` is true when the reference expires.
+The syntax here is `#[assert_on_expiry(condition, pledge)]`.
+This means that `condition` is checked at the caller side *before* (or "when") the reference expires, and `pledge` must hold *after* the reference expires.
 
-Note that for some condition `A`, `after_expiry(A)` is equal to `assert_one_expiry(true, A)`.
+Note that for any assertion `A`, `after_expiry(A)` is equivalent to `assert_on_expiry(true, A)`.
 
 ## Full Code
 
