@@ -152,7 +152,7 @@ fn collect_framing_places_from_a_state(
                 assert_eq!(kind, ExpandedPermissionKind::Same);
                 assert!(
                     state.contains(PermissionKind::Owned, &framing_place),
-                    "TODO: make recursive"
+                    "TODO: make recursive: framing_place={framing_place} root_framing_place={root_framing_place} state:\n{state}"
                 );
 
                 // FIXME: Code duplication.
