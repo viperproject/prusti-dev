@@ -303,6 +303,8 @@ pub enum BuiltinFunc {
     BuildingUniqueRefPredicate,
     /// A function represents FracRef with its arguments not yet properly typed.
     BuildingFracRefPredicate,
+    /// A function that signales whether allocation can fail.
+    AllocationNeverFails,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]

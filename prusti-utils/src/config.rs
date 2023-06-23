@@ -153,6 +153,8 @@ lazy_static::lazy_static! {
         settings.set_default("use_snapshot_parameters_in_predicates", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
+        settings.set_default("allow_prusti_assume", false).unwrap();
+        settings.set_default("allow_assuming_allocation_never_fails", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default("function_gas_amount", 2).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
@@ -1214,6 +1216,23 @@ pub fn use_snapshot_parameters_in_predicates() -> bool {
 /// **Note:** This option is used only for testing.
 pub fn check_no_drops() -> bool {
     read_setting("check_no_drops")
+}
+
+/// When enabled, allows using `prusti_assume` and `prusti_structural_assume`
+/// macros.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn allow_prusti_assume() -> bool {
+    read_setting("allow_prusti_assume")
+}
+
+/// When enabled, allows using `assume_allocation_never_fails` macro.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn allow_assuming_allocation_never_fails() -> bool {
+    read_setting("allow_assuming_allocation_never_fails")
 }
 
 /// When enabled, Prusti uses the new VIR encoder.

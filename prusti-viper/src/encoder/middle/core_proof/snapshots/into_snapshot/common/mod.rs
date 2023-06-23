@@ -1170,6 +1170,17 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             BuiltinFunc::BuildingFracRefPredicate => {
                 unreachable!("FracRef should have been already built.")
             }
+            BuiltinFunc::AllocationNeverFails => {
+                let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
+                let call = lowerer.create_domain_func_app(
+                    "AllocationNeverFails",
+                    "allocation_never_fails",
+                    Vec::new(),
+                    return_type,
+                    app.position,
+                )?;
+                self.ensure_bool_expression(lowerer, app.get_type(), call, expect_math_bool)
+            }
         }
     }
 

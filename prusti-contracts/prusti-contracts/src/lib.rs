@@ -85,6 +85,9 @@ pub use prusti_contracts_proc_macros::materialize_predicate;
 /// coming from the quantifier.
 pub use prusti_contracts_proc_macros::quantified_predicate;
 
+/// A macro that tells Prusti to assume that the allocation never fails.
+pub use prusti_contracts_proc_macros::assume_allocation_never_fails;
+
 /// A macro for writing refutations using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_refute;
 
@@ -704,6 +707,12 @@ pub fn prusti_materialize_predicate<T>(_arg: T) {
 #[doc(hidden)]
 #[trusted]
 pub fn prusti_quantified_predicate<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_assume_allocation_never_fails() {
     unreachable!();
 }
 
