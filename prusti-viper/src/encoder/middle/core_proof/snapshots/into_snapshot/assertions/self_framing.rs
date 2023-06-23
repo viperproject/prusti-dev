@@ -889,17 +889,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
         self.expression_to_snapshot(lowerer, &unfolding.body, expect_math_bool)
     }
 
-    fn eval_in_to_snapshot(
+    fn eval_in_to_snapshot<F>(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         eval_in: &vir_mid::EvalIn,
         expect_math_bool: bool,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
+        body_to_snapshot: F,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        F: FnOnce(
+            &mut Self,
+            &mut Lowerer<'p, 'v, 'tcx>,
+            &vir_mid::Expression,
+            bool,
+        ) -> SpannedEncodingResult<vir_low::Expression>,
+    {
         if eval_in.context_kind == vir_mid::EvalInContextKind::SafeConstructor {
             let ty = eval_in.context.get_type();
             let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
             let place = &*eval_in.context;
-            let _position = eval_in.position;
+            let position = eval_in.position;
             let constructor_call = match &type_decl {
                 vir_mid::TypeDecl::Reference(decl) => {
                     match decl.uniqueness {
@@ -909,81 +918,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                             // deref of the reference than the actual reference
                             // itself.
                             true.into()
-                            // for (place, snap_call) in &self.snap_calls {
-                            //     eprintln!("place: {}", place);
-                            //     eprintln!("  {}", place.get_type());
-                            // }
-                            // let address_place = vir_mid::Expression::field(
-                            //     place.clone(),
-                            //     vir_mid::FieldDecl::new(
-                            //         ADDRESS_FIELD_NAME,
-                            //         0usize,
-                            //         vir_mid::Type::Int(vir_mid::ty::Int::Usize),
-                            //     ),
-                            //     position,
-                            // );
-                            // let reference_type = ty.clone().unwrap_reference();
-                            // let target_type = *reference_type.target_type;
-                            // let Some((_, target_address_snapshot)) = self.snap_calls.iter().find(|(place, _)| {
-                            //     place == &address_place
-                            // }) else {
-                            //     unreachable!("Failed to find the address place: {address_place}");
-                            // };
-                            // let pointer_type = &lowerer.reference_address_type(ty)?;
-                            // let target_address = lowerer.pointer_address(
-                            //     pointer_type,
-                            //     target_address_snapshot.clone(),
-                            //     position,
-                            // )?;
-                            // let lifetime = reference_type.lifetime;
-                            // let deref_place = vir_mid::Expression::deref(
-                            //     place.clone(),
-                            //     target_type.clone(),
-                            //     position,
-                            // );
-                            // let Some((_, current_snapshot)) = self.snap_calls.iter().find(|(place, _)| {
-                            //     place == &deref_place
-                            // }) else {
-                            //     unreachable!("Failed to find the address place: {address_place}");
-                            // };
-                            // let target_place = lowerer.encode_expression_as_place(&deref_place)?;
-                            // let lifetime = lowerer
-                            //     .encode_lifetime_const_into_procedure_variable(&lifetime)?
-                            //     .into();
-                            // let TODO_target_slice_len = None;
-                            // let final_snapshot = lowerer.unique_ref_snap(
-                            //     self.call_context(),
-                            //     ty,
-                            //     ty,
-                            //     target_place,
-                            //     target_address.clone(),
-                            //     lifetime,
-                            //     TODO_target_slice_len,
-                            //     true,
-                            //     position,
-                            // )?;
-                            // // use vir_low::macros::*;
-                            // // let pointer_type = &lowerer.reference_address_type(ty)?;
-                            // // let size_of = lowerer
-                            // //     .encode_type_size_expression2(ty, &type_decl)?;
-                            // // let bytes = lowerer
-                            // //     .encode_memory_block_bytes_expression(address.into(), size_of)?;
-                            // // let from_bytes = self.type_to_snapshot(lowerer, pointer_type)?;
-                            // // let pointer_snapshot = expr! {
-                            // //     Snap<pointer_type>::from_bytes([bytes])
-                            // // };
-                            // // let target_address = lowerer.pointer_address(
-                            // //     pointer_type,
-                            // //     pointer_snapshot.clone(),
-                            // //     position,
-                            // // )?;
-                            // lowerer.unique_reference_snapshot_constructor(
-                            //     &target_type,
-                            //     target_address.clone(),
-                            //     current_snapshot.clone(),
-                            //     final_snapshot,
-                            //     eval_in.position,
-                            // )?
                         }
                         vir_mid::ty::Uniqueness::Shared => todo!(),
                     }
@@ -1000,14 +934,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                         arguments.push(field_place);
                     }
                     let constructor_call =
-                        vir_mid::Expression::constructor(ty.clone(), arguments, eval_in.position);
-                    // TODO: construct_struct_snapshot
+                        vir_mid::Expression::constructor(ty.clone(), arguments, position);
                     self.expression_to_snapshot(lowerer, &constructor_call, false)?
                 }
                 _ => unimplemented!("{type_decl}"),
             };
             self.snap_calls.push((place.clone(), constructor_call));
-            let result = self.expression_to_snapshot(lowerer, &eval_in.body, expect_math_bool)?;
+            let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
             self.snap_calls.pop();
             return Ok(result);
         }
@@ -1083,8 +1016,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                     )
                 }
                 self.snap_calls.push((predicate.place.clone(), snap_call));
-                let result =
-                    self.expression_to_snapshot(lowerer, &eval_in.body, expect_math_bool)?;
+                let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
                 self.snap_calls.pop();
                 result
             }
@@ -1093,8 +1025,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 let address = self.expression_to_snapshot(lowerer, &predicate.address, true)?;
                 self.range_snap_calls
                     .push((address, (ty.clone(), predicate.position)));
-                let result =
-                    self.expression_to_snapshot(lowerer, &eval_in.body, expect_math_bool)?;
+                let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
                 self.range_snap_calls.pop();
                 result
             }
