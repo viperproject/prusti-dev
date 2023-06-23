@@ -244,6 +244,8 @@ pub enum ErrorCtxt {
     CheckedBinaryOpPrecondition,
     /// Materializing a predicate for purification algorithm failed.
     MaterializePredicate,
+    /// An unexpected failure while assuming that the allocation cannot fail.
+    UnexpectedAssumeAllocationNeverFails,
     // /// Permission error when dereferencing a raw pointer.
     // EnsureOwnedPredicate,
 }

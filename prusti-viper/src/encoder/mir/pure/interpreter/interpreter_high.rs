@@ -1064,6 +1064,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 )?;
                 subst_with(expr)
             }
+            "prusti_contracts::allocation_never_fails" => {
+                builtin((AllocationNeverFails, vir_high::Type::Bool))
+            }
             _ => Ok(None),
         }
     }

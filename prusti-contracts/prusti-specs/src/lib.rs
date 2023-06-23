@@ -1807,6 +1807,19 @@ pub fn quantified_predicate(tokens: TokenStream) -> TokenStream {
     }
 }
 
+pub fn assume_allocation_never_fails(tokens: TokenStream) -> TokenStream {
+    if !tokens.is_empty() {
+        return syn::Error::new(
+            tokens.span(),
+            "`assume_allocation_never_fails` does not take any arguments",
+        )
+        .to_compile_error();
+    }
+    unsafe_spec_function_call(quote! {
+        prusti_assume_allocation_never_fails()
+    })
+}
+
 fn close_any_ref(tokens: TokenStream, function: TokenStream) -> TokenStream {
     parse_expressions!(tokens, syn::Token![,] => reference, witness);
     // let (reference, witness) = handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));

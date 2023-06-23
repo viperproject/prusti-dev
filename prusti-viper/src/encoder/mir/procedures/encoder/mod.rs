@@ -4406,6 +4406,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .set_statement_error_ctxt(stmt, span, error_ctxt, self.def_id)?;
 
                 if assumption.is_structural || self.check_mode.check_specifications() {
+                    assert!(config::allow_prusti_assume(), "TODO: A proper error message that `allow_prusti_assume` needs to be enabled.");
                     encoded_statements.push(stmt);
                 }
 
@@ -5516,6 +5517,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     predicate,
                                     check_that_exists,
                                 ),
+                            )?;
+                            encoded_statements.push(statement);
+                            Ok(true)
+                        }
+                        "prusti_contracts::prusti_assume_allocation_never_fails" => {
+                            assert!(
+                                config::allow_assuming_allocation_never_fails(),
+                                "TODO: A proper error message that allow_assuming_allocation_never_fails needs to be enabled."
+                            );
+                            let assume = vir_high::Statement::assume_no_pos(
+                                vir_high::Expression::builtin_func_app_no_pos(
+                                    vir_high::BuiltinFunc::AllocationNeverFails,
+                                    Vec::new(),
+                                    Vec::new(),
+                                    vir_high::Type::Bool,
+                                ),
+                            );
+                            let statement = self.set_statement_error(
+                                location,
+                                ErrorCtxt::UnexpectedAssumeAllocationNeverFails,
+                                assume,
                             )?;
                             encoded_statements.push(statement);
                             Ok(true)
