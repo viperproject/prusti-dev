@@ -21,7 +21,7 @@ Useful links
 * 💻 [VSCode extension](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) to use Prusti from your IDE.
 * 📖 [User guide](https://viperproject.github.io/prusti-dev/user-guide/), containing installation instructions, a guided tutorial and a description of various verification features.
 * 🧰 [Developer guide](https://viperproject.github.io/prusti-dev/dev-guide/), meant for new contributors.
-* 📚 [List of publications](http://www.pm.inf.ethz.ch/research/prusti.html). To cite Prusti, please use [this BIB entry](http://pm.inf.ethz.ch/publications/getbib.php?action=bibtex&bibname=Own&id=AstrauskasMuellerPoliSummers19).
+* 📚 [List of publications](http://www.pm.inf.ethz.ch/research/prusti.html). To cite Prusti, please use [this BibTeX entry](http://pm.inf.ethz.ch/publications/getbib.php?action=bibtex&bibname=Own&id=AstrauskasMuellerPoliSummers19b).
 * ⚖️ [License](https://github.com/viperproject/prusti-dev/blob/master/LICENSE) of the source code.
 * 💬 Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
 
