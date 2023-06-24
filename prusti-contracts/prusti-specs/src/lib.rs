@@ -24,7 +24,6 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 mod runtime_checks;
-mod boundary_extraction;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
@@ -485,15 +484,23 @@ pub fn body_variant(tokens: TokenStream) -> TokenStream {
 }
 
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
-    generate_expression_closure(&AstRewriter::process_loop_invariant, tokens)
+    let spec = generate_expression_closure(&AstRewriter::process_loop_invariant, tokens.clone());
+    let check = generate_runtime_expression_closure(&AstRewriter::runtime_check_loop_invariant, tokens);
+    quote!{#spec #check}
 }
 
 pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
-    generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens)
+    let spec = generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens.clone());
+    let check = generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assertion, tokens);
+    let res = quote!{#spec #check};
+    println!("result: {}", res);
+    res
 }
 
 pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
-    generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens)
+    let spec = generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens.clone());
+    let check = generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assumption, tokens);
+    quote!{#spec #check}
 }
 
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
@@ -515,6 +522,27 @@ fn generate_expression_closure(
         #[prusti::specs_version = #SPECS_VERSION]
         if false {
             #closure
+        }
+    }
+}
+
+/// Generates the TokenStream encoding an expression using prusti syntax
+/// Used for body invariants, assertions, and assumptions
+fn generate_runtime_expression_closure(
+    fun: &dyn Fn(&mut AstRewriter, SpecificationId, TokenStream) -> syn::Result<TokenStream>,
+    tokens: TokenStream,
+) -> TokenStream {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+
+    let closure = handle_result!(fun(&mut rewriter, spec_id, tokens));
+    let callsite_span = Span::call_site();
+    // always must follow a normal expression closure!
+    quote_spanned! {callsite_span=>
+        else if true {
+            #closure
+        } else {
+            || ();
         }
     }
 }
@@ -1186,4 +1214,28 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
         }
         syn_errors
     }
+}
+
+pub fn pledge_expires(
+    tokens: TokenStream,
+) -> TokenStream {
+    // make sure only 1 identifier is passed to this macro
+    let expr = handle_result!(syn::parse2::<syn::Ident>(tokens.clone()));
+    // create spec blocks starting with a spec_only closure so
+    // they will not influence verification result
+    // marked with spec_only so they are ignored during encoding
+    // check_only so we can still distinguish them from specifications
+    parse_quote_spanned! {tokens.span() =>
+        if true {
+            #[allow(unused_must_use, unused_variables)]
+            {
+                #[prusti::spec_only]
+                #[prusti::check_only]
+                #[prusti::expiration_location]
+                || -> () {};
+                let expiring = #expr;
+            }
+        }
+    }
+
 }

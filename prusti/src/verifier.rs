@@ -25,6 +25,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             types,
         };
         debug!("Verification task: {:?}", &verification_task);
+        println!("Verification task: {:?}", &verification_task);
 
         user::message(format!(
             "Verification of {} items...",

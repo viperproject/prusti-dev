@@ -625,7 +625,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let proc_encoder = ProcedureEncoder::new(self, &procedure)?;
             let mut method = match proc_encoder.encode() {
                 Ok((result, loan_expirations)) => {
-                    self.expiration_locations.borrow_mut().insert(def_id, loan_expirations);
+                    let mut expiration_locations = self.expiration_locations.borrow_mut();
+                    // detect multiple expiration locations
+                    assert!(expiration_locations.get(&def_id).is_none());
+                    expiration_locations.insert(def_id, loan_expirations);
                     result
                 },
                 Err(error) => {

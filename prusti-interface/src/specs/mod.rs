@@ -128,6 +128,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
+
+        self.determine_checks(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
@@ -136,7 +138,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_prusti_refutations(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
 
-        self.determine_checks(&mut def_spec);
 
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
@@ -185,7 +186,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             check_before_expiry,
                             store_before_expiry,
                         };
-                        println!("Found a pledge with following contents: {:#?}", res);
                         res
                     }
                     // Todo: Pledges, Assume?
@@ -281,6 +281,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             let spec = def_spec.proc_specs.remove(spec_id).unwrap();
             def_spec.proc_specs.insert(target_def_id, spec);
+
+            // also deal with checks for extern specs:
+            if let Some(check) = def_spec.checks.remove(spec_id) {
+                def_spec.checks.insert(target_def_id, check);
+            }
         }
     }
 

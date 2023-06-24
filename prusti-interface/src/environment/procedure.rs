@@ -229,6 +229,10 @@ fn is_spec_closure(env_query: EnvQuery, def_id: def_id::DefId) -> bool {
     crate::utils::has_spec_only_attr(env_query.get_attributes(def_id))
 }
 
+pub fn is_check_closure(env_query: EnvQuery, def_id: def_id::DefId) -> bool {
+    crate::utils::has_check_only_attr(env_query.get_attributes(def_id))
+}
+
 pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockData) -> bool {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (
@@ -237,6 +241,21 @@ pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockDa
         )) = &stmt.kind
         {
             if is_spec_closure(env_query, *def_id) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+pub fn is_marked_check_block(env_query: EnvQuery, bb_data: &BasicBlockData) -> bool {
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (
+            _,
+            Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
+        )) = &stmt.kind
+        {
+            if is_check_closure(env_query, *def_id) {
                 return true;
             }
         }
@@ -335,7 +354,7 @@ fn blocks_definitely_leading_to(
     blocks
 }
 
-fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> FxHashSet<BasicBlock> {
+pub fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> FxHashSet<BasicBlock> {
     let dominators = mir.basic_blocks.dominators();
     let mut blocks = FxHashSet::default();
     for bb in mir.basic_blocks.indices() {

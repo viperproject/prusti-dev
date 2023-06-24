@@ -17,7 +17,7 @@ mod verifier;
 // move these 2 at some point
 mod mir_modify;
 mod mir_helper;
-mod mir_diff_map;
+mod mir_info_collector;
 
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;

@@ -66,6 +66,8 @@ pub use prusti_contracts_proc_macros::terminates;
 /// A macro to annotate body variant of a loop to prove termination
 pub use prusti_contracts_proc_macros::body_variant;
 
+pub use prusti_contracts_proc_macros::prusti_pledge_expires;
+
 #[cfg(not(feature = "prusti"))]
 mod private {
     use core::marker::PhantomData;

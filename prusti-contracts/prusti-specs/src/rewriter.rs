@@ -1,6 +1,6 @@
 use crate::{
     common::HasSignature,
-    runtime_checks::{RuntimeFunctions, translate_runtime_checks},
+    runtime_checks::translation::{self, translate_runtime_checks, RuntimeFunctions},
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
@@ -188,14 +188,16 @@ impl AstRewriter {
         item: &untyped::AnyFnItem,
     ) -> syn::Result<(syn::Item, Option<RuntimeFunctions>)> {
         let parsed = parse_prusti_pledge(tokens)?;
-        let spec_item = self.generate_spec_item_fn(
-            SpecItemType::Pledge,
-            spec_id,
-            parsed.clone(),
-            item,
-        )?;
+        let spec_item =
+            self.generate_spec_item_fn(SpecItemType::Pledge, spec_id, parsed.clone(), item)?;
         let check = if let Some(check_id) = check_id_opt {
-            Some(translate_runtime_checks(SpecItemType::Pledge, check_id, parsed, None, item)?)
+            Some(translate_runtime_checks(
+                SpecItemType::Pledge,
+                check_id,
+                parsed,
+                None,
+                item,
+            )?)
         } else {
             None
         };
@@ -236,10 +238,13 @@ impl AstRewriter {
         item: &untyped::AnyFnItem,
     ) -> syn::Result<(syn::Item, syn::Item, Option<RuntimeFunctions>)> {
         let (lhs, rhs) = parse_prusti_assert_pledge(tokens)?;
-        let lhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs.clone(), item)?;
-        let rhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs.clone(), item)?;
+        let lhs_item =
+            self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs.clone(), item)?;
+        let rhs_item =
+            self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs.clone(), item)?;
         if let Some(check_id) = check_id {
-            let checks = translate_runtime_checks(SpecItemType::Pledge, check_id, rhs, Some(lhs), item)?;
+            let checks =
+                translate_runtime_checks(SpecItemType::Pledge, check_id, rhs, Some(lhs), item)?;
             syn::Result::Ok((lhs_item, rhs_item, Some(checks)))
         } else {
             syn::Result::Ok((lhs_item, rhs_item, None))
@@ -275,6 +280,14 @@ impl AstRewriter {
         self.process_prusti_expression(quote! {loop_body_invariant_spec}, spec_id, tokens)
     }
 
+    pub fn runtime_check_loop_invariant(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.runtime_check_prusti_expression(spec_id, tokens)
+    }
+
     /// Parse a prusti assertion into a Rust expression
     pub fn process_prusti_assertion(
         &mut self,
@@ -284,6 +297,14 @@ impl AstRewriter {
         self.process_prusti_expression(quote! {prusti_assertion}, spec_id, tokens)
     }
 
+    pub fn runtime_check_prusti_assertion(
+        &mut self,
+        check_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.runtime_check_prusti_expression(check_id, tokens)
+    }
+
     /// Parse a prusti assumption into a Rust expression
     pub fn process_prusti_assumption(
         &mut self,
@@ -291,6 +312,14 @@ impl AstRewriter {
         tokens: TokenStream,
     ) -> syn::Result<TokenStream> {
         self.process_prusti_expression(quote! {prusti_assumption}, spec_id, tokens)
+    }
+
+    pub fn runtime_check_prusti_assumption(
+        &mut self,
+        check_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.runtime_check_prusti_expression(check_id, tokens)
     }
 
     /// Parse a prusti refute into a Rust expression
@@ -318,6 +347,32 @@ impl AstRewriter {
                 || -> bool {
                     #expr
                 };
+            }
+        })
+    }
+
+    fn runtime_check_prusti_expression(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        let prusti_tokens = parse_prusti(tokens)?;
+        let spec_id_str = spec_id.to_string();
+        let expr_translated = translation::translate_expression_runtime(prusti_tokens.clone());
+        // make an empty closure first, to mark the block as a spec block
+        // then assert the expression
+        Ok(quote_spanned! {prusti_tokens.span()=>
+            {
+                // an unused closure simply to mark this block(s) as specification
+                // so they are not encoded by prusti
+                #[prusti::check_only]
+                #[prusti::spec_only]
+                #[prusti::runtime_assertion]
+                #[prusti::check_id = #spec_id_str]
+                || -> bool {
+                    true
+                };
+                assert!(#expr_translated);
             }
         })
     }

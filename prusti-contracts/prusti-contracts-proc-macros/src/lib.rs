@@ -136,6 +136,12 @@ pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> Tok
     tokens
 }
 
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn prusti_pledge_expires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
 // ----------------------
 // --- PRUSTI ENABLED ---
 
@@ -283,6 +289,12 @@ pub fn body_variant(tokens: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn prusti_pledge_expires(tokens: TokenStream) -> TokenStream {
+    prusti_specs::pledge_expires(tokens.into()).into()
 }
 
 // Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`

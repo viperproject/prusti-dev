@@ -1,52 +1,61 @@
 use prusti_rustc_interface::{
     middle::{
-        mir::{self, patch::MirPatch, Body, TerminatorKind},
+        mir::{self, patch::MirPatch, Body, TerminatorKind, visit::Visitor},
         ty::{self, TyCtxt},
     },
-    span::{self, def_id::DefId},
+    span::{self, def_id::DefId, Span},
 };
-
-// derive the function's type from a def_id, and an optional set of
-// substitutions. If no substitutions are present,
-// the identity will be used
-pub fn function_operand<'tcx>(
-    def_id: DefId,
-    tcx: TyCtxt<'tcx>,
-    substs_opt: Option<ty::subst::SubstsRef<'tcx>>,
-) -> mir::Operand<'tcx> {
-    let substs = substs_opt.unwrap_or(ty::subst::InternalSubsts::identity_for_item(tcx, def_id));
-    let func_ty = tcx.mk_ty_from_kind(ty::TyKind::FnDef(def_id, substs));
-    mir::Operand::Constant(Box::new(mir::Constant {
-        span: span::DUMMY_SP,
-        user_ty: None,
-        literal: mir::ConstantKind::zero_sized(func_ty),
-    }))
-}
+use either::Either;
 
 /// Given the name of a variable in the original program, find the
 /// corresponding mir local
-pub fn get_local_from_name(body: &Body<'_>, name: String) -> Option<mir::Local> {
-    for debug_info in &body.var_debug_info {
-        // find the corresponding local in the var_debug_info
-        if debug_info.name.to_string() == name {
-            if let mir::VarDebugInfoContents::Place(place) = debug_info.value {
-                return Some(place.local);
-            }
+// pub fn get_local_from_name(body: &Body<'_>, name: String) -> Option<mir::Local> {
+//     for debug_info in &body.var_debug_info {
+//         // find the corresponding local in the var_debug_info
+//         if debug_info.name.to_string() == name {
+//             if let mir::VarDebugInfoContents::Place(place) = debug_info.value {
+//                 return Some(place.local);
+//             }
+//         }
+//     }
+//     None
+// }
+
+/// Check whether this variable is mutable, or a mutable reference
+pub fn is_mutable_arg<'tcx>(body: &Body<'tcx>, local: mir::Local) -> bool {
+    let args: Vec<mir::Local> = body.args_iter().collect();
+    if args.contains(&local) {
+        let local_decl = body.local_decls.get(local).unwrap();
+        match local_decl.mutability {
+            mir::Mutability::Mut => return true,
+            _ => (),
         }
+        match local_decl.ty.ref_mutability() {
+            Some(mir::Mutability::Mut) => true,
+            _ => false,
+        }
+    } else {
+        false
     }
-    None
 }
 
-pub fn fn_return_ty<'tcx>(tcx: TyCtxt<'tcx>, def_id: DefId) -> ty::Ty<'tcx> {
+pub fn get_locals_type<'tcx>(body: &Body<'tcx>, local: mir::Local) -> Result<ty::Ty<'tcx>, ()> {
+    Ok(body.local_decls.get(local).ok_or(())?.ty)
+}
+
+pub fn local_from_operand<'tcx>(operand: &mir::Operand<'tcx>) -> Result<mir::Local, ()> {
+    match operand {
+        mir::Operand::Copy(place) | mir::Operand::Move(place) => {
+            println!("Projections: {:#?}", place.projection);
+            Ok(place.local)
+        }
+        _ => return Err(()),
+    }
+}
+
+pub fn fn_return_ty(tcx: TyCtxt<'_>, def_id: DefId) -> ty::Ty<'_> {
     let fn_sig = tcx.fn_sig(def_id).subst_identity();
     fn_sig.output().skip_binder()
-}
-
-/// Just creates an erased region. Needed to create a borrow statement
-/// in the MIR
-pub fn dummy_region(tcx: TyCtxt<'_>) -> ty::Region<'_> {
-    let kind = ty::RegionKind::ReErased;
-    tcx.mk_region_from_kind(kind)
 }
 
 pub fn dummy_source_info() -> mir::SourceInfo {
@@ -56,20 +65,57 @@ pub fn dummy_source_info() -> mir::SourceInfo {
     }
 }
 
-pub fn rvalue_reference_to_place<'tcx>(
+pub fn dummy_region<'tcx>(tcx: TyCtxt<'tcx>) -> ty::Region<'tcx> {
+    let kind = ty::RegionKind::ReErased;
+    tcx.mk_region_from_kind(kind)
+}
+
+pub fn rvalue_reference_to_local<'tcx>(
     tcx: TyCtxt<'tcx>,
-    place: mir::Place<'tcx>,
+    local: mir::Local,
+    mutable: bool,
 ) -> mir::Rvalue<'tcx> {
+    let place = mir::Place::from(local);
     let dummy_region = dummy_region(tcx);
+    let borrow_kind = if mutable {
+        mir::BorrowKind::Mut {
+            allow_two_phase_borrow: false,
+        }
+    } else {
+        mir::BorrowKind::Shared
+    };
     mir::Rvalue::Ref(
         dummy_region,
-        mir::BorrowKind::Shared,
+        borrow_kind,
         place, // the local to be dereferenced
     )
 }
 
-pub fn args_from_body<'tcx>(body: &Body<'tcx>) -> Vec<mir::Operand<'tcx>> {
+pub fn create_reference_type<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+    let mutability = mir::Mutability::Not;
+    let region = dummy_region(tcx);
+    tcx.mk_ref(
+        region,
+        ty::TypeAndMut {
+            ty,
+            mutbl: mutability,
+        },
+    )
+}
 
+pub fn get_clone_defid<'tcx>(tcx: TyCtxt<'tcx>) -> Option<DefId> {
+    let trait_defid = tcx.lang_items().clone_trait()?;
+    tcx.associated_items(trait_defid)
+        .find_by_name_and_kind(
+            tcx,
+            span::symbol::Ident::from_str("clone"),
+            ty::AssocKind::Fn,
+            trait_defid,
+        )
+        .map(|x| x.def_id)
+}
+
+pub fn args_from_body<'tcx>(body: &Body<'tcx>) -> Vec<mir::Operand<'tcx>> {
     let mut args = Vec::new();
     let caller_nr_args = body.arg_count;
     // now the final mapping to operands:
@@ -85,6 +131,30 @@ pub fn args_from_body<'tcx>(body: &Body<'tcx>) -> Vec<mir::Operand<'tcx>> {
     args
 }
 
+pub fn prepend_dummy_block(body: &mut Body) -> mir::BasicBlock {
+    let mut patch = MirPatch::new(body);
+    let terminator_kind = mir::TerminatorKind::Goto {
+        target: mir::START_BLOCK,
+    };
+    let terminator = mir::Terminator {
+        source_info: dummy_source_info(),
+        kind: terminator_kind,
+    };
+    let blockdata = mir::BasicBlockData::new(Some(terminator));
+    let new_block_id = patch.new_block(blockdata);
+    patch.apply(body);
+
+    body.basic_blocks_mut().swap(mir::START_BLOCK, new_block_id);
+
+    // fix all terminators to point to correct block
+    for b in body.basic_blocks.as_mut().iter_mut() {
+        replace_outgoing_edges(b, mir::START_BLOCK, mir::BasicBlock::MAX);
+        replace_outgoing_edges(b, new_block_id, mir::START_BLOCK);
+        replace_outgoing_edges(b, mir::BasicBlock::MAX, new_block_id);
+    }
+    new_block_id
+}
+
 pub fn create_call_block<'tcx>(
     tcx: TyCtxt<'tcx>,
     patch: &mut MirPatch<'tcx>,
@@ -93,15 +163,7 @@ pub fn create_call_block<'tcx>(
     substs: ty::subst::SubstsRef<'tcx>,
     destination: Option<mir::Place<'tcx>>,
     target: Option<mir::BasicBlock>,
-) -> Result<(mir::BasicBlock, mir::Place<'tcx>),()> {
-    let body_to_insert: Body<'tcx> = tcx
-        .mir_drops_elaborated_and_const_checked(ty::WithOptConstParam::unknown(
-            call_id.as_local().unwrap(),
-        ))
-        .borrow()
-        .clone();
-
-    let ret_ty = body_to_insert.return_ty();
+) -> Result<(mir::BasicBlock, mir::Place<'tcx>), ()> {
     // construct the function call
     let func_ty = tcx.mk_ty_from_kind(ty::TyKind::FnDef(call_id, substs));
     let func = mir::Operand::Constant(Box::new(mir::Constant {
@@ -113,6 +175,12 @@ pub fn create_call_block<'tcx>(
     let destination = if let Some(dest) = destination {
         dest
     } else {
+        // find return type
+        let ret_ty = tcx
+            .fn_sig(call_id)
+            .subst(tcx, substs)
+            .output()
+            .skip_binder();
         mir::Place::from(patch.new_internal(ret_ty, span::DUMMY_SP))
     };
 
@@ -124,7 +192,7 @@ pub fn create_call_block<'tcx>(
         target,
         cleanup: None,
         from_hir_call: false,
-        fn_span: body_to_insert.span,
+        fn_span: tcx.def_span(call_id),
     };
     let terminator = mir::Terminator {
         source_info: dummy_source_info(),
@@ -139,8 +207,8 @@ pub fn create_call_block<'tcx>(
 /// Creates one new block, moves all instructions following the passed location
 /// and the terminator to the new block, and changes the current terminator
 /// to point to this new block. If successful, returns index of the new block
-pub fn split_block_at_location<'tcx>(
-    body: &mut mir::Body<'tcx>,
+pub fn split_block_at_location(
+    body: &mut mir::Body<'_>,
     location: mir::Location,
 ) -> Result<mir::BasicBlock, ()> {
     // check validity of the location:
@@ -151,7 +219,7 @@ pub fn split_block_at_location<'tcx>(
     let nr_instructions = block1.statements.len();
     // check if the given location is valid
     if nr_instructions <= location.statement_index {
-        return Err(())
+        return Err(());
     }
     // the statements that stay in the first block
     let stmts1: Vec<mir::Statement> = block1.statements[0..=location.statement_index].to_vec();
@@ -275,3 +343,4 @@ pub fn replace_target(terminator: &mut mir::Terminator, new_target: mir::BasicBl
         *target = Some(new_target);
     }
 }
+

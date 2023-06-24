@@ -2226,7 +2226,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let mut stmts: Vec<vir::Stmt> = vec![];
         for loan in &loans {
-            self.loan_expiration_location.insert(loan.clone(), location);
+            // assert!(self.loan_expiration_location.get(loan).is_none());
+            self.loan_expiration_location.insert(*loan, location);
         }
         if !loans.is_empty() {
             let vir_reborrowing_dag =
@@ -6989,7 +6990,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if let Some(loan) = loan_opt {
                 if let Some(expiration_location) = self.loan_expiration_location.get(loan) {
                     println!("place: {:?} expires at location {:?}", place, expiration_location);
-                    res.insert(place.clone(), *expiration_location);
+                    res.insert(*place, *expiration_location);
                 }
             }
         }

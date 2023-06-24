@@ -1,5 +1,8 @@
 use crate::{
-    boundary_extraction::{self, BoundExtractor},
+    runtime_checks::{
+        boundary_extraction::{self, BoundExtractor},
+        check_type::CheckType,
+    },
     common::HasSignature,
     rewriter::{AstRewriter, SpecItemType},
     specifications::{common::SpecificationId, untyped},
@@ -34,24 +37,25 @@ pub struct RuntimeFunctions {
     pub check_before_expiry: Option<syn::Item>,
 }
 
+
 impl RuntimeFunctions {
     /// consumes self, and returns vector of items
-    pub fn to_item_vec(self) -> Vec<syn::Item> {
+    pub fn to_item_vec(&self) -> Vec<syn::Item> {
         let RuntimeFunctions {
             check_fn,
             store_fn,
             store_before_expiry,
             check_before_expiry,
         } = self;
-        let mut res = vec![check_fn];
+        let mut res = vec![check_fn.clone()];
         if let Some(store_fn) = store_fn {
-            res.push(store_fn);
+            res.push(store_fn.clone());
         }
         if let Some(store_before_expiry) = store_before_expiry {
-            res.push(store_before_expiry);
+            res.push(store_before_expiry.clone());
         }
         if let Some(check_before_expiry) = check_before_expiry {
-            res.push(check_before_expiry);
+            res.push(check_before_expiry.clone());
         }
         res
     }
@@ -102,6 +106,14 @@ pub fn translate_runtime_checks(
     })
 }
 
+pub fn translate_expression_runtime(tokens: TokenStream) -> syn::Expr {
+    // a bit different since we don't have any arguments here..
+    let mut expr: syn::Expr = syn::parse2(tokens).unwrap();
+    let mut check_visitor = CheckVisitor::new(&dummy_fn(), CheckType::ClosureExpression);
+    check_visitor.visit_expr_mut(&mut expr);
+    expr
+}
+
 impl CheckTranslator {
     pub fn new(
         item: &untyped::AnyFnItem,
@@ -111,11 +123,8 @@ impl CheckTranslator {
     ) -> Self {
         // figure out keywords
         let mut expression: syn::Expr = syn::parse2::<syn::Expr>(tokens).unwrap();
-        let executed_after = match spec_type {
-            SpecItemType::Pledge | SpecItemType::Postcondition => true,
-            _ => false,
-        };
-        let mut visitor = CheckVisitor::new(item, executed_after);
+        let check_type = CheckType::from_spectype(&spec_type);
+        let mut visitor = CheckVisitor::new(item, check_type);
         // Does it make sense to already run the visitor here?
         visitor.visit_expr_mut(&mut expression);
         // transform the pledge lhs too. Not sure if this is needed
@@ -160,10 +169,7 @@ impl CheckTranslator {
         // -> have result
         // -> have old values
         // -> moved values need to be stored too
-        let executed_after = match self.spec_type {
-            SpecItemType::Postcondition | SpecItemType::Pledge => true,
-            _ => false,
-        };
+        let executed_after = matches!(self.spec_type, SpecItemType::Postcondition | SpecItemType::Pledge);
         let expr_to_check: syn::Expr = if is_before_expiry_check {
             // if lhs is true, there has to be a lhs expression
             if let Some(expr) = self.lhs_expression.as_ref() {
@@ -262,16 +268,16 @@ impl CheckTranslator {
             item.span(),
         );
         let check_id_str = check_id.to_string();
-        let mut exprs = self
+        let mut old_exprs = self
             .visitor
             .inputs
             .iter()
             .filter_map(|(_, x)| if x.used_in_old { Some(x) } else { None })
             .collect::<Vec<&Argument>>();
-        exprs.sort_by(|a, b| a.old_store_index.partial_cmp(&b.old_store_index).unwrap());
+        old_exprs.sort_by(|a, b| a.old_store_index.partial_cmp(&b.old_store_index).unwrap());
         let mut tuple: Punctuated<syn::Expr, syn::token::Comma> = Punctuated::new();
 
-        exprs.iter().for_each(|el| {
+        old_exprs.iter().for_each(|el| {
             println!("field number: (control sorted!) {}", el.old_store_index);
             let name_token: TokenStream = el.name.to_string().parse().unwrap();
             let tokens_stmt: syn::Expr = parse_quote_spanned! {item.span() =>
@@ -326,7 +332,7 @@ impl CheckTranslator {
         let result_arg = AstRewriter::generate_result_arg(item);
         let arg = Argument::try_from(&result_arg).unwrap();
         let (result_type, arg_ty) = if let syn::Type::Reference(ty) = arg.ty {
-            let mut ty_ref = ty.clone();
+            let mut ty_ref = ty;
             ty_ref.mutability = None;
             ((*ty_ref.elem).clone(), syn::Type::Reference(ty_ref))
         } else {
@@ -446,11 +452,11 @@ pub struct CheckVisitor {
     pub within_before_expiry: bool,
     pub inputs: FxHashMap<String, Argument>,
     pub highest_old_index: usize,
-    pub executed_after: bool,
+    pub check_type: CheckType,
 }
 
 impl CheckVisitor {
-    pub fn new(item: &untyped::AnyFnItem, executed_after: bool) -> Self {
+    pub fn new(item: &untyped::AnyFnItem, check_type: CheckType) -> Self {
         let inputs = item
             .sig()
             .inputs
@@ -465,7 +471,7 @@ impl CheckVisitor {
             within_before_expiry: false,
             inputs,
             highest_old_index: 0,
-            executed_after,
+            check_type,
         }
     }
 }
@@ -479,52 +485,54 @@ impl VisitMut for CheckVisitor {
                 if let Some(ident) = expr_path.path.get_ident() {
                     println!("Found identifier: {}", ident);
                     let name = ident.to_token_stream().to_string();
-                    if let Some(arg) = self.inputs.get_mut(&name) {
-                        // argument used within an old expression?
-                        // not already marked as used in old?
-                        if self.executed_after && (self.within_old || !arg.is_ref) {
-                            // if it was not already marked to be stored
-                            // needs to be checked for indeces to be correct
-                            if !arg.used_in_old {
-                                println!("Marking variable {} to be stored", arg.name);
-                                arg.used_in_old = true;
-                                arg.old_store_index = self.highest_old_index;
-                                self.highest_old_index += 1;
-                            }
-                            // replace the identifier with the correct field access
-                            let index_token: TokenStream =
-                                arg.old_store_index.to_string().parse().unwrap();
-                            let tokens = if arg.is_ref {
-                                // cloning will deref the value..
-                                quote! {(&old_values.#index_token)}
-                            } else {
-                                // unfortunately it could still be a reference..
-                                // no real solution at this level
-                                quote! {(old_values.#index_token)}
-                            };
-                            println!("tokens: {}", tokens);
-                            let new_path: syn::Expr = syn::parse2(tokens).unwrap();
-                            *expr = new_path;
-                        }
-                    } else if self.within_before_expiry && name == "result".to_string() {
-                        let new_path: syn::Expr = parse_quote! {
-                            (&result_before_expiry)
-                        };
-                        *expr = new_path;
+                    if self.check_type.is_closure() && self.within_old {
+                        // let tokens = parse_quote! {old(#expr)};
+                        // *expr = tokens;
                     } else {
-                        println!("identifier {} was not found in args\n\n", name);
+                        if let Some(arg) = self.inputs.get_mut(&name) {
+                            // argument used within an old expression?
+                            // not already marked as used in old?
+                            if self.check_type.has_old_tuple() && (self.within_old || !arg.is_ref) {
+                                // if it was not already marked to be stored
+                                // needs to be checked for indeces to be correct
+                                if !arg.used_in_old {
+                                    println!("Marking variable {} to be stored", arg.name);
+                                    arg.used_in_old = true;
+                                    arg.old_store_index = self.highest_old_index;
+                                    self.highest_old_index += 1;
+                                }
+                                // replace the identifier with the correct field access
+                                let index_token: TokenStream =
+                                    arg.old_store_index.to_string().parse().unwrap();
+                                let tokens = if arg.is_ref {
+                                    // cloning will deref the value..
+                                    quote! {(&old_values.#index_token)}
+                                } else {
+                                    // unfortunately it could still be a reference..
+                                    // no real solution at this level
+                                    quote! {(old_values.#index_token)}
+                                };
+                                println!("tokens: {}", tokens);
+                                let new_path: syn::Expr = syn::parse2(tokens).unwrap();
+                                *expr = new_path;
+                            }
+                        } else if self.within_before_expiry && name == *"result" {
+                            let new_path: syn::Expr = parse_quote! {
+                                (&result_before_expiry)
+                            };
+                            *expr = new_path;
+                        } else {
+                            println!("identifier {} was not found in args\n\n", name);
+                        }
                     }
-                    // duplicating identifiers by defining new variables within specs
-                    // can break this!
                 }
-                syn::visit_mut::visit_expr_mut(self, expr);
             }
             Expr::Call(call)
                 // func: box Expr::Path(syn::ExprPath { path, .. }),
                 // ..
             => {
-                // move this function, has nothing to do with boundary extraction
                 let path_expr = (*call.func).clone();
+                // move this function, has nothing to do with boundary extraction
                 let name = if let Some(name) = boundary_extraction::expression_name(&path_expr) {
                     name
                 } else {
@@ -535,25 +543,31 @@ impl VisitMut for CheckVisitor {
                 };
                 match name.as_str() {
                     ":: prusti_contracts :: old" | "prusti_contracts :: old" | "old" => {
-                        let sub_expr = call.args.pop();
-                        // remove old-call and replace with content expression
-                        *expr = sub_expr.unwrap().value().clone();
-                        println!("recognized old with sub_expr: {}!", quote! {#expr});
-                        self.within_old = true;
-                        syn::visit_mut::visit_expr_mut(self, expr);
-                        // will cause all variables below to be replaced by old_value.some_field
-                        self.within_old = false;
-                        println!(
-                            "done searching contents of old(), expression now: {}",
-                            quote! {#expr}
-                        );
+                        if self.check_type.is_closure() {
+                            syn::visit_mut::visit_expr_call_mut(self, call);
+                            // just leave it as it is.. resolve it on mir level
+                        } else {
+                            let sub_expr = call.args.pop();
+                            // remove old-call and replace with content expression
+                            *expr = sub_expr.unwrap().value().clone();
+                            println!("recognized old with sub_expr: {}!", quote! {#expr});
+                            self.within_old = true;
+                            self.visit_expr_mut(expr);
+                            println!("sub expression of old after modification: {}", quote!{#expr});
+                            // will cause all variables below to be replaced by old_value.some_field
+                            self.within_old = false;
+                            println!(
+                                "done searching contents of old(), expression now: {}",
+                                quote! {#expr}
+                            );
+                        }
                     }
                     ":: prusti_contracts :: before_expiry" | "prusti_contracts :: before_expiry" | "before_expiry" => {
                         let sub_expr = call.args.pop();
                         *expr = sub_expr.unwrap().value().clone();
                         println!("recognized before_expiry with sub_expr: {}!", quote! {#expr});
                         self.within_before_expiry = true;
-                        syn::visit_mut::visit_expr_mut(self, expr);
+                        self.visit_expr_mut(expr);
                         // will cause all variables below to be replaced by old_value.some_field
                         self.within_before_expiry = false;
                         println!(
@@ -738,4 +752,10 @@ fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierK
         }
     }
     expr
+}
+
+pub fn dummy_fn() -> untyped::AnyFnItem {
+    parse_quote! {
+        fn x(){}
+    }
 }
