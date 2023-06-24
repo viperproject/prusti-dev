@@ -12,7 +12,6 @@ use crate::encoder::{
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         snapshots::{IntoSnapshotLowerer, SnapshotValuesInterface, SnapshotVariablesInterface},
         type_layouts::TypeLayoutsInterface,
-        utils::bound_variable_stack::{BoundVariableStack, BoundVariableStackMiddle},
     },
 };
 use rustc_hash::FxHashMap;
@@ -20,7 +19,10 @@ use std::collections::BTreeMap;
 use vir_crate::{
     common::{identifier::WithIdentifier, position::Positioned},
     low::{self as vir_low},
-    middle::{self as vir_mid, operations::ty::Typed},
+    middle::{
+        self as vir_mid,
+        operations::{quantifiers::BoundVariableStack, ty::Typed},
+    },
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, derive_more::IsVariant)]

@@ -4,15 +4,12 @@ use super::{
 };
 use crate::encoder::{
     errors::{SpannedEncodingError, SpannedEncodingResult},
-    middle::core_proof::{
-        transformations::{
-            encoder_context::EncoderContext,
-            symbolic_execution_new::{
-                expression_interner::ExpressionInterner,
-                procedure_executor::constraints::BlockConstraints, program_context::ProgramContext,
-            },
+    middle::core_proof::transformations::{
+        encoder_context::EncoderContext,
+        symbolic_execution_new::{
+            expression_interner::ExpressionInterner,
+            procedure_executor::constraints::BlockConstraints, program_context::ProgramContext,
         },
-        utils::bound_variable_stack::{BoundVariableStack, BoundVariableStackLow},
     },
 };
 use std::collections::BTreeMap;
@@ -21,7 +18,10 @@ use vir_crate::{
         expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
         position::Positioned,
     },
-    low::{self as vir_low, expression::visitors::ExpressionFallibleFolder},
+    low::{
+        self as vir_low, expression::visitors::ExpressionFallibleFolder,
+        operations::quantifiers::BoundVariableStack,
+    },
 };
 
 pub(in super::super) struct SnapshotBinding {

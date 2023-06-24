@@ -181,12 +181,14 @@ impl Expression {
     ///
     /// * If a place is not inside `old`, then it is returned as it is.
     /// * If a place is inside `old`, then it is returned as `old(variable)`.
+    /// * If a local is a quantified variable, then ignores it.
     pub fn collect_all_places_with_old_locals(&self) -> Vec<Expression> {
         struct Collector {
             // We use `Vec` instead of `HashSet` to make sure we are
             // deterministic.
             places: Vec<Expression>,
             old_label: Option<String>,
+            stack: super::quantifiers::BoundVariableStack,
         }
         impl ExpressionWalker for Collector {
             fn walk_expression(&mut self, expression: &Expression) {
@@ -197,6 +199,9 @@ impl Expression {
                 }
             }
             fn walk_local(&mut self, local: &Local) {
+                if self.stack.contains(&local.variable) {
+                    return;
+                }
                 let Some(label) = &self.old_label else {
                     unreachable!("something went wrong; this should be reachable only with old set");
                 };
@@ -216,6 +221,11 @@ impl Expression {
                 ExpressionWalker::walk_expression(self, &labelled_old.base);
                 self.old_label = old_label;
             }
+            fn walk_quantifier_enum(&mut self, quantifier: &Quantifier) {
+                self.stack.push(&quantifier.variables);
+                self.walk_quantifier(quantifier);
+                self.stack.pop();
+            }
         }
         impl PredicateWalker for Collector {
             fn walk_expression(&mut self, expr: &Expression) {
@@ -225,6 +235,7 @@ impl Expression {
         let mut collector = Collector {
             places: Vec::new(),
             old_label: None,
+            stack: Default::default(),
         };
         ExpressionWalker::walk_expression(&mut collector, self);
         collector.places
