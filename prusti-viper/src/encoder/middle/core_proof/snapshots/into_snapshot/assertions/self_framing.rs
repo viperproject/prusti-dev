@@ -459,6 +459,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
         self.expression_to_snapshot_impl(lowerer, expression, expect_math_bool)
     }
 
+    fn local_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        local: &vir_mid::Local,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        if let Some(label) = &self.old_label {
+            for (place, call) in &self.snap_calls {
+                if let vir_mid::Expression::LabelledOld(vir_mid::LabelledOld {
+                    label: old_label,
+                    base: box vir_mid::Expression::Local(predicate_local),
+                    ..
+                }) = place
+                {
+                    if old_label == label && predicate_local == local {
+                        return self.ensure_bool_expression(
+                            lowerer,
+                            local.get_type(),
+                            call.clone(),
+                            expect_math_bool,
+                        );
+                    }
+                }
+            }
+        }
+        self.local_to_snapshot_impl(lowerer, local, expect_math_bool)
+    }
+
     fn binary_op_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,

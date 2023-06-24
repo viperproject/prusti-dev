@@ -177,22 +177,44 @@ impl Expression {
             _ => false,
         }
     }
-    pub fn collect_all_places(&self) -> Vec<Expression> {
+    /// Returns all places:
+    ///
+    /// * If a place is not inside `old`, then it is returned as it is.
+    /// * If a place is inside `old`, then it is returned as `old(variable)`.
+    pub fn collect_all_places_with_old_locals(&self) -> Vec<Expression> {
         struct Collector {
             // We use `Vec` instead of `HashSet` to make sure we are
             // deterministic.
             places: Vec<Expression>,
+            old_label: Option<String>,
         }
         impl ExpressionWalker for Collector {
             fn walk_expression(&mut self, expression: &Expression) {
-                if expression.is_place() {
+                if self.old_label.is_none() && expression.is_place() {
                     self.places.push(expression.clone());
                 } else {
                     default_walk_expression(self, expression)
                 }
             }
+            fn walk_local(&mut self, local: &Local) {
+                let Some(label) = &self.old_label else {
+                    unreachable!("something went wrong; this should be reachable only with old set");
+                };
+                let position = local.position;
+                self.places.push(Expression::labelled_old(
+                    label.clone(),
+                    Expression::Local(local.clone()),
+                    position,
+                ));
+            }
             fn walk_predicate(&mut self, predicate: &Predicate) {
                 PredicateWalker::walk_predicate(self, predicate)
+            }
+            fn walk_labelled_old(&mut self, labelled_old: &LabelledOld) {
+                let old_label =
+                    std::mem::replace(&mut self.old_label, Some(labelled_old.label.clone()));
+                ExpressionWalker::walk_expression(self, &labelled_old.base);
+                self.old_label = old_label;
             }
         }
         impl PredicateWalker for Collector {
@@ -200,7 +222,10 @@ impl Expression {
                 ExpressionWalker::walk_expression(self, expr)
             }
         }
-        let mut collector = Collector { places: Vec::new() };
+        let mut collector = Collector {
+            places: Vec::new(),
+            old_label: None,
+        };
         ExpressionWalker::walk_expression(&mut collector, self);
         collector.places
     }

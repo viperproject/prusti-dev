@@ -158,6 +158,15 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
         local: &vir_mid::Local,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.local_to_snapshot_impl(lowerer, local, expect_math_bool)
+    }
+
+    fn local_to_snapshot_impl(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        local: &vir_mid::Local,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
         let snapshot_variable = self.variable_to_snapshot(lowerer, &local.variable)?;
         let result = vir_low::Expression::local(snapshot_variable, local.position);
         self.ensure_bool_expression(lowerer, local.get_type(), result, expect_math_bool)
