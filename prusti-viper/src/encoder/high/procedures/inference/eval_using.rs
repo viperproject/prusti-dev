@@ -19,7 +19,7 @@ pub(super) fn wrap_in_eval_using(
     state: &mut super::state::FoldUnfoldState,
     mut expression: vir_typed::Expression,
 ) -> SpannedEncodingResult<vir_typed::Expression> {
-    let accessed_places = strip_dereferences(expression.collect_all_places());
+    let accessed_places = strip_dereferences(expression.collect_all_places_with_old_locals());
     let mut framing_places = Vec::new();
     let mut context_kinds = Vec::new();
     for accessed_place in accessed_places {
@@ -32,6 +32,10 @@ pub(super) fn wrap_in_eval_using(
                 _ => vir_typed::EvalInContextKind::OldOpenedRefPredicate,
             };
             if !framing_places.contains(old_wrap) {
+                // FIXME: We should look up the actual state of the place in the
+                // old state instead of just assuming that it is fully folded
+                // (which works most of the time because old refers to
+                // preconditions).
                 framing_places.push(old_wrap.clone());
                 context_kinds.push(context_kind);
             }
