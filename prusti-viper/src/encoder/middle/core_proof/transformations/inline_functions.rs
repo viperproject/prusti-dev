@@ -6,13 +6,9 @@ use vir_crate::{
         expression::{ExpressionIterator, UnaryOperationHelpers},
         graphviz::ToGraphviz,
     },
-    low::{self as vir_low},
+    low::{self as vir_low, operations::quantifiers::BoundVariableStack},
 };
 use vir_low::expression::visitors::ExpressionFolder;
-
-use crate::encoder::middle::core_proof::utils::bound_variable_stack::{
-    BoundVariableStack, BoundVariableStackLow,
-};
 
 pub(crate) fn inline_caller_for(source_filename: &str, program: &mut vir_low::Program) {
     let mut caller_for_functions = program

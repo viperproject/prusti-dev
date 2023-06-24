@@ -511,7 +511,7 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
         }
         assert!(!guarded_candidates.is_empty(), "TODO: A proper error messages that did not find any candidate for purifying \
                 snapshot. Suggest to either use quantified_predicate! or check whether the expression is evaluated \
-                in the right state.");
+                in the right state. predicate_name={}, arguments={}", predicate_name, display::cjoin(arguments));
         Ok(FindSnapshotResult::FoundConditional {
             binding,
             guarded_candidates,

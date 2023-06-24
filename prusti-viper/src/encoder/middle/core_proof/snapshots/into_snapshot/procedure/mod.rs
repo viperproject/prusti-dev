@@ -14,13 +14,15 @@ use crate::encoder::{
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         references::ReferencesInterface,
         snapshots::SnapshotVariablesInterface,
-        utils::bound_variable_stack::{BoundVariableStack, BoundVariableStackMiddle},
     },
 };
 use vir_crate::{
     common::identifier::WithIdentifier,
     low::{self as vir_low},
-    middle::{self as vir_mid, operations::ty::Typed},
+    middle::{
+        self as vir_mid,
+        operations::{quantifiers::BoundVariableStack, ty::Typed},
+    },
 };
 
 mod traits;
