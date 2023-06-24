@@ -922,7 +922,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     expression,
                     &broken_invariants,
                 )?;
-                assert!(!expression.find(result), "TODO: A proper error message that postconditions must not contain the result ({:?}): {expression}", procedure_contract.def_id);
+                assert!(!expression.find(result), "TODO: A proper error message that structural postconditions must not contain the result ({:?}): {expression}", procedure_contract.def_id);
                 postconditions.push(expression);
             }
         }

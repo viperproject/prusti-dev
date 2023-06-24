@@ -142,7 +142,7 @@ def verify_test(args):
     report("Found test: {}", test_path)
     compile_flags = extract_test_compile_flags(test_path)
     env = get_env()
-    if 'prusti-tests/tests/verify_overflow/' in test_path:
+    if 'prusti-tests/tests/verify_overflow/' in test_path or 'prusti-tests/tests/verify_overflow_core_proof/' in test_path:
         env['PRUSTI_CHECK_OVERFLOWS'] = 'true'
     else:
         env['PRUSTI_CHECK_OVERFLOWS'] = 'false'

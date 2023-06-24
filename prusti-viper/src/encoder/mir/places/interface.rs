@@ -549,9 +549,10 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     );
                     return Ok(call);
                 } else {
-                    // Don't check the cast
-                    encoded_operand.set_type(destination_type);
-                    encoded_operand
+                    unimplemented!("Not checking overflows is currently not supported.");
+                    // // Don't check the cast
+                    // encoded_operand.set_type(destination_type);
+                    // encoded_operand
                 }
             }
 
