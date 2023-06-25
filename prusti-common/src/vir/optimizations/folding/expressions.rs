@@ -11,6 +11,8 @@
 //! 1.  There is a conflicting folding requirement coming from a
 //!     function application.
 //! 2.  There is an implication that branches on a enum discriminant.
+//! 3.  Pulling `unfolding` up would include impure expressions (e.g.
+//!     obligation predicate accesses) in the `unfolding` body
 //!
 //! This transformation is also needed to work around some bugs of Silicon,
 //! when unfolding are used inside a quantifiers and other cases.
@@ -409,6 +411,13 @@ impl ast::FallibleExprFolder for ExprOptimizer {
     fn fallible_fold_resource_access_predicate(
         &mut self,
         _resource_access_predicate: vir::polymorphic::ResourceAccessPredicate,
+    ) -> Result<vir::polymorphic::Expr, Self::Error> {
+        Err(())
+    }
+
+    fn fallible_fold_obligation_access_predicate(
+        &mut self,
+        _obligation_access_predicate: vir::polymorphic::ObligationAccessPredicate,
     ) -> Result<vir::polymorphic::Expr, Self::Error> {
         Err(())
     }
