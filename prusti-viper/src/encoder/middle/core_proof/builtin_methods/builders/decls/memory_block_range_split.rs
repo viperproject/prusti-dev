@@ -8,7 +8,7 @@ use crate::encoder::{
     middle::core_proof::{
         addresses::AddressesInterface, lowerer::Lowerer,
         predicates::PredicatesMemoryBlockInterface, snapshots::SnapshotValuesInterface,
-        type_layouts::TypeLayoutsInterface,
+        triggers::TriggersInterface, type_layouts::TypeLayoutsInterface,
     },
 };
 use vir_crate::{
@@ -120,6 +120,11 @@ impl<'l, 'p, 'v, 'tcx> MemoryBlockRangeSplitMethodBuilder<'l, 'p, 'v, 'tcx> {
             index.clone().into(),
             self.inner.inner.position,
         )?;
+        let trigger_element_address = self
+            .inner
+            .inner
+            .lowerer
+            .trigger_expression(element_address.clone(), self.inner.inner.position)?;
         // let predicate =
         //     self.encode_memory_block_acc(element_address.clone(), size.clone(), position)?;
         let start_index = self.inner.inner.lowerer.obtain_constant_value(
@@ -173,9 +178,10 @@ impl<'l, 'p, 'v, 'tcx> MemoryBlockRangeSplitMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.inner.position,
         )?;
         let body = expr!(
-            ((([start_index] <= index) && (index < [end_index])) &&
+            [trigger_element_address] &&
+            (((([start_index] <= index) && (index < [end_index])) &&
             (([0.into()] <= byte_index) && (byte_index < [element_size_int]))) ==>
-            ([read_element_byte.clone()] == [read_whole_byte])
+            ([read_element_byte.clone()] == [read_whole_byte]))
         );
         let trigger = read_element_byte;
         let expression = vir_low::Expression::forall(
