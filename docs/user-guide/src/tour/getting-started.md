@@ -43,7 +43,7 @@ an explicit runtime error, such as
 [`unimplemented!`](https://doc.rust-lang.org/std/macro.unimplemented.html),
 [`todo!`](https://doc.rust-lang.org/std/macro.todo.html), or
 possibly a failing [assertion](https://doc.rust-lang.org/std/macro.assert.html),
-is reachable. [Prusti assertions](../verify/assert_assume.md) are also checked. These are like the normal `assert!` statements, but they can use the full Prusti specification syntax and will not result in any runtime checks or code when compiled normally.
+is reachable. [Prusti assertions](../verify/assert_refute_assume.md) are also checked. These are like the normal `assert!` statements, but they can use the full Prusti specification syntax and will not result in any runtime checks or code when compiled normally.
 
 For example, the following test function creates a node with no successor and panics
 if the node's payload is greater than 23:

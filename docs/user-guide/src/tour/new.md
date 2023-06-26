@@ -102,9 +102,11 @@ error: [Prusti: invalid specification] use of impure function "Link::len" in pur
 
 Whenever we add the attribute `#[pure]` to a function, Prusti will check whether that
 function is indeed deterministic and side-effect free
-(notice that [termination](../capabilities/limitations.md#termination-checks-total-correctness-missing) is *not* checked); otherwise, it complains.
+(notice that termination is *not* checked); otherwise, it complains.
 In this case, Prusti complains because we call an impure function,
 namely `Link::len()`, within the body of the pure function `List::len()`.
+
+<!-- TODO: link capabilities/limitations chapter (termination) -->
 
 To fix this issue, it suffices to mark `Link::len()` as pure as well.
 
