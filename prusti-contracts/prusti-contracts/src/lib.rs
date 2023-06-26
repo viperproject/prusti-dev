@@ -328,6 +328,14 @@ mod private {
         pub fn new_isize(_: isize) -> Self {
             panic!()
         }
+
+        pub fn to_usize(&self) -> usize {
+            panic!()
+        }
+
+        pub fn to_isize(&self) -> isize {
+            panic!()
+        }
     }
 
     macro_rules! __int_dummy_trait_impls__ {

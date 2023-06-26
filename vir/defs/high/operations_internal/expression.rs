@@ -882,7 +882,7 @@ impl Expression {
                     op_kind: BinaryOpKind::Add,
                     left:
                         box Expression::BuiltinFuncApp(BuiltinFuncApp {
-                            function: BuiltinFunc::NewInt,
+                            function: BuiltinFunc::CastIntToInt,
                             arguments,
                             ..
                         }),
