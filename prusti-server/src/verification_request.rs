@@ -37,6 +37,10 @@ impl ViperBackendConfig {
         let mut verifier_args = config::extra_verifier_args();
         match backend {
             VerificationBackend::Silicon => {
+                verifier_args.push(format!(
+                    "--numberOfErrorsToReport={}",
+                    config::num_errors_per_function()
+                ));
                 if config::use_more_complete_exhale() {
                     verifier_args.push("--enableMoreCompleteExhale".to_string());
                 }
