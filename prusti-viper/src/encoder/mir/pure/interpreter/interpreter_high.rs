@@ -663,10 +663,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             });
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Int::") {
             assert!(type_arguments.is_empty());
+            match proc_name {
+                "new" => {
+                    return builtin((NewInt, Type::Int(Int::Unbounded)));
+                }
+                "new_usize" => {
+                    return builtin((NewInt, Type::Int(Int::Unbounded)));
+                }
+                "new_isize" => {
+                    return builtin((NewInt, Type::Int(Int::Unbounded)));
+                }
+                _ => {}
+            };
             let (source_type, destination_type) = match proc_name {
-                "new" => (Type::Int(Int::I64), Type::Int(Int::Unbounded)),
-                "new_usize" => (Type::Int(Int::Usize), Type::Int(Int::Unbounded)),
-                "new_isize" => (Type::Int(Int::Isize), Type::Int(Int::Unbounded)),
                 "to_usize" => (Type::Int(Int::Unbounded), Type::Int(Int::Usize)),
                 "to_isize" => (Type::Int(Int::Unbounded), Type::Int(Int::Isize)),
                 _ => unreachable!("no further int functions"),
