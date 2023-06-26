@@ -23,6 +23,7 @@ fn main() {
     }
 }
 
+//// ANCHOR: failing_code
 fn test(x: i32) {
     let test = Node {
         elem: x, // unknown value
@@ -30,6 +31,7 @@ fn test(x: i32) {
     };
 
     if test.elem > 23 {
-        panic!()
+        panic!() //~ ERROR panic!(..) statement might be reachable
     }
 }
+//// ANCHOR_END: failing_code

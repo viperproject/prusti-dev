@@ -2,7 +2,7 @@
 
 Once the [development setup](setup.md) is complete, Prusti can be compiled. Using the Python wrapper script:
 
-```
+```bash
 $ ./x.py build
 ```
 
