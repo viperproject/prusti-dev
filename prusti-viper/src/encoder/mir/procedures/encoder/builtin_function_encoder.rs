@@ -255,13 +255,48 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             }
             "prusti_contracts::Int::new"
             | "prusti_contracts::Int::new_usize"
-            | "prusti_contracts::Int::new_isize" => make_builtin_call(
-                self,
-                block_builder,
-                original_lifetimes,
-                derived_lifetimes,
-                vir_high::BuiltinFunc::NewInt,
-            )?,
+            | "prusti_contracts::Int::new_isize"
+            | "prusti_contracts::Int::to_usize"
+            | "prusti_contracts::Int::to_isize" => {
+                let (source_type, destination_type) = match full_called_function_name.as_str() {
+                    "prusti_contracts::Int::new" => (
+                        vir_high::Type::Int(vir_high::ty::Int::I64),
+                        vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                    ),
+                    "prusti_contracts::Int::new_usize" => (
+                        vir_high::Type::Int(vir_high::ty::Int::Usize),
+                        vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                    ),
+                    "prusti_contracts::Int::new_isize" => (
+                        vir_high::Type::Int(vir_high::ty::Int::Isize),
+                        vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                    ),
+                    "prusti_contracts::Int::to_usize" => (
+                        vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                        vir_high::Type::Int(vir_high::ty::Int::Usize),
+                    ),
+                    "prusti_contracts::Int::to_isize" => (
+                        vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                        vir_high::Type::Int(vir_high::ty::Int::Isize),
+                    ),
+                    _ => unreachable!("no further int functions"),
+                };
+                let ty_args = vec![source_type, destination_type];
+                make_manual_assign(
+                    self,
+                    block_builder,
+                    original_lifetimes,
+                    derived_lifetimes,
+                    &mut |_, args, target_ty| {
+                        vir_high::Expression::builtin_func_app_no_pos(
+                            vir_high::BuiltinFunc::CastIntToInt,
+                            ty_args.clone(),
+                            args,
+                            target_ty,
+                        )
+                    },
+                )?
+            }
             "prusti_contracts::Map::<K, V>::empty" => make_builtin_call(
                 self,
                 block_builder,

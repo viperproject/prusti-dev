@@ -520,7 +520,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
             | (ty::TyKind::Uint(_), ty::TyKind::Char)
             | (ty::TyKind::Uint(_), ty::TyKind::Int(_))
             | (ty::TyKind::Uint(_), ty::TyKind::Uint(_)) => {
-                let mut encoded_operand = self
+                let encoded_operand = self
                     .encode_operand_high(mir, operand, span)
                     .with_span(span)?;
                 if prusti_common::config::check_overflows() {

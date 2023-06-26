@@ -950,17 +950,17 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     app.position,
                 ))
             }
-            BuiltinFunc::NewInt => {
-                let mut args = construct_args(self, lowerer)?;
-                assert_eq!(args.len(), 1);
-                let arg = args.pop().unwrap();
-                let value = lowerer.obtain_constant_value(
-                    app.arguments[0].get_type(),
-                    arg,
-                    app.position,
-                )?;
-                lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
-            }
+            // BuiltinFunc::NewInt => {
+            //     let mut args = construct_args(self, lowerer)?;
+            //     assert_eq!(args.len(), 1);
+            //     let arg = args.pop().unwrap();
+            //     let value = lowerer.obtain_constant_value(
+            //         app.arguments[0].get_type(),
+            //         arg,
+            //         app.position,
+            //     )?;
+            //     lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
+            // }
             BuiltinFunc::Index => {
                 let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 2);
