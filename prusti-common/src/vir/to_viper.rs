@@ -93,7 +93,10 @@ impl<'v> ToViper<'v, viper::Position<'v>> for Position {
         line = %self.line(), column = %self.column(), id = %self.id()
     ))]
     fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Position<'v> {
-        ast.identifier_position(self.line(), self.column(), self.id().to_string())
+        // The line and column of a vir::Position refer to the source Rust program.
+        // Line and columns in Viper positions have a different semantics, because Silicon
+        // deduplicates error messages based on them.
+        ast.identifier_position(self.id() as i32, 0, self.id().to_string())
     }
 }
 
@@ -323,8 +326,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     ),
                     pos.to_viper(context, ast),
                 );
-                let position =
-                    ast.identifier_position(pos.line(), pos.column(), pos.id().to_string());
+                let position = pos.to_viper(context, ast);
                 let apply = ast.apply(wand.to_viper(context, ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
