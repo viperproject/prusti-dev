@@ -2,11 +2,11 @@
 
 Predicates are similar to [pure functions](pure.md) in that they are deterministic and side-effect free and used in specifications.
 
-They are more powerful than pure functions: inside predicate bodies the full [Prusti specification syntax](../syntax.md) is allowed. However, they are not usable in regular Rust code, as there are no direct Rust equivalents for specification constructs like [quantifiers](../syntax.md#quantifiers) or [implications](../syntax.md#implications). Instead, predicates can only be called from within specifications.
+They are more powerful than pure functions: inside predicate bodies the full [Prusti specification syntax](../syntax.md) is allowed. However, they are not usable in regular Rust code, as there are no direct Rust equivalents for specification constructs like [quantifiers](../syntax.md#quantifiers) or [implications](../syntax.md#implications). Instead, predicates can only be called from within specifications and other predicates.
 
 Predicates are declared using the `predicate!` macro on a function:
 
-```rust
+```rust,noplaypen,ignore
 predicate! {
     fn all_zeroes(a: &MyArray) -> bool {
         forall(|i: usize|
@@ -17,7 +17,7 @@ predicate! {
 
 Within specifications, predicates can be called just like pure functions:
 
-```rust
+```rust,noplaypen,ignore
 #[ensures(all_zeros(a))]
 fn zero(a: &mut MyArray) { ... }
 ```

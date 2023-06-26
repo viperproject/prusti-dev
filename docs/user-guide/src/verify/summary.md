@@ -21,6 +21,7 @@ The following features are either currently supported or planned to be supported
 - [Closures](closure.md)
 - [Specification entailments](spec_ent.md)
 - [Type models](type-models.md)
+- [Conditional compilation](prusti-feature.md)
 
 By default, Prusti only checks absence of panics.
 Moreover, Prusti verifies *partial* correctness. That is, it only verifies that *terminating* program executions meet the supplied specification.

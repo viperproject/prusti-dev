@@ -1,10 +1,12 @@
 # Closures
 
 > **NOT YET SUPPORTED:** This feature is not yet supported in Prusti. See [PR #138](https://github.com/viperproject/prusti-dev/pull/138) for the status of this feature as well as a prototype. The syntax described here is subject to change.
+>
+> **NOTE: The syntax for attaching specifications to closures is currently not working**
 
 [Rust closures](https://doc.rust-lang.org/book/ch13-01-closures.html) can be given a specification using the `closure!(...)` syntax:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 fn main() {

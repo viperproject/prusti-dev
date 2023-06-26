@@ -1,3 +1,4 @@
+//// ANCHOR: types
 pub struct List {
     head: Link,
 }
@@ -11,7 +12,9 @@ struct Node {
     elem: i32,
     next: Link,
 }
+//// ANCHOR_END: types
 
+//// ANCHOR: code
 fn main() {
     let test = Node {
         elem: 17,
@@ -22,3 +25,4 @@ fn main() {
         panic!() // unreachable
     }
 }
+//// ANCHOR_END: code
