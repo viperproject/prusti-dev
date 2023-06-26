@@ -264,6 +264,7 @@ pub enum BuiltinFunc {
     LookupSeq,
     ConcatSeq,
     SeqLen,
+    NewInt,
     Index,
     Len,
     /// A ghost function for computing offset.

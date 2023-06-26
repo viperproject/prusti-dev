@@ -255,9 +255,14 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             }
             "prusti_contracts::Int::new"
             | "prusti_contracts::Int::new_usize"
-            | "prusti_contracts::Int::new_isize"
-            | "prusti_contracts::Int::to_usize"
-            | "prusti_contracts::Int::to_isize" => {
+            | "prusti_contracts::Int::new_isize" => make_builtin_call(
+                self,
+                block_builder,
+                original_lifetimes,
+                derived_lifetimes,
+                vir_high::BuiltinFunc::NewInt,
+            )?,
+            "prusti_contracts::Int::to_usize" | "prusti_contracts::Int::to_isize" => {
                 let (source_type, destination_type) = match full_called_function_name.as_str() {
                     "prusti_contracts::Int::new" => (
                         vir_high::Type::Int(vir_high::ty::Int::I64),
