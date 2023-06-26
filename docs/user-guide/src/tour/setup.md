@@ -33,8 +33,9 @@ In this file, you can set [configuration flags](https://viperproject.github.io/p
 check_overflows = false
 ```
 
-**Note**: Creating a new project will create a `main.rs` file containing a `Hello World` program. Since Prusti does not yet support Strings (see [Prusti Limitations](../capabilities/limitations.md#strings-and-string-slices) chapter), verification will fail on `main.rs`. To still verify the code, remove the line `println!("Hello, world!");`.
+**Note**: Creating a new project will create a `main.rs` file containing a `Hello World` program. Since Prusti does not yet support Strings, verification will fail on `main.rs`. To still verify the code, remove the line `println!("Hello, world!");`.
 
+<!-- TODO: link capabilities/limitations chapter (strings) -->
 
 ## Standard library annotations
 
