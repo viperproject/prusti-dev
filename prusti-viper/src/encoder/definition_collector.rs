@@ -112,26 +112,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let domains = self.get_used_domains();
         let backend_types = self.get_used_backend_types();
         let fields = self.get_used_fields();
+
+        // replacing leak check markers with actual leak checks (TODO: perhaps move to another
+        // file)
+
+        struct LeakCheckInserter<'a, 'v, 'tcx> {
+            used_obligations: &'a FxHashSet<vir::FunctionIdentifier>,
+            encoder: &'a Encoder<'v, 'tcx>,
+        }
+
+        impl vir::FallibleStmtFolder for LeakCheckInserter<'_, '_, '_> {
+            type Error = SpannedEncodingError;
+
+            fn fallible_fold_expr(&mut self, expr: vir::Expr) -> Result<vir::Expr, Self::Error> {
+                <LeakCheckInserter as vir::FallibleExprFolder>::fallible_fold(self, expr)
+            }
+        }
+
+        impl vir::FallibleExprFolder for LeakCheckInserter<'_, '_, '_> {
+            type Error = SpannedEncodingError;
+
+            fn fallible_fold_leak_check(&mut self, vir::LeakCheck { scope_id, position }: vir::LeakCheck) -> Result<vir::Expr, Self::Error> {
+                let mut check = vir::Expr::Const(vir::ConstExpr { value: vir::Const::Bool(true), position });
+                // TODO: use conjoin here (?)
+                for identifier in self.used_obligations {
+                    let current_check = self.encoder.get_obligation_leak_check(identifier, scope_id)?;
+                    check = vir::Expr::BinOp(vir::BinOp {
+                        op_kind: vir::BinaryOpKind::And,
+                        left: Box::new(check),
+                        right: Box::new(current_check),
+                        position,
+                    })
+                }
+                Ok(check)
+            }
+        }
+
+        let mut inserter = LeakCheckInserter {
+            used_obligations: &self.used_obligations,
+            encoder: &self.encoder,
+        };
+
         let leak_checked_methods = methods
             .into_iter()
             .map(|mut method| -> SpannedEncodingResult<vir::CfgMethod> {
                 method = method.patch_statements(|stmt| -> SpannedEncodingResult::<_> {
-                    match stmt {
-                        vir::Stmt::LeakCheck(vir::LeakCheck { scope_id }) => {
-                            let mut check_body = vir::Expr::Const(vir::ConstExpr { value: vir::Const::Bool(true), position: vir::Position::default() });
-                            for identifier in &self.used_obligations {
-                                let current_check = self.encoder.get_obligation_leak_check(identifier, scope_id)?;
-                                check_body = vir::Expr::BinOp(vir::BinOp {
-                                    op_kind: vir::BinaryOpKind::And,
-                                    left: Box::new(check_body),
-                                    right: Box::new(current_check),
-                                    position: vir::Position::default(),
-                                })
-                            }
-                            Ok(vir::Stmt::Assert(vir::Assert { expr: check_body, position: vir::Position::default() }))
-                        },
-                        _ => { Ok(stmt) }
-                    }
+                    <LeakCheckInserter as vir::FallibleStmtFolder>::fallible_fold(&mut inserter, stmt)
                 }).unwrap();
                 Ok(method)
             }).collect::<SpannedEncodingResult<Vec<_>>>()?;

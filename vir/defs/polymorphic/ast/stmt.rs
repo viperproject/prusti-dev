@@ -64,7 +64,6 @@ pub enum Stmt {
     /// * place to the enumeration instance
     /// * field that encodes the variant
     Downcast(Downcast),
-    LeakCheck(LeakCheck),
 }
 
 impl fmt::Display for Stmt {
@@ -89,7 +88,6 @@ impl fmt::Display for Stmt {
             Stmt::ExpireBorrows(expire_borrows) => expire_borrows.fmt(f),
             Stmt::If(if_stmt) => if_stmt.fmt(f),
             Stmt::Downcast(downcast) => downcast.fmt(f),
-            Stmt::LeakCheck(leak_check) => leak_check.fmt(f),
         }
     }
 }
@@ -452,17 +450,6 @@ impl fmt::Display for Downcast {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct LeakCheck {
-    pub scope_id: isize,
-}
-
-impl fmt::Display for LeakCheck {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "leak for scope_id = {}", self.scope_id)
-    }
-}
-
 impl Stmt {
     pub fn is_comment(&self) -> bool {
         matches!(self, Stmt::Comment(_))
@@ -589,7 +576,6 @@ pub trait StmtFolder {
             Stmt::ExpireBorrows(expire_borrows) => self.fold_expire_borrows(expire_borrows),
             Stmt::If(if_stmt) => self.fold_if(if_stmt),
             Stmt::Downcast(downcast) => self.fold_downcast(downcast),
-            Stmt::LeakCheck(leak_check) => self.fold_leak_check(leak_check),
         }
     }
 
@@ -775,10 +761,6 @@ pub trait StmtFolder {
             field,
         })
     }
-
-    fn fold_leak_check(&mut self, statement: LeakCheck) -> Stmt {
-        Stmt::LeakCheck(statement)
-    }
 }
 
 pub trait FallibleStmtFolder {
@@ -811,7 +793,6 @@ pub trait FallibleStmtFolder {
             }
             Stmt::If(if_stmt) => self.fallible_fold_if(if_stmt),
             Stmt::Downcast(downcast) => self.fallible_fold_downcast(downcast),
-            Stmt::LeakCheck(leak_check) => self.fallible_fold_leak_check(leak_check),
         }
     }
 
@@ -1028,10 +1009,6 @@ pub trait FallibleStmtFolder {
             field,
         }))
     }
-
-    fn fallible_fold_leak_check(&mut self, statement: LeakCheck) -> Result<Stmt, Self::Error> {
-        Ok(Stmt::LeakCheck(statement))
-    }
 }
 
 pub trait StmtWalker {
@@ -1058,7 +1035,6 @@ pub trait StmtWalker {
             Stmt::ExpireBorrows(expire_borrows) => self.walk_expire_borrows(expire_borrows),
             Stmt::If(if_stmt) => self.walk_if(if_stmt),
             Stmt::Downcast(downcast) => self.walk_downcast(downcast),
-            Stmt::LeakCheck(leak_check) => self.walk_leak_check(leak_check),
         }
     }
 
@@ -1187,8 +1163,6 @@ pub trait StmtWalker {
         let Downcast { base, .. } = statement;
         self.walk_expr(base);
     }
-
-    fn walk_leak_check(&mut self, _statement: &LeakCheck) {}
 }
 
 pub trait FallibleStmtWalker {
@@ -1221,7 +1195,6 @@ pub trait FallibleStmtWalker {
             }
             Stmt::If(if_stmt) => self.fallible_walk_if(if_stmt),
             Stmt::Downcast(downcast) => self.fallible_walk_downcast(downcast),
-            Stmt::LeakCheck(leak_check) => self.fallible_walk_leak_check(leak_check),
         }
     }
 
@@ -1394,10 +1367,6 @@ pub trait FallibleStmtWalker {
     fn fallible_walk_downcast(&mut self, statement: &Downcast) -> Result<(), Self::Error> {
         let Downcast { base, .. } = statement;
         self.fallible_walk_expr(base)?;
-        Ok(())
-    }
-
-    fn fallible_walk_leak_check(&mut self, _statement: &LeakCheck) -> Result<(), Self::Error> {
         Ok(())
     }
 }

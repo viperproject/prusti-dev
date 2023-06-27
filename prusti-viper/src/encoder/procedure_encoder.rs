@@ -1109,7 +1109,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &scope_ids,
             )?;
             self.cfg_method.add_stmts(end_body_block, stmts);
-            self.cfg_method.add_stmt(end_body_block, vir::Stmt::LeakCheck(vir::LeakCheck { scope_id: loop_head.index() as isize }));
+            self.cfg_method.add_stmt(end_body_block, vir::Stmt::Assert(vir::Assert{
+                expr: vir::Expr::leak_check(loop_head.index() as isize),
+                position: vir::Position::default(),
+            }));
         }
         self.cfg_method.add_stmt(
             end_body_block,
@@ -4955,21 +4958,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        // Assert functional specification of postcondition (CHANGED TO EXHALE)
+        // Assert functional specification of postcondition
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::comment("Assert (CHANGED TO EXHALE) functional specification of postcondition"),
+            vir::Stmt::comment("Assert functional specification of postcondition"),
         );
         let func_pos = self.register_error(self.mir.span, ErrorCtxt::AssertMethodPostcondition);
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
+        let postcond_pos = patched_func_spec.pos();
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Exhale(vir::Exhale {
-                expr: patched_func_spec,
+            vir::Stmt::Assert(vir::Assert {
+                expr: vir::Expr::and(patched_func_spec, vir::Expr::leak_check(-1)).set_pos(postcond_pos),
                 position: func_pos,
             }),
         );
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::LeakCheck(vir::LeakCheck { scope_id: -1 }));
 
         // Assert type invariants
         self.cfg_method.add_stmt(
