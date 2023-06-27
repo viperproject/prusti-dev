@@ -54,6 +54,7 @@ impl<'a, 'c: 'a, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 unreachable!();
             }
             vir_low::Statement::MaterializePredicate(_) => todo!(),
+            vir_low::Statement::CaseSplit(_) => todo!(),
         }
         Ok(())
     }

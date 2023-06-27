@@ -71,6 +71,9 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
             Statement::MaterializePredicate(statement) => {
                 unreachable!("should have been purified out: {statement}")
             }
+            Statement::CaseSplit(statement) => {
+                unreachable!("should have been purified out: {statement}")
+            }
         };
         context.cache_statement(statement_hash, self, viper_statement);
         viper_statement

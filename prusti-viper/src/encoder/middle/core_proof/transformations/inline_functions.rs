@@ -98,7 +98,8 @@ fn inline_in_statements(inliner: &mut Inliner, old_statements: Vec<vir_low::Stat
             | vir_low::Statement::MethodCall(_)
             | vir_low::Statement::Assign(_)
             | vir_low::Statement::Conditional(_)
-            | vir_low::Statement::MaterializePredicate(_) => {
+            | vir_low::Statement::MaterializePredicate(_)
+            | vir_low::Statement::CaseSplit(_) => {
                 inliner.statements.push(statement);
             }
         }

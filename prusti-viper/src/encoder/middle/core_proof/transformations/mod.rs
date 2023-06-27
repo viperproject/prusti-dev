@@ -16,3 +16,4 @@ pub(super) mod expand_quantifiers;
 pub(super) mod encoder_context;
 pub(super) mod make_all_jumps_nondeterministic;
 pub(super) mod merge_consequent_blocks;
+pub(super) mod case_splits;

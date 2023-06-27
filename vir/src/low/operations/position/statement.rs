@@ -18,6 +18,7 @@ impl Positioned for Statement {
             Self::Assign(statement) => statement.position(),
             Self::Conditional(statement) => statement.position(),
             Self::MaterializePredicate(statement) => statement.position(),
+            Self::CaseSplit(statement) => statement.position(),
         }
     }
 }
@@ -101,6 +102,12 @@ impl Positioned for Conditional {
 }
 
 impl Positioned for MaterializePredicate {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for CaseSplit {
     fn position(&self) -> Position {
         self.position
     }

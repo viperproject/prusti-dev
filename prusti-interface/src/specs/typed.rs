@@ -17,6 +17,7 @@ pub struct DefSpecificationMap {
     pub type_specs: FxHashMap<DefId, TypeSpecification>,
     pub prusti_assertions: FxHashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: FxHashMap<DefId, PrustiAssumption>,
+    pub prusti_case_splits: FxHashMap<DefId, PrustiCaseSplit>,
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
@@ -48,6 +49,10 @@ impl DefSpecificationMap {
 
     pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.prusti_assumptions.get(def_id)
+    }
+
+    pub fn get_case_split(&self, def_id: &DefId) -> Option<&PrustiCaseSplit> {
+        self.prusti_case_splits.get(def_id)
     }
 
     pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
@@ -213,6 +218,11 @@ impl DefSpecificationMap {
             .values()
             .map(|spec| format!("{spec:?}"))
             .collect();
+        let case_splits: Vec<_> = self
+            .prusti_case_splits
+            .values()
+            .map(|spec| format!("{spec:?}"))
+            .collect();
         let refutations: Vec<_> = self
             .prusti_refutations
             .values()
@@ -224,6 +234,7 @@ impl DefSpecificationMap {
         values.extend(type_specs);
         values.extend(asserts);
         values.extend(assumptions);
+        values.extend(case_splits);
         values.extend(refutations);
         if hide_uuids {
             let uuid =
@@ -366,6 +377,11 @@ pub struct PrustiAssertion {
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
     pub is_structural: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiCaseSplit {
+    pub assertion: LocalDefId,
 }
 
 #[derive(Debug, Clone)]

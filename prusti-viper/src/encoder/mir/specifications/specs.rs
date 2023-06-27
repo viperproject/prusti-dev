@@ -11,8 +11,8 @@ use prusti_interface::{
     specs::typed::{
         DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
         ProcedureSpecificationKind, ProcedureSpecificationKindError, PrustiAssertion,
-        PrustiAssumption, PrustiRefutation, Refinable, SpecificationExpression, SpecificationItem,
-        SpecificationRegionBegin, SpecificationRegionEnd, TypeSpecification,
+        PrustiAssumption, PrustiCaseSplit, PrustiRefutation, Refinable, SpecificationExpression,
+        SpecificationItem, SpecificationRegionBegin, SpecificationRegionEnd, TypeSpecification,
     },
     PrustiError,
 };
@@ -90,6 +90,11 @@ impl<'tcx> Specifications<'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.user_typed_specs.get_assumption(def_id)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self))]
+    pub(super) fn get_case_split(&self, def_id: &DefId) -> Option<&PrustiCaseSplit> {
+        self.user_typed_specs.get_case_split(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]

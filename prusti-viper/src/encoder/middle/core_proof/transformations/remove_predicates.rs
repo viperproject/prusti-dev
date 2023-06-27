@@ -67,7 +67,8 @@ fn from_statements(
             | vir_low::Statement::LogEvent(_)
             | vir_low::Statement::Assume(_)
             | vir_low::Statement::Assert(_)
-            | vir_low::Statement::Assign(_) => {
+            | vir_low::Statement::Assign(_)
+            | vir_low::Statement::CaseSplit(_) => {
                 statements.push(statement);
             }
             vir_low::Statement::MethodCall(method) => {

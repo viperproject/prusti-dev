@@ -621,6 +621,10 @@ pub fn prusti_structural_assume(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_structural_assumption, tokens)
 }
 
+pub fn prusti_split_on(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_split, tokens)
+}
+
 /// Generates the TokenStream encoding an expression using prusti syntax
 /// Used for body invariants, assertions, and assumptions
 fn generate_expression_closure(

@@ -246,6 +246,8 @@ pub enum ErrorCtxt {
     MaterializePredicate,
     /// An unexpected failure while assuming that the allocation cannot fail.
     UnexpectedAssumeAllocationNeverFails,
+    /// A failure when case splitting.
+    CaseSplit,
     // /// Permission error when dereferencing a raw pointer.
     // EnsureOwnedPredicate,
 }

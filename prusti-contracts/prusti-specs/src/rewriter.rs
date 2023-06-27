@@ -301,6 +301,15 @@ impl AstRewriter {
         self.process_prusti_expression(quote! {prusti_structural_assumption}, spec_id, tokens)
     }
 
+    /// Parse a prusti structural assumption into a Rust expression
+    pub fn process_prusti_split(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.process_prusti_expression(quote! {prusti_case_split}, spec_id, tokens)
+    }
+
     /// Parse a prusti expression used as an argument to some ghost operation
     pub fn process_prusti_specification_expression(
         &mut self,

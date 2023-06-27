@@ -54,6 +54,7 @@ impl Positioned for Statement {
             Self::BorShorten(statement) => statement.position(),
             Self::MaterializePredicate(statement) => statement.position(),
             Self::EncodingAction(statement) => statement.position(),
+            Self::CaseSplit(statement) => statement.position(),
         }
     }
 }
@@ -353,6 +354,12 @@ impl Positioned for MaterializePredicate {
 }
 
 impl Positioned for EncodingAction {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for CaseSplit {
     fn position(&self) -> Position {
         self.position
     }

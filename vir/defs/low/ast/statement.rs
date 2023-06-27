@@ -19,6 +19,7 @@ pub enum Statement {
     Assign(Assign),
     Conditional(Conditional),
     MaterializePredicate(MaterializePredicate),
+    CaseSplit(CaseSplit),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -123,5 +124,12 @@ pub struct MaterializePredicate {
     /// `materialize_predicate!` corresponds to `true` and `quantified_predicate!`
     /// corresponds to `false`.
     pub check_that_exists: bool,
+    pub position: Position,
+}
+
+#[display(fmt = "case-split {}", expression)]
+/// Case-split on a pure boolean expression. This operation is ignored by fold-unfold.
+pub struct CaseSplit {
+    pub expression: Expression,
     pub position: Position,
 }
