@@ -6,10 +6,10 @@ pub(crate) mod operations_internal;
 pub use self::{
     ast::{
         expression::{
-            self, visitors, AddrOf, BinaryOp, BinaryOpKind, BuiltinFunc, BuiltinFuncApp,
-            Conditional, Constant, Constructor, ContainerOp, Deref, Downcast, Expression, Field,
-            FuncApp, LabelledOld, LetExpr, Local, Quantifier, Seq, Trigger, UnaryOp, UnaryOpKind,
-            Variant,
+            self, visitors, AccPredicate, AddrOf, BinaryOp, BinaryOpKind, BuiltinFunc,
+            BuiltinFuncApp, Conditional, Constant, Constructor, ContainerOp, Deref, Downcast,
+            EvalIn, EvalInContextKind, Expression, Field, Final, FuncApp, LabelledOld, LetExpr,
+            Local, Quantifier, Seq, Trigger, UnaryOp, UnaryOpKind, Unfolding, Variant,
         },
         field::FieldDecl,
         function::FunctionDecl,

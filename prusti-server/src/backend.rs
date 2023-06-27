@@ -21,7 +21,8 @@ impl<'a> Backend<'a> {
 
                 ast_utils.with_local_frame(16, || {
                     let ast_factory = context.new_ast_factory();
-                    let viper_program = program.to_viper(LoweringContext::default(), &ast_factory);
+                    let context = &mut LoweringContext::default();
+                    let viper_program = program.to_viper(context, &ast_factory);
 
                     if config::dump_viper_program() {
                         stopwatch.start_next("dumping viper program");

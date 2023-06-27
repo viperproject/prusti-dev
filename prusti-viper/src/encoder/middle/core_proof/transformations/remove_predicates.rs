@@ -1,5 +1,5 @@
 use rustc_hash::{FxHashMap, FxHashSet};
-use vir_crate::low as vir_low;
+use vir_crate::low::{self as vir_low, expression::visitors::default_fold_func_app};
 use vir_low::expression::visitors::ExpressionFolder;
 
 pub(in super::super) fn remove_predicates(
@@ -22,7 +22,7 @@ fn from_procedure(
     removed_functions: &FxHashSet<String>,
     predicates: &FxHashMap<String, vir_low::PredicateDecl>,
 ) {
-    for block in &mut procedure.basic_blocks {
+    for block in procedure.basic_blocks.values_mut() {
         from_statements(
             &mut block.statements,
             removed_methods,
@@ -63,10 +63,12 @@ fn from_statements(
     for statement in std::mem::take(statements) {
         match statement {
             vir_low::Statement::Comment(_)
+            | vir_low::Statement::Label(_)
             | vir_low::Statement::LogEvent(_)
             | vir_low::Statement::Assume(_)
             | vir_low::Statement::Assert(_)
-            | vir_low::Statement::Assign(_) => {
+            | vir_low::Statement::Assign(_)
+            | vir_low::Statement::CaseSplit(_) => {
                 statements.push(statement);
             }
             vir_low::Statement::MethodCall(method) => {
@@ -107,6 +109,7 @@ fn from_statements(
                 );
                 statements.push(vir_low::Statement::Conditional(conditional));
             }
+            vir_low::Statement::MaterializePredicate(_) => todo!(),
         }
     }
 }
@@ -149,7 +152,7 @@ impl<'a> ExpressionFolder for PredicateRemover<'a> {
         if self.removed_functions.contains(&func_app.function_name) {
             self.drop_parent_binary_op = true;
         }
-        func_app
+        default_fold_func_app(self, func_app)
     }
     fn fold_binary_op_enum(
         &mut self,
@@ -162,6 +165,12 @@ impl<'a> ExpressionFolder for PredicateRemover<'a> {
         } else {
             vir_low::Expression::BinaryOp(binary_op)
         }
+    }
+    fn fold_unfolding_enum(
+        &mut self,
+        unfolding: vir_low::expression::Unfolding,
+    ) -> vir_low::Expression {
+        self.fold_expression(*unfolding.base)
     }
 }
 

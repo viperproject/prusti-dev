@@ -12,6 +12,7 @@ mod kw {
     syn::custom_keyword!(Hash);
     syn::custom_keyword!(PartialEq);
     syn::custom_keyword!(Ord);
+    syn::custom_keyword!(trait_type);
     syn::custom_keyword!(ignore);
 }
 
@@ -119,14 +120,24 @@ impl Parse for DeriveLower {
 
 impl Parse for CustomDeriveOptions {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        input.parse::<kw::trait_type>()?;
+        input.parse::<Token![=]>()?;
+        let trait_type = input.parse()?;
+        input.parse::<Token![,]>()?;
         input.parse::<kw::ignore>()?;
         input.parse::<Token![=]>()?;
         let content;
         bracketed!(content in input);
-        let fields =
-            syn::punctuated::Punctuated::<_, Token![,]>::parse_separated_nonempty(&content)?;
+        let ignored_fields = if content.is_empty() {
+            Vec::new()
+        } else {
+            let fields =
+                syn::punctuated::Punctuated::<_, Token![,]>::parse_separated_nonempty(&content)?;
+            fields.into_iter().collect()
+        };
         Ok(Self {
-            ignored_fields: fields.into_iter().collect(),
+            trait_type,
+            ignored_fields,
         })
     }
 }

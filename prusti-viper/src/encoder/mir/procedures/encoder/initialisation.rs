@@ -1,6 +1,6 @@
 use prusti_rustc_interface::{
     dataflow::{
-        impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
+        impls::{MaybeInitializedPlaces, MaybeLiveLocals, MaybeUninitializedPlaces},
         move_paths::MoveData,
         un_derefer::UnDerefer,
         Analysis, MoveDataParamEnv, ResultsCursor,
@@ -8,38 +8,59 @@ use prusti_rustc_interface::{
     middle::{mir, ty::TyCtxt},
 };
 
+// FIXME: Remove this file. It is not used anymore.
 pub(super) struct InitializationData<'mir, 'tcx> {
+    liveness: ResultsCursor<'mir, 'tcx, MaybeLiveLocals>,
     inits: ResultsCursor<'mir, 'tcx, MaybeInitializedPlaces<'mir, 'tcx>>,
     uninits: ResultsCursor<'mir, 'tcx, MaybeUninitializedPlaces<'mir, 'tcx>>,
+    move_env: &'mir MoveDataParamEnv<'tcx>,
 }
 
 impl<'mir, 'tcx> InitializationData<'mir, 'tcx> {
     pub(super) fn new(
         tcx: TyCtxt<'tcx>,
         body: &'mir mut mir::Body<'tcx>,
-        env: &'mir MoveDataParamEnv<'tcx>,
+        move_env: &'mir MoveDataParamEnv<'tcx>,
         un_derefer: &'mir UnDerefer<'tcx>,
     ) -> Self {
-        super::elaborate_drops::mir_transform::remove_dead_unwinds(tcx, body, env, un_derefer);
-
-        let inits = MaybeInitializedPlaces::new(tcx, body, env)
+        // FIXME: Check whether this call is needed.
+        super::elaborate_drops::mir_transform::remove_dead_unwinds(tcx, body, move_env, un_derefer);
+        let liveness = MaybeLiveLocals
             .into_engine(tcx, body)
-            .pass_name("elaborate_drops")
+            .pass_name("prusti_encoding")
             .iterate_to_fixpoint()
             .into_results_cursor(body);
 
-        let uninits = MaybeUninitializedPlaces::new(tcx, body, env)
+        let inits = MaybeInitializedPlaces::new(tcx, body, move_env)
+            .into_engine(tcx, body)
+            .pass_name("prusti_encoding")
+            .iterate_to_fixpoint()
+            .into_results_cursor(body);
+
+        let uninits = MaybeUninitializedPlaces::new(tcx, body, move_env)
             .mark_inactive_variants_as_uninit()
             .into_engine(tcx, body)
-            .pass_name("elaborate_drops")
+            .pass_name("prusti_encoding")
             .iterate_to_fixpoint()
             .into_results_cursor(body);
 
-        Self { inits, uninits }
+        Self {
+            inits,
+            uninits,
+            liveness,
+            move_env,
+        }
     }
     pub(super) fn seek_before(&mut self, loc: mir::Location) {
+        self.liveness.seek_before_primary_effect(loc);
         self.inits.seek_before_primary_effect(loc);
         self.uninits.seek_before_primary_effect(loc);
+    }
+    pub(super) fn is_local_initialized_and_alive(&self, local: mir::Local) -> bool {
+        let path = self.move_env.move_data.rev_lookup.find_local(local);
+        self.liveness.get().contains(local)
+            && self.inits.get().contains(path)
+            && self.uninits.get().contains(path)
     }
 }
 

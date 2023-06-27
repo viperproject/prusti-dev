@@ -3,6 +3,48 @@ use super::super::ast::{
     ty::{self, *},
 };
 
+impl Type {
+    pub fn is_place(&self) -> bool {
+        if let Type::Domain(domain) = self {
+            domain.name == crate::common::builtin_constants::PLACE_DOMAIN_NAME
+        } else {
+            false
+        }
+    }
+
+    pub fn is_place_option(&self) -> bool {
+        if let Type::Domain(domain) = self {
+            domain.name == crate::common::builtin_constants::PLACE_OPTION_DOMAIN_NAME
+        } else {
+            false
+        }
+    }
+
+    pub fn is_address(&self) -> bool {
+        if let Type::Domain(domain) = self {
+            domain.name == crate::common::builtin_constants::ADDRESS_DOMAIN_NAME
+        } else {
+            false
+        }
+    }
+
+    pub fn is_lifetime(&self) -> bool {
+        if let Type::Domain(domain) = self {
+            domain.name == crate::common::builtin_constants::LIFETIME_DOMAIN_NAME
+        } else {
+            false
+        }
+    }
+
+    pub fn is_bytes(&self) -> bool {
+        if let Type::Domain(domain) = self {
+            domain.name == crate::common::builtin_constants::BYTES_DOMAIN_NAME
+        } else {
+            false
+        }
+    }
+}
+
 pub trait Typed {
     fn get_type(&self) -> &Type;
     fn set_type(&mut self, new_type: Type);
@@ -161,6 +203,22 @@ impl Typed for BinaryOp {
         }
     }
     fn set_type(&mut self, new_type: Type) {
+        assert!(
+            !matches!(
+                self.op_kind,
+                BinaryOpKind::EqCmp
+                    | BinaryOpKind::NeCmp
+                    | BinaryOpKind::GtCmp
+                    | BinaryOpKind::GeCmp
+                    | BinaryOpKind::LtCmp
+                    | BinaryOpKind::LeCmp
+                    | BinaryOpKind::And
+                    | BinaryOpKind::Or
+                    | BinaryOpKind::Implies
+            ),
+            "cannot change the type of {:?}",
+            self.op_kind
+        );
         self.left.set_type(new_type.clone());
         self.right.set_type(new_type);
     }

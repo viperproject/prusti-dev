@@ -1,13 +1,11 @@
+use prusti_interface::data::ProcedureDefId;
 use rustc_hash::FxHashMap;
-use vir_crate::{
-    common::check_mode::CheckMode,
-    low::{self as vir_low},
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Default)]
 pub(crate) struct MirProcedureMapping {
     //Map of all variables assigned in this basic block
-    mapping: FxHashMap<String, Vec<BasicBlock>>,
+    mapping: FxHashMap<ProcedureDefId, Vec<BasicBlock>>,
 }
 
 #[derive(Debug)]
@@ -24,7 +22,7 @@ impl MirProcedureMapping {
         procedure
             .basic_blocks
             .iter()
-            .map(|basic_block| {
+            .map(|(label, basic_block)| {
                 let mut stmts = Vec::new();
 
                 for statement in &basic_block.statements {
@@ -51,7 +49,7 @@ impl MirProcedureMapping {
                     }
                 };
                 BasicBlock {
-                    label: basic_block.label.name.clone(),
+                    label: label.name.clone(),
                     successor,
                     stmts,
                 }
@@ -84,27 +82,32 @@ impl MirProcedureMapping {
 }
 
 pub(crate) trait MirProcedureMappingInterface {
-    fn add_mapping(&mut self, program: &vir_low::Program);
-    fn get_mapping(&self, proc_name: String) -> Option<&Vec<BasicBlock>>;
+    fn add_mapping(&mut self, proc_def_id: ProcedureDefId, program: &vir_low::Program);
+    fn get_mapping(&self, def_id: ProcedureDefId) -> Option<&Vec<BasicBlock>>;
 }
 
 impl<'v, 'tcx: 'v> MirProcedureMappingInterface for super::super::Encoder<'v, 'tcx> {
-    fn add_mapping(&mut self, program: &vir_low::Program) {
+    fn add_mapping(&mut self, proc_def_id: ProcedureDefId, program: &vir_low::Program) {
         if let Some(vir_low_procedure) = program.procedures.first() {
             //at the moment a counterexample is only produced for the specifications-poof
-            if matches!(program.check_mode, CheckMode::Specifications)
-                || matches!(program.check_mode, CheckMode::Both)
+            if program.check_mode.check_specifications()
+            // matches!(program.check_mode, CheckMode::Specifications)
+            //     || matches!(program.check_mode, CheckMode::Both)
             {
                 let procedure_new = self
                     .mir_procedure_mapping
                     .translate_procedure_decl(vir_low_procedure);
+                // FIXME: `proc_def_id` is not unique. We should use program
+                // + procedure name here instead. However, this requires
+                // refactoring all code to include this information for all
+                // positions.
                 self.mir_procedure_mapping
                     .mapping
-                    .insert(program.name.clone(), procedure_new);
+                    .insert(proc_def_id, procedure_new);
             }
         }
     }
-    fn get_mapping(&self, proc_name: String) -> Option<&Vec<BasicBlock>> {
-        self.mir_procedure_mapping.mapping.get(&proc_name)
+    fn get_mapping(&self, def_id: ProcedureDefId) -> Option<&Vec<BasicBlock>> {
+        self.mir_procedure_mapping.mapping.get(&def_id)
     }
 }

@@ -31,11 +31,13 @@ pub(super) fn derive(items: &mut Vec<syn::Item>) -> Result<(), syn::Error> {
                                         struct_item.fields.iter(),
                                         None,
                                     )),
-                                    CustomDerive::Hash(options) => derived_items.push(derive_hash(
-                                        &struct_item.ident,
-                                        struct_item.fields.iter(),
-                                        options,
-                                    )),
+                                    CustomDerive::Hash(options) => {
+                                        derived_items.push(derive_hash_for_struct(
+                                            &struct_item.ident,
+                                            struct_item.fields.iter(),
+                                            options,
+                                        ))
+                                    }
                                     CustomDerive::PartialEq(options) => {
                                         derived_items.push(derive_partial_eq(
                                             &struct_item.ident,
@@ -80,8 +82,13 @@ pub(super) fn derive(items: &mut Vec<syn::Item>) -> Result<(), syn::Error> {
                                 match derive {
                                     CustomDerive::New => unimplemented!(),
                                     CustomDerive::NewWithPos => unimplemented!(),
-                                    CustomDerive::Hash(_options) => {
-                                        derive_paths.push(syn::parse_quote! {Hash});
+                                    CustomDerive::Hash(options) => {
+                                        // derive_paths.push(syn::parse_quote! {Hash});
+                                        derived_items.push(derive_hash_for_enum(
+                                            &enum_item.ident,
+                                            enum_item.variants.iter(),
+                                            options,
+                                        ));
                                     }
                                     CustomDerive::PartialEq(_options) => {
                                         derive_paths.push(syn::parse_quote! {PartialEq});
@@ -165,7 +172,7 @@ fn derive_new<'a>(
     }
 }
 
-fn derive_hash<'a>(
+fn derive_hash_for_struct<'a>(
     struct_ident: &syn::Ident,
     fields_iter: impl Iterator<Item = &'a syn::Field>,
     options: CustomDeriveOptions,
@@ -179,8 +186,69 @@ fn derive_hash<'a>(
             });
         }
     }
+    let trait_type = &options.trait_type;
     parse_quote! {
-        impl core::hash::Hash for #struct_ident {
+        impl #trait_type for #struct_ident {
+            #[allow(unused_variables)]
+            fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+                #(#statements)*
+            }
+        }
+    }
+}
+
+fn derive_hash_for_enum<'a>(
+    struct_ident: &syn::Ident,
+    variants_iter: impl Iterator<Item = &'a syn::Variant>,
+    options: CustomDeriveOptions,
+) -> syn::Item {
+    let mut statements = Vec::<syn::Stmt>::new();
+    statements.push(parse_quote! {
+        let __self_tag = core::mem::discriminant(self);
+    });
+    statements.push(parse_quote! {
+        ::core::hash::Hash::hash(&__self_tag, state);
+    });
+    let trait_type = &options.trait_type;
+    let mut arms = Vec::<syn::Arm>::new();
+    for variant in variants_iter {
+        let name = &variant.ident;
+        match &variant.fields {
+            syn::Fields::Named(named_fields) => {
+                unimplemented!("named fields not supported yet: {named_fields:?}")
+            }
+            syn::Fields::Unnamed(unnamed_fields) => {
+                let mut arm_idents = Vec::<syn::Ident>::new();
+                let mut arm_statements: Vec<syn::Stmt> = Vec::new();
+                for (i, field) in unnamed_fields.unnamed.iter().enumerate() {
+                    let name = syn::Ident::new(&format!("__self_value_{}", i), field.span());
+                    arm_statements.push(parse_quote! {
+                        #trait_type::hash(#name, state);
+                    });
+                    arm_idents.push(name);
+                }
+                arms.push(parse_quote! {
+                    Self::#name(#(#arm_idents),*) => {
+                        #(#arm_statements)*
+                    }
+                });
+            }
+            syn::Fields::Unit => {
+                arms.push(parse_quote! {
+                    Self::#name => {}
+                });
+            }
+        }
+    }
+    if !arms.is_empty() {
+        statements.push(parse_quote! {
+            match self {
+                #(#arms),*
+            }
+        });
+    }
+    parse_quote! {
+        impl #trait_type for #struct_ident {
             #[allow(unused_variables)]
             fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
                 #(#statements)*
@@ -212,8 +280,9 @@ fn derive_partial_eq<'a>(
             #(#conjuncts)&&*
         }
     };
+    let trait_type = &options.trait_type;
     parse_quote! {
-        impl PartialEq for #struct_ident {
+        impl #trait_type for #struct_ident {
             #[allow(unused_variables)]
             fn eq(&self, other: &Self) -> bool {
                 #body
@@ -245,8 +314,9 @@ fn derive_ord<'a>(
     } else {
         parse_quote! { std::cmp::Ordering::Equal }
     };
+    let trait_type = &options.trait_type;
     parse_quote! {
-        impl Ord for #struct_ident {
+        impl #trait_type for #struct_ident {
             #[allow(unused_variables)]
             fn cmp(&self, other: &Self) -> std::cmp::Ordering {
                 #comparison

@@ -1,7 +1,7 @@
 use super::{
     builders::{
         ChangeUniqueRefPlaceMethodBuilder, DuplicateFracRefMethodBuilder,
-        MemoryBlockCopyMethodBuilder,
+        MemoryBlockCopyMethodBuilder, RestoreRawBorrowedMethodBuilder,
     },
     BuiltinMethodCallsInterface, CallContext,
 };
@@ -13,35 +13,50 @@ use crate::encoder::{
         block_markers::BlockMarkersInterface,
         builtin_methods::builders::{
             BuiltinMethodBuilderMethods, CopyPlaceMethodBuilder, IntoMemoryBlockMethodBuilder,
-            MemoryBlockJoinMethodBuilder, MemoryBlockSplitMethodBuilder, MovePlaceMethodBuilder,
-            WriteAddressConstantMethodBuilder, WritePlaceConstantMethodBuilder,
+            MemoryBlockJoinMethodBuilder, MemoryBlockRangeJoinMethodBuilder,
+            MemoryBlockRangeSplitMethodBuilder, MemoryBlockSplitMethodBuilder,
+            MovePlaceMethodBuilder, WriteAddressConstantMethodBuilder,
+            WritePlaceConstantMethodBuilder,
         },
         compute_address::ComputeAddressInterface,
+        const_generics::ConstGenericsInterface,
         errors::ErrorsInterface,
+        footprint::FootprintInterface,
         lifetimes::LifetimesInterface,
         lowerer::{
             DomainsLowererInterface, Lowerer, MethodsLowererInterface, PredicatesLowererInterface,
             VariablesLowererInterface,
         },
         places::PlacesInterface,
+        pointers::PointersInterface,
         predicates::{
-            OwnedNonAliasedUseBuilder, PredicatesMemoryBlockInterface, PredicatesOwnedInterface,
+            OwnedNonAliasedSnapCallBuilder, OwnedNonAliasedUseBuilder, PredicatesAliasingInterface,
+            PredicatesMemoryBlockInterface, PredicatesOwnedInterface, RestorationInterface,
         },
         references::ReferencesInterface,
         snapshots::{
-            BuiltinFunctionsInterface, IntoBuiltinMethodSnapshot, IntoProcedureFinalSnapshot,
-            IntoProcedureSnapshot, IntoPureSnapshot, IntoSnapshot, SnapshotBytesInterface,
+            AssertionToSnapshotConstructor, BuiltinFunctionsInterface, IntoBuiltinMethodSnapshot,
+            IntoProcedureSnapshot, IntoPureSnapshot, IntoSnapshot, IntoSnapshotLowerer,
+            PlaceToSnapshot, PredicateKind, SelfFramingAssertionToSnapshot, SnapshotBytesInterface,
             SnapshotValidityInterface, SnapshotValuesInterface, SnapshotVariablesInterface,
         },
+        triggers::TriggersInterface,
         type_layouts::TypeLayoutsInterface,
+        viewshifts::ViewShiftsInterface,
     },
+    mir::errors::ErrorInterface,
 };
 use itertools::Itertools;
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 use vir_crate::{
     common::{
-        expression::{ExpressionIterator, UnaryOperationHelpers},
+        builtin_constants::LIFETIME_DOMAIN_NAME,
+        check_mode::CheckMode,
+        expression::{
+            BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers, UnaryOperationHelpers,
+        },
         identifier::WithIdentifier,
+        position::Positioned,
     },
     low::{self as vir_low, macros::method_name},
     middle::{
@@ -49,6 +64,9 @@ use vir_crate::{
         operations::{const_generics::WithConstArguments, lifetimes::WithLifetimes, ty::Typed},
     },
 };
+
+// FIXME: Move this to some proper place. It is shared with the snap function
+// encoder.
 
 #[derive(Default)]
 pub(in super::super) struct BuiltinMethodsState {
@@ -59,9 +77,12 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_duplicate_frac_ref_method: FxHashSet<String>,
     encoded_write_address_constant_methods: FxHashSet<String>,
     encoded_owned_non_aliased_havoc_methods: FxHashSet<String>,
+    encoded_unique_ref_havoc_methods: FxHashSet<String>,
     encoded_memory_block_copy_methods: FxHashSet<String>,
     encoded_memory_block_split_methods: FxHashSet<String>,
+    encoded_memory_block_range_split_methods: FxHashSet<String>,
     encoded_memory_block_join_methods: FxHashSet<String>,
+    encoded_memory_block_range_join_methods: FxHashSet<String>,
     encoded_memory_block_havoc_methods: FxHashSet<String>,
     encoded_into_memory_block_methods: FxHashSet<String>,
     encoded_assign_methods: FxHashSet<String>,
@@ -73,7 +94,12 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_lft_tok_sep_take_methods: FxHashSet<usize>,
     encoded_lft_tok_sep_return_methods: FxHashSet<usize>,
     encoded_open_close_mut_ref_methods: FxHashSet<String>,
+    encoded_restore_raw_borrowed_methods: FxHashSet<String>,
     encoded_bor_shorten_methods: FxHashSet<String>,
+    encoded_stashed_owned_aliased_predicates: FxHashSet<String>,
+    encoded_assign_method_names: FxHashMap<String, String>,
+    reborrow_target_variables:
+        FxHashMap<vir_mid::ty::LifetimeConst, (vir_low::VariableDecl, vir_mid::Type)>,
 }
 
 trait Private {
@@ -115,7 +141,7 @@ trait Private {
         lft_count: usize,
     ) -> SpannedEncodingResult<String>;
     fn encode_assign_method_name(
-        &self,
+        &mut self,
         ty: &vir_mid::Type,
         value: &vir_mid::Rvalue,
     ) -> SpannedEncodingResult<String>;
@@ -124,6 +150,10 @@ trait Private {
         operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<String>;
     fn encode_havoc_owned_non_aliased_method_name(
+        &self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<String>;
+    fn encode_havoc_unique_ref_method_name(
         &self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<String>;
@@ -232,11 +262,62 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let perm_amount = value
                     .lifetime_token_permission
                     .to_procedure_snapshot(self)?;
-                self.encode_place_arguments(arguments, &value.deref_place, false)?;
-                if value.uniqueness.is_unique() {
-                    let snapshot_final = value.deref_place.to_procedure_final_snapshot(self)?;
-                    arguments.push(snapshot_final);
+                arguments.push(self.encode_expression_as_place(&value.deref_place)?);
+                // arguments.push(self.extract_root_address(&value.deref_place)?);
+                arguments.push(self.encode_expression_as_place_address(&value.deref_place)?);
+                // self.encode_place_arguments(arguments, &value.deref_place, false)?;
+                // if self.check_mode.unwrap() == CheckMode::PurificationFunctional {
+                //     arguments.push(value.deref_place.to_procedure_snapshot(self)?);
+                // } else {
+                let place = self.encode_expression_as_place(&value.deref_place)?;
+                // let root_address = self.extract_root_address(&value.deref_place)?;
+                let address = self.encode_expression_as_place_address(&value.deref_place)?;
+                let ty = value.deref_place.get_type();
+                let TODO_target_slice_len = None;
+                match value
+                    .deref_place
+                    .get_deref_uniqueness()
+                    .unwrap_or(value.uniqueness)
+                {
+                    vir_mid::ty::Uniqueness::Unique => {
+                        let snapshot_current = self.unique_ref_snap(
+                            CallContext::Procedure,
+                            ty,
+                            ty,
+                            place,
+                            address,
+                            deref_lifetime.clone().into(),
+                            TODO_target_slice_len,
+                            false,
+                            value.deref_place.position(),
+                        )?;
+                        arguments.push(snapshot_current);
+                        let mut place_encoder =
+                            PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
+                                lifetime: deref_lifetime.clone().into(),
+                                is_final: true,
+                            });
+                        let snapshot_final =
+                            place_encoder.expression_to_snapshot(self, &value.deref_place, true)?;
+                        // let snapshot_final =
+                        //     value.deref_place.to_procedure_final_snapshot(self)?;
+                        arguments.push(snapshot_final);
+                    }
+                    vir_mid::ty::Uniqueness::Shared => {
+                        let snapshot_current = self.frac_ref_snap(
+                            CallContext::Procedure,
+                            ty,
+                            ty,
+                            place,
+                            address,
+                            deref_lifetime.clone().into(),
+                            TODO_target_slice_len,
+                            value.deref_place.position(),
+                        )?;
+                        arguments.push(snapshot_current);
+                    }
                 }
+                // }
                 arguments.extend(self.create_lifetime_arguments(
                     CallContext::Procedure,
                     value.deref_place.get_type(),
@@ -279,6 +360,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 };
                 arguments.push(len);
             }
+            vir_mid::Rvalue::Cast(value) => {
+                self.encode_operand_arguments(arguments, &value.operand, true)?;
+            }
             vir_mid::Rvalue::UnaryOp(value) => {
                 self.encode_operand_arguments(arguments, &value.argument, true)?;
             }
@@ -312,6 +396,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 for operand in &aggr_value.operands {
                     self.encode_operand_arguments(arguments, operand, false)?;
                 }
+                if self.use_heap_variable()? && aggr_value.ty.is_struct() {
+                    let heap = self.heap_variable_version_at_label(&None)?;
+                    arguments.push(heap.into());
+                }
             }
         }
         Ok(())
@@ -344,7 +432,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         permission: &Option<vir_mid::VariableDecl>,
     ) -> SpannedEncodingResult<()> {
         arguments.push(self.encode_expression_as_place(place)?);
-        arguments.push(self.extract_root_address(place)?);
+        arguments.push(self.encode_expression_as_place_address(place)?);
+        // arguments.push(self.extract_root_address(place)?);
         if let Some(variable) = permission {
             arguments.push(variable.to_procedure_snapshot(self)?.into());
         } else {
@@ -361,8 +450,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         encode_lifetime_arguments: bool,
     ) -> SpannedEncodingResult<()> {
         arguments.push(self.encode_expression_as_place(expression)?);
-        arguments.push(self.extract_root_address(expression)?);
-        arguments.push(expression.to_procedure_snapshot(self)?);
+        // arguments.push(self.extract_root_address(expression)?);
+        arguments.push(self.encode_expression_as_place_address(expression)?);
+        let mut place_encoder = PlaceToSnapshot::for_place(PredicateKind::Owned);
+        let snapshot = place_encoder.expression_to_snapshot(self, expression, false)?;
+        arguments.push(snapshot);
         if encode_lifetime_arguments {
             arguments.extend(
                 self.create_lifetime_arguments(CallContext::Procedure, expression.get_type())?,
@@ -389,11 +481,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         Ok(format!("lft_tok_sep_return${lft_count}"))
     }
     fn encode_assign_method_name(
-        &self,
+        &mut self,
         ty: &vir_mid::Type,
         value: &vir_mid::Rvalue,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!(
+        let full_name = format!(
             "assign${}${}$${}${}${}",
             ty.get_identifier(),
             value.get_identifier(),
@@ -411,7 +503,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 .into_iter()
                 .map(|arg| arg.to_string())
                 .join("$"),
-        ))
+        );
+        if let Some(short_name) = self
+            .builtin_methods_state
+            .encoded_assign_method_names
+            .get(&full_name)
+        {
+            Ok(short_name.clone())
+        } else {
+            let short_name = format!(
+                "assign${}",
+                self.builtin_methods_state.encoded_assign_method_names.len()
+            );
+            self.builtin_methods_state
+                .encoded_assign_method_names
+                .insert(full_name, short_name.clone());
+            Ok(short_name)
+        }
     }
     fn encode_consume_operand_method_name(
         &self,
@@ -424,6 +532,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<String> {
         Ok(format!("havoc_owned${}", ty.get_identifier()))
+    }
+    fn encode_havoc_unique_ref_method_name(
+        &self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<String> {
+        Ok(format!("havoc_unique_ref${}", ty.get_identifier()))
     }
     fn encode_assign_method(
         &mut self,
@@ -445,23 +559,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 .insert(method_name.to_string());
 
             self.encode_compute_address(ty)?;
-            self.mark_owned_non_aliased_as_unfolded(ty)?;
+            self.mark_owned_predicate_as_unfolded(ty)?;
             let span = self.encoder.get_type_definition_span_mid(ty)?;
             let position = self.register_error(
                 span,
                 ErrorCtxt::UnexpectedBuiltinMethod(BuiltinMethodKind::MovePlace),
             );
             use vir_low::macros::*;
-            let compute_address = ty!(Address);
+            // let compute_address = ty!(Address);
             let size_of = self.encode_type_size_expression2(ty, ty)?;
             var_decls! {
-                target_place: Place,
+                target_place: PlaceOption,
                 target_address: Address
             };
             let mut parameters = vec![target_place.clone(), target_address.clone()];
             var_decls! { result_value: {ty.to_snapshot(self)?} };
             let mut pres = vec![
-                expr! { acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])) },
+                // expr! { acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])) },
+                expr! { acc(MemoryBlock(target_address, [size_of])) },
             ];
             let mut posts = Vec::new();
             match value {
@@ -508,13 +623,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         let snap = self.encode_lifetime_const_into_procedure_variable(lifetime)?;
                         lifetimes_ty.push(snap.into());
                     }
-                    let predicate = self.owned_non_aliased_full_vars(
+                    let predicate = self.owned_non_aliased_full_vars_with_snapshot(
                         CallContext::BuiltinMethod,
                         ty,
                         ty,
                         &target_place,
                         &target_address,
                         &result_value,
+                        position,
                     )?;
                     posts.push(predicate);
                     self.encode_assign_method_rvalue(
@@ -623,32 +739,113 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Rvalue::AddressOf(value) => {
                 let ty = value.place.get_type();
                 var_decls! {
-                    operand_place: Place,
+                    operand_place: PlaceOption,
                     operand_address: Address,
                     operand_value: { ty.to_snapshot(self)? }
                 };
-                let predicate = self.owned_non_aliased_full_vars(
+                let non_aliased_predicate = self.owned_non_aliased_full_vars_with_snapshot(
                     CallContext::BuiltinMethod,
                     ty,
                     ty,
                     &operand_place,
                     &operand_address,
                     &operand_value,
+                    position,
                 )?;
-                let compute_address = ty!(Address);
-                let address =
-                    expr! { ComputeAddress::compute_address(operand_place, operand_address) };
-                pres.push(predicate.clone());
-                posts.push(predicate);
+                pres.push(non_aliased_predicate);
+                let aliased_predicate = self.owned_aliased(
+                    CallContext::BuiltinMethod,
+                    ty,
+                    ty,
+                    operand_address.clone().into(),
+                    None,
+                    position,
+                )?;
+                let aliased_predicate_snapshot = self.owned_aliased_snap(
+                    CallContext::BuiltinMethod,
+                    ty,
+                    ty,
+                    operand_address.clone().into(),
+                    position,
+                )?;
+                let restore_raw_borrowed = self.restore_raw_borrowed(
+                    ty,
+                    operand_place.clone().into(),
+                    operand_address.clone().into(),
+                )?;
+                posts.push(aliased_predicate);
+                posts.push(restore_raw_borrowed);
+                posts.push(expr! { [aliased_predicate_snapshot] == operand_value });
                 parameters.push(operand_place);
-                parameters.push(operand_address);
+                parameters.push(operand_address.clone());
                 parameters.push(operand_value);
-                self.construct_constant_snapshot(result_type, address, position)?
+                self.construct_constant_snapshot(
+                    result_type,
+                    operand_address.clone().into(),
+                    position,
+                )?
             }
             vir_mid::Rvalue::Len(_value) => {
                 var_decls! { length: {self.size_type()?} };
                 parameters.push(length.clone());
                 length.into()
+            }
+            vir_mid::Rvalue::Cast(value) => {
+                let source_type = value.operand.expression.get_type();
+                let operand_value = self.encode_assign_operand(
+                    parameters,
+                    pres,
+                    posts,
+                    1,
+                    &value.operand,
+                    position,
+                    true,
+                )?;
+                match (&value.ty, source_type) {
+                    (vir_mid::Type::Pointer(_), vir_mid::Type::Pointer(_)) => {
+                        let address =
+                            self.pointer_address(source_type, operand_value.into(), position)?;
+                        self.construct_constant_snapshot(result_type, address, position)?
+                    }
+                    (vir_mid::Type::Int(target_int), vir_mid::Type::Int(_source_int)) => {
+                        let number = self.obtain_constant_value(
+                            source_type,
+                            operand_value.into(),
+                            position,
+                        )?;
+                        let (lower_bound, upper_bound) = match target_int {
+                            vir_mid::ty::Int::U8 => (u8::MIN.into(), u8::MAX.into()),
+                            vir_mid::ty::Int::U16 => (u16::MIN.into(), u16::MAX.into()),
+                            vir_mid::ty::Int::U32 => (u32::MIN.into(), u32::MAX.into()),
+                            vir_mid::ty::Int::U64 => (u64::MIN.into(), u64::MAX.into()),
+                            vir_mid::ty::Int::U128 => (u128::MIN.into(), u128::MAX.into()),
+                            vir_mid::ty::Int::Usize => (usize::MIN.into(), usize::MAX.into()),
+                            vir_mid::ty::Int::I8 => (i8::MIN.into(), i8::MAX.into()),
+                            vir_mid::ty::Int::I16 => (i16::MIN.into(), i16::MAX.into()),
+                            vir_mid::ty::Int::I32 => (i32::MIN.into(), i32::MAX.into()),
+                            vir_mid::ty::Int::I64 => (i64::MIN.into(), i64::MAX.into()),
+                            vir_mid::ty::Int::I128 => (i128::MIN.into(), i128::MAX.into()),
+                            vir_mid::ty::Int::Isize => (isize::MIN.into(), isize::MAX.into()),
+                            _ => unimplemented!("{target_int}"),
+                        };
+                        pres.push(expr! { [lower_bound] <= [number.clone()] }); // FIXME: use the MIN value of the target platform.
+                        pres.push(expr! { [number.clone()] <= [upper_bound] }); // FIXME: use the MAX value of the target platform.
+                        self.construct_constant_snapshot(result_type, number, position)?
+                    }
+                    // (
+                    //     vir_mid::Type::Int(vir_mid::ty::Int::Isize),
+                    //     vir_mid::Type::Int(vir_mid::ty::Int::Usize),
+                    // ) => {
+                    //     let number = self.obtain_constant_value(
+                    //         source_type,
+                    //         operand_value.into(),
+                    //         position,
+                    //     )?;
+                    //     pres.push(expr! { [number.clone()] <= [isize::MAX.into()] }); // FIXME: use the MAX value of the target.
+                    //     self.construct_constant_snapshot(result_type, number, position)?
+                    // }
+                    (t, s) => unimplemented!("({t}) {s}"),
+                }
             }
             vir_mid::Rvalue::UnaryOp(value) => {
                 let operand_value = self.encode_assign_operand(
@@ -720,12 +917,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Rvalue::Discriminant(value) => {
                 let ty = value.place.get_type();
                 var_decls! {
-                    operand_place: Place,
+                    operand_place: PlaceOption,
                     operand_address: Address,
                     operand_permission: Perm,
                     operand_value: { ty.to_snapshot(self)? }
                 };
-                let predicate = self.owned_non_aliased(
+                let predicate = self.owned_non_aliased_with_snapshot(
                     CallContext::BuiltinMethod,
                     ty,
                     ty,
@@ -733,6 +930,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     operand_address.clone().into(),
                     operand_value.clone().into(),
                     Some(operand_permission.clone().into()),
+                    position,
                 )?;
                 pres.push(expr! {
                     [vir_low::Expression::no_permission()] < operand_permission
@@ -775,7 +973,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         self.construct_enum_snapshot(&value.ty, variant_constructor, position)?
                     }
                     vir_mid::Type::Struct(_) => {
-                        self.construct_struct_snapshot(&value.ty, arguments, position)?
+                        let decl = self.encoder.get_type_decl_mid(&value.ty)?.unwrap_struct();
+                        if let Some(invariant) = decl.structural_invariant {
+                            assert_eq!(arguments.len(), decl.fields.len());
+                            // Assert the invariant for the struct in the precondition.
+                            let mut invariant_encoder =
+                                SelfFramingAssertionToSnapshot::for_assign_precondition(
+                                    arguments.clone(),
+                                    decl.fields.clone(),
+                                );
+                            for assertion in &invariant {
+                                let encoded_assertion = invariant_encoder
+                                    .expression_to_snapshot(self, assertion, true)?;
+                                pres.push(encoded_assertion);
+                            }
+                            // Create the snapshot constructor.
+                            let deref_fields =
+                                self.structural_invariant_to_deref_fields(&invariant)?;
+                            let mut constructor_encoder =
+                                AssertionToSnapshotConstructor::for_assign_aggregate_postcondition(
+                                    result_type,
+                                    arguments,
+                                    decl.fields,
+                                    deref_fields,
+                                    position,
+                                );
+                            let invariant_expression = invariant.into_iter().conjoin();
+                            let permission_expression =
+                                invariant_expression.convert_into_permission_expression();
+                            constructor_encoder
+                                .expression_to_snapshot_constructor(self, &permission_expression)?
+                        } else {
+                            self.construct_struct_snapshot(&value.ty, arguments, position)?
+                        }
                     }
                     vir_mid::Type::Array(value_ty) => vir_low::Expression::container_op(
                         vir_low::ContainerOpKind::SeqConstructor,
@@ -785,9 +1015,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     ),
                     ty => unimplemented!("{}", ty),
                 };
-                posts.push(
-                    self.encode_snapshot_valid_call_for_type(assigned_value.clone(), result_type)?,
-                );
                 assigned_value
             }
         };
@@ -811,25 +1038,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         // is unknown.
         use vir_low::macros::*;
         var_decls! {
-            target_place: Place,
+            target_place: PlaceOption,
             target_address: Address
         };
-        let compute_address = ty!(Address);
+        // let compute_address = ty!(Address);
         let type_decl = self.encoder.get_type_decl_mid(ty)?.unwrap_struct();
         let (operation_result_field, flag_field) = {
             let mut iter = type_decl.fields.iter();
             (iter.next().unwrap(), iter.next().unwrap())
         };
-        let flag_place =
-            self.encode_field_place(ty, flag_field, target_place.clone().into(), position)?;
+        let flag_place = self.encode_field_place(ty, flag_field, target_place.into(), position)?;
+        let flag_address =
+            self.encode_field_address(ty, flag_field, target_address.clone().into(), position)?;
         let flag_value = self.obtain_struct_field_snapshot(
             ty,
             flag_field,
             result_value.clone().into(),
             position,
         )?;
-        let result_address =
-            expr! { (ComputeAddress::compute_address(target_place, target_address)) };
+        let result_address: vir_low::Expression = target_address.into();
+        // expr! { (ComputeAddress::compute_address(target_place, target_address)) };
         let operation_result_address = self.encode_field_address(
             ty,
             operation_result_field,
@@ -854,9 +1082,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         posts.push(
             expr! { acc(MemoryBlock([operation_result_address.clone()], [size_of_result.clone()])) },
         );
-        posts.push(
-            expr! { acc(OwnedNonAliased<flag_type>([flag_place], target_address, [flag_value.clone()])) },
-        );
+        posts.push(self.owned_non_aliased_with_snapshot(
+            CallContext::BuiltinMethod,
+            flag_type,
+            flag_type,
+            flag_place,
+            flag_address,
+            flag_value.clone(),
+            None,
+            position,
+        )?);
         let operand_left =
             self.encode_assign_operand(parameters, pres, posts, 1, &value.left, position, true)?;
         let operand_right =
@@ -876,13 +1111,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_low::Expression::not(validity.clone()),
             position,
         )?;
-        let operation_result_value_condition = expr! {
-            [validity] ==> ([operation_result_value.clone()] == [operation_result])
-        };
+        {
+            // We verify absence of overflows in all modes because the
+            // panic/non-panic behaviour depends on the compiler flags.
+            pres.push(validity);
+            posts.push(expr! { [operation_result_value.clone()] == [operation_result] });
+            // let operation_result_value_condition = expr! {
+            //     [validity] ==> ([operation_result_value.clone()] == [operation_result])
+            // };
+            // posts.push(operation_result_value_condition);
+        }
         let flag_value_condition = expr! {
             [flag_value] == [flag_result]
         };
-        posts.push(operation_result_value_condition);
         posts.push(flag_value_condition);
         let bytes =
             self.encode_memory_block_bytes_expression(operation_result_address, size_of_result)?;
@@ -906,12 +1147,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let reference_type = result_type.clone().unwrap_reference();
+        let operand_uniqueness = if let Some(uniqueness) = value.deref_place.get_deref_uniqueness()
+        {
+            uniqueness
+        } else {
+            // Reborrowing via a raw pointer. Just assume that its uniqueness matches the target.
+            reference_type.uniqueness
+        };
+        let is_last_deref_pointer = value
+            .deref_place
+            .get_last_dereference()
+            .unwrap()
+            .base
+            .get_type()
+            .is_pointer();
         let ty = value.deref_place.get_type();
         var_decls! {
-            target_place: Place,
+            target_place: PlaceOption,
             target_address: Address,
-            operand_place: Place,
-            operand_root_address: Address,
+            operand_place: PlaceOption,
+            operand_address: Address,
             operand_snapshot_current: { ty.to_snapshot(self)? },
             operand_snapshot_final: { ty.to_snapshot(self)? }, // use only for unique references
             lifetime_perm: Perm
@@ -920,64 +1175,133 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let deref_lifetime = value.deref_lifetime.to_pure_snapshot(self)?;
         let lifetime_token =
             self.encode_lifetime_token(new_borrow_lifetime.clone(), lifetime_perm.clone().into())?;
-        let deref_predicate = if reference_type.uniqueness.is_unique() {
-            self.unique_ref_full_vars(
+        let deref_predicate = if operand_uniqueness.is_unique() {
+            self.unique_ref_full_vars_with_current_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 ty,
                 &operand_place,
-                &operand_root_address,
+                &operand_address,
                 &operand_snapshot_current,
-                &operand_snapshot_final,
                 &deref_lifetime,
+                None,
+                position,
             )?
         } else {
-            self.frac_ref_full_vars(
+            self.frac_ref_full_vars_with_current_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 ty,
                 &operand_place,
-                &operand_root_address,
+                &operand_address,
                 &operand_snapshot_current,
                 &deref_lifetime,
+                None,
+                position,
             )?
         };
         let valid_result =
             self.encode_snapshot_valid_call_for_type(result_value.clone().into(), result_type)?;
         let new_reference_predicate = {
-            self.mark_owned_non_aliased_as_unfolded(result_type)?;
+            self.mark_owned_predicate_as_unfolded(result_type)?;
             let mut builder = OwnedNonAliasedUseBuilder::new(
+                self,
+                CallContext::BuiltinMethod,
+                result_type,
+                ty,
+                target_place.clone().into(),
+                target_address.clone().into(),
+                position,
+            )?;
+            // builder.add_snapshot_argument(result_value.clone().into())?;
+            builder.add_custom_argument(true.into())?;
+            builder.add_custom_argument(new_borrow_lifetime.clone().into())?;
+            builder.add_lifetime_arguments()?;
+            builder.add_const_arguments()?;
+            let predicate = builder.build()?;
+            let mut builder = OwnedNonAliasedSnapCallBuilder::new(
                 self,
                 CallContext::BuiltinMethod,
                 result_type,
                 ty,
                 target_place.into(),
                 target_address.into(),
-                result_value.clone().into(),
+                position,
             )?;
             builder.add_custom_argument(true.into())?;
             builder.add_custom_argument(new_borrow_lifetime.clone().into())?;
             builder.add_lifetime_arguments()?;
             builder.add_const_arguments()?;
-            builder.build()
+            let snapshot = builder.build()?;
+            expr! { [predicate] && (result_value == [snapshot]) }
         };
         let restoration = {
-            let final_snapshot = self.reference_target_final_snapshot(
-                result_type,
-                result_value.clone().into(),
-                position,
-            )?;
-            let validity = self.encode_snapshot_valid_call_for_type(final_snapshot, ty)?;
-            if reference_type.uniqueness.is_unique() {
-                expr! {
-                    wand(
-                        (acc(DeadLifetimeToken(new_borrow_lifetime))) --* (
-                            [deref_predicate.clone()] &&
-                            [validity] &&
+            // if operand_uniqueness.is_unique() && reference_type.uniqueness.is_unique() {
+            if operand_uniqueness.is_unique() {
+                if is_last_deref_pointer {
+                    // We currently cannot allow restoring reborrowed raw
+                    // pointers (it would be unsound) because we resolve
+                    // inheritance immediately (see the comment below).
+                    true.into()
+                } else {
+                    let final_snapshot = match reference_type.uniqueness {
+                        vir_mid::ty::Uniqueness::Unique => self.reference_target_final_snapshot(
+                            result_type,
+                            result_value.clone().into(),
+                            position,
+                        )?,
+                        vir_mid::ty::Uniqueness::Shared => {
+                            // let reference_type = value
+                            //     .deref_place
+                            //     .get_last_dereferenced_reference()
+                            //     .unwrap()
+                            //     .get_type();
+                            self.reference_target_current_snapshot(
+                                result_type,
+                                // reference_type,
+                                result_value.clone().into(),
+                                position,
+                            )?
+                        }
+                    };
+                    let deref_predicate = self.unique_ref_with_current_snapshot(
+                        CallContext::BuiltinMethod,
+                        ty,
+                        ty,
+                        operand_place.clone().into(),
+                        operand_address.clone().into(),
+                        final_snapshot.clone(),
+                        deref_lifetime.clone().into(),
+                        None,
+                        None,
+                        position,
+                    )?;
+                    let validity =
+                        self.encode_snapshot_valid_call_for_type(final_snapshot.clone(), ty)?;
+                    let mut arguments = vec![
+                        new_borrow_lifetime.clone().into(),
+                        operand_place.clone().into(),
+                        operand_address.clone().into(),
+                        // operand_snapshot_current.clone().into(),
+                        final_snapshot,
+                        deref_lifetime.clone().into(),
+                    ];
+                    arguments
+                        .extend(self.create_lifetime_arguments(CallContext::BuiltinMethod, ty)?);
+                    arguments.extend(self.create_const_arguments(CallContext::BuiltinMethod, ty)?);
+                    self.encode_view_shift_return(
+                        &format!("end$reborrow${}", ty.get_identifier()),
+                        arguments,
+                        vec![expr! { acc(DeadLifetimeToken(new_borrow_lifetime)) }],
+                        vec![
+                            deref_predicate,
+                            validity,
                             // DeadLifetimeToken is duplicable and does not get consumed.
-                            (acc(DeadLifetimeToken(new_borrow_lifetime)))
-                        )
-                    )
+                            expr! { acc(DeadLifetimeToken(new_borrow_lifetime)) },
+                        ],
+                        vir_low::PredicateKind::EndBorrowViewShift,
+                        position,
+                    )?
                 }
             } else {
                 deref_predicate.clone()
@@ -986,7 +1310,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let reference_target_address =
             self.reference_address(result_type, result_value.clone().into(), position)?;
         posts.push(expr! {
-            operand_root_address == [reference_target_address]
+            operand_address == [reference_target_address]
         });
         let reference_target_current_snapshot = self.reference_target_current_snapshot(
             result_type,
@@ -996,16 +1320,53 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         posts.push(expr! {
             operand_snapshot_current == [reference_target_current_snapshot]
         });
-        let reference_target_final_snapshot = self.reference_target_final_snapshot(
-            result_type,
-            result_value.clone().into(),
-            position,
-        )?;
-        if reference_type.uniqueness.is_unique() {
+        if operand_uniqueness.is_unique()
+            && reference_type.uniqueness.is_unique()
+            && is_last_deref_pointer
+        {
+            let reference_target_final_snapshot = self.reference_target_final_snapshot(
+                result_type,
+                result_value.clone().into(),
+                position,
+            )?;
+            // This is sound because we do not generate the inheritance for
+            // reborrows of raw pointers. In other words, we resolve the
+            // reborrow immediatelly after it is created by destroying the
+            // inheritance. This covers most of our use cases. A proper
+            // solution would be to make the fold-unfold algorithm to emit
+            // statements that explicitly resolve inheritance once it is
+            // clear that it will not be used and give an annotation that
+            // allows the user to do the same in unsafe code.
             posts.push(expr! {
                 operand_snapshot_final == [reference_target_final_snapshot]
             });
         }
+        // if operand_uniqueness.is_unique() {
+        //     if reference_type.uniqueness.is_unique() {
+        //         // We now generate inharitance, so the following would be unsound:
+        //         // let reference_target_final_snapshot = self.reference_target_final_snapshot(
+        //         //     result_type,
+        //         //     result_value.clone().into(),
+        //         //     position,
+        //         // )?;
+        //         // // This is sound because we do not generate the inheritance for
+        //         // // reborrows of unique references. In other words, we resolve the
+        //         // // reborrow immediatelly after it is created by destroying the
+        //         // // inheritance. This covers most of our use cases. A proper solution
+        //         // // would be to make the fold-unfold algorithm to emit statements
+        //         // // that explicitly resolve inheritance once it is clear that it will
+        //         // // not be used and give an annotation that allows the user to do the
+        //         // // same in unsafe code.
+        //         // posts.push(expr! {
+        //         //     operand_snapshot_final == [reference_target_final_snapshot]
+        //         // });
+        //     } else {
+        //         // The snapshot is guaranteed not to change.
+        //         posts.push(expr! {
+        //             operand_snapshot_final == operand_snapshot_current
+        //         });
+        //     }
+        // }
         pres.push(expr! {
             [vir_low::Expression::no_permission()] < lifetime_perm
         });
@@ -1024,9 +1385,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         posts.push(valid_result);
         posts.push(restoration);
         parameters.push(operand_place);
-        parameters.push(operand_root_address);
+        parameters.push(operand_address);
         parameters.push(operand_snapshot_current);
-        if reference_type.uniqueness.is_unique() {
+        if operand_uniqueness.is_unique() {
             parameters.push(operand_snapshot_final);
         }
         parameters.extend(self.create_lifetime_parameters(ty)?);
@@ -1063,40 +1424,57 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         use vir_low::macros::*;
         let ty = value.place.get_type();
         var_decls! {
-            target_place: Place,
+            target_place: PlaceOption,
             target_address: Address,
-            operand_place: Place,
-            operand_root_address: Address,
+            operand_place: PlaceOption,
+            operand_address: Address,
             operand_snapshot: { ty.to_snapshot(self)? },
             lifetime_perm: Perm
         };
         let new_borrow_lifetime = value.new_borrow_lifetime.to_pure_snapshot(self)?;
         let lifetime_token =
             self.encode_lifetime_token(new_borrow_lifetime.clone(), lifetime_perm.clone().into())?;
-        let predicate = self.owned_non_aliased_full_vars(
+        let predicate = self.owned_non_aliased_full_vars_with_snapshot(
             CallContext::BuiltinMethod,
             ty,
             ty,
             &operand_place,
-            &operand_root_address,
+            &operand_address,
             &operand_snapshot,
+            position,
         )?;
         let reference_predicate = {
-            self.mark_owned_non_aliased_as_unfolded(result_type)?;
+            self.mark_owned_predicate_as_unfolded(result_type)?;
             let mut builder = OwnedNonAliasedUseBuilder::new(
+                self,
+                CallContext::BuiltinMethod,
+                result_type,
+                ty,
+                target_place.clone().into(),
+                target_address.clone().into(),
+                position,
+            )?;
+            // builder.add_snapshot_argument(result_value.clone().into())?;
+            builder.add_custom_argument(true.into())?;
+            builder.add_custom_argument(new_borrow_lifetime.clone().into())?;
+            builder.add_lifetime_arguments()?;
+            builder.add_const_arguments()?;
+            let predicate = builder.build()?;
+            let mut builder = OwnedNonAliasedSnapCallBuilder::new(
                 self,
                 CallContext::BuiltinMethod,
                 result_type,
                 ty,
                 target_place.into(),
                 target_address.into(),
-                result_value.clone().into(),
+                position,
             )?;
             builder.add_custom_argument(true.into())?;
             builder.add_custom_argument(new_borrow_lifetime.clone().into())?;
             builder.add_lifetime_arguments()?;
             builder.add_const_arguments()?;
-            builder.build()
+            let snapshot = builder.build()?;
+            expr! { [predicate] && (result_value == [snapshot]) }
         };
         let restoration = {
             let restoration_snapshot = if value.uniqueness.is_unique() {
@@ -1112,31 +1490,54 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     position,
                 )?
             };
-            let restored_predicate = self.owned_non_aliased(
+            let restored_predicate = self.owned_non_aliased_with_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 ty,
                 operand_place.clone().into(),
-                operand_root_address.clone().into(),
+                operand_address.clone().into(),
                 restoration_snapshot.clone(),
                 None,
+                position,
             )?;
-            let validity = self.encode_snapshot_valid_call_for_type(restoration_snapshot, ty)?;
-            expr! {
-                wand(
-                    (acc(DeadLifetimeToken(new_borrow_lifetime))) --* (
-                        [restored_predicate] &&
-                        [validity] &&
-                        // DeadLifetimeToken is duplicable and does not get consumed.
-                        (acc(DeadLifetimeToken(new_borrow_lifetime)))
-                    )
-                )
-            }
+            let validity =
+                self.encode_snapshot_valid_call_for_type(restoration_snapshot.clone(), ty)?;
+            let mut arguments = vec![
+                new_borrow_lifetime.clone().into(),
+                operand_place.clone().into(),
+                operand_address.clone().into(),
+                restoration_snapshot,
+            ];
+            arguments.extend(self.create_lifetime_arguments(CallContext::BuiltinMethod, ty)?);
+            arguments.extend(self.create_const_arguments(CallContext::BuiltinMethod, ty)?);
+            self.encode_view_shift_return(
+                &format!("end$borrow${}", ty.get_identifier()),
+                arguments,
+                vec![expr! { acc(DeadLifetimeToken(new_borrow_lifetime)) }],
+                vec![
+                    restored_predicate,
+                    validity,
+                    // DeadLifetimeToken is duplicable and does not get consumed.
+                    expr! { acc(DeadLifetimeToken(new_borrow_lifetime)) },
+                ],
+                vir_low::PredicateKind::EndBorrowViewShift,
+                position,
+            )?
+            // expr! {
+            //     wand(
+            //         (acc(DeadLifetimeToken(new_borrow_lifetime))) --* (
+            //             [restored_predicate] &&
+            //             [validity] &&
+            //             // DeadLifetimeToken is duplicable and does not get consumed.
+            //             (acc(DeadLifetimeToken(new_borrow_lifetime)))
+            //         )
+            //     )
+            // }
         };
         let reference_target_address =
             self.reference_address(result_type, result_value.clone().into(), position)?;
         posts.push(expr! {
-            operand_root_address == [reference_target_address]
+            operand_address == [reference_target_address]
         });
         // Note: We do not constraint the final snapshot, because it is fresh.
         let reference_target_current_snapshot = self.reference_target_current_snapshot(
@@ -1165,7 +1566,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         posts.push(restoration);
         posts.push(result_validity);
         parameters.push(operand_place);
-        parameters.push(operand_root_address);
+        parameters.push(operand_address);
         parameters.push(operand_snapshot);
         parameters.extend(self.create_lifetime_parameters(ty)?);
         parameters.push(new_borrow_lifetime);
@@ -1192,7 +1593,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         posts: &mut Vec<vir_low::Expression>,
         operand_counter: u32,
         operand: &vir_mid::Operand,
-        _position: vir_low::Position,
+        position: vir_low::Position,
         add_lifetime_parameters: bool,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         use vir_low::macros::*;
@@ -1201,26 +1602,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         match operand.kind {
             vir_mid::OperandKind::Copy | vir_mid::OperandKind::Move => {
                 let place = self.encode_assign_operand_place(operand_counter)?;
-                let root_address = self.encode_assign_operand_address(operand_counter)?;
-                let predicate = self.owned_non_aliased_full_vars(
+                let address = self.encode_assign_operand_address(operand_counter)?;
+                let predicate = self.owned_non_aliased_full_vars_with_snapshot(
                     CallContext::BuiltinMethod,
                     ty,
                     ty,
                     &place,
-                    &root_address,
+                    &address,
                     &snapshot,
+                    position,
                 )?;
                 pres.push(predicate.clone());
                 let post_predicate = if operand.kind == vir_mid::OperandKind::Copy {
                     predicate
                 } else {
-                    let compute_address = ty!(Address);
+                    // let compute_address = ty!(Address);
                     let size_of = self.encode_type_size_expression2(ty, ty)?;
-                    expr! { acc(MemoryBlock((ComputeAddress::compute_address(place, root_address)), [size_of])) }
+                    // expr! { acc(MemoryBlock((ComputeAddress::compute_address(place, root_address)), [size_of])) }
+                    expr! { acc(MemoryBlock(address, [size_of])) }
                 };
                 posts.push(post_predicate);
                 parameters.push(place);
-                parameters.push(root_address);
+                parameters.push(address);
                 parameters.push(snapshot.clone());
                 if add_lifetime_parameters {
                     parameters.extend(self.create_lifetime_parameters(ty)?);
@@ -1242,7 +1645,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
             format!("operand{operand_counter}_place"),
-            self.place_type()?,
+            self.place_option_type()?,
         ))
     }
     fn encode_assign_operand_address(
@@ -1270,7 +1673,15 @@ pub(in super::super) trait BuiltinMethodsInterface {
     fn encode_memory_block_copy_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_memory_block_split_method(&mut self, ty: &vir_mid::Type)
         -> SpannedEncodingResult<()>;
+    fn encode_memory_block_range_split_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()>;
     fn encode_memory_block_join_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn encode_memory_block_range_join_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()>;
 
     fn encode_move_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_change_unique_ref_place_method(
@@ -1293,6 +1704,7 @@ pub(in super::super) trait BuiltinMethodsInterface {
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<()>;
+    fn encode_havoc_unique_ref_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_havoc_memory_block_method_name(
         &mut self,
         ty: &vir_mid::Type,
@@ -1307,6 +1719,10 @@ pub(in super::super) trait BuiltinMethodsInterface {
         value: vir_mid::Rvalue,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    fn get_reborrow_target_variable(
+        &self,
+        lifetime: &vir_mid::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<(vir_low::VariableDecl, vir_mid::Type)>;
     fn encode_consume_method_call(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -1325,6 +1741,10 @@ pub(in super::super) trait BuiltinMethodsInterface {
         predicate: vir_mid::VariableDecl,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    fn encode_restore_raw_borrowed_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()>;
     fn encode_open_frac_bor_atomic_method(
         &mut self,
         ty: &vir_mid::Type,
@@ -1341,6 +1761,29 @@ pub(in super::super) trait BuiltinMethodsInterface {
     fn encode_bor_shorten_method(
         &mut self,
         ty_with_lifetime: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_stash_range_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        ty: &vir_mid::Type,
+        pointer_value: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        label: String,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
+
+    fn encode_restore_stash_range_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        ty: &vir_mid::Type,
+        old_pointer_value: vir_low::Expression,
+        old_start_index: vir_low::Expression,
+        old_end_index: vir_low::Expression,
+        label: String,
+        new_address: vir_low::Expression,
+        new_start_index: vir_low::Expression,
+        position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
 }
 
@@ -1451,9 +1894,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             );
             let target_memory_block = builder.create_target_memory_block()?;
             builder.add_precondition(target_memory_block);
-            let source_owned = builder.create_source_owned()?;
+            let source_owned = builder.create_source_owned(false)?;
             builder.add_precondition(source_owned);
-            let target_owned = builder.create_target_owned()?;
+            let target_owned = builder.create_target_owned(false)?;
             builder.add_postcondition(target_owned);
             let source_memory_block = builder.create_source_memory_block()?;
             builder.add_postcondition(source_memory_block);
@@ -1461,7 +1904,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             builder.add_target_validity_postcondition()?;
             if has_body {
                 builder.create_body();
-                let source_owned = builder.create_source_owned()?;
+                let source_owned = builder.create_source_owned(true)?;
                 builder.add_statement(vir_low::Statement::unfold_no_pos(source_owned));
             }
             match &type_decl {
@@ -1474,13 +1917,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     builder.add_memory_block_copy_call()?;
                 }
                 vir_mid::TypeDecl::Reference(vir_mid::type_decl::Reference {
-                    uniqueness, ..
+                    uniqueness,
+                    lifetimes,
+                    ..
                 }) => {
                     builder.add_memory_block_copy_call()?;
                     if uniqueness.is_unique() {
                         builder.change_unique_ref_place()?;
                     } else {
-                        builder.duplicate_frac_ref()?;
+                        // FIXME: Have a getter for the first lifetime.
+                        let lifetime = &lifetimes[0];
+                        builder.duplicate_frac_ref(lifetime)?;
                     }
                 }
                 vir_mid::TypeDecl::TypeVar(_)
@@ -1511,8 +1958,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 _ => unimplemented!("{type_decl:?}"),
             }
             if has_body {
-                let target_owned = builder.create_target_owned()?;
+                let target_owned = builder.create_target_owned(true)?;
                 builder.add_statement(vir_low::Statement::fold_no_pos(target_owned));
+                if let vir_mid::TypeDecl::Reference(vir_mid::type_decl::Reference {
+                    uniqueness,
+                    lifetimes,
+                    ..
+                }) = &type_decl
+                {
+                    if uniqueness.is_unique() {
+                        // FIXME: Have a getter for the first lifetime.
+                        let lifetime = &lifetimes[0];
+                        builder.add_dead_lifetime_hack(lifetime)?;
+                    }
+                }
             }
             let method = builder.build();
             self.declare_method(method)?;
@@ -1578,7 +2037,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 BuiltinMethodKind::DuplicateFracRef,
             )?;
             builder.create_parameters()?;
-            builder.add_same_address_precondition()?;
+            builder.add_permission_amount_positive_precondition()?;
+            // builder.add_same_address_precondition()?;
             builder.add_frac_ref_pre_postcondition()?;
             let method = builder.build();
             self.declare_method(method)?;
@@ -1607,7 +2067,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 "copy_place",
                 &normalized_type,
                 &type_decl,
-                BuiltinMethodKind::MovePlace,
+                BuiltinMethodKind::CopyPlace,
             )?;
             builder.create_parameters()?;
             // FIXME: To generate body for arrays, we would need to generate a
@@ -1624,12 +2084,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let source_owned = builder.create_source_owned()?;
             builder.add_precondition(source_owned.clone());
             builder.add_postcondition(source_owned);
-            let target_owned = builder.create_target_owned()?;
+            let target_owned = builder.create_target_owned(false)?;
             builder.add_postcondition(target_owned);
             builder.add_target_validity_postcondition()?;
             if has_body {
                 builder.create_body();
-                let source_owned = builder.create_source_owned()?;
+                let source_owned = builder.create_source_owned_predicate()?;
                 builder.add_statement(vir_low::Statement::unfold_no_pos(source_owned));
             }
             match &type_decl {
@@ -1641,18 +2101,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 | vir_mid::TypeDecl::Map(_) => {
                     builder.add_memory_block_copy_call()?;
                 }
+                vir_mid::TypeDecl::Reference(vir_mid::type_decl::Reference {
+                    uniqueness,
+                    lifetimes,
+                    ..
+                }) => {
+                    // FIXME: Have a getter for the first lifetime.
+                    let lifetime = &lifetimes[0];
+                    assert!(uniqueness.is_shared());
+                    builder.add_memory_block_copy_call()?;
+                    builder.duplicate_frac_ref(lifetime)?;
+                }
                 vir_mid::TypeDecl::Struct(decl) => {
                     builder.add_split_target_memory_block_call()?;
                     for field in &decl.fields {
                         builder.add_copy_place_call_for_field(field)?;
                     }
                 }
+                vir_mid::TypeDecl::Trusted(_) | vir_mid::TypeDecl::TypeVar(_) => {
+                    assert!(!has_body);
+                }
                 _ => unimplemented!("{type_decl:?}"),
             }
             if has_body {
-                let target_owned = builder.create_target_owned()?;
+                let target_owned = builder.create_target_owned(true)?;
                 builder.add_statement(vir_low::Statement::fold_no_pos(target_owned));
-                let source_owned = builder.create_source_owned()?;
+                let source_owned = builder.create_source_owned_predicate()?;
                 builder.add_statement(vir_low::Statement::fold_no_pos(source_owned));
             }
             let method = builder.build();
@@ -1698,7 +2172,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let target_memory_block = builder.create_target_memory_block()?;
             builder.add_precondition(target_memory_block);
             builder.add_source_validity_precondition()?;
-            let target_owned = builder.create_target_owned()?;
+            let target_owned = builder.create_target_owned(false)?;
             builder.add_postcondition(target_owned);
             if has_body {
                 builder.create_body();
@@ -1729,7 +2203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 _ => unimplemented!("{type_decl:?}"),
             }
             if has_body {
-                let target_owned = builder.create_target_owned()?;
+                let target_owned = builder.create_target_owned(true)?;
                 builder.add_statement(vir_low::Statement::fold_no_pos(target_owned));
             }
             let method = builder.build();
@@ -1754,30 +2228,92 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let method_name = self.encode_havoc_owned_non_aliased_method_name(ty)?;
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             var_decls! {
-                place: Place,
+                place: PlaceOption,
                 root_address: Address,
                 old_snapshot: {ty.to_snapshot(self)?},
                 fresh_snapshot: {ty.to_snapshot(self)?}
             };
+            let position = vir_low::Position::default();
             let validity =
                 self.encode_snapshot_valid_call_for_type(fresh_snapshot.clone().into(), ty)?;
             let mut parameters = vec![place.clone(), root_address.clone(), old_snapshot.clone()];
             parameters.extend(self.create_lifetime_parameters(&type_decl)?);
-            let predicate_in = self.owned_non_aliased_full_vars(
+            let predicate_in = self.owned_non_aliased_full_vars_with_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 &type_decl,
                 &place,
                 &root_address,
                 &old_snapshot,
+                position,
             )?;
-            let predicate_out = self.owned_non_aliased_full_vars(
+            let predicate_out = self.owned_non_aliased_full_vars_with_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 &type_decl,
                 &place,
                 &root_address,
                 &fresh_snapshot,
+                position,
+            )?;
+            let method = vir_low::MethodDecl::new(
+                method_name,
+                vir_low::MethodKind::Havoc,
+                parameters,
+                vec![fresh_snapshot.clone()],
+                vec![predicate_in],
+                vec![predicate_out, validity],
+                None,
+            );
+            self.declare_method(method)?;
+        }
+        Ok(())
+    }
+    fn encode_havoc_unique_ref_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
+        let ty_identifier = ty.get_identifier();
+        if !self
+            .builtin_methods_state
+            .encoded_unique_ref_havoc_methods
+            .contains(&ty_identifier)
+        {
+            self.builtin_methods_state
+                .encoded_unique_ref_havoc_methods
+                .insert(ty_identifier);
+            use vir_low::macros::*;
+            let method_name = self.encode_havoc_unique_ref_method_name(ty)?;
+            let type_decl = self.encoder.get_type_decl_mid(ty)?;
+            var_decls! {
+                place: PlaceOption,
+                root_address: Address,
+                lifetime: Lifetime,
+                fresh_snapshot: {ty.to_snapshot(self)?}
+            };
+            let position = vir_low::Position::default();
+            let validity =
+                self.encode_snapshot_valid_call_for_type(fresh_snapshot.clone().into(), ty)?;
+            let mut parameters = vec![place.clone(), root_address.clone(), lifetime.clone()];
+            parameters.extend(self.create_lifetime_parameters(&type_decl)?);
+            let TODO_target_slice_len = None;
+            let predicate_in = self.unique_ref_full_vars(
+                CallContext::BuiltinMethod,
+                ty,
+                &type_decl,
+                &place,
+                &root_address,
+                &lifetime,
+                TODO_target_slice_len.clone(),
+                position,
+            )?;
+            let predicate_out = self.unique_ref_full_vars_with_current_snapshot(
+                CallContext::BuiltinMethod,
+                ty,
+                &type_decl,
+                &place,
+                &root_address,
+                &fresh_snapshot,
+                &lifetime,
+                TODO_target_slice_len,
+                position,
             )?;
             let method = vir_low::MethodDecl::new(
                 method_name,
@@ -1809,6 +2345,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             self.builtin_methods_state
                 .encoded_memory_block_split_methods
                 .insert(ty_identifier);
+
+            self.encode_compute_address(ty)?;
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             let normalized_type = ty.normalize_type();
@@ -1851,6 +2389,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    fn encode_memory_block_range_split_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()> {
+        let ty_identifier = ty.get_identifier();
+        if !self
+            .builtin_methods_state
+            .encoded_memory_block_range_split_methods
+            .contains(&ty_identifier)
+        {
+            // assert!(
+            //     !ty.is_trusted() && !ty.is_type_var(),
+            //     "Trying to split an abstract type."
+            // );
+            self.builtin_methods_state
+                .encoded_memory_block_range_split_methods
+                .insert(ty_identifier);
+
+            self.encode_compute_address(ty)?;
+            let type_decl = self.encoder.get_type_decl_mid(ty)?;
+            let normalized_type = ty.normalize_type();
+            let mut builder = MemoryBlockRangeSplitMethodBuilder::new(
+                self,
+                vir_low::MethodKind::LowMemoryOperation,
+                "memory_block_range_split",
+                &normalized_type,
+                &type_decl,
+                BuiltinMethodKind::JoinMemoryBlock,
+            )?;
+            builder.create_parameters()?;
+            builder.add_whole_memory_block_precondition()?;
+            builder.add_memory_block_range_postcondition()?;
+            builder.add_byte_values_preserved_postcondition()?;
+            let method = builder.build();
+            self.declare_method(method)?;
+        }
+        Ok(())
+    }
     fn encode_memory_block_join_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
         let ty_identifier = ty.get_identifier();
         if !self
@@ -1866,6 +2442,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 .encoded_memory_block_join_methods
                 .insert(ty_identifier);
 
+            self.encode_compute_address(ty)?;
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             let normalized_type = ty.normalize_type();
             let mut builder = MemoryBlockJoinMethodBuilder::new(
@@ -1914,6 +2491,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 }
                 _ => unimplemented!("{type_decl:?}"),
             }
+            let method = builder.build();
+            self.declare_method(method)?;
+        }
+        Ok(())
+    }
+    fn encode_memory_block_range_join_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()> {
+        let ty_identifier = ty.get_identifier();
+        if !self
+            .builtin_methods_state
+            .encoded_memory_block_range_join_methods
+            .contains(&ty_identifier)
+        {
+            // assert!(
+            //     !ty.is_trusted() && !ty.is_type_var(),
+            //     "Trying to join an abstract type."
+            // );
+            self.builtin_methods_state
+                .encoded_memory_block_range_join_methods
+                .insert(ty_identifier);
+
+            self.encode_compute_address(ty)?;
+            let type_decl = self.encoder.get_type_decl_mid(ty)?;
+            let normalized_type = ty.normalize_type();
+            let mut builder = MemoryBlockRangeJoinMethodBuilder::new(
+                self,
+                vir_low::MethodKind::LowMemoryOperation,
+                "memory_block_range_join",
+                &normalized_type,
+                &type_decl,
+                BuiltinMethodKind::JoinMemoryBlock,
+            )?;
+            builder.create_parameters()?;
+            builder.add_memory_block_range_precondition()?;
+            builder.add_whole_memory_block_postcondition()?;
+            builder.add_byte_values_preserved_postcondition()?;
             let method = builder.build();
             self.declare_method(method)?;
         }
@@ -1982,7 +2597,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 .encoded_into_memory_block_methods
                 .insert(ty_identifier);
 
-            self.mark_owned_non_aliased_as_unfolded(ty)?;
+            self.mark_owned_predicate_as_unfolded(ty)?;
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             let normalized_type = ty.normalize_type();
@@ -1996,7 +2611,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             )?;
             builder.create_parameters()?;
             builder.add_const_parameters_validity_precondition()?;
-            let predicate = builder.create_owned()?;
+            let predicate = builder.create_owned(false)?;
             builder.add_precondition(predicate);
             let memory_block = builder.create_target_memory_block()?;
             builder.add_postcondition(memory_block);
@@ -2011,7 +2626,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             );
             if has_body {
                 builder.create_body();
-                let predicate = builder.create_owned()?;
+                let predicate = builder.create_owned(true)?;
                 builder.add_statement(vir_low::Statement::unfold_no_pos(predicate));
             }
             match &type_decl {
@@ -2066,11 +2681,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         let method_name = self.encode_assign_method_name(target.get_type(), &value)?;
         self.encode_assign_method(&method_name, target.get_type(), &value)?;
         let target_place = self.encode_expression_as_place(&target)?;
-        let target_address = self.extract_root_address(&target)?;
+        let target_address = self.encode_expression_as_place_address(&target)?;
+        // let target_address = self.extract_root_address(&target)?;
         let mut arguments = vec![target_place.clone(), target_address.clone()];
         self.encode_rvalue_arguments(&target, &mut arguments, &value)?;
         let target_value_type = target.get_type().to_snapshot(self)?;
         let result_value = self.create_new_temporary_variable(target_value_type)?;
+        let position = match &value {
+            vir_mid::Rvalue::CheckedBinaryOp(_) => self
+                .encoder
+                .change_error_context(position, ErrorCtxt::CheckedBinaryOpPrecondition),
+            _ => position,
+        };
         let assign_statement = vir_low::Statement::method_call(
             method_name,
             arguments,
@@ -2087,7 +2709,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::Expression::field(value.place.clone(), discriminant_field, position)
             };
             let source_place = self.encode_expression_as_place(&source)?;
-            let source_root_address = self.extract_root_address(&source)?;
+            // let source_root_address = self.extract_root_address(&source)?;
+            let source_address = self.encode_expression_as_place_address(&source)?;
             let source_permission_amount = if let Some(source_permission) = &value.source_permission
             {
                 source_permission.to_procedure_snapshot(self)?.into()
@@ -2104,17 +2727,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 target_place,
                 target_address,
                 source_place,
-                source_root_address,
+                source_address,
                 source_snapshot.clone(),
                 source_permission_amount,
             )?];
-            let new_snapshot = self.new_snapshot_variable_version(&target.get_base(), position)?;
-            self.encode_snapshot_update_with_new_snapshot(
+            let new_snapshot = self.encode_snapshot_update_with_new_snapshot(
                 &mut copy_place_statements,
                 &target,
                 source_snapshot,
                 position,
-                Some(new_snapshot.clone()),
+                // Some(new_snapshot.clone()),
             )?;
             if let Some(conditions) = value.use_field {
                 let mut disjuncts = Vec::new();
@@ -2122,17 +2744,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     disjuncts.push(self.lower_block_marker_condition(condition)?);
                 }
                 let mut else_branch = vec![assign_statement];
-                self.encode_snapshot_update_with_new_snapshot(
+                let new_snapshot_else_branch = self.encode_snapshot_update_with_new_snapshot(
                     &mut else_branch,
                     &target,
                     result_value.into(),
                     position,
-                    Some(new_snapshot),
+                    // Some(new_snapshot),
                 )?;
                 statements.push(vir_low::Statement::conditional(
                     disjuncts.into_iter().disjoin(),
                     copy_place_statements,
                     else_branch,
+                    position,
+                ));
+                statements.push(vir_low::Statement::assume(
+                    vir_low::Expression::equals(new_snapshot, new_snapshot_else_branch),
                     position,
                 ));
             } else {
@@ -2147,24 +2773,94 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 result_value.clone().into(),
                 position,
             )?;
-            if let vir_mid::Rvalue::Ref(value) = value {
-                let snapshot = if value.uniqueness.is_unique() {
-                    self.reference_target_final_snapshot(
-                        target.get_type(),
-                        result_value.into(),
-                        position,
-                    )?
-                } else {
-                    self.reference_target_current_snapshot(
-                        target.get_type(),
-                        result_value.into(),
-                        position,
-                    )?
-                };
-                self.encode_snapshot_update(statements, &value.place, snapshot, position)?;
+            // if let vir_mid::Rvalue::Ref(value) = value {
+            //     let snapshot = if value.uniqueness.is_unique() {
+            //         self.reference_target_final_snapshot(
+            //             target.get_type(),
+            //             result_value.into(),
+            //             position,
+            //         )?
+            //     } else {
+            //         self.reference_target_current_snapshot(
+            //             target.get_type(),
+            //             result_value.into(),
+            //             position,
+            //         )?
+            //     };
+            //     self.encode_snapshot_update(statements, &value.place, snapshot, position)?;
+            // }
+            match value {
+                vir_mid::Rvalue::Ref(value) => {
+                    let snapshot = if value.uniqueness.is_unique() {
+                        self.reference_target_final_snapshot(
+                            target.get_type(),
+                            result_value.into(),
+                            position,
+                        )?
+                    } else {
+                        self.reference_target_current_snapshot(
+                            target.get_type(),
+                            result_value.into(),
+                            position,
+                        )?
+                    };
+                    self.encode_snapshot_update(statements, &value.place, snapshot, position)?;
+                }
+                vir_mid::Rvalue::Reborrow(value) => {
+                    assert!(self
+                        .builtin_methods_state
+                        .reborrow_target_variables
+                        .insert(
+                            value.new_borrow_lifetime,
+                            (result_value, target.get_type().clone())
+                        )
+                        .is_none());
+                }
+                // vir_mid::Rvalue::AddressOf(value) => {
+                //     let address = self.pointer_address(
+                //         target.get_type(),
+                //         result_value.clone().into(),
+                //         position,
+                //     )?;
+                //     let heap = self.heap_variable_version_at_label(&None)?;
+                //     // statements.push(vir_low::Statement::assume(
+                //     //     vir_low::Expression::container_op_no_pos(
+                //     //         vir_low::ContainerOpKind::MapContains,
+                //     //         heap.ty.clone(),
+                //     //         vec![heap.into(), address],
+                //     //     ),
+                //     //     position,
+                //     // ));
+                //     let heap_chunk = self.pointer_target_snapshot(
+                //         target.get_type(),
+                //         &None,
+                //         result_value.into(),
+                //         position,
+                //     )?;
+                //     statements.push(vir_low::Statement::assume(
+                //         vir_low::Expression::equals(
+                //             heap_chunk,
+                //             value.place.to_procedure_snapshot(self)?,
+                //         ),
+                //         position,
+                //     ));
+                // }
+                _ => {}
             }
         }
         Ok(())
+    }
+    fn get_reborrow_target_variable(
+        &self,
+        lifetime: &vir_mid::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<(vir_low::VariableDecl, vir_mid::Type)> {
+        let variable_with_type = self
+            .builtin_methods_state
+            .reborrow_target_variables
+            .get(lifetime)
+            .cloned()
+            .unwrap();
+        Ok(variable_with_type)
     }
     fn encode_consume_method_call(
         &mut self,
@@ -2176,6 +2872,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_consume_operand_method(&method_name, &operand, position)?;
         let mut arguments = Vec::new();
         self.encode_operand_arguments(&mut arguments, &operand, true)?;
+        {
+            // Mark the produced MemoryBlock as non-aliasable instance.
+            assert!(
+                matches!(operand.kind, vir_mid::OperandKind::Move | vir_mid::OperandKind::Constant),
+                "Our assumption that all consume operands are either moves or constants is wrong: {operand}."
+            );
+            if vir_mid::OperandKind::Move == operand.kind
+                && !operand.expression.is_behind_pointer_dereference()
+            {
+                // assert!(
+                //     operand.expression.is_local(),
+                //     "Our assumption that all consume operands are moves of locals is wrong: {operand}."
+                // );
+                self.mark_place_as_used_in_memory_block(&operand.expression)?;
+            }
+            // let ty = operand.expression.get_type();
+            // let address = self.encode_expression_as_place_address(&operand.expression)?;
+            // let size = self.encode_type_size_expression2(ty, ty)?;
+            // let predicate_acc = self
+            //     .encode_memory_block_acc(address, size, position)?
+            //     .unwrap_predicate_access_predicate();
+            // self.mark_predicate_as_non_aliased(predicate_acc)?;
+        }
         statements.push(vir_low::Statement::method_call(
             method_name,
             arguments,
@@ -2194,9 +2913,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Predicate::OwnedNonAliased(predicate) => {
                 let ty = predicate.place.get_type();
                 self.encode_havoc_owned_non_aliased_method(ty)?;
-                self.mark_owned_non_aliased_as_unfolded(ty)?;
+                self.mark_owned_predicate_as_unfolded(ty)?;
                 let place = self.encode_expression_as_place(&predicate.place)?;
-                let address = self.extract_root_address(&predicate.place)?;
+                // let address = self.extract_root_address(&predicate.place)?;
+                let address = self.encode_expression_as_place_address(&predicate.place)?;
                 let old_snapshot = predicate.place.to_procedure_snapshot(self)?;
                 let snapshot_type = ty.to_snapshot(self)?;
                 let fresh_snapshot = self.create_new_temporary_variable(snapshot_type)?;
@@ -2215,6 +2935,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     fresh_snapshot.into(),
                     position,
                 )?;
+            }
+            vir_mid::Predicate::UniqueRef(predicate) => {
+                let ty = predicate.place.get_type();
+                self.encode_havoc_unique_ref_method(ty)?;
+                self.mark_unique_ref_as_used(ty)?;
+                let lifetime =
+                    self.encode_lifetime_const_into_procedure_variable(predicate.lifetime)?;
+                let place = self.encode_expression_as_place(&predicate.place)?;
+                let address = self.encode_expression_as_place_address(&predicate.place)?;
+                let snapshot_type = ty.to_snapshot(self)?;
+                let fresh_snapshot = self.create_new_temporary_variable(snapshot_type)?;
+                let method_name = self.encode_havoc_unique_ref_method_name(ty)?;
+                let mut arguments = vec![place, address, lifetime.into()];
+                arguments.extend(self.create_lifetime_arguments(CallContext::Procedure, ty)?);
+                statements.push(vir_low::Statement::method_call(
+                    method_name,
+                    arguments,
+                    vec![fresh_snapshot.clone().into()],
+                    position,
+                ));
+                self.encode_snapshot_update(
+                    statements,
+                    &predicate.place,
+                    fresh_snapshot.into(),
+                    position,
+                )?;
+            }
+            vir_mid::Predicate::FracRef(_) => {
+                // Fractional references are immutable, so havoc is a no-op.
             }
             vir_mid::Predicate::MemoryBlockStack(predicate) => {
                 let ty = predicate.place.get_type();
@@ -2262,62 +3011,178 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 lifetime: Lifetime,
                 lifetime_perm: Perm,
                 owned_perm: Perm,
-                place: Place,
-                root_address: Address,
+                place: PlaceOption,
+                address: Address,
                 current_snapshot: {ty.to_snapshot(self)?}
             };
+            let position = vir_low::Position::default();
             let lifetime_access = expr! { acc(LifetimeToken(lifetime), lifetime_perm) };
-            let frac_ref_access = self.frac_ref_full_vars(
+            let TODO_target_slice_len = None;
+            let frac_ref_access = self.frac_ref_full_vars_with_current_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 ty,
                 &place,
-                &root_address,
+                &address,
                 &current_snapshot,
                 &lifetime,
+                TODO_target_slice_len.clone(),
+                position,
             )?;
-            let owned_access = self.owned_non_aliased(
+            let prestate_snapshot = vir_low::Expression::labelled_old_no_pos(
+                None,
+                self.frac_ref_snap(
+                    CallContext::BuiltinMethod,
+                    ty,
+                    ty,
+                    place.clone().into(),
+                    address.clone().into(),
+                    lifetime.clone().into(),
+                    TODO_target_slice_len,
+                    position,
+                )?,
+            );
+            let owned_access = self.owned_non_aliased_with_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 &type_decl,
                 place.clone().into(),
-                root_address.clone().into(),
-                current_snapshot.clone().into(),
+                address.clone().into(),
+                prestate_snapshot,
                 Some(owned_perm.clone().into()),
+                position,
             )?;
+            let owned_access_viewshift = self.owned_non_aliased(
+                CallContext::BuiltinMethod,
+                ty,
+                &type_decl,
+                place.clone().into(),
+                address.clone().into(),
+                Some(owned_perm.clone().into()),
+                position,
+            )?;
+            let parameters = vec![
+                lifetime.clone(),
+                lifetime_perm.clone(),
+                place.clone(),
+                address.clone(),
+                current_snapshot.clone(),
+            ];
+            let close_frac_ref_predicate = expr! {
+                acc(CloseFracRef<ty>(
+                    lifetime,
+                    lifetime_perm,
+                    place,
+                    address,
+                    current_snapshot,
+                    owned_perm
+                ))
+            };
+            let lifetime_perm_bounds = expr! {
+                ([vir_low::Expression::no_permission()] < lifetime_perm) &&
+                (lifetime_perm < [vir_low::Expression::full_permission()])
+            };
+            let owned_perm_bounds = expr! {
+                ([vir_low::Expression::no_permission()] < owned_perm) &&
+                (owned_perm < [vir_low::Expression::full_permission()])
+            };
             let method = vir_low::MethodDecl::new(
                 self.encode_open_frac_bor_atomic_method_name(ty)?,
                 vir_low::MethodKind::MirOperation,
-                vec![
-                    lifetime,
-                    lifetime_perm.clone(),
-                    place,
-                    root_address,
-                    current_snapshot,
-                ],
+                parameters,
                 vec![owned_perm.clone()],
                 vec![
-                    expr! {
-                        [vir_low::Expression::no_permission()] < lifetime_perm
-                    },
+                    lifetime_perm_bounds.clone(),
                     lifetime_access.clone(),
                     frac_ref_access.clone(),
                 ],
                 vec![
-                    expr! {
-                        owned_perm < [vir_low::Expression::full_permission()]
-                    },
-                    expr! {
-                        [vir_low::Expression::no_permission()] < owned_perm
-                    },
-                    owned_access.clone(),
-                    vir_low::Expression::magic_wand_no_pos(
-                        owned_access,
-                        expr! { [lifetime_access] && [frac_ref_access] },
-                    ),
+                    owned_perm_bounds.clone(),
+                    owned_access,
+                    close_frac_ref_predicate.clone(),
+                    // vir_low::Expression::magic_wand_no_pos(
+                    //     owned_access_viewshift,
+                    //     expr! { [lifetime_access] && [frac_ref_access] },
+                    // ),
                 ],
                 None,
             );
+            self.declare_method(method)?;
+            {
+                let close_frac_ref_predicate_decl = vir_low::PredicateDecl::new(
+                    predicate_name! { CloseFracRef<ty> },
+                    vir_low::PredicateKind::CloseFracRef,
+                    vec![
+                        lifetime.clone(),
+                        lifetime_perm.clone(),
+                        place.clone(),
+                        address.clone(),
+                        current_snapshot.clone(),
+                        owned_perm.clone(),
+                    ],
+                    None,
+                );
+                self.declare_predicate(close_frac_ref_predicate_decl)?;
+                // Apply the viewshift encoded in the `CloseFracRef` predicate.
+                let close_method = vir_low::MethodDecl::new(
+                    method_name! { close_frac_ref<ty> },
+                    vir_low::MethodKind::MirOperation,
+                    vec![
+                        lifetime.clone(),
+                        lifetime_perm,
+                        place.clone(),
+                        address.clone(),
+                        current_snapshot.clone(),
+                        owned_perm,
+                    ],
+                    Vec::new(),
+                    vec![
+                        lifetime_perm_bounds,
+                        owned_perm_bounds,
+                        close_frac_ref_predicate,
+                        owned_access_viewshift,
+                    ],
+                    vec![lifetime_access, frac_ref_access],
+                    None,
+                );
+                self.declare_method(close_method)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn encode_restore_raw_borrowed_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()> {
+        let ty_identifier = ty.get_identifier();
+        if !self
+            .builtin_methods_state
+            .encoded_restore_raw_borrowed_methods
+            .contains(&ty_identifier)
+        {
+            self.builtin_methods_state
+                .encoded_restore_raw_borrowed_methods
+                .insert(ty_identifier);
+
+            self.encode_restore_raw_borrowed_transition_predicate(ty)?;
+
+            let type_decl = self.encoder.get_type_decl_mid(ty)?;
+            let normalized_type = ty.normalize_type();
+
+            let mut builder = RestoreRawBorrowedMethodBuilder::new(
+                self,
+                vir_low::MethodKind::LowMemoryOperation,
+                "restore_raw_borrowed",
+                &normalized_type,
+                &type_decl,
+                BuiltinMethodKind::RestoreRawBorrowed,
+            )?;
+            builder.create_parameters()?;
+            builder.add_aliased_source_precondition()?;
+            builder.add_shift_precondition()?;
+            builder.add_non_aliased_target_postcondition()?;
+            let method = builder.build();
             self.declare_method(method)?;
         }
         Ok(())
@@ -2363,7 +3228,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 lifetimes_expr,
             );
             let intersect = self.create_domain_func_app(
-                "Lifetime",
+                LIFETIME_DOMAIN_NAME,
                 "intersect",
                 vec![lifetime_set],
                 ty!(Lifetime),
@@ -2419,7 +3284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 lifetimes_expr,
             );
             let intersect = self.create_domain_func_app(
-                "Lifetime",
+                LIFETIME_DOMAIN_NAME,
                 "intersect",
                 vec![lifetime_set],
                 ty!(Lifetime),
@@ -2554,28 +3419,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             var_decls! {
                 lifetime: Lifetime,
                 lifetime_perm: Perm,
-                place: Place,
-                root_address: Address,
+                place: PlaceOption,
+                address: Address,
                 current_snapshot: {ty.to_snapshot(self)?},
                 final_snapshot: {ty.to_snapshot(self)?}
             };
-            let owned_predicate = self.owned_non_aliased_full_vars(
+            let position = vir_low::Position::default();
+            let owned_predicate = self.owned_non_aliased_full_vars_with_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 &type_decl,
                 &place,
-                &root_address,
+                &address,
                 &current_snapshot,
+                position,
             )?;
-            let unique_ref_predicate = self.unique_ref_full_vars(
+            let unique_ref_predicate = self.unique_ref_full_vars_with_current_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
                 &type_decl,
                 &place,
-                &root_address,
+                &address,
                 &current_snapshot,
-                &final_snapshot,
                 &lifetime,
+                None,
+                position,
             )?;
             let open_method = vir_low::MethodDecl::new(
                 method_name! { open_mut_ref<ty> },
@@ -2584,7 +3452,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     lifetime.clone(),
                     lifetime_perm.clone(),
                     place.clone(),
-                    root_address.clone(),
+                    address.clone(),
                     current_snapshot.clone(),
                     final_snapshot.clone(),
                 ],
@@ -2618,7 +3486,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         lifetime,
                         lifetime_perm,
                         place,
-                        root_address,
+                        address,
                         final_snapshot
                     ))},
                 ],
@@ -2629,11 +3497,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             {
                 let close_mut_ref_predicate = vir_low::PredicateDecl::new(
                     predicate_name! { CloseMutRef<ty> },
+                    vir_low::PredicateKind::WithoutSnapshotWhole,
                     vec![
                         lifetime.clone(),
                         lifetime_perm.clone(),
                         place.clone(),
-                        root_address.clone(),
+                        address.clone(),
                         final_snapshot.clone(),
                     ],
                     None,
@@ -2647,7 +3516,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         lifetime.clone(),
                         lifetime_perm.clone(),
                         place.clone(),
-                        root_address.clone(),
+                        address.clone(),
                         current_snapshot.clone(),
                         final_snapshot.clone(),
                     ],
@@ -2658,7 +3527,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             lifetime,
                             lifetime_perm,
                             place,
-                            root_address,
+                            address,
                             final_snapshot
                         ))},
                         owned_predicate,
@@ -2693,8 +3562,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 lft: Lifetime,
                 old_lft: Lifetime,
                 lifetime_perm: Perm,
-                place: Place,
-                root_address: Address,
+                place: PlaceOption,
+                address: Address,
                 current_snapshot: {target_type.to_snapshot(self)?},
                 final_snapshot: {target_type.to_snapshot(self)?}
             }
@@ -2703,12 +3572,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 old_lft.clone(),
                 lifetime_perm.clone(),
                 place.clone(),
-                root_address.clone(),
+                address.clone(),
                 current_snapshot.clone(),
             ];
             if reference_type.uniqueness.is_unique() {
-                parameters.push(final_snapshot.clone());
+                parameters.push(final_snapshot);
             }
+            let position = vir_low::Position::default();
             let mut pres = vec![
                 expr! { [vir_low::Expression::no_permission()] < lifetime_perm },
                 expr! { lifetime_perm < [vir_low::Expression::full_permission()] },
@@ -2717,44 +3587,73 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             ];
             let mut posts = vec![expr! { acc(LifetimeToken(lft), lifetime_perm)}];
             if reference_type.uniqueness.is_unique() {
-                pres.push(self.unique_ref_full_vars(
+                pres.push(self.unique_ref_full_vars_with_current_snapshot(
                     CallContext::BuiltinMethod,
                     target_type,
                     target_type,
                     &place,
-                    &root_address,
+                    &address,
                     &current_snapshot,
-                    &final_snapshot,
                     &old_lft,
+                    None,
+                    position,
                 )?);
-                posts.push(self.unique_ref_full_vars(
+                posts.push(self.unique_ref_full_vars_with_current_snapshot(
                     CallContext::BuiltinMethod,
                     target_type,
                     target_type,
                     &place,
-                    &root_address,
+                    &address,
                     &current_snapshot,
-                    &final_snapshot,
                     &lft,
+                    None,
+                    position,
                 )?);
+                let old_final_snapshot = self.unique_ref_snap(
+                    CallContext::BuiltinMethod,
+                    target_type,
+                    target_type,
+                    place.clone().into(),
+                    address.clone().into(),
+                    old_lft.clone().into(),
+                    None,
+                    true,
+                    position,
+                )?;
+                let new_final_snapshot = self.unique_ref_snap(
+                    CallContext::BuiltinMethod,
+                    target_type,
+                    target_type,
+                    place.clone().into(),
+                    address.clone().into(),
+                    lft.clone().into(),
+                    None,
+                    true,
+                    position,
+                )?;
+                posts.push(expr! { [old_final_snapshot] == [new_final_snapshot] });
             } else {
-                pres.push(self.frac_ref_full_vars(
+                pres.push(self.frac_ref_full_vars_with_current_snapshot(
                     CallContext::BuiltinMethod,
                     target_type,
                     target_type,
                     &place,
-                    &root_address,
+                    &address,
                     &current_snapshot,
                     &old_lft,
+                    None,
+                    position,
                 )?);
-                posts.push(self.frac_ref_full_vars(
+                posts.push(self.frac_ref_full_vars_with_current_snapshot(
                     CallContext::BuiltinMethod,
                     target_type,
                     target_type,
                     &place,
-                    &root_address,
+                    &address,
                     &current_snapshot,
                     &lft,
+                    None,
+                    position,
                 )?);
             }
             parameters.extend(self.create_lifetime_parameters(target_type)?);
@@ -2769,6 +3668,422 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             );
             self.declare_method(method)?;
         }
+        Ok(())
+    }
+
+    fn encode_stash_range_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        ty: &vir_mid::Type,
+        pointer_value: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        label: String,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        statements.push(vir_low::Statement::comment(format!(
+            "Stash range call for {label}"
+        )));
+        // statements.push(vir_low::Statement::label(label.clone(), position));
+        let exhale_owned = vir_low::Statement::exhale(
+            self.owned_aliased_range(
+                CallContext::Procedure,
+                ty,
+                ty,
+                pointer_value.clone(),
+                start_index.clone(),
+                end_index.clone(),
+                None,
+                position,
+            )?,
+            position,
+        );
+        statements.push(exhale_owned);
+        let vir_mid::Type::Pointer(pointer_type) = ty else {
+            unreachable!("ty: {}", ty);
+        };
+        let target_type = &*pointer_type.target_type;
+        let ty_identifier = target_type.get_identifier();
+        if !self
+            .builtin_methods_state
+            .encoded_stashed_owned_aliased_predicates
+            .contains(&ty_identifier)
+        {
+            self.builtin_methods_state
+                .encoded_stashed_owned_aliased_predicates
+                .insert(ty_identifier);
+            let predicate = vir_low::PredicateDecl::new(
+                predicate_name! { StashedOwnedAliased<target_type> },
+                vir_low::PredicateKind::WithoutSnapshotWhole,
+                vec![
+                    var! { index: Int },
+                    var! { bytes: Bytes },
+                    var! { snapshot: { target_type.to_snapshot(self)? } },
+                ],
+                None,
+            );
+            self.declare_predicate(predicate)?;
+        }
+        let start_address = self.pointer_address(ty, pointer_value, position)?;
+        let size = self.encode_type_size_expression2(target_type, target_type)?;
+        let inhale_raw = vir_low::Statement::inhale(
+            self.encode_memory_block_range_acc(
+                start_address.clone(),
+                size.clone(),
+                start_index.clone(),
+                end_index.clone(),
+                position,
+            )?,
+            position,
+        );
+        statements.push(inhale_raw);
+        let inhale_stash = {
+            let size_type = self.size_type_mid()?;
+            var_decls! {
+                index: Int
+            }
+            // let start_address = self.pointer_address(
+            //     ty,
+            //     pointer_value,
+            //     position,
+            // )?;
+            let element_address =
+                self.address_offset(size.clone(), start_address, index.clone().into(), position)?;
+            let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
+            let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+            let bytes = self.encode_memory_block_bytes_expression(element_address.clone(), size)?;
+            let snapshot = vir_low::Expression::labelled_old(
+                Some(label),
+                self.owned_aliased_snap(
+                    CallContext::Procedure,
+                    target_type,
+                    target_type,
+                    element_address.clone(),
+                    position,
+                )?,
+                position,
+            );
+            let stash_predicate = expr! {
+                acc(StashedOwnedAliased<target_type>(
+                    index,
+                    [bytes],
+                    [snapshot]
+                ))
+            };
+            let body = expr!(
+                (([start_index] <= index) && (index < [end_index])) ==>
+                [stash_predicate]
+            );
+            let expression = vir_low::Expression::forall(
+                vec![index],
+                vec![vir_low::Trigger::new(vec![element_address])],
+                body,
+            );
+            vir_low::Statement::inhale(expression, position)
+        };
+        statements.push(inhale_stash);
+        // statements.push(vir_low::Statement::label(
+        //     format!("{}$post", label),
+        //     position,
+        // ));
+        Ok(())
+    }
+
+    fn encode_restore_stash_range_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        ty: &vir_mid::Type,
+        old_pointer_value: vir_low::Expression,
+        old_start_index: vir_low::Expression,
+        old_end_index: vir_low::Expression,
+        label: String,
+        new_pointer_value: vir_low::Expression,
+        new_start_index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        statements.push(vir_low::Statement::comment(format!(
+            "Restore stash for {label}"
+        )));
+        let label_post = format!("{label}$post");
+        use vir_low::macros::*;
+        let vir_mid::Type::Pointer(pointer_type) = ty else {
+            unreachable!("ty: {}", ty);
+        };
+        let size_type = self.size_type_mid()?;
+        let target_type = &*pointer_type.target_type;
+        let size = self.encode_type_size_expression2(target_type, target_type)?;
+        let old_start_address = self.pointer_address(ty, old_pointer_value, position)?;
+        let new_start_address = self.pointer_address(ty, new_pointer_value, position)?;
+        let new_start_index = self.obtain_constant_value(&size_type, new_start_index, position)?;
+        let new_end_index = vir_low::Expression::add(
+            new_start_index.clone(),
+            vir_low::Expression::labelled_old(
+                Some(label.clone()),
+                vir_low::Expression::subtract(
+                    self.obtain_constant_value(&size_type, old_end_index, position)?,
+                    self.obtain_constant_value(&size_type, old_start_index.clone(), position)?,
+                ),
+                position,
+            ),
+        );
+        {
+            // For performance reasons, we do not have global extensionality
+            // assumptions, but assume them when needed.
+
+            // FIXME: Instead of having the assumption as a quantifier, assert
+            // that bytes are equal for the entire range and then assume that
+            // the byte blocks are equal.
+            var_decls! {
+                index: Int,
+                byte_index: Int
+            }
+            let new_element_address = self.address_offset(
+                size.clone(),
+                new_start_address.clone(),
+                index.clone().into(),
+                position,
+            )?;
+            let old_index = vir_low::Expression::add(
+                vir_low::Expression::labelled_old(
+                    Some(label.clone()),
+                    self.obtain_constant_value(&size_type, old_start_index.clone(), position)?,
+                    position,
+                ),
+                vir_low::Expression::subtract(index.clone().into(), new_start_index.clone()),
+            );
+            let old_element_address =
+                self.address_offset(size.clone(), old_start_address.clone(), old_index, position)?;
+            let new_block_bytes = self
+                .encode_memory_block_bytes_expression(new_element_address.clone(), size.clone())?;
+            let old_block_bytes =
+                self.encode_memory_block_bytes_expression(old_element_address, size.clone())?;
+            let old_block_bytes =
+                vir_low::Expression::labelled_old(Some(label_post), old_block_bytes, position);
+            let element_size_int =
+                self.obtain_constant_value(&size_type, size.clone(), position)?;
+            let new_read_element_byte = self.encode_read_byte_expression_int(
+                new_block_bytes.clone(),
+                byte_index.clone().into(),
+                position,
+            )?;
+            let old_read_element_byte = self.encode_read_byte_expression_int(
+                old_block_bytes.clone(),
+                byte_index.clone().into(),
+                position,
+            )?;
+            let memory_block_range_join_trigger = self.call_trigger_function(
+                "memory_block_range_join_trigger",
+                vec![index.clone().into(), byte_index.clone().into()],
+                position,
+            )?;
+            let bytes_equal_body = expr!(
+                ((([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) &&
+                (([0.into()] <= byte_index) && (byte_index < [element_size_int]))) ==>
+                ([memory_block_range_join_trigger] &&
+                    ([new_read_element_byte.clone()] == [old_read_element_byte]))
+            );
+            let bytes_equal = vir_low::Expression::forall(
+                vec![index.clone(), byte_index],
+                vec![vir_low::Trigger::new(vec![new_read_element_byte])],
+                bytes_equal_body,
+            );
+            let assert_byte_equality =
+                vir_low::Statement::assert_no_pos(bytes_equal).set_default_position(position);
+            statements.push(assert_byte_equality);
+            let body = expr!(
+                (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==>
+                // (
+                    ([new_block_bytes] == [old_block_bytes])
+                //  == [bytes_equal])
+            );
+            let expression = vir_low::Expression::forall(
+                vec![index],
+                vec![vir_low::Trigger::new(vec![new_element_address])],
+                body,
+            );
+            let assume_extensionality = vir_low::Statement::assume(expression, position);
+            statements.push(assume_extensionality);
+        };
+        let exhale_stash = {
+            var_decls! {
+                index: Int
+            }
+            // let start_address = self.pointer_address(
+            //     ty,
+            //     pointer_value,
+            //     position,
+            // )?;
+            let old_index = vir_low::Expression::add(
+                vir_low::Expression::labelled_old(
+                    Some(label.clone()),
+                    self.obtain_constant_value(&size_type, old_start_index.clone(), position)?,
+                    position,
+                ),
+                vir_low::Expression::subtract(index.clone().into(), new_start_index.clone()),
+            );
+            let old_element_address = self.address_offset(
+                size.clone(),
+                old_start_address.clone(),
+                old_index.clone(),
+                position,
+            )?;
+            let new_element_address = self.address_offset(
+                size.clone(),
+                new_start_address.clone(),
+                index.clone().into(),
+                position,
+            )?;
+            // let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
+            // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+            let bytes = self
+                .encode_memory_block_bytes_expression(new_element_address.clone(), size.clone())?;
+            let snapshot = vir_low::Expression::labelled_old(
+                Some(label.clone()),
+                self.owned_aliased_snap(
+                    CallContext::Procedure,
+                    target_type,
+                    target_type,
+                    old_element_address,
+                    position,
+                )?,
+                position,
+            );
+            let stash_predicate = expr! {
+                acc(StashedOwnedAliased<target_type>(
+                    [old_index],
+                    [bytes],
+                    [snapshot]
+                ))
+            };
+            let body = expr!(
+                (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==>
+                [stash_predicate]
+            );
+            let expression = vir_low::Expression::forall(
+                vec![index],
+                vec![vir_low::Trigger::new(vec![new_element_address])],
+                body,
+            );
+            vir_low::Statement::exhale(expression, position)
+        };
+        statements.push(exhale_stash);
+        // FIXME: Code duplication with encode_memory_block_range_acc.
+        let exhale_raw = {
+            var_decls! {
+                index: Int
+            }
+            let element_address = self.address_offset(
+                size.clone(),
+                new_start_address.clone(),
+                index.clone().into(),
+                position,
+            )?;
+            let predicate =
+                self.encode_memory_block_acc(element_address.clone(), size.clone(), position)?;
+            // let new_start_index = self.obtain_constant_value(&size_type, new_start_address.clone(), position)?;
+            // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+            let body = expr!(
+                (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==> [predicate]
+            );
+            let expression = vir_low::Expression::forall(
+                vec![index],
+                vec![vir_low::Trigger::new(vec![element_address])],
+                body,
+            );
+            vir_low::Statement::exhale(
+                expression,
+                // self.encode_memory_block_range_acc(
+                //     new_start_address.clone(),
+                //     size,
+                //     new_start_index.clone(),
+                //     new_end_index.clone(),
+                //     position,
+                // )?,
+                position,
+            )
+        };
+        statements.push(exhale_raw);
+        let inhale_owned = {
+            var_decls! {
+                index: Int
+            }
+            let element_address = self.address_offset(
+                size.clone(),
+                new_start_address.clone(),
+                index.clone().into(),
+                position,
+            )?;
+            let predicate = self.owned_aliased(
+                CallContext::Procedure,
+                target_type,
+                target_type,
+                element_address.clone(),
+                None,
+                position,
+            )?;
+            // let new_start_index = self.obtain_constant_value(&size_type, new_start_address.clone(), position)?;
+            // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+            let body = expr!(
+                (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==>
+                [predicate]
+            );
+            let expression = vir_low::Expression::forall(
+                vec![index],
+                vec![vir_low::Trigger::new(vec![element_address])],
+                body,
+            );
+            vir_low::Statement::inhale(expression, position)
+        };
+        statements.push(inhale_owned);
+        let inhale_snapshot_preserved = {
+            var_decls! {
+                index: Int
+            }
+            let new_element_address = self.address_offset(
+                size.clone(),
+                new_start_address,
+                index.clone().into(),
+                position,
+            )?;
+            let old_index = vir_low::Expression::add(
+                vir_low::Expression::labelled_old(
+                    Some(label.clone()),
+                    self.obtain_constant_value(&size_type, old_start_index, position)?,
+                    position,
+                ),
+                vir_low::Expression::subtract(index.clone().into(), new_start_index.clone()),
+            );
+            let old_element_address =
+                self.address_offset(size, old_start_address, old_index, position)?;
+            let new_snapshot = self.owned_aliased_snap(
+                CallContext::Procedure,
+                target_type,
+                target_type,
+                new_element_address.clone(),
+                position,
+            )?;
+            let old_snapshot = self.owned_aliased_snap(
+                CallContext::Procedure,
+                target_type,
+                target_type,
+                old_element_address,
+                position,
+            )?;
+            let old_snapshot =
+                vir_low::Expression::labelled_old(Some(label), old_snapshot, position);
+            let body = expr!(
+                (([new_start_index] <= index) && (index < [new_end_index])) ==>
+                ([new_snapshot] == [old_snapshot])
+            );
+            let expression = vir_low::Expression::forall(
+                vec![index],
+                vec![vir_low::Trigger::new(vec![new_element_address])],
+                body,
+            );
+            vir_low::Statement::inhale(expression, position)
+        };
+        statements.push(inhale_snapshot_preserved);
         Ok(())
     }
 }

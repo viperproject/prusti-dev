@@ -55,7 +55,12 @@ pub struct SpecificationId(Uuid);
 #[derive(Debug, Clone, Copy)]
 pub enum SpecIdRef {
     Precondition(SpecificationId),
+    StructuralPrecondition(SpecificationId),
     Postcondition(SpecificationId),
+    PanicPostcondition(SpecificationId),
+    StructuralPostcondition(SpecificationId),
+    BrokenPrecondition(SpecificationId),
+    BrokenPostcondition(SpecificationId),
     Purity(SpecificationId),
     Pledge {
         lhs: Option<SpecificationId>,

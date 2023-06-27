@@ -24,6 +24,7 @@ pub(in super::super::super) trait VariablesLowererInterface {
         name: String,
         ty: vir_low::Type,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn register_variable(&mut self, variable: &vir_low::VariableDecl) -> SpannedEncodingResult<()>;
     fn create_new_temporary_variable(
         &mut self,
         ty: vir_low::Type,
@@ -42,6 +43,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> VariablesLowererInterface for Lowerer<'p, 'v, 'tcx> {
                 .insert(name.clone(), ty.clone());
         }
         Ok(vir_low::VariableDecl::new(name, ty))
+    }
+    fn register_variable(&mut self, variable: &vir_low::VariableDecl) -> SpannedEncodingResult<()> {
+        if !self.variables_state.variables.contains_key(&variable.name) {
+            self.variables_state
+                .variables
+                .insert(variable.name.clone(), variable.ty.clone());
+        }
+        Ok(())
     }
     fn create_new_temporary_variable(
         &mut self,

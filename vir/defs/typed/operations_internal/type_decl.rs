@@ -5,6 +5,12 @@ use super::super::ast::{
     variable::VariableDecl,
 };
 
+impl Struct {
+    pub fn is_manually_managed_type(&self) -> bool {
+        self.structural_invariant.is_some()
+    }
+}
+
 impl Enum {
     pub fn variant(&self, variant_name: &str) -> Option<&Struct> {
         self.variants
@@ -33,9 +39,9 @@ impl TypeDecl {
             Self::Array(decl) => &decl.lifetimes,
             // // Self::Slice(_decl) => &decl.lifetimes,
             Self::Reference(decl) => &decl.lifetimes,
-            Self::Pointer(decl) => &decl.lifetimes,
+            // Since pointer targets may be invalid, we ignore their lifetimes.
+            Self::Pointer(_decl) => &[],
             // // Self::FnPointer => &[],
-            // Self::Never => &[],
             // // Self::Str => &[],
             // Self::Closure(decl) => &decl.lifetimes,
             // // Self::Projection(_decl) => &[],
@@ -60,7 +66,6 @@ impl TypeDecl {
             Self::Reference(decl) => &decl.const_parameters,
             Self::Pointer(decl) => &decl.const_parameters,
             // // Self::FnPointer => &[],
-            // Self::Never => &[],
             // // Self::Str => &[],
             // Self::Closure(decl) => &decl.const_parameters,
             // // Self::Projection(_decl) => &[],

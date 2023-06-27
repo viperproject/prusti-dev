@@ -34,8 +34,15 @@ impl<'v, 'tcx: 'v> HighToTypedTypeEncoderInterface
         &mut self,
         ty: &vir_typed::Type,
     ) -> SpannedEncodingResult<vir_typed::TypeDecl> {
-        let high_type = &self.typed_type_encoder_state.encoded_types_inverse[ty];
-        let type_decl_high = self.encode_type_def_high(high_type)?;
+        let normalized_type = ty.normalize_type();
+        let high_type = &self
+            .typed_type_encoder_state
+            .encoded_types_inverse
+            .get(&normalized_type)
+            .unwrap_or_else(|| {
+                panic!("Type {normalized_type} was not encoded by the HighToTypedTypeEncoder",)
+            });
+        let type_decl_high = self.encode_type_def_high(high_type, true)?;
         type_decl_high.high_to_typed_type_decl(self)
     }
 

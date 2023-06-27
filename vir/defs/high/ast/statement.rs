@@ -4,7 +4,7 @@ pub(crate) use super::{
     position::Position,
     predicate::Predicate,
     rvalue::{Operand, Rvalue},
-    ty::{LifetimeConst, Type},
+    ty::{LifetimeConst, Type, Uniqueness},
     variable::VariableDecl,
 };
 use crate::common::display;
@@ -17,13 +17,16 @@ use std::collections::BTreeSet;
 pub enum Statement {
     Comment(Comment),
     OldLabel(OldLabel),
-    Inhale(Inhale),
-    Exhale(Exhale),
+    InhalePredicate(InhalePredicate),
+    ExhalePredicate(ExhalePredicate),
+    InhaleExpression(InhaleExpression),
+    ExhaleExpression(ExhaleExpression),
+    Assume(Assume),
+    Assert(Assert),
     Consume(Consume),
     Havoc(Havoc),
     GhostHavoc(GhostHavoc),
-    Assume(Assume),
-    Assert(Assert),
+    HeapHavoc(HeapHavoc),
     LoopInvariant(LoopInvariant),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
@@ -33,8 +36,22 @@ pub enum Statement {
     GhostAssign(GhostAssign),
     LeakAll(LeakAll),
     SetUnionVariant(SetUnionVariant),
+    Pack(Pack),
+    Unpack(Unpack),
+    Obtain(Obtain),
+    Join(Join),
+    JoinRange(JoinRange),
+    Split(Split),
+    SplitRange(SplitRange),
+    StashRange(StashRange),
+    StashRangeRestore(StashRangeRestore),
+    ForgetInitialization(ForgetInitialization),
+    ForgetInitializationRange(ForgetInitializationRange),
+    RestoreRawBorrowed(RestoreRawBorrowed),
     NewLft(NewLft),
     EndLft(EndLft),
+    DeadReference(DeadReference),
+    DeadReferenceRange(DeadReferenceRange),
     DeadLifetime(DeadLifetime),
     DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
@@ -44,7 +61,11 @@ pub enum Statement {
     OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
     CloseFracRef(CloseFracRef),
+    RestoreMutBorrowed(RestoreMutBorrowed),
     BorShorten(BorShorten),
+    MaterializePredicate(MaterializePredicate),
+    EncodingAction(EncodingAction),
+    CaseSplit(CaseSplit),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -59,16 +80,18 @@ pub struct OldLabel {
     pub position: Position,
 }
 
-/// Inhale the permission denoted by the place.
-#[display(fmt = "inhale {}", predicate)]
-pub struct Inhale {
+/// Inhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+#[display(fmt = "inhale-pred {}", predicate)]
+pub struct InhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
 
-#[display(fmt = "exhale {}", predicate)]
-/// Exhale the permission denoted by the place.
-pub struct Exhale {
+#[display(fmt = "exhale-pred {}", predicate)]
+/// Exhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+pub struct ExhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
@@ -88,20 +111,47 @@ pub struct Havoc {
 }
 
 #[display(fmt = "ghost-havoc {}", variable)]
+/// Havoc the local variable.
 pub struct GhostHavoc {
     pub variable: VariableDecl,
     pub position: Position,
 }
 
+#[display(fmt = "heap-havoc")]
+/// Havoc the heap.
+pub struct HeapHavoc {
+    pub position: Position,
+}
+
+#[display(fmt = "inhale-expr {}", expression)]
+/// Inhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct InhaleExpression {
+    pub expression: Expression,
+    /// The label statement that immediatelly follows this inhale statement. Used
+    /// by `SelfFramingAssertionToSnapshot`.
+    pub label: Option<String>,
+    pub position: Position,
+}
+
+#[display(fmt = "exhale-expr {}", expression)]
+/// Exhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct ExhaleExpression {
+    pub expression: Expression,
+    /// The label statement that immediatelly preceeds this exhale statement.
+    /// Used by `SelfFramingAssertionToSnapshot`.
+    pub label: Option<String>,
+    pub position: Position,
+}
+
 #[display(fmt = "assume {}", expression)]
-/// Assume the boolean expression.
+/// Assume the pure boolean expression.
 pub struct Assume {
     pub expression: Expression,
     pub position: Position,
 }
 
 #[display(fmt = "assert {}", expression)]
-/// Assert the boolean expression.
+/// Assert the pure boolean expression.
 pub struct Assert {
     pub expression: Expression,
     pub position: Position,
@@ -170,20 +220,11 @@ pub struct MovePlace {
     pub position: Position,
 }
 
-#[display(
-    fmt = "copy{} {} ← {}",
-    "display::option!(source_permission, \"({})\", \"\")",
-    target,
-    source
-)]
+#[display(fmt = "copy {} ← {}", target, source)]
 /// Copy assignment.
-///
-/// If `source_permission` is `None`, it means `write`. Otherwise, it is a
-/// variable denoting the permission amount.
 pub struct CopyPlace {
     pub target: Expression,
     pub source: Expression,
-    pub source_permission: Option<VariableDecl>,
     pub position: Position,
 }
 
@@ -252,6 +293,131 @@ pub struct SetUnionVariant {
     pub position: Position,
 }
 
+#[derive_helpers]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
+pub enum PredicateKind {
+    Owned,
+    UniqueRef(UniqueRef),
+    FracRef(FracRef),
+}
+
+pub struct UniqueRef {
+    pub lifetime: LifetimeConst,
+}
+
+pub struct FracRef {
+    pub lifetime: LifetimeConst,
+}
+
+#[display(fmt = "pack-{} {}", predicate_kind, place)]
+pub struct Pack {
+    pub place: Expression,
+    pub predicate_kind: PredicateKind,
+    pub position: Position,
+}
+
+#[display(fmt = "unpack-{} {}", predicate_kind, place)]
+pub struct Unpack {
+    pub place: Expression,
+    pub predicate_kind: PredicateKind,
+    pub position: Position,
+}
+
+#[display(fmt = "obtain-{} {}", predicate_kind, place)]
+pub struct Obtain {
+    pub place: Expression,
+    pub predicate_kind: PredicateKind,
+    pub position: Position,
+}
+
+#[display(fmt = "join {}", place)]
+pub struct Join {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "join-range {} {} {}", address, start_index, end_index)]
+pub struct JoinRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "split {}", place)]
+pub struct Split {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "split-range {} {} {}", address, start_index, end_index)]
+pub struct SplitRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range {} {} {} {}",
+    address,
+    start_index,
+    end_index,
+    label
+)]
+pub struct StashRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub label: String,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range-restore {} {} {} {} → {} {}",
+    old_address,
+    old_start_index,
+    old_end_index,
+    old_label,
+    new_address,
+    new_start_index
+)]
+pub struct StashRangeRestore {
+    pub old_address: Expression,
+    pub old_start_index: Expression,
+    pub old_end_index: Expression,
+    pub old_label: String,
+    pub new_address: Expression,
+    pub new_start_index: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "forget-initialization {}", place)]
+pub struct ForgetInitialization {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "forget-initialization-range {} {} {}",
+    address,
+    start_index,
+    end_index
+)]
+pub struct ForgetInitializationRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "restore {} --* {}", borrowing_place, restored_place)]
+pub struct RestoreRawBorrowed {
+    pub borrowing_place: Expression,
+    pub restored_place: Expression,
+    pub position: Position,
+}
+
 #[display(fmt = "{} = newlft()", target)]
 pub struct NewLft {
     pub target: VariableDecl,
@@ -261,6 +427,34 @@ pub struct NewLft {
 #[display(fmt = "endlft({})", lifetime)]
 pub struct EndLft {
     pub lifetime: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "dead-reference({})", target)]
+pub struct DeadReference {
+    pub target: Expression,
+    pub is_blocked_by_reborrow: Option<LifetimeConst>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "dead-reference-range {} {} {} {}",
+    lifetime,
+    address,
+    start_index,
+    end_index
+)]
+pub struct DeadReferenceRange {
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
+    pub address: Expression,
+    /// We need `predicate_range_start_index` and `predicate_range_end_index` to
+    /// be able to generate proper triggers: they are used to match the
+    /// `own_range!` predicate.
+    pub predicate_range_start_index: Expression,
+    pub predicate_range_end_index: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
     pub position: Position,
 }
 
@@ -311,24 +505,27 @@ pub struct ObtainMutRef {
 }
 
 #[display(
-    fmt = "open_mut_ref({}, rd({}), {})",
+    fmt = "open_mut_ref({}, rd({}), {}, user-written: {})",
     lifetime,
     lifetime_token_permission,
-    place
+    place,
+    is_user_written
 )]
 pub struct OpenMutRef {
     pub lifetime: LifetimeConst,
     pub lifetime_token_permission: Expression,
     pub place: Expression,
+    pub is_user_written: bool,
     pub position: Position,
 }
 
 #[display(
-    fmt = "{} := open_frac_ref({}, rd({}), {})",
+    fmt = "{} := open_frac_ref({}, rd({}), {}, user-written: {})",
     predicate_permission_amount,
     lifetime,
     lifetime_token_permission,
-    place
+    place,
+    is_user_written
 )]
 pub struct OpenFracRef {
     pub lifetime: LifetimeConst,
@@ -337,28 +534,32 @@ pub struct OpenFracRef {
     /// The permission amount taken from the token.
     pub lifetime_token_permission: Expression,
     pub place: Expression,
+    pub is_user_written: bool,
     pub position: Position,
 }
 
 #[display(
-    fmt = "close_mut_ref({}, rd({}), {})",
+    fmt = "close_mut_ref({}, rd({}), {}, user-written: {})",
     lifetime,
     lifetime_token_permission,
-    place
+    place,
+    is_user_written
 )]
 pub struct CloseMutRef {
     pub lifetime: LifetimeConst,
     pub lifetime_token_permission: Expression,
     pub place: Expression,
+    pub is_user_written: bool,
     pub position: Position,
 }
 
 #[display(
-    fmt = "close_frac_ref({}, rd({}), {}, {})",
+    fmt = "close_frac_ref({}, rd({}), {}, {}, user-written: {})",
     lifetime,
     lifetime_token_permission,
     place,
-    predicate_permission_amount
+    predicate_permission_amount,
+    is_user_written
 )]
 pub struct CloseFracRef {
     pub lifetime: LifetimeConst,
@@ -367,6 +568,20 @@ pub struct CloseFracRef {
     pub place: Expression,
     /// The permission amount that we get for accessing `Owned`.
     pub predicate_permission_amount: VariableDecl,
+    pub is_user_written: bool,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "restore-mut-borrowed({} = &{} {})",
+    referencing_place,
+    lifetime,
+    referenced_place
+)]
+pub struct RestoreMutBorrowed {
+    pub lifetime: LifetimeConst,
+    pub referenced_place: Expression,
+    pub referencing_place: Expression,
     pub position: Position,
 }
 
@@ -382,5 +597,40 @@ pub struct BorShorten {
     pub old_lifetime: LifetimeConst,
     pub value: Expression,
     pub lifetime_token_permission: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "materialize_predicate({}, {})", predicate, check_that_exists)]
+pub struct MaterializePredicate {
+    pub predicate: Predicate,
+    /// Whether we should check that the predicate  chunk actually exists.
+    /// `materialize_predicate!` corresponds to `true` and `quantified_predicate!`
+    /// corresponds to `false`.
+    pub check_that_exists: bool,
+    pub position: Position,
+}
+
+#[derive_helpers]
+#[derive_visitors]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
+pub enum Action {
+    EndLoan(EndLoan),
+}
+
+pub struct EndLoan {
+    pub lifetime: LifetimeConst,
+}
+
+/// An action to be performed when generating the encoding.
+#[display(fmt = "encoding-action {}", action)]
+pub struct EncodingAction {
+    pub action: Action,
+    pub position: Position,
+}
+
+#[display(fmt = "case-split {}", expression)]
+/// Case-split on a pure boolean expression. This operation is ignored by fold-unfold.
+pub struct CaseSplit {
+    pub expression: Expression,
     pub position: Position,
 }

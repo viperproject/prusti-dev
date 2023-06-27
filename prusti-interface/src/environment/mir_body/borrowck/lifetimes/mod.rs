@@ -1,5 +1,6 @@
 use super::facts::{
-    AllInputFacts, BorrowckFacts, Loan, LocationTable, Point, Region, RichLocation,
+    replace_terminator::ReplaceTerminatorDesugaring, AllInputFacts, BorrowckFacts, Loan,
+    LocationTable, Point, Region, RichLocation,
 };
 use crate::environment::debug_utils::to_text::{opaque_lifetime_string, ToText};
 use prusti_rustc_interface::middle::mir;
@@ -12,6 +13,9 @@ pub use self::graphviz::LifetimesGraphviz;
 
 pub struct Lifetimes {
     facts: BorrowckFacts,
+    /// We ignore the loans that are either successfully killed or outlive the
+    /// function body. This is currently an heuristic to avoid f-equalize rule.
+    ignored_loans: BTreeSet<Loan>,
 }
 
 pub struct LifetimeWithInclusions {
@@ -21,7 +25,12 @@ pub struct LifetimeWithInclusions {
 }
 
 impl Lifetimes {
-    pub fn new(mut input_facts: AllInputFacts, location_table: LocationTable) -> Self {
+    pub fn new<'tcx>(
+        mut input_facts: AllInputFacts,
+        location_table: LocationTable,
+        replace_terminator_locations: Vec<ReplaceTerminatorDesugaring>,
+        body: &mir::Body<'tcx>,
+    ) -> Self {
         let entry_block = mir::START_BLOCK;
         let entry_point = location_table.location_to_point(RichLocation::Start(mir::Location {
             block: entry_block,
@@ -37,15 +46,128 @@ impl Lifetimes {
                 .subset_base
                 .push((*origin1, *origin2, entry_point));
         }
-        let output_facts = prusti_rustc_interface::polonius_engine::Output::compute(
+        let mut output_facts = prusti_rustc_interface::polonius_engine::Output::compute(
             &input_facts,
             prusti_rustc_interface::polonius_engine::Algorithm::Naive,
             true,
         );
         assert!(output_facts.errors.is_empty());
-        Self {
-            facts: BorrowckFacts::new(input_facts, output_facts, location_table),
+        for ReplaceTerminatorDesugaring {
+            replacing_drop_location,
+            target_block,
+            unwinding_block,
+        } in replace_terminator_locations
+        {
+            let drop_point =
+                location_table.location_to_point(RichLocation::Mid(replacing_drop_location));
+            let alive_origins = output_facts.origin_live_on_entry[&drop_point].clone();
+            let origin_contains_loan_at = output_facts
+                .origin_contains_loan_at
+                .get(&drop_point)
+                .cloned()
+                .unwrap_or_default();
+            let mut copy_to_point = |target_point| {
+                let target_alive_origins = output_facts
+                    .origin_live_on_entry
+                    .entry(target_point)
+                    .or_default();
+                for origin in &alive_origins {
+                    if !target_alive_origins.contains(origin) {
+                        target_alive_origins.push(*origin);
+                        let target_origin_contains_loan_at = output_facts
+                            .origin_contains_loan_at
+                            .entry(target_point)
+                            .or_default();
+                        if let Some(loan_set) = origin_contains_loan_at.get(origin) {
+                            let old_loan_set =
+                                target_origin_contains_loan_at.insert(*origin, loan_set.clone());
+                            if let Some(old_loan_set) = old_loan_set {
+                                assert_eq!(&old_loan_set, loan_set);
+                            }
+                        }
+                    }
+                }
+                let drop_loan_live_at = output_facts.loan_live_at[&drop_point].clone();
+                let target_loan_live_at = output_facts.loan_live_at.get_mut(&target_point).unwrap();
+                target_loan_live_at.extend(drop_loan_live_at);
+            };
+            let mut copy_to_location = |location: mir::Location| {
+                copy_to_point(location_table.location_to_point(RichLocation::Start(location)));
+                copy_to_point(location_table.location_to_point(RichLocation::Mid(location)));
+            };
+            // Note: This code assumes that the desugaring of `DropAndReplace`
+            // on both target and unwinding paths have a single statement that
+            // does the replace. This is asserted in
+            // prusti-interface/src/environment/mir_body/borrowck/facts/replace_terminator.rs
+            copy_to_location(mir::Location {
+                block: target_block,
+                statement_index: 0,
+            });
+            copy_to_location(mir::Location {
+                block: target_block,
+                statement_index: 1,
+            });
+            copy_to_location(mir::Location {
+                block: unwinding_block,
+                statement_index: 0,
+            });
+            copy_to_location(mir::Location {
+                block: unwinding_block,
+                statement_index: 1,
+            });
         }
+        let mut lifetimes = Self {
+            facts: BorrowckFacts::new(input_facts, output_facts, location_table),
+            ignored_loans: BTreeSet::new(),
+        };
+        {
+            // Compute the successfully killed loans.
+            let all_locations: Vec<_> = lifetimes.facts.location_table.iter_locations().collect();
+            for location in all_locations {
+                let killed_loans = lifetimes.get_loan_successfully_killed_at(location);
+                lifetimes.ignored_loans.extend(killed_loans);
+            }
+        }
+        {
+            // Compute the loans that outlive the function.
+            let entry_loans = lifetimes.get_loan_live_at(RichLocation::Start(mir::Location {
+                block: entry_block,
+                statement_index: 0,
+            }));
+            let mut exit_locations = Vec::new();
+            for (block, data) in body.basic_blocks.iter_enumerated() {
+                match data.terminator().kind {
+                    mir::TerminatorKind::Goto { .. }
+                    | mir::TerminatorKind::SwitchInt { .. }
+                    | mir::TerminatorKind::Drop { .. }
+                    | mir::TerminatorKind::Call { .. }
+                    | mir::TerminatorKind::Assert { .. }
+                    | mir::TerminatorKind::Yield { .. }
+                    | mir::TerminatorKind::GeneratorDrop
+                    | mir::TerminatorKind::FalseEdge { .. }
+                    | mir::TerminatorKind::FalseUnwind { .. }
+                    | mir::TerminatorKind::InlineAsm { .. } => {}
+                    mir::TerminatorKind::Resume
+                    | mir::TerminatorKind::Abort
+                    | mir::TerminatorKind::Return
+                    | mir::TerminatorKind::Unreachable => {
+                        exit_locations.push(mir::Location {
+                            block,
+                            statement_index: data.statements.len(),
+                        });
+                    }
+                }
+            }
+            for location in exit_locations {
+                let loans = lifetimes.get_loan_live_at(RichLocation::Mid(location));
+                for loan in loans {
+                    if !entry_loans.contains(&loan) {
+                        lifetimes.ignored_loans.insert(loan);
+                    }
+                }
+            }
+        }
+        lifetimes
     }
 
     pub fn get_loan_live_at_start(&self, location: mir::Location) -> BTreeSet<String> {
@@ -155,6 +277,32 @@ impl Lifetimes {
         } else {
             Vec::new()
         }
+    }
+
+    fn get_loan_killed_at(&self, location: RichLocation) -> Vec<Loan> {
+        let point = self.location_to_point(location);
+        self.facts
+            .input_facts
+            .loan_killed_at
+            .iter()
+            .flat_map(|&(loan, p)| if p == point { Some(loan) } else { None })
+            .collect()
+    }
+
+    fn get_loan_successfully_killed_at(&self, location: RichLocation) -> Vec<Loan> {
+        let live_loans = self.get_loan_live_at(location);
+        let killed_loans = self.get_loan_killed_at(location);
+        killed_loans
+            .into_iter()
+            .filter(|killed_loan| live_loans.contains(killed_loan))
+            .collect()
+    }
+
+    pub fn get_all_ignored_loans(&self) -> Vec<String> {
+        self.ignored_loans
+            .iter()
+            .map(|loan| opaque_lifetime_string(loan.index()))
+            .collect()
     }
 
     fn get_origin_contains_loan_at(

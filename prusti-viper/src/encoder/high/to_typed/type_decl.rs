@@ -49,16 +49,38 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
         &mut self,
         decl: vir_high::type_decl::Tuple,
     ) -> Result<vir_typed::TypeDecl, Self::Error> {
+        let size = if decl.arguments.is_empty() {
+            Some(0)
+        } else {
+            None
+        };
         let arguments = decl.arguments.high_to_typed_type(self)?;
         Ok(vir_typed::TypeDecl::struct_(
             self.generate_tuple_name(&arguments)?,
             decl.lifetimes.high_to_typed_type(self)?,
             decl.const_parameters.high_to_typed_expression(self)?,
+            None,
             arguments
                 .into_iter()
                 .enumerate()
                 .map(|(index, ty)| vir_typed::FieldDecl::new(format!("tuple_{index}"), index, ty))
                 .collect(),
+            size,
+            Default::default(),
+        ))
+    }
+
+    fn high_to_typed_type_decl_type_decl_never(
+        &mut self,
+    ) -> Result<vir_typed::TypeDecl, Self::Error> {
+        Ok(vir_typed::TypeDecl::struct_(
+            "Never".to_owned(),
+            Vec::new(),
+            Vec::new(),
+            Some(vec![false.into()]),
+            Vec::new(),
+            None,
+            Default::default(),
         ))
     }
 
@@ -130,5 +152,12 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
             discriminant_values: decl.discriminant_values,
             variants: decl.variants.high_to_typed_type_decl(self)?,
         })
+    }
+
+    fn high_to_typed_type_decl_position(
+        &mut self,
+        position: vir_high::Position,
+    ) -> Result<vir_typed::Position, Self::Error> {
+        Ok(position)
     }
 }

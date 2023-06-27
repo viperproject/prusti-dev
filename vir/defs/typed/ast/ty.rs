@@ -14,6 +14,10 @@ pub enum Type {
     MFloat64,
     /// Viper permission amount.
     MPerm,
+    /// Mathematical Byte.
+    MByte,
+    /// A sequence of mathematical Bytes.
+    MBytes,
     Lifetime,
     /// Rust's Bool allocated on the Viper heap.
     Bool,
@@ -32,7 +36,6 @@ pub enum Type {
     Reference(Reference),
     Pointer(Pointer),
     FnPointer,
-    Never,
     Str,
     Closure(Closure),
     FunctionDef(FunctionDef),
@@ -108,7 +111,7 @@ pub enum TypeVar {
     GenericType(GenericType),
 }
 
-/// Either a struct or a tuple.
+/// Either a struct, a tuple, or never.
 #[display(
     fmt = "{}<{}, {}>",
     name,

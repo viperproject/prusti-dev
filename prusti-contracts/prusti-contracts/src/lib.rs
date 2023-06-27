@@ -1,10 +1,30 @@
-#![no_std]
+// #![no_std]  FIXME
 
-/// A macro for writing a precondition on a function.
+/// A macro for writing a functional precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
 
-/// A macro for writing a postcondition on a function.
+/// A macro for writing a structural precondition on an unsafe function.
+pub use prusti_contracts_proc_macros::structural_requires;
+
+/// A macro to indicate that the type invariant is not required by the function.
+/// FIXME: Remove
+pub use prusti_contracts_proc_macros::not_require;
+
+/// A macro for writing a functional postcondition on a function.
 pub use prusti_contracts_proc_macros::ensures;
+
+/// A macro for writing a functional panic postcondition on a function.
+pub use prusti_contracts_proc_macros::panic_ensures;
+
+/// A macro for writing a structural postcondition on an unsafe function.
+pub use prusti_contracts_proc_macros::structural_ensures;
+
+/// A macro to indicate that the type invariant is not ensured by the function.
+/// FIXME: Remove
+pub use prusti_contracts_proc_macros::not_ensure;
+
+/// A macro to indicate that the type invariant is broken.
+pub use prusti_contracts_proc_macros::broken_invariant;
 
 /// A macro for writing a pledge on a function.
 pub use prusti_contracts_proc_macros::after_expiry;
@@ -18,20 +38,58 @@ pub use prusti_contracts_proc_macros::pure;
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 
+/// A macro for marking that a function never panics.
+pub use prusti_contracts_proc_macros::no_panic;
+
+/// A macro for marking that if a function did not panic, then we can soundly
+/// assume its postcondition even if the precondition did not hold. (This
+/// basically means that we check the postcondition in memory safety mode.)
+pub use prusti_contracts_proc_macros::no_panic_ensures_postcondition;
+
 /// A macro for marking a function as opted into verification.
 pub use prusti_contracts_proc_macros::verified;
+
+/// A macro for marking a pure function as to be non-verified, but axiomatized
+/// when the configuration flag `opt_in_verification` is true.
+pub use prusti_contracts_proc_macros::non_verified_pure;
 
 /// A macro for type invariants.
 pub use prusti_contracts_proc_macros::invariant;
 
+/// A macro for structural type invariants. A type with a structural
+/// invariant needs to be managed manually by the user.
+pub use prusti_contracts_proc_macros::structural_invariant;
+
 /// A macro for writing a loop body invariant.
 pub use prusti_contracts_proc_macros::body_invariant;
+
+/// A macro for writing a structural loop body invariant.
+pub use prusti_contracts_proc_macros::structural_body_invariant;
 
 /// A macro for writing assertions using the full prusti specifications
 pub use prusti_contracts_proc_macros::prusti_assert;
 
+/// A macro for writing structural assertions using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_structural_assert;
+
 /// A macro for writing assumptions using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_assume;
+
+/// A macro for writing structural assumptions using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_structural_assume;
+
+/// A macro for case splitting on some expressions.
+pub use prusti_contracts_proc_macros::prusti_split_on;
+
+/// A macro for telling Prusti purification to materialize a predicate instance.
+pub use prusti_contracts_proc_macros::materialize_predicate;
+
+/// A macro for telling Prusti purification that we have a predicate instance
+/// coming from the quantifier.
+pub use prusti_contracts_proc_macros::quantified_predicate;
+
+/// A macro that tells Prusti to assume that the allocation never fails.
+pub use prusti_contracts_proc_macros::assume_allocation_never_fails;
 
 /// A macro for writing refutations using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_refute;
@@ -57,6 +115,18 @@ pub use prusti_contracts_proc_macros::refine_spec;
 /// but omitted during compilation.
 pub use prusti_contracts_proc_macros::ghost;
 
+/// A macro for defining a ghost block that is executed when a specified place
+/// is dropped.
+pub use prusti_contracts_proc_macros::on_drop_unwind;
+
+/// A macro for defining a ghost block that is executed when the execution
+/// leaves the block including via panic.
+pub use prusti_contracts_proc_macros::with_finally;
+
+/// A macro that enables precondition checking when verifying in memory safety
+/// mode.
+pub use prusti_contracts_proc_macros::checked;
+
 /// A macro to customize how a struct or enum should be printed in a counterexample
 pub use prusti_contracts_proc_macros::print_counterexample;
 
@@ -65,6 +135,93 @@ pub use prusti_contracts_proc_macros::terminates;
 
 /// A macro to annotate body variant of a loop to prove termination
 pub use prusti_contracts_proc_macros::body_variant;
+
+/// A macro to mark the place as manually managed.
+pub use prusti_contracts_proc_macros::manually_manage;
+
+/// A macro to manually pack a place capability.
+pub use prusti_contracts_proc_macros::pack;
+
+/// A macro to manually unpack a place capability.
+pub use prusti_contracts_proc_macros::unpack;
+
+/// Tell Prusti to obtain the specified capability.
+pub use prusti_contracts_proc_macros::obtain;
+
+/// A macro to manually pack a place capability.
+pub use prusti_contracts_proc_macros::pack_ref;
+
+/// A macro to manually unpack a place capability.
+pub use prusti_contracts_proc_macros::unpack_ref;
+
+/// A macro to manually pack a place capability.
+pub use prusti_contracts_proc_macros::pack_mut_ref;
+
+/// A macro to manually unpack a place capability.
+pub use prusti_contracts_proc_macros::unpack_mut_ref;
+
+/// A macro to obtain a lifetime of a place.
+pub use prusti_contracts_proc_macros::take_lifetime;
+
+/// A macro to end a lifetime. Note: this macro can be used only in on panic and
+/// finally blocks of `with_finally!`.
+pub use prusti_contracts_proc_macros::end_loan;
+
+/// Set the lifetime of the place to be used for all raw pointer to reference
+/// casts.
+pub use prusti_contracts_proc_macros::set_lifetime_for_raw_pointer_reference_casts;
+
+/// A macro to manually join a place capability.
+pub use prusti_contracts_proc_macros::join;
+
+/// A macro to manually join a range of memory blocks into one.
+pub use prusti_contracts_proc_macros::join_range;
+
+/// A macro to manually split a place capability.
+pub use prusti_contracts_proc_macros::split;
+
+/// A macro to manually split a memory block into a range of memory blocks.
+pub use prusti_contracts_proc_macros::split_range;
+
+/// A macro to stash away a range of own capabilities to get access to
+/// underlying raw memory.
+pub use prusti_contracts_proc_macros::stash_range;
+
+/// A macro to restore the stash away a range of own capabilities.
+pub use prusti_contracts_proc_macros::restore_stash_range;
+
+/// A macro to manually close a reference.
+pub use prusti_contracts_proc_macros::close_ref;
+
+/// A macro to manually open a reference.
+pub use prusti_contracts_proc_macros::open_ref;
+
+/// A macro to manually close a reference.
+pub use prusti_contracts_proc_macros::close_mut_ref;
+
+/// A macro to manually open a reference.
+pub use prusti_contracts_proc_macros::open_mut_ref;
+
+/// A macro to apply the inheritance rule to the specified place.
+pub use prusti_contracts_proc_macros::restore_mut_borrowed;
+
+/// A macro to manually resolve a reference.
+pub use prusti_contracts_proc_macros::resolve;
+
+/// A macro to manually resolve a range of references.
+pub use prusti_contracts_proc_macros::resolve_range;
+
+/// A macro to forget that a place is initialized.
+pub use prusti_contracts_proc_macros::forget_initialization;
+
+/// A macro to forget that a range of places are initialized.
+pub use prusti_contracts_proc_macros::forget_initialization_range;
+
+/// A macro to restore a place capability.
+pub use prusti_contracts_proc_macros::restore;
+
+/// A macro to set a specific field of the union as active.
+pub use prusti_contracts_proc_macros::set_union_active_field;
 
 #[cfg(not(feature = "prusti"))]
 mod private {
@@ -119,6 +276,17 @@ mod private {
     pub struct Ghost<T> {
         _phantom: PhantomData<T>,
     }
+
+    /// A type allowing to refer to a lifetime in places where Rust syntax does
+    /// not allow it. It should not be possible to construct from Rust code,
+    /// hence the private unit inside.
+    pub struct Lifetime(());
+
+    /// A methematical type representing a machine byte.
+    pub struct Byte(());
+
+    /// A methematical type representing a sequence of machine bytes.
+    pub struct Bytes(());
 }
 
 #[cfg(feature = "prusti")]
@@ -131,14 +299,20 @@ mod private {
     /// A macro for defining a closure with a specification.
     pub use prusti_contracts_proc_macros::{closure, pure, trusted};
 
-    pub fn prusti_set_union_active_field<T>(_arg: T) {
-        unreachable!();
-    }
+    // pub fn prusti_set_union_active_field<T>(_arg: T) {
+    //     unreachable!();
+    // }
 
     #[pure]
     pub fn prusti_terminates_trusted() -> Int {
         Int::new(1)
     }
+
+    /// A type allowing to refer to a lifetime in places where Rust syntax does
+    /// not allow it. It should not be possible to construct from Rust code,
+    /// hence the private unit inside.
+    #[derive(Copy, Clone)]
+    pub struct Lifetime(());
 
     /// a mathematical (unbounded) integer type
     /// it should not be constructed from running rust code, hence the private unit inside
@@ -151,6 +325,18 @@ mod private {
         }
 
         pub fn new_usize(_: usize) -> Self {
+            panic!()
+        }
+
+        pub fn new_isize(_: isize) -> Self {
+            panic!()
+        }
+
+        pub fn to_usize(&self) -> usize {
+            panic!()
+        }
+
+        pub fn to_isize(&self) -> isize {
             panic!()
         }
     }
@@ -325,6 +511,14 @@ mod private {
             panic!()
         }
     }
+
+    /// A methematical type representing a machine byte.
+    #[derive(Copy, Clone, PartialEq, Eq)]
+    pub struct Byte(());
+
+    /// A methematical type representing a sequence of machine bytes.
+    #[derive(Copy, Clone, PartialEq, Eq)]
+    pub struct Bytes(());
 }
 
 /// This function is used to evaluate an expression in the context just
@@ -366,6 +560,425 @@ pub fn snap<T>(_x: &T) -> T {
 /// are not. Importantly, addresses are not taken into consideration.
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_manually_manage<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_pack_place<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unpack_place<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_obtain_place<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_pack_ref_place<T>(_lifetime_name: &'static str, _arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unpack_ref_place<T>(_lifetime_name: &'static str, _arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_pack_mut_ref_place<T>(_lifetime_name: &'static str, _arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unpack_mut_ref_place<T>(_lifetime_name: &'static str, _arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_take_lifetime<T>(_arg: T, _lifetime_name: &'static str) -> Lifetime {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_end_loan(_lifetime_name: &'static str) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_set_lifetime_for_raw_pointer_reference_casts<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_join_place<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_join_range<T>(_arg: T, _start_index: usize, _end_index: usize) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_split_place<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_split_range<T>(_arg: T, _start_index: usize, _end_index: usize) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_stash_range<T>(
+    _arg: T,
+    _start_index: usize,
+    _end_index: usize,
+    _witness: &'static str,
+) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_restore_stash_range<T>(_arg: T, _new_start_index: usize, _witness: &'static str) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+/// We need to pass `_arg` to make sure the lifetime covers the closing of the
+/// reference.
+pub fn prusti_close_ref_place<T>(_arg: T, _witness: &'static str) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_open_ref_place<T>(_lifetime: &'static str, _arg: T, _witness: &'static str) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+/// We need to pass `_arg` to make sure the lifetime covers the closing of the
+/// reference.
+pub fn prusti_close_mut_ref_place<T>(_arg: T, _witness: &'static str) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_open_mut_ref_place<T>(_lifetime: &'static str, _arg: T, _witness: &'static str) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_restore_mut_borrowed<T1, T2>(_referencing: T1, _referenced: T2) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_resolve<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_materialize_predicate<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_quantified_predicate<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_assume_allocation_never_fails() {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_resolve_range<T>(
+    _lifetime: &'static str,
+    _arg: T,
+    _predicate_range_start_index: usize,
+    _predicate_range_end_index: usize,
+    _start_index: usize,
+    _end_index: usize,
+) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+#[pure]
+pub fn prusti_forget_initialization<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+#[pure]
+pub fn prusti_forget_initialization_range<T>(_address: T, _start: usize, _end: usize) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_on_drop_unwind<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_restore_place<T>(_arg1: T, _arg2: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_set_union_active_field<T>(_arg: T) {
+    unreachable!();
+}
+
+/// Indicates that the expression should be evaluated assuming that the given
+/// predicate is present.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_eval_in<T>(_predicate: bool, _expression: T) -> T {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! eval_in {
+    ($predicate:expr, $expression:expr) => {
+        $crate::prusti_eval_in($predicate, $expression)
+    };
+}
+
+/// Indicates that the parameter's or return value invariant is broken.
+#[doc(hidden)]
+#[trusted]
+#[pure]
+pub fn prusti_broken_invariant<T>(_place: T) -> bool {
+    unreachable!();
+}
+
+/// Indicates that we have the `own` capability to the specified place.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_own<T>(_place: T) -> bool {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! own {
+    ($place:expr) => {
+        $crate::prusti_own(unsafe { core::ptr::addr_of!($place) })
+    };
+}
+
+/// Indicates that we have the `own` capability to the specified range.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_own_range<T>(_address: T, _start: usize, _end: usize) -> bool {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! own_range {
+    ($address:expr, $start:expr, $end:expr) => {
+        $crate::prusti_own_range($address, $start, $end)
+    };
+}
+
+/// Indicates that we have the shared reference capability to the specified
+/// place.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_shr<T>(_place: T) -> bool {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! shr {
+    ($place:expr) => {
+        $crate::prusti_shr(unsafe { core::ptr::addr_of!($place) })
+    };
+}
+
+/// Indicates that we have the unique reference capability to the specified
+/// place.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unq<T1, T2>(_lifetime: T1, _place: T2) -> bool {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! unq {
+    ($lifetime:ident, $place:expr) => {
+        $crate::prusti_unq(stringify!($lifetime), unsafe {
+            core::ptr::addr_of!($place)
+        })
+    };
+}
+
+/// Deref a raw pointer with the specified offset.
+#[doc(hidden)]
+#[trusted]
+pub unsafe fn prusti_deref_own<T>(_address: *const T, _index: usize) -> T {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! deref_own {
+    ($address:expr, $index:expr) => {
+        unsafe { $crate::prusti_deref_own($address, $index) }
+    };
+}
+
+/// Obtain the bytes of the specified memory block.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_bytes<T>(_address: T, _length: usize) -> Bytes {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! bytes {
+    ($address:expr, $length:expr) => {
+        $crate::prusti_bytes(unsafe { core::ptr::addr_of!($address) }, $length)
+    };
+}
+
+/// Read the byte at the given index.
+///
+/// FIXME: This function does not check bounds. Instead, it returns garbage in
+/// case of out-of-bounds
+pub fn read_byte(_bytes: Bytes, _index: usize) -> Byte {
+    unreachable!();
+}
+
+/// Check whether `element_address` is contained in the range starting at
+/// `start_address` and having the specified size.
+pub fn range_contains<T>(
+    _start_address: *const T,
+    _range_size: usize,
+    _element_address: *const T,
+) -> bool {
+    unreachable!();
+}
+
+/// Indicates that we have the `raw` capability to the specified address.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_raw<T>(_address: T, _size: usize) -> bool {
+    true
+}
+
+#[macro_export]
+macro_rules! raw {
+    ($place:expr, $size: expr) => {
+        $crate::prusti_raw(unsafe { core::ptr::addr_of!($place) }, $size)
+    };
+}
+
+/// Indicates that we have the `raw` capability to the specified range.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_raw_range<T>(_address: T, _size: usize, _start: usize, _end: usize) -> bool {
+    unreachable!();
+}
+
+/// Indicates that we have the `raw` capability for locations for which the
+/// condition holds.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_raw_range_guarded<T, S, F>(
+    _address: T,
+    _size: usize,
+    _trigger_set: S,
+    _closure: F,
+) -> bool {
+    unreachable!();
+}
+
+/// Indicates that we have the capability to deallocate.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_raw_dealloc<T>(_address: T, _size: usize) -> bool {
+    true
+}
+
+#[macro_export]
+macro_rules! raw_dealloc {
+    ($place:expr, $size: expr, $align: expr) => {
+        $crate::prusti_raw_dealloc(unsafe { core::ptr::addr_of!($place) }, $size)
+    };
+}
+
+/// Temporarily unpacks the owned predicate at the given location.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unpacking<T, U>(_place: T, _body: U) -> U {
+    unimplemented!()
+}
+
+#[macro_export]
+macro_rules! unpacking {
+    ($place:expr, $body: expr) => {
+        $crate::prusti_unpacking(unsafe { core::ptr::addr_of!($place) }, $body)
+    };
+}
+
+/// A ghost operation for computing an offset of the pointer.
+pub fn address_offset_mut<T>(_ptr: *mut T, _count: Int) -> *mut T {
+    unreachable!();
+}
+
+/// A ghost operation for computing an offset of the pointer.
+pub fn address_offset<T>(_ptr: *const T, _count: Int) -> *const T {
+    unreachable!();
+}
+
+#[trusted]
+#[pure]
+#[no_panic]
+#[no_panic_ensures_postcondition]
+pub fn allocation_never_fails() -> bool {
+    unreachable!();
 }
 
 pub use private::*;

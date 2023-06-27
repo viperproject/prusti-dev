@@ -2,10 +2,12 @@ pub macro ty {
     (Int) => {$crate::low::ast::ty::Type::Int},
     (Bool) => {$crate::low::ast::ty::Type::Bool},
     (Perm) => {$crate::low::ast::ty::Type::Perm},
-    (Place) => {$crate::low::ast::ty::Type::domain("Place".to_string())},
-    (Address) => {$crate::low::ast::ty::Type::domain("Address".to_string())},
-    (Lifetime) => {$crate::low::ast::ty::Type::domain("Lifetime".to_string())},
-    (Bytes) => {$crate::low::ast::ty::Type::domain("Bytes".to_string())},
+    (Place) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::PLACE_DOMAIN_NAME.to_string())},
+    (PlaceOption) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::PLACE_OPTION_DOMAIN_NAME.to_string())},
+    (Address) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::ADDRESS_DOMAIN_NAME.to_string())},
+    (Lifetime) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::LIFETIME_DOMAIN_NAME.to_string())},
+    (Byte) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::BYTE_DOMAIN_NAME.to_string())},
+    (Bytes) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::BYTES_DOMAIN_NAME.to_string())},
     ({$ty:expr}) => { $ty },
 }
 

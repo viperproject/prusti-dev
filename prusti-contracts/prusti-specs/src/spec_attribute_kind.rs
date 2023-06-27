@@ -18,6 +18,14 @@ pub enum SpecAttributeKind {
     Terminates = 10,
     PrintCounterexample = 11,
     Verified = 12,
+    NoPanic = 13,
+    NoPanicEnsuresPostcondition = 14,
+    NotRequire = 15,
+    NotEnsure = 16,
+    NonVerifiedPure = 17,
+    StructuralRequires = 18,
+    StructuralEnsures = 19,
+    PanicEnsures = 20,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -26,7 +34,10 @@ impl TryFrom<String> for SpecAttributeKind {
     fn try_from(name: String) -> Result<Self, Self::Error> {
         match name.as_str() {
             "requires" => Ok(SpecAttributeKind::Requires),
+            "structural_requires" => Ok(SpecAttributeKind::StructuralRequires),
             "ensures" => Ok(SpecAttributeKind::Ensures),
+            "panic_ensures" => Ok(SpecAttributeKind::PanicEnsures),
+            "structural_ensures" => Ok(SpecAttributeKind::StructuralEnsures),
             "after_expiry" => Ok(SpecAttributeKind::AfterExpiry),
             "assert_on_expiry" => Ok(SpecAttributeKind::AssertOnExpiry),
             "pure" => Ok(SpecAttributeKind::Pure),
@@ -37,6 +48,11 @@ impl TryFrom<String> for SpecAttributeKind {
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             "verified" => Ok(SpecAttributeKind::Verified),
+            "non_verified_pure" => Ok(SpecAttributeKind::NonVerifiedPure),
+            "no_panic" => Ok(SpecAttributeKind::NoPanic),
+            "no_panic_ensures_postcondition" => Ok(SpecAttributeKind::NoPanicEnsuresPostcondition),
+            "not_require" => Ok(SpecAttributeKind::NotRequire),
+            "not_ensure" => Ok(SpecAttributeKind::NotEnsure),
             _ => Err(name),
         }
     }

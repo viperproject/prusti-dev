@@ -1,5 +1,6 @@
 use super::super::ast::{
     expression::{Expression, Local},
+    position::Position,
     statement::Statement,
 };
 use crate::common::{check_mode::CheckMode, display};
@@ -14,9 +15,13 @@ use std::collections::BTreeMap;
 pub struct ProcedureDecl {
     pub name: String,
     pub check_mode: CheckMode,
+    /// Stack variables are by default non-aliased. This property is exploited
+    /// by optimizations.
+    pub non_aliased_places: Vec<Expression>,
     pub entry: BasicBlockId,
     pub exit: BasicBlockId,
     pub basic_blocks: BTreeMap<BasicBlockId, BasicBlock>,
+    pub position: Position,
 }
 
 #[derive(PartialOrd, Ord, derive_more::Constructor, derive_more::AsRef)]

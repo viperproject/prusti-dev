@@ -103,7 +103,10 @@ lazy_static::lazy_static! {
         settings.set_default("quiet", false).unwrap();
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
-        settings.set_default("use_more_complete_exhale", true).unwrap();
+        settings.set_default("smt_use_nonlinear_arithmetic_solver", false).unwrap();
+        settings.set_default("use_more_complete_exhale", false).unwrap();
+        settings.set_default("use_carbon_qps", true).unwrap();
+        settings.set_default("use_z3_api", false).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
@@ -114,19 +117,46 @@ lazy_static::lazy_static! {
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations", "all").unwrap();
         settings.set_default("intern_names", true).unwrap();
+        settings.set_default("create_missing_storage_live", false).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
+        settings.set_default("custom_heap_encoding", false).unwrap();
+        settings.set_default("trace_with_symbolic_execution", false).unwrap();
+        settings.set_default("trace_with_symbolic_execution_new", true).unwrap();
+        settings.set_default("purify_with_symbolic_execution", false).unwrap();
+        settings.set_default("symbolic_execution_single_method", true).unwrap();
+        settings.set_default("symbolic_execution_multiple_methods_max", 100).unwrap();
+        settings.set_default("symbolic_execution_leak_check", true).unwrap();
+        settings.set_default("symbolic_execution_simp_valid_expr", false).unwrap();
+        settings.set_default("panic_on_failed_exhale", false).unwrap();
+        settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
+        settings.set_default("end_borrow_view_shift_non_aliased", true).unwrap();
+        settings.set_default("materialize_on_failed_exhale", false).unwrap();
+        settings.set_default("ignore_whether_exhale_is_unconditional", false).unwrap();
+        settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
+        settings.set_default("expand_quantifiers", false).unwrap();
+        settings.set_default("clean_labels", true).unwrap();
+        settings.set_default("merge_consecutive_statements", true).unwrap();
+        settings.set_default("merge_consecutive_statements_same_pos", true).unwrap();
+        settings.set_default("merge_consecutive_statements_only_inhale", true).unwrap();
+        settings.set_default("report_symbolic_execution_failures", false).unwrap();
+        settings.set_default("report_symbolic_execution_purification", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
         settings.set_default("verify_specifications", true).unwrap();
+        settings.set_default("verify_postcondition_frame_check", true).unwrap();
         settings.set_default("verify_types", false).unwrap();
-        settings.set_default("verify_specifications_with_core_proof", false).unwrap();
+        settings.set_default("verify_specifications_with_core_proof", true).unwrap();
         settings.set_default("verify_specifications_backend", "Silicon").unwrap();
         settings.set_default("use_eval_axioms", true).unwrap();
         settings.set_default("inline_caller_for", false).unwrap();
+        settings.set_default("use_snapshot_parameters_in_predicates", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
+        settings.set_default("allow_prusti_assume", false).unwrap();
+        settings.set_default("allow_assuming_allocation_never_fails", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
+        settings.set_default("function_gas_amount", 2).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
 
@@ -500,6 +530,12 @@ pub fn smt_qi_eager_threshold() -> u64 {
     read_setting("smt_qi_eager_threshold")
 }
 
+/// Disable or enable the non-linear arithmetic solver by setting Z3
+/// `smt.arith.nl` and `smt.arith.nl.gb` values to the given one.
+pub fn smt_use_nonlinear_arithmetic_solver() -> bool {
+    read_setting("smt_use_nonlinear_arithmetic_solver")
+}
+
 /// Maximum time (in milliseconds) for the verifier to spend on checks.
 /// Set to None uses the verifier's default value. Maps to the verifier command-line
 /// argument `--checkTimeout`.
@@ -513,8 +549,33 @@ pub fn check_timeout() -> Option<u32> {
 /// See [`consolidate`](https://github.com/viperproject/silicon/blob/f48de7f6e2d90d9020812869c713a5d3e2035995/src/main/scala/rules/StateConsolidator.scala#L29-L46).
 /// Equivalent to the verifier command-line argument
 /// `--enableMoreCompleteExhale`.
+///
+/// Note: This option conflicts with `use_carbon_qps`.
 pub fn use_more_complete_exhale() -> bool {
-    read_setting("use_more_complete_exhale")
+    let result = read_setting("use_more_complete_exhale");
+    assert!(
+        !(result && read_setting::<bool>("use_carbon_qps")),
+        "use_more_complete_exhale and use_carbon_qps are mutually exclusive"
+    );
+    result
+}
+
+/// When enabled, a Carbon QPs version of Silicon is used. Equivalent to the
+/// Silicon command-line argument `--carbonQPs`.
+///
+/// Note: This option conflicts with `use_more_complete_exhale`.
+pub fn use_carbon_qps() -> bool {
+    let result = read_setting("use_carbon_qps");
+    assert!(
+        !(result && read_setting::<bool>("use_more_complete_exhale")),
+        "use_more_complete_exhale and use_carbon_qps are mutually exclusive"
+    );
+    result
+}
+
+/// When enabled, Z3 is used via API.
+pub fn use_z3_api() -> bool {
+    read_setting("use_z3_api")
 }
 
 /// When enabled, prints the items collected for verification.
@@ -732,6 +793,18 @@ pub fn optimizations() -> Optimizations {
     opt
 }
 
+/// The Rust compiler does not guarantee that each `StorageDead` is dominated by
+/// a `StorageLive`:
+///
+/// * https://github.com/rust-lang/rust/issues/99160
+/// * https://github.com/rust-lang/rust/issues/98896
+///
+/// This option controls whether we should create fake `StorageLive` statements
+/// in such cases.
+pub fn create_missing_storage_live() -> bool {
+    read_setting("create_missing_storage_live")
+}
+
 /// When enabled, impure methods are optimized using the purification
 /// optimization, which tries to convert heap operations to pure (snapshot-
 /// based) operations.
@@ -870,6 +943,201 @@ pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
 }
 
+/// Use symbolic execution to split the procedure into traces that are verified
+/// separately.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn trace_with_symbolic_execution() -> bool {
+    read_setting("trace_with_symbolic_execution") || purify_with_symbolic_execution()
+}
+
+pub fn trace_with_symbolic_execution_new() -> bool {
+    read_setting("trace_with_symbolic_execution_new")
+}
+
+/// Use symbolic execution based purification.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+///
+/// **Note:** This option automatically enables
+/// `trace_with_symbolic_execution`.
+pub fn purify_with_symbolic_execution() -> bool {
+    read_setting("purify_with_symbolic_execution")
+}
+
+/// Puts all symbolic execution traces into a single method.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn symbolic_execution_single_method() -> bool {
+    read_setting("symbolic_execution_single_method")
+}
+
+/// If `symbolic_execution_single_method` is true, this option specifies the
+/// upper bound on the number of generated methods.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn symbolic_execution_multiple_methods_max() -> u16 {
+    read_setting("symbolic_execution_multiple_methods_max")
+}
+
+/// Performs predicate leak check during symbolic execution.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn symbolic_execution_leak_check() -> bool {
+    read_setting("symbolic_execution_leak_check")
+}
+
+/// Simmplifies snapshot expressions by using knowledge what expressions are
+/// valid.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+///
+/// **Note:** This optimization is not fully implemented and benchmarking on a
+/// completely safe Rust code shows only negligible performance difference
+/// (Silicon: 35s → 36s, Carbon: 23s → 22s).
+pub fn symbolic_execution_simp_valid_expr() -> bool {
+    read_setting("symbolic_execution_simp_valid_expr")
+}
+
+/// Panics if symbolic execution failed to purify out an exhale.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn panic_on_failed_exhale() -> bool {
+    read_setting("panic_on_failed_exhale")
+}
+
+/// Panics if symbolic execution failed to purify out an exhale and it resulted
+/// in a materialization of resources. In other words, if symbolic execution
+/// failed to exhale an aliased resource.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn panic_on_failed_exhale_materialization() -> bool {
+    read_setting("panic_on_failed_exhale_materialization")
+}
+
+/// Treat end-borrow view shift as non-aliased.
+///
+/// **Note:** This option does not affect soundness. Setting it to true makes
+/// the encoding faster, but more incomplete.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn end_borrow_view_shift_non_aliased() -> bool {
+    read_setting("end_borrow_view_shift_non_aliased")
+}
+
+/// If symbolic execution fails to purify out an exhale, materialize the exhale.
+/// This means that the purifier will emit inhale statements for all chunks it has and an exhale statement for the chunk it failed to exhale.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn materialize_on_failed_exhale() -> bool {
+    read_setting("materialize_on_failed_exhale")
+}
+
+/// If this option is false, purification purifies out only exhales that are
+/// guaranteed to succeed because we know that on all incoming branches we have
+/// the necessary heap chunk. Setting this option to `true` is sound (because we
+/// still ask the verifier to check that the permission variable has the value
+/// we expect on all traces), but it can lead to incompletenesses when the
+/// purifier fails to merge the heap chunks due to incomplete solver.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn ignore_whether_exhale_is_unconditional() -> bool {
+    read_setting("ignore_whether_exhale_is_unconditional")
+}
+
+/// Error when simplifying non-linear arithmetic fails.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn error_non_linear_arithmetic_simp() -> bool {
+    read_setting("error_non_linear_arithmetic_simp")
+}
+
+/// Whether to expand the asserted quantifiers (skolemize them out).
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof`
+/// is true.
+pub fn expand_quantifiers() -> bool {
+    read_setting("expand_quantifiers")
+}
+
+/// Whether to remove unused label statements.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof`
+/// is true.
+pub fn clean_labels() -> bool {
+    read_setting("clean_labels")
+}
+
+/// Whether to merge consequative Viper statements. For example:
+///
+/// ```viper
+/// inhale A
+/// inhale B
+/// ```
+///
+/// becomes
+///
+/// ```viper
+/// inhale A && B
+/// ```
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof`
+/// is true.
+pub fn merge_consecutive_statements() -> bool {
+    read_setting("merge_consecutive_statements")
+}
+
+/// When merging consequative statements, merge only statements that have the same position.
+pub fn merge_consecutive_statements_same_pos() -> bool {
+    read_setting("merge_consecutive_statements_same_pos")
+}
+
+/// When merging consequative statements, merge only inhale and assume
+/// statements.
+pub fn merge_consecutive_statements_only_inhale() -> bool {
+    read_setting("merge_consecutive_statements_only_inhale")
+}
+
+/// Report an error when failing to purify a predicate in symbolic execution.
+///
+/// **Note:** This option requires `purify_with_symbolic_execution` to be
+/// enabled.
+pub fn report_symbolic_execution_failures() -> bool {
+    let result: bool = read_setting("report_symbolic_execution_failures");
+    assert!(!result || purify_with_symbolic_execution());
+    result
+}
+
+/// Add comments at the places where predicates were purified by the symbolic
+/// execution.
+///
+/// **Note:** This option requires `purify_with_symbolic_execution` to be
+/// enabled.
+pub fn report_symbolic_execution_purification() -> bool {
+    assert!(purify_with_symbolic_execution() || trace_with_symbolic_execution());
+    read_setting("report_symbolic_execution_purification")
+}
+
+/// Use custom heap encoding.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn custom_heap_encoding() -> bool {
+    read_setting("custom_heap_encoding")
+}
+
 /// Whether the core proof (memory safety) should be verified.
 ///
 /// **Note:** This option is taken into account only when `unsafe_core_proof` is
@@ -884,6 +1152,17 @@ pub fn verify_core_proof() -> bool {
 /// true.
 pub fn verify_specifications() -> bool {
     read_setting("verify_specifications")
+}
+
+/// Whether the postcondition framing should be verified.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+///
+/// **Note:** This option is taken into account only when `verify_core_proof` is
+/// true.
+pub fn verify_postcondition_frame_check() -> bool {
+    read_setting("verify_postcondition_frame_check")
 }
 
 /// Whether the types should be verified.
@@ -924,11 +1203,36 @@ pub fn inline_caller_for() -> bool {
     read_setting("inline_caller_for")
 }
 
+/// Whether to make the snapshot, an explicit parameter of the predicate.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn use_snapshot_parameters_in_predicates() -> bool {
+    read_setting("use_snapshot_parameters_in_predicates")
+}
+
 /// When enabled, replaces calls to the drop function with `assert false`.
 ///
 /// **Note:** This option is used only for testing.
 pub fn check_no_drops() -> bool {
     read_setting("check_no_drops")
+}
+
+/// When enabled, allows using `prusti_assume` and `prusti_structural_assume`
+/// macros.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn allow_prusti_assume() -> bool {
+    read_setting("allow_prusti_assume")
+}
+
+/// When enabled, allows using `assume_allocation_never_fails` macro.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn allow_assuming_allocation_never_fails() -> bool {
+    read_setting("allow_assuming_allocation_never_fails")
 }
 
 /// When enabled, Prusti uses the new VIR encoder.
@@ -941,6 +1245,14 @@ pub fn check_no_drops() -> bool {
 /// then setting this flag to `false` may help.
 pub fn use_new_encoder() -> bool {
     read_setting("use_new_encoder")
+}
+
+/// How many times to unroll the pure function definitions.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn function_gas_amount() -> u32 {
+    read_setting("function_gas_amount")
 }
 
 /// How many parallel verifiers Silicon should use.

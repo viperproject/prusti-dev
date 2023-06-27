@@ -3,7 +3,10 @@ use super::{
         ensure_required_permission, ensure_required_permissions,
         try_ensure_enum_discriminant_by_unfolding,
     },
-    state::{FoldUnfoldState, PlaceWithDeadLifetimes, PredicateState, PredicateStateOnPath},
+    state::{
+        DeadLifetimeReport, FoldUnfoldState, PlaceWithDeadLifetimes, PredicateState,
+        PredicateStateOnPath,
+    },
 };
 use crate::encoder::{
     errors::SpannedEncodingResult,
@@ -20,10 +23,13 @@ use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::{btree_map::Entry, BTreeMap};
 use vir_crate::{
-    common::{display::cjoin, position::Positioned},
+    common::{cfg::Cfg, check_mode::CheckMode, display::cjoin, position::Positioned},
     middle::{
         self as vir_mid,
-        operations::{TypedToMiddleExpression, TypedToMiddleStatement, TypedToMiddleType},
+        operations::{
+            ty::Typed, TypedToMiddleExpression, TypedToMiddlePredicate, TypedToMiddleStatement,
+            TypedToMiddleType,
+        },
     },
     typed::{self as vir_typed},
 };
@@ -34,6 +40,7 @@ mod debugging;
 pub(super) struct Visitor<'p, 'v, 'tcx> {
     encoder: &'p mut Encoder<'v, 'tcx>,
     _proc_def_id: DefId,
+    check_mode: Option<CheckMode>,
     state_at_entry: BTreeMap<vir_mid::BasicBlockId, FoldUnfoldState>,
     /// Used only for debugging purposes.
     state_at_exit: BTreeMap<vir_mid::BasicBlockId, FoldUnfoldState>,
@@ -55,6 +62,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         Self {
             encoder,
             _proc_def_id: proc_def_id,
+            check_mode: None,
             state_at_entry: Default::default(),
             state_at_exit: Default::default(),
             procedure_name: None,
@@ -74,6 +82,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         entry_state: FoldUnfoldState,
     ) -> SpannedEncodingResult<vir_mid::ProcedureDecl> {
         self.procedure_name = Some(procedure.name.clone());
+        self.check_mode = Some(procedure.check_mode);
 
         let mut path_disambiguators = BTreeMap::new();
         for ((from, to), value) in procedure.get_path_disambiguators() {
@@ -114,9 +123,16 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             self.render_crash_graphviz(Some(&label_markers));
         }
         let check_mode = procedure.check_mode;
+        let non_aliased_places = procedure
+            .non_aliased_places
+            .into_iter()
+            .map(|place| place.typed_to_middle_expression(self.encoder))
+            .collect::<Result<_, _>>()?;
         let new_procedure = vir_mid::ProcedureDecl {
             name: self.procedure_name.take().unwrap(),
             check_mode,
+            position: procedure.position,
+            non_aliased_places,
             entry: self.entry_label.take().unwrap(),
             exit: self.lower_label(&procedure.exit),
             basic_blocks: std::mem::take(&mut self.basic_blocks),
@@ -166,9 +182,14 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 .remove(self.current_label.as_ref().unwrap())
                 .unwrap()
         };
+        let mut skip_automatic_close_ref = Vec::new();
         for statement in old_block.statements {
-            self.lower_statement(statement, &mut state)?;
+            self.lower_statement(statement, &mut state, &mut skip_automatic_close_ref)?;
         }
+        assert!(
+            skip_automatic_close_ref.is_empty(),
+            "Automatic opening of references cannot span multiple blocks."
+        );
         let successor_blocks = self.current_successors()?;
         assert!(
             !successor_blocks.is_empty() || state.contains_only_leakable(),
@@ -189,6 +210,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         &mut self,
         statement: vir_typed::Statement,
         state: &mut FoldUnfoldState,
+        skip_automatic_close_ref: &mut Vec<vir_typed::Expression>,
     ) -> SpannedEncodingResult<()> {
         assert!(
             statement.is_comment() || statement.is_leak_all() || !statement.position().is_default(),
@@ -196,6 +218,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         );
         if let vir_typed::Statement::DeadLifetime(dead_lifetime) = statement {
             self.process_dead_lifetime(dead_lifetime, state)?;
+            self.add_statements_to_current_block();
             return Ok(());
         }
         if let vir_typed::Statement::Assign(vir_typed::Assign {
@@ -205,6 +228,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         }) = statement
         {
             self.process_assign_discriminant(target, discriminant, position, state)?;
+            self.add_statements_to_current_block();
             return Ok(());
         }
         let (consumed_permissions, produced_permissions) =
@@ -215,12 +239,32 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             cjoin(&consumed_permissions),
             cjoin(&produced_permissions)
         );
+        match &statement {
+            vir_typed::Statement::OpenMutRef(open_mut_ref_statement)
+                if !open_mut_ref_statement.is_user_written
+                    && state
+                        .is_opened_ref(&open_mut_ref_statement.place)?
+                        .is_some() =>
+            {
+                skip_automatic_close_ref.push(open_mut_ref_statement.place.clone());
+                return Ok(());
+            }
+            vir_typed::Statement::CloseMutRef(close_mut_ref_statement)
+                if !close_mut_ref_statement.is_user_written
+                    && skip_automatic_close_ref.contains(&close_mut_ref_statement.place) =>
+            {
+                let place = skip_automatic_close_ref.pop().unwrap();
+                assert_eq!(place, close_mut_ref_statement.place);
+                return Ok(());
+            }
+            _ => {}
+        }
         state.check_consistency();
         let actions = ensure_required_permissions(self, state, consumed_permissions.clone())?;
-        self.process_actions(actions)?;
+        self.process_actions(state, actions)?;
         state.remove_permissions(&consumed_permissions)?;
         state.insert_permissions(produced_permissions)?;
-        match &statement {
+        match statement {
             vir_typed::Statement::ObtainMutRef(_) => {
                 // The requirements already performed the needed changes.
             }
@@ -232,7 +276,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 //    the end of the exit block).
                 state.clear()?;
             }
-            vir_typed::Statement::SetUnionVariant(variant_statement) => {
+            vir_typed::Statement::SetUnionVariant(ref variant_statement) => {
                 let position = variant_statement.position();
                 // Split the memory block for the union itself.
                 let parent = variant_statement.variant_place.get_parent_ref().unwrap();
@@ -257,11 +301,453 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 self.current_statements
                     .push(statement.typed_to_middle_statement(self.encoder)?);
             }
+            vir_typed::Statement::Pack(pack_statement) => {
+                // state.remove_manually_managed(&pack_statement.place)?;
+                let position = pack_statement.position();
+                let permission =
+                    self.get_permission_for_maybe_opened_place(state, &pack_statement.place)?;
+                let place = pack_statement
+                    .place
+                    .clone()
+                    .typed_to_middle_expression(self.encoder)?;
+                // let permission = pack_statement
+                //     .permission
+                //     .map(|permission| permission.clone().typed_to_middle_expression(self.encoder))
+                //     .transpose()?;
+                // let encoded_statement = vir_mid::Statement::fold_owned(place, None, position);
+                // FIXME: Code duplication.
+                let encoded_statement = match pack_statement.predicate_kind {
+                    vir_typed::ast::statement::PredicateKind::Owned => {
+                        vir_mid::Statement::fold_owned(place, None, permission, position)
+                    }
+                    vir_typed::ast::statement::PredicateKind::UniqueRef(predicate_kind) => {
+                        // let first_reference = place
+                        //     .get_first_dereferenced_reference()
+                        //     .expect("TODO: Report a proper error");
+                        // let vir_mid::Type::Reference(reference) = first_reference.get_type() else {
+                        //     unreachable!()
+                        // };
+                        // let lifetime = reference.lifetime.clone();
+                        vir_mid::Statement::fold_ref(
+                            place,
+                            predicate_kind.lifetime.typed_to_middle_type(self.encoder)?,
+                            vir_mid::ty::Uniqueness::Unique,
+                            None,
+                            position,
+                        )
+                    }
+                    vir_typed::ast::statement::PredicateKind::FracRef(_) => todo!(),
+                };
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::Unpack(unpack_statement) => {
+                // state.insert_manually_managed(unpack_statement.place.clone())?;
+                let position = unpack_statement.position();
+                let permission =
+                    self.get_permission_for_maybe_opened_place(state, &unpack_statement.place)?;
+                let place = unpack_statement
+                    .place
+                    .typed_to_middle_expression(self.encoder)?;
+                // let permission = unpack_statement
+                //     .permission
+                //     .map(|permission| permission.clone().typed_to_middle_expression(self.encoder))
+                //     .transpose()?;
+                // FIXME: Code duplication.
+                let encoded_statement = match unpack_statement.predicate_kind {
+                    vir_typed::ast::statement::PredicateKind::Owned => {
+                        vir_mid::Statement::unfold_owned(place, None, permission, position)
+                    }
+                    vir_typed::ast::statement::PredicateKind::UniqueRef(predicate_kind) => {
+                        // let first_reference = place
+                        //     .get_first_dereferenced_reference()
+                        //     .expect("TODO: Report a proper error");
+                        // let vir_mid::Type::Reference(reference) = first_reference.get_type() else {
+                        //     unreachable!()
+                        // };
+                        // let lifetime = reference.lifetime.clone();
+                        vir_mid::Statement::unfold_ref(
+                            place,
+                            predicate_kind.lifetime.typed_to_middle_type(self.encoder)?,
+                            vir_mid::ty::Uniqueness::Unique,
+                            None,
+                            position,
+                        )
+                    }
+                    vir_typed::ast::statement::PredicateKind::FracRef(predicate_kind) => {
+                        vir_mid::Statement::unfold_ref(
+                            place,
+                            predicate_kind.lifetime.typed_to_middle_type(self.encoder)?,
+                            vir_mid::ty::Uniqueness::Shared,
+                            None,
+                            position,
+                        )
+                    }
+                };
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::Obtain(_) => {
+                // Nothing to do because the fold-unfold already handled it.
+            }
+            vir_typed::Statement::Join(join_statement) => {
+                let position = join_statement.position();
+                let place = join_statement
+                    .place
+                    .typed_to_middle_expression(self.encoder)?;
+                let encoded_statement = vir_mid::Statement::join_block(place, None, None, position);
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::Split(split_statement) => {
+                let position = split_statement.position();
+                let place = split_statement
+                    .place
+                    .typed_to_middle_expression(self.encoder)?;
+                let encoded_statement =
+                    vir_mid::Statement::split_block(place, None, None, position);
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::ForgetInitialization(forget_statement) => {
+                // state.insert_manually_managed(forget_statement.place.clone())?;
+                let position = forget_statement.position();
+                let place = forget_statement
+                    .place
+                    .typed_to_middle_expression(self.encoder)?;
+                let encoded_statement =
+                    vir_mid::Statement::convert_owned_into_memory_block(place, None, position);
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::ForgetInitializationRange(forget_statement) => {
+                let position = forget_statement.position();
+                let address = forget_statement
+                    .address
+                    .typed_to_middle_expression(self.encoder)?;
+                let start_index = forget_statement
+                    .start_index
+                    .typed_to_middle_expression(self.encoder)?;
+                let end_index = forget_statement
+                    .end_index
+                    .typed_to_middle_expression(self.encoder)?;
+                let encoded_statement = vir_mid::Statement::range_convert_owned_into_memory_block(
+                    address,
+                    start_index,
+                    end_index,
+                    position,
+                );
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::InhalePredicate(inhale_statement) => {
+                if let vir_typed::Predicate::OwnedNonAliased(predicate) =
+                    &inhale_statement.predicate
+                {
+                    if predicate.place.get_last_dereferenced_reference().is_some() {
+                        // We are inhale Owned of a pointer dereference. This,
+                        // currently, can happen only in the encoding of
+                        // `Drop::drop` where we replace `&mut self` with `self`
+                        // by opening it. Therefore, we need to mark `self` as
+                        // openned.
+                        let base = predicate.place.get_base();
+                        assert_eq!(base.name, "_1", "self should be _1, got: {base}");
+                        state.open_ref(predicate.place.clone(), None)?;
+                    }
+                }
+                let inhale_statement = inhale_statement.typed_to_middle_statement(self.encoder)?;
+                self.current_statements
+                    .push(vir_mid::Statement::InhalePredicate(inhale_statement));
+            }
+            vir_typed::Statement::InhaleExpression(mut inhale_statement) => {
+                // if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
+                //     // inhale_statement.expression =
+                //     //     super::unfolding_expressions::add_unfolding_expressions(
+                //     //         inhale_statement.expression,
+                //     //     )?;
+                //     inhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                //         self.encoder,
+                //         state,
+                //         inhale_statement.expression,
+                //     )?;
+                // }
+                inhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                    self,
+                    state,
+                    inhale_statement.expression,
+                )?;
+                let inhale_statement = inhale_statement.typed_to_middle_statement(self.encoder)?;
+                self.current_statements
+                    .push(vir_mid::Statement::InhaleExpression(inhale_statement));
+            }
+            vir_typed::Statement::ExhaleExpression(mut exhale_statement) => {
+                // if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
+                //     // exhale_statement.expression =
+                //     //     super::unfolding_expressions::add_unfolding_expressions(
+                //     //         exhale_statement.expression,
+                //     //     )?;
+                //     exhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                //         self.encoder,
+                //         state,
+                //         exhale_statement.expression,
+                //     )?;
+                // }
+                exhale_statement.expression = super::eval_using::wrap_in_eval_using(
+                    self,
+                    state,
+                    exhale_statement.expression,
+                )?;
+                let exhale_statement = exhale_statement.typed_to_middle_statement(self.encoder)?;
+                self.current_statements
+                    .push(vir_mid::Statement::ExhaleExpression(exhale_statement));
+            }
+            vir_typed::Statement::Assert(mut assert_statement) => {
+                // if self.check_mode.unwrap() != CheckMode::PurificationFunctional {
+                //     assert_statement.expression = super::eval_using::wrap_in_eval_using(
+                //         self.encoder,
+                //         state,
+                //         assert_statement.expression,
+                //     )?;
+                //     // super::unfolding_expressions::add_unfolding_expressions(
+                //     //     assert_statement.expression,
+                //     // )?;
+                // }
+                assert_statement.expression = super::eval_using::wrap_in_eval_using(
+                    self,
+                    state,
+                    assert_statement.expression,
+                )?;
+                let assert_statement = assert_statement.typed_to_middle_statement(self.encoder)?;
+                self.current_statements
+                    .push(vir_mid::Statement::Assert(assert_statement));
+            }
+            vir_typed::Statement::OpenMutRef(open_mut_ref_statement) => {
+                if !open_mut_ref_statement.is_user_written
+                    && state
+                        .is_opened_ref(&open_mut_ref_statement.place)?
+                        .is_some()
+                {
+                    // skip_automatic_close_ref.push(open_mut_ref_statement.place.clone());
+                    unreachable!();
+                } else {
+                    state.open_ref(open_mut_ref_statement.place.clone(), None)?;
+                    let lifetime = open_mut_ref_statement
+                        .lifetime
+                        .typed_to_middle_type(self.encoder)?;
+                    let lifetime_token_permission = open_mut_ref_statement
+                        .lifetime_token_permission
+                        .typed_to_middle_expression(self.encoder)?;
+                    let place = open_mut_ref_statement
+                        .place
+                        .typed_to_middle_expression(self.encoder)?;
+                    let position = open_mut_ref_statement.position;
+                    let encoded_statement = vir_mid::Statement::open_mut_ref(
+                        lifetime,
+                        lifetime_token_permission,
+                        place,
+                        position,
+                    );
+                    self.current_statements.push(encoded_statement);
+                }
+            }
+            vir_typed::Statement::CloseMutRef(close_mut_ref_statement) => {
+                if !close_mut_ref_statement.is_user_written
+                    && skip_automatic_close_ref.contains(&close_mut_ref_statement.place)
+                {
+                    unreachable!();
+                    // let place = skip_automatic_close_ref.pop().unwrap();
+                    // assert_eq!(place, close_mut_ref_statement.place);
+                } else {
+                    assert!(state.close_ref(&close_mut_ref_statement.place)?.is_none());
+                    let lifetime = close_mut_ref_statement
+                        .lifetime
+                        .typed_to_middle_type(self.encoder)?;
+                    let lifetime_token_permission = close_mut_ref_statement
+                        .lifetime_token_permission
+                        .typed_to_middle_expression(self.encoder)?;
+                    let place = close_mut_ref_statement
+                        .place
+                        .typed_to_middle_expression(self.encoder)?;
+                    let position = close_mut_ref_statement.position;
+                    let encoded_statement = vir_mid::Statement::close_mut_ref(
+                        lifetime,
+                        lifetime_token_permission,
+                        place,
+                        position,
+                    );
+                    self.current_statements.push(encoded_statement);
+                }
+            }
+            vir_typed::Statement::OpenFracRef(open_frac_ref_statement) => {
+                if !open_frac_ref_statement.is_user_written
+                    && state
+                        .is_opened_ref(&open_frac_ref_statement.place)?
+                        .is_some()
+                {
+                    skip_automatic_close_ref.push(open_frac_ref_statement.place);
+                } else {
+                    state.open_ref(
+                        open_frac_ref_statement.place.clone(),
+                        Some(open_frac_ref_statement.predicate_permission_amount.clone()),
+                    )?;
+                    let lifetime = open_frac_ref_statement
+                        .lifetime
+                        .typed_to_middle_type(self.encoder)?;
+                    let predicate_permission_amount = open_frac_ref_statement
+                        .predicate_permission_amount
+                        .typed_to_middle_expression(self.encoder)?;
+                    let lifetime_token_permission = open_frac_ref_statement
+                        .lifetime_token_permission
+                        .typed_to_middle_expression(self.encoder)?;
+                    let place = open_frac_ref_statement
+                        .place
+                        .typed_to_middle_expression(self.encoder)?;
+                    let position = open_frac_ref_statement.position;
+                    let encoded_statement = vir_mid::Statement::open_frac_ref(
+                        lifetime,
+                        predicate_permission_amount,
+                        lifetime_token_permission,
+                        place,
+                        position,
+                    );
+                    self.current_statements.push(encoded_statement);
+                }
+            }
+            vir_typed::Statement::CloseFracRef(close_frac_ref_statement) => {
+                if !close_frac_ref_statement.is_user_written
+                    && skip_automatic_close_ref.contains(&close_frac_ref_statement.place)
+                {
+                    let place = skip_automatic_close_ref.pop().unwrap();
+                    assert_eq!(place, close_frac_ref_statement.place);
+                } else {
+                    let predicate_permission_amount =
+                        state.close_ref(&close_frac_ref_statement.place)?;
+                    assert_eq!(
+                        predicate_permission_amount.unwrap(),
+                        close_frac_ref_statement.predicate_permission_amount
+                    );
+                    let lifetime = close_frac_ref_statement
+                        .lifetime
+                        .typed_to_middle_type(self.encoder)?;
+                    let predicate_permission_amount = close_frac_ref_statement
+                        .predicate_permission_amount
+                        .typed_to_middle_expression(self.encoder)?;
+                    let lifetime_token_permission = close_frac_ref_statement
+                        .lifetime_token_permission
+                        .typed_to_middle_expression(self.encoder)?;
+                    let place = close_frac_ref_statement
+                        .place
+                        .typed_to_middle_expression(self.encoder)?;
+                    let position = close_frac_ref_statement.position;
+                    let encoded_statement = vir_mid::Statement::close_frac_ref(
+                        lifetime,
+                        lifetime_token_permission,
+                        place,
+                        predicate_permission_amount,
+                        position,
+                    );
+                    self.current_statements.push(encoded_statement);
+                }
+            }
+            vir_typed::Statement::CopyPlace(copy_place_statement) => {
+                let target_place = copy_place_statement
+                    .target
+                    .typed_to_middle_expression(self.encoder)?;
+                let source_permission = self
+                    .get_permission_for_maybe_opened_place(state, &copy_place_statement.source)?;
+                // if let Some(predicate_permission_amount) =
+                //     state.is_opened_ref(&copy_place_statement.source)?
+                // {
+                //     predicate_permission_amount
+                //         .as_ref()
+                //         .map(|amount| amount.clone().typed_to_middle_expression(self.encoder))
+                //         .transpose()?
+                // } else {
+                //     None
+                // };
+                let source_place = copy_place_statement
+                    .source
+                    .typed_to_middle_expression(self.encoder)?;
+                let encoded_statement = vir_mid::Statement::copy_place(
+                    target_place,
+                    source_place,
+                    source_permission,
+                    copy_place_statement.position,
+                );
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::Havoc(havoc_statement) => {
+                // The procedure encoder provides only Owned predicates. Based
+                // on the place and whether the reference is opened or not, we
+                // produce the actual predicate.
+                let predicate = match havoc_statement.predicate {
+                    vir_typed::Predicate::LifetimeToken(_) => todo!(),
+                    vir_typed::Predicate::MemoryBlockStack(predicate) => {
+                        vir_mid::Predicate::MemoryBlockStack(
+                            predicate.typed_to_middle_predicate(self.encoder)?,
+                        )
+                    }
+                    vir_typed::Predicate::MemoryBlockStackDrop(_) => todo!(),
+                    vir_typed::Predicate::MemoryBlockHeap(_) => todo!(),
+                    vir_typed::Predicate::MemoryBlockHeapRange(_) => todo!(),
+                    vir_typed::Predicate::MemoryBlockHeapRangeGuarded(_) => todo!(),
+                    vir_typed::Predicate::MemoryBlockHeapDrop(_) => todo!(),
+                    vir_typed::Predicate::OwnedNonAliased(predicate) => {
+                        // TODO: Take into account whether the reference is opened or not.
+                        if let Some((lifetime, uniqueness)) = predicate.place.get_dereference_kind()
+                        {
+                            let lifetime = lifetime.typed_to_middle_type(self.encoder)?;
+                            let place = predicate.place.typed_to_middle_expression(self.encoder)?;
+                            match uniqueness {
+                                vir_typed::ty::Uniqueness::Unique => {
+                                    vir_mid::Predicate::unique_ref(
+                                        lifetime,
+                                        place,
+                                        predicate.position,
+                                    )
+                                }
+                                vir_typed::ty::Uniqueness::Shared => vir_mid::Predicate::frac_ref(
+                                    lifetime,
+                                    place,
+                                    predicate.position,
+                                ),
+                            }
+                        } else {
+                            vir_mid::Predicate::OwnedNonAliased(
+                                predicate.typed_to_middle_predicate(self.encoder)?,
+                            )
+                        }
+                    }
+                    vir_typed::Predicate::OwnedRange(_) => todo!(),
+                    vir_typed::Predicate::OwnedSet(_) => todo!(),
+                    vir_typed::Predicate::UniqueRef(_) => todo!(),
+                    vir_typed::Predicate::UniqueRefRange(_) => todo!(),
+                    vir_typed::Predicate::FracRef(_) => todo!(),
+                    vir_typed::Predicate::FracRefRange(_) => todo!(),
+                };
+                let encoded_statement =
+                    vir_mid::Statement::havoc(predicate, havoc_statement.position);
+                self.current_statements.push(encoded_statement);
+            }
+            vir_typed::Statement::MaterializePredicate(mut materialize_predicate_statement) => {
+                let Some(location) = materialize_predicate_statement.predicate.get_heap_location_mut() else {
+                    unreachable!();
+                };
+                *location = super::eval_using::wrap_in_eval_using(self, state, location.clone())?;
+                let predicate = materialize_predicate_statement
+                    .predicate
+                    .typed_to_middle_predicate(self.encoder)?;
+                let encoded_statement = vir_mid::Statement::materialize_predicate(
+                    predicate,
+                    materialize_predicate_statement.check_that_exists,
+                    materialize_predicate_statement.position,
+                );
+                self.current_statements.push(encoded_statement);
+            }
             _ => {
                 self.current_statements
                     .push(statement.typed_to_middle_statement(self.encoder)?);
             }
         }
+        self.add_statements_to_current_block();
+        Ok(())
+    }
+
+    fn add_statements_to_current_block(&mut self) {
         let new_block = self
             .basic_blocks
             .get_mut(self.current_label.as_ref().unwrap())
@@ -269,11 +755,29 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         new_block
             .statements
             .extend(std::mem::take(&mut self.current_statements));
-        Ok(())
+    }
+
+    fn get_permission_for_maybe_opened_place(
+        &self,
+        state: &FoldUnfoldState,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<vir_mid::VariableDecl>> {
+        if let Some(predicate_permission_amount) = state.is_opened_ref(place)? {
+            Ok(predicate_permission_amount
+                .as_ref()
+                .map(|amount| amount.clone().typed_to_middle_expression(self.encoder))
+                .transpose()?)
+        } else {
+            Ok(None)
+        }
     }
 
     #[tracing::instrument(level = "debug", skip(self, actions))]
-    fn process_actions(&mut self, actions: Vec<Action>) -> SpannedEncodingResult<()> {
+    fn process_actions(
+        &mut self,
+        state: &FoldUnfoldState,
+        actions: Vec<Action>,
+    ) -> SpannedEncodingResult<()> {
         for action in actions {
             debug!("  action: {}", action);
             let statement = match action {
@@ -285,18 +789,34 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 }) => {
                     if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
                         let position = place.position();
-                        vir_mid::Statement::unfold_ref(
-                            place.typed_to_middle_expression(self.encoder)?,
-                            lifetime.typed_to_middle_type(self.encoder)?,
-                            uniqueness.typed_to_middle_type(self.encoder)?,
-                            condition,
-                            position,
-                        )
+                        if let Some(predicate_permission_amount) = state.is_opened_ref(&place)? {
+                            let predicate_permission_amount = predicate_permission_amount
+                                .as_ref()
+                                .map(|amount| {
+                                    amount.clone().typed_to_middle_expression(self.encoder)
+                                })
+                                .transpose()?;
+                            vir_mid::Statement::unfold_owned(
+                                place.typed_to_middle_expression(self.encoder)?,
+                                condition,
+                                predicate_permission_amount,
+                                position,
+                            )
+                        } else {
+                            vir_mid::Statement::unfold_ref(
+                                place.typed_to_middle_expression(self.encoder)?,
+                                lifetime.typed_to_middle_type(self.encoder)?,
+                                uniqueness.typed_to_middle_type(self.encoder)?,
+                                condition,
+                                position,
+                            )
+                        }
                     } else {
                         let position = place.position();
                         vir_mid::Statement::unfold_owned(
                             place.typed_to_middle_expression(self.encoder)?,
                             condition,
+                            None,
                             position,
                         )
                     }
@@ -309,18 +829,34 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 }) => {
                     if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
                         let position = place.position();
-                        vir_mid::Statement::fold_ref(
-                            place.typed_to_middle_expression(self.encoder)?,
-                            lifetime.typed_to_middle_type(self.encoder)?,
-                            uniqueness.typed_to_middle_type(self.encoder)?,
-                            condition,
-                            position,
-                        )
+                        if let Some(predicate_permission_amount) = state.is_opened_ref(&place)? {
+                            let predicate_permission_amount = predicate_permission_amount
+                                .as_ref()
+                                .map(|amount| {
+                                    amount.clone().typed_to_middle_expression(self.encoder)
+                                })
+                                .transpose()?;
+                            vir_mid::Statement::fold_owned(
+                                place.typed_to_middle_expression(self.encoder)?,
+                                condition,
+                                predicate_permission_amount,
+                                position,
+                            )
+                        } else {
+                            vir_mid::Statement::fold_ref(
+                                place.typed_to_middle_expression(self.encoder)?,
+                                lifetime.typed_to_middle_type(self.encoder)?,
+                                uniqueness.typed_to_middle_type(self.encoder)?,
+                                condition,
+                                position,
+                            )
+                        }
                     } else {
                         let position = place.position();
                         vir_mid::Statement::fold_owned(
                             place.typed_to_middle_expression(self.encoder)?,
                             condition,
+                            None,
                             position,
                         )
                     }
@@ -368,12 +904,15 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 Action::RestoreMutBorrowed(RestorationState {
                     lifetime,
                     place,
+                    is_reborrow,
                     condition,
                 }) => {
                     let position = place.position();
                     vir_mid::Statement::restore_mut_borrowed(
                         lifetime.typed_to_middle_type(self.encoder)?,
                         place.typed_to_middle_expression(self.encoder)?,
+                        is_reborrow,
+                        None,
                         condition,
                         position,
                     )
@@ -397,13 +936,38 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         state: &mut PredicateStateOnPath,
         condition: Option<vir_mid::BlockMarkerCondition>,
     ) -> SpannedEncodingResult<()> {
-        let (dead_references, places_with_dead_lifetimes) =
-            state.mark_lifetime_dead(&statement.lifetime);
+        let Some(DeadLifetimeReport {dead_dereferences, dead_references, places_with_dead_lifetimes, blocked_dead_dereferences}) =
+            state.mark_lifetime_dead(&statement.lifetime)? else {
+            return Ok(());
+        };
         for place in dead_references {
+            let place = place.typed_to_middle_expression(self.encoder)?;
+            let target_position = place.position();
+            let vir_mid::Type::Reference(reference_type) = place.get_type() else {
+                unreachable!();
+            };
+            let target_type = (*reference_type.target_type).clone();
+            self.current_statements
+                .push(vir_mid::Statement::unfold_owned(
+                    place.clone(),
+                    condition.clone(),
+                    None,
+                    statement.position,
+                ));
+            self.current_statements
+                .push(vir_mid::Statement::dead_reference(
+                    place.deref(target_type, target_position),
+                    None,
+                    condition.clone(),
+                    statement.position,
+                ));
+        }
+        for place in dead_dereferences {
             let place = place.typed_to_middle_expression(self.encoder)?;
             self.current_statements
                 .push(vir_mid::Statement::dead_reference(
                     place,
+                    None,
                     condition.clone(),
                     statement.position,
                 ));
@@ -414,6 +978,17 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 .push(vir_mid::Statement::dead_lifetime(
                     place,
                     lifetime.typed_to_middle_type(self.encoder)?,
+                    condition.clone(),
+                    statement.position,
+                ));
+        }
+        for (place, reborrowing_lifetime) in blocked_dead_dereferences {
+            let place = place.typed_to_middle_expression(self.encoder)?;
+            let reborowing_lifetime = reborrowing_lifetime.typed_to_middle_type(self.encoder)?;
+            self.current_statements
+                .push(vir_mid::Statement::dead_reference(
+                    place,
+                    Some(reborowing_lifetime),
                     condition.clone(),
                     statement.position,
                 ));
@@ -468,7 +1043,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             super::permission::Permission::new(target.clone(), PermissionKind::MemoryBlock),
             &mut actions,
         )?;
-        self.process_actions(actions)?;
+        self.process_actions(state, actions)?;
         state.remove_permission(&super::permission::Permission::new(
             target.clone(),
             PermissionKind::MemoryBlock,

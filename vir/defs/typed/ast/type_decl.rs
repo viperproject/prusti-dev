@@ -1,6 +1,7 @@
 pub(crate) use super::{
     expression::Expression,
     field::FieldDecl,
+    position::Position,
     ty::{EnumSafety, GenericType, LifetimeConst, Type, Uniqueness},
     variable::VariableDecl,
 };
@@ -23,7 +24,6 @@ pub enum TypeDecl {
     Reference(Reference),
     Pointer(Pointer),
     // FnPointer,
-    Never,
     // Str,
     Closure(Closure),
     // Projection(Projection),
@@ -60,7 +60,11 @@ pub struct Struct {
     pub name: String,
     pub lifetimes: Vec<LifetimeConst>,
     pub const_parameters: Vec<VariableDecl>,
+    pub structural_invariant: Option<Vec<Expression>>,
     pub fields: Vec<FieldDecl>,
+    /// The size of the struct if known at compile time.
+    pub size: Option<u64>,
+    pub position: Position,
 }
 
 pub type DiscriminantValue = i128;

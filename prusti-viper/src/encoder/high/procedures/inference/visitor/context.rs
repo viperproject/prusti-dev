@@ -6,7 +6,7 @@ use crate::encoder::{
 };
 use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::{
-    common::position::Positioned,
+    common::{builtin_constants::ADDRESS_FIELD_NAME, position::Positioned},
     typed::{self as vir_typed, operations::ty::Typed},
 };
 
@@ -21,8 +21,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         // lifetime variables, but concrete values from `ty`. However, for this
         // it seams we need to use Rust compiler's `SubstsRef` design, which
         // means one more refactoring…
-        let normalized_type = ty.normalize_type();
-        let type_decl = self.encoder.encode_type_def_typed(&normalized_type)?;
+        let type_decl = self.encoder.encode_type_def_typed(ty)?;
         fn expand_fields<'a>(
             place: &vir_typed::Expression,
             fields: impl Iterator<Item = &'a vir_typed::FieldDecl>,
@@ -47,14 +46,29 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         let expansion = match type_decl {
             vir_typed::TypeDecl::Bool
             | vir_typed::TypeDecl::Int(_)
-            | vir_typed::TypeDecl::Float(_)
-            | vir_typed::TypeDecl::Pointer(_) => {
-                // Primitive type. Convert.
-                vec![(ExpandedPermissionKind::MemoryBlock, place.clone())]
+            | vir_typed::TypeDecl::Float(_) => {
+                // Primitive type.
+                unreachable!();
+            }
+            vir_typed::TypeDecl::Pointer(_) => {
+                let target_type = ty.clone().unwrap_pointer().target_type;
+                let deref_place =
+                    vir_typed::Expression::deref(place.clone(), *target_type, place.position());
+                vec![(ExpandedPermissionKind::Same, deref_place)]
             }
             vir_typed::TypeDecl::Trusted(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
-            vir_typed::TypeDecl::Struct(decl) => expand_fields(place, decl.fields.iter()),
+            vir_typed::TypeDecl::Struct(decl) => {
+                // if decl.is_manually_managed_type() {
+                //     let place_span = self.get_span(guiding_place.position()).unwrap();
+                //     let error = SpannedEncodingError::incorrect(
+                //         "types with structural invariants are required to be managed manually",
+                //         place_span,
+                //     );
+                //     return Err(error);
+                // }
+                expand_fields(place, decl.fields.iter())
+            }
             vir_typed::TypeDecl::Enum(decl) => {
                 let position = place.position();
                 let variant_name = place.get_variant_name(guiding_place);
@@ -98,7 +112,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                 let address_place = vir_typed::Expression::field(
                     place.clone(),
                     vir_typed::FieldDecl::new(
-                        "address$",
+                        ADDRESS_FIELD_NAME,
                         0usize,
                         vir_typed::Type::Int(vir_typed::ty::Int::Usize),
                     ),
@@ -111,7 +125,6 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             }
             vir_typed::TypeDecl::Sequence(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::Map(_) => unimplemented!("ty: {}", ty),
-            vir_typed::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
         };

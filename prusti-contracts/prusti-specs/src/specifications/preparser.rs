@@ -1,5 +1,5 @@
 /// The preparser processes Prusti syntax into Rust syntax.
-use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
 use proc_macro2::{Punct, Spacing::*};
 use quote::{quote, quote_spanned, ToTokens};
 use std::collections::VecDeque;
@@ -149,6 +149,8 @@ impl PrustiTokenStream {
                     PrustiToken::Quantifier(ident.span(), Quantifier::Forall),
                 (TokenTree::Ident(ident), _, _, _) if ident == "exists" =>
                     PrustiToken::Quantifier(ident.span(), Quantifier::Exists),
+                (TokenTree::Ident(ident), _, _, _) if ident == "raw_range" =>
+                    PrustiToken::QuantifiedPermission(ident.span(), QuantifiedPermission::Raw),
                 (TokenTree::Punct(punct), _, _, _)
                     if punct.as_char() == ',' && punct.spacing() == Alone =>
                     PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Comma)),
@@ -314,6 +316,38 @@ impl PrustiTokenStream {
                 kind.translate(span, triggers, args, body)
             }
 
+            Some(PrustiToken::QuantifiedPermission(span, kind)) => {
+                let mut stream = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
+                    error(
+                        span,
+                        "expected parenthesized expression after quantified permission",
+                    )
+                })?;
+                let mut tokens = VecDeque::new();
+                let mut closure_args = None;
+                while let Some(token) = stream.tokens.front() {
+                    if token.is_closure_brace() {
+                        closure_args = stream.pop_closure_args();
+                        break;
+                    }
+                    tokens.push_back(stream.tokens.pop_front().unwrap());
+                }
+                let args = Self {
+                    tokens,
+                    source_span: self.source_span,
+                }
+                .parse()?;
+                if let Some(closure_args) = closure_args {
+                    let triggers = stream.extract_triggers()?;
+                    eprintln!("triggers: {:?}", triggers);
+                    let index = closure_args.parse()?;
+                    let body = stream.parse()?;
+                    kind.translate_guarded_range(span, args, triggers, index, body)
+                } else {
+                    kind.translate_usize_range(span, args)
+                }
+            }
+
             Some(PrustiToken::SpecEnt(span, _)) | Some(PrustiToken::CallDesc(span, _)) => {
                 return err(span, "unexpected operator")
             }
@@ -371,6 +405,9 @@ impl PrustiTokenStream {
                 Some(PrustiToken::Outer(span)) => return err(*span, "unexpected outer"),
                 Some(PrustiToken::Quantifier(span, _)) => {
                     return err(*span, "unexpected quantifier")
+                }
+                Some(PrustiToken::QuantifiedPermission(span, _)) => {
+                    return err(*span, "unexpected quantified permission")
                 }
 
                 None => break,
@@ -649,6 +686,7 @@ enum PrustiToken {
     // TODO: add note about unops not sharing a variant, descriptions ...
     Outer(Span),
     Quantifier(Span, Quantifier),
+    QuantifiedPermission(Span, QuantifiedPermission),
     SpecEnt(Span, bool),
     CallDesc(Span, bool),
 }
@@ -767,6 +805,54 @@ impl Quantifier {
     }
 }
 
+#[derive(Debug, Clone)]
+enum QuantifiedPermission {
+    Raw,
+}
+
+impl QuantifiedPermission {
+    fn translate_guarded_range(
+        &self,
+        span: Span,
+        arguments: TokenStream,
+        triggers: Vec<Vec<TokenStream>>,
+        index: TokenStream,
+        body: TokenStream,
+    ) -> TokenStream {
+        let full_span = join_spans(span, body.span());
+        let trigger_sets = triggers
+            .into_iter()
+            .map(|set| {
+                let triggers = TokenStream::from_iter(set.into_iter().map(|trigger| {
+                    quote_spanned! { trigger.span() =>
+                    #[prusti::spec_only] | #index: usize | ( #trigger ), }
+                }));
+                quote_spanned! { full_span => ( #triggers ) }
+            })
+            .collect::<Vec<_>>();
+        let body = quote_spanned! { body.span() => ((#body): bool) };
+        let tokens = match self {
+            Self::Raw => {
+                quote_spanned! { full_span => ::prusti_contracts::prusti_raw_range_guarded(
+                    #arguments
+                    ( #( #trigger_sets, )* ),
+                    #[prusti::spec_only] | #index: usize | -> bool { #body }
+                ) }
+            }
+        };
+        tokens
+    }
+
+    fn translate_usize_range(&self, span: Span, args: TokenStream) -> TokenStream {
+        let full_span = join_spans(span, args.span());
+        match self {
+            Self::Raw => {
+                quote_spanned! { full_span => ::prusti_contracts::prusti_raw_range(#args) }
+            }
+        }
+    }
+}
+
 // For Prusti-specific operators, in [operator2], [operator3], and [operator4]
 // we mainly care about the spacing of the last [Punct], as this lets us
 // know that the last character is not itself part of an actual Rust
@@ -803,6 +889,7 @@ impl PrustiToken {
             | Self::BinOp(span, _)
             | Self::Outer(span)
             | Self::Quantifier(span, _)
+            | Self::QuantifiedPermission(span, _)
             | Self::SpecEnt(span, _)
             | Self::CallDesc(span, _) => *span,
             Self::Token(tree) => tree.span(),

@@ -80,6 +80,16 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
+    fn is_non_verified_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
+    fn no_panic(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
+    fn no_panic_ensures_postcondition(
+        &self,
+        def_id: DefId,
+        substs: Option<SubstsRef<'tcx>>,
+    ) -> bool;
+
     fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId>;
 
     fn terminates(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
@@ -97,6 +107,9 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the prusti assumption
     fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption>;
 
+    /// Get the Prusti case split.
+    fn get_prusti_case_split(&self, def_id: DefId) -> Option<typed::PrustiCaseSplit>;
+
     /// Get the prusti refutation
     fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation>;
 
@@ -105,6 +118,21 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     /// Get the end marker of the ghost block
     fn get_ghost_end(&self, def_id: DefId) -> Option<typed::GhostEnd>;
+
+    /// Get the begin marker of the specification region.
+    fn get_specification_region_begin(
+        &self,
+        def_id: DefId,
+    ) -> Option<typed::SpecificationRegionBegin>;
+
+    /// Get the end marker of the specification region.
+    fn get_specification_region_end(&self, def_id: DefId) -> Option<typed::SpecificationRegionEnd>;
+
+    /// Get the prusti specification expression
+    fn get_prusti_specification_expression(
+        &self,
+        def_id: DefId,
+    ) -> Option<typed::SpecificationExpression>;
 
     /// Get the specifications attached to a function.
     fn get_procedure_specs(
@@ -178,6 +206,54 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     #[tracing::instrument(level = "trace", skip(self), ret)]
+    fn is_non_verified_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
+        let query = SpecQuery::GetProcKind(def_id, substs);
+        self.specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), query)
+            .and_then(|spec| {
+                spec.non_verified_pure
+                    .extract_with_selective_replacement()
+                    .copied()
+            })
+            .unwrap_or(false)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self), ret)]
+    fn no_panic(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
+        let query = SpecQuery::GetProcKind(def_id, substs);
+        self.specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), query)
+            .and_then(|spec| spec.no_panic.extract_with_selective_replacement().copied())
+            .unwrap_or(false)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self), ret)]
+    fn no_panic_ensures_postcondition(
+        &self,
+        def_id: DefId,
+        substs: Option<SubstsRef<'tcx>>,
+    ) -> bool {
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
+        let query = SpecQuery::GetProcKind(def_id, substs);
+        self.specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), query)
+            .and_then(|spec| {
+                spec.no_panic_ensures_postcondition
+                    .extract_with_selective_replacement()
+                    .copied()
+            })
+            .unwrap_or(false)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self), ret)]
     fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId> {
         let query = SpecQuery::FunctionDefEncoding(def_id, substs);
         let mut specs = self.specifications_state.specs.borrow_mut();
@@ -237,6 +313,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .cloned()
     }
 
+    fn get_prusti_case_split(&self, def_id: DefId) -> Option<typed::PrustiCaseSplit> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_case_split(&def_id)
+            .cloned()
+    }
+
     fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation> {
         self.specifications_state
             .specs
@@ -258,6 +342,36 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow()
             .get_ghost_end(&def_id)
+            .cloned()
+    }
+
+    fn get_specification_region_begin(
+        &self,
+        def_id: DefId,
+    ) -> Option<typed::SpecificationRegionBegin> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_specification_region_begin(&def_id)
+            .cloned()
+    }
+
+    fn get_specification_region_end(&self, def_id: DefId) -> Option<typed::SpecificationRegionEnd> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_specification_region_end(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_specification_expression(
+        &self,
+        def_id: DefId,
+    ) -> Option<typed::SpecificationExpression> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_specification_expression(&def_id)
             .cloned()
     }
 

@@ -244,12 +244,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn get_core_proof_programs(&mut self) -> Vec<prusti_common::vir::program::Program> {
         if config::counterexample() && config::unsafe_core_proof(){
             self.take_core_proof_programs().into_iter().map(
-                | program | {
-                    self.add_mapping(&program);
+                |( def_id, program )| {
+                    if let Some(def_id) = def_id {
+                        self.add_mapping(def_id, &program);
+                    }
                     prusti_common::vir::program::Program::Low(program)
             }).collect()
         } else {
-            self.take_core_proof_programs().into_iter().map(prusti_common::vir::program::Program::Low).collect()
+            self.take_core_proof_programs().into_iter().map(
+                |(_, program)| {
+                    prusti_common::vir::program::Program::Low(program)
+                }).collect()
         }
     }
 
@@ -697,6 +702,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    /// Returns true iff `def_id` is a function that uses raw pointers.
+    fn is_internally_unsafe_function(&self, def_id: ProcedureDefId) -> bool {
+        let mir = self.env.body.borrow_impure_fn_body_identity(def_id.expect_local());
+        for local_decl in &mir.local_decls {
+            if let prusti_rustc_interface::middle::ty::TyKind::RawPtr(_) =
+                local_decl.ty.kind()
+            {
+                return true;
+            }
+        }
+        false
+    }
     #[tracing::instrument(level = "debug", skip(self))]
     pub fn process_encoding_queue(&mut self) {
         if let Err(error) = self.initialize() {
@@ -714,30 +731,50 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     assert!(substs.is_empty());
 
                     if config::unsafe_core_proof() {
-                        if self.env.query.is_unsafe_function(proc_def_id) {
-                            if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
+                        if config::verify_core_proof() {
+                            if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::MemorySafety) {
                                 self.register_encoding_error(error);
-                                debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::Both);
-                            }
-                        } else {
-                            if config::verify_core_proof() {
-                                if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::CoreProof) {
-                                    self.register_encoding_error(error);
-                                    debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::CoreProof);
-                                }
-                            }
-                            if config::verify_specifications() {
-                                let check_mode = if config::verify_specifications_with_core_proof() {
-                                    CheckMode::Both
-                                } else {
-                                    CheckMode::Specifications
-                                };
-                                if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, check_mode) {
-                                    self.register_encoding_error(error);
-                                    debug!("Error encoding function: {:?} {}", proc_def_id, check_mode);
-                                }
+                                debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::MemorySafety);
                             }
                         }
+                        if config::verify_specifications() {
+                            if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::MemorySafetyWithFunctional) {
+                                self.register_encoding_error(error);
+                                debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::MemorySafetyWithFunctional);
+                            }
+                        }
+                        // if self.env.query.is_unsafe_function(proc_def_id) {
+                        //     if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::UnsafeSafety) {
+                        //         self.register_encoding_error(error);
+                        //         debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::UnsafeSafety);
+                        //     }
+                        // } else if config::verify_specifications_with_core_proof() || self.is_internally_unsafe_function(proc_def_id) {
+                        //     if config::verify_core_proof() {
+                        //         if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::MemorySafety) {
+                        //             self.register_encoding_error(error);
+                        //             debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::MemorySafety);
+                        //         }
+                        //     }
+                        //     if config::verify_specifications() {
+                        //         if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::MemorySafetyWithFunctional) {
+                        //             self.register_encoding_error(error);
+                        //             debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::MemorySafetyWithFunctional);
+                        //         }
+                        //     }
+                        // } else {
+                        //     if config::verify_core_proof() {
+                        //         if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::PurificationSoudness) {
+                        //             self.register_encoding_error(error);
+                        //             debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::PurificationSoudness);
+                        //         }
+                        //     }
+                        //     if config::verify_specifications() {
+                        //         if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::PurificationFunctional) {
+                        //             self.register_encoding_error(error);
+                        //             debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::PurificationFunctional);
+                        //         }
+                        //     }
+                        // }
                         continue;
                     }
 
@@ -792,9 +829,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 }
                 EncodingTask::Type { ty } => {
                     if config::unsafe_core_proof() && config::verify_core_proof() && config::verify_types() {
-                        if let Err(error) = self.encode_core_proof_for_type(ty, CheckMode::CoreProof) {
+                        if let Err(error) = self.encode_core_proof_for_type(ty, CheckMode::MemorySafety) {
                             self.register_encoding_error(error);
-                            debug!("Error encoding type: {:?} {}", ty, CheckMode::CoreProof);
+                            debug!("Error encoding type: {:?} {}", ty, CheckMode::MemorySafety);
                         }
                     }
                 }

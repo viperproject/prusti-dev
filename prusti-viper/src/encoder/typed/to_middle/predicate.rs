@@ -30,4 +30,18 @@ impl<'v, 'tcx> TypedToMiddlePredicateLowerer for crate::encoder::Encoder<'v, 'tc
             name: lifetime_const.name,
         })
     }
+
+    fn typed_to_middle_predicate_trigger(
+        &self,
+        trigger: vir_typed::Trigger,
+    ) -> Result<vir_mid::Trigger, Self::Error> {
+        trigger.typed_to_middle_expression(self)
+    }
+
+    fn typed_to_middle_predicate_variable_decl(
+        &self,
+        variable: vir_typed::VariableDecl,
+    ) -> Result<vir_mid::VariableDecl, Self::Error> {
+        variable.typed_to_middle_expression(self)
+    }
 }

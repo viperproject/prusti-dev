@@ -96,6 +96,15 @@ impl Type {
         }
         DefaultLifetimeEraser {}.fold_type(self.clone())
     }
+    pub fn check_no_erased_lifetime(&self) {
+        struct LifetimeChecker {}
+        impl TypeWalker for LifetimeChecker {
+            fn walk_lifetime_const(&mut self, lifetime: &LifetimeConst) {
+                assert_ne!(lifetime.name, LifetimeConst::erased().name);
+            }
+        }
+        LifetimeChecker {}.walk_type(self);
+    }
     #[must_use]
     pub fn replace_lifetimes(
         self,
@@ -200,6 +209,13 @@ impl Type {
             _ => false,
         }
     }
+    pub fn is_unique_reference(&self) -> bool {
+        if let Type::Reference(Reference { uniqueness, .. }) = self {
+            uniqueness.is_unique()
+        } else {
+            false
+        }
+    }
 }
 
 impl AsRef<str> for VariantIndex {
@@ -254,7 +270,7 @@ impl super::super::ast::type_decl::Union {
 impl LifetimeConst {
     pub fn erased() -> Self {
         LifetimeConst {
-            name: String::from("lft_erased"),
+            name: String::from(crate::common::builtin_constants::ERASED_LIFETIME_NAME),
         }
     }
 }
@@ -357,6 +373,7 @@ impl Typed for Expression {
             Expression::Variant(expression) => expression.get_type(),
             Expression::Field(expression) => expression.get_type(),
             Expression::Deref(expression) => expression.get_type(),
+            Expression::Final(expression) => expression.get_type(),
             Expression::AddrOf(expression) => expression.get_type(),
             Expression::LabelledOld(expression) => expression.get_type(),
             Expression::Constant(expression) => expression.get_type(),
@@ -370,6 +387,9 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.get_type(),
             Expression::BuiltinFuncApp(expression) => expression.get_type(),
             Expression::Downcast(expression) => expression.get_type(),
+            Expression::AccPredicate(expression) => expression.get_type(),
+            Expression::Unfolding(expression) => expression.get_type(),
+            Expression::EvalIn(expression) => expression.get_type(),
         }
     }
     fn set_type(&mut self, new_type: Type) {
@@ -379,6 +399,7 @@ impl Typed for Expression {
             Expression::Variant(expression) => expression.set_type(new_type),
             Expression::Field(expression) => expression.set_type(new_type),
             Expression::Deref(expression) => expression.set_type(new_type),
+            Expression::Final(expression) => expression.set_type(new_type),
             Expression::AddrOf(expression) => expression.set_type(new_type),
             Expression::LabelledOld(expression) => expression.set_type(new_type),
             Expression::Constant(expression) => expression.set_type(new_type),
@@ -392,6 +413,9 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.set_type(new_type),
             Expression::BuiltinFuncApp(expression) => expression.set_type(new_type),
             Expression::Downcast(expression) => expression.set_type(new_type),
+            Expression::AccPredicate(expression) => expression.set_type(new_type),
+            Expression::Unfolding(expression) => expression.set_type(new_type),
+            Expression::EvalIn(expression) => expression.set_type(new_type),
         }
     }
 }
@@ -432,6 +456,15 @@ impl Typed for Field {
 }
 
 impl Typed for Deref {
+    fn get_type(&self) -> &Type {
+        &self.ty
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.ty = new_type;
+    }
+}
+
+impl Typed for Final {
     fn get_type(&self) -> &Type {
         &self.ty
     }
@@ -502,6 +535,22 @@ impl Typed for BinaryOp {
         }
     }
     fn set_type(&mut self, new_type: Type) {
+        assert!(
+            !matches!(
+                self.op_kind,
+                BinaryOpKind::EqCmp
+                    | BinaryOpKind::NeCmp
+                    | BinaryOpKind::GtCmp
+                    | BinaryOpKind::GeCmp
+                    | BinaryOpKind::LtCmp
+                    | BinaryOpKind::LeCmp
+                    | BinaryOpKind::And
+                    | BinaryOpKind::Or
+                    | BinaryOpKind::Implies
+            ),
+            "cannot change the type of {:?}",
+            self.op_kind
+        );
         self.left.set_type(new_type.clone());
         self.right.set_type(new_type);
     }
@@ -580,5 +629,32 @@ impl Typed for Downcast {
     }
     fn set_type(&mut self, new_type: Type) {
         self.base.set_type(new_type);
+    }
+}
+
+impl Typed for AccPredicate {
+    fn get_type(&self) -> &Type {
+        &Type::Bool
+    }
+    fn set_type(&mut self, _new_type: Type) {
+        unreachable!();
+    }
+}
+
+impl Typed for Unfolding {
+    fn get_type(&self) -> &Type {
+        self.body.get_type()
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.body.set_type(new_type)
+    }
+}
+
+impl Typed for EvalIn {
+    fn get_type(&self) -> &Type {
+        self.body.get_type()
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.body.set_type(new_type)
     }
 }

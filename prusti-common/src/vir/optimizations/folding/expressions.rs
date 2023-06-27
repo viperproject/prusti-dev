@@ -23,6 +23,7 @@ use crate::{
 use log::{debug, trace};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{cmp::Ordering, mem};
+use vir::common::builtin_constants::DISCRIMINANT_FIELD_NAME;
 
 pub trait FoldingOptimizer {
     #[must_use]
@@ -180,7 +181,7 @@ fn check_requirements_conflict(
                             ast::PlaceComponent::Variant(..),
                             ast::PlaceComponent::Field(ast::Field { name, .. }, _),
                         ) => {
-                            if name == "discriminant" {
+                            if name == DISCRIMINANT_FIELD_NAME {
                                 debug!("guarded permission: {} {}", place1, place2);
                                 // If we are checking discriminant, this means that the
                                 // permission is guarded.

@@ -28,9 +28,20 @@ impl<'v, 'tcx> HighToTypedTypeLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> Result<vir_typed::ty::Type, Self::Error> {
         let arguments = ty.arguments.high_to_typed_type(self)?;
         Ok(vir_typed::Type::struct_(
-            self.generate_tuple_name(&arguments)?,
+            // self.generate_tuple_name(&arguments)?,
+            "Tuple".to_string(),
             arguments,
             ty.lifetimes.high_to_typed_type(self)?,
+        ))
+    }
+
+    fn high_to_typed_type_type_never(
+        &mut self,
+    ) -> Result<vir_crate::typed::ast::ty::Type, Self::Error> {
+        Ok(vir_typed::Type::struct_(
+            "Never".to_string(),
+            Vec::new(),
+            Vec::new(),
         ))
     }
 
@@ -103,6 +114,9 @@ impl<'v, 'tcx> TypedToHighTypeUpperer for crate::encoder::Encoder<'v, 'tcx> {
                     }
                     vir_typed::expression::ConstantValue::Float(value) => {
                         vir_high::expression::ConstantValue::Float(value)
+                    }
+                    vir_typed::expression::ConstantValue::String(value) => {
+                        vir_high::expression::ConstantValue::String(value)
                     }
                     vir_typed::expression::ConstantValue::FnPtr => {
                         vir_high::expression::ConstantValue::FnPtr

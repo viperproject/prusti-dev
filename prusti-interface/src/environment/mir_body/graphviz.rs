@@ -1,5 +1,7 @@
 use super::borrowck::{
-    facts::{AllInputFacts, LocationTable, RichLocation},
+    facts::{
+        replace_terminator::ReplaceTerminatorDesugaring, AllInputFacts, LocationTable, RichLocation,
+    },
     lifetimes::{Lifetimes, LifetimesGraphviz},
 };
 use crate::environment::debug_utils::to_text::{
@@ -12,8 +14,14 @@ pub fn to_graphviz<'tcx>(
     borrowck_input_facts: &AllInputFacts,
     location_table: &LocationTable,
     mir: &mir::Body<'tcx>,
+    replace_terminator_locations: &[ReplaceTerminatorDesugaring],
 ) -> Graph {
-    let lifetimes = Lifetimes::new(borrowck_input_facts.clone(), location_table.clone());
+    let lifetimes = Lifetimes::new(
+        borrowck_input_facts.clone(),
+        location_table.clone(),
+        replace_terminator_locations.to_vec(),
+        mir,
+    );
 
     let mut graph = Graph::with_columns(&[
         "location",
@@ -25,6 +33,8 @@ pub fn to_graphviz<'tcx>(
         "subset",
         "origin_live_on_entry",
         "original lifetimes",
+        "killed",
+        "successfully killed",
         "derived lifetimes",
     ]);
 
@@ -123,6 +133,12 @@ fn visit_statement(
     let origin_live_on_entry_mid = lifetimes.get_origin_live_on_entry(RichLocation::Mid(location));
     let loan_live_at_start = lifetimes.get_loan_live_at(RichLocation::Start(location));
     let loan_live_at_mid = lifetimes.get_loan_live_at(RichLocation::Mid(location));
+    let loan_killed_at_start = lifetimes.get_loan_killed_at(RichLocation::Start(location));
+    let loan_killed_at_mid = lifetimes.get_loan_killed_at(RichLocation::Mid(location));
+    let loan_successfully_killed_at_start =
+        lifetimes.get_loan_successfully_killed_at(RichLocation::Start(location));
+    let loan_successfully_killed_at_mid =
+        lifetimes.get_loan_successfully_killed_at(RichLocation::Mid(location));
     let origin_contains_loan_at_start =
         lifetimes.get_origin_contains_loan_at(RichLocation::Start(location));
     let origin_contains_loan_at_mid =
@@ -138,6 +154,11 @@ fn visit_statement(
     row_builder_start.set("subset", subset_start.to_text());
     row_builder_start.set("origin_live_on_entry", origin_live_on_entry_start.to_text());
     row_builder_start.set("original lifetimes", loans_to_text(&loan_live_at_start));
+    row_builder_start.set("killed", loans_to_text(&loan_killed_at_start));
+    row_builder_start.set(
+        "successfully killed",
+        loans_to_text(&loan_successfully_killed_at_start),
+    );
     row_builder_start.set(
         "derived lifetimes",
         loan_containment_to_text(&origin_contains_loan_at_start),
@@ -154,6 +175,11 @@ fn visit_statement(
     row_builder_end.set("subset", subset_mid.to_text());
     row_builder_end.set("origin_live_on_entry", origin_live_on_entry_mid.to_text());
     row_builder_end.set("original lifetimes", loans_to_text(&loan_live_at_mid));
+    row_builder_end.set("killed", loans_to_text(&loan_killed_at_mid));
+    row_builder_end.set(
+        "successfully killed",
+        loans_to_text(&loan_successfully_killed_at_mid),
+    );
     row_builder_end.set(
         "derived lifetimes",
         loan_containment_to_text(&origin_contains_loan_at_mid),

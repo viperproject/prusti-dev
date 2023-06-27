@@ -176,6 +176,11 @@ def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
     if env is None:
         env = get_env()
     start_time = datetime.datetime.now()
+    # Make sure the command does not consume more than 4GB of memory on Linux.
+#   if sys.platform in ("linux", "linux2"):
+#       import resource
+#       limit = 8 * 1024 * 1024 * 1024
+#       resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
     completed = subprocess.run(args, env=env, cwd=cwd, shell=(os.name == 'nt'))
     if report_time:
         print(datetime.datetime.now() - start_time)

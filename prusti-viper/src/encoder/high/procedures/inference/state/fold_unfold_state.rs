@@ -10,7 +10,7 @@ use vir_crate::{
 
 use super::PredicateState;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(in super::super::super) struct FoldUnfoldState {
     /// If this state is a merge of multiple incoming states, then
     /// `incoming_labels` contains the list of basic blocks from where the
@@ -20,6 +20,12 @@ pub(in super::super::super) struct FoldUnfoldState {
     /// support only stack allocations. They can be uniquely identified by
     /// `VariableDecl` of their base.
     predicates: BTreeMap<vir_typed::VariableDecl, PredicateState>,
+    /// The stack of opened reference permissions. This is used as an heuristic
+    /// to fill in permission amounts for pointer dereferences.
+    ///
+    /// The first element of the tuple is the expression that is opened, it is
+    /// used only for error reporting and debugging.
+    opened_ref_permission: Vec<(vir_typed::Expression, Option<vir_typed::VariableDecl>)>,
 }
 
 impl std::fmt::Display for FoldUnfoldState {
@@ -41,6 +47,7 @@ impl FoldUnfoldState {
         Self {
             incoming_labels: Vec::new(),
             predicates: Default::default(),
+            opened_ref_permission: Vec::new(),
         }
     }
 
@@ -234,7 +241,16 @@ impl FoldUnfoldState {
                         new_incoming_conditional,
                     );
                 }
-                PredicateState::Conditional(states)
+                {
+                    // Check whether all states are the same.
+                    let mut states_iter = states.values();
+                    let first_state = states_iter.next().unwrap();
+                    if states_iter.all(|state| state.equal_ignoring_dead_lifetimes(first_state)) {
+                        PredicateState::Unconditional(states.into_values().next().unwrap())
+                    } else {
+                        PredicateState::Conditional(states)
+                    }
+                }
             };
             self.predicates.insert(root, merged_state);
         }
@@ -260,7 +276,7 @@ impl FoldUnfoldState {
     ) -> SpannedEncodingResult<()> {
         self.check_no_default_position();
         let place = permission.get_place();
-        if let Some(state) = self.try_get_predicates_state(place)? {
+        if let Some(state) = self.try_get_predicates_state_mut(place)? {
             state.insert_permission(permission)?;
         } else {
             let base = place.get_base().erase_lifetime();
@@ -290,7 +306,7 @@ impl FoldUnfoldState {
     ) -> SpannedEncodingResult<()> {
         self.check_no_default_position();
         let place = permission.get_place();
-        if let Some(state) = self.try_get_predicates_state(place)? {
+        if let Some(state) = self.try_get_predicates_state_mut(place)? {
             state.remove_permission(permission)?;
             if state.is_empty() {
                 let base = place.get_base().erase_lifetime();
@@ -302,6 +318,49 @@ impl FoldUnfoldState {
         Ok(())
     }
 
+    pub(in super::super) fn open_ref(
+        &mut self,
+        place: vir_typed::Expression,
+        predicate_permission_amount: Option<vir_typed::VariableDecl>,
+    ) -> SpannedEncodingResult<()> {
+        if !place.is_behind_pointer_dereference() {
+            let state = self.get_predicates_state_mut(&place)?;
+            state.open_ref(place.clone(), predicate_permission_amount.clone())?;
+        }
+        self.opened_ref_permission
+            .push((place, predicate_permission_amount));
+        Ok(())
+    }
+
+    pub(in super::super) fn close_ref(
+        &mut self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<vir_typed::VariableDecl>> {
+        let (opened_place, permission) = self.opened_ref_permission.pop().unwrap();
+        assert_eq!(place, &opened_place);
+        if !place.is_behind_pointer_dereference() {
+            let state = self.get_predicates_state_mut(place)?;
+            let precise_permission = state.close_ref(place)?;
+            assert_eq!(permission, precise_permission);
+        }
+        Ok(permission)
+    }
+
+    pub(in super::super) fn is_opened_ref(
+        &self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<&Option<vir_typed::VariableDecl>>> {
+        if !place.is_behind_pointer_dereference() {
+            let state = self.get_predicates_state(place)?;
+            state.is_opened_ref(place)
+        } else {
+            Ok(self
+                .opened_ref_permission
+                .last()
+                .map(|(_, permission)| permission))
+        }
+    }
+
     pub(in super::super) fn iter_mut(
         &mut self,
     ) -> SpannedEncodingResult<impl Iterator<Item = &mut PredicateState>> {
@@ -309,22 +368,42 @@ impl FoldUnfoldState {
         Ok(self.predicates.values_mut())
     }
 
-    pub(in super::super) fn get_predicates_state(
+    pub(in super::super) fn get_predicates_state_mut(
         &mut self,
         place: &vir_typed::Expression,
     ) -> SpannedEncodingResult<&mut PredicateState> {
         Ok(self
-            .try_get_predicates_state(place)?
+            .try_get_predicates_state_mut(place)?
             .unwrap_or_else(|| unreachable!("place: {place}")))
     }
 
-    pub(super) fn try_get_predicates_state(
+    pub(super) fn try_get_predicates_state_mut(
         &mut self,
         place: &vir_typed::Expression,
     ) -> SpannedEncodingResult<Option<&mut PredicateState>> {
         self.check_no_default_position();
         let base = place.get_base().erase_lifetime();
         Ok(self.predicates.get_mut(&base))
+    }
+
+    pub(in super::super) fn try_get_predicates_state(
+        &self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<&PredicateState>> {
+        self.check_no_default_position();
+        let base = place.get_base().erase_lifetime();
+        let state = self.predicates.get(&base);
+        Ok(state)
+    }
+
+    pub(in super::super) fn get_predicates_state(
+        &self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<&PredicateState> {
+        let state = self
+            .try_get_predicates_state(place)?
+            .unwrap_or_else(|| unreachable!("place: {place}"));
+        Ok(state)
     }
 
     pub(in super::super) fn remove_empty_states(

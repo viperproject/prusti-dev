@@ -554,6 +554,20 @@ impl<'a> Deriver<'a> {
                         ty.map(|element| self.#inner_method_name(*element).map(Box::new)).transpose()
                     }
                 }
+            } else if container_ident_first == "Option" && container_ident_second == "Vec" {
+                let inner_method_name = self.encode_name(inner_ident);
+                parse_quote! {
+                    fn #method_name(
+                        #self_parameter,
+                        ty: #container_ident_first < #container_ident_second < #parameter_type > >
+                    ) -> Result< #container_ident_first < #container_ident_second < #return_type > >, Self::Error> {
+                        ty.map(|elements|
+                            elements.into_iter().map(|element| {
+                                self.#inner_method_name(element)
+                            }).collect()
+                        ).transpose()
+                    }
+                }
             } else {
                 unimplemented!(
                     "first: {} second: {}",

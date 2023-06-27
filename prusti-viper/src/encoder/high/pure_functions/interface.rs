@@ -93,24 +93,25 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     fn encode_subslice_call(
         &self,
         container: vir_high::Expression,
-        range: vir_high::Expression,
+        _range: vir_high::Expression,
     ) -> EncodingResult<vir_high::Expression> {
         // FIXME: Should use encode_builtin_function_use.
-        let name = "subslice";
-        let element_type = extract_container_element_type(&container)?;
-        let pure_lifetime = vir_high::ty::LifetimeConst::erased();
-        let return_type = vir_high::Type::reference(
-            pure_lifetime,
-            vir_high::ty::Uniqueness::Shared,
-            // FIXME: add slice lifetimes for subslice_call
-            vir_high::Type::slice(element_type.clone(), vec![]),
-        );
-        Ok(vir_high::Expression::function_call(
-            name,
-            vec![element_type.clone()],
-            vec![container, range],
-            return_type,
-        ))
+        let _name = "subslice";
+        let _element_type = extract_container_element_type(&container)?;
+        // let pure_lifetime = vir_high::ty::LifetimeConst::erased();
+        let _pure_lifetime = unimplemented!();
+        // let return_type = vir_high::Type::reference(
+        //     pure_lifetime,
+        //     vir_high::ty::Uniqueness::Shared,
+        //     // FIXME: add slice lifetimes for subslice_call
+        //     vir_high::Type::slice(element_type.clone(), vec![]),
+        // );
+        // Ok(vir_high::Expression::function_call(
+        //     name,
+        //     vec![element_type.clone()],
+        //     vec![container, range],
+        //     return_type,
+        // ))
     }
 
     /// Encode len of a slice.

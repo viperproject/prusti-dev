@@ -2,8 +2,9 @@ use crate::encoder::{
     errors::SpannedEncodingResult, high::procedures::HighProcedureEncoderInterface,
     mir::specifications::SpecificationsInterface,
 };
-use log::debug;
+use log::{debug, info};
 use prusti_common::config;
+use prusti_interface::data::ProcedureDefId;
 use prusti_rustc_interface::{hir::def_id::DefId, middle::ty};
 use vir_crate::{
     common::{check_mode::CheckMode, identifier::WithIdentifier},
@@ -12,7 +13,7 @@ use vir_crate::{
 
 #[derive(Default)]
 pub(crate) struct MidCoreProofEncoderState {
-    encoded_programs: Vec<vir_low::Program>,
+    encoded_programs: Vec<(Option<ProcedureDefId>, vir_low::Program)>,
 }
 
 pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
@@ -26,7 +27,7 @@ pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
         ty: ty::Ty<'tcx>,
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<()>;
-    fn take_core_proof_programs(&mut self) -> Vec<vir_low::Program>;
+    fn take_core_proof_programs(&mut self) -> Vec<(Option<ProcedureDefId>, vir_low::Program)>;
 }
 
 impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -43,29 +44,146 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             );
             return Ok(());
         }
-        let procedure = self.encode_procedure_core_proof(proc_def_id, check_mode)?;
-        let super::lowerer::LoweringResult {
-            procedures,
-            domains,
-            functions,
-            predicates,
-            methods,
-        } = super::lowerer::lower_procedure(self, proc_def_id, procedure)?;
-        let mut program = vir_low::Program {
-            name: self.env().name.get_absolute_item_name(proc_def_id),
-            check_mode,
-            procedures,
-            domains,
-            predicates,
-            functions,
-            methods,
-        };
-        if config::inline_caller_for() {
-            super::transformations::inline_functions::inline_caller_for(&mut program);
+        for procedure in self.encode_procedure_core_proof(proc_def_id, check_mode)? {
+            info!(
+                "Lowering procedure: {} ({proc_def_id:?} {check_mode:?})",
+                procedure.name
+            );
+            let name = procedure.name.clone();
+            let super::lowerer::LoweringResult {
+                procedures,
+                domains,
+                functions,
+                predicates,
+                methods,
+                domains_info: _,
+                predicates_info,
+                snapshot_domains_info,
+                extensionality_gas_constant,
+            } = super::lowerer::lower_procedure(self, proc_def_id, procedure)?;
+            let mut program = vir_low::Program {
+                name,
+                // name: self.env().name.get_absolute_item_name(proc_def_id),
+                check_mode,
+                procedures,
+                domains,
+                predicates,
+                functions,
+                methods,
+            };
+            let source_filename = self.env().name.source_file_name();
+            if config::trace_with_symbolic_execution() || config::custom_heap_encoding() {
+                program = super::transformations::desugar_method_calls::desugar_method_calls(
+                    &source_filename,
+                    program,
+                );
+                program = super::transformations::desugar_fold_unfold::desugar_fold_unfold(
+                    &source_filename,
+                    program,
+                    &predicates_info.owned_predicates_info,
+                );
+                program = super::transformations::desugar_implications::desugar_implications(
+                    &source_filename,
+                    program,
+                );
+                program = super::transformations::desugar_conditionals::desugar_conditionals(
+                    &source_filename,
+                    program,
+                );
+            }
+            if config::inline_caller_for()
+                || config::trace_with_symbolic_execution()
+                || config::custom_heap_encoding()
+            {
+                super::transformations::inline_functions::inline_caller_for(
+                    &source_filename,
+                    &mut program,
+                );
+            }
+            if config::trace_with_symbolic_execution() {
+                if config::trace_with_symbolic_execution_new() {
+                    program =
+                        super::transformations::make_all_jumps_nondeterministic::make_all_jumps_nondeterministic(
+                            &source_filename,
+                            program
+                        );
+                    program =
+                        super::transformations::merge_consequent_blocks::merge_consequent_blocks(
+                            &source_filename,
+                            program,
+                        );
+                    program =
+                        super::transformations::symbolic_execution_new::purify_with_symbolic_execution(
+                            self,
+                            &source_filename,
+                            program,
+                            predicates_info.non_aliased_memory_block_addresses.clone(),
+                            &snapshot_domains_info,
+                            predicates_info.owned_predicates_info.clone(),
+                            &extensionality_gas_constant,
+                        )?;
+                } else {
+                    program =
+                        super::transformations::symbolic_execution::purify_with_symbolic_execution(
+                            self,
+                            &source_filename,
+                            program,
+                            predicates_info.non_aliased_memory_block_addresses.clone(),
+                            &snapshot_domains_info,
+                            predicates_info.owned_predicates_info.clone(),
+                            &extensionality_gas_constant,
+                            2,
+                        )?;
+                }
+                // program =
+                //     super::transformations::symbolic_execution::purify_with_symbolic_execution(
+                //         &source_filename,
+                //         program,
+                //         predicates_info.non_aliased_memory_block_addresses,
+                //         &snapshot_domains_info,
+                //         predicates_info.owned_predicates_info.clone(),
+                //         2,
+                //     )?;
+            }
+            if config::custom_heap_encoding() {
+                super::transformations::custom_heap_encoding::custom_heap_encoding(
+                    self,
+                    &mut program,
+                    predicates_info.owned_predicates_info,
+                )?;
+            }
+            if config::expand_quantifiers() {
+                program = super::transformations::expand_quantifiers::expand_quantifiers(
+                    &source_filename,
+                    program,
+                );
+            }
+            // We have to execute this pass because some of the transformations
+            // generate nested old expressions, which cause problems when
+            // triggering.
+            program = super::transformations::clean_old::clean_old(&source_filename, program);
+            // We have to execute this pass because some of the transformations
+            // generate unused variables whose types are not defined.
+            program =
+                super::transformations::clean_variables::clean_variables(&source_filename, program);
+            if config::clean_labels() {
+                program =
+                    super::transformations::clean_labels::clean_labels(&source_filename, program);
+            }
+            if config::merge_consecutive_statements() {
+                program = super::transformations::merge_statements::merge_statements(
+                    &source_filename,
+                    program,
+                );
+            }
+            program = super::transformations::case_splits::desugar_case_splits(
+                &source_filename,
+                program,
+            )?;
+            self.mid_core_proof_encoder_state
+                .encoded_programs
+                .push((Some(proc_def_id), program));
         }
-        self.mid_core_proof_encoder_state
-            .encoded_programs
-            .push(program);
         Ok(())
     }
 
@@ -100,6 +218,10 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             functions,
             predicates,
             methods,
+            domains_info: _,
+            snapshot_domains_info: _,
+            predicates_info: _,
+            extensionality_gas_constant: _,
         } = super::lowerer::lower_type(self, def_id, ty, check_copy)?;
         assert!(procedures.is_empty());
         let mut program = vir_low::Program {
@@ -112,15 +234,19 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             methods,
         };
         if config::inline_caller_for() {
-            super::transformations::inline_functions::inline_caller_for(&mut program);
+            let source_filename = self.env().name.source_file_name();
+            super::transformations::inline_functions::inline_caller_for(
+                &source_filename,
+                &mut program,
+            );
         }
         self.mid_core_proof_encoder_state
             .encoded_programs
-            .push(program);
+            .push((None, program));
         Ok(())
     }
 
-    fn take_core_proof_programs(&mut self) -> Vec<vir_low::Program> {
+    fn take_core_proof_programs(&mut self) -> Vec<(Option<ProcedureDefId>, vir_low::Program)> {
         std::mem::take(&mut self.mid_core_proof_encoder_state.encoded_programs)
     }
 }

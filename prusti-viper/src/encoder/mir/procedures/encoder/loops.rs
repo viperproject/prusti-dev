@@ -37,7 +37,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 {
                     let specification = self.encoder.get_loop_specs(cl_def_id).unwrap();
                     let (spec, encoding_vec, err_ctxt) = match specification {
-                        LoopSpecification::Invariant(inv) => {
+                        LoopSpecification::Invariant {
+                            def_id: inv,
+                            is_structural,
+                        } => {
+                            if !self.check_mode.check_specifications() && !is_structural {
+                                // Skip non-structural invariants in non-specification mode.
+                                continue;
+                            }
                             (inv, &mut encoded_invariant_specs, ErrorCtxt::LoopInvariant)
                         }
                         LoopSpecification::Variant(var) => {
@@ -51,6 +58,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                             block,
                             self.def_id,
                             cl_substs,
+                            false,
                         )?,
                         span,
                         err_ctxt,
@@ -69,7 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|back_edge| self.encode_basic_block_label(*back_edge))
                 .collect()
         };
-        self.init_data.seek_before(invariant_location);
+        // self.init_data.seek_before(invariant_location);
 
         // Encode permissions.
         let initialized_places = self.initialization.get_after_statement(invariant_location);

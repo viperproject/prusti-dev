@@ -14,16 +14,14 @@ use crate::encoder::{
     mir_encoder::{MirEncoder, PlaceEncoder},
     Encoder,
 };
+
 use prusti_common::config;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{ty, ty::subst::SubstsRef},
     span::Span,
 };
-use vir_crate::{
-    common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
-    high as vir_high,
-};
+use vir_crate::{common::expression::QuantifierHelpers, high as vir_high};
 
 fn simplify(expression: vir_high::Expression) -> vir_high::Expression {
     if prusti_common::config::unsafe_core_proof() {
@@ -40,11 +38,14 @@ pub(super) fn inline_closure_high<'tcx>(
     args: Vec<vir_high::VariableDecl>,
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
+    keep_lifetimes: bool,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let mir = encoder
-        .env()
-        .body
-        .get_closure_body(def_id, substs, parent_def_id);
+    let mir = encoder.env().body.get_closure_body_lifetimes_opt(
+        def_id,
+        substs,
+        parent_def_id,
+        keep_lifetimes,
+    );
     assert_eq!(mir.arg_count, args.len() + 1);
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {
@@ -55,14 +56,12 @@ pub(super) fn inline_closure_high<'tcx>(
         } else {
             args[arg_idx - 1].clone().into()
         };
-        body_replacements.push((local.erase_lifetime(), argument.erase_lifetime()));
+        body_replacements.push((local, argument));
     }
-    Ok(simplify(
-        encoder
-            .encode_pure_expression_high(def_id, parent_def_id, substs)?
-            .erase_lifetime()
-            .replace_multiple_places(&body_replacements),
-    ))
+    let expression = encoder
+        .encode_pure_expression_high(def_id, parent_def_id, substs)?
+        .replace_multiple_places(&body_replacements);
+    Ok(simplify(expression))
 }
 
 #[allow(clippy::unnecessary_unwrap)]
@@ -75,15 +74,31 @@ pub(super) fn inline_spec_item_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
+    assert_eq!(
+        substs.len(),
+        encoder.env().query.identity_substs(def_id).len()
+    );
+
     let mir = encoder
         .env()
         .body
-        .get_spec_body(def_id, substs, parent_def_id);
+        .get_expression_body(def_id, substs, parent_def_id);
     assert_eq!(
         mir.arg_count,
         target_args.len() + usize::from(target_return.is_some()),
         "def_id: {def_id:?}"
     );
+
+    // let mir = encoder
+    //     .env()
+    //     .body
+    //     .get_spec_body(def_id, substs, parent_def_id);
+    // assert_eq!(
+    //     mir.arg_count,
+    //     target_args.len() + if target_return.is_some() { 1 } else { 0 },
+    //     "def_id: {:?}",
+    //     def_id
+    // );
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {
@@ -107,13 +122,15 @@ pub(super) fn inline_spec_item_high<'tcx>(
             },
         ));
     }
-    Ok(simplify(
-        encoder
-            .encode_pure_expression_high(def_id, parent_def_id, substs)?
-            .replace_multiple_places(&body_replacements),
-    ))
+    let expression = encoder.encode_pure_expression_high(def_id, parent_def_id, substs)?;
+    let expression = expression.replace_multiple_places(&body_replacements);
+    Ok(simplify(expression))
 }
 
+/// This encodes not only quantifiers, but also quantifier-like things such as
+/// quantified permissions. It assumes that the last substitution is the closure
+/// representing the quantifier body and the second-to-last substitution
+/// represents triggers.
 pub(super) fn encode_quantifier_high<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     _span: Span, // TODO: use span somehow? or remove arg
@@ -134,32 +151,39 @@ pub(super) fn encode_quantifier_high<'tcx>(
     //     |qvars...| -> bool { <body expr> },
     //   )
 
-    let cl_type_body = substs.type_at(1);
+    let last_substitution_index = substs.len() - 1;
+    let cl_type_body = substs.type_at(last_substitution_index);
     let (body_def_id, body_substs, _, args, _) =
         extract_closure_from_ty(encoder.env().query, cl_type_body);
 
     let mut encoded_qvars = vec![];
-    let mut bounds = vec![];
+    // let mut bounds = vec![];
     for (arg_idx, arg_ty) in args.into_iter().enumerate() {
         let qvar_ty = encoder.encode_type_high(arg_ty).unwrap();
         let qvar_name = format!("_{}_quant_{}", arg_idx, body_def_id.index.index());
         let encoded_qvar = vir_high::VariableDecl::new(qvar_name, qvar_ty);
-        if config::check_overflows() {
-            bounds.extend(encoder.encode_type_bounds_high(&encoded_qvar.clone().into(), arg_ty));
-        } else if config::encode_unsigned_num_constraint() {
-            if let ty::TyKind::Uint(_) = arg_ty.kind() {
-                let expr =
-                    vir_high::Expression::less_equals(0u32.into(), encoded_qvar.clone().into());
-                bounds.push(expr);
-            }
-        }
+        // Instead of the bounds we use the snapshot validity function.
+        // if config::check_overflows() {
+        //     bounds.extend(encoder.encode_type_bounds_high(&encoded_qvar.clone().into(), arg_ty));
+        // } else if config::encode_unsigned_num_constraint() {
+        //     if let ty::TyKind::Uint(_) = arg_ty.kind() {
+        //         let expr =
+        //             vir_high::Expression::less_equals(0u32.into(), encoded_qvar.clone().into());
+        //         bounds.push(expr);
+        //     }
+        // }
         encoded_qvars.push(encoded_qvar);
     }
 
     // TODO: implement trigger and trigger set checks
+    let second_to_last_substitution_index = substs.len() - 2;
+    let second_to_last_encoded_arg_index = encoded_args.len() - 2;
     let mut encoded_trigger_sets = vec![];
-    for (trigger_set_idx, ty_trigger_set) in
-        substs.type_at(0).tuple_fields().into_iter().enumerate()
+    for (trigger_set_idx, ty_trigger_set) in substs
+        .type_at(second_to_last_substitution_index)
+        .tuple_fields()
+        .into_iter()
+        .enumerate()
     {
         let mut encoded_triggers = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
@@ -175,52 +199,59 @@ pub(super) fn encode_quantifier_high<'tcx>(
                 trigger_idx,
                 encoder.encode_type_high(ty_trigger)?,
             );
-            encoded_triggers.push(inline_closure_high(
+            let encoded_trigger = inline_closure_high(
                 encoder,
                 trigger_def_id,
                 // FIXME: check whether the closure expression does not need to
                 // be wrapped in `addr_of` like in `encode_invariant_high`.
                 vir_high::Expression::field_no_pos(
-                    vir_high::Expression::field_no_pos(encoded_args[0].clone(), set_field),
+                    vir_high::Expression::field_no_pos(
+                        encoded_args[second_to_last_encoded_arg_index].clone(),
+                        set_field,
+                    ),
                     trigger_field,
                 ),
                 encoded_qvars.clone(),
                 parent_def_id,
                 trigger_substs,
-            )?);
+                config::unsafe_core_proof(),
+            )?;
+            encoded_triggers.push(encoded_trigger);
         }
         encoded_trigger_sets.push(vir_high::Trigger::new(encoded_triggers));
     }
 
+    let last_encoded_arg_index = encoded_args.len() - 1;
     let encoded_body = inline_closure_high(
         encoder,
         body_def_id,
-        encoded_args[1].clone(),
+        encoded_args[last_encoded_arg_index].clone(),
         encoded_qvars.clone(),
         parent_def_id,
         body_substs,
+        config::unsafe_core_proof(),
     )?;
 
     // TODO: implement cache-friendly qvar renaming
 
-    let final_body = if bounds.is_empty() {
-        encoded_body
-    } else if is_exists {
-        vir_high::Expression::and(bounds.into_iter().conjoin(), encoded_body)
-    } else {
-        vir_high::Expression::implies(bounds.into_iter().conjoin(), encoded_body)
-    };
+    // let final_body = if bounds.is_empty() {
+    //     encoded_body
+    // } else if is_exists {
+    //     vir_high::Expression::and(bounds.into_iter().conjoin(), encoded_body)
+    // } else {
+    //     vir_high::Expression::implies(bounds.into_iter().conjoin(), encoded_body)
+    // };
     if is_exists {
         Ok(vir_high::Expression::exists(
             encoded_qvars,
             encoded_trigger_sets,
-            simplify(final_body),
+            simplify(encoded_body),
         ))
     } else {
         Ok(vir_high::Expression::forall(
             encoded_qvars,
             encoded_trigger_sets,
-            simplify(final_body),
+            simplify(encoded_body),
         ))
     }
 }

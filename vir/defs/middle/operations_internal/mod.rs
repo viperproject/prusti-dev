@@ -14,4 +14,5 @@ copy_module!(crate::typed::operations_internal::rvalue);
 copy_module!(crate::typed::operations_internal::function);
 copy_module!(crate::typed::operations_internal::constants);
 copy_module!(crate::typed::operations_internal::helpers);
+copy_module!(crate::typed::operations_internal::quantifiers);
 pub mod position;

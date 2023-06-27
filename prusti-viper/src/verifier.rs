@@ -224,16 +224,17 @@ fn verify_programs(
         .to_owned();
     let verification_requests = programs.into_iter().map(|mut program| {
         let program_name = program.get_name().to_string();
-        let check_mode = program.get_check_mode();
+        // let check_mode = program.get_check_mode();
         // Prepend the Rust file name to the program.
         program.set_name(format!("{rust_program_name}_{program_name}"));
-        let backend = if check_mode == CheckMode::Specifications {
-            config::verify_specifications_backend()
-        } else {
-            config::viper_backend()
-        }
-        .parse()
-        .unwrap();
+        // let backend = if check_mode == CheckMode::PurificationFunctional {
+        //     config::verify_specifications_backend()
+        // } else {
+        //     config::viper_backend()
+        // }
+        // .parse()
+        // .unwrap();
+        let backend = config::viper_backend().parse().unwrap();
         let request = VerificationRequest {
             program,
             backend_config: ViperBackendConfig::new(backend),

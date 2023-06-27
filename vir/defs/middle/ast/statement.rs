@@ -14,20 +14,26 @@ use crate::common::display;
 pub enum Statement {
     Comment(Comment),
     OldLabel(OldLabel),
-    Inhale(Inhale),
-    Exhale(Exhale),
+    InhalePredicate(InhalePredicate),
+    ExhalePredicate(ExhalePredicate),
+    InhaleExpression(InhaleExpression),
+    ExhaleExpression(ExhaleExpression),
+    Assume(Assume),
+    Assert(Assert),
     Consume(Consume),
     Havoc(Havoc),
     GhostHavoc(GhostHavoc),
-    Assume(Assume),
-    Assert(Assert),
+    HeapHavoc(HeapHavoc),
     FoldOwned(FoldOwned),
     UnfoldOwned(UnfoldOwned),
     FoldRef(FoldRef),
     UnfoldRef(UnfoldRef),
     JoinBlock(JoinBlock),
+    JoinRange(JoinRange),
     SplitBlock(SplitBlock),
+    SplitRange(SplitRange),
     ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
+    RangeConvertOwnedIntoMemoryBlock(RangeConvertOwnedIntoMemoryBlock),
     RestoreMutBorrowed(RestoreMutBorrowed),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
@@ -36,9 +42,15 @@ pub enum Statement {
     Assign(Assign),
     GhostAssign(GhostAssign),
     SetUnionVariant(SetUnionVariant),
+    // Pack(Pack),
+    // Unpack(Unpack),
+    RestoreRawBorrowed(RestoreRawBorrowed),
+    StashRange(StashRange),
+    StashRangeRestore(StashRangeRestore),
     NewLft(NewLft),
     EndLft(EndLft),
     DeadReference(DeadReference),
+    DeadReferenceRange(DeadReferenceRange),
     DeadLifetime(DeadLifetime),
     DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
@@ -48,6 +60,8 @@ pub enum Statement {
     CloseMutRef(CloseMutRef),
     CloseFracRef(CloseFracRef),
     BorShorten(BorShorten),
+    MaterializePredicate(MaterializePredicate),
+    CaseSplit(CaseSplit),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -62,16 +76,18 @@ pub struct OldLabel {
     pub position: Position,
 }
 
-/// Inhale the permission denoted by the place.
-#[display(fmt = "inhale {}", predicate)]
-pub struct Inhale {
+/// Inhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+#[display(fmt = "inhale-pred {}", predicate)]
+pub struct InhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
 
-#[display(fmt = "exhale {}", predicate)]
-/// Exhale the permission denoted by the place.
-pub struct Exhale {
+#[display(fmt = "exhale-pred {}", predicate)]
+/// Exhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+pub struct ExhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
@@ -96,8 +112,34 @@ pub struct GhostHavoc {
     pub position: Position,
 }
 
+#[display(fmt = "heap-havoc")]
+/// Havoc the heap.
+pub struct HeapHavoc {
+    pub position: Position,
+}
+
+#[display(fmt = "inhale-expr {}", expression)]
+/// Inhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct InhaleExpression {
+    pub expression: Expression,
+    /// The label statement that immediatelly follows this inhale statement. Used
+    /// by `SelfFramingAssertionToSnapshot`.
+    pub label: Option<String>,
+    pub position: Position,
+}
+
+#[display(fmt = "exhale-expr {}", expression)]
+/// Exhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct ExhaleExpression {
+    pub expression: Expression,
+    /// The label statement that immediatelly preceeds this exhale statement.
+    /// Used by `SelfFramingAssertionToSnapshot`.
+    pub label: Option<String>,
+    pub position: Position,
+}
+
 #[display(fmt = "assume {}", expression)]
-/// Assume the boolean expression.
+/// Assume the pure boolean expression.
 pub struct Assume {
     pub expression: Expression,
     pub position: Position,
@@ -108,7 +150,7 @@ pub struct Assume {
     "display::option!(condition, \"<{}>\", \"\")",
     expression
 )]
-/// Assert the boolean expression.
+/// Assert the pure boolean expression.
 pub struct Assert {
     pub expression: Expression,
     pub condition: Option<BlockMarkerCondition>,
@@ -133,26 +175,30 @@ pub struct BlockMarkerCondition {
 }
 
 #[display(
-    fmt = "fold-owned{} {}",
+    fmt = "fold-owned{}{} {}",
     "display::option!(condition, \"<{}>\", \"\")",
+    "display::option!(permission, \"({})\", \"\")",
     place
 )]
 /// Fold `OwnedNonAliased(place)`.
 pub struct FoldOwned {
     pub place: Expression,
     pub condition: Option<BlockMarkerCondition>,
+    pub permission: Option<VariableDecl>,
     pub position: Position,
 }
 
 #[display(
-    fmt = "unfold-owned{} {}",
+    fmt = "unfold-owned{}{} {}",
     "display::option!(condition, \"<{}>\", \"\")",
+    "display::option!(permission, \"({})\", \"\")",
     place
 )]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
     pub condition: Option<BlockMarkerCondition>,
+    pub permission: Option<VariableDecl>,
     pub position: Position,
 }
 
@@ -203,6 +249,14 @@ pub struct JoinBlock {
     pub position: Position,
 }
 
+#[display(fmt = "join-range {} {} {}", address, start_index, end_index)]
+pub struct JoinRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
 #[display(
     fmt = "split{} {}{}",
     "display::option!(condition, \"<{}>\", \"\")",
@@ -218,6 +272,14 @@ pub struct SplitBlock {
     pub position: Position,
 }
 
+#[display(fmt = "split-range {} {} {}", address, start_index, end_index)]
+pub struct SplitRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
 /// Convert `Owned(place)` into `MemoryBlock(place)`.
 #[display(
     fmt = "convert-owned-memory-block{} {}",
@@ -230,16 +292,34 @@ pub struct ConvertOwnedIntoMemoryBlock {
     pub position: Position,
 }
 
+/// Convert a range of `Owned(...)` into `MemoryBlock(...)`.
+#[display(
+    fmt = "convert-owned-memory-block {} {} {}",
+    address,
+    start_index,
+    end_index
+)]
+pub struct RangeConvertOwnedIntoMemoryBlock {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
 /// Restore a mutably borrowed place.
 #[display(
-    fmt = "restore-mut-borrowed{} &{} {}",
+    fmt = "restore-mut-borrowed{} {} &{} {} {}",
     "display::option!(condition, \"<{}>\", \"\")",
+    "display::option!(borrowing_place, \"({})\", \"\")",
     lifetime,
+    "if *is_reborrow { \"reborrow\" } else { \"\" }",
     place
 )]
 pub struct RestoreMutBorrowed {
     pub lifetime: LifetimeConst,
     pub place: Expression,
+    pub is_reborrow: bool,
+    pub borrowing_place: Option<Expression>,
     pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
@@ -304,6 +384,63 @@ pub struct SetUnionVariant {
     pub position: Position,
 }
 
+// #[display(fmt = "pack {}", place)]
+// pub struct Pack {
+//     pub place: Expression,
+//     pub position: Position,
+// }
+
+// #[display(fmt = "unpack {}", place)]
+// pub struct Unpack {
+//     pub place: Expression,
+//     pub position: Position,
+// }
+
+#[display(
+    fmt = "restore-raw-borrowed {} --* {}",
+    borrowing_place,
+    restored_place
+)]
+pub struct RestoreRawBorrowed {
+    pub borrowing_place: Expression,
+    pub restored_place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range {} {} {} {}",
+    address,
+    start_index,
+    end_index,
+    label
+)]
+pub struct StashRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub label: String,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range-restore {} {} {} {} → {} {}",
+    old_address,
+    old_start_index,
+    old_end_index,
+    old_label,
+    new_address,
+    new_start_index
+)]
+pub struct StashRangeRestore {
+    pub old_address: Expression,
+    pub old_start_index: Expression,
+    pub old_end_index: Expression,
+    pub old_label: String,
+    pub new_address: Expression,
+    pub new_start_index: Expression,
+    pub position: Position,
+}
+
 #[display(fmt = "{} = newlft()", target)]
 pub struct NewLft {
     pub target: VariableDecl,
@@ -316,14 +453,48 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "dead-reference({})", target)]
+#[display(
+    fmt = "dead-reference{}{}({})",
+    "display::option!(condition, \"<{}>\", \"\")",
+    "display::option!(condition, \"<blocking:{}>\", \"\")",
+    target
+)]
 pub struct DeadReference {
     pub target: Expression,
+    /// Is the dead reference blocked by a reborrow? If yes, contains the
+    /// reborrowing lifetime.
+    pub is_blocked_by_reborrow: Option<LifetimeConst>,
     pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
-#[display(fmt = "dead-lifetime({}, {})", target, lifetime)]
+#[display(
+    fmt = "dead-reference-range {} {} {} {}",
+    lifetime,
+    address,
+    start_index,
+    end_index
+)]
+pub struct DeadReferenceRange {
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
+    pub address: Expression,
+    /// We need `predicate_range_start_index` and `predicate_range_end_index` to
+    /// be able to generate proper triggers: they are used to match the
+    /// `own_range!` predicate.
+    pub predicate_range_start_index: Expression,
+    pub predicate_range_end_index: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "dead-lifetime{}({}, {})",
+    "display::option!(condition, \"<{}>\", \"\")",
+    target,
+    lifetime
+)]
 pub struct DeadLifetime {
     pub target: Expression,
     pub lifetime: LifetimeConst,
@@ -436,5 +607,22 @@ pub struct BorShorten {
     pub old_lifetime: LifetimeConst,
     pub value: Expression,
     pub lifetime_token_permission: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "materialize_predicate({}, {})", predicate, check_that_exists)]
+pub struct MaterializePredicate {
+    pub predicate: Predicate,
+    /// Whether we should check that the predicate  chunk actually exists.
+    /// `materialize_predicate!` corresponds to `true` and `quantified_predicate!`
+    /// corresponds to `false`.
+    pub check_that_exists: bool,
+    pub position: Position,
+}
+
+#[display(fmt = "case-split {}", expression)]
+/// Case-split on a pure boolean expression. This operation is ignored by fold-unfold.
+pub struct CaseSplit {
+    pub expression: Expression,
     pub position: Position,
 }

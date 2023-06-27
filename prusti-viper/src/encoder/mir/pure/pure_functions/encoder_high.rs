@@ -99,16 +99,14 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
         parent_def_id,
         substs,
     );
+    let span = encoder.env().query.get_def_span(proc_def_id);
     let state = run_backward_interpretation(&mir, &interpreter)?.ok_or_else(|| {
-        SpannedEncodingError::incorrect(
-            format!("procedure {proc_def_id:?} contains a loop"),
-            encoder.env().query.get_def_span(proc_def_id),
-        )
+        SpannedEncodingError::incorrect(format!("procedure {proc_def_id:?} contains a loop"), span)
     })?;
     let body = state.into_expr().ok_or_else(|| {
         SpannedEncodingError::internal(
             format!("failed to encode function's body: {proc_def_id:?}"),
-            encoder.env().query.get_def_span(proc_def_id),
+            span,
         )
     })?;
     debug!(
@@ -117,6 +115,7 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     );
     // FIXME: Traverse the encoded function and check that all used types are
     // Copy. Doing this before encoding causes too many false positives.
+    let body = super::cleaner::clean_encoding_result(encoder, body, proc_def_id, span)?;
     Ok(body)
 }
 
@@ -198,7 +197,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
     #[tracing::instrument(level = "debug", skip(self), fields(proc_def_id = ?self.proc_def_id))]
     fn encode_function_decl(&self) -> SpannedEncodingResult<vir_high::FunctionDecl> {
-        let is_bodyless = self.encoder.is_trusted(self.proc_def_id, Some(self.substs))
+        let is_bodyless = (self.encoder.is_trusted(self.proc_def_id, Some(self.substs))
+            && !self
+                .encoder
+                .is_non_verified_pure(self.proc_def_id, Some(self.substs)))
             || !self.encoder.env().query.has_body(self.proc_def_id);
         let body = if is_bodyless {
             None
@@ -369,7 +371,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder.error_manager().set_error(
+            self.encoder.error_manager().set_surrounding_error_context(
                 encoded_assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );

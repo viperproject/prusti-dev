@@ -10,8 +10,9 @@ use quote::{quote, ToTokens};
 
 impl ToTokens for CustomDeriveOptions {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let trait_type = &self.trait_type;
         let fields = &self.ignored_fields;
-        tokens.extend(quote! {ignore=[#(#fields),*]})
+        tokens.extend(quote! {trait_type=#trait_type,ignore=[#(#fields),*]})
     }
 }
 

@@ -33,6 +33,9 @@ impl IntoPolymorphic<vir_poly::Expr> for vir_high::Expression {
             vir_high::Expression::Deref(expression) => {
                 vir_poly::Expr::Field(expression.lower(encoder))
             }
+            vir_high::Expression::Final(expression) => {
+                unimplemented!("not supported lowering: {}", expression);
+            }
             vir_high::Expression::AddrOf(expression) => {
                 vir_poly::Expr::AddrOf(expression.lower(encoder))
             }
@@ -74,6 +77,15 @@ impl IntoPolymorphic<vir_poly::Expr> for vir_high::Expression {
             }
             vir_high::Expression::Downcast(expression) => {
                 vir_poly::Expr::Downcast(expression.lower(encoder))
+            }
+            vir_high::Expression::AccPredicate(_expression) => {
+                todo!()
+            }
+            vir_high::Expression::Unfolding(_expression) => {
+                todo!()
+            }
+            vir_high::Expression::EvalIn(_expression) => {
+                todo!()
             }
         }
     }
@@ -160,6 +172,9 @@ impl IntoPolymorphic<vir_poly::Const> for vir_high::expression::ConstantValue {
             }
             vir_high::expression::ConstantValue::BigInt(value) => {
                 vir_poly::Const::BigInt(value.clone())
+            }
+            vir_high::expression::ConstantValue::String(_) => {
+                unreachable!("String constants are not supported");
             }
             vir_high::expression::ConstantValue::FnPtr => vir_poly::Const::FnPtr,
         }

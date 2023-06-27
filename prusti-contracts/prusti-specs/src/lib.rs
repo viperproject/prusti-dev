@@ -14,6 +14,7 @@ mod extern_spec_rewriter;
 mod type_cond_specs;
 mod parse_closure_macro;
 mod parse_quote_spanned;
+mod parse_ghost_macros;
 mod predicate;
 mod rewriter;
 mod span_overrider;
@@ -23,6 +24,7 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 
+use parse_ghost_macros::{OnDropUnwind, WithFinally};
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use rewriter::AstRewriter;
@@ -70,7 +72,12 @@ fn extract_prusti_attributes(
             if let Ok(attr_kind) = attr.path.segments[idx].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
+                    | SpecAttributeKind::StructuralRequires
                     | SpecAttributeKind::Ensures
+                    | SpecAttributeKind::PanicEnsures
+                    | SpecAttributeKind::StructuralEnsures
+                    | SpecAttributeKind::NotRequire
+                    | SpecAttributeKind::NotEnsure
                     | SpecAttributeKind::AfterExpiry
                     | SpecAttributeKind::AssertOnExpiry
                     | SpecAttributeKind::RefineSpec => {
@@ -87,7 +94,10 @@ fn extract_prusti_attributes(
                     | SpecAttributeKind::Terminates
                     | SpecAttributeKind::Trusted
                     | SpecAttributeKind::Predicate
-                    | SpecAttributeKind::Verified => {
+                    | SpecAttributeKind::Verified
+                    | SpecAttributeKind::NonVerifiedPure
+                    | SpecAttributeKind::NoPanic
+                    | SpecAttributeKind::NoPanicEnsuresPostcondition => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
                     }
@@ -162,13 +172,27 @@ fn generate_spec_and_assertions(
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
+            SpecAttributeKind::StructuralRequires => {
+                generate_for_structural_requires(attr_tokens, item)
+            }
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
+            SpecAttributeKind::PanicEnsures => generate_for_panic_ensures(attr_tokens, item),
+            SpecAttributeKind::StructuralEnsures => {
+                generate_for_structural_ensures(attr_tokens, item)
+            }
+            SpecAttributeKind::NotRequire => generate_for_not_require(attr_tokens, item),
+            SpecAttributeKind::NotEnsure => generate_for_not_ensure(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
             SpecAttributeKind::Verified => generate_for_verified(attr_tokens, item),
+            SpecAttributeKind::NonVerifiedPure => generate_for_non_verified_pure(attr_tokens, item),
             SpecAttributeKind::Terminates => generate_for_terminates(attr_tokens, item),
             SpecAttributeKind::Trusted => generate_for_trusted(attr_tokens, item),
+            SpecAttributeKind::NoPanic => generate_for_no_panic(attr_tokens, item),
+            SpecAttributeKind::NoPanicEnsuresPostcondition => {
+                generate_for_no_panic_ensures_postcondition(attr_tokens, item)
+            }
             // Predicates are handled separately below; the entry in the SpecAttributeKind enum
             // only exists so we successfully parse it and emit an error in
             // `check_incompatible_attrs`; so we'll never reach here.
@@ -201,6 +225,45 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
     ))
 }
 
+/// Generate spec items and attributes to typecheck the and later retrieve "structural_requires" annotations.
+fn generate_for_structural_requires(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr, item)?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pre_structural_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve
+/// "not_require" annotations.
+fn generate_for_not_require(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    let attr = quote! { prusti_broken_invariant(#attr) };
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item = rewriter.process_assertion(
+        rewriter::SpecItemType::BrokenPrecondition,
+        spec_id,
+        attr,
+        item,
+    )?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pre_broken_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
 /// Generate spec items and attributes to typecheck the and later retrieve "ensures" annotations.
 fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
@@ -212,6 +275,62 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         vec![spec_item],
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::post_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck the and later retrieve
+/// "panic_ensures" annotations.
+fn generate_for_panic_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Postcondition, spec_id, attr, item)?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::post_panic_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck the and later retrieve
+/// "structural_ensures" annotations.
+fn generate_for_structural_ensures(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Postcondition, spec_id, attr, item)?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::post_structural_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve
+/// "not_ensure" annotations.
+fn generate_for_not_ensure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    let attr = quote! { prusti_broken_invariant(#attr) };
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item = rewriter.process_assertion(
+        rewriter::SpecItemType::BrokenPostcondition,
+        spec_id,
+        attr,
+        item,
+    )?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::post_broken_spec_id_ref = #spec_id_str]
         }],
     ))
 }
@@ -314,6 +433,23 @@ fn generate_for_verified(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
     ))
 }
 
+/// Generate spec items and attributes to typecheck and later retrieve "non_verified_pure" annotations.
+fn generate_for_non_verified_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[non_verified_pure]` attribute does not take parameters",
+        ));
+    }
+
+    Ok((
+        vec![],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::non_verified_pure]
+        }],
+    ))
+}
+
 /// Generate spec items and attributes to typecheck and later retrieve "pure" annotations, but encoded as a referenced separate function that type-conditional spec refinements can apply trait bounds to.
 fn generate_for_pure_refinements(item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
@@ -342,6 +478,45 @@ fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         vec![],
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::trusted]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve
+/// "no_panic" annotations.
+fn generate_for_no_panic(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[no_panic]` attribute does not take parameters",
+        ));
+    }
+
+    Ok((
+        vec![],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::no_panic]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve
+/// "no_panic_ensures_postcondition" annotations.
+fn generate_for_no_panic_ensures_postcondition(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[no_panic_ensures_postcondition]` attribute does not take parameters",
+        ));
+    }
+
+    Ok((
+        vec![],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::no_panic_ensures_postcondition]
         }],
     ))
 }
@@ -422,6 +597,10 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_loop_invariant, tokens)
 }
 
+pub fn structural_body_invariant(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_structural_loop_invariant, tokens)
+}
+
 pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens)
 }
@@ -432,6 +611,18 @@ pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
 
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens)
+}
+
+pub fn prusti_structural_assert(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_structural_assertion, tokens)
+}
+
+pub fn prusti_structural_assume(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_structural_assumption, tokens)
+}
+
+pub fn prusti_split_on(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_split, tokens)
 }
 
 /// Generates the TokenStream encoding an expression using prusti syntax
@@ -451,6 +642,23 @@ fn generate_expression_closure(
             #closure
         }
     }
+}
+
+fn prusti_specification_expression(
+    tokens: TokenStream,
+) -> syn::Result<(SpecificationId, TokenStream)> {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let closure = rewriter.process_prusti_specification_expression(spec_id, tokens)?;
+    let callsite_span = Span::call_site();
+    let tokens = quote_spanned! {callsite_span=>
+        #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+        #[prusti::specs_version = #SPECS_VERSION]
+        if false {
+            #closure
+        }
+    };
+    Ok((spec_id, tokens))
 }
 
 pub fn closure(tokens: TokenStream) -> TokenStream {
@@ -710,7 +918,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
-pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn invariant(attr: TokenStream, tokens: TokenStream, is_structural: bool) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -721,20 +929,30 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
     #[allow(clippy::redundant_clone)]
     let item_ident = item.ident.clone();
-
+    let item_name_structural = if is_structural {
+        "structural"
+    } else {
+        "non_structural"
+    };
     let item_name = syn::Ident::new(
-        &format!("prusti_invariant_item_{item_ident}_{spec_id}"),
+        &format!("prusti_invariant_item_{item_name_structural}_{item_ident}_{spec_id}"),
         item_span,
     );
 
     let attr = handle_result!(parse_prusti(attr));
 
+    let is_structural_tokens = if is_structural {
+        quote_spanned!(item_span => #[prusti::type_invariant_structural])
+    } else {
+        quote_spanned!(item_span => #[prusti::type_invariant_non_structural])
+    };
     // TODO: move some of this to AstRewriter?
     // see AstRewriter::generate_spec_item_fn for explanation of syntax below
     let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
         #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
         #[prusti::spec_only]
         #[prusti::type_invariant_spec]
+        #is_structural_tokens
         #[prusti::spec_id = #spec_id_str]
         fn #item_name(self) -> bool {
             !!((#attr) : bool)
@@ -865,15 +1083,33 @@ fn extract_prusti_attributes_for_types(
             if let Ok(attr_kind) = attr.path.segments[0].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires => unreachable!("requires on type"),
+                    SpecAttributeKind::StructuralRequires => {
+                        unreachable!("structural requires on type")
+                    }
                     SpecAttributeKind::Ensures => unreachable!("ensures on type"),
+                    SpecAttributeKind::PanicEnsures => unreachable!("panic_ensures on type"),
+                    SpecAttributeKind::StructuralEnsures => {
+                        unreachable!("structural ensures on type")
+                    }
                     SpecAttributeKind::AfterExpiry => unreachable!("after_expiry on type"),
                     SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
                     SpecAttributeKind::RefineSpec => unreachable!("refine_spec on type"),
                     SpecAttributeKind::Pure => unreachable!("pure on type"),
                     SpecAttributeKind::Verified => unreachable!("verified on type"),
+                    SpecAttributeKind::NonVerifiedPure => unreachable!("non_verified_pure on type"),
                     SpecAttributeKind::Invariant => unreachable!("invariant on type"),
                     SpecAttributeKind::Predicate => unreachable!("predicate on type"),
                     SpecAttributeKind::Terminates => unreachable!("terminates on type"),
+                    SpecAttributeKind::NoPanic => unreachable!("no_panic on type"),
+                    SpecAttributeKind::NoPanicEnsuresPostcondition => {
+                        unreachable!("no_panic_ensures_postcondition on type")
+                    }
+                    SpecAttributeKind::NotRequire => {
+                        unreachable!("not_require on type")
+                    }
+                    SpecAttributeKind::NotEnsure => {
+                        unreachable!("not_ensure on type")
+                    }
                     SpecAttributeKind::Trusted | SpecAttributeKind::Model => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
@@ -910,16 +1146,24 @@ fn generate_spec_and_assertions_for_types(
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => unreachable!(),
+            SpecAttributeKind::StructuralRequires => unreachable!(),
             SpecAttributeKind::Ensures => unreachable!(),
+            SpecAttributeKind::PanicEnsures => unreachable!(),
+            SpecAttributeKind::StructuralEnsures => unreachable!(),
             SpecAttributeKind::AfterExpiry => unreachable!(),
             SpecAttributeKind::AssertOnExpiry => unreachable!(),
             SpecAttributeKind::Pure => unreachable!(),
             SpecAttributeKind::Verified => unreachable!(),
+            SpecAttributeKind::NonVerifiedPure => unreachable!(),
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
             SpecAttributeKind::RefineSpec => unreachable!(),
             SpecAttributeKind::Terminates => unreachable!(),
             SpecAttributeKind::Trusted => generate_for_trusted_for_types(attr_tokens, item),
+            SpecAttributeKind::NoPanic => unreachable!(),
+            SpecAttributeKind::NoPanicEnsuresPostcondition => unreachable!(),
+            SpecAttributeKind::NotRequire => unreachable!(),
+            SpecAttributeKind::NotEnsure => unreachable!(),
             SpecAttributeKind::Model => generate_for_model(attr_tokens, item),
             SpecAttributeKind::PrintCounterexample => {
                 generate_for_print_counterexample(attr_tokens, item)
@@ -1013,11 +1257,23 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
         .to_compile_error()
     }
 }
-pub fn ghost(tokens: TokenStream) -> TokenStream {
-    let mut rewriter = rewriter::AstRewriter::new();
+
+fn ghost_with_annotation(
+    tokens: TokenStream,
+    annotation: TokenStream,
+    wrap_result_in_ghost: bool,
+    begin_marker: TokenStream,
+    end_marker: TokenStream,
+    spec_id: Option<SpecificationId>,
+) -> TokenStream {
     let callsite_span = Span::call_site();
 
-    let spec_id = rewriter.generate_spec_id();
+    let spec_id = if let Some(spec_id) = spec_id {
+        spec_id
+    } else {
+        let mut rewriter = rewriter::AstRewriter::new();
+        rewriter.generate_spec_id()
+    };
     let spec_id_str = spec_id.to_string();
 
     let make_closure = |kind| {
@@ -1106,15 +1362,21 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
         exit_errors.push(*break_span);
     }
 
-    let begin = make_closure(quote! {ghost_begin});
-    let end = make_closure(quote! {ghost_end});
+    let begin = make_closure(begin_marker);
+    let end = make_closure(end_marker);
+    let ghost_result = if wrap_result_in_ghost {
+        quote! {Ghost::new(#tokens)}
+    } else {
+        quote! {#tokens}
+    };
 
     if exit_errors.is_empty() {
         quote_spanned! {callsite_span=>
             {
                 #begin
+                #annotation
                 #[prusti::specs_version = #SPECS_VERSION]
-                let ghost_result = Ghost::new(#tokens);
+                let ghost_result = #ghost_result;
                 #end
                 ghost_result
             }
@@ -1130,5 +1392,595 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
             }
         }
         syn_errors
+    }
+}
+
+pub fn ghost(tokens: TokenStream) -> TokenStream {
+    ghost_with_annotation(
+        tokens,
+        quote! {},
+        true,
+        quote! {ghost_begin},
+        quote! {ghost_end},
+        None,
+    )
+}
+
+macro_rules! parse_expressions {
+    ($tokens: expr, $separator: ty => $( $expr:ident ),* ) => {
+        let parser = syn::punctuated::Punctuated::<syn::Expr, $separator>::parse_terminated;
+        let expressions = handle_result!(syn::parse::Parser::parse2(parser, $tokens));
+        let mut expressions: Vec<_> = expressions.into_pairs().map(|pair| pair.into_value()).collect();
+        expressions.reverse();
+        $(
+            let $expr = handle_result!(
+                expressions
+                    .pop()
+                    .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected more expressions"))
+            );
+        )*
+    }
+}
+
+pub fn on_drop_unwind(tokens: TokenStream) -> TokenStream {
+    let OnDropUnwind {
+        dropped_place,
+        block,
+    } = handle_result!(syn::parse2(tokens));
+    ghost_with_annotation(
+        quote! { #block },
+        unsafe_spec_function_call(quote! {
+            prusti_on_drop_unwind(std::ptr::addr_of!(#dropped_place))
+        }),
+        false,
+        quote! {specification_region_begin},
+        quote! {specification_region_end},
+        None,
+    )
+}
+
+pub fn with_finally(tokens: TokenStream) -> TokenStream {
+    let WithFinally {
+        executed_block,
+        on_panic_block,
+        finally_block_at_panic_start,
+        finally_block_at_resume,
+    } = handle_result!(syn::parse2(tokens));
+    let mut rewriter = rewriter::AstRewriter::new();
+    let on_panic_spec_id = rewriter.generate_spec_id();
+    let on_panic_spec_id_str = on_panic_spec_id.to_string();
+    let finally_at_panic_start_spec_id = rewriter.generate_spec_id();
+    let finally_at_panic_start_spec_id_str = finally_at_panic_start_spec_id.to_string();
+    let finally_at_resume_spec_id = rewriter.generate_spec_id();
+    let finally_at_resume_spec_id_str = finally_at_resume_spec_id.to_string();
+    let make_closure = |kind| {
+        quote! {
+            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+            if false {
+                #[prusti::spec_only]
+                #[prusti::#kind]
+                #[prusti::on_panic_spec_id = #on_panic_spec_id_str]
+                #[prusti::finally_at_panic_start_spec_id = #finally_at_panic_start_spec_id_str]
+                #[prusti::finally_at_resume_spec_id = #finally_at_resume_spec_id_str]
+                || -> () {};
+            }
+        }
+    };
+    let executed_block_begin = make_closure(quote! {try_finally_executed_block_begin});
+    let executed_block_end = make_closure(quote! {try_finally_executed_block_end});
+    let on_panic_ghost_block = ghost_with_annotation(
+        quote! { #on_panic_block },
+        quote! {},
+        false,
+        quote! {specification_region_begin},
+        quote! {specification_region_end},
+        Some(on_panic_spec_id),
+    );
+    let finally_at_panic_start_ghost_block = ghost_with_annotation(
+        quote! { #finally_block_at_panic_start },
+        quote! {},
+        false,
+        quote! {specification_region_begin},
+        quote! {specification_region_end},
+        Some(finally_at_panic_start_spec_id),
+    );
+    let finally_at_resume_ghost_block = ghost_with_annotation(
+        quote! { #finally_block_at_resume },
+        quote! {},
+        false,
+        quote! {specification_region_begin},
+        quote! {specification_region_end},
+        Some(finally_at_resume_spec_id),
+    );
+    quote! {
+        #executed_block_begin
+        #(#executed_block)*
+        #executed_block_end
+        #on_panic_ghost_block
+        #finally_at_panic_start_ghost_block
+        #finally_at_resume_ghost_block
+    }
+}
+
+pub fn checked(tokens: TokenStream) -> TokenStream {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let make_closure = |kind| {
+        quote! {
+            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+            if false {
+                #[prusti::spec_only]
+                #[prusti::#kind]
+                #[prusti::spec_id = #spec_id_str]
+                || -> () {};
+            }
+        }
+    };
+    let checked_block_begin = make_closure(quote! {checked_block_begin});
+    let checked_block_end = make_closure(quote! {checked_block_end});
+    let tokens = quote! {
+        {
+            #checked_block_begin
+            let result = { #tokens };
+            #checked_block_end
+            result
+        }
+    };
+    tokens
+}
+
+pub fn manually_manage(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_manually_manage})
+}
+
+pub fn pack(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_pack_place})
+}
+
+pub fn unpack(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_unpack_place})
+}
+
+pub fn obtain(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_obtain_place})
+}
+
+pub fn pack_ref(tokens: TokenStream) -> TokenStream {
+    // generate_place_function(tokens, quote! {prusti_pack_ref_place})
+    pack_unpack_ref(tokens, quote! {prusti_pack_ref_place})
+}
+
+pub fn unpack_ref(tokens: TokenStream) -> TokenStream {
+    // generate_place_function(tokens, quote! {prusti_unpack_ref_place})
+    pack_unpack_ref(tokens, quote! {prusti_unpack_ref_place})
+}
+
+pub fn pack_mut_ref(tokens: TokenStream) -> TokenStream {
+    // generate_place_function(tokens, quote! {prusti_pack_mut_ref_place})
+    pack_unpack_ref(tokens, quote! {prusti_pack_mut_ref_place})
+}
+
+pub fn unpack_mut_ref(tokens: TokenStream) -> TokenStream {
+    // // generate_place_function(tokens, quote!{prusti_unpack_mut_ref_place})
+    // let (lifetime_name, reference) =
+    //     handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));
+    // let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    // unsafe_spec_function_call(quote! {`
+    //     prusti_unpack_mut_ref_place(#lifetime_name_str, std::ptr::addr_of!(#reference))
+    // })
+    pack_unpack_ref(tokens, quote! {prusti_unpack_mut_ref_place})
+}
+
+fn pack_unpack_ref(tokens: TokenStream, function: TokenStream) -> TokenStream {
+    // let (lifetime_name, reference) =
+    //     handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));
+    parse_expressions!(tokens, syn::Token![,] => lifetime_name, reference);
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    unsafe_spec_function_call(quote! {
+        #function(#lifetime_name_str, std::ptr::addr_of!(#reference))
+    })
+}
+
+// fn parse_two_expressions<Separator: syn::parse::Parse>(
+//     tokens: TokenStream,
+// ) -> syn::Result<(syn::Expr, syn::Expr)> {
+//     // let parser = syn::punctuated::Punctuated::<syn::Expr, Separator>::parse_terminated;
+//     // let mut expressions = syn::parse::Parser::parse2(parser, tokens)?;
+//     // let second = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected two expressions"))?;
+//     // let first = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected two expressions"))?;
+//     // Ok((first.into_value(), second.into_value()))
+//     parse_expressions!(tokens, Separator => first, second);
+//     Ok((first, second))
+// }
+
+// fn parse_three_expressions<Separator: syn::parse::Parse>(
+//     tokens: TokenStream,
+// ) -> syn::Result<(syn::Expr, syn::Expr, syn::Expr)> {
+//     // let parser = syn::punctuated::Punctuated::<syn::Expr, Separator>::parse_terminated;
+//     // let mut expressions = syn::parse::Parser::parse2(parser, tokens)?;
+//     // let third = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected three expressions"))?;
+//     // let second = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected three expressions"))?;
+//     // let first = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected three expressions"))?;
+//     // Ok((first.into_value(), second.into_value(), third.into_value()))
+//     parse_expressions!(tokens, Separator => first, second, third);
+//     Ok((first, second, third))
+// }
+
+// fn parse_four_expressions<Separator: syn::parse::Parse>(
+//     tokens: TokenStream,
+// ) -> syn::Result<(syn::Expr, syn::Expr, syn::Expr, syn::Expr)> {
+//     // let parser = syn::punctuated::Punctuated::<syn::Expr, Separator>::parse_terminated;
+//     // let mut expressions = syn::parse::Parser::parse2(parser, tokens)?;
+//     // let fourth = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+//     // let third = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+//     // let second = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+//     // let first = expressions
+//     //     .pop()
+//     //     .ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+//     // Ok((
+//     //     first.into_value(),
+//     //     second.into_value(),
+//     //     third.into_value(),
+//     //     fourth.into_value(),
+//     // ))
+//     parse_expressions!(tokens, Separator => first, second, third, fourth);
+//     Ok((first, second, third, fourth))
+// }
+
+fn expression_to_string(expr: &syn::Expr) -> syn::Result<String> {
+    if let syn::Expr::Path(syn::ExprPath {
+        qself: None, path, ..
+    }) = expr
+    {
+        if let Some(ident) = path.get_ident() {
+            return Ok(ident.to_string());
+        }
+    }
+    Err(syn::Error::new(expr.span(), "needs to be an identifier"))
+}
+
+pub fn unsafe_spec_function_call(call: TokenStream) -> TokenStream {
+    let callsite_span = Span::call_site();
+    quote_spanned! { callsite_span =>
+        #[allow(unused_must_use, unused_variables)]
+        #[prusti::specs_version = #SPECS_VERSION]
+        if false {
+            #[prusti::spec_only]
+            || -> bool { true };
+            unsafe { #call };
+        }
+    }
+}
+
+pub fn take_lifetime(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => reference, lifetime_name);
+    // let (reference, lifetime_name) =
+    //     handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    unsafe_spec_function_call(quote! {
+        prusti_take_lifetime(std::ptr::addr_of!(#reference), #lifetime_name_str)
+    })
+    // let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![=>]>::parse_terminated;
+    // let mut args = handle_result!(syn::parse::Parser::parse2(parser, tokens));
+    // let lifetime = if let Some(lifetime) = args.pop() {
+    //     lifetime.into_value()
+    // } else {
+    //     return syn::Error::new(
+    //         args.span(),
+    //         "`take_lifetime!` needs to contain two arguments `<reference>` and `<lifetime name>`"
+    //     ).to_compile_error();
+    // };
+    // let lifetime_str = if let syn::Expr::Path(syn::ExprPath { qself: None, path, ..}) = lifetime {
+    //     if let Some(ident) = path.get_ident() {
+    //         ident.to_string()
+    //     } else {
+    //         return syn::Error::new(
+    //             path.span(),
+    //             "lifetime name needs to be an identifier"
+    //         ).to_compile_error();
+    //     }
+    // } else {
+    //     return syn::Error::new(
+    //         lifetime.span(),
+    //         "lifetime name needs to be an identifier"
+    //     ).to_compile_error();
+    // };
+    // let reference = if let Some(reference) = args.pop() {
+    //     reference.into_value()
+    // } else {
+    //     return syn::Error::new(
+    //         args.span(),
+    //         "`take_lifetime!` needs to contain two arguments `<reference>` and `<lifetime name>`"
+    //     ).to_compile_error();
+    // };
+    // let callsite_span = Span::call_site();
+    // quote_spanned! { callsite_span =>
+    //     #[allow(unused_must_use, unused_variables)]
+    //     #[prusti::specs_version = #SPECS_VERSION]
+    //     if false {
+    //         #[prusti::spec_only]
+    //         || -> bool { true };
+    //         unsafe { prusti_take_lifetime(std::ptr::addr_of!(#reference), #lifetime_str) };
+    //     }
+    // }
+}
+
+pub fn end_loan(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => lifetime_name);
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    unsafe_spec_function_call(quote! {
+        prusti_end_loan(#lifetime_name_str)
+    })
+}
+
+pub fn set_lifetime_for_raw_pointer_reference_casts(tokens: TokenStream) -> TokenStream {
+    unsafe_spec_function_call(quote! {
+        prusti_set_lifetime_for_raw_pointer_reference_casts(std::ptr::addr_of!(#tokens))
+    })
+}
+
+pub fn join(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_join_place})
+}
+
+pub fn join_range(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => pointer, start_index, end_index);
+    // let (pointer, start_index, end_index) =
+    //     handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    unsafe_spec_function_call(quote! {
+        prusti_join_range(std::ptr::addr_of!(#pointer), {#start_index}, #end_index)
+    })
+}
+
+pub fn split(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_split_place})
+}
+
+pub fn split_range(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => pointer, start_index, end_index);
+    // let (pointer, start_index, end_index) =
+    //     handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    unsafe_spec_function_call(quote! {
+        prusti_split_range(std::ptr::addr_of!(#pointer), {#start_index}, #end_index)
+    })
+}
+
+/// FIXME: For `start_index` and `end_index`, we should do the same as for
+/// `body_invariant!`.
+pub fn stash_range(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => pointer, start_index, end_index, witness);
+    // let (pointer, start_index, end_index, witness) =
+    //     handle_result!(parse_four_expressions::<syn::Token![,]>(tokens));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    unsafe_spec_function_call(quote! {
+        prusti_stash_range(
+            std::ptr::addr_of!(#pointer),
+            {#start_index},
+            {#end_index},
+            #witness_str
+        )
+    })
+}
+
+/// FIXME: For `new_start_index`, we should do the same as for
+/// `body_invariant!`.
+pub fn restore_stash_range(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => pointer, new_start_index, witness);
+    // let (pointer, new_start_index, witness) =
+    //     handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    unsafe_spec_function_call(quote! {
+        prusti_restore_stash_range(std::ptr::addr_of!(#pointer), {#new_start_index}, #witness_str)
+    })
+}
+
+pub fn materialize_predicate(tokens: TokenStream) -> TokenStream {
+    let (spec_id, predicate_closure) = handle_result!(prusti_specification_expression(tokens));
+    let spec_id_str = spec_id.to_string();
+    let call = unsafe_spec_function_call(quote! { prusti_materialize_predicate(#spec_id_str) });
+    quote! {
+        #call;
+        #predicate_closure
+    }
+}
+
+pub fn quantified_predicate(tokens: TokenStream) -> TokenStream {
+    let (spec_id, predicate_closure) = handle_result!(prusti_specification_expression(tokens));
+    let spec_id_str = spec_id.to_string();
+    let call = unsafe_spec_function_call(quote! { prusti_quantified_predicate(#spec_id_str) });
+    quote! {
+        #call;
+        #predicate_closure
+    }
+}
+
+pub fn assume_allocation_never_fails(tokens: TokenStream) -> TokenStream {
+    if !tokens.is_empty() {
+        return syn::Error::new(
+            tokens.span(),
+            "`assume_allocation_never_fails` does not take any arguments",
+        )
+        .to_compile_error();
+    }
+    unsafe_spec_function_call(quote! {
+        prusti_assume_allocation_never_fails()
+    })
+}
+
+fn close_any_ref(tokens: TokenStream, function: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => reference, witness);
+    // let (reference, witness) = handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    let (spec_id, reference_closure) = handle_result!(prusti_specification_expression(
+        quote! { unsafe { &#reference } }
+    ));
+    let spec_id_str = spec_id.to_string();
+    let call = unsafe_spec_function_call(quote! { #function(#spec_id_str, #witness_str) });
+    quote! {
+        #call;
+        #reference_closure
+    }
+}
+
+pub fn close_ref(tokens: TokenStream) -> TokenStream {
+    close_any_ref(tokens, quote! {prusti_close_ref_place})
+}
+
+pub fn close_mut_ref(tokens: TokenStream) -> TokenStream {
+    close_any_ref(tokens, quote! {prusti_close_mut_ref_place})
+}
+
+fn open_any_ref(tokens: TokenStream, function: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => lifetime_name, reference, witness);
+    // let (lifetime_name, reference, witness) =
+    //     handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    let (spec_id, reference_closure) = handle_result!(prusti_specification_expression(
+        quote! { unsafe { &#reference } }
+    ));
+    let spec_id_str = spec_id.to_string();
+    let call = unsafe_spec_function_call(quote! {
+        #function(#lifetime_name_str, #spec_id_str, #witness_str)
+    });
+    quote! {
+        #reference_closure;
+        #call
+    }
+}
+
+pub fn open_ref(tokens: TokenStream) -> TokenStream {
+    open_any_ref(tokens, quote! {prusti_open_ref_place})
+}
+
+pub fn open_mut_ref(tokens: TokenStream) -> TokenStream {
+    open_any_ref(tokens, quote! {prusti_open_mut_ref_place})
+}
+
+pub fn restore_mut_borrowed(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => referencing_place, referenced_place);
+    let (referencing_place_spec_id, referencing_place_closure) = handle_result!(
+        prusti_specification_expression(quote! { unsafe { &#referencing_place } })
+    );
+    let (referenced_place_spec_id, referenced_place_closure) = handle_result!(
+        prusti_specification_expression(quote! { unsafe { &#referenced_place } })
+    );
+    let referencing_place_spec_id_str = referencing_place_spec_id.to_string();
+    let referenced_place_spec_id_str = referenced_place_spec_id.to_string();
+    let call = unsafe_spec_function_call(
+        quote! { prusti_restore_mut_borrowed(#referencing_place_spec_id_str, #referenced_place_spec_id_str) },
+    );
+    quote! {
+        #referencing_place_closure;
+        #call;
+        #referenced_place_closure
+    }
+}
+
+pub fn resolve(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_resolve})
+}
+
+pub fn resolve_range(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] =>
+        lifetime_name,
+        pointer,
+        predicate_range_start_index,
+        predicate_range_end_index,
+        start_index,
+        end_index
+    );
+    // let (lifetime_name, pointer, base_index, start_index, end_index) =
+    //     handle_result!(parse_five_expressions::<syn::Token![,]>(tokens));
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    unsafe_spec_function_call(quote! {
+        prusti_resolve_range(
+            #lifetime_name_str,
+            std::ptr::addr_of!(#pointer),
+            {#predicate_range_start_index},
+            {#predicate_range_end_index},
+            {#start_index},
+            {#end_index},
+        )
+    })
+}
+
+pub fn set_union_active_field(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_set_union_active_field})
+}
+
+pub fn forget_initialization(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote! {prusti_forget_initialization})
+}
+
+pub fn forget_initialization_range(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => pointer, start_index, end_index);
+    unsafe_spec_function_call(quote! {
+        prusti_forget_initialization_range(
+            std::ptr::addr_of!(#pointer),
+            {#start_index},
+            {#end_index},
+        )
+    })
+}
+
+fn generate_place_function(tokens: TokenStream, function: TokenStream) -> TokenStream {
+    let callsite_span = Span::call_site();
+    quote_spanned! { callsite_span =>
+        #[allow(unused_must_use, unused_variables)]
+        #[prusti::specs_version = #SPECS_VERSION]
+        if false {
+            #[prusti::spec_only]
+            || -> bool { true };
+            unsafe { #function(std::ptr::addr_of!(#tokens)) };
+        }
+    }
+}
+
+pub fn restore(tokens: TokenStream) -> TokenStream {
+    let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated;
+    let mut args = handle_result!(syn::parse::Parser::parse2(parser, tokens));
+    let restored_place = if let Some(restored_place) = args.pop() {
+        restored_place.into_value()
+    } else {
+        return syn::Error::new(
+            args.span(),
+            "`restore!` needs to contain two arguments `<borrowing place>` and `<place to restore>`"
+        ).to_compile_error();
+    };
+    let borrowing_place = if let Some(borrowing_place) = args.pop() {
+        borrowing_place.into_value()
+    } else {
+        return syn::Error::new(
+            args.span(),
+            "`restore!` needs to contain two arguments `<borrowing place>` and `<place to restore>`"
+        ).to_compile_error();
+    };
+    let callsite_span = Span::call_site();
+    quote_spanned! { callsite_span =>
+        #[allow(unused_must_use, unused_variables)]
+        #[prusti::specs_version = #SPECS_VERSION]
+        if false {
+            #[prusti::spec_only]
+            || -> bool { true };
+            unsafe { prusti_restore_place(std::ptr::addr_of!(#borrowing_place), std::ptr::addr_of!(#restored_place)) };
+        }
     }
 }

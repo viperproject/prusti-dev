@@ -71,4 +71,14 @@ impl<'v, 'tcx> HighToTypedStatementLowerer for crate::encoder::Encoder<'v, 'tcx>
     ) -> Result<vir_typed::Operand, Self::Error> {
         operand.high_to_typed_rvalue(self)
     }
+
+    fn high_to_typed_statement_uniqueness(
+        &mut self,
+        uniqueness: vir_high::ty::Uniqueness,
+    ) -> Result<vir_typed::ty::Uniqueness, Self::Error> {
+        Ok(match uniqueness {
+            vir_high::ty::Uniqueness::Shared => vir_typed::ty::Uniqueness::Shared,
+            vir_high::ty::Uniqueness::Unique => vir_typed::ty::Uniqueness::Unique,
+        })
+    }
 }

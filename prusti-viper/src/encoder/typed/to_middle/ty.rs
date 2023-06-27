@@ -45,6 +45,9 @@ impl<'v, 'tcx> MiddleToTypedTypeUpperer for crate::encoder::Encoder<'v, 'tcx> {
                     vir_mid::expression::ConstantValue::BigInt(value) => {
                         vir_typed::expression::ConstantValue::BigInt(value)
                     }
+                    vir_mid::expression::ConstantValue::String(value) => {
+                        vir_typed::expression::ConstantValue::String(value)
+                    }
                     vir_mid::expression::ConstantValue::Float(value) => {
                         vir_typed::expression::ConstantValue::Float(value)
                     }

@@ -15,6 +15,9 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::MPerm => {
                 unreachable!("Permissions are used only in the unsafe core proof")
             }
+            vir_high::Type::MByte | vir_high::Type::MBytes => {
+                unreachable!("Bytes are used only in the unsafe core proof")
+            }
             vir_high::Type::Bool => vir_poly::Type::typed_ref("bool"),
             vir_high::Type::Int(int) => vir_poly::Type::typed_ref(int.to_string().to_lowercase()),
             vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {

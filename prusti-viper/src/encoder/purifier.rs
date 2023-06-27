@@ -4,7 +4,7 @@
 // represent types like "snapshot of X". Resolve SnapOf in snapshot patcher.
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use vir_crate::polymorphic::{self as vir, ExprFolder, ExprWalker, StmtFolder, StmtWalker};
+use vir_crate::{polymorphic::{self as vir, ExprFolder, ExprWalker, StmtFolder, StmtWalker}, common::builtin_constants::DISCRIMINANT_VARIABLE_NAME};
 
 use crate::encoder::{high::types::HighTypeEncoderInterface, Encoder};
 use log::{debug, trace};
@@ -495,7 +495,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
                         position: *local_pos,
                     });
                     let discriminant_func = vir::DomainFunc {
-                        name: "discriminant$".to_string(),
+                        name: DISCRIMINANT_VARIABLE_NAME.to_string(),
                         type_arguments,
                         formal_args: vec![local_var.clone()],
                         return_type: vir::Type::Int,

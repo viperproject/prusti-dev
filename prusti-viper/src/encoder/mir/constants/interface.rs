@@ -66,8 +66,41 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                 let ty = self.encode_type_high(mir_type)?;
                 vir_high::Expression::constructor_no_pos(ty, Vec::new())
             }
+            ty::TyKind::Ref(_, ty, _) => match ty.kind() {
+                ty::TyKind::Str => match constant.literal {
+                    mir::ConstantKind::Val(
+                        mir::interpret::ConstValue::Slice { data, start, end },
+                        _,
+                    ) => {
+                        let bytes = data
+                            .inner()
+                            .inspect_with_uninit_and_ptr_outside_interpreter(start..end);
+                        let string = std::str::from_utf8(bytes).unwrap().to_string();
+                        let ty = self.encode_type_high(mir_type)?;
+                        vir_high::Expression::constant_no_pos(
+                            vir_high::expression::ConstantValue::String(string),
+                            ty,
+                        )
+                    }
+                    _ => {
+                        error_unsupported!(
+                            "unsupported constant type (3) {:?} {:?} {:?}",
+                            mir_type.kind(),
+                            ty.kind(),
+                            constant.literal
+                        );
+                    }
+                },
+                _ => {
+                    error_unsupported!(
+                        "unsupported constant type (2) {:?} {:?}",
+                        mir_type.kind(),
+                        ty.kind()
+                    );
+                }
+            },
             _ => {
-                error_unsupported!("unsupported constant type {:?}", mir_type.kind());
+                error_unsupported!("unsupported constant type (1) {:?}", mir_type.kind());
             }
         };
         Ok(expr)

@@ -8,7 +8,7 @@ mod writer;
 pub use self::{
     builders::{NodeBuilder, RowBuilder, TableBuilder},
     graph::Graph,
-    helpers::escape_html,
+    helpers::{escape_html, escape_html_wrap},
 };
 
 pub trait ToGraphviz {

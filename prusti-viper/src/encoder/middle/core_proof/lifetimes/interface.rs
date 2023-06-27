@@ -8,7 +8,10 @@ use crate::encoder::{
 };
 use std::collections::{BTreeMap, VecDeque};
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, QuantifierHelpers},
+    common::{
+        builtin_constants::LIFETIME_DOMAIN_NAME,
+        expression::{BinaryOperationHelpers, QuantifierHelpers},
+    },
     low as vir_low, middle as vir_mid,
     middle::operations::lifetimes::WithLifetimes,
 };
@@ -114,7 +117,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
 
 impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
     fn lifetime_domain_name(&self) -> SpannedEncodingResult<String> {
-        Ok("Lifetime".to_string())
+        Ok(LIFETIME_DOMAIN_NAME.to_string())
     }
 
     fn lifetime_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
@@ -131,7 +134,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         lft_count: usize,
     ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
-        let ty = self.domain_type("Lifetime")?;
+        let ty = self.domain_type(LIFETIME_DOMAIN_NAME)?;
         let mut lifetimes: Vec<vir_low::VariableDecl> = vec![];
         for i in 1..(lft_count + 1) {
             lifetimes.push(vir_low::VariableDecl::new(format!("lft_{i}"), ty.clone()));
@@ -203,7 +206,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             var_decls!(lft_2: Lifetime);
             let arguments: Vec<vir_low::Expression> = vec![lft_1.into(), lft_2.into()];
             self.create_domain_func_app(
-                "Lifetime",
+                LIFETIME_DOMAIN_NAME,
                 "included",
                 arguments,
                 vir_low::ty::Type::Bool,
@@ -219,7 +222,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
         use vir_low::macros::*;
         var_decls!(lft: Lifetime);
         let quantifier_body = self.create_domain_func_app(
-            "Lifetime",
+            LIFETIME_DOMAIN_NAME,
             "included",
             vec![lft.clone().into(), lft.clone().into()],
             vir_low::ty::Type::Bool,
@@ -234,7 +237,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
                 quantifier_body,
             ),
         };
-        self.declare_axiom("Lifetime", axiom)?;
+        self.declare_axiom(LIFETIME_DOMAIN_NAME, axiom)?;
         Ok(())
     }
 
@@ -272,7 +275,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
                     body,
                 ),
             };
-            self.declare_axiom("Lifetime", axiom)?;
+            self.declare_axiom(LIFETIME_DOMAIN_NAME, axiom)?;
         }
         {
             var_decls! {
@@ -302,7 +305,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
                     body,
                 ),
             };
-            self.declare_axiom("Lifetime", axiom)?;
+            self.declare_axiom(LIFETIME_DOMAIN_NAME, axiom)?;
         }
         {
             var_decls! {
@@ -329,7 +332,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
                     body,
                 ),
             };
-            self.declare_axiom("Lifetime", axiom)?;
+            self.declare_axiom(LIFETIME_DOMAIN_NAME, axiom)?;
         }
         Ok(())
     }
@@ -339,6 +342,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             self.lifetimes_state.is_lifetime_token_encoded = true;
             let predicate = vir_low::PredicateDecl::new(
                 "LifetimeToken",
+                vir_low::PredicateKind::LifetimeToken,
                 vec![vir_low::VariableDecl::new(
                     "lifetime",
                     self.lifetime_type()?,
@@ -348,6 +352,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             self.declare_predicate(predicate)?;
             let predicate = vir_low::PredicateDecl::new(
                 "DeadLifetimeToken",
+                vir_low::PredicateKind::DeadLifetimeToken,
                 vec![vir_low::VariableDecl::new(
                     "lifetime",
                     self.lifetime_type()?,
@@ -388,11 +393,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             .contains_key(&is_alive_variable)
         {
             let variable = self.initial_snapshot_variable_version(&is_alive_variable)?;
+            let position = self.procedure_position.unwrap();
             self.lifetimes_state
                 .lifetime_is_alive_initialization
                 .insert(
                     is_alive_variable.clone(),
-                    vir_low::Statement::assign_no_pos(variable, true.into()),
+                    vir_low::Statement::assume(variable.into(), position),
                 );
         }
         is_alive_variable.to_procedure_snapshot(self)
