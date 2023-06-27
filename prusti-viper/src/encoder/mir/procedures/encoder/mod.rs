@@ -4241,6 +4241,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // || self.try_encode_specification_expression(bb, block)?
             || self.try_encode_assert(bb, block, encoded_statements)?
             || self.try_encode_assume(bb, block, encoded_statements)?
+            || self.try_encode_case_split(bb, block, encoded_statements)?
             || self.try_encode_ghost_markers(bb, block, encoded_statements)?
             || self.try_encode_specification_markers(bb, block, encoded_statements)?
             || self.try_encode_specification_function_call(bb, block, encoded_statements, region_entry_block)?
@@ -4409,6 +4410,57 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     assert!(config::allow_prusti_assume(), "TODO: A proper error message that `allow_prusti_assume` needs to be enabled.");
                     encoded_statements.push(stmt);
                 }
+
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    fn try_encode_case_split(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir_high::Statement>,
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+            )) = stmt.kind
+            {
+                let case_split = match self.encoder.get_prusti_case_split(cl_def_id) {
+                    Some(spec) => spec,
+                    None => return Ok(false),
+                };
+
+                let span = self
+                    .encoder
+                    .get_definition_span(case_split.assertion.to_def_id());
+
+                let error_ctxt = ErrorCtxt::CaseSplit;
+
+                let expr = self.encoder.set_expression_error_ctxt(
+                    self.encoder.encode_loop_spec_high(
+                        self.mir,
+                        bb,
+                        self.def_id,
+                        cl_substs,
+                        true,
+                    )?,
+                    span,
+                    error_ctxt.clone(),
+                    self.def_id,
+                );
+
+                let expr = self.desugar_pledges_in_asertion(expr)?;
+
+                let stmt = vir_high::Statement::case_split_no_pos(expr);
+                let stmt =
+                    self.encoder
+                        .set_statement_error_ctxt(stmt, span, error_ctxt, self.def_id)?;
+
+                encoded_statements.push(stmt);
 
                 return Ok(true);
             }

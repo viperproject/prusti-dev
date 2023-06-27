@@ -107,6 +107,9 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the prusti assumption
     fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption>;
 
+    /// Get the Prusti case split.
+    fn get_prusti_case_split(&self, def_id: DefId) -> Option<typed::PrustiCaseSplit>;
+
     /// Get the prusti refutation
     fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation>;
 
@@ -307,6 +310,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow()
             .get_assumption(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_case_split(&self, def_id: DefId) -> Option<typed::PrustiCaseSplit> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_case_split(&def_id)
             .cloned()
     }
 

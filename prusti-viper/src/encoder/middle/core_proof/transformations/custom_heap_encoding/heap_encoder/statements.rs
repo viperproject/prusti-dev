@@ -72,6 +72,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             vir_low::Statement::MaterializePredicate(statement) => {
                 unreachable!("materialize predicate: {statement}");
             }
+            vir_low::Statement::CaseSplit(statement) => {
+                assert!(statement.expression.is_pure());
+                let expression = self.encode_pure_expression(
+                    statements,
+                    statement.expression,
+                    None,
+                    statement.position,
+                    false,
+                )?;
+                statements.push(vir_low::Statement::case_split(
+                    expression,
+                    statement.position,
+                ));
+            }
         }
         Ok(())
     }

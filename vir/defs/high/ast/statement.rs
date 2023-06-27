@@ -65,6 +65,7 @@ pub enum Statement {
     BorShorten(BorShorten),
     MaterializePredicate(MaterializePredicate),
     EncodingAction(EncodingAction),
+    CaseSplit(CaseSplit),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -624,5 +625,12 @@ pub struct EndLoan {
 #[display(fmt = "encoding-action {}", action)]
 pub struct EncodingAction {
     pub action: Action,
+    pub position: Position,
+}
+
+#[display(fmt = "case-split {}", expression)]
+/// Case-split on a pure boolean expression. This operation is ignored by fold-unfold.
+pub struct CaseSplit {
+    pub expression: Expression,
     pub position: Position,
 }

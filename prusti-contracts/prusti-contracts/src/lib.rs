@@ -78,6 +78,9 @@ pub use prusti_contracts_proc_macros::prusti_assume;
 /// A macro for writing structural assumptions using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_structural_assume;
 
+/// A macro for case splitting on some expressions.
+pub use prusti_contracts_proc_macros::prusti_split_on;
+
 /// A macro for telling Prusti purification to materialize a predicate instance.
 pub use prusti_contracts_proc_macros::materialize_predicate;
 

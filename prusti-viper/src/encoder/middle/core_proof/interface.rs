@@ -176,6 +176,10 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     program,
                 );
             }
+            program = super::transformations::case_splits::desugar_case_splits(
+                &source_filename,
+                program,
+            )?;
             self.mid_core_proof_encoder_state
                 .encoded_programs
                 .push((Some(proc_def_id), program));

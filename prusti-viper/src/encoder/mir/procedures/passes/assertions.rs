@@ -79,7 +79,8 @@ pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
                         | vir_high::Statement::InhaleExpression(_)
                         | vir_high::Statement::StashRange(_)
                         | vir_high::Statement::StashRangeRestore(_)
-                        | vir_high::Statement::MaterializePredicate(_) => false,
+                        | vir_high::Statement::MaterializePredicate(_)
+                        | vir_high::Statement::CaseSplit(_) => false,
                         vir_high::Statement::LoopInvariant(_) => unreachable!(),
                         vir_high::Statement::EncodingAction(_) => unreachable!(),
                     };

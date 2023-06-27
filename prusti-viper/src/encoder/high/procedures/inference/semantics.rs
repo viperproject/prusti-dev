@@ -210,6 +210,9 @@ impl CollectPermissionChanges for vir_typed::Statement {
             vir_typed::Statement::EncodingAction(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_typed::Statement::CaseSplit(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
         }
     }
 }
@@ -1139,6 +1142,17 @@ impl CollectPermissionChanges for vir_typed::EncodingAction {
         _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         unreachable!();
+    }
+}
+
+impl CollectPermissionChanges for vir_typed::CaseSplit {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
     }
 }
 

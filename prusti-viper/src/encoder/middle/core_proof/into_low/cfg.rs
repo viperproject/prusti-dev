@@ -1721,6 +1721,17 @@ impl IntoLow for vir_mid::Statement {
                 }
                 Ok(statements)
             }
+            Self::CaseSplit(statement) => {
+                assert!(
+                    statement.expression.is_pure(),
+                    "must be pure: {}",
+                    statement.expression
+                );
+                Ok(vec![Statement::case_split(
+                    statement.expression.to_procedure_assertion(lowerer)?,
+                    statement.position,
+                )])
+            }
         }
     }
 }

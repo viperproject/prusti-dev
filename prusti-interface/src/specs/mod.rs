@@ -91,6 +91,7 @@ pub struct SpecCollector<'a, 'tcx> {
     prusti_assumptions: Vec<LocalDefId>,
     prusti_refutations: Vec<LocalDefId>,
     prusti_structural_assumptions: Vec<LocalDefId>,
+    prusti_case_splits: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
     ghost_end: Vec<LocalDefId>,
     specification_region_begin: Vec<LocalDefId>,
@@ -114,6 +115,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             prusti_assumptions: vec![],
             prusti_refutations: vec![],
             prusti_structural_assumptions: vec![],
+            prusti_case_splits: vec![],
             ghost_begin: vec![],
             ghost_end: vec![],
             specification_region_begin: vec![],
@@ -137,6 +139,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_type_specs(&mut def_spec);
         self.determine_prusti_assertions(&mut def_spec);
         self.determine_prusti_assumptions(&mut def_spec);
+        self.determine_case_splits(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
         self.determine_specification_region_begin_ends(&mut def_spec);
@@ -364,6 +367,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 typed::PrustiAssumption {
                     assumption: *local_id,
                     is_structural: true,
+                },
+            );
+        }
+    }
+    fn determine_case_splits(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for local_id in &self.prusti_case_splits {
+            def_spec.prusti_case_splits.insert(
+                local_id.to_def_id(),
+                typed::PrustiCaseSplit {
+                    assertion: *local_id,
                 },
             );
         }
@@ -718,6 +731,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             if has_prusti_attr(attrs, "prusti_structural_assumption") {
                 self.prusti_structural_assumptions.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "prusti_case_split") {
+                self.prusti_case_splits.push(local_id);
             }
 
             if has_prusti_attr(attrs, "ghost_begin") {

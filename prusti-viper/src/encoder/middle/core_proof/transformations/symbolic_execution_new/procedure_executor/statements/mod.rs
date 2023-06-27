@@ -74,6 +74,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             vir_low::Statement::MaterializePredicate(statement) => {
                 self.execute_materialize_predicate(statement)?;
             }
+            vir_low::Statement::CaseSplit(statement) => {
+                self.execute_case_split(statement)?;
+            }
         }
         Ok(())
     }
@@ -151,6 +154,18 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             unreachable!();
         };
         self.materialize_predicate(predicate, statement.check_that_exists, statement.position)?;
+        Ok(())
+    }
+
+    fn execute_case_split(
+        &mut self,
+        statement: &vir_low::ast::statement::CaseSplit,
+    ) -> SpannedEncodingResult<()> {
+        let expression = self.simplify_expression(&statement.expression, statement.position)?;
+        self.add_statement(vir_low::Statement::case_split(
+            expression,
+            statement.position,
+        ))?;
         Ok(())
     }
 }
