@@ -3,9 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::ast_factory::{
-    structs::{
-        DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Predicate, Trigger, Type,
-    },
+    structs::{DomainFunc, Expr, Field, LocalVarDecl, Position, Trigger, Type},
     AstFactory,
 };
 use jni::objects::JObject;

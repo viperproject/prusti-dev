@@ -228,9 +228,9 @@ impl ExprSimplifier {
                                 op_kind: ast::BinaryOpKind::And,
                                 left: box part0,
                                 right: box part1,
-                                position: pos_and,
+                                ..
                             }),
-                        position: pos_imp,
+                        ..
                     }),
                 position: pos_quant,
             }) => ast::Expr::BinOp(ast::BinOp {

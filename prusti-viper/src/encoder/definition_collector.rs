@@ -158,7 +158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
 
         let mut inserter = LeakCheckInserter {
             used_obligations: &self.used_obligations,
-            encoder: &self.encoder,
+            encoder: self.encoder,
         };
 
         let leak_checked_methods = methods
@@ -991,7 +991,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
             compute_identifier(name, &[], formal_arguments, &vir::Type::Bool).into();
         self.used_obligations.insert(identifier);
         for arg in args {
-            FallibleExprWalker::fallible_walk(self, &arg)?;
+            FallibleExprWalker::fallible_walk(self, arg)?;
         }
         Ok(())
     }

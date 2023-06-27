@@ -647,7 +647,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encode_generic_arguments(called_def_id, call_substs)
                                     .with_span(term.source_info.span)?;
                                 let encoded_rhs = if is_obligation {
-                                    assert!(encoded_args.len() >= 1);
+                                    assert!(!encoded_args.is_empty());
                                     let amount = encoded_args[0].clone();
                                     let encoded_args = encoded_args
                                         .into_iter()

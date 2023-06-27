@@ -48,15 +48,15 @@ pub fn parse_obligation(tokens: TokenStream) -> syn::Result<ParsedObligation> {
     };
 
     if input.body.is_some() {
-        return Err(syn::Error::new(
+        Err(syn::Error::new(
             input.body.span(),
             "`obligation!` shall not provide a body",
-        ));
+        ))
     } else if !has_valid_amount_arg(&input.fn_sig) {
-        return Err(syn::Error::new(
+        Err(syn::Error::new(
             input.body.span(),
             "the first argument of an obligation in `obligation!` must be `amount: usize`",
-        ));
+        ))
     } else {
         let signature = input.fn_sig;
         let patched = parse_quote_spanned!(span=>

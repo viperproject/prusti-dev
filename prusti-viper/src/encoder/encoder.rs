@@ -327,7 +327,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<()> {
         assert!(self.is_obligation(proc_def_id, Some(substs)), "procedure not marked as obligation");
-        let mir_span = self.env().query.get_def_span(proc_def_id);
+        //let mir_span = self.env().query.get_def_span(proc_def_id);
         let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
         if !self
             .pure_function_encoder_state
@@ -370,7 +370,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.obligations.borrow_mut().insert(ident.clone(), Rc::new(obligation));
 
             let obligation_access = vir::ObligationAccess {
-                name: obligation_name.clone(),
+                name: obligation_name,
                 args: concrete_args,
                 formal_arguments: args.clone(),
             };
@@ -383,7 +383,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 })),
                 position: vir::Position::default(),
             };
-            self.obligation_checks.borrow_mut().insert(ident.clone()/*obligation_name.clone().into()*/, Rc::new(check));
+            self.obligation_checks.borrow_mut().insert(ident, Rc::new(check));
         }
         Ok(())
     }
@@ -403,8 +403,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if self.obligation_checks.borrow().contains_key(identifier) {
             let map = self.obligation_checks.borrow();
             let check = map[identifier].clone();
-            Ok(match (*check).clone() {
-                vir::ForPerm {
+            let vir::ForPerm {
                     variables,
                     access: vir::ObligationAccess {
                         name,
@@ -413,26 +412,26 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     },
                     body,
                     position,
-                } => vir::Expr::ForPerm(vir::ForPerm {
-                    variables,
-                    access: vir::ObligationAccess {
-                        name,
-                        args: args.into_iter().enumerate().map(|(i, a)| {
-                            if i == 0 {
-                                vir::Expr::Const(vir::ConstExpr {
-                                    value: vir::Const::Int(scope_id.try_into().unwrap()),
-                                    position: vir::Position::default(),
-                                })
-                            } else {
-                                a
-                            }
-                        }).collect(),
-                        formal_arguments,
-                    },
-                    body,
-                    position,
-                })
-            })
+                } = (*check).clone();
+            Ok(vir::Expr::ForPerm(vir::ForPerm {
+                variables,
+                access: vir::ObligationAccess {
+                    name,
+                    args: args.into_iter().enumerate().map(|(i, a)| {
+                        if i == 0 {
+                            vir::Expr::Const(vir::ConstExpr {
+                                value: vir::Const::Int(scope_id.try_into().unwrap()),
+                                position: vir::Position::default(),
+                            })
+                        } else {
+                            a
+                        }
+                    }).collect(),
+                    formal_arguments,
+                },
+                body,
+                position,
+            }))
         } else {
             unreachable!("Not found obligation check: {:?}", identifier);
         }

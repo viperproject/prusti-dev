@@ -503,7 +503,7 @@ pub trait ExprWalker: Sized {
     }
     fn walk_obligation_access(&mut self, access: &ObligationAccess) {
         for arg in &access.args {
-            self.walk(&arg);
+            self.walk(arg);
         }
     }
     fn walk_obligation_access_predicate(
