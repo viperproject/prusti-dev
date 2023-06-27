@@ -82,7 +82,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                 } else {
                     Ok(arg)
                 }
-            }).collect::<Result<_, _>>()?;
+            })
+            .collect::<Result<_, _>>()?;
         Ok(vir::ObligationAccess {
             name,
             args,

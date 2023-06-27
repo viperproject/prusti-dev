@@ -259,7 +259,8 @@ impl Generic for ResourceAccessPredicate {
 impl Generic for ObligationAccess {
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut obligation_access = self;
-        obligation_access.args = obligation_access.args
+        obligation_access.args = obligation_access
+            .args
             .into_iter()
             .map(|arg| arg.substitute(map))
             .collect();

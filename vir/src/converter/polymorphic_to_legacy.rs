@@ -152,7 +152,11 @@ impl From<polymorphic::ObligationAccess> for legacy::ObligationAccess {
                 &polymorphic::Type::Bool,
             ),
             args: access.args.into_iter().map(|e| e.into()).collect(),
-            formal_arguments: access.formal_arguments.into_iter().map(|formal_argument| formal_argument.into()).collect(),
+            formal_arguments: access
+                .formal_arguments
+                .into_iter()
+                .map(|formal_argument| formal_argument.into())
+                .collect(),
         }
     }
 }
@@ -758,7 +762,7 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
             ),
             polymorphic::Stmt::Downcast(downcast) => {
                 legacy::Stmt::Downcast(downcast.base.into(), downcast.field.into())
-            },
+            }
         }
     }
 }

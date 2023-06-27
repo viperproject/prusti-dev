@@ -3,7 +3,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::ast_factory::{
-    structs::{DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Predicate, Trigger, Type},
+    structs::{
+        DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Predicate, Trigger, Type,
+    },
     AstFactory,
 };
 use jni::objects::JObject;
@@ -1213,12 +1215,7 @@ impl<'a> AstFactory<'a> {
         self.exists_with_pos(variables, triggers, expr, self.no_position())
     }
 
-    pub fn for_perm(
-        &self,
-        variables: &[LocalVarDecl],
-        access: Expr,
-        body: Expr,
-    ) -> Expr<'a> {
+    pub fn for_perm(&self, variables: &[LocalVarDecl], access: Expr, body: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,

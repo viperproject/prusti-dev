@@ -416,13 +416,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(context, ast),
                 )
             }
-            Expr::ObligationAccessPredicate(ref access, ref amount, ref pos) => {
-                ast.predicate_access_predicate_with_pos(
+            Expr::ObligationAccessPredicate(ref access, ref amount, ref pos) => ast
+                .predicate_access_predicate_with_pos(
                     access.to_viper(context, ast),
                     ast.fractional_perm(amount.to_viper(context, ast), ast.int_lit(1)),
                     pos.to_viper(context, ast),
-                )
-            },
+                ),
             Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
                 .field_access_predicate_with_pos(
                     loc.to_viper(context, ast),
@@ -775,7 +774,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.int_to_backend_bv(size, base.to_viper(context, ast))
                 }
             },
-
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
@@ -874,13 +872,13 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for EnumPredicate {
 }
 
 impl<'v> ToViper<'v, viper::Predicate<'v>> for ObligationPredicate {
-    #[tracing::instrument(name = "ObligationPredicate::to_viper", level = "trace", skip(context, ast))]
+    #[tracing::instrument(
+        name = "ObligationPredicate::to_viper",
+        level = "trace",
+        skip(context, ast)
+    )]
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
-        ast.predicate(
-            &self.name,
-            &self.params.to_viper_decl(context, ast),
-            None
-        )
+        ast.predicate(&self.name, &self.params.to_viper_decl(context, ast), None)
     }
 }
 

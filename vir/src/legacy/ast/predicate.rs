@@ -111,10 +111,10 @@ impl Predicate {
             Predicate::Bodyless(_, this) => this.clone().into(),
             Predicate::ResourceAccess(_) => {
                 unreachable!("Resource access does not have `self` place.")
-            },
+            }
             Predicate::Obligation(_) => {
                 unreachable!("Obligation predicate does not have `self` place.")
-            },
+            }
         }
     }
     /// The predicate name getter.

@@ -9,7 +9,7 @@ use syn::{parse_quote_spanned, spanned::Spanned};
 
 #[derive(Debug)]
 pub struct ParsedObligation {
-    patched: syn::ItemFn
+    patched: syn::ItemFn,
 }
 
 impl ToTokens for ParsedObligation {
@@ -29,9 +29,7 @@ fn has_valid_amount_arg(obligation_sig: &syn::Signature) -> bool {
     })
 }
 
-pub fn parse_obligation(
-    tokens: TokenStream,
-) -> syn::Result<ParsedObligation> {
+pub fn parse_obligation(tokens: TokenStream) -> syn::Result<ParsedObligation> {
     let span = tokens.span();
     let input: ObligationFnInput = syn::parse2(tokens).map_err(|e| {
         syn::Error::new(
@@ -50,14 +48,14 @@ pub fn parse_obligation(
     };
 
     if input.body.is_some() {
-            return Err(syn::Error::new(
-                input.body.span(),
-                "`obligation!` shall not provide a body",
-            ));
+        return Err(syn::Error::new(
+            input.body.span(),
+            "`obligation!` shall not provide a body",
+        ));
     } else if !has_valid_amount_arg(&input.fn_sig) {
         return Err(syn::Error::new(
-                input.body.span(),
-                "the first argument of an obligation in `obligation!` must be `amount: usize`",
+            input.body.span(),
+            "the first argument of an obligation in `obligation!` must be `amount: usize`",
         ));
     } else {
         let signature = input.fn_sig;
@@ -67,9 +65,7 @@ pub fn parse_obligation(
             #signature -> bool { unimplemented!(); }
         );
 
-        Ok(ParsedObligation {
-            patched,
-        })
+        Ok(ParsedObligation { patched })
     }
 }
 
@@ -94,9 +90,6 @@ impl syn::parse::Parse for ObligationFnInput {
             Some(quote_spanned!(parsed_body.span()=> { #parsed_body }))
         };
 
-        Ok(ObligationFnInput {
-            fn_sig,
-            body,
-        })
+        Ok(ObligationFnInput { fn_sig, body })
     }
 }

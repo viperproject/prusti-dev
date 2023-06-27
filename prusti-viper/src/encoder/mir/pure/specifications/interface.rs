@@ -277,7 +277,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                     );
                     Err(error)
                 }
-            },
+            }
             _ => unimplemented!(),
         }
     }

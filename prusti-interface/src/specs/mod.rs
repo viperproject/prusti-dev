@@ -50,7 +50,7 @@ impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
     fn from(refs: &ProcedureSpecRefs) -> Self {
         if refs.obligation {
             ProcedureSpecificationKind::Obligation
-        }  else if refs.abstract_predicate {
+        } else if refs.abstract_predicate {
             ProcedureSpecificationKind::Predicate(None)
         } else if refs.pure {
             ProcedureSpecificationKind::Pure

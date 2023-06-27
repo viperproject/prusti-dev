@@ -132,11 +132,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         impl vir::FallibleExprFolder for LeakCheckInserter<'_, '_, '_> {
             type Error = SpannedEncodingError;
 
-            fn fallible_fold_leak_check(&mut self, vir::LeakCheck { scope_id, position }: vir::LeakCheck) -> Result<vir::Expr, Self::Error> {
-                let mut check = vir::Expr::Const(vir::ConstExpr { value: vir::Const::Bool(true), position });
+            fn fallible_fold_leak_check(
+                &mut self,
+                vir::LeakCheck { scope_id, position }: vir::LeakCheck,
+            ) -> Result<vir::Expr, Self::Error> {
+                let mut check = vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::Bool(true),
+                    position,
+                });
                 // TODO: use conjoin here (?)
                 for identifier in self.used_obligations {
-                    let current_check = self.encoder.get_obligation_leak_check(identifier, scope_id)?;
+                    let current_check = self
+                        .encoder
+                        .get_obligation_leak_check(identifier, scope_id)?;
                     check = vir::Expr::BinOp(vir::BinOp {
                         op_kind: vir::BinaryOpKind::And,
                         left: Box::new(check),
@@ -156,11 +164,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let leak_checked_methods = methods
             .into_iter()
             .map(|mut method| -> SpannedEncodingResult<vir::CfgMethod> {
-                method = method.patch_statements(|stmt| -> SpannedEncodingResult::<_> {
-                    <LeakCheckInserter as vir::FallibleStmtFolder>::fallible_fold(&mut inserter, stmt)
-                }).unwrap();
+                method = method
+                    .patch_statements(|stmt| -> SpannedEncodingResult<_> {
+                        <LeakCheckInserter as vir::FallibleStmtFolder>::fallible_fold(
+                            &mut inserter,
+                            stmt,
+                        )
+                    })
+                    .unwrap();
                 Ok(method)
-            }).collect::<SpannedEncodingResult<Vec<_>>>()?;
+            })
+            .collect::<SpannedEncodingResult<Vec<_>>>()?;
         Ok(vir::Program {
             name,
             domains,

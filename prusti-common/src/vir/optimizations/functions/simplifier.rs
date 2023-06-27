@@ -196,25 +196,24 @@ impl ExprSimplifier {
                                 right: box ex,
                                 position: pos1,
                             }),
-                            position: pos0,
+                        position: pos0,
                     }),
-                position: pos_quant
+                position: pos_quant,
             }) => Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
                 variables: vars,
                 triggers: trigs,
-                body:
-                    Box::new(ast::Expr::BinOp(ast::BinOp {
-                        op_kind: ast::BinaryOpKind::Implies,
-                        left: Box::new(ast::Expr::BinOp(ast::BinOp {
-                            op_kind: ast::BinaryOpKind::And,
-                            left: Box::new(c0),
-                            right: Box::new(c1),
-                            position: pos1 // TODO: not great
-                        })),
-                        right: Box::new(ex),
-                        position: pos0 // TODO: not great
+                body: Box::new(ast::Expr::BinOp(ast::BinOp {
+                    op_kind: ast::BinaryOpKind::Implies,
+                    left: Box::new(ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::And,
+                        left: Box::new(c0),
+                        right: Box::new(c1),
+                        position: pos1, // TODO: not great
                     })),
-                position: pos_quant
+                    right: Box::new(ex),
+                    position: pos0, // TODO: not great
+                })),
+                position: pos_quant,
             })),
             // same comment as above
             ast::Expr::ForAll(ast::ForAll {
@@ -224,15 +223,16 @@ impl ExprSimplifier {
                     box ast::Expr::BinOp(ast::BinOp {
                         op_kind: ast::BinaryOpKind::Implies,
                         left: box cond,
-                        right: box ast::Expr::BinOp(ast::BinOp {
-                            op_kind: ast::BinaryOpKind::And,
-                            left: box part0,
-                            right: box part1,
-                            position: pos_and,
-                        }),
+                        right:
+                            box ast::Expr::BinOp(ast::BinOp {
+                                op_kind: ast::BinaryOpKind::And,
+                                left: box part0,
+                                right: box part1,
+                                position: pos_and,
+                            }),
                         position: pos_imp,
                     }),
-                position: pos_quant
+                position: pos_quant,
             }) => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left: Box::new(Self::apply_rules(ast::Expr::ForAll(ast::ForAll {

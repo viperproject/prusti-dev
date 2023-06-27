@@ -446,7 +446,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
-            self.is_pure(proc_def_id, Some(substs)) || self.is_obligation(proc_def_id, Some(substs)),
+            self.is_pure(proc_def_id, Some(substs))
+                || self.is_obligation(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {proc_def_id:?}"
         );
 

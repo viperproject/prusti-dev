@@ -307,7 +307,7 @@ impl Expr {
     pub fn unit_obligation_access_predicate(
         name: String,
         args: Vec<Expr>,
-        formal_arguments: Vec<LocalVar>
+        formal_arguments: Vec<LocalVar>,
     ) -> Self {
         let const_one = Expr::Const(ConstExpr {
             value: Const::Int(1),
@@ -324,7 +324,11 @@ impl Expr {
     ) -> Self {
         let pos = amount.pos();
         Expr::ObligationAccessPredicate(ObligationAccessPredicate {
-            access: ObligationAccess { name, args, formal_arguments },
+            access: ObligationAccess {
+                name,
+                args,
+                formal_arguments,
+            },
             amount: Box::new(amount),
             position: pos,
         })
@@ -2197,16 +2201,21 @@ pub struct ObligationAccess {
 impl ObligationAccess {
     pub fn replace_scope_id(&self, new_scope_id: isize) -> Self {
         ObligationAccess {
-            args: self.args.iter().enumerate().map(|(i, arg)| {
-                if i == 0 {
-                    Expr::Const(ConstExpr {
-                        value: Const::Int(new_scope_id.try_into().unwrap()),
-                        position: Position::default(),
-                    })
-                } else {
-                    arg.clone()
-                }
-            }).collect(),
+            args: self
+                .args
+                .iter()
+                .enumerate()
+                .map(|(i, arg)| {
+                    if i == 0 {
+                        Expr::Const(ConstExpr {
+                            value: Const::Int(new_scope_id.try_into().unwrap()),
+                            position: Position::default(),
+                        })
+                    } else {
+                        arg.clone()
+                    }
+                })
+                .collect(),
             ..self.clone()
         }
     }
@@ -2247,12 +2256,7 @@ impl ObligationAccessPredicate {
 
 impl fmt::Display for ObligationAccessPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "acc({}, {})",
-            self.access,
-            self.amount
-        )
+        write!(f, "acc({}, {})", self.access, self.amount)
     }
 }
 

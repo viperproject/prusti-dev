@@ -285,7 +285,7 @@ impl fmt::Display for Expr {
                 body
             ),
             Expr::ForPerm(ref vars, ref access, ref body, ref _pos) => write!(
-                f, 
+                f,
                 "forperm {}: Ref [{}] :: {}",
                 vars.iter()
                     .map(|x| format!("{x:?}"))

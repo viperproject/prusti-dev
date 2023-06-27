@@ -355,9 +355,7 @@ fn get_all_required_expr_permissions(
         }
 
         vir::Expr::ObligationAccessPredicate(vir::ObligationAccessPredicate {
-            access: vir::ObligationAccess {
-                args: inners, ..
-            },
+            access: vir::ObligationAccess { args: inners, .. },
             amount: amount_inner,
             ..
         }) => {
@@ -366,7 +364,8 @@ fn get_all_required_expr_permissions(
                 reqs.extend(inner_reqs);
                 discr.extend(inner_discr);
             }
-            let (am_inner_reqs, am_inner_discr) = get_all_required_expr_permissions(amount_inner, preds);
+            let (am_inner_reqs, am_inner_discr) =
+                get_all_required_expr_permissions(amount_inner, preds);
             reqs.extend(am_inner_reqs);
             discr.extend(am_inner_discr);
         }

@@ -171,12 +171,12 @@ pub trait ExprFolder: Sized {
 
     fn fold_obligation_access(&mut self, access: ObligationAccess) -> ObligationAccess {
         let ObligationAccess { args, .. } = access;
-        ObligationAccess{
+        ObligationAccess {
             args: args.into_iter().map(|e| self.fold(e)).collect(),
             ..access
         }
     }
-    
+
     fn fold_obligation_access_predicate(&mut self, expr: ObligationAccessPredicate) -> Expr {
         let ObligationAccessPredicate { access, amount, .. } = expr;
         Expr::ObligationAccessPredicate(ObligationAccessPredicate {
@@ -775,8 +775,7 @@ pub trait ExprWalker: Sized {
         self.walk(base);
     }
 
-    fn walk_leak_check(&mut self, _expr: &LeakCheck) {
-    }
+    fn walk_leak_check(&mut self, _expr: &LeakCheck) {}
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -1609,7 +1608,7 @@ pub trait FallibleExprWalker: Sized {
         let Cast { base, .. } = expr;
         self.fallible_walk(base)
     }
-    
+
     fn fallible_walk_leak_check(&mut self, _expr: &LeakCheck) -> Result<(), Self::Error> {
         Ok(())
     }

@@ -164,15 +164,9 @@ pub trait ExprFolder: Sized {
             self.fold_position(pos),
         )
     }
-    fn fold_obligation_access(
-        &mut self,
-        access: ObligationAccess,
-    ) -> ObligationAccess {
-        ObligationAccess { 
-            args: access.args
-                .into_iter()
-                .map(|e| self.fold(e))
-                .collect(),
+    fn fold_obligation_access(&mut self, access: ObligationAccess) -> ObligationAccess {
+        ObligationAccess {
+            args: access.args.into_iter().map(|e| self.fold(e)).collect(),
             ..access
         }
     }
@@ -507,10 +501,7 @@ pub trait ExprWalker: Sized {
         self.walk(amount);
         self.walk_position(pos);
     }
-    fn walk_obligation_access(
-        &mut self,
-        access: &ObligationAccess,
-    ) {
+    fn walk_obligation_access(&mut self, access: &ObligationAccess) {
         for arg in &access.args {
             self.walk(&arg);
         }
@@ -853,7 +844,8 @@ pub trait FallibleExprFolder: Sized {
         access: ObligationAccess,
     ) -> Result<ObligationAccess, Self::Error> {
         Ok(ObligationAccess {
-            args: access.args
+            args: access
+                .args
                 .into_iter()
                 .map(|e| self.fallible_fold(e))
                 .collect::<Result<Vec<_>, Self::Error>>()?,
@@ -864,12 +856,12 @@ pub trait FallibleExprFolder: Sized {
         &mut self,
         access: ObligationAccess,
         amount: Box<Expr>,
-        pos: Position
+        pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::ObligationAccessPredicate(
-                self.fallible_fold_obligation_access(access)?,
-                self.fallible_fold_boxed(amount)?,
-                pos,
+            self.fallible_fold_obligation_access(access)?,
+            self.fallible_fold_boxed(amount)?,
+            pos,
         ))
     }
     fn fallible_fold_field_access_predicate(
@@ -966,10 +958,10 @@ pub trait FallibleExprFolder: Sized {
         pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::ForPerm(
-                vars,
-                self.fallible_fold_obligation_access(access)?,
-                self.fallible_fold_boxed(body)?,
-                pos,
+            vars,
+            self.fallible_fold_obligation_access(access)?,
+            self.fallible_fold_boxed(body)?,
+            pos,
         ))
     }
     fn fallible_fold_let_expr(

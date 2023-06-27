@@ -3,6 +3,8 @@ mod pure_functions;
 mod specifications;
 
 pub(crate) use self::{
-    pure_functions::{PureEncodingContext, PureFunctionEncoderInterface, PureFunctionEncoderState, compute_key},
+    pure_functions::{
+        compute_key, PureEncodingContext, PureFunctionEncoderInterface, PureFunctionEncoderState,
+    },
     specifications::SpecificationEncoderInterface,
 };
