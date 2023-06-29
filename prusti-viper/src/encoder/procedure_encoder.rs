@@ -1555,7 +1555,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location
                 )?
             }
-            mir::Rvalue::NullaryOp(op, op_ty) => {
+            mir::Rvalue::NullaryOp(ref op, op_ty) => {
                 self.encode_assign_nullary_op(
                     op,
                     op_ty,
@@ -5988,7 +5988,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_nullary_op(
         &mut self,
-        op: mir::NullOp,
+        op: &mir::NullOp,
         op_ty: ty::Ty<'tcx>,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
@@ -6007,6 +6007,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::NullOp::SizeOf => layout.size().bytes(),
             // FIXME: abi or pref?
             mir::NullOp::AlignOf => layout.align().abi.bytes(),
+            mir::NullOp::OffsetOf(_) => {
+                return Err(SpannedEncodingError::internal(
+                    format!("`OffsetOf` is not supported yet"),
+                    self.mir.source_info(location).span,
+                ))
+            }
         };
         let bytes_vir = vir::Expr::from(bytes);
         self.encode_copy_value_assign(

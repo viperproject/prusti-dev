@@ -109,8 +109,7 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>)
         }
         .elaborate()
     };
-    elaborate_patch.apply(body);
-    deref_finder(tcx, body);
+    elaborate_patch
 }
 
 /// Removes unwind edges which are known to be unreachable, because they are in `drop` terminators
