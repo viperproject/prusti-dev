@@ -182,7 +182,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Aggregate(aggregate, operands) => {
                 debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
-                self.apply_assign_aggregate(state, ty, &encoded_lhs, aggregate, operands.as_slice(), span)?
+                self.apply_assign_aggregate(
+                    state,
+                    ty,
+                    &encoded_lhs,
+                    aggregate,
+                    operands.as_slice(),
+                    span,
+                )?
             }
             mir::Rvalue::BinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_operand(left, span)?;
@@ -440,7 +447,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            let substs = ty::EarlyBinder::bind(*call_substs).subst(self.encoder.env().tcx(), self.substs);
+            let substs =
+                ty::EarlyBinder::bind(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some(target_block) = target {
                 let encoded_lhs = self.encode_place(destination).with_span(span)?;

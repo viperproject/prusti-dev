@@ -1217,9 +1217,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 target,
                 unwind,
                 replace: _,
-            } => {
-                self.encode_terminator_drop(block_builder, location, span, *place, *target, *unwind)?
-            }
+            } => self.encode_terminator_drop(
+                block_builder,
+                location,
+                span,
+                *place,
+                *target,
+                *unwind,
+            )?,
             TerminatorKind::Call {
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
@@ -1779,11 +1784,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.def_id,
                     )?;
                     cleanup_block_builder.add_statement(function_lifetime_return);
-                    self.encode_lft_for_block(
-                        cleanup_block,
-                        location,
-                        &mut cleanup_block_builder,
-                    )?;
+                    self.encode_lft_for_block(cleanup_block, location, &mut cleanup_block_builder)?;
 
                     cleanup_block_builder.build();
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(

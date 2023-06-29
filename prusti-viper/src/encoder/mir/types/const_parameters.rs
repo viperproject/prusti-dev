@@ -17,6 +17,17 @@ pub(super) fn extract_const_parameters_from_substs<'tcx>(
     Ok(())
 }
 
+pub(super) fn extract_const_parameters_from_types<'tcx>(
+    type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
+    types: impl IntoIterator<Item=ty::Ty<'tcx>>,
+    const_parameters: &mut Vec<vir_high::VariableDecl>,
+) -> SpannedEncodingResult<()> {
+    for ty in types {
+        extract_const_parameters_from_type(type_encoder, ty, const_parameters)?;
+    }
+    Ok(())
+}
+
 pub(super) fn extract_const_parameters_from_type<'tcx>(
     type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
     ty: ty::Ty<'tcx>,
@@ -35,7 +46,7 @@ pub(super) fn extract_const_parameters_from_type<'tcx>(
         | ty::TyKind::Dynamic(..) => {}
         ty::TyKind::Adt(_, substs)
         | ty::TyKind::Closure(_, substs)
-        | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { substs, .. })
+        | ty::TyKind::Alias(_, ty::AliasTy { substs, .. })
         | ty::TyKind::FnDef(_, substs) => {
             extract_const_parameters_from_substs(type_encoder, substs, const_parameters)?
         }
@@ -67,9 +78,6 @@ pub(super) fn extract_const_parameters_from_type<'tcx>(
         }
         ty::TyKind::Param(_param_ty) => {
             // FIXME: extract const_parameters from TyKind::Param()
-        }
-        ty::TyKind::Alias(ty::AliasKind::Projection, alias_ty) => {
-            extract_const_parameters_from_substs(type_encoder, alias_ty.substs, const_parameters)?
         }
         ty::TyKind::Bound(_, _)
         | ty::TyKind::Placeholder(_)
