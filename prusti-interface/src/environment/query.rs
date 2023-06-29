@@ -161,7 +161,7 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         let sig = if self.tcx.is_closure(def_id) {
-            ty::EarlyBinder(substs.as_closure().sig())
+            ty::EarlyBinder::bind(substs.as_closure().sig())
         } else {
             self.tcx.fn_sig(def_id)
         };
@@ -255,7 +255,7 @@ impl<'tcx> EnvQuery<'tcx> {
         // more precisely. We can do this directly with `impl_method_substs`
         // because they contain the substs for the `impl` block as a prefix.
         let call_trait_substs =
-            ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
+            ty::EarlyBinder::bind(trait_ref.substs).subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
         let trait_method_substs = self.tcx.mk_substs_from_iter(
             call_trait_substs
@@ -284,7 +284,7 @@ impl<'tcx> EnvQuery<'tcx> {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx.def_path_str(trait_id), substs);
             let infcx = self.tcx.infer_ctxt().build();
             let mut sc = SelectionContext::new(&infcx);
-            let trait_ref = self.tcx.mk_trait_ref(trait_id, substs);
+            let trait_ref = ty::TraitRef::new(self.tcx, trait_id, substs);
             let obligation = Obligation::new(
                 self.tcx,
                 ObligationCause::dummy(),
