@@ -193,6 +193,19 @@ impl ast::ExprWalker for VarCollector {
             self.all_vars.remove(var);
         }
     }
+    fn walk_forperm(
+        &mut self,
+        ast::ForPerm {
+            variables, access, body, ..
+        }: &ast::ForPerm,
+    ) {
+        self.walk_obligation_access(access);
+        self.walk(body);
+        for var in variables {
+            // TODO: This is not bullet proof against name collisions.
+            self.all_vars.remove(var);
+        }
+    }
 }
 
 impl ast::StmtWalker for VarCollector {
