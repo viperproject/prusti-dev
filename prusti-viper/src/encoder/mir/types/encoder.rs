@@ -412,10 +412,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )
             }
             ty::TyKind::Tuple(elems) => {
-                let lifetimes = self.encoder.get_lifetimes_from_substs(elems.as_substs())?;
+                let lifetimes = self.encoder.get_lifetimes_from_substs(elems)?;
                 let const_parameters = self
                     .encoder
-                    .get_const_parameters_from_substs(elems.as_substs())?;
+                    .get_const_parameters_from_substs(elems)?;
                 let arguments = elems
                     .into_iter()
                     .map(|ty| self.encoder.encode_type_high(ty))
