@@ -129,6 +129,7 @@ lazy_static::lazy_static! {
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
+        settings.set_default("detect_unreachable_code", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -956,6 +957,10 @@ pub fn min_prusti_version() -> Option<String> {
 /// The given basic blocks will be replaced with `assume false`.
 pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("delete_basic_blocks")
+}
+
+pub fn detect_unreachable_code() -> bool {
+    read_setting("detect_unreachable_code")
 }
 
 /// When enabled, features not supported by Prusti will be reported as warnings

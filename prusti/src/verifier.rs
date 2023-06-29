@@ -77,7 +77,8 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                     env.diagnostic.has_errors()
                         || config::internal_errors_as_warnings()
                         || (config::skip_unsupported_features()
-                            && config::allow_unreachable_unsupported_code())
+                            && config::allow_unreachable_unsupported_code()
+                            || config::detect_unreachable_code())
                 );
             }
         };

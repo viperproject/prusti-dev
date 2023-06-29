@@ -15,6 +15,7 @@
 | [`CHECK_TIMEOUT`](#check_timeout) | `Option<u32>` | `None` | A |
 | [`COUNTEREXAMPLE`](#counterexample) | `bool` | `false` | A |
 | [`DELETE_BASIC_BLOCKS`](#delete_basic_blocks) | `Vec<String>` | `vec![]` | A |
+| [`DETECT_UNREACHABLE_CODE`](#detect_unreachable_code) | `bool` | `false` | A |
 | [`DISABLE_NAME_MANGLING`](#disable_name_mangling) | `bool` | `false` | A |
 | [`DUMP_BORROWCK_INFO`](#dump_borrowck_info) | `bool` | `false` | A |
 | [`DUMP_DEBUG_INFO`](#dump_debug_info) | `bool` | `false` | A |
@@ -145,6 +146,10 @@ When enabled, Prusti will try to find and print a counterexample for any failed 
 ## `DELETE_BASIC_BLOCKS`
 
 The given basic blocks will be replaced with `assume false`.
+
+## `DETECT_UNREACHABLE_CODE`
+
+When enabled, Viper will issue warning for code that cannot be reached.
 
 ## `DISABLE_NAME_MANGLING`
 

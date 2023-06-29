@@ -1257,6 +1257,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
+        if config::detect_unreachable_code() {
+            let bb_data = &self.mir.basic_blocks[bbi];
+            let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
+
+            let panic_free = match &bb_data.terminator().kind {
+                TerminatorKind::Unreachable => false,
+                TerminatorKind::Assert { .. } => false,
+                TerminatorKind::Call {
+                    func:
+                        mir::Operand::Constant(box mir::Constant {
+                            literal,
+                            ..
+                        }),
+                    ..
+                } => {
+                    if let ty::TyKind::FnDef(called_def_id, _call_substs) = literal.ty().kind() {
+                        let full_func_proc_name: &str =
+                            &self.encoder.env().name.get_absolute_item_name(*called_def_id);
+        
+                        !matches!(full_func_proc_name, "std::rt::begin_panic" | "core::panicking::panic" | "core::panicking::panic_fmt")
+                    } else {
+                        true
+                    }
+                }
+                _ => true,
+            };
+
+            if !statements.is_empty() && panic_free {
+                let location = mir::Location {
+                    block: bbi,
+                    statement_index: 0,
+                };
+                let span = self.mir_encoder.get_span_of_location(location);
+                let expr_position = self.mir_encoder.register_span(span);
+                let stmt_position = self.register_error(span, ErrorCtxt::UnreachableCode);
+                let refute_expr = vir::ast::Expr::Const(vir_crate::polymorphic::ConstExpr{value: vir_crate::polymorphic::Const::Bool(false), position: expr_position});
+                let refute_stmt = vir::Stmt::Refute(vir::Refute {expr: refute_expr, position: stmt_position});
+                self.cfg_method.add_stmt(curr_block, refute_stmt);
+            }
+        }
+
         self.encode_execution_flag(bbi, curr_block)?;
         let opt_successor = self.encode_block_statements(bbi, curr_block)?;
         let mir_successor: MirSuccessor = if let Some(successor) = opt_successor {
