@@ -11,9 +11,10 @@ use prusti_rustc_interface::{
     interface::{interface::Compiler, Config, Queries},
     middle::ty::{
         self,
-        query::{query_values::mir_borrowck, ExternProviders, Providers},
         TyCtxt,
     },
+    middle::mir::BorrowCheckResult,
+    middle::query::{ExternProviders, Providers},
     session::Session,
 };
 
@@ -25,7 +26,7 @@ pub struct PrustiCompilerCalls;
 
 #[allow(clippy::needless_lifetimes)]
 #[tracing::instrument(level = "debug", skip(tcx))]
-fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
+fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResult<'tcx> {
     // *Don't take MIR bodies with borrowck info if we won't need them*
     if !is_spec_fn(tcx, def_id.to_def_id()) {
         let def_kind = tcx.def_kind(def_id.to_def_id());

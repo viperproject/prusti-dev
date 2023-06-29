@@ -86,14 +86,14 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
     let version_info = get_prusti_version_info();
 
-    let xs: Vec<Cow<'static, str>> = vec![
+    let xs: Vec<String> = vec![
         "Prusti or the compiler unexpectedly panicked. This is a bug.".into(),
         format!("We would appreciate a bug report: {bug_report_url}").into(),
         format!("Prusti version: {version_info}").into(),
     ];
 
-    for note in &xs {
-        handler.note_without_error(note.as_ref());
+    for note in xs {
+        handler.note_without_error(note);
     }
 
     // If backtraces are enabled, also print the query stack
