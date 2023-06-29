@@ -267,7 +267,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::Abort | TerminatorKind::Resume { .. } => {
+            TerminatorKind::Terminate | TerminatorKind::Resume { .. } => {
                 assert!(states.is_empty());
                 let pos = self.encoder.error_manager().register_error(
                     term.source_info.span,
@@ -734,7 +734,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir::Expr::not(cond_val)
                 };
 
-                let error_ctxt = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                let error_ctxt = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     ErrorCtxt::BoundsCheckAssert
                 } else {
                     let assert_msg = msg.description().to_string();
@@ -945,7 +945,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 }
                                 let mut field_exprs = vec![];
                                 for (field_index, field) in variant_def.fields.iter().enumerate() {
-                                    let operand = &operands[field_index];
+                                    let operand = &operands[field_index.into()];
                                     let field_name = field.ident(tcx).to_string();
                                     let field_ty = field.ty(tcx, subst);
                                     let encoded_field = self.encoder
@@ -981,7 +981,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let cl_substs = substs.as_closure();
                                 let mut field_exprs = vec![];
                                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
-                                    let operand = &operands[field_index];
+                                    let operand = &operands[field_index.into()];
                                     let field_name = format!("closure_{field_index}");
 
                                     let encoded_field = self.encoder

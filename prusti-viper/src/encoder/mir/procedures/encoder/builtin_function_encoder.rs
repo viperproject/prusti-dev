@@ -12,7 +12,7 @@ pub(super) trait BuiltinFuncAppEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
-        cleanup: &Option<mir::BasicBlock>,
+        unwind: mir::UnwindAction,
     ) -> SpannedEncodingResult<bool>;
 }
 
@@ -28,7 +28,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
         args: &[mir::Operand<'tcx>],
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
-        cleanup: &Option<mir::BasicBlock>,
+        unwind: mir::UnwindAction,
     ) -> SpannedEncodingResult<bool> {
         let full_called_function_name = self
             .encoder
@@ -192,9 +192,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     debug!("Absence of panic will not be checked")
                 }
                 assert!(target.is_none());
-                if let Some(cleanup) = cleanup {
+                if let mir::UnwindAction::Cleanup(cleanup) = unwind {
                     let successor =
-                        vir_high::Successor::Goto(self.encode_basic_block_label(*cleanup));
+                        vir_high::Successor::Goto(self.encode_basic_block_label(cleanup));
                     block_builder.set_successor_jump(successor);
                 } else {
                     unimplemented!();

@@ -308,7 +308,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ct: mir::UnevaluatedConst<'tcx>,
     ) -> Option<mir::interpret::Scalar> {
         let tcx = self.env.tcx();
-        let param_env = tcx.param_env(ct.def.did);
+        let param_env = tcx.param_env(ct.def);
         tcx.const_eval_resolve(param_env, ct, None)
             .ok()
             .and_then(|const_value| const_value.try_to_scalar())
