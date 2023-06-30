@@ -1,7 +1,7 @@
 use crate::encoder::{errors::SpannedEncodingResult, middle::core_proof::lowerer::Lowerer};
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
-    common::identifier::WithIdentifier,
+    common::{identifier::WithIdentifier, validator::Validator},
     low::{self as vir_low},
     middle as vir_mid,
 };
@@ -173,6 +173,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
         domain_name: &str,
         axiom: vir_low::DomainAxiomDecl,
     ) -> SpannedEncodingResult<()> {
+        axiom.assert_valid_debug();
         let domain = self.domains_state.domains.get_mut(domain_name).unwrap();
         domain.axioms.push(axiom);
         Ok(())

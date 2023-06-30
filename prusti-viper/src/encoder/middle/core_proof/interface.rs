@@ -7,7 +7,7 @@ use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_rustc_interface::{hir::def_id::DefId, middle::ty};
 use vir_crate::{
-    common::{check_mode::CheckMode, identifier::WithIdentifier},
+    common::{check_mode::CheckMode, identifier::WithIdentifier, validator::Validator},
     low::{self as vir_low},
 };
 
@@ -72,6 +72,7 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                 methods,
             };
             let source_filename = self.env().name.source_file_name();
+            program.assert_valid_debug();
             if config::trace_with_symbolic_execution() || config::custom_heap_encoding() {
                 program = super::transformations::desugar_method_calls::desugar_method_calls(
                     &source_filename,

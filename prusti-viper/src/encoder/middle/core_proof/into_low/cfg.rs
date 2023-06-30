@@ -32,6 +32,7 @@ use vir_crate::{
     common::{
         expression::{BinaryOperationHelpers, QuantifierHelpers},
         identifier::WithIdentifier,
+        validator::Validator,
     },
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
@@ -166,10 +167,12 @@ impl IntoLow for vir_mid::Statement {
                     "must be pure: {}",
                     statement.expression
                 );
-                Ok(vec![Statement::assume(
+                let low_statement = Statement::assume(
                     statement.expression.to_procedure_assertion(lowerer)?,
                     statement.position,
-                )])
+                );
+                low_statement.assert_valid_debug();
+                Ok(vec![low_statement])
             }
             Self::Assert(statement) => {
                 assert!(
@@ -184,6 +187,7 @@ impl IntoLow for vir_mid::Statement {
                     &statement.expression,
                     true,
                 )?;
+                assertion.assert_valid_debug();
                 let assert = Statement::assert(assertion, statement.position);
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
@@ -196,6 +200,7 @@ impl IntoLow for vir_mid::Statement {
                 } else {
                     assert
                 };
+                low_statement.assert_valid_debug();
                 Ok(vec![low_statement])
             }
             // FIXME: Instead of having a statement per predicate kind, have two
@@ -1329,6 +1334,7 @@ impl IntoLow for vir_mid::Statement {
                             vec![vir_low::Trigger::new(vec![trigger])],
                             quantifier_body,
                         );
+                        quantifier.assert_valid_debug();
                         vec![
                             comment,
                             vir_low::Statement::label(label, statement.position),
