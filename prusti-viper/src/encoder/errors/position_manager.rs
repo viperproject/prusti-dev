@@ -37,6 +37,8 @@ impl<'tcx> PositionManager<'tcx>
         }
     }
 
+    /// Registers a new span and returns the corresponding VIR position.
+    /// The line and column of the VIR position correspond to the start of the given span.
     #[tracing::instrument(level = "trace", skip(self), ret)]
     pub fn register_span<T: Into<MultiSpan> + Debug>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
         let span = span.into();
