@@ -105,30 +105,21 @@ impl AstRewriter {
         // - `item_span` is set to `expr.span()` so that any errors reported
         //   for the spec item will be reported on the span of the expression
         //   written by the user
-        // - `((#expr) : bool)` syntax is used to report type errors in the
+        // - `let ...: bool = #expr` syntax is used to report type errors in the
         //   expression with the correct error message, i.e. that the expected
         //   type is `bool`, not that the expected *return* type is `bool`
-        // - `!!(...)` is used to fix an edge-case when the expression consists
-        //   of a single identifier; without the double negation, the `Return`
-        //   terminator in MIR has a span set to the one character just after
-        //   the identifier
-        let (return_type, return_modifier) = match &spec_type {
-            SpecItemType::Termination => (
-                quote_spanned! {item_span => Int},
-                quote_spanned! {item_span => Int::new(0) + },
-            ),
-            SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
-            _ => (
-                quote_spanned! {item_span => bool},
-                quote_spanned! {item_span => !!},
-            ),
+        let return_type = match &spec_type {
+            SpecItemType::Termination => quote_spanned! {item_span => Int},
+            SpecItemType::Predicate(return_type) => return_type.clone(),
+            _ => quote_spanned! {item_span => bool},
         };
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
             fn #item_name() -> #return_type {
-                #return_modifier ((#expr) : #return_type)
+                let prusti_result: #return_type = #expr;
+                prusti_result
             }
         };
 
