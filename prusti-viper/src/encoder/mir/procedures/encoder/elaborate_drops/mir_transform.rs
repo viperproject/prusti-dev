@@ -76,9 +76,15 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>)
             (Default::default(), move_data)
         }
     };
-    let un_derefer = UnDerefer { tcx: tcx, derefer_sidetable: side_table };
+    let un_derefer = UnDerefer {
+        tcx: tcx,
+        derefer_sidetable: side_table,
+    };
     let elaborate_patch = {
-        let env = MoveDataParamEnv { move_data, param_env };
+        let env = MoveDataParamEnv {
+            move_data,
+            param_env,
+        };
         remove_dead_unwinds(tcx, body, &env, &un_derefer);
 
         let inits = MaybeInitializedPlaces::new(tcx, body, &env)
@@ -131,9 +137,11 @@ pub(in super::super) fn remove_dead_unwinds<'tcx>(
         .into_results_cursor(body);
     for (bb, bb_data) in body.basic_blocks.iter_enumerated() {
         let place = match bb_data.terminator().kind {
-            TerminatorKind::Drop { ref place, unwind: UnwindAction::Cleanup(_), .. } => {
-                und.derefer(place.as_ref(), body).unwrap_or(*place)
-            }
+            TerminatorKind::Drop {
+                ref place,
+                unwind: UnwindAction::Cleanup(_),
+                ..
+            } => und.derefer(place.as_ref(), body).unwrap_or(*place),
             _ => continue,
         };
 
@@ -264,34 +272,55 @@ impl<'a, 'tcx> DropElaborator<'a, 'tcx> for Elaborator<'a, '_, 'tcx> {
     }
 
     fn field_subpath(&self, path: Self::Path, field: FieldIdx) -> Option<Self::Path> {
-        prusti_rustc_interface::dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| match e {
-            ProjectionElem::Field(idx, _) => idx == field,
-            _ => false,
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| match e {
+                ProjectionElem::Field(idx, _) => idx == field,
+                _ => false,
+            },
+        )
     }
 
     fn array_subpath(&self, path: Self::Path, index: u64, size: u64) -> Option<Self::Path> {
-        prusti_rustc_interface::dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| match e {
-            ProjectionElem::ConstantIndex { offset, min_length, from_end } => {
-                debug_assert!(size == min_length, "min_length should be exact for arrays");
-                assert!(!from_end, "from_end should not be used for array element ConstantIndex");
-                offset == index
-            }
-            _ => false,
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| match e {
+                ProjectionElem::ConstantIndex {
+                    offset,
+                    min_length,
+                    from_end,
+                } => {
+                    debug_assert!(size == min_length, "min_length should be exact for arrays");
+                    assert!(
+                        !from_end,
+                        "from_end should not be used for array element ConstantIndex"
+                    );
+                    offset == index
+                }
+                _ => false,
+            },
+        )
     }
 
     fn deref_subpath(&self, path: Self::Path) -> Option<Self::Path> {
-        prusti_rustc_interface::dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| {
-            e == ProjectionElem::Deref
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| e == ProjectionElem::Deref,
+        )
     }
 
     fn downcast_subpath(&self, path: Self::Path, variant: VariantIdx) -> Option<Self::Path> {
-        prusti_rustc_interface::dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| match e {
-            ProjectionElem::Downcast(_, idx) => idx == variant,
-            _ => false,
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| match e {
+                ProjectionElem::Downcast(_, idx) => idx == variant,
+                _ => false,
+            },
+        )
     }
 
     fn get_drop_flag(&mut self, path: Self::Path) -> Option<Operand<'tcx>> {
@@ -352,16 +381,20 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
             }
             let terminator = data.terminator();
             let place = match terminator.kind {
-                TerminatorKind::Drop { ref place, .. } => {
-                    self.un_derefer.derefer(place.as_ref(), self.body).unwrap_or(*place)
-                }
+                TerminatorKind::Drop { ref place, .. } => self
+                    .un_derefer
+                    .derefer(place.as_ref(), self.body)
+                    .unwrap_or(*place),
                 _ => continue,
             };
 
             self.init_data.seek_before(self.body.terminator_loc(bb));
 
             let path = self.move_data().rev_lookup.find(place.as_ref());
-            debug!("collect_drop_flags: {:?}, place {:?} ({:?})", bb, place, path);
+            debug!(
+                "collect_drop_flags: {:?}, place {:?} ({:?})",
+                bb, place, path
+            );
 
             let path = match path {
                 LookupResult::Exact(e) => e,
@@ -407,11 +440,19 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
             if !self.reachable.contains(bb) {
                 continue;
             }
-            let loc = Location { block: bb, statement_index: data.statements.len() };
+            let loc = Location {
+                block: bb,
+                statement_index: data.statements.len(),
+            };
             let terminator = data.terminator();
 
             match terminator.kind {
-                TerminatorKind::Drop { mut place, target, unwind, replace } => {
+                TerminatorKind::Drop {
+                    mut place,
+                    target,
+                    unwind,
+                    replace,
+                } => {
                     if let Some(new_place) = self.un_derefer.derefer(place.as_ref(), self.body) {
                         place = new_place;
                     }
@@ -483,7 +524,8 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
         let span = self.patch.source_info_for_location(self.body, loc).span;
         let false_ = self.constant_bool(span, false);
         for flag in self.drop_flags.iter().flatten() {
-            self.patch.add_assign(loc, Place::from(*flag), false_.clone());
+            self.patch
+                .add_assign(loc, Place::from(*flag), false_.clone());
         }
     }
 
@@ -501,7 +543,10 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
             {
                 assert!(!self.patch.is_patched(bb));
 
-                let loc = Location { block: tgt, statement_index: 0 };
+                let loc = Location {
+                    block: tgt,
+                    statement_index: 0,
+                };
                 let path = self.move_data().rev_lookup.find(destination.as_ref());
                 on_lookup_result_bits(self.tcx, self.body, self.move_data(), path, |child| {
                     self.set_drop_flag(loc, child, DropFlagState::Present)
@@ -552,7 +597,10 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                         }
                     }
                 }
-                let loc = Location { block: bb, statement_index: i };
+                let loc = Location {
+                    block: bb,
+                    statement_index: i,
+                };
                 prusti_rustc_interface::dataflow::drop_flag_effects_for_location(
                     self.tcx,
                     self.body,
@@ -574,7 +622,10 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
             {
                 assert!(!self.patch.is_patched(bb));
 
-                let loc = Location { block: bb, statement_index: data.statements.len() };
+                let loc = Location {
+                    block: bb,
+                    statement_index: data.statements.len(),
+                };
                 let path = self.move_data().rev_lookup.find(destination.as_ref());
                 on_lookup_result_bits(self.tcx, self.body, self.move_data(), path, |child| {
                     self.set_drop_flag(loc, child, DropFlagState::Present)
