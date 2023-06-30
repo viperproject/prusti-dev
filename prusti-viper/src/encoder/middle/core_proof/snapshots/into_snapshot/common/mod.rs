@@ -26,6 +26,7 @@ use vir_crate::{
         expression::{BinaryOperationHelpers, ExpressionIterator},
         identifier::WithIdentifier,
         position::Positioned,
+        validator::Validator,
     },
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
@@ -882,9 +883,10 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     "Expected Sequence type, got {:?}",
                     args[0].get_type()
                 );
+                assert!(ty_args[0].is_seq());
                 let value = vir_low::Expression::container_op(
                     ContainerOpKind::SeqIndex,
-                    vir_low::Type::seq(ty_args[0].clone()),
+                    ty_args[0].clone(),
                     vec![
                         args[0].clone(),
                         lowerer.obtain_constant_value(
@@ -970,12 +972,14 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     args[1].clone(),
                     app.position,
                 )?;
-                Ok(vir_low::Expression::container_op(
+                let expression = vir_low::Expression::container_op(
                     vir_low::ContainerOpKind::SeqIndex,
                     vir_low::Type::seq(ty_args[0].clone()),
                     vec![args[0].clone(), index],
                     app.position,
-                ))
+                );
+                expression.assert_valid_debug();
+                Ok(expression)
             }
             BuiltinFunc::Len => {
                 assert_eq!(app.arguments.len(), 1);

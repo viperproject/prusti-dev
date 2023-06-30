@@ -19,6 +19,7 @@ use vir_crate::{
     common::{
         expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
         identifier::WithIdentifier,
+        validator::Validator,
     },
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
@@ -515,6 +516,7 @@ impl<'l, 'p, 'v, 'tcx> FunctionDeclBuilder<'l, 'p, 'v, 'tcx> {
             ],
             body,
         );
+        expression.assert_valid_debug();
         posts.push(expression);
         Ok(())
     }

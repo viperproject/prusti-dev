@@ -14,3 +14,4 @@ pub mod domain;
 pub mod predicate;
 pub mod identifier;
 pub mod quantifiers;
+pub mod validator;

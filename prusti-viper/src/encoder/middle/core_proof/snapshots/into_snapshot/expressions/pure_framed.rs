@@ -11,7 +11,7 @@ use crate::encoder::{
 };
 
 use vir_crate::{
-    common::{identifier::WithIdentifier, position::Positioned},
+    common::{identifier::WithIdentifier, position::Positioned, validator::Validator},
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
@@ -116,6 +116,7 @@ impl<'a> FramedExpressionToSnapshot<'a> {
                 vec![pointer_deref, index_int],
                 *position,
             );
+            element.assert_valid_debug();
             Ok(PointerFramingInfo::RangeElement {
                 encoded_deref: element,
             })

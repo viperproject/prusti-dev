@@ -9,7 +9,7 @@ use crate::encoder::{
     },
 };
 use vir_crate::{
-    common::expression::UnaryOperationHelpers,
+    common::{expression::UnaryOperationHelpers, validator::Validator},
     low::{self as vir_low, operations::ty::Typed},
     middle::{self as vir_mid},
 };
@@ -233,12 +233,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         index: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        Ok(vir_low::Expression::container_op(
+        let expression = vir_low::Expression::container_op(
             vir_low::expression::ContainerOpKind::SeqIndex,
             base_snapshot.get_type().clone(),
             vec![base_snapshot, index],
             position,
-        ))
+        );
+        expression.assert_valid_debug();
+        Ok(expression)
     }
     fn construct_constant_snapshot(
         &mut self,
