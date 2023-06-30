@@ -9,12 +9,11 @@ use prusti_rustc_interface::{
     driver::Compilation,
     hir::{def::DefKind, def_id::LocalDefId},
     interface::{interface::Compiler, Config, Queries},
-    middle::ty::{
-        self,
-        TyCtxt,
+    middle::{
+        mir::BorrowCheckResult,
+        query::{ExternProviders, Providers},
+        ty::{self, TyCtxt},
     },
-    middle::mir::BorrowCheckResult,
-    middle::query::{ExternProviders, Providers},
     session::Session,
 };
 
