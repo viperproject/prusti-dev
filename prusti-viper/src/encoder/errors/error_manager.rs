@@ -727,6 +727,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("assert.failed:map.key.contains", ErrorCtxt::Panic(PanicCause::Assert)) |
             ("inhale.failed:map.key.contains", _) => {
                 PrustiError::verification(
                     "the key might not be in the map".to_string(),
