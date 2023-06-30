@@ -41,7 +41,7 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     fn encode_value_field_high(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_high::FieldDecl>;
     fn get_lifetimes_from_types(
         &self,
-        types: impl IntoIterator<Item=ty::Ty<'tcx>>,
+        types: impl IntoIterator<Item = ty::Ty<'tcx>>,
     ) -> SpannedEncodingResult<Vec<vir_high::ty::LifetimeConst>>;
     fn get_lifetimes_from_substs(
         &self,
@@ -53,7 +53,7 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     ) -> SpannedEncodingResult<Vec<vir_high::VariableDecl>>;
     fn get_const_parameters_from_types(
         &self,
-        types: impl IntoIterator<Item=ty::Ty<'tcx>>,
+        types: impl IntoIterator<Item = ty::Ty<'tcx>>,
     ) -> SpannedEncodingResult<Vec<vir_high::VariableDecl>>;
     fn get_lifetimes_from_type_high(
         &self,
@@ -193,7 +193,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     }
     fn get_lifetimes_from_types(
         &self,
-        types: impl IntoIterator<Item=ty::Ty<'tcx>>,
+        types: impl IntoIterator<Item = ty::Ty<'tcx>>,
     ) -> SpannedEncodingResult<Vec<vir_high::ty::LifetimeConst>> {
         let mut lifetimes = Vec::new();
         super::lifetimes::extract_lifetimes_from_types(self, types, &mut lifetimes)?;
@@ -213,7 +213,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     }
     fn get_const_parameters_from_types(
         &self,
-        types: impl IntoIterator<Item=ty::Ty<'tcx>>,
+        types: impl IntoIterator<Item = ty::Ty<'tcx>>,
     ) -> SpannedEncodingResult<Vec<vir_high::VariableDecl>> {
         let mut const_parameters = Vec::new();
         super::const_parameters::extract_const_parameters_from_types(

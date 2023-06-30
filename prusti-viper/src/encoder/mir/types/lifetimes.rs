@@ -27,7 +27,7 @@ pub(super) fn extract_lifetimes_from_substs<'tcx>(
 
 pub(super) fn extract_lifetimes_from_types<'tcx>(
     type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
-    types: impl IntoIterator<Item=ty::Ty<'tcx>>,
+    types: impl IntoIterator<Item = ty::Ty<'tcx>>,
     lifetimes: &mut Vec<vir_high::ty::LifetimeConst>,
 ) -> SpannedEncodingResult<()> {
     for ty in types {

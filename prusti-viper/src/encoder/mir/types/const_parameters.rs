@@ -19,7 +19,7 @@ pub(super) fn extract_const_parameters_from_substs<'tcx>(
 
 pub(super) fn extract_const_parameters_from_types<'tcx>(
     type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
-    types: impl IntoIterator<Item=ty::Ty<'tcx>>,
+    types: impl IntoIterator<Item = ty::Ty<'tcx>>,
     const_parameters: &mut Vec<vir_high::VariableDecl>,
 ) -> SpannedEncodingResult<()> {
     for ty in types {

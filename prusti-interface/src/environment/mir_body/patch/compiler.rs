@@ -134,7 +134,10 @@ impl<'tcx> MirPatch<'tcx> {
             Some(index) => self.new_blocks[index].statements.len(),
             None => body[bb].statements.len(),
         };
-        Location { block: bb, statement_index: offset }
+        Location {
+            block: bb,
+            statement_index: offset,
+        }
     }
 
     pub fn new_internal_with_info(
@@ -224,12 +227,19 @@ impl<'tcx> MirPatch<'tcx> {
                 delta = 0;
                 last_bb = loc.block;
             }
-            debug!("MirPatch: adding statement {:?} at loc {:?}+{}", stmt, loc, delta);
+            debug!(
+                "MirPatch: adding statement {:?} at loc {:?}+{}",
+                stmt, loc, delta
+            );
             loc.statement_index += delta;
             let source_info = Self::source_info_for_index(&body[loc.block], loc);
-            body[loc.block]
-                .statements
-                .insert(loc.statement_index, Statement { source_info, kind: stmt });
+            body[loc.block].statements.insert(
+                loc.statement_index,
+                Statement {
+                    source_info,
+                    kind: stmt,
+                },
+            );
             delta += 1;
         }
     }
