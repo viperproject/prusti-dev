@@ -62,6 +62,11 @@ impl<K: PermissionMaskKind> PermissionMaskOperations<K> {
         self.perm_new.clone()
     }
 
+    // FIXME: Remove this method. It is not needed for non-QP context.
+    pub(in super::super) fn perm_old(&self) -> vir_low::Expression {
+        self.perm_old.clone()
+    }
+
     pub(in super::super) fn old_permission_mask_version(&self) -> vir_low::Expression {
         self.old_permission_mask_version.clone()
     }
