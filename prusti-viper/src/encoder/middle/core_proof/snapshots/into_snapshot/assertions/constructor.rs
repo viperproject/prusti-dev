@@ -15,7 +15,7 @@ use crate::encoder::{
 use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
 use vir_crate::{
-    common::position::Positioned,
+    common::{expression::SyntacticEvaluation, position::Positioned},
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
@@ -139,7 +139,7 @@ impl<'a> AssertionToSnapshotConstructor<'a> {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         expression: &vir_mid::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let constructor_expression = self.expression_to_snapshot(lowerer, expression, true)?;
+        let constructor_expression = self.expression_to_snapshot(lowerer, expression, false)?;
         if self.found_conditional {
             Ok(constructor_expression)
         } else {
@@ -374,6 +374,22 @@ impl<'a> AssertionToSnapshotConstructor<'a> {
 impl<'a, 'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx>
     for AssertionToSnapshotConstructor<'a>
 {
+    fn binary_op_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        op: &vir_mid::BinaryOp,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        if op.op_kind == vir_mid::BinaryOpKind::And {
+            if op.left.is_true() {
+                return self.expression_to_snapshot(lowerer, &op.right, expect_math_bool);
+            } else if op.right.is_true() {
+                return self.expression_to_snapshot(lowerer, &op.left, expect_math_bool);
+            }
+        }
+        self.binary_op_to_snapshot_impl(lowerer, op, expect_math_bool)
+    }
+
     fn conditional_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
