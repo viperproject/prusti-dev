@@ -990,11 +990,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         builtin((LookupMap, ref_type))
                     }
                     Type::Reference(Reference {
-                        target_type: box Type::Sequence(_),
+                        target_type:
+                            box Type::Sequence(vir_high::ty::Sequence {
+                                box element_type, ..
+                            }),
                         ..
                     }) => {
                         let ref_type = encoded_lhs.get_type().clone();
-                        builtin((LookupSeq, ref_type))
+                        subst_with(vir_high::Expression::builtin_func_app_no_pos(
+                            LookupSeq,
+                            vec![element_type.clone()],
+                            encoded_args.into(),
+                            ref_type,
+                        ))
                     }
                     _ => self
                         .encode_call_index(
