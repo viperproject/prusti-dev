@@ -176,7 +176,6 @@ impl Generic for Expr {
             Expr::Downcast(down_cast) => Expr::Downcast(down_cast.substitute(map)),
             Expr::SnapApp(snap_app) => Expr::SnapApp(snap_app.substitute(map)),
             Expr::Cast(cast) => Expr::Cast(cast.substitute(map)),
-            Expr::LeakCheck(leak_check) => Expr::LeakCheck(leak_check.substitute(map)),
         }
     }
 }
@@ -487,12 +486,6 @@ impl Generic for Cast {
     }
 }
 
-impl Generic for LeakCheck {
-    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
-        self
-    }
-}
-
 // function
 impl Generic for Function {
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
@@ -600,6 +593,7 @@ impl Generic for Stmt {
             }
             Stmt::If(if_stmt) => Stmt::If(if_stmt.substitute(map)),
             Stmt::Downcast(downcast) => Stmt::Downcast(downcast.substitute(map)),
+            Stmt::LeakCheck(leak_check) => Stmt::LeakCheck(leak_check.substitute(map)),
         }
     }
 }
@@ -804,6 +798,12 @@ impl Generic for Downcast {
         downcast.base = downcast.base.substitute(map);
         downcast.field = downcast.field.substitute(map);
         downcast
+    }
+}
+
+impl Generic for LeakCheck {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
+        self
     }
 }
 

@@ -894,20 +894,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("before_invariant_block: {:?}", before_invariant_block);
         debug!("after_guard_block: {:?}", after_guard_block);
         debug!("after_inv_block: {:?}", after_inv_block);
+
+        let loop_span = loop_body.iter()
+            .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
+            .filter(|&span| span.contains(loop_head_span))
+            .min()
+            .unwrap();
+
         if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
             debug!(
                 "{:?} is conditional branch in loop {:?}",
                 before_invariant_block, loop_head
             );
-            let loop_head_span = self.mir_encoder.get_span_of_basic_block(loop_head);
             return Err(SpannedEncodingError::incorrect(
                 "the loop invariant cannot be in a conditional branch of the loop",
-                loop_body
-                    .iter()
-                    .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
-                    .filter(|&span| span.contains(loop_head_span))
-                    .min()
-                    .unwrap(),
+                loop_span
             ));
         }
 
@@ -1109,9 +1110,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &scope_ids,
             )?;
             self.cfg_method.add_stmts(end_body_block, stmts);
-            self.cfg_method.add_stmt(end_body_block, vir::Stmt::Assert(vir::Assert{
-                expr: vir::Expr::leak_check(loop_head.index() as isize),
-                position: vir::Position::default(),
+            self.cfg_method.add_stmt(end_body_block, vir::Stmt::LeakCheck(vir::LeakCheck {
+                scope_id: loop_head.index() as isize,
+                place: vir::LeakCheckPlace::Loop,
+                position: self.register_span(loop_span),
             }));
         }
         self.cfg_method.add_stmt(
@@ -4958,20 +4960,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        // Assert functional specification of postcondition
+        // Exhale functional specification of postcondition (exhale for resources)
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::comment("Assert functional specification of postcondition"),
+            vir::Stmt::comment("Exhale functional specification of postcondition"),
         );
-        let func_pos = self.register_error(self.mir.span, ErrorCtxt::AssertMethodPostcondition);
+        let func_pos = self.register_error(self.mir.span, ErrorCtxt::ExhaleMethodPostcondition);
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
-        let postcond_pos = patched_func_spec.pos();
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(vir::Assert {
-                expr: vir::Expr::and(patched_func_spec, vir::Expr::leak_check(-1)).set_pos(postcond_pos),
+            vir::Stmt::Exhale(vir::Exhale {
+                expr: patched_func_spec,
                 position: func_pos,
             }),
+        );
+
+        // Check for obligation leaks
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::comment("Assert that no obligations are leaked"),
+        );
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::LeakCheck(vir::LeakCheck {
+                scope_id: -1,
+                place: vir::LeakCheckPlace::Function,
+                position: func_pos, // doesn't matter that an error has already been registered for
+                                    // this position becase it will be only used after being
+                                    // duplicated
+            })
         );
 
         // Assert type invariants
@@ -7070,6 +7087,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     pub fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
         self.mir_encoder.register_error(span, error_ctxt)
+    }
+
+    pub fn register_span<T: Into<MultiSpan> + Debug>(&self, span: T) -> vir::Position {
+        self.mir_encoder.register_span(span)
     }
 }
 

@@ -75,7 +75,6 @@ pub enum Expr {
     SnapApp(SnapApp),
     /// Cast from one type into another.
     Cast(Cast),
-    LeakCheck(LeakCheck),
 }
 
 impl fmt::Display for Expr {
@@ -115,7 +114,6 @@ impl fmt::Display for Expr {
             Expr::Map(map) => map.fmt(f),
             Expr::Downcast(downcast_expr) => downcast_expr.fmt(f),
             Expr::Cast(expr) => expr.fmt(f),
-            Expr::LeakCheck(leak_check) => leak_check.fmt(f),
         }
     }
 }
@@ -201,8 +199,7 @@ impl Expr {
             | Expr::ContainerOp(ContainerOp { position, .. })
             | Expr::Cast(Cast { position, .. })
             | Expr::Map(Map { position, .. })
-            | Expr::Seq(Seq { position, .. })
-            | Expr::LeakCheck(LeakCheck { position, .. }) => *position,
+            | Expr::Seq(Seq { position, .. }) => *position,
             Expr::Downcast(DowncastExpr { base, .. }) => base.pos(),
         }
     }
@@ -256,8 +253,7 @@ impl Expr {
             DomainFuncApp,
             InhaleExhale,
             SnapApp,
-            Cast,
-            LeakCheck
+            Cast
         )
     }
 
@@ -308,12 +304,13 @@ impl Expr {
         name: String,
         args: Vec<Expr>,
         formal_arguments: Vec<LocalVar>,
+        pos: Position,
     ) -> Self {
         let const_one = Expr::Const(ConstExpr {
             value: Const::Int(1),
             position: Position::default(),
         });
-        Expr::obligation_access_predicate(name, args, formal_arguments, const_one)
+        Expr::obligation_access_predicate(name, args, formal_arguments, const_one, pos)
     }
 
     pub fn obligation_access_predicate(
@@ -321,8 +318,8 @@ impl Expr {
         args: Vec<Expr>,
         formal_arguments: Vec<LocalVar>,
         amount: Expr,
+        pos: Position,
     ) -> Self {
-        let pos = amount.pos();
         Expr::ObligationAccessPredicate(ObligationAccessPredicate {
             access: ObligationAccess {
                 name,
@@ -535,13 +532,6 @@ impl Expr {
     pub fn snap_app(expr: Expr) -> Self {
         Expr::SnapApp(SnapApp {
             base: Box::new(expr),
-            position: Position::default(),
-        })
-    }
-
-    pub fn leak_check(scope_id: isize) -> Self {
-        Expr::LeakCheck(LeakCheck {
-            scope_id,
             position: Position::default(),
         })
     }
@@ -1190,7 +1180,6 @@ impl Expr {
                     &Type::BitVector(BitVector::Unsigned(BitVectorSize::BV128))
                 }
             },
-            Expr::LeakCheck(..) => &Type::Bool,
         }
     }
 
@@ -1217,8 +1206,7 @@ impl Expr {
                 | Expr::ObligationAccessPredicate(..)
                 | Expr::ForAll(..)
                 | Expr::Exists(..)
-                | Expr::ForPerm(..)
-                | Expr::LeakCheck(..) => true,
+                | Expr::ForPerm(..) => true,
                 Expr::BinOp(BinOp { op_kind, .. }) => {
                     use self::BinaryOpKind::*;
                     *op_kind == EqCmp
@@ -1627,8 +1615,7 @@ impl Expr {
                     | Expr::Seq(..)
                     | Expr::Map(..)
                     | Expr::SnapApp(..)
-                    | Expr::Cast(..)
-                    | Expr::LeakCheck(..) => true.into(),
+                    | Expr::Cast(..) => true.into(),
                 }
             }
         }
@@ -2867,30 +2854,6 @@ impl PartialEq for SnapApp {
 impl Hash for SnapApp {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (self.base).hash(state);
-    }
-}
-
-#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
-pub struct LeakCheck {
-    pub scope_id: isize,
-    pub position: Position,
-}
-
-impl fmt::Display for LeakCheck {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "leak_check({})", self.scope_id)
-    }
-}
-
-impl PartialEq for LeakCheck {
-    fn eq(&self, other: &Self) -> bool {
-        self.scope_id == other.scope_id
-    }
-}
-
-impl Hash for LeakCheck {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        (self.scope_id).hash(state);
     }
 }
 

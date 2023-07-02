@@ -476,10 +476,6 @@ pub trait ExprFolder: Sized {
             position: expr.position,
         })
     }
-
-    fn fold_leak_check(&mut self, expr: LeakCheck) -> Expr {
-        Expr::LeakCheck(expr)
-    }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -521,7 +517,6 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Seq(seq) => this.fold_seq(seq),
         Expr::Map(map) => this.fold_map(map),
         Expr::Cast(cast) => this.fold_cast(cast),
-        Expr::LeakCheck(leak_check) => this.fold_leak_check(leak_check),
     }
 }
 
@@ -774,8 +769,6 @@ pub trait ExprWalker: Sized {
         let Cast { base, .. } = expr;
         self.walk(base);
     }
-
-    fn walk_leak_check(&mut self, _expr: &LeakCheck) {}
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -817,7 +810,6 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Seq(seq) => this.walk_seq(seq),
         Expr::Map(map) => this.walk_map(map),
         Expr::Cast(cast) => this.walk_cast(cast),
-        Expr::LeakCheck(leak_check) => this.walk_leak_check(leak_check),
     }
 }
 
@@ -1277,10 +1269,6 @@ pub trait FallibleExprFolder: Sized {
             position,
         }))
     }
-
-    fn fallible_fold_leak_check(&mut self, expr: LeakCheck) -> Result<Expr, Self::Error> {
-        Ok(Expr::LeakCheck(expr))
-    }
 }
 
 pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
@@ -1325,7 +1313,6 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Seq(seq) => this.fallible_fold_seq(seq),
         Expr::Map(map) => this.fallible_fold_map(map),
         Expr::Cast(cast) => this.fallible_fold_cast(cast),
-        Expr::LeakCheck(leak_check) => this.fallible_fold_leak_check(leak_check),
     }
 }
 
@@ -1608,10 +1595,6 @@ pub trait FallibleExprWalker: Sized {
         let Cast { base, .. } = expr;
         self.fallible_walk(base)
     }
-
-    fn fallible_walk_leak_check(&mut self, _expr: &LeakCheck) -> Result<(), Self::Error> {
-        Ok(())
-    }
 }
 
 pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
@@ -1656,6 +1639,5 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::Seq(seq) => this.fallible_walk_seq(seq),
         Expr::Map(map) => this.fallible_walk_map(map),
         Expr::Cast(cast) => this.fallible_walk_cast(cast),
-        Expr::LeakCheck(leak_check) => this.fallible_walk_leak_check(leak_check),
     }
 }

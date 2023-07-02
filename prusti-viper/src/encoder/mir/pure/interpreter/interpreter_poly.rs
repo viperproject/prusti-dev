@@ -679,6 +679,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         encoded_args,
                                         formal_args,
                                         amount,
+                                        pos,
                                     )
                                 } else {
                                     vir::Expr::func_app(

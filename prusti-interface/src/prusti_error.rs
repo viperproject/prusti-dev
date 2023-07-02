@@ -69,12 +69,32 @@ impl PrustiError {
         }
     }
 
+    fn new_with_help(message: String, span: MultiSpan, help: String) -> Self {
+        PrustiError {
+            kind: PrustiErrorKind::Error,
+            is_disabled: false,
+            message,
+            span: Box::new(span),
+            help: Some(help),
+            notes: vec![],
+        }
+    }
+
     /// Report a verification error of the verified Rust code
     pub fn verification<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
         PrustiError::new(
             format!("[Prusti: verification error] {}", message.to_string()),
             span,
+        )
+    }
+
+    pub fn verification_with_help<S: ToString>(message: S, span: MultiSpan, help: String) -> Self {
+        check_message(message.to_string());
+        PrustiError::new_with_help(
+            format!("[Prusti: verification error] {}", message.to_string()),
+            span,
+            help,
         )
     }
 

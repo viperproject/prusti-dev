@@ -3,7 +3,7 @@ use super::{
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
-use crate::encoder::high::types::HighTypeEncoderInterface;
+use crate::encoder::{errors::ErrorCtxt, high::types::HighTypeEncoderInterface};
 use prusti_common::vir_local;
 use prusti_rustc_interface::span::Span;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -78,7 +78,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     used_resource_types: FxHashSet<vir::ResourceType>,
     /// The set of all predicates that are mentioned in the method.
     used_predicates: FxHashSet<vir::Type>,
-    used_obligations: FxHashSet<vir::FunctionIdentifier>,
+    used_obligations: FxHashSet<(vir::FunctionIdentifier, String)>,
     /// The set of predicates whose bodies have to be included because they are
     /// unfolded in the method.
     unfolded_predicates: FxHashSet<vir::Type>,
@@ -116,60 +116,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         // replacing leak check markers with actual leak checks (TODO: perhaps move to another
         // file)
 
-        struct LeakCheckInserter<'a, 'v, 'tcx> {
-            used_obligations: &'a FxHashSet<vir::FunctionIdentifier>,
-            encoder: &'a Encoder<'v, 'tcx>,
-        }
-
-        impl vir::FallibleStmtFolder for LeakCheckInserter<'_, '_, '_> {
-            type Error = SpannedEncodingError;
-
-            fn fallible_fold_expr(&mut self, expr: vir::Expr) -> Result<vir::Expr, Self::Error> {
-                <LeakCheckInserter as vir::FallibleExprFolder>::fallible_fold(self, expr)
-            }
-        }
-
-        impl vir::FallibleExprFolder for LeakCheckInserter<'_, '_, '_> {
-            type Error = SpannedEncodingError;
-
-            fn fallible_fold_leak_check(
-                &mut self,
-                vir::LeakCheck { scope_id, position }: vir::LeakCheck,
-            ) -> Result<vir::Expr, Self::Error> {
-                let mut check = vir::Expr::Const(vir::ConstExpr {
-                    value: vir::Const::Bool(true),
-                    position,
-                });
-                // TODO: use conjoin here (?)
-                for identifier in self.used_obligations {
-                    let current_check = self
-                        .encoder
-                        .get_obligation_leak_check(identifier, scope_id)?;
-                    check = vir::Expr::BinOp(vir::BinOp {
-                        op_kind: vir::BinaryOpKind::And,
-                        left: Box::new(check),
-                        right: Box::new(current_check),
-                        position,
-                    })
-                }
-                Ok(check)
-            }
-        }
-
-        let mut inserter = LeakCheckInserter {
-            used_obligations: &self.used_obligations,
-            encoder: self.encoder,
-        };
-
         let leak_checked_methods = methods
             .into_iter()
             .map(|mut method| -> SpannedEncodingResult<vir::CfgMethod> {
                 method = method
-                    .patch_statements(|stmt| -> SpannedEncodingResult<_> {
-                        <LeakCheckInserter as vir::FallibleStmtFolder>::fallible_fold(
-                            &mut inserter,
-                            stmt,
-                        )
+                    .flat_map_statements(|stmt| -> SpannedEncodingResult<_> {
+                        match stmt {
+                            vir::Stmt::LeakCheck(vir::LeakCheck {
+                                scope_id,
+                                place,
+                                position,
+                            }) => {
+                                let mut checks = Vec::new();
+                                for (identifier, func_name) in &self.used_obligations {
+                                    let check_pos =
+                                        self.encoder.error_manager().duplicate_position(position);
+                                    let error_ctxt = match place {
+                                        vir::LeakCheckPlace::Function => {
+                                            ErrorCtxt::PostconditionObligationLeak(
+                                                func_name.clone(),
+                                            )
+                                        }
+                                        vir::LeakCheckPlace::Loop => {
+                                            ErrorCtxt::LoopObligationLeak(func_name.clone())
+                                        }
+                                    };
+                                    self.encoder
+                                        .error_manager()
+                                        .set_error(check_pos, error_ctxt);
+                                    checks.push(vir::Stmt::Assert(vir::Assert {
+                                        expr: self
+                                            .encoder
+                                            .get_obligation_leak_check(identifier, scope_id)?
+                                            .set_pos(check_pos),
+                                        position: check_pos,
+                                    }));
+                                }
+                                Ok(checks)
+                            }
+                            _ => Ok(vec![stmt]),
+                        }
                     })
                     .unwrap();
                 Ok(method)
@@ -270,7 +256,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             };
             predicates.push(predicate);
         }
-        for identifier in &self.used_obligations {
+        for (identifier, _) in &self.used_obligations {
             let obligation = self.encoder.get_obligation(identifier)?;
             let obligation = (*obligation).clone();
             predicates.push(obligation);
@@ -989,7 +975,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let identifier: vir::FunctionIdentifier =
             compute_identifier(name, &[], formal_arguments, &vir::Type::Bool).into();
-        self.used_obligations.insert(identifier);
+        let user_friendly_name = if name.starts_with("m_") {
+            name.as_str()[2..].to_string()
+        } else {
+            name.clone()
+        };
+        self.used_obligations
+            .insert((identifier, user_friendly_name));
         for arg in args {
             FallibleExprWalker::fallible_walk(self, arg)?;
         }

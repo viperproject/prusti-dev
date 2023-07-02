@@ -192,6 +192,10 @@ pub enum ErrorCtxt {
     NotEnoughTimeCredits,
     // The code did not create enough time receipts.
     NotEnoughTimeReceipts,
+    /// Function might leak obligations; obligation name as argument
+    PostconditionObligationLeak(String),
+    /// Loop iteration might leak obligations; obligation name as argument
+    LoopObligationLeak(String),
 }
 
 /// The error manager
@@ -425,7 +429,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
+            ("exhale.failed:assertion.false" | "exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) => {
                 PrustiError::verification("postcondition might not hold.", error_span)
                     .push_primary_span(opt_cause_span)
             }
@@ -737,6 +741,12 @@ impl<'tcx> ErrorManager<'tcx> {
             }
             ("exhale.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantAfterIteration) if ver_error.message.contains("There might be insufficient permission to access time_receipts") => {
                 PrustiError::verification("Not enough time receipts for invariant after a loop iteration that preserves the loop condition.".to_string(), error_span)
+            }
+            ("assert.failed:assertion.false", ErrorCtxt::PostconditionObligationLeak(obligation_name)) => {
+                PrustiError::verification_with_help(format!("the function might leak instances of obligation `{}`", obligation_name), error_span, format!("consider adding instances of `{}` to the function's postcondtion", obligation_name))
+            }
+            ("assert.failed:assertion.false", ErrorCtxt::LoopObligationLeak(obligation_name)) => {
+                PrustiError::verification_with_help(format!("a loop iteration might leak instances of obligation `{}`", obligation_name), error_span, format!("make sure that any aquisition of instances of `{}` in the loop iteration is reflected in the loop invariant", obligation_name))
             }
 
             ("refute.failed:refutation.true", ErrorCtxt::Panic(PanicCause::Refute)) => {

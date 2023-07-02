@@ -196,7 +196,10 @@ impl ast::ExprWalker for VarCollector {
     fn walk_forperm(
         &mut self,
         ast::ForPerm {
-            variables, access, body, ..
+            variables,
+            access,
+            body,
+            ..
         }: &ast::ForPerm,
     ) {
         self.walk_obligation_access(access);
