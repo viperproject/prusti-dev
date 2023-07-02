@@ -95,6 +95,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         for ty in owned_range_snapshots_to_encode {
             self.encode_owned_predicate_range_snapshot(&ty)?;
         }
+        let snapshot_range_function =
+            self.construct_function_name("snap_owned_range_aliased", normalized_type)?;
         Ok(OwnedPredicateInfo {
             current_snapshot_function: SnapshotFunctionInfo {
                 function_name,
@@ -102,6 +104,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 body: snapshot_body,
             },
             final_snapshot_function: None,
+            snapshot_range_function: snapshot_range_function,
             snapshot_type,
         })
     }
@@ -164,6 +167,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         let function_name = function.name.clone();
         let snapshot_type = function.return_type.clone();
         self.declare_function(function)?;
+        let snapshot_range_function =
+            self.construct_function_name("snap_unique_ref_current_range_aliased", normalized_type)?;
         Ok(OwnedPredicateInfo {
             current_snapshot_function: SnapshotFunctionInfo {
                 function_name,
@@ -171,6 +176,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 body: snapshot_body,
             },
             final_snapshot_function: None,
+            snapshot_range_function: (snapshot_range_function),
             snapshot_type,
         })
     }
@@ -228,6 +234,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         let snapshot_postconditions = builder.get_snapshot_postconditions()?;
         let snapshot_body = builder.get_snapshot_body()?;
         let (function_name, snapshot_type) = builder.build()?;
+        let snapshot_range_function =
+            self.construct_function_name("snap_unique_ref_final_range_aliased", normalized_type)?;
         Ok(OwnedPredicateInfo {
             current_snapshot_function: SnapshotFunctionInfo {
                 function_name,
@@ -235,6 +243,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 body: snapshot_body,
             },
             final_snapshot_function: None,
+            snapshot_range_function: (snapshot_range_function),
             snapshot_type,
         })
     }
@@ -296,6 +305,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         let function_name = function.name.clone();
         let snapshot_type = function.return_type.clone();
         self.declare_function(function)?;
+        let snapshot_range_function =
+            self.construct_function_name("snap_frac_ref_range_aliased", normalized_type)?;
         Ok(OwnedPredicateInfo {
             current_snapshot_function: SnapshotFunctionInfo {
                 function_name,
@@ -303,6 +314,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 body: snapshot_body,
             },
             final_snapshot_function: None,
+            snapshot_range_function: (snapshot_range_function),
             snapshot_type,
         })
     }

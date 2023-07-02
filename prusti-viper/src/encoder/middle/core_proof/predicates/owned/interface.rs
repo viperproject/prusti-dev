@@ -45,6 +45,8 @@ pub(in super::super::super) struct OwnedPredicateInfo {
     pub(in super::super::super) final_snapshot_function: Option<SnapshotFunctionInfo>,
     /// The snapshot type.
     pub(in super::super::super) snapshot_type: vir_low::Type,
+    /// The snapshot range function.
+    pub(in super::super::super) snapshot_range_function: String,
 }
 
 /// Addidional information about the snapshot function used by purification
