@@ -713,6 +713,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let expr = statement.expr.clone();
                 if !expr.is_pure() {
                     self.push_cond(expr, None);
+                } else {
+                    self.walk_expr(&expr);
                 }
             }
             fn walk_expr(&mut self, expr: &vir::Expr) {
