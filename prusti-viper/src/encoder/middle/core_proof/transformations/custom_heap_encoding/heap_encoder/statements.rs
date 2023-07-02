@@ -21,7 +21,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             }
             vir_low::Statement::Assume(statement) => {
                 assert!(statement.expression.is_pure());
-                let expression = self.encode_pure_expression(
+                let expression = self.purify_snap_function_calls_in_expression(
                     statements,
                     statement.expression,
                     None,
@@ -74,7 +74,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             }
             vir_low::Statement::CaseSplit(statement) => {
                 assert!(statement.expression.is_pure());
-                let expression = self.encode_pure_expression(
+                let expression = self.purify_snap_function_calls_in_expression(
                     statements,
                     statement.expression,
                     None,

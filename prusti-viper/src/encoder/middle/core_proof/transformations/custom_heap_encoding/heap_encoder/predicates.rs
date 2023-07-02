@@ -160,7 +160,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
         let mut arguments = Vec::new();
         for argument in &predicate.arguments {
-            arguments.push(self.encode_pure_expression(
+            arguments.push(self.purify_snap_function_calls_in_expression(
                 statements,
                 argument.clone(),
                 expression_evaluation_state_label.clone(),
