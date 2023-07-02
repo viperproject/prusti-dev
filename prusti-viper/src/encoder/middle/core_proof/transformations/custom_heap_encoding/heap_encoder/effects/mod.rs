@@ -851,18 +851,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         //     guard_with_variables_replaced_with_inverse_functions ==>
         //        perm<P>(parameters, v_old) >= p :
         // ```
+        // let permission_mask_assert_statement = vir_low::Statement::assert(
+        //     vir_low::Expression::forall(
+        //         parameters.clone(),
+        //         vec![vir_low::Trigger::new(permission_mask_trigger_terms.clone())],
+        //         vir_low::Expression::implies(
+        //             permission_mask_guard.clone(),
+        //             operations.perm_old_greater_equals(
+        //                 self,
+        //                 parameters_as_arguments.clone(),
+        //                 &predicate.permission,
+        //             )?,
+        //         ),
+        //     ),
+        //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+        // );
+        let permission_mask_assert_arguments = self.encode_pure_expressions(
+            statements,
+            predicate.arguments.clone(),
+            expression_evaluation_state_label.clone(),
+            position,
+            true,
+        )?;
         let permission_mask_assert_statement = vir_low::Statement::assert(
-            vir_low::Expression::forall(
-                parameters.clone(),
-                vec![vir_low::Trigger::new(permission_mask_trigger_terms.clone())],
-                vir_low::Expression::implies(
-                    permission_mask_guard.clone(),
-                    operations.perm_old_greater_equals(
-                        self,
-                        parameters_as_arguments.clone(),
-                        &predicate.permission,
-                    )?,
-                ),
+            vir_low::Expression::implies(
+                self.encode_pure_expression(
+                    statements,
+                    guard.clone(),
+                    expression_evaluation_state_label,
+                    position,
+                    true,
+                )?,
+                operations.perm_old_greater_equals(
+                    self,
+                    permission_mask_assert_arguments,
+                    &predicate.permission,
+                )?,
             ),
             position, // FIXME: use position of expression.permission with proper ErrorCtxt.
         );
@@ -1200,6 +1224,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         );
         eprintln!("guard: {}", guard);
         eprintln!("predicate: {}", predicate);
+        let guard = self.encode_pure_expression(
+            statements,
+            guard,
+            expression_evaluation_state_label,
+            position,
+            true,
+        )?;
         if operations.can_assume_old_permission_is_none(&predicate.permission) {
             statements.push(vir_low::Statement::assume(
                 vir_low::Expression::forall(
