@@ -1,6 +1,5 @@
 use super::HeapEncoder;
 use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
-use rustc_hash::FxHashMap;
 use vir_crate::{
     common::{
         builtin_constants::MEMORY_BLOCK_PREDICATE_NAME,
@@ -10,7 +9,7 @@ use vir_crate::{
 };
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
-    pub(super) fn encode_pure_expressions(
+    pub(super) fn purify_snap_function_calls_in_expressions(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         expressions: Vec<vir_low::Expression>,
@@ -20,7 +19,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
         let mut purified_expressions = Vec::new();
         for expression in expressions {
-            let purified_expression = self.encode_pure_expression(
+            let purified_expression = self.purify_snap_function_calls_in_expression(
                 statements,
                 expression,
                 expression_evaluation_state_label.clone(),
@@ -31,7 +30,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         }
         Ok(purified_expressions)
     }
-    pub(super) fn encode_pure_expression(
+
+    /// If `is_in_frame_check` is true, then variables bound by quantifiers are skolemized out.
+    pub(super) fn purify_snap_function_calls_in_expression(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         expression: vir_low::Expression,
@@ -243,5 +244,16 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
             }
         }
         Ok(variable_decl)
+    }
+
+    fn fallible_fold_trigger(
+        &mut self,
+        mut trigger: vir_low::Trigger,
+    ) -> Result<vir_low::Trigger, Self::Error> {
+        for term in std::mem::take(&mut trigger.terms) {
+            let term = self.fallible_fold_expression(term)?;
+            trigger.terms.push(term);
+        }
+        Ok(trigger)
     }
 }

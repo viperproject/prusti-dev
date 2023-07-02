@@ -30,7 +30,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         assert!(!position.is_default(), "expression: {expression}");
         if expression.is_pure() {
-            let expression = self.encode_pure_expression(
+            let expression = self.purify_snap_function_calls_in_expression(
                 statements,
                 expression,
                 expression_evaluation_state_label,
@@ -70,7 +70,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         assert!(!position.is_default(), "expression: {expression}");
         if expression.is_pure() {
-            let expression = self.encode_pure_expression(
+            let expression = self.purify_snap_function_calls_in_expression(
                 statements,
                 expression,
                 expression_evaluation_state_label,
@@ -89,6 +89,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             } else {
                 &check_point
             };
+            let expression = self.purify_snap_function_calls_in_expression(
+                statements,
+                expression,
+                Some(evaluation_state.to_string()),
+                position,
+                true,
+            )?;
             self.encode_function_precondition_assert_rec(
                 statements,
                 expression,
@@ -109,24 +116,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         assert!(!position.is_default(), "expression: {expression}");
         if expression.is_pure() {
-            let expression = self.encode_pure_expression(
-                statements,
-                expression,
-                Some(expression_evaluation_state_label.to_string()),
-                position,
-                true,
-            )?;
+            // let expression = self.purify_snap_function_calls_in_expression(
+            //     statements,
+            //     expression,
+            //     Some(expression_evaluation_state_label.to_string()),
+            //     position,
+            //     true,
+            // )?;
             statements.push(vir_low::Statement::assert(expression, position));
         } else {
             match expression {
                 vir_low::Expression::PredicateAccessPredicate(mut expression) => {
-                    expression.arguments = self.encode_pure_expressions(
-                        statements,
-                        expression.arguments,
-                        Some(expression_evaluation_state_label.to_string()),
-                        position,
-                        true,
-                    )?;
+                    // expression.arguments = self.purify_snap_function_calls_in_expressions(
+                    //     statements,
+                    //     expression.arguments,
+                    //     Some(expression_evaluation_state_label.to_string()),
+                    //     position,
+                    //     true,
+                    // )?;
                     // FIXME: evaluate predicate arguments in expression_evaluation_state_label
                     match self.get_predicate_permission_mask_kind(&expression.name)? {
                         PredicatePermissionMaskKind::AliasedWholeBool
@@ -199,13 +206,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             position,
                             expression_evaluation_state_label,
                         )?;
-                        let guard = self.encode_pure_expression(
-                            statements,
-                            *expression.left,
-                            Some(expression_evaluation_state_label.to_string()),
-                            position,
-                            true,
-                        )?;
+                        // let guard = self.purify_snap_function_calls_in_expression(
+                        //     statements,
+                        //     *expression.left,
+                        //     Some(expression_evaluation_state_label.to_string()),
+                        //     position,
+                        //     true,
+                        // )?;
+                        let guard = *expression.left;
                         statements.push(vir_low::Statement::conditional(
                             guard,
                             then_branch,
@@ -225,13 +233,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     {
                         self.create_quantifier_variables_remap(&expression.variables)?;
                         eprintln!("-----------------");
-                        let guard = self.encode_pure_expression(
-                            statements,
-                            guard,
-                            Some(expression_evaluation_state_label.to_string()),
-                            position,
-                            false,
-                        )?;
+                        // let guard = self.purify_snap_function_calls_in_expression(
+                        //     statements,
+                        //     guard,
+                        //     Some(expression_evaluation_state_label.to_string()),
+                        //     position,
+                        //     false,
+                        // )?;
                         // FIXME: evaluate predicate arguments in expression_evaluation_state_label
                         match self.get_predicate_permission_mask_kind(&predicate.name)? {
                             PredicatePermissionMaskKind::AliasedWholeBool
@@ -410,22 +418,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 ));
             }
         }
-        let axiom_body = vir_low::Expression::forall(
-            variables.clone(),
-            triggers.clone(),
-            vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
-        );
-        // let axiom = vir_low::DomainAxiomDecl::new(
-        //     None,
-        //     format!(
-        //         "inverse_function_definitional_axiom${}",
-        //         self.inverse_function_domain.axioms.len()
-        //     ),
-        //     axiom_body,
+        // We are using skolemized variables, so inverse functions are not needed.
+        // let axiom_body = vir_low::Expression::forall(
+        //     variables.clone(),
+        //     triggers.clone(),
+        //     vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
         // );
-        // eprintln!("axiom: {axiom}");
-        // self.inverse_function_domain.axioms.push(axiom);
-        statements.push(vir_low::Statement::assume(axiom_body, position));
+        // // let axiom = vir_low::DomainAxiomDecl::new(
+        // //     None,
+        // //     format!(
+        // //         "inverse_function_definitional_axiom${}",
+        // //         self.inverse_function_domain.axioms.len()
+        // //     ),
+        // //     axiom_body,
+        // // );
+        // // eprintln!("axiom: {axiom}");
+        // // self.inverse_function_domain.axioms.push(axiom);
+        // statements.push(vir_low::Statement::assume(axiom_body, position));
 
         // ```
         // assert forall parameters ::
@@ -433,21 +442,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         //     guard_with_variables_replaced_with_inverse_functions ==>
         //        perm<P>(parameters, v_old) >= p :
         // ```
+        // let permission_mask_assert_statement = vir_low::Statement::assert(
+        //     vir_low::Expression::forall(
+        //         parameters,
+        //         vec![vir_low::Trigger::new(permission_mask_assert_trigger_terms)],
+        //         vir_low::Expression::implies(
+        //             permission_mask_assert_guard,
+        //             operations.perm_old_positive(self, parameters_as_arguments)?,
+        //         ),
+        //     ),
+        //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+        // );
         let permission_mask_assert_statement = vir_low::Statement::assert(
-            vir_low::Expression::forall(
-                parameters,
-                vec![vir_low::Trigger::new(permission_mask_assert_trigger_terms)],
-                vir_low::Expression::implies(
-                    permission_mask_assert_guard,
-                    operations.perm_old_positive(self, parameters_as_arguments)?,
-                ),
+            vir_low::Expression::implies(
+                guard,
+                operations.perm_old_positive(self, predicate.arguments.clone())?,
             ),
             position, // FIXME: use position of expression.permission with proper ErrorCtxt.
         );
-        eprintln!(
-            "permission_mask_assert_statement: {}",
-            permission_mask_assert_statement
-        );
+        // eprintln!(
+        //     "permission_mask_assert_statement: {}",
+        //     permission_mask_assert_statement
+        // );
         statements.push(permission_mask_assert_statement);
         Ok(())
     }
@@ -461,7 +477,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         assert!(!position.is_default(), "expression: {expression}");
         if expression.is_pure() {
-            let expression = self.encode_pure_expression(
+            let expression = self.purify_snap_function_calls_in_expression(
                 statements,
                 expression,
                 Some(expression_evaluation_state_label.to_string()),
@@ -557,7 +573,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     }
                     vir_low::BinaryOpKind::Implies => {
                         unimplemented!("Merge the heap versions in the commented out code below.");
-                        // let guard = self.encode_pure_expression(
+                        // let guard = self.purify_snap_function_calls_in_expression(
                         //     statements,
                         //     *expression.left,
                         //     Some(expression_evaluation_state_label.to_string()),
@@ -589,14 +605,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         ..
                     }) = *expression.body
                     {
-                        self.create_quantifier_variables_remap(&expression.variables)?;
-                        let guard = self.encode_pure_expression(
+                        let guard = self.purify_snap_function_calls_in_expression(
                             statements,
                             guard,
                             Some(expression_evaluation_state_label.to_string()),
                             position,
                             false,
                         )?;
+                        self.create_quantifier_variables_remap(&expression.variables)?;
                         eprintln!("guard: {guard}");
                         eprintln!("body: {predicate}");
                         match self.get_predicate_permission_mask_kind(&predicate.name)? {
@@ -866,7 +882,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         //     ),
         //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
         // );
-        let permission_mask_assert_arguments = self.encode_pure_expressions(
+        let permission_mask_assert_arguments = self.purify_snap_function_calls_in_expressions(
             statements,
             predicate.arguments.clone(),
             expression_evaluation_state_label.clone(),
@@ -875,7 +891,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         )?;
         let permission_mask_assert_statement = vir_low::Statement::assert(
             vir_low::Expression::implies(
-                self.encode_pure_expression(
+                self.purify_snap_function_calls_in_expression(
                     statements,
                     guard.clone(),
                     expression_evaluation_state_label,
@@ -943,7 +959,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         expression_evaluation_state_label: Option<String>,
     ) -> SpannedEncodingResult<()> {
         if expression.is_pure() {
-            let expression = self.encode_pure_expression(
+            let expression = self.purify_snap_function_calls_in_expression(
                 statements,
                 expression,
                 expression_evaluation_state_label,
@@ -1029,7 +1045,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         )?;
                     }
                     vir_low::BinaryOpKind::Implies => {
-                        let guard = self.encode_pure_expression(
+                        let guard = self.purify_snap_function_calls_in_expression(
                             statements,
                             *expression.left,
                             expression_evaluation_state_label.clone(),
@@ -1056,14 +1072,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     if let vir_low::Expression::BinaryOp(vir_low::BinaryOp {
                         op_kind: vir_low::BinaryOpKind::Implies,
                         left: box guard,
-                        right: box vir_low::Expression::PredicateAccessPredicate(predicate),
+                        right: box vir_low::Expression::PredicateAccessPredicate(mut predicate),
                         ..
                     }) = *expression.body
                     {
                         self.create_quantifier_variables_remap(&expression.variables)?;
-                        let guard = self.encode_pure_expression(
+                        let guard = self.purify_snap_function_calls_in_expression(
                             statements,
                             guard,
+                            expression_evaluation_state_label.clone(),
+                            position,
+                            false,
+                        )?;
+                        predicate.arguments = self.purify_snap_function_calls_in_expressions(
+                            statements,
+                            predicate.arguments,
                             expression_evaluation_state_label.clone(),
                             position,
                             false,
@@ -1224,13 +1247,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         );
         eprintln!("guard: {}", guard);
         eprintln!("predicate: {}", predicate);
-        let guard = self.encode_pure_expression(
-            statements,
-            guard,
-            expression_evaluation_state_label,
-            position,
-            true,
-        )?;
+        // let guard = self.purify_snap_function_calls_in_expression(
+        //     statements,
+        //     guard,
+        //     expression_evaluation_state_label,
+        //     position,
+        //     true,
+        // )?;
         if operations.can_assume_old_permission_is_none(&predicate.permission) {
             statements.push(vir_low::Statement::assume(
                 vir_low::Expression::forall(
