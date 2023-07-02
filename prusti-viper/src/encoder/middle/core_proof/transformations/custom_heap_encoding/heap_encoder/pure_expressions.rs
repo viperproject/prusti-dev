@@ -10,6 +10,27 @@ use vir_crate::{
 };
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
+    pub(super) fn encode_pure_expressions(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        expressions: Vec<vir_low::Expression>,
+        expression_evaluation_state_label: Option<String>,
+        position: vir_low::Position,
+        is_in_frame_check: bool,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
+        let mut purified_expressions = Vec::new();
+        for expression in expressions {
+            let purified_expression = self.encode_pure_expression(
+                statements,
+                expression,
+                expression_evaluation_state_label.clone(),
+                position,
+                is_in_frame_check,
+            )?;
+            purified_expressions.push(purified_expression);
+        }
+        Ok(purified_expressions)
+    }
     pub(super) fn encode_pure_expression(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,

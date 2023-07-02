@@ -1,8 +1,11 @@
 use super::HeapEncoder;
-use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, QuantifierHelpers},
-    low::{self as vir_low},
+    common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
+    low::{
+        self as vir_low,
+        expression::visitors::{ExpressionFallibleFolder, ExpressionFolder},
+    },
 };
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
@@ -146,6 +149,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 ));
             }
         }
+        let mut axioms = Vec::new();
         for (range_function_name, predicate) in self.predicates.iter_range_functions() {
             if let Some(snapshot_type) = self.get_snapshot_type_for_predicate(&predicate.name) {
                 if let Some(function_decl) = self.functions.get(range_function_name) {
@@ -156,21 +160,105 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     let function_name = self.heap_range_function_name(&predicate.name);
                     eprintln!("function_name: {}", function_name);
                     let mut parameters = function_decl.parameters.clone();
-                    parameters.push(vir_low::VariableDecl::new(
-                        "version",
-                        self.heap_version_type(),
-                    ));
+                    let heap_version =
+                        vir_low::VariableDecl::new("version", self.heap_version_type());
+                    parameters.push(heap_version.clone());
                     functions.push(vir_low::DomainFunctionDecl::new(
-                        function_name,
+                        function_name.clone(),
                         false,
-                        parameters,
+                        parameters.clone(),
                         function_decl.return_type.clone(),
                     ));
+                    let arguments = parameters
+                        .iter()
+                        .map(|parameter| parameter.clone().into())
+                        .collect();
+                    let function_call = vir_low::Expression::domain_function_call(
+                        "HeapFunctions",
+                        function_name.clone(),
+                        arguments,
+                        function_decl.return_type.clone(),
+                    );
+                    struct Rewriter<'a, 'p, 'v, 'tcx> {
+                        function_call: &'a vir_low::Expression,
+                        heap_encoder: &'a HeapEncoder<'p, 'v, 'tcx>,
+                        heap_version: &'a vir_low::VariableDecl,
+                    }
+                    impl<'a, 'p, 'v, 'tcx> ExpressionFallibleFolder for Rewriter<'a, 'p, 'v, 'tcx> {
+                        type Error = SpannedEncodingError;
+                        fn fallible_fold_local_enum(
+                            &mut self,
+                            local: vir_low::Local,
+                        ) -> SpannedEncodingResult<vir_low::Expression> {
+                            let local = if local.variable.is_result_variable() {
+                                self.function_call.clone()
+                            } else {
+                                vir_low::Expression::Local(local)
+                            };
+                            Ok(local)
+                        }
+                        fn fallible_fold_func_app_enum(
+                            &mut self,
+                            func_app: vir_low::FuncApp,
+                        ) -> SpannedEncodingResult<vir_low::Expression> {
+                            let func_app = self.fallible_fold_func_app(func_app)?;
+                            let function = self.heap_encoder.functions[&func_app.function_name];
+                            match function.kind {
+                                vir_low::FunctionKind::Snap => {
+                                    let predicate_name = self
+                                        .heap_encoder
+                                        .get_predicate_name_for_function(&func_app.function_name)?;
+                                    let mut arguments = func_app.arguments;
+                                    arguments.push(self.heap_version.clone().into());
+                                    let heap_function_name =
+                                        self.heap_encoder.heap_function_name(&predicate_name);
+                                    Ok(vir_low::Expression::domain_function_call(
+                                        "HeapFunctions",
+                                        heap_function_name,
+                                        arguments,
+                                        func_app.return_type,
+                                    ))
+                                }
+                                _ => unreachable!("unexpected kind: {}", function.kind),
+                            }
+                        }
+                        fn fallible_fold_trigger(
+                            &mut self,
+                            mut trigger: vir_low::Trigger,
+                        ) -> SpannedEncodingResult<vir_low::Trigger> {
+                            for term in std::mem::take(&mut trigger.terms) {
+                                let term = self.fallible_fold_expression(term)?;
+                                trigger.terms.push(term);
+                            }
+                            Ok(trigger)
+                        }
+                    }
+                    let mut rewriter = Rewriter {
+                        function_call: &function_call,
+                        heap_encoder: self,
+                        heap_version: &heap_version,
+                    };
+                    let mut conjuncts = Vec::new();
+                    for postcondition in &function_decl.posts {
+                        let postcondition =
+                            rewriter.fallible_fold_expression(postcondition.clone())?;
+                        conjuncts.push(postcondition);
+                    }
+                    let axiom_body = vir_low::Expression::forall(
+                        parameters,
+                        vec![vir_low::Trigger::new(vec![function_call])],
+                        conjuncts.into_iter().conjoin(),
+                    );
+                    let definitional_axiom = vir_low::DomainAxiomDecl::new(
+                        None,
+                        format!("{}$definitional_axiom", function_name),
+                        axiom_body,
+                    );
+                    axioms.push(definitional_axiom);
                 }
             }
         }
-        let heap_domain =
-            vir_low::DomainDecl::new("HeapFunctions", functions, Vec::new(), Vec::new());
+        let heap_domain = vir_low::DomainDecl::new("HeapFunctions", functions, axioms, Vec::new());
         domains.push(heap_domain);
         Ok(())
     }

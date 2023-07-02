@@ -119,7 +119,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             statements.push(vir_low::Statement::assert(expression, position));
         } else {
             match expression {
-                vir_low::Expression::PredicateAccessPredicate(expression) => {
+                vir_low::Expression::PredicateAccessPredicate(mut expression) => {
+                    expression.arguments = self.encode_pure_expressions(
+                        statements,
+                        expression.arguments,
+                        Some(expression_evaluation_state_label.to_string()),
+                        position,
+                        true,
+                    )?;
                     // FIXME: evaluate predicate arguments in expression_evaluation_state_label
                     match self.get_predicate_permission_mask_kind(&expression.name)? {
                         PredicatePermissionMaskKind::AliasedWholeBool
