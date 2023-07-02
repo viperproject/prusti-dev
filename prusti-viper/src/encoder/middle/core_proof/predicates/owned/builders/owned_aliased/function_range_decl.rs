@@ -2,7 +2,7 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
         builtin_methods::CallContext,
-        lowerer::Lowerer,
+        lowerer::{FunctionsLowererInterface, Lowerer},
         permissions::PermissionsInterface,
         predicates::{
             owned::builders::common::function_decl::FunctionDeclBuilder, PredicatesOwnedInterface,
@@ -61,12 +61,12 @@ impl<'l, 'p, 'v, 'tcx> OwnedAliasedRangeSnapFunctionBuilder<'l, 'p, 'v, 'tcx> {
 
     pub(in super::super::super) fn build(mut self) -> SpannedEncodingResult<vir_low::FunctionDecl> {
         let return_type = self.inner.range_result_type()?;
+        let function_name = self
+            .inner
+            .lowerer
+            .construct_function_name(self.inner.function_name, self.inner.ty)?;
         let function = vir_low::FunctionDecl {
-            name: format!(
-                "{}${}",
-                self.inner.function_name,
-                self.inner.ty.get_identifier()
-            ),
+            name: function_name,
             kind: vir_low::FunctionKind::SnapRange,
             parameters: self.inner.parameters,
             body: None,

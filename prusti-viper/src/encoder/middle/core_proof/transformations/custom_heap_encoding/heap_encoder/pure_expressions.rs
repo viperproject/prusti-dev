@@ -42,10 +42,9 @@ struct Purifier<'e, 'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'e, 'p, 'v: 'p, 'tcx: 'v> Purifier<'e, 'p, 'v, 'tcx> {
-    fn snap_function_call(
+    fn current_heap_version(
         &mut self,
         predicate_name: &str,
-        mut arguments: Vec<vir_low::Expression>,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let heap_version = if let Some(expression_evaluation_state_label) =
             &self.expression_evaluation_state_label
@@ -56,6 +55,37 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> Purifier<'e, 'p, 'v, 'tcx> {
             self.heap_encoder
                 .get_current_heap_version_for(predicate_name)?
         };
+        Ok(heap_version)
+    }
+
+    fn snap_function_range_call(
+        &mut self,
+        function_name: &str,
+        predicate_name: &str,
+        mut arguments: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let heap_version = self.current_heap_version(predicate_name)?;
+        arguments.push(heap_version);
+        // FIXME: Generate the definitional axiom.
+        let heap_function_name = self.heap_encoder.heap_range_function_name(predicate_name);
+        let Some(function_decl) = self.heap_encoder.functions.get(function_name) else {
+            unreachable!();
+        };
+        let return_type = function_decl.return_type.clone();
+        Ok(vir_low::Expression::domain_function_call(
+            "HeapFunctions",
+            heap_function_name,
+            arguments,
+            return_type,
+        ))
+    }
+
+    fn snap_function_call(
+        &mut self,
+        predicate_name: &str,
+        mut arguments: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let heap_version = self.current_heap_version(predicate_name)?;
         arguments.push(heap_version);
         let heap_function_name = self.heap_encoder.heap_function_name(predicate_name);
         let return_type = self
@@ -106,7 +136,12 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
                 self.snap_function_call(MEMORY_BLOCK_PREDICATE_NAME, arguments)
             }
             vir_low::FunctionKind::CallerFor => todo!(),
-            vir_low::FunctionKind::SnapRange => todo!(),
+            vir_low::FunctionKind::SnapRange => {
+                let predicate_name = self
+                    .heap_encoder
+                    .get_predicate_name_for_function(&func_app.function_name)?;
+                self.snap_function_range_call(&func_app.function_name, &predicate_name, arguments)
+            }
             vir_low::FunctionKind::Snap => {
                 let predicate_name = self
                     .heap_encoder

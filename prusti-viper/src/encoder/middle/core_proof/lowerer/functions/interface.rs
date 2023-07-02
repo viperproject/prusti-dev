@@ -14,7 +14,10 @@ use crate::encoder::{
 use prusti_common::config;
 use std::collections::BTreeMap;
 use vir_crate::{
-    common::expression::{ExpressionIterator, QuantifierHelpers},
+    common::{
+        expression::{ExpressionIterator, QuantifierHelpers},
+        identifier::WithIdentifier,
+    },
     low::{self as vir_low},
     middle as vir_mid,
 };
@@ -179,6 +182,11 @@ pub(in super::super::super) trait FunctionsLowererInterface {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::expression::DomainFuncApp>;
     fn declare_function(&mut self, function: vir_low::FunctionDecl) -> SpannedEncodingResult<()>;
+    fn construct_function_name(
+        &mut self,
+        function_name_prefix: &str,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<String>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> FunctionsLowererInterface for Lowerer<'p, 'v, 'tcx> {
@@ -238,5 +246,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> FunctionsLowererInterface for Lowerer<'p, 'v, 'tcx> {
             .functions
             .insert(function.name.clone(), function);
         Ok(())
+    }
+    fn construct_function_name(
+        &mut self,
+        function_name_prefix: &str,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<String> {
+        Ok(format!("{}${}", function_name_prefix, ty.get_identifier()))
     }
 }

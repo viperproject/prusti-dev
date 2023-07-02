@@ -48,6 +48,7 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
                 // is already pure.
                 final_snapshot_function: _,
                 snapshot_type,
+                snapshot_range_function: _,
             },
         ) in predicate_info
         {

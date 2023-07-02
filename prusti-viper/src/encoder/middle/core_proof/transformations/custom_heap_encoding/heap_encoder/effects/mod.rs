@@ -2,7 +2,8 @@ use super::{
     permission_mask::{
         PermissionMaskKind, PermissionMaskKindAliasedBool, PermissionMaskKindAliasedDuplicableBool,
         PermissionMaskKindAliasedFractionalBoundedPerm, PermissionMaskOperations,
-        PredicatePermissionMaskKind, TPermissionMaskOperations,
+        PredicatePermissionMaskKind, QuantifiedPermissionMaskOperations, TPermissionMaskOperations,
+        TQuantifiedPermissionMaskOperations,
     },
     HeapEncoder,
 };
@@ -228,14 +229,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         match self.get_predicate_permission_mask_kind(&predicate.name)? {
                             PredicatePermissionMaskKind::AliasedWholeBool
                             | PredicatePermissionMaskKind::AliasedFractionalBool => {
-                                let operations =
-                                    PermissionMaskOperations::<PermissionMaskKindAliasedBool>::new(
-                                        self,
-                                        statements,
-                                        &predicate,
-                                        Some(expression_evaluation_state_label.to_string()),
-                                        position,
-                                    )?;
+                                let operations = QuantifiedPermissionMaskOperations::<
+                                    PermissionMaskKindAliasedBool,
+                                >::new(
+                                    self,
+                                    statements,
+                                    &predicate,
+                                    Some(expression_evaluation_state_label.to_string()),
+                                    position,
+                                )?;
                                 self.encode_function_precondition_assert_rec_quantified_predicate(
                                     statements,
                                     expression.variables,
@@ -247,7 +249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 )?
                             }
                             PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => {
-                                let operations = PermissionMaskOperations::<
+                                let operations = QuantifiedPermissionMaskOperations::<
                                     PermissionMaskKindAliasedFractionalBoundedPerm,
                                 >::new(
                                     self,
@@ -311,7 +313,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     // Note: This function does not check that permissions are disjoint, only
     // that we have enough. This is fine, because function preconditions only
     // need to be checked that we have some permission amount.
-    fn encode_function_precondition_assert_rec_quantified_predicate<Kind: PermissionMaskKind>(
+    fn encode_function_precondition_assert_rec_quantified_predicate<'a, Kind: PermissionMaskKind>(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         variables: Vec<vir_low::VariableDecl>,
@@ -319,18 +321,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
         triggers: Vec<vir_low::Trigger>,
         position: vir_low::Position,
-        operations: PermissionMaskOperations<Kind>,
-        //TODO: Make this to QuantifiedPermissionMaskOperations.
+        operations: QuantifiedPermissionMaskOperations<'a, Kind>,
     ) -> SpannedEncodingResult<()>
     where
-        PermissionMaskOperations<Kind>: TPermissionMaskOperations,
+        QuantifiedPermissionMaskOperations<'a, Kind>: TQuantifiedPermissionMaskOperations,
     {
         // FIXME: Code duplication with encode_expression_inhale_quantified_predicate
 
         // FIXME: See whether I can skolemize out the quantifier into a single
         // assert statement.
         statements.push(vir_low::Statement::comment(format!(
-            "assert-function-precondition-predicate {guard} ==> {predicate}"
+            "assert-function-precondition-quantified-predicate {guard} ==> {predicate}"
         )));
         // Generate inverse functions for the variables.
         // ```
@@ -346,6 +347,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             .map(|(index, argument)| {
                 vir_low::VariableDecl::new(format!("_{index}"), argument.get_type().clone())
             })
+            .collect();
+        let parameters_as_arguments: Vec<_> = parameters
+            .clone()
+            .into_iter()
+            .map(|parameter| parameter.into())
             .collect();
         let mut permission_mask_assert_trigger_terms = Vec::new();
         let mut permission_mask_assert_guard = guard.clone();
@@ -369,11 +375,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     vir_low::Expression::domain_function_call(
                         self.inverse_function_domain.name.clone(),
                         inverse_function_name.clone(),
-                        parameters
-                            .clone()
-                            .into_iter()
-                            .map(|parameter| parameter.into())
-                            .collect(),
+                        parameters_as_arguments.clone(),
                         variable.ty.clone(),
                     );
                 permission_mask_assert_guard = permission_mask_assert_guard.replace_place(
@@ -401,20 +403,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 ));
             }
         }
-        let axiom = vir_low::DomainAxiomDecl::new(
-            None,
-            format!(
-                "inverse_function_definitional_axiom${}",
-                self.inverse_function_domain.axioms.len()
-            ),
-            vir_low::Expression::forall(
-                variables.clone(),
-                triggers.clone(),
-                vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
-            ),
+        let axiom_body = vir_low::Expression::forall(
+            variables.clone(),
+            triggers.clone(),
+            vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
         );
-        eprintln!("axiom: {axiom}");
-        self.inverse_function_domain.axioms.push(axiom);
+        // let axiom = vir_low::DomainAxiomDecl::new(
+        //     None,
+        //     format!(
+        //         "inverse_function_definitional_axiom${}",
+        //         self.inverse_function_domain.axioms.len()
+        //     ),
+        //     axiom_body,
+        // );
+        // eprintln!("axiom: {axiom}");
+        // self.inverse_function_domain.axioms.push(axiom);
+        statements.push(vir_low::Statement::assume(axiom_body, position));
 
         // ```
         // assert forall parameters ::
@@ -428,7 +432,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 vec![vir_low::Trigger::new(permission_mask_assert_trigger_terms)],
                 vir_low::Expression::implies(
                     permission_mask_assert_guard,
-                    operations.perm_old_positive(),
+                    operations.perm_old_positive(self, parameters_as_arguments)?,
                 ),
             ),
             position, // FIXME: use position of expression.permission with proper ErrorCtxt.
@@ -570,6 +574,95 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     }
                     _ => unreachable!("expression: {}", expression),
                 },
+                vir_low::Expression::Quantifier(expression) => {
+                    if let vir_low::Expression::BinaryOp(vir_low::BinaryOp {
+                        op_kind: vir_low::BinaryOpKind::Implies,
+                        left: box guard,
+                        right: box vir_low::Expression::PredicateAccessPredicate(predicate),
+                        ..
+                    }) = *expression.body
+                    {
+                        self.create_quantifier_variables_remap(&expression.variables)?;
+                        let guard = self.encode_pure_expression(
+                            statements,
+                            guard,
+                            Some(expression_evaluation_state_label.to_string()),
+                            position,
+                            false,
+                        )?;
+                        eprintln!("guard: {guard}");
+                        eprintln!("body: {predicate}");
+                        match self.get_predicate_permission_mask_kind(&predicate.name)? {
+                            PredicatePermissionMaskKind::AliasedWholeBool
+                            | PredicatePermissionMaskKind::AliasedFractionalBool => {
+                                let operations = QuantifiedPermissionMaskOperations::<
+                                    PermissionMaskKindAliasedBool,
+                                >::new(
+                                    self,
+                                    statements,
+                                    &predicate,
+                                    Some(expression_evaluation_state_label.to_string()),
+                                    position,
+                                )?;
+                                self.encode_expression_exhale_quantified_predicate(
+                                    statements,
+                                    expression.variables,
+                                    guard,
+                                    &predicate,
+                                    expression.triggers,
+                                    position,
+                                    Some(expression_evaluation_state_label.to_string()),
+                                    operations,
+                                )?
+                            }
+                            PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => {
+                                let operations = QuantifiedPermissionMaskOperations::<
+                                    PermissionMaskKindAliasedFractionalBoundedPerm,
+                                >::new(
+                                    self,
+                                    statements,
+                                    &predicate,
+                                    Some(expression_evaluation_state_label.to_string()),
+                                    position,
+                                )?;
+                                self.encode_expression_exhale_quantified_predicate(
+                                    statements,
+                                    expression.variables,
+                                    guard,
+                                    &predicate,
+                                    expression.triggers,
+                                    position,
+                                    Some(expression_evaluation_state_label.to_string()),
+                                    operations,
+                                )?
+                            }
+                            PredicatePermissionMaskKind::AliasedWholeDuplicable => {
+                                let operations = QuantifiedPermissionMaskOperations::<
+                                    PermissionMaskKindAliasedDuplicableBool,
+                                >::new(
+                                    self,
+                                    statements,
+                                    &predicate,
+                                    Some(expression_evaluation_state_label.to_string()),
+                                    position,
+                                )?;
+                                self.encode_expression_exhale_quantified_predicate(
+                                    statements,
+                                    expression.variables,
+                                    guard,
+                                    &predicate,
+                                    expression.triggers,
+                                    position,
+                                    Some(expression_evaluation_state_label.to_string()),
+                                    operations,
+                                )?
+                            }
+                        }
+                        self.bound_variable_remap_stack.pop();
+                    } else {
+                        unimplemented!("expression: {:?}", expression);
+                    }
+                }
                 vir_low::Expression::Conditional(_) => todo!(),
                 vir_low::Expression::FuncApp(_) => todo!(),
                 vir_low::Expression::DomainFuncApp(_) => todo!(),
@@ -629,6 +722,185 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             operations.new_permission_mask_version(),
             position,
         )?;
+        Ok(())
+    }
+
+    fn encode_expression_exhale_quantified_predicate<'a, Kind: PermissionMaskKind>(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        variables: Vec<vir_low::VariableDecl>,
+        guard: vir_low::Expression,
+        predicate: &vir_low::ast::expression::PredicateAccessPredicate,
+        triggers: Vec<vir_low::Trigger>,
+        position: vir_low::Position,
+        // FIXME: The use of `expression_evaluation_state_label` is probably
+        // wrong in both QP and non-QP inhale. Shouldn't arguments be always
+        // purified?
+        expression_evaluation_state_label: Option<String>,
+        operations: QuantifiedPermissionMaskOperations<'a, Kind>,
+    ) -> SpannedEncodingResult<()>
+    where
+        QuantifiedPermissionMaskOperations<'a, Kind>: TQuantifiedPermissionMaskOperations,
+    {
+        // FIXME: Code duplication with encode_function_precondition_assert_rec_quantified_predicate
+        statements.push(vir_low::Statement::comment(format!(
+            "exhale-qp-predicate {guard} ==> {predicate}"
+        )));
+        eprintln!(
+            "variables: {}",
+            vir_crate::common::display::cjoin(&variables)
+        );
+        eprintln!("guard: {}", guard);
+        eprintln!("predicate: {}", predicate);
+        // Generate inverse functions for the variables.
+        // ```
+        // forall index: Int ::
+        //    0 <= index && index < size ==>
+        //    inverse$qp$P$index(offset(addr, index), Size$Pair()) == index
+        // ```
+        // Also construct the necessary parts for the permission mask update quantifier.
+        let parameters: Vec<_> = predicate
+            .arguments
+            .iter()
+            .enumerate()
+            .map(|(index, argument)| {
+                vir_low::VariableDecl::new(format!("_{index}"), argument.get_type().clone())
+            })
+            .collect();
+        let parameters_as_arguments: Vec<_> = parameters
+            .clone()
+            .into_iter()
+            .map(|parameter| parameter.into())
+            .collect();
+        let mut permission_mask_trigger_terms = Vec::new();
+        let mut permission_mask_guard = guard.clone();
+        let mut equalities: Vec<vir_low::Expression> = Vec::new();
+        for variable in &variables {
+            let inverse_function_name = format!(
+                "inverse$qp${}${}${}",
+                predicate.name,
+                variable.name,
+                self.inverse_function_domain.functions.len()
+            );
+            {
+                // Declare the inverse function.
+                let inverse_function = vir_low::DomainFunctionDecl::new(
+                    inverse_function_name.clone(),
+                    false,
+                    parameters.clone(),
+                    variable.ty.clone(),
+                );
+                let permission_mask_inverse_function_call =
+                    vir_low::Expression::domain_function_call(
+                        self.inverse_function_domain.name.clone(),
+                        inverse_function_name.clone(),
+                        parameters_as_arguments.clone(),
+                        variable.ty.clone(),
+                    );
+                permission_mask_guard = permission_mask_guard.replace_place(
+                    &variable.clone().into(),
+                    &permission_mask_inverse_function_call,
+                );
+                permission_mask_trigger_terms.push(permission_mask_inverse_function_call);
+                self.inverse_function_domain
+                    .functions
+                    .push(inverse_function);
+            }
+            {
+                // Declare the inverse function definitional equality.
+                let inverse_function_call = vir_low::Expression::domain_function_call(
+                    self.inverse_function_domain.name.clone(),
+                    inverse_function_name,
+                    predicate.arguments.clone(),
+                    variable.ty.clone(),
+                );
+                eprintln!("inverse_function: {}", inverse_function_call);
+                equalities.push(vir_low::Expression::equals(
+                    variable.clone().into(),
+                    inverse_function_call,
+                ));
+            }
+        }
+        let axiom_body = vir_low::Expression::forall(
+            variables.clone(),
+            triggers.clone(),
+            vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
+        );
+        // let axiom = vir_low::DomainAxiomDecl::new(
+        //     None,
+        //     format!(
+        //         "inverse_function_definitional_axiom${}",
+        //         self.inverse_function_domain.axioms.len()
+        //     ),
+        //     axiom_body,
+        // );
+        // eprintln!("axiom: {axiom}");
+        // self.inverse_function_domain.axioms.push(axiom);
+        statements.push(vir_low::Statement::assume(axiom_body, position));
+
+        // ```
+        // assert forall parameters ::
+        //     {inverse$qp$P$index(parameters)}
+        //     guard_with_variables_replaced_with_inverse_functions ==>
+        //        perm<P>(parameters, v_old) >= p :
+        // ```
+        let permission_mask_assert_statement = vir_low::Statement::assert(
+            vir_low::Expression::forall(
+                parameters.clone(),
+                vec![vir_low::Trigger::new(permission_mask_trigger_terms.clone())],
+                vir_low::Expression::implies(
+                    permission_mask_guard.clone(),
+                    operations.perm_old_greater_equals(
+                        self,
+                        parameters_as_arguments.clone(),
+                        &predicate.permission,
+                    )?,
+                ),
+            ),
+            position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+        );
+        statements.push(permission_mask_assert_statement);
+
+        let perm_new_value = operations.perm_old_sub(
+            self,
+            parameters_as_arguments.clone(),
+            &predicate.permission,
+        )?;
+        eprintln!("perm_new_value: {}", perm_new_value);
+        let perm_new = operations.perm_new(self, parameters_as_arguments.clone())?;
+        let perm_old = operations.perm_old(self, parameters_as_arguments.clone())?;
+        // Compared to `encode_expression_inhale_predicate`, the setting of the new value and
+        // transfering the old values is merged into a single quantifer:
+        // ```
+        // assume forall parameters ::
+        //     {inverse$qp$P$index(parameters)}
+        //     perm<P>(parameters, v_new) == (
+        //        guard_with_variables_replaced_with_inverse_functions ?
+        //        perm<P>(parameters, v_old) + p :
+        //        perm<P>(parameters, v_old)
+        //     )
+        // ```
+        let permission_mask_update_statement = vir_low::Statement::assume(
+            vir_low::Expression::forall(
+                parameters,
+                vec![vir_low::Trigger::new(permission_mask_trigger_terms)],
+                vir_low::Expression::equals(
+                    perm_new,
+                    vir_low::Expression::conditional(
+                        permission_mask_guard,
+                        perm_new_value,
+                        perm_old,
+                        position,
+                    ),
+                ),
+            ),
+            position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+        );
+        eprintln!(
+            "permission_mask_update_statement: {}",
+            permission_mask_update_statement
+        );
+        statements.push(permission_mask_update_statement);
         Ok(())
     }
 
@@ -770,14 +1042,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         match self.get_predicate_permission_mask_kind(&predicate.name)? {
                             PredicatePermissionMaskKind::AliasedWholeBool
                             | PredicatePermissionMaskKind::AliasedFractionalBool => {
-                                let operations =
-                                    PermissionMaskOperations::<PermissionMaskKindAliasedBool>::new(
-                                        self,
-                                        statements,
-                                        &predicate,
-                                        expression_evaluation_state_label.clone(),
-                                        position,
-                                    )?;
+                                let operations = QuantifiedPermissionMaskOperations::<
+                                    PermissionMaskKindAliasedBool,
+                                >::new(
+                                    self,
+                                    statements,
+                                    &predicate,
+                                    expression_evaluation_state_label.clone(),
+                                    position,
+                                )?;
                                 self.encode_expression_inhale_quantified_predicate(
                                     statements,
                                     expression.variables,
@@ -790,7 +1063,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 )?
                             }
                             PredicatePermissionMaskKind::AliasedFractionalBoundedPerm => {
-                                let operations = PermissionMaskOperations::<
+                                let operations = QuantifiedPermissionMaskOperations::<
                                     PermissionMaskKindAliasedFractionalBoundedPerm,
                                 >::new(
                                     self,
@@ -811,7 +1084,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 )?
                             }
                             PredicatePermissionMaskKind::AliasedWholeDuplicable => {
-                                let operations = PermissionMaskOperations::<
+                                let operations = QuantifiedPermissionMaskOperations::<
                                     PermissionMaskKindAliasedDuplicableBool,
                                 >::new(
                                     self,
@@ -893,7 +1166,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn encode_expression_inhale_quantified_predicate<Kind: PermissionMaskKind>(
+    fn encode_expression_inhale_quantified_predicate<'a, Kind: PermissionMaskKind>(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         variables: Vec<vir_low::VariableDecl>,
@@ -905,11 +1178,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         // wrong in both QP and non-QP inhale. Shouldn't arguments be always
         // purified?
         expression_evaluation_state_label: Option<String>,
-        operations: PermissionMaskOperations<Kind>,
-        //TODO: Make this to QuantifiedPermissionMaskOperations.
+        operations: QuantifiedPermissionMaskOperations<'a, Kind>,
     ) -> SpannedEncodingResult<()>
     where
-        PermissionMaskOperations<Kind>: TPermissionMaskOperations,
+        QuantifiedPermissionMaskOperations<'a, Kind>: TQuantifiedPermissionMaskOperations,
     {
         // FIXME: Code duplication with encode_function_precondition_assert_rec_quantified_predicate
         statements.push(vir_low::Statement::comment(format!(
@@ -926,7 +1198,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 vir_low::Expression::forall(
                     variables.clone(),
                     triggers.clone(),
-                    vir_low::Expression::implies(guard.clone(), operations.perm_old_equal_none()),
+                    vir_low::Expression::implies(
+                        guard.clone(),
+                        operations.perm_old_equal_none(self, predicate.arguments.clone())?,
+                    ),
                 ),
                 position, // FIXME: use position of expression.permission with proper ErrorCtxt.
             ));
@@ -945,6 +1220,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             .map(|(index, argument)| {
                 vir_low::VariableDecl::new(format!("_{index}"), argument.get_type().clone())
             })
+            .collect();
+        let parameters_as_arguments: Vec<_> = parameters
+            .clone()
+            .into_iter()
+            .map(|parameter| parameter.into())
             .collect();
         let mut permission_mask_update_trigger_terms = Vec::new();
         let mut permission_mask_update_guard = guard.clone();
@@ -968,11 +1248,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     vir_low::Expression::domain_function_call(
                         self.inverse_function_domain.name.clone(),
                         inverse_function_name.clone(),
-                        parameters
-                            .clone()
-                            .into_iter()
-                            .map(|parameter| parameter.into())
-                            .collect(),
+                        parameters_as_arguments.clone(),
                         variable.ty.clone(),
                     );
                 permission_mask_update_guard = permission_mask_update_guard.replace_place(
@@ -1000,23 +1276,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 ));
             }
         }
-        let axiom = vir_low::DomainAxiomDecl::new(
-            None,
-            format!(
-                "inverse_function_definitional_axiom${}",
-                self.inverse_function_domain.axioms.len()
-            ),
-            vir_low::Expression::forall(
-                variables.clone(),
-                triggers.clone(),
-                vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
-            ),
+        let axiom_body = vir_low::Expression::forall(
+            variables.clone(),
+            triggers.clone(),
+            vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
         );
-        eprintln!("axiom: {axiom}");
-        self.inverse_function_domain.axioms.push(axiom);
+        // let axiom = vir_low::DomainAxiomDecl::new(
+        //     None,
+        //     format!(
+        //         "inverse_function_definitional_axiom${}",
+        //         self.inverse_function_domain.axioms.len()
+        //     ),
+        //     axiom_body,
+        // );
+        // eprintln!("axiom: {axiom}");
+        // self.inverse_function_domain.axioms.push(axiom);
+        statements.push(vir_low::Statement::assume(axiom_body, position));
 
-        let perm_new_value = operations.perm_old_add(&predicate.permission);
+        let perm_new_value = operations.perm_old_add(
+            self,
+            parameters_as_arguments.clone(),
+            &predicate.permission,
+        )?;
         eprintln!("perm_new_value: {}", perm_new_value);
+        let perm_new = operations.perm_new(self, parameters_as_arguments.clone())?;
+        let perm_old = operations.perm_old(self, parameters_as_arguments.clone())?;
         // Compared to `encode_expression_inhale_predicate`, the setting of the new value and
         // transfering the old values is merged into a single quantifer:
         // ```
@@ -1033,11 +1317,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 parameters,
                 vec![vir_low::Trigger::new(permission_mask_update_trigger_terms)],
                 vir_low::Expression::equals(
-                    operations.perm_new(),
+                    perm_new,
                     vir_low::Expression::conditional(
                         permission_mask_update_guard,
                         perm_new_value,
-                        operations.perm_old(),
+                        perm_old,
                         position,
                     ),
                 ),

@@ -14,6 +14,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         format!("heap${predicate_name}")
     }
 
+    pub(super) fn heap_range_function_name(&self, predicate_name: &str) -> String {
+        format!("heap_range${predicate_name}")
+    }
+
     pub(super) fn heap_call(
         &mut self,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
@@ -140,6 +144,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     parameters,
                     snapshot_type,
                 ));
+            }
+        }
+        for (range_function_name, predicate) in self.predicates.iter_range_functions() {
+            if let Some(snapshot_type) = self.get_snapshot_type_for_predicate(&predicate.name) {
+                if let Some(function_decl) = self.functions.get(range_function_name) {
+                    eprintln!("range_function_name: {}", range_function_name);
+                    eprintln!("predicate: {}", predicate);
+                    eprintln!("snapshot_type: {}", snapshot_type);
+                    eprintln!("function_decl: {}", function_decl);
+                    let function_name = self.heap_range_function_name(&predicate.name);
+                    eprintln!("function_name: {}", function_name);
+                    let mut parameters = function_decl.parameters.clone();
+                    parameters.push(vir_low::VariableDecl::new(
+                        "version",
+                        self.heap_version_type(),
+                    ));
+                    functions.push(vir_low::DomainFunctionDecl::new(
+                        function_name,
+                        false,
+                        parameters,
+                        function_decl.return_type.clone(),
+                    ));
+                }
             }
         }
         let heap_domain =

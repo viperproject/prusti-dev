@@ -23,6 +23,13 @@ pub(in super::super) struct PermissionMaskOperations<Kind: PermissionMaskKind> {
     perm_new: vir_low::Expression,
 }
 
+pub(in super::super) struct QuantifiedPermissionMaskOperations<'a, Kind: PermissionMaskKind> {
+    _kind: std::marker::PhantomData<Kind>,
+    old_permission_mask_version: vir_low::Expression,
+    new_permission_mask_version: vir_low::Expression,
+    predicate: &'a vir_low::ast::expression::PredicateAccessPredicate,
+}
+
 impl<K: PermissionMaskKind> PermissionMaskOperations<K> {
     pub(in super::super) fn new<'p, 'v: 'p, 'tcx: 'v>(
         heap_encoder: &mut HeapEncoder<'p, 'v, 'tcx>,
@@ -62,9 +69,57 @@ impl<K: PermissionMaskKind> PermissionMaskOperations<K> {
         self.perm_new.clone()
     }
 
-    // FIXME: Remove this method. It is not needed for non-QP context.
-    pub(in super::super) fn perm_old(&self) -> vir_low::Expression {
-        self.perm_old.clone()
+    pub(in super::super) fn old_permission_mask_version(&self) -> vir_low::Expression {
+        self.old_permission_mask_version.clone()
+    }
+
+    pub(in super::super) fn new_permission_mask_version(&self) -> vir_low::Expression {
+        self.new_permission_mask_version.clone()
+    }
+}
+
+impl<'a, K: PermissionMaskKind> QuantifiedPermissionMaskOperations<'a, K> {
+    pub(in super::super) fn new<'p, 'v: 'p, 'tcx: 'v>(
+        heap_encoder: &mut HeapEncoder<'p, 'v, 'tcx>,
+        statements: &mut Vec<vir_low::Statement>,
+        predicate: &'a vir_low::ast::expression::PredicateAccessPredicate,
+        expression_evaluation_state_label: Option<String>,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<Self> {
+        let old_permission_mask_version =
+            heap_encoder.get_current_permission_mask_for(&predicate.name)?;
+        let new_permission_mask_version =
+            heap_encoder.get_new_permission_mask_for(&predicate.name, position)?;
+        Ok(Self {
+            _kind: std::marker::PhantomData,
+            old_permission_mask_version,
+            new_permission_mask_version,
+            predicate,
+        })
+    }
+
+    pub(in super::super) fn perm_old(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        heap_encoder.permission_mask_call(
+            self.predicate,
+            predicate_location,
+            self.old_permission_mask_version.clone(),
+        )
+    }
+
+    pub(in super::super) fn perm_new(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        heap_encoder.permission_mask_call(
+            self.predicate,
+            predicate_location,
+            self.new_permission_mask_version.clone(),
+        )
     }
 
     pub(in super::super) fn old_permission_mask_version(&self) -> vir_low::Expression {
@@ -203,6 +258,238 @@ impl TPermissionMaskOperations
 
     fn perm_old_equal_none(&self) -> vir_low::Expression {
         vir_low::Expression::equals(self.perm_old.clone(), false.into())
+    }
+
+    fn can_assume_old_permission_is_none(&self, _: &vir_low::Expression) -> bool {
+        // We may inhale the same permission multiple times, so we cannot assume that the old
+        // permission is none.
+        false
+    }
+}
+
+pub(in super::super) trait TQuantifiedPermissionMaskOperations {
+    fn perm_old_greater_equals(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn perm_old_positive(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn perm_old_sub(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn perm_old_add(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn perm_old_equal_none(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn can_assume_old_permission_is_none(&self, permission_amount: &vir_low::Expression) -> bool;
+}
+
+impl<'a> TQuantifiedPermissionMaskOperations
+    for QuantifiedPermissionMaskOperations<'a, PermissionMaskKindAliasedFractionalBoundedPerm>
+{
+    fn perm_old_greater_equals(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::greater_equals(
+            self.perm_old(heap_encoder, predicate_location)?,
+            permission_amount.clone(),
+        ))
+    }
+
+    fn perm_old_positive(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::greater_equals(
+            self.perm_old(heap_encoder, predicate_location)?,
+            vir_low::Expression::no_permission(),
+        ))
+    }
+
+    fn perm_old_sub(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let result = if permission_amount.is_full_permission() {
+            vir_low::Expression::no_permission()
+        } else {
+            vir_low::Expression::perm_binary_op_no_pos(
+                vir_low::ast::expression::PermBinaryOpKind::Sub,
+                self.perm_old(heap_encoder, predicate_location)?,
+                permission_amount.clone(),
+            )
+        };
+        Ok(result)
+    }
+
+    fn perm_old_add(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let result = if permission_amount.is_full_permission() {
+            vir_low::Expression::full_permission()
+        } else {
+            vir_low::Expression::perm_binary_op_no_pos(
+                vir_low::ast::expression::PermBinaryOpKind::Add,
+                self.perm_old(heap_encoder, predicate_location)?,
+                permission_amount.clone(),
+            )
+        };
+        Ok(result)
+    }
+
+    fn perm_old_equal_none(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::equals(
+            self.perm_old(heap_encoder, predicate_location)?,
+            vir_low::Expression::no_permission(),
+        ))
+    }
+
+    fn can_assume_old_permission_is_none(&self, permission_amount: &vir_low::Expression) -> bool {
+        permission_amount.is_full_permission()
+    }
+}
+
+impl<'a> TQuantifiedPermissionMaskOperations
+    for QuantifiedPermissionMaskOperations<'a, PermissionMaskKindAliasedBool>
+{
+    fn perm_old_greater_equals(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(permission_amount.is_full_permission());
+        self.perm_old(heap_encoder, predicate_location)
+    }
+
+    fn perm_old_positive(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.perm_old(heap_encoder, predicate_location)
+    }
+
+    fn perm_old_sub(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(permission_amount.is_full_permission());
+        Ok(false.into())
+    }
+
+    fn perm_old_add(
+        &self,
+        _: &mut HeapEncoder,
+        _: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(permission_amount.is_full_permission());
+        Ok(true.into())
+    }
+
+    fn perm_old_equal_none(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::equals(
+            self.perm_old(heap_encoder, predicate_location)?,
+            false.into(),
+        ))
+    }
+
+    fn can_assume_old_permission_is_none(&self, _: &vir_low::Expression) -> bool {
+        true
+    }
+}
+
+impl<'a> TQuantifiedPermissionMaskOperations
+    for QuantifiedPermissionMaskOperations<'a, PermissionMaskKindAliasedDuplicableBool>
+{
+    fn perm_old_greater_equals(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(permission_amount.is_full_permission());
+        self.perm_old(heap_encoder, predicate_location)
+    }
+
+    fn perm_old_positive(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.perm_old(heap_encoder, predicate_location)
+    }
+
+    fn perm_old_sub(
+        &self,
+        _: &mut HeapEncoder,
+        _: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(permission_amount.is_full_permission());
+        // The permission is duplicable, so exhale does nothing.
+        Ok(true.into())
+    }
+
+    fn perm_old_add(
+        &self,
+        _: &mut HeapEncoder,
+        _: Vec<vir_low::Expression>,
+        permission_amount: &vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(permission_amount.is_full_permission());
+        Ok(true.into())
+    }
+
+    fn perm_old_equal_none(
+        &self,
+        heap_encoder: &mut HeapEncoder,
+        predicate_location: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::equals(
+            self.perm_old(heap_encoder, predicate_location)?,
+            false.into(),
+        ))
     }
 
     fn can_assume_old_permission_is_none(&self, _: &vir_low::Expression) -> bool {

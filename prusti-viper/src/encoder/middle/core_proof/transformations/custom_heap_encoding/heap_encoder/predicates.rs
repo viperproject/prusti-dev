@@ -10,6 +10,7 @@ use vir_crate::low::{self as vir_low};
 pub(super) struct Predicates<'p> {
     predicate_decls: FxHashMap<String, &'p vir_low::PredicateDecl>,
     snapshot_functions_to_predicates: BTreeMap<String, String>,
+    snapshot_range_functions_to_predicates: BTreeMap<String, String>,
     predicates_to_snapshot_types: BTreeMap<String, vir_low::Type>,
 }
 
@@ -19,17 +20,21 @@ impl<'p> Predicates<'p> {
         predicate_info: BTreeMap<String, OwnedPredicateInfo>,
     ) -> Self {
         let mut snapshot_functions_to_predicates = BTreeMap::new();
+        let mut snapshot_range_functions_to_predicates = BTreeMap::new();
         let mut predicates_to_snapshot_types = BTreeMap::new();
         for (
             predicate_name,
             OwnedPredicateInfo {
                 current_snapshot_function: SnapshotFunctionInfo { function_name, .. },
                 snapshot_type,
+                snapshot_range_function,
                 ..
             },
         ) in predicate_info
         {
             snapshot_functions_to_predicates.insert(function_name, predicate_name.clone());
+            snapshot_range_functions_to_predicates
+                .insert(snapshot_range_function, predicate_name.clone());
             predicates_to_snapshot_types.insert(predicate_name, snapshot_type);
         }
         Self {
@@ -38,12 +43,26 @@ impl<'p> Predicates<'p> {
                 .map(|predicate| (predicate.name.clone(), predicate))
                 .collect(),
             snapshot_functions_to_predicates,
+            snapshot_range_functions_to_predicates,
             predicates_to_snapshot_types,
         }
     }
 
     pub(super) fn iter_decls(&self) -> impl Iterator<Item = &'_ vir_low::PredicateDecl> {
         self.predicate_decls.values().cloned()
+    }
+
+    pub(super) fn iter_range_functions(
+        &self,
+    ) -> impl Iterator<Item = (&'_ str, &'_ vir_low::PredicateDecl)> {
+        self.snapshot_range_functions_to_predicates
+            .iter()
+            .map(|(function_name, predicate_name)| {
+                (
+                    function_name.as_str(),
+                    self.predicate_decls[predicate_name.as_str()],
+                )
+            })
     }
 }
 
@@ -92,7 +111,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let predicate_name = match function.kind {
             vir_low::FunctionKind::MemoryBlockBytes => todo!(),
             vir_low::FunctionKind::CallerFor => todo!(),
-            vir_low::FunctionKind::SnapRange => unreachable!(),
+            vir_low::FunctionKind::SnapRange => self
+                .predicates
+                .snapshot_range_functions_to_predicates
+                .get(function_name)
+                .unwrap_or_else(|| panic!("not found {function_name}"))
+                .clone(),
             vir_low::FunctionKind::Snap => {
                 self.predicates.snapshot_functions_to_predicates[function_name].clone()
             }

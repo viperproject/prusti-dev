@@ -10,7 +10,8 @@ use vir_crate::{
 pub(super) use self::operations::{
     PermissionMaskKind, PermissionMaskKindAliasedBool, PermissionMaskKindAliasedDuplicableBool,
     PermissionMaskKindAliasedFractionalBoundedPerm, PermissionMaskOperations,
-    TPermissionMaskOperations,
+    QuantifiedPermissionMaskOperations, TPermissionMaskOperations,
+    TQuantifiedPermissionMaskOperations,
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
