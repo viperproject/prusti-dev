@@ -77,6 +77,33 @@ impl ExprSimplifier {
                 position: pos,
             })
             .set_default_pos(inner_pos),
+            ast::Expr::UnaryOp(ast::UnaryOp {
+                op_kind: ast::UnaryOpKind::Not,
+                argument:
+                    box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::NeCmp,
+                        box left,
+                        box right,
+                        position: inner_pos,
+                    }),
+                position: pos,
+            }) if !matches!(left.get_type(), ast::Type::Float(_)) => ast::Expr::BinOp(ast::BinOp {
+                op_kind: ast::BinaryOpKind::EqCmp,
+                left: Box::new(left),
+                right: Box::new(right),
+                position: pos,
+            })
+            .set_default_pos(inner_pos),
+            ast::Expr::UnaryOp(ast::UnaryOp {
+                op_kind: ast::UnaryOpKind::Not,
+                argument:
+                    box ast::Expr::UnaryOp(ast::UnaryOp {
+                        op_kind: ast::UnaryOpKind::Not,
+                        box argument,
+                        position: inner_pos,
+                    }),
+                position: pos,
+            }) => argument,
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left:
@@ -194,12 +221,12 @@ impl ExprSimplifier {
                                 op_kind: ast::BinaryOpKind::Implies,
                                 left: box c1,
                                 right: box ex,
-                                position: pos1,
+                                ..
                             }),
                         position: pos0,
                     }),
                 position: pos_quant,
-            }) => Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
+            }) if !ex.is_pure() => Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
                 variables: vars,
                 triggers: trigs,
                 body: Box::new(ast::Expr::BinOp(ast::BinOp {
@@ -208,10 +235,10 @@ impl ExprSimplifier {
                         op_kind: ast::BinaryOpKind::And,
                         left: Box::new(c0),
                         right: Box::new(c1),
-                        position: pos1, // TODO: not great
+                        position: pos0,
                     })),
                     right: Box::new(ex),
-                    position: pos0, // TODO: not great
+                    position: pos0,
                 })),
                 position: pos_quant,
             })),
@@ -230,10 +257,10 @@ impl ExprSimplifier {
                                 right: box part1,
                                 ..
                             }),
-                        ..
+                        position: pos_body,
                     }),
                 position: pos_quant,
-            }) => ast::Expr::BinOp(ast::BinOp {
+            }) if !part0.is_pure() || !part1.is_pure() => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left: Box::new(Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
                     variables: vars.clone(),
@@ -242,7 +269,7 @@ impl ExprSimplifier {
                         op_kind: ast::BinaryOpKind::Implies,
                         left: Box::new(cond.clone()),
                         right: Box::new(part0),
-                        position: pos_quant, // TODO: not great?
+                        position: pos_body,
                     })),
                     position: pos_quant,
                 }))),
@@ -253,11 +280,11 @@ impl ExprSimplifier {
                         op_kind: ast::BinaryOpKind::Implies,
                         left: Box::new(cond),
                         right: Box::new(part1),
-                        position: pos_quant, // TODO: not great?
+                        position: pos_body,
                     })),
-                    position: pos_quant, // TODO: not great?
+                    position: pos_quant,
                 }))),
-                position: pos_quant, // TODO: not great?
+                position: pos_quant,
             }),
             r => r,
         }

@@ -429,6 +429,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) if ver_error.message.contains("There might be insufficient permission to access time_receipts") => {
+                PrustiError::verification("Not enough time receipts at the end of the function.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) if ver_error.message.contains("There might be insufficient permission to access time_credits") => {
+                PrustiError::verification("Not enough time credits at the end of the function.".to_string(), error_span)
+            }
+
             ("exhale.failed:assertion.false" | "exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) => {
                 PrustiError::verification("postcondition might not hold.", error_span)
                     .push_primary_span(opt_cause_span)
@@ -723,12 +730,6 @@ impl<'tcx> ErrorManager<'tcx> {
             // handled by the previous cases. For this we need to be able to debug the positions that are given to Viper.
             ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPrecondition) if ver_error.message.contains("There might be insufficient permission to access time_credits") => {
                 PrustiError::verification("Not enough time credits to call function.".to_string(), error_span)
-            }
-            ("assert.failed:insufficient.permission", ErrorCtxt::AssertMethodPostcondition) if ver_error.message.contains("There might be insufficient permission to access time_receipts") => {
-                PrustiError::verification("Not enough time receipts at the end of the function.".to_string(), error_span)
-            }
-            ("assert.failed:insufficient.permission", ErrorCtxt::AssertMethodPostcondition) if ver_error.message.contains("There might be insufficient permission to access time_credits") => {
-                PrustiError::verification("Not enough time credits at the end of the function.".to_string(), error_span)
             }
             ("exhale.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) if ver_error.message.contains("There might be insufficient permission to access time_credits") => {
                 PrustiError::verification("Not enough time credits for invariant in the first loop iteration.".to_string(), error_span)

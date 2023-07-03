@@ -22,3 +22,4 @@ mod encoding_error_kind;
 pub mod with_span;
 mod position_manager;
 mod macros;
+pub mod misplaced_impure_checker;
