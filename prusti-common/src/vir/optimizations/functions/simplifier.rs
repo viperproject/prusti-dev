@@ -100,9 +100,9 @@ impl ExprSimplifier {
                     box ast::Expr::UnaryOp(ast::UnaryOp {
                         op_kind: ast::UnaryOpKind::Not,
                         box argument,
-                        position: inner_pos,
+                        ..
                     }),
-                position: pos,
+                ..
             }) => argument,
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,

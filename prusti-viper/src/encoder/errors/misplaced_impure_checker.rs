@@ -18,7 +18,7 @@ struct MisplacedImpureError {
 }
 
 impl MisplacedImpureError {
-    fn to_prusti_error(self, position_manager: &PositionManager) -> PrustiError {
+    fn into_prusti_error(self, position_manager: &PositionManager) -> PrustiError {
         // TODO: remove dangerous unwrap
         let error = PrustiError::incorrect(self.message, position_manager.source_span.get(&self.impurity_pos.id()).unwrap().clone());
         error.push_primary_span(position_manager.source_span.get(&self.operator_pos.id()))
@@ -61,7 +61,7 @@ impl MisplacedImpureChecker {
         for program in programs {
             checker.check_program(program);
         }
-        checker.errors.into_iter().map(|e| e.to_prusti_error(position_manager)).collect()
+        checker.errors.into_iter().map(|e| e.into_prusti_error(position_manager)).collect()
     }
 
     fn walk_and_check_for_impurities(&mut self, expr: &Expr, outer_pos: &Position, message: &str) {

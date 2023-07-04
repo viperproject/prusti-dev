@@ -283,7 +283,7 @@ impl<'a> AstFactory<'a> {
     }
 
     // Backend Bitvectors
-    pub fn backend_bv8_lit(&self, bits: u8) -> Expr<'a> {
+    pub fn backend_bv8_lit_with_pos(&self, bits: u8, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 8).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
@@ -292,22 +292,46 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string("bv8_from_int"),
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], pos)
+    }
+
+    pub fn backend_bv8_lit(&self, bits: u8) -> Expr<'a> {
+        self.backend_bv8_lit_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv8_lit_str_with_pos(&self, bits: &dyn ToString, pos: Position) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 8).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("bv8_from_int"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], pos)
     }
 
     pub fn backend_bv8_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        self.backend_bv8_lit_str_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv16_lit_with_pos(&self, bits: u16, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
-        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 8).unwrap();
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("bv8_from_int"),
+            self.jni.new_string("bv16_from_int"),
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], pos)
     }
 
     pub fn backend_bv16_lit(&self, bits: u16) -> Expr<'a> {
+        self.backend_bv16_lit_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv16_lit_str_with_pos(&self, bits: &dyn ToString, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
@@ -316,22 +340,30 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string("bv16_from_int"),
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], pos)
     }
 
     pub fn backend_bv16_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        self.backend_bv16_lit_str_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv32_lit_with_pos(&self, bits: u32, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
-        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("bv16_from_int"),
+            self.jni.new_string("bv32_from_int"),
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], pos)
     }
 
     pub fn backend_bv32_lit(&self, bits: u32) -> Expr<'a> {
+        self.backend_bv32_lit_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv32_lit_str_with_pos(&self, bits: &dyn ToString, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
@@ -340,22 +372,14 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string("bv32_from_int"),
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], pos)
     }
 
     pub fn backend_bv32_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
-        let bv_factory_ = ast::utility::BVFactory::with(self.env);
-        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
-        let from_int = ast::utility::BVFactory::call_from__int(
-            &bv_factory_,
-            bv_factory,
-            self.jni.new_string("bv32_from_int"),
-        )
-        .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+        self.backend_bv32_lit_str_with_pos(bits, self.no_position())
     }
 
-    pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {
+    pub fn backend_bv64_lit_with_pos(&self, bits: u64, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
@@ -364,22 +388,46 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string("bv64_from_int"),
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], pos)
     }
 
-    pub fn backend_bv64_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+    pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {
+        self.backend_bv64_lit_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv64_lit_str_with_pos(&self, bits: &dyn ToString, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("bv64_to_int"),
+            self.jni.new_string("bv64_to_int"), // FIXME why is this 'to' and not 'from' ?!?
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], pos)
+    }
+
+    pub fn backend_bv64_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
+        self.backend_bv64_lit_str_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv128_lit_with_pos(&self, bits: u128, pos: Position) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(
+            &bv_factory_,
+            bv_factory,
+            self.jni.new_string("bv128_from_int"),
+        )
+        .unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], pos)
     }
 
     pub fn backend_bv128_lit(&self, bits: u128) -> Expr<'a> {
+        self.backend_bv128_lit_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_bv128_lit_str_with_pos(&self, bits: &dyn ToString, pos: Position) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(
@@ -388,19 +436,11 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string("bv128_from_int"),
         )
         .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], pos)
     }
 
     pub fn backend_bv128_lit_str(&self, bits: &dyn ToString) -> Expr<'a> {
-        let bv_factory_ = ast::utility::BVFactory::with(self.env);
-        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
-        let from_int = ast::utility::BVFactory::call_from__int(
-            &bv_factory_,
-            bv_factory,
-            self.jni.new_string("bv128_from_int"),
-        )
-        .unwrap();
-        self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
+        self.backend_bv128_lit_str_with_pos(bits, self.no_position())
     }
 
     pub fn bv_factory(&self, bv_size: BvSize) -> (ast::utility::BVFactory<'a>, JObject<'a>) {
@@ -433,7 +473,14 @@ impl<'a> AstFactory<'a> {
         self.backend_func_app(to_int, &[expr], self.no_position())
     }
 
-    pub fn bv_binop(&self, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -> Expr<'a> {
+    pub fn bv_binop_with_pos(
+        &self,
+        op_kind: BinOpBv,
+        bv_size: BvSize,
+        left: Expr,
+        right: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         let (factory_, factory) = self.bv_factory(bv_size);
         let size = bv_size.to_i32();
         let op = match op_kind {
@@ -489,10 +536,20 @@ impl<'a> AstFactory<'a> {
             ),
         }
         .unwrap();
-        self.backend_func_app(op, &[left, right], self.no_position())
+        self.backend_func_app(op, &[left, right], pos)
     }
 
-    pub fn bv_unnop(&self, op_kind: UnOpBv, bv_size: BvSize, arg: Expr) -> Expr<'a> {
+    pub fn bv_binop(&self, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -> Expr<'a> {
+        self.bv_binop_with_pos(op_kind, bv_size, left, right, self.no_position())
+    }
+
+    pub fn bv_unnop_with_pos(
+        &self,
+        op_kind: UnOpBv,
+        bv_size: BvSize,
+        arg: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         let (factory_, factory) = self.bv_factory(bv_size);
         let op = match op_kind {
             UnOpBv::Not => {
@@ -504,16 +561,21 @@ impl<'a> AstFactory<'a> {
             _ => unreachable!("unimplemented unop for bitvectors"),
         }
         .unwrap();
-        self.backend_func_app(op, &[arg], self.no_position())
+        self.backend_func_app(op, &[arg], pos)
+    }
+
+    pub fn bv_unnop(&self, op_kind: UnOpBv, bv_size: BvSize, arg: Expr) -> Expr<'a> {
+        self.bv_unnop_with_pos(op_kind, bv_size, arg, self.no_position())
     }
 
     // Backend Floating-Points
-    pub fn float_binop(
+    pub fn float_binop_with_pos(
         &self,
         op_kind: BinOpFloat,
         f_size: FloatSizeViper,
         left: Expr,
         right: Expr,
+        pos: Position,
     ) -> Expr<'a> {
         let rm = ast::utility::RoundingMode::with(self.env)
             .call_RNE()
@@ -588,10 +650,26 @@ impl<'a> AstFactory<'a> {
             ),
         }
         .unwrap();
-        self.backend_func_app(op, &[left, right], self.no_position())
+        self.backend_func_app(op, &[left, right], pos)
     }
 
-    pub fn float_unop(&self, op_kind: UnOpFloat, f_size: FloatSizeViper, arg: Expr) -> Expr<'a> {
+    pub fn float_binop(
+        &self,
+        op_kind: BinOpFloat,
+        f_size: FloatSizeViper,
+        left: Expr,
+        right: Expr,
+    ) -> Expr<'a> {
+        self.float_binop_with_pos(op_kind, f_size, left, right, self.no_position())
+    }
+
+    pub fn float_unop_with_pos(
+        &self,
+        op_kind: UnOpFloat,
+        f_size: FloatSizeViper,
+        arg: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         let rm = ast::utility::RoundingMode::with(self.env)
             .call_RNE()
             .unwrap(); // Rounding mode
@@ -648,11 +726,15 @@ impl<'a> AstFactory<'a> {
         }
         .unwrap();
 
-        self.backend_func_app(op, &[arg], self.no_position())
+        self.backend_func_app(op, &[arg], pos)
     }
 
-    pub fn backend_f32_lit(&self, bits: u32) -> Expr<'a> {
-        let bv = self.backend_bv32_lit(bits);
+    pub fn float_unop(&self, op_kind: UnOpFloat, f_size: FloatSizeViper, arg: Expr) -> Expr<'a> {
+        self.float_unop_with_pos(op_kind, f_size, arg, self.no_position())
+    }
+
+    pub fn backend_f32_lit_with_pos(&self, bits: u32, pos: Position) -> Expr<'a> {
+        let bv = self.backend_bv32_lit_with_pos(bits, pos);
         let rm = ast::utility::RoundingMode::with(self.env)
             .call_RNE()
             .unwrap(); // Rounding mode
@@ -664,11 +746,15 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string("f32_from_bv"),
         )
         .unwrap();
-        self.backend_func_app(from_bv, &[bv], self.no_position())
+        self.backend_func_app(from_bv, &[bv], pos)
     }
 
-    pub fn backend_f64_lit(&self, bits: u64) -> Expr<'a> {
-        let bv = self.backend_bv64_lit(bits);
+    pub fn backend_f32_lit(&self, bits: u32) -> Expr<'a> {
+        self.backend_f32_lit_with_pos(bits, self.no_position())
+    }
+
+    pub fn backend_f64_lit_with_pos(&self, bits: u64, pos: Position) -> Expr<'a> {
+        let bv = self.backend_bv64_lit_with_pos(bits, pos);
         let rm = ast::utility::RoundingMode::with(self.env)
             .call_RNE()
             .unwrap(); // Rounding mode
@@ -680,7 +766,11 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string("f64_from_bv"),
         )
         .unwrap();
-        self.backend_func_app(from_bv, &[bv], self.no_position())
+        self.backend_func_app(from_bv, &[bv], pos)
+    }
+
+    pub fn backend_f64_lit(&self, bits: u64) -> Expr<'a> {
+        self.backend_f64_lit_with_pos(bits, self.no_position())
     }
 
     pub fn or_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
