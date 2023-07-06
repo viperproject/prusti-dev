@@ -205,9 +205,7 @@ fn build_reachable_basic_blocks(mir: &Body, real_edges: &RealEdges) -> FxHashSet
     let mut visited: FxHashSet<BasicBlock> = FxHashSet::default();
     let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks.indices().next().unwrap()];
 
-    while !to_visit.is_empty() {
-        let source = to_visit.pop().unwrap();
-
+    while let Some(source) = to_visit.pop() {
         if visited.contains(&source) {
             continue;
         }
@@ -391,9 +389,7 @@ fn build_nonspec_basic_blocks(
 
     let mut bb_graph: FxHashMap<BasicBlock, BasicBlockNode> = FxHashMap::default();
 
-    while !to_visit.is_empty() {
-        let source = to_visit.pop().unwrap();
-
+    while let Some(source) = to_visit.pop() {
         if visited.contains(&source) {
             continue;
         }

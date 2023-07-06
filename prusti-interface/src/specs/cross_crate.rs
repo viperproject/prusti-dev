@@ -82,7 +82,7 @@ impl CrossCrateSpecs {
     fn write_into_file(
         env: &Environment,
         def_spec: &DefSpecificationMap,
-        path: &path::PathBuf,
+        path: &path::Path,
     ) -> io::Result<usize> {
         // Probably not needed; dir should already exist?
         fs::create_dir_all(path.parent().unwrap())?;
