@@ -15,7 +15,7 @@ use log::debug;
 use prusti_interface::environment::mir_body::patch::MirPatch;
 use prusti_rustc_interface::{
     abi::{FieldIdx, VariantIdx, FIRST_VARIANT},
-    dataflow::elaborate_drops::{DropFlagMode, DropFlagState, DropStyle, Unwind},
+    dataflow::elaborate_drops::{DropFlagMode, DropStyle, Unwind},
     hir,
     hir::lang_items::LangItem,
     index::Idx,

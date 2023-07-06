@@ -35,6 +35,9 @@ pub unsafe fn store_mir_body<'tcx>(
     });
 }
 
+/// This function should only be called once per `def_id` after the borrow checker has run.
+/// Otherwise, it will panic.
+///
 /// # Safety
 ///
 /// See the module level comment.

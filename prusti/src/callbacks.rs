@@ -2,7 +2,7 @@ use crate::verifier::verify;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
-    specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
+    specs::{self, cross_crate::CrossCrateSpecs},
 };
 use prusti_rustc_interface::{
     borrowck::consumers,
@@ -12,7 +12,7 @@ use prusti_rustc_interface::{
     middle::{
         mir::BorrowCheckResult,
         query::{ExternProviders, Providers},
-        ty::{self, TyCtxt},
+        ty::TyCtxt,
     },
     session::Session,
 };
@@ -26,24 +26,21 @@ pub struct PrustiCompilerCalls;
 #[allow(clippy::needless_lifetimes)]
 #[tracing::instrument(level = "debug", skip(tcx))]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResult<'tcx> {
-    // *Don't take MIR bodies with borrowck info if we won't need them*
-    if !is_spec_fn(tcx, def_id.to_def_id()) {
-        let def_kind = tcx.def_kind(def_id.to_def_id());
-        let is_anon_const = matches!(def_kind, DefKind::AnonConst);
-        // Anon Const bodies have already been stolen and so will result in a crash
-        // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
-        // (anon) const bodies at all, and if so, how to get them?
-        if !is_anon_const {
-            let body_with_facts = consumers::get_body_with_borrowck_facts(
-                tcx,
-                def_id,
-                consumers::ConsumerOptions::PoloniusOutputFacts,
-            );
-            // SAFETY: This is safe because we are feeding in the same `tcx` that is
-            // going to be used as a witness when pulling out the data.
-            unsafe {
-                mir_storage::store_mir_body(tcx, def_id, body_with_facts);
-            }
+    let def_kind = tcx.def_kind(def_id.to_def_id());
+    let is_anon_const = matches!(def_kind, DefKind::AnonConst);
+    // Anon Const bodies have already been stolen and so will result in a crash
+    // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
+    // (anon) const bodies at all, and if so, how to get them?
+    if !is_anon_const {
+        let body_with_facts = consumers::get_body_with_borrowck_facts(
+            tcx,
+            def_id,
+            consumers::ConsumerOptions::PoloniusOutputFacts,
+        );
+        // SAFETY: This is safe because we are feeding in the same `tcx` that is
+        // going to be used as a witness when pulling out the data.
+        unsafe {
+            mir_storage::store_mir_body(tcx, def_id, body_with_facts);
         }
     }
     let mut providers = Providers::default();
@@ -54,15 +51,12 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResu
 
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn config(&mut self, config: &mut Config) {
-        // *Don't take MIR bodies with borrowck info if we won't need them*
-        if !config::no_verify() {
-            assert!(config.override_queries.is_none());
-            config.override_queries = Some(
-                |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
-                    providers.mir_borrowck = mir_borrowck;
-                },
-            );
-        }
+        assert!(config.override_queries.is_none());
+        config.override_queries = Some(
+            |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
+                providers.mir_borrowck = mir_borrowck;
+            },
+        );
     }
     #[tracing::instrument(level = "debug", skip_all)]
     fn after_expansion<'tcx>(
