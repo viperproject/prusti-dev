@@ -417,7 +417,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_help("This might be a bug in the Rust compiler.")
             }
 
-            ("assert.failed:assertion.false" | "exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
+            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
                 PrustiError::verification("precondition might not hold.", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
@@ -436,40 +436,55 @@ impl<'tcx> ErrorManager<'tcx> {
                 PrustiError::verification("Not enough time credits at the end of the function.".to_string(), error_span)
             }
 
-            ("exhale.failed:assertion.false" | "exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) => {
+            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
                 PrustiError::verification("postcondition might not hold.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) => {
+                PrustiError::verification("function might not produce resources asserted in the postcondition.", error_span)
+                    .push_primary_span(opt_cause_span)
+            }
+
+            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
                 PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
-            ("fold.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+                PrustiError::verification("there might be not enough resources for the loop invariant to hold in the first loop iteration.", error_span)
+                    .push_primary_span(opt_cause_span)
+            }
+
+            ("fold.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry | ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
                 PrustiError::verification(
                     "implicit type invariant of a variable might not hold on loop entry.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
-            ("exhale.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => {
+            ("assert.failed:assertion.false" | "assert.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) => {
                 PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "loop invariant might not hold after a loop iteration that preserves the loop condition.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
-            ("exhale.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "loop invariant might not hold after a loop iteration that preserves the loop condition.",
                     error_span
                 ).push_primary_span(opt_cause_span)
+            }
+
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+                PrustiError::verification("there might be not enough resources for the loop invariant to hold after a loop iteration that preserves the loop condition.", error_span)
+                    .push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::DropCall) => {

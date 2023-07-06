@@ -166,6 +166,7 @@ pub struct ObligationAccess {
     pub name: String,
     pub args: Vec<Expr>,
     pub formal_arguments: Vec<LocalVar>,
+    pub pos: Position,
 }
 
 impl fmt::Display for ObligationAccess {

@@ -971,6 +971,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
             name,
             args,
             formal_arguments,
+            ..
         }: &vir::ObligationAccess,
     ) -> SpannedEncodingResult<()> {
         let identifier: vir::FunctionIdentifier =

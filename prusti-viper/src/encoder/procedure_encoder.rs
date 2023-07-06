@@ -5509,16 +5509,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         stmts.push(vir::Stmt::Exhale(vir::Exhale {
             expr: func_spec.into_iter().conjoin(),
-            position: assert_pos,
+            position: exhale_pos,
         }));
         stmts.push(vir::Stmt::Assert( vir::Assert {
             expr: invs_spec.into_iter().conjoin(),
-            position: exhale_pos,
+            position: assert_pos,
         }));
         let equalities_expr = equalities.into_iter().conjoin();
         stmts.push(vir::Stmt::Assert( vir::Assert {
             expr: equalities_expr,
-            position: exhale_pos,
+            position: assert_pos,
         }));
         let permission_expr = permissions.into_iter().conjoin();
         stmts.push(vir::Stmt::Exhale( vir::Exhale {

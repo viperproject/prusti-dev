@@ -983,7 +983,11 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a BackendFuncDecl {
 
 impl<'a, 'v> ToViper<'v, viper::Expr<'v>> for &'a ObligationAccess {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        ast.predicate_access(&self.args.to_viper(context, ast)[..], &self.name)
+        ast.predicate_access_with_pos(
+            &self.args.to_viper(context, ast)[..],
+            &self.name,
+            self.pos.to_viper(context, ast),
+        )
     }
 }
 

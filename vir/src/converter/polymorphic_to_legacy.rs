@@ -157,6 +157,7 @@ impl From<polymorphic::ObligationAccess> for legacy::ObligationAccess {
                 .into_iter()
                 .map(|formal_argument| formal_argument.into())
                 .collect(),
+            pos: access.position.into(),
         }
     }
 }

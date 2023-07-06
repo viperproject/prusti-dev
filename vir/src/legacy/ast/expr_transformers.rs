@@ -167,6 +167,7 @@ pub trait ExprFolder: Sized {
     fn fold_obligation_access(&mut self, access: ObligationAccess) -> ObligationAccess {
         ObligationAccess {
             args: access.args.into_iter().map(|e| self.fold(e)).collect(),
+            pos: self.fold_position(access.pos),
             ..access
         }
     }
@@ -505,6 +506,7 @@ pub trait ExprWalker: Sized {
         for arg in &access.args {
             self.walk(arg);
         }
+        self.walk_position(&access.pos);
     }
     fn walk_obligation_access_predicate(
         &mut self,

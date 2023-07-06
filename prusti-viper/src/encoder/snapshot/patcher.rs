@@ -69,6 +69,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
             name,
             mut args,
             formal_arguments,
+            position,
         }: vir::ObligationAccess,
     ) -> Result<vir::ObligationAccess, Self::Error> {
         args = args
@@ -88,6 +89,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
             name,
             args,
             formal_arguments,
+            position,
         })
     }
 

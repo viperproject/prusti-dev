@@ -373,6 +373,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 name: obligation_name,
                 args: concrete_args,
                 formal_arguments: args.clone(),
+                position: vir::Position::default(),
             };
             let check = vir::ForPerm {
                 variables: check_args,
@@ -409,6 +410,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         name,
                         args,
                         formal_arguments,
+                        position: access_position,
                     },
                     body,
                     position,
@@ -428,6 +430,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         }
                     }).collect(),
                     formal_arguments,
+                    position: access_position,
                 },
                 body,
                 position,

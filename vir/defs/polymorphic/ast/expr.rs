@@ -325,6 +325,7 @@ impl Expr {
                 name,
                 args,
                 formal_arguments,
+                position: pos,
             },
             amount: Box::new(amount),
             position: pos,
@@ -2183,6 +2184,7 @@ pub struct ObligationAccess {
     pub name: String,
     pub args: Vec<Expr>,
     pub formal_arguments: Vec<LocalVar>,
+    pub position: Position,
 }
 
 impl ObligationAccess {
