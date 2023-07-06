@@ -108,6 +108,15 @@ impl<'a, EC: EncoderContext> ExpressionFallibleFolder for Purifier<'a, EC> {
         let func_app = self.fallible_fold_func_app(func_app)?;
         let function = self.program_context.get_function(&func_app.function_name);
         assert_eq!(function.parameters.len(), func_app.arguments.len());
+        if func_app.context == vir_low::FuncAppContext::QuantifiedPermission {
+            debug_assert!(matches!(
+                function.kind,
+                vir_low::FunctionKind::MemoryBlockBytes | vir_low::FunctionKind::Snap
+            ));
+            // This function application is dependent on the quantified resource
+            // and should not be purified out.
+            return Ok(vir_low::Expression::FuncApp(func_app));
+        }
         match function.kind {
             vir_low::FunctionKind::CallerFor | vir_low::FunctionKind::SnapRange => {
                 Ok(vir_low::Expression::FuncApp(func_app))

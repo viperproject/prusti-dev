@@ -996,6 +996,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                         assert!(matches!(
                             eval_in.context_kind,
                             vir_mid::EvalInContextKind::Predicate
+                                | vir_mid::EvalInContextKind::QuantifiedPredicate
                                 | vir_mid::EvalInContextKind::OpenedRefPredicate
                         ));
                         (&predicate.place, None)
@@ -1038,6 +1039,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                     address,
                     predicate.place.position(),
                 )?;
+                if matches!(
+                    eval_in.context_kind,
+                    vir_mid::EvalInContextKind::QuantifiedPredicate
+                ) {
+                    let vir_low::Expression::FuncApp(func_app) = &mut snap_call else {
+                        unreachable!("snap_call must be a FuncApp: {snap_call}");
+                    };
+                    // Mark that this snapshot function call should not be
+                    // purified.
+                    func_app.context = vir_low::FuncAppContext::QuantifiedPermission;
+                }
                 if let Some(old_label) = old_label {
                     snap_call = vir_low::Expression::labelled_old(
                         Some(old_label.to_string()),

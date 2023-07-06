@@ -910,17 +910,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 subst_with(encoded_rhs)
             }
-            "prusti_contracts::prusti_eval_in" => {
+            "prusti_contracts::prusti_eval_in" | "prusti_contracts::prusti_eval_in_quantified" => {
                 assert_eq!(encoded_args.len(), 2);
                 let predicate = encoded_args[0].clone();
                 let argument = encoded_args[1].clone();
                 let position = argument.position();
-                let encoded_rhs = vir_high::Expression::eval_in(
-                    predicate,
-                    vir_high::EvalInContextKind::Predicate,
-                    argument,
-                    position,
-                );
+                let context_kind = if proc_name == "prusti_contracts::prusti_eval_in_quantified" {
+                    vir_high::EvalInContextKind::QuantifiedPredicate
+                } else {
+                    vir_high::EvalInContextKind::Predicate
+                };
+                let encoded_rhs =
+                    vir_high::Expression::eval_in(predicate, context_kind, argument, position);
                 subst_with(encoded_rhs)
             }
             "prusti_contracts::snapshot_equality" => {
