@@ -19,7 +19,7 @@ use lazy_static::lazy_static;
 use log::info;
 use prusti_common::{config, report::user, Stopwatch};
 use prusti_rustc_interface::interface::interface::try_print_query_stack;
-use std::{borrow::Cow, env, panic};
+use std::{env, panic};
 use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
 use tracing_subscriber::{filter::EnvFilter, prelude::*};
 

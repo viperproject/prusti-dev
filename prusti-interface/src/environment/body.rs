@@ -33,12 +33,14 @@ struct BodyWithBorrowckFacts<'tcx> {
 /// Bodies which need not be synched across crates and so can be
 /// loaded dynamically as needed during encoding.
 type DynamicallyLoadedBodies<T> = RefCell<FxHashMap<LocalDefId, T>>;
+
 /// Bodies which must be exported across crates and thus must be
 /// loaded prior to exporting (which happens before encoding).
 struct PreLoadedBodies<'tcx> {
     local: FxHashMap<LocalDefId, MirBody<'tcx>>,
     external: FxHashMap<DefId, MirBody<'tcx>>,
 }
+
 impl<'tcx> PreLoadedBodies<'tcx> {
     fn new() -> Self {
         Self {
@@ -120,6 +122,8 @@ impl<'tcx> EnvBody<'tcx> {
         tcx: TyCtxt<'tcx>,
         def_id: LocalDefId,
     ) -> BodyWithBorrowckFacts<'tcx> {
+        // The analysis pass of the compiler already takes care of borrow-checking all MIR bodies,
+        // so the following call should not panic.
         // SAFETY: This is safe because we are feeding in the same `tcx`
         // that was used to store the data.
         let body_with_facts = unsafe { mir_storage::retrieve_mir_body(tcx, def_id) };
@@ -139,8 +143,8 @@ impl<'tcx> EnvBody<'tcx> {
     /// Get local MIR body of spec or pure functions. Retrieves the body from
     /// the compiler (relatively cheap).
     fn load_local_mir(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBody<'tcx> {
-        let body = tcx.mir_promoted(def_id).0.borrow();
-        MirBody(Rc::new(body.clone()))
+        // Throw away the borrowck facts
+        Self::load_local_mir_with_facts(tcx, def_id).body
     }
 
     fn get_monomorphised(
