@@ -53,8 +53,13 @@ pub fn parse_obligation(tokens: TokenStream) -> syn::Result<ParsedObligation> {
             "`obligation!` shall not provide a body",
         ))
     } else if !has_valid_amount_arg(&input.fn_sig) {
+        let error_span = if let Some(arg) = input.fn_sig.inputs.first() {
+            arg.span()
+        } else {
+            input.fn_sig.span()
+        };
         Err(syn::Error::new(
-            input.body.span(),
+            error_span,
             "the first argument of an obligation in `obligation!` must be `amount: usize`",
         ))
     } else {

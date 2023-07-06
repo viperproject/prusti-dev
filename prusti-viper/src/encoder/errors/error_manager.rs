@@ -60,8 +60,9 @@ pub enum BuiltinMethodKind {
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
     Panic(PanicCause),
-    /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
-    ExhaleMethodPrecondition,
+    /// A Viper `exhale expr` or `assert expr` that encodes the call of a Rust procedure with precondition `expr`
+    ExhaleMethodPrecondition, // FIXME rename to not sugguest that it has to be an `exhale`, but can
+                              // also be an `assert`
     /// An error when assuming method's functional specification.
     UnexpectedAssumeMethodPrecondition,
     /// An error when assuming method's functional specification.
@@ -417,7 +418,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_help("This might be a bug in the Rust compiler.")
             }
 
-            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
+            ("assert.failed:assertion.false" | "exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
                 PrustiError::verification("precondition might not hold.", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
