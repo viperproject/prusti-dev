@@ -125,34 +125,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
                 index: Int,
                 size: {size_type}
             }
-            let call = self.create_domain_func_app(
-                ADDRESS_DOMAIN_NAME,
-                "offset_address$",
-                vec![
-                    size.clone().into(),
-                    address.clone().into(),
-                    index.clone().into(),
-                ],
-                address_type.clone(),
-                position,
-            )?;
-            let injective_call = self.create_domain_func_app(
-                ADDRESS_DOMAIN_NAME,
-                "offset_address$inverse",
-                vec![address.clone().into(), call.clone()],
-                vir_low::Type::Int,
-                position,
-            )?;
-            let forall_body = expr! {
-                [injective_call] == index
-            };
-            let body = vir_low::Expression::forall(
-                vec![size, address, index],
-                vec![vir_low::Trigger::new(vec![call])],
-                forall_body,
-            );
-            let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$injective", body);
-            self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+            {
+                let call = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "offset_address$",
+                    vec![
+                        size.clone().into(),
+                        address.clone().into(),
+                        index.clone().into(),
+                    ],
+                    address_type.clone(),
+                    position,
+                )?;
+                let injective_call = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "offset_address$inverse",
+                    vec![address.clone().into(), call.clone()],
+                    vir_low::Type::Int,
+                    position,
+                )?;
+                let forall_body = expr! {
+                    [injective_call] == index
+                };
+                let body = vir_low::Expression::forall(
+                    vec![size.clone(), address.clone(), index],
+                    vec![vir_low::Trigger::new(vec![call])],
+                    forall_body,
+                );
+                let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$injective", body);
+                self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+            }
+            {
+                let call = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "offset_address$",
+                    vec![size.clone().into(), address.clone().into(), 0.into()],
+                    address_type.clone(),
+                    position,
+                )?;
+                let forall_body = expr! {
+                    [call.clone()] == address
+                };
+                let body = vir_low::Expression::forall(
+                    vec![size, address],
+                    vec![vir_low::Trigger::new(vec![call])],
+                    forall_body,
+                );
+                let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$zero_offset", body);
+                self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+            }
         }
         self.create_domain_func_app(
             ADDRESS_DOMAIN_NAME,
