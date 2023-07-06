@@ -207,6 +207,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FunctionsLowererInterface for Lowerer<'p, 'v, 'tcx> {
         self.ensure_pure_function_lowered(function_name)?;
         Ok(vir_low::expression::FuncApp {
             function_name: caller_function_name,
+            context: vir_low::FuncAppContext::Default,
             arguments,
             parameters,
             return_type,

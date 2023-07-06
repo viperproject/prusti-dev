@@ -52,7 +52,13 @@ impl Expression {
                 ty: argument.get_type().clone(),
             })
             .collect();
-        Expression::func_app_no_pos(name.into(), arguments, parameters, return_type)
+        Expression::func_app_no_pos(
+            name.into(),
+            FuncAppContext::Default,
+            arguments,
+            parameters,
+            return_type,
+        )
     }
     pub fn domain_function_call(
         domain_name: impl ToString,

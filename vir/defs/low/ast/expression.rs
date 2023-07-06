@@ -235,9 +235,15 @@ pub struct LetExpr {
     pub position: Position,
 }
 
+pub enum FuncAppContext {
+    Default,
+    QuantifiedPermission,
+}
+
 #[display(fmt = "{}({})", function_name, "display::cjoin(arguments)")]
 pub struct FuncApp {
     pub function_name: String,
+    pub context: FuncAppContext,
     pub arguments: Vec<Expression>,
     pub parameters: Vec<VariableDecl>,
     pub return_type: Type,

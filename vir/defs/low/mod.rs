@@ -13,9 +13,9 @@ pub use self::{
         expression::{
             self, BinaryOp, BinaryOpKind, Conditional as ConditionalExpression, Constant,
             ConstantValue, ContainerOp, ContainerOpKind, DomainFuncApp, Expression, Field,
-            FieldAccessPredicate, FuncApp, InhaleExhale, LabelledOld, LetExpr, Local, MagicWand,
-            PermBinaryOp, PermBinaryOpKind, PredicateAccessPredicate, Quantifier, QuantifierKind,
-            Trigger, UnaryOp, UnaryOpKind, Unfolding,
+            FieldAccessPredicate, FuncApp, FuncAppContext, InhaleExhale, LabelledOld, LetExpr,
+            Local, MagicWand, PermBinaryOp, PermBinaryOpKind, PredicateAccessPredicate, Quantifier,
+            QuantifierKind, Trigger, UnaryOp, UnaryOpKind, Unfolding,
         },
         field::FieldDecl,
         function::{FunctionDecl, FunctionKind},

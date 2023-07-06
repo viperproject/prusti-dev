@@ -780,10 +780,25 @@ pub fn prusti_eval_in<T>(_predicate: bool, _expression: T) -> T {
     unreachable!();
 }
 
+/// Indicates that the expression should be evaluated assuming that the given
+/// quantified predicate is present.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_eval_in_quantified<T>(_predicate: bool, _expression: T) -> T {
+    unreachable!();
+}
+
 #[macro_export]
 macro_rules! eval_in {
     ($predicate:expr, $expression:expr) => {
         $crate::prusti_eval_in($predicate, $expression)
+    };
+}
+
+#[macro_export]
+macro_rules! eval_in_quantified {
+    ($predicate:expr, $expression:expr) => {
+        $crate::prusti_eval_in_quantified($predicate, $expression)
     };
 }
 
