@@ -122,6 +122,13 @@ impl<T> MutPointer<T> {
     #[no_panic]
     #[no_panic_ensures_postcondition]
     unsafe fn add(self, count: usize) -> *mut T;
+
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    #[structural_requires(raw!(*self, std::mem::size_of::<T>()))]
+    #[structural_ensures(own!(*self))]
+    #[structural_ensures(unsafe { eval_in!(own!(*self), &*self) } === &val)]
+    pub unsafe fn write(self, val: T);
 }
 
 #[extern_spec]
