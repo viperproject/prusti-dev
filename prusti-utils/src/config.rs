@@ -132,6 +132,7 @@ lazy_static::lazy_static! {
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
+        settings.set_default("num_errors_per_function", 1).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -1034,4 +1035,10 @@ pub fn cargo_command() -> String {
 /// `#[invariant(...)]` attribute.
 pub fn enable_type_invariants() -> bool {
     read_setting("enable_type_invariants")
+}
+
+/// The maximum number of verification errors to report per function. This is only used by the
+/// Silicon backend. A value of 0 means no limit.
+pub fn num_errors_per_function() -> u32 {
+    read_setting("num_errors_per_function")
 }
