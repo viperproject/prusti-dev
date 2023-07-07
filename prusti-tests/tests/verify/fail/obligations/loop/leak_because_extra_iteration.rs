@@ -6,26 +6,19 @@ obligation! {
 
 #[trusted]
 #[ensures(alloced(1, loc))]
-fn alloc(loc: usize) {
-    // do allocation here
-}
+fn alloc(loc: usize) {}
 
 #[ensures(alloced(n, loc))]
-fn multialloc(loc: usize, n: usize) {
+fn multialloc(loc: usize, n: usize) { //~ ERROR the function might leak instances of obligation `alloced`
     let mut i = 0;
-    while i < n + 1 { // << should be just n without the +1 here
+    while i < n + 1 {
         body_invariant!(alloced(i, loc));
         alloc(loc);
         i += 1;
     }
-    // error here: leak check might fail
 }
 
 #[ensures(alloced(13, 42))]
 fn main() {
     multialloc(42, 13)
 }
-
-// with CHECK_OVERFLOWS=false
-
-// DOES NOT VERIFY

@@ -12,20 +12,17 @@ obligation! {
 
 #[trusted]
 #[ensures(alloced(1, loc))]
-fn alloc(loc: Loc) {
-}
+fn alloc(loc: Loc) {}
 
 #[trusted]
 #[requires(alloced(1, loc))]
-fn dealloc(loc: Loc) {
-}
+fn dealloc(loc: Loc) {}
 
 #[ensures(alloced(1, loc))]
 #[requires(alloced(1, loc))]
-fn operate_on(loc: Loc) {
-}
+fn operate_on(loc: Loc) {}
 
-// << there should be #[pure] or a specification here
+// << for the program to verify, there should be #[pure] or a specification here
 fn get_loc(slot: usize) -> Loc {
     Loc { cluster: 33, slot }
 }
@@ -35,8 +32,5 @@ fn main() {
     alloc(l);
     operate_on(Loc { cluster: 33, slot: 90 });
 
-    // error here: exhale might fail (of the precondition of dealloc)
-    dealloc(get_loc(80 + 10));
+    dealloc(get_loc(80 + 10)); //~ ERROR there might be not enough resources to satisfy the function precondition
 }
-
-// DOES NOT VERIFY

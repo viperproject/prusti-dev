@@ -6,16 +6,13 @@ obligation! {
 
 #[trusted]
 #[requires(alloced(1, loc))]
-fn dealloc(loc: usize) {
-    // do deallocation here
-}
+fn dealloc(loc: usize) {}
 
 #[requires(alloced(4, loc))]
 fn dealloc_more(loc: usize) {
     let mut i = 0;
     while i < 10 {
-        body_invariant!(alloced(2, loc)); // << error here: insufficient permissions for invariant
-                                          // after iteration
+        body_invariant!(alloced(2, loc)); //~ ERROR there might be not enough resources for the loop invariant to hold after a loop iteration
         dealloc(loc);
         i += 1;
     }
@@ -25,9 +22,4 @@ fn dealloc_more(loc: usize) {
 }
 // ^^^ this would probably verify if obligations were implemented naively without scope_id
 
-fn main() {
-}
-
-// with CHECK_OVERFLOWS=false
-
-// DOES NOT VERIFY
+fn main() {}
