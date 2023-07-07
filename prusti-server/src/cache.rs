@@ -6,7 +6,7 @@
 
 use log::{error, info, warn};
 
-use crate::verification_result::VerificationResult;
+use viper::verification_result::VerificationResult;
 use rustc_hash::FxHashMap;
 use std::{
     fs, io,
