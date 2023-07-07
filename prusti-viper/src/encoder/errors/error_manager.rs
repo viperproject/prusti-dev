@@ -481,7 +481,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).push_primary_span(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false" | "assert.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) => {
+            ("assert.failed:assertion.false" | "assert.failed:insufficient.permission" | "exhale.failed:assertion.false" | "exhale.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) => {
                 PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
