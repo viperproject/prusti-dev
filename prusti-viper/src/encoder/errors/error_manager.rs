@@ -464,7 +464,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     .push_primary_span(opt_cause_span)
             }
 
-            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+            ("assert.failed:assertion.false" | "assert.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) | ("exhale.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
                 PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
@@ -481,12 +481,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).push_primary_span(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false" | "assert.failed:insufficient.permission" | "exhale.failed:assertion.false" | "exhale.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
-                    .push_primary_span(opt_cause_span)
-            }
-
-            ("assert.failed:assertion.false" | "exhale.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration | ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) | ("exhale.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "loop invariant might not hold after a loop iteration that preserves the loop condition.",
                     error_span
