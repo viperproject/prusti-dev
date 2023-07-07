@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{process_verification_request, VerificationRequest};
+use crate::{process_verification_request, VerificationRequest, PersistentCache};
 use log::info;
 use once_cell::sync::Lazy;
 use prusti_common::{config, Stopwatch};
@@ -14,7 +14,7 @@ use std::{
     thread,
 };
 use tokio::runtime::Builder;
-use viper::{PersistentCache, Viper};
+use viper::Viper;
 use warp::Filter;
 
 #[derive(Debug)]

@@ -25,9 +25,9 @@ use prusti_interface::{
 use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::{
     process_verification_request, spawn_server_thread, tokio::runtime::Builder, PrustiClient,
-    VerificationRequest, ViperBackendConfig,
+    VerificationRequest, ViperBackendConfig, PersistentCache,
 };
-use viper::{self, PersistentCache, Viper};
+use viper::{self, Viper};
 use vir_crate::common::check_mode::CheckMode;
 
 /// A verifier is an object for verifying a single crate, potentially
