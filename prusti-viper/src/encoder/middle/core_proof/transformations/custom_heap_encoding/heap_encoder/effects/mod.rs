@@ -1352,9 +1352,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             .into_iter()
             .map(|parameter| parameter.into())
             .collect();
-        let mut permission_mask_update_trigger_terms = Vec::new();
-        let mut permission_mask_update_guard = guard.clone();
-        let mut equalities: Vec<vir_low::Expression> = Vec::new();
+        let mut permission_mask_trigger_terms = Vec::new();
+        let mut permission_mask_guard = guard.clone();
+        let mut inverse_function_trigger_function_calls = Vec::new();
+        let mut variable_inverse_equalities: Vec<vir_low::Expression> = Vec::new();
+        let mut parameter_inverse_equalities: Vec<vir_low::Expression> = Vec::new();
         for variable in &variables {
             let inverse_function_name = format!(
                 "inverse$qp${}${}${}",
@@ -1370,24 +1372,49 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     parameters.clone(),
                     variable.ty.clone(),
                 );
-                let permission_mask_update_inverse_function_call =
+                let permission_mask_inverse_function_call =
                     vir_low::Expression::domain_function_call(
                         self.inverse_function_domain.name.clone(),
                         inverse_function_name.clone(),
                         parameters_as_arguments.clone(),
                         variable.ty.clone(),
                     );
-                permission_mask_update_guard = permission_mask_update_guard.replace_place(
+                permission_mask_guard = permission_mask_guard.replace_place(
                     &variable.clone().into(),
-                    &permission_mask_update_inverse_function_call,
+                    &permission_mask_inverse_function_call,
                 );
-                permission_mask_update_trigger_terms
-                    .push(permission_mask_update_inverse_function_call);
+                permission_mask_trigger_terms.push(permission_mask_inverse_function_call);
                 self.inverse_function_domain
                     .functions
                     .push(inverse_function);
+                // Declare the inverse function definitional equality.
+                let inverse_function_call = vir_low::Expression::domain_function_call(
+                    self.inverse_function_domain.name.clone(),
+                    inverse_function_name.clone(),
+                    parameters_as_arguments.clone(),
+                    variable.ty.clone(),
+                );
+                for (parameter, argument) in parameters_as_arguments
+                    .iter()
+                    .zip(predicate.arguments.iter())
+                {
+                    let argument = argument
+                        .clone()
+                        .replace_place(&variable.clone().into(), &inverse_function_call);
+                    parameter_inverse_equalities.push(vir_low::Expression::equals(
+                        parameter.clone().into(),
+                        argument,
+                    ));
+                }
             }
             {
+                // Declare the inverse function trigger function.
+                let inverse_function_trigger_function = vir_low::DomainFunctionDecl::new(
+                    format!("{}$trigger", inverse_function_name),
+                    false,
+                    vec![vir_low::VariableDecl::new("_0", variable.ty.clone())],
+                    vir_low::Type::Bool,
+                );
                 // Declare the inverse function definitional equality.
                 let inverse_function_call = vir_low::Expression::domain_function_call(
                     self.inverse_function_domain.name.clone(),
@@ -1395,17 +1422,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     predicate.arguments.clone(),
                     variable.ty.clone(),
                 );
+                let inverse_function_trigger_function_call =
+                    vir_low::Expression::domain_function_call(
+                        self.inverse_function_domain.name.clone(),
+                        inverse_function_trigger_function.name.clone(),
+                        vec![inverse_function_call.clone()],
+                        vir_low::Type::Bool,
+                    );
                 eprintln!("inverse_function: {}", inverse_function_call);
-                equalities.push(vir_low::Expression::equals(
+                inverse_function_trigger_function_calls
+                    .push(inverse_function_trigger_function_call);
+                variable_inverse_equalities.push(vir_low::Expression::equals(
                     variable.clone().into(),
                     inverse_function_call,
                 ));
+                self.inverse_function_domain
+                    .functions
+                    .push(inverse_function_trigger_function);
             }
         }
-        let axiom_body = vir_low::Expression::forall(
+        // `variable == inverse(e(variable))`
+        let injectivity_axiom_body1 = vir_low::Expression::forall(
             variables.clone(),
             triggers.clone(),
-            vir_low::Expression::implies(guard.clone(), equalities.into_iter().conjoin()),
+            vir_low::Expression::and(
+                inverse_function_trigger_function_calls
+                    .into_iter()
+                    .conjoin(),
+                vir_low::Expression::implies(
+                    guard.clone(),
+                    variable_inverse_equalities.into_iter().conjoin(),
+                ),
+            ),
         );
         // let axiom = vir_low::DomainAxiomDecl::new(
         //     None,
@@ -1417,7 +1465,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         // );
         // eprintln!("axiom: {axiom}");
         // self.inverse_function_domain.axioms.push(axiom);
-        statements.push(vir_low::Statement::assume(axiom_body, position));
+        statements.push(vir_low::Statement::assume(
+            injectivity_axiom_body1,
+            position,
+        ));
+        // `location == e(inverse(location))`
+        let injectivity_axiom_body2 = vir_low::Expression::forall(
+            parameters.clone(),
+            vec![vir_low::Trigger::new(permission_mask_trigger_terms.clone())],
+            vir_low::Expression::implies(
+                permission_mask_guard.clone(),
+                parameter_inverse_equalities.into_iter().conjoin(),
+            ),
+        );
+        statements.push(vir_low::Statement::assume(
+            injectivity_axiom_body2,
+            position,
+        ));
 
         let perm_new_value = operations.perm_old_add(
             self,
@@ -1441,11 +1505,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let permission_mask_update_statement = vir_low::Statement::assume(
             vir_low::Expression::forall(
                 parameters,
-                vec![vir_low::Trigger::new(permission_mask_update_trigger_terms)],
+                vec![vir_low::Trigger::new(permission_mask_trigger_terms)],
                 vir_low::Expression::equals(
                     perm_new,
                     vir_low::Expression::conditional(
-                        permission_mask_update_guard,
+                        permission_mask_guard,
                         perm_new_value,
                         perm_old,
                         position,
