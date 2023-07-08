@@ -974,42 +974,58 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
             self.snap_calls.pop();
             return Ok(result);
         }
-        let box vir_mid::Expression::AccPredicate(predicate) = &eval_in.context else {
-            unimplemented!("A proper error message that this must be a predicate: {}", eval_in.context);
+        // let box vir_mid::Expression::AccPredicate(predicate) = &eval_in.context else {
+        //     unimplemented!("A proper error message that this must be a predicate: {}", eval_in.context);
+        // };
+        let (predicate, old_label) = match &*eval_in.context {
+            vir_mid::Expression::AccPredicate(predicate) => (predicate, None),
+            vir_mid::Expression::LabelledOld(vir_mid::LabelledOld {
+                label,
+                base: box vir_mid::Expression::AccPredicate(predicate),
+                ..
+            }) => (predicate, Some(label)),
+            _ => unimplemented!(
+                "A proper error message that this must be a predicate: {}",
+                eval_in.context
+            ),
         };
         let result = match &*predicate.predicate {
             vir_mid::Predicate::OwnedNonAliased(predicate) => {
-                let (predicate_place, old_label) =
-                    if let vir_mid::Expression::LabelledOld(vir_mid::LabelledOld {
-                        label,
-                        base,
-                        ..
-                    }) = &predicate.place
-                    {
-                        assert!(matches!(
-                            eval_in.context_kind,
-                            vir_mid::EvalInContextKind::Old
-                                | vir_mid::EvalInContextKind::OldOpenedRefPredicate
-                        ));
-                        (&**base, Some(label))
-                    } else {
-                        assert!(matches!(
-                            eval_in.context_kind,
-                            vir_mid::EvalInContextKind::Predicate
-                                | vir_mid::EvalInContextKind::QuantifiedPredicate
-                                | vir_mid::EvalInContextKind::OpenedRefPredicate
-                        ));
-                        (&predicate.place, None)
-                    };
+                let predicate_place = &predicate.place;
+                // let (predicate_place, old_label) =
+                //     if let vir_mid::Expression::LabelledOld(vir_mid::LabelledOld {
+                //         label,
+                //         base,
+                //         ..
+                //     }) = &predicate.place
+                //     {
+                //         // assert!(matches!(
+                //         //     eval_in.context_kind,
+                //         //     vir_mid::EvalInContextKind::Old
+                //         //         | vir_mid::EvalInContextKind::OldOpenedRefPredicate
+                //         // ));
+                //         (&**base, Some(label))
+                //     } else {
+                //         // assert!(matches!(
+                //         //     eval_in.context_kind,
+                //         //     vir_mid::EvalInContextKind::Predicate
+                //         //         | vir_mid::EvalInContextKind::QuantifiedPredicate
+                //         //         | vir_mid::EvalInContextKind::OpenedRefPredicate
+                //         // ));
+                //         (&predicate.place, None)
+                //     };
                 let ty = predicate.place.get_type();
                 let place = lowerer.encode_expression_as_place(predicate_place)?;
                 let address = if predicate_place.is_behind_pointer_dereference() {
-                    assert!(old_label.is_none(), "unimplemented: {predicate}");
+                    // assert!(old_label.is_none(), "unimplemented: {predicate}");
                     self.pointer_deref_into_address(lowerer, predicate_place)?
                 } else {
                     lowerer.encode_expression_as_place_address(predicate_place)?
                 };
-                let mut predicate_kind =
+                let mut predicate_kind = if predicate_place.is_place() {
+                    // FIXME: We currently incorrectly assume that if a
+                    // predicate place is not a place, when it is a raw
+                    // pointer to owned and not a referenced location.
                     if let Some((lifetime, uniqueness)) = predicate_place.get_dereference_kind() {
                         let lifetime = lowerer
                             .encode_lifetime_const_into_procedure_variable(lifetime)?
@@ -1023,11 +1039,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                         }
                     } else {
                         PredicateKind::Owned
-                    };
+                    }
+                } else {
+                    PredicateKind::Owned
+                };
                 if matches!(
                     eval_in.context_kind,
-                    vir_mid::EvalInContextKind::OpenedRefPredicate
-                        | vir_mid::EvalInContextKind::OldOpenedRefPredicate
+                    vir_mid::EvalInContextKind::OpenedRefPredicate // | vir_mid::EvalInContextKind::OldOpenedRefPredicate
                 ) {
                     predicate_kind = PredicateKind::Owned;
                 }
@@ -1063,6 +1081,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 result
             }
             vir_mid::Predicate::OwnedRange(predicate) => {
+                assert!(old_label.is_none(), "unimplemented: {predicate}");
                 let ty = predicate.address.get_type();
                 let address = self.expression_to_snapshot(lowerer, &predicate.address, true)?;
                 self.range_snap_calls
