@@ -134,6 +134,7 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
         assert_eq!(function.parameters.len(), func_app.arguments.len());
         let arguments = func_app
             .arguments
+            .clone()
             .into_iter()
             .map(|argument| self.fallible_fold_expression(argument))
             .collect::<Result<Vec<_>, _>>()?;
@@ -147,6 +148,7 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
             .substitute_variables(&replacements);
         let pres = self.fallible_fold_expression(pres)?;
         let assert_precondition = vir_low::Expression::implies(path_condition, pres);
+        eprintln!("assert_precondition: {}", assert_precondition);
         self.heap_encoder.encode_function_precondition_assert(
             self.statements,
             assert_precondition,
@@ -157,7 +159,9 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
             vir_low::FunctionKind::MemoryBlockBytes => {
                 self.snap_function_call(MEMORY_BLOCK_PREDICATE_NAME, arguments)
             }
-            vir_low::FunctionKind::CallerFor => todo!(),
+            vir_low::FunctionKind::CallerFor => {
+                unimplemented!("func_app: {func_app}");
+            }
             vir_low::FunctionKind::SnapRange => {
                 let predicate_name = self
                     .heap_encoder
