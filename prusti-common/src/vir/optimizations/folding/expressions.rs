@@ -76,8 +76,8 @@ impl FoldingOptimizer for ast::Expr {
 struct StmtOptimizer {}
 
 impl ast::StmtFolder for StmtOptimizer {
-    fn fold_inhale(&mut self, ast::Inhale { expr }: ast::Inhale) -> ast::Stmt {
-        ast::Stmt::inhale(expr.optimize())
+    fn fold_inhale(&mut self, ast::Inhale { expr, position }: ast::Inhale) -> ast::Stmt {
+        ast::Stmt::inhale(expr.optimize(), position)
     }
     fn fold_assert(&mut self, ast::Assert { expr, position }: ast::Assert) -> ast::Stmt {
         ast::Stmt::Assert(ast::Assert {

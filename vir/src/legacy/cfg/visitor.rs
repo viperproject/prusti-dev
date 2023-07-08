@@ -132,7 +132,7 @@ impl CfgMethod {
     pub fn walk_expressions_mut<F: FnMut(&mut Expr)>(&mut self, mut walker: F) {
         self.walk_statements_mut(|s| {
             // Replace *s with a dummy statement
-            let stmt = std::mem::replace(s, Stmt::Inhale(true.into()));
+            let stmt = std::mem::replace(s, Stmt::Inhale(true.into(), Position::default()));
             *s = stmt.map_expr(|mut e| {
                 walker(&mut e);
                 e

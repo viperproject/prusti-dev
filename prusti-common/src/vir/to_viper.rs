@@ -167,12 +167,8 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
         match self {
             Stmt::Comment(ref comment) => ast.comment(comment),
             Stmt::Label(ref label) => ast.label(label, &[]),
-            Stmt::Inhale(ref expr) => {
-                let fake_position = Position::default();
-                ast.inhale(
-                    expr.to_viper(context, ast),
-                    fake_position.to_viper(context, ast),
-                )
+            Stmt::Inhale(ref expr, ref pos) => {
+                ast.inhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
             Stmt::Exhale(ref expr, ref pos) => {
                 assert!(!pos.is_default(), "stmt with default pos: {self}");

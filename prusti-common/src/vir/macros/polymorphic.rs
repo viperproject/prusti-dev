@@ -41,6 +41,7 @@ macro_rules! vir_stmt {
     (inhale $exp: tt) => {
         $crate::vir::polymorphic_vir::Stmt::Inhale( $crate::vir::polymorphic_vir::Inhale {
             expr: vir_expr!($exp),
+            position: $crate::vir::polymorphic_vir::Position::default(),
         })
     };
     (exhale $exp: tt) => {

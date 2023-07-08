@@ -2148,24 +2148,26 @@ mod tests {
         test(source, expected, &SUBSTITUTION_MAP);
 
         // Inhale
-        source = Stmt::Inhale(Inhale {
-            expr: Expr::Local(Local {
+        source = Stmt::inhale(
+            Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
                 position,
             }),
-        });
-        expected = Stmt::Inhale(Inhale {
-            expr: Expr::Local(Local {
+            Position::default(),
+        );
+        expected = Stmt::inhale(
+            Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
                 position,
             }),
-        });
+            Position::default(),
+        );
         test(source, expected, &SUBSTITUTION_MAP);
 
         // Exhale
@@ -2484,15 +2486,16 @@ mod tests {
                 position,
             }),
             package_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::type_var("T"),
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2526,15 +2529,16 @@ mod tests {
                 position,
             }),
             package_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::Int,
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2757,15 +2761,16 @@ mod tests {
                 position,
             }),
             then_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::type_var("T"),
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2778,15 +2783,16 @@ mod tests {
                 }),
             ],
             else_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::type_var("T"),
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2808,15 +2814,16 @@ mod tests {
                 position,
             }),
             then_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::Int,
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2829,15 +2836,16 @@ mod tests {
                 }),
             ],
             else_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::Int,
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {

@@ -73,6 +73,11 @@ pub enum ErrorCtxt {
     AssertMethodPostconditionTypeInvariants,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
+    /// A Viper `inhale expr` that encodes the call of a Rust procedure with precondition `expr`
+    /// Errors might occur when `expr` contains quantified resources which are not injective
+    InhaleMethodPostcondition,
+    /// A Viper `inhale expr` that encodes the begin of a Rust procedure with precondition `expr`
+    InhaleMethodPrecondition,
     /// A generic loop invariant error.
     LoopInvariant,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
@@ -384,9 +389,18 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) |
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::DebugAssert)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert | PanicCause::DebugAssert)) => {
                     PrustiError::verification("the asserted expression might not hold", error_span)
+                    .set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:insufficient.permission", ErrorCtxt::Panic(PanicCause::Assert | PanicCause::DebugAssert)) => {
+                    PrustiError::verification("there might be not enough resources for the asserted expression", error_span)
+                    .set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:qp.not.injective", ErrorCtxt::Panic(PanicCause::Assert | PanicCause::DebugAssert)) => {
+                    PrustiError::verification("quantified resource in the asserted expression might not be injective", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -695,6 +709,41 @@ impl<'tcx> ErrorManager<'tcx> {
             ("inhale.failed:map.key.contains", _) => {
                 PrustiError::verification(
                     "the key might not be in the map".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleMethodPrecondition) => {
+                PrustiError::verification(
+                    "quantified resource in the callee's precondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:qp.not.injective", ErrorCtxt::InhaleMethodPostcondition) => {
+                PrustiError::verification(
+                    "quantified resource in the callee's postcondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:qp.not.injective", ErrorCtxt::InhaleMethodPrecondition) => {
+                PrustiError::verification(
+                    "quantified resource in the function's precondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleMethodPostcondition) => {
+                PrustiError::verification(
+                    "quantified resource in the function's postcondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleLoopInvariantOnEntry | ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+                PrustiError::verification(
+                    "quantified resource in the loop invariant might not be injective".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }

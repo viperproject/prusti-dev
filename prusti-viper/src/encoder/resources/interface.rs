@@ -46,7 +46,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ResourcesEncoderInterface
                 vir::ResourceType::TimeReceipts,
                 amount.into(),
                 scope_id,
-            ))
+            ), vir::Position::default())
         }));
         stmts
     }

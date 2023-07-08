@@ -64,7 +64,7 @@ impl ApplyOnState for vir::Stmt {
             | &vir::Stmt::Refute(_)
             | &vir::Stmt::Obtain(_) => {}
 
-            &vir::Stmt::Inhale(vir::Inhale { ref expr }) => {
+            &vir::Stmt::Inhale(vir::Inhale { ref expr, .. }) => {
                 inhale_expr(expr, state, predicates)?;
             }
 

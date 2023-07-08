@@ -20,7 +20,7 @@ use std::{
 pub enum Stmt {
     Comment(String),
     Label(String),
-    Inhale(Expr),
+    Inhale(Expr, Position),
     Exhale(Expr, Position),
     Assert(Expr, Position),
     Refute(Expr, Position),
@@ -82,7 +82,7 @@ impl Hash for Stmt {
         match self {
             Stmt::Comment(_) => return,
             Stmt::Label(s) => s.hash(state),
-            Stmt::Inhale(e) => e.hash(state),
+            Stmt::Inhale(e, p) => (e, p).hash(state),
             Stmt::Exhale(e, p) => (e, p).hash(state),
             Stmt::Assert(e, p) => (e, p).hash(state),
             Stmt::Refute(e, p) => (e, p).hash(state),
@@ -128,7 +128,7 @@ impl fmt::Display for Stmt {
         match self {
             Stmt::Comment(ref comment) => write!(f, "// {comment}"),
             Stmt::Label(ref label) => write!(f, "label {label}"),
-            Stmt::Inhale(ref expr) => {
+            Stmt::Inhale(ref expr, _) => {
                 write!(f, "inhale {expr}")
             }
             Stmt::Exhale(ref expr, _) => write!(f, "exhale {expr}"),
@@ -301,7 +301,8 @@ impl Stmt {
 
     pub fn pos(&self) -> Option<&Position> {
         match self {
-            Stmt::Exhale(_, ref p)
+            Stmt::Inhale(_, ref p)
+            | Stmt::Exhale(_, ref p)
             | Stmt::Assert(_, ref p)
             | Stmt::Refute(_, ref p)
             | Stmt::Fold(_, _, _, _, ref p)
@@ -314,7 +315,8 @@ impl Stmt {
 
     pub fn pos_mut(&mut self) -> Option<&mut Position> {
         match self {
-            Stmt::Exhale(_, ref mut p)
+            Stmt::Inhale(_, ref mut p)
+            | Stmt::Exhale(_, ref mut p)
             | Stmt::Assert(_, ref mut p)
             | Stmt::Refute(_, ref mut p)
             | Stmt::Fold(_, _, _, _, ref mut p)
@@ -383,7 +385,7 @@ pub trait StmtFolder {
         match e {
             Stmt::Comment(s) => self.fold_comment(s),
             Stmt::Label(s) => self.fold_label(s),
-            Stmt::Inhale(expr) => self.fold_inhale(expr),
+            Stmt::Inhale(expr, pos) => self.fold_inhale(expr, pos),
             Stmt::Exhale(e, p) => self.fold_exhale(e, p),
             Stmt::Assert(expr, pos) => self.fold_assert(expr, pos),
             Stmt::Refute(expr, pos) => self.fold_refute(expr, pos),
@@ -415,8 +417,8 @@ pub trait StmtFolder {
         Stmt::Label(s)
     }
 
-    fn fold_inhale(&mut self, expr: Expr) -> Stmt {
-        Stmt::Inhale(self.fold_expr(expr))
+    fn fold_inhale(&mut self, expr: Expr, pos: Position) -> Stmt {
+        Stmt::Inhale(self.fold_expr(expr), pos)
     }
 
     fn fold_exhale(&mut self, e: Expr, p: Position) -> Stmt {
@@ -536,7 +538,7 @@ pub trait FallibleStmtFolder {
         match e {
             Stmt::Comment(s) => self.fallible_fold_comment(s),
             Stmt::Label(s) => self.fallible_fold_label(s),
-            Stmt::Inhale(expr) => self.fallible_fold_inhale(expr),
+            Stmt::Inhale(expr, pos) => self.fallible_fold_inhale(expr, pos),
             Stmt::Exhale(e, p) => self.fallible_fold_exhale(e, p),
             Stmt::Assert(expr, pos) => self.fallible_fold_assert(expr, pos),
             Stmt::Refute(expr, pos) => self.fallible_fold_refute(expr, pos),
@@ -570,8 +572,8 @@ pub trait FallibleStmtFolder {
         Ok(Stmt::Label(s))
     }
 
-    fn fallible_fold_inhale(&mut self, expr: Expr) -> Result<Stmt, Self::Error> {
-        Ok(Stmt::Inhale(self.fallible_fold_expr(expr)?))
+    fn fallible_fold_inhale(&mut self, expr: Expr, pos: Position) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Inhale(self.fallible_fold_expr(expr)?, pos))
     }
 
     fn fallible_fold_exhale(&mut self, e: Expr, p: Position) -> Result<Stmt, Self::Error> {
@@ -733,7 +735,7 @@ pub trait StmtWalker {
         match e {
             Stmt::Comment(s) => self.walk_comment(s),
             Stmt::Label(s) => self.walk_label(s),
-            Stmt::Inhale(expr) => self.walk_inhale(expr),
+            Stmt::Inhale(expr, pos) => self.walk_inhale(expr, pos),
             Stmt::Exhale(e, p) => self.walk_exhale(e, p),
             Stmt::Assert(expr, pos) => self.walk_assert(expr, pos),
             Stmt::Refute(expr, pos) => self.walk_refute(expr, pos),
@@ -761,7 +763,7 @@ pub trait StmtWalker {
 
     fn walk_label(&mut self, _label: &str) {}
 
-    fn walk_inhale(&mut self, expr: &Expr) {
+    fn walk_inhale(&mut self, expr: &Expr, _pos: &Position) {
         self.walk_expr(expr);
     }
 

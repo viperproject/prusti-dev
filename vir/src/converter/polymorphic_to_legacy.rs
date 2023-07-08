@@ -661,7 +661,7 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
         match stmt {
             polymorphic::Stmt::Comment(comment) => legacy::Stmt::Comment(comment.comment),
             polymorphic::Stmt::Label(label) => legacy::Stmt::Label(label.label),
-            polymorphic::Stmt::Inhale(inhale) => legacy::Stmt::Inhale(inhale.expr.into()),
+            polymorphic::Stmt::Inhale(inhale) => legacy::Stmt::Inhale(inhale.expr.into(), inhale.position.into()),
             polymorphic::Stmt::Exhale(exhale) => {
                 legacy::Stmt::Exhale(exhale.expr.into(), exhale.position.into())
             }

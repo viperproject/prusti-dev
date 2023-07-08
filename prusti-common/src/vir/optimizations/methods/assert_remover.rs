@@ -34,6 +34,7 @@ pub fn remove_trivial_assertions(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
                     value: Const::Bool(true),
                     ..
                 }),
+                ..
             })
         )
     });

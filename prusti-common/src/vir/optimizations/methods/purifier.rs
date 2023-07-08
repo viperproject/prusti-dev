@@ -439,7 +439,7 @@ impl ast::StmtFolder for VarPurifier {
         assert!(arguments.len() == 1);
         if is_purifiable_predicate(&predicate) && self.is_pure(&arguments[0]) {
             let new_expr = self.get_replacement_bounds(&predicate, &arguments[0]);
-            ast::Stmt::Inhale(ast::Inhale { expr: new_expr })
+            ast::Stmt::inhale(new_expr, ast::Position::default())
         } else {
             ast::Stmt::Unfold(ast::Unfold {
                 predicate,

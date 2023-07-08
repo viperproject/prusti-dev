@@ -139,6 +139,7 @@ impl fmt::Display for Label {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Inhale {
     pub expr: Expr,
+    pub position: Position,
 }
 
 impl fmt::Display for Inhale {
@@ -503,8 +504,8 @@ impl Stmt {
         })
     }
 
-    pub fn inhale(expr: Expr) -> Self {
-        Stmt::Inhale(Inhale { expr })
+    pub fn inhale(expr: Expr, position: Position) -> Self {
+        Stmt::Inhale(Inhale { expr, position })
     }
 
     pub fn exhale(expr: Expr, position: Position) -> Self {
@@ -543,8 +544,9 @@ impl Stmt {
     // TODO: Potentially add more variants based on how they are used in encoders
     pub fn pos(&self) -> Option<&Position> {
         match self {
-            Stmt::PackageMagicWand(PackageMagicWand { position, .. }) => Some(position),
-            Stmt::Exhale(Exhale { position, .. }) => Some(position),
+            Stmt::PackageMagicWand(PackageMagicWand { position, .. })
+            | Stmt::Inhale(Inhale { position, .. })
+            | Stmt::Exhale(Exhale { position, .. }) => Some(position),
             _ => None,
         }
     }
@@ -566,6 +568,7 @@ impl Stmt {
                 variables,
                 position,
             }),
+            Stmt::Inhale(Inhale { expr, .. }) => Stmt::Inhale(Inhale { expr, position }),
             Stmt::Exhale(Exhale { expr, .. }) => Stmt::Exhale(Exhale { expr, position }),
             x => x,
         }
@@ -629,9 +632,10 @@ pub trait StmtFolder {
     }
 
     fn fold_inhale(&mut self, statement: Inhale) -> Stmt {
-        let Inhale { expr } = statement;
+        let Inhale { expr, position } = statement;
         Stmt::Inhale(Inhale {
             expr: self.fold_expr(expr),
+            position,
         })
     }
 
@@ -851,9 +855,10 @@ pub trait FallibleStmtFolder {
     }
 
     fn fallible_fold_inhale(&mut self, statement: Inhale) -> Result<Stmt, Self::Error> {
-        let Inhale { expr } = statement;
+        let Inhale { expr, position } = statement;
         Ok(Stmt::Inhale(Inhale {
             expr: self.fallible_fold_expr(expr)?,
+            position,
         }))
     }
 
@@ -1094,7 +1099,7 @@ pub trait StmtWalker {
     fn walk_label(&mut self, _label: &Label) {}
 
     fn walk_inhale(&mut self, statement: &Inhale) {
-        let Inhale { expr } = statement;
+        let Inhale { expr, .. } = statement;
         self.walk_expr(expr);
     }
 
@@ -1265,7 +1270,7 @@ pub trait FallibleStmtWalker {
     }
 
     fn fallible_walk_inhale(&mut self, statement: &Inhale) -> Result<(), Self::Error> {
-        let Inhale { expr } = statement;
+        let Inhale { expr, .. } = statement;
         self.fallible_walk_expr(expr)?;
         Ok(())
     }

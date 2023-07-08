@@ -247,12 +247,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 let assume_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
 
-                let assume_stmt = vir::Stmt::Inhale(
-                    vir::Inhale {
-                        expr: assume_expr
-                    }
-                );
-
+                let assume_stmt = vir::Stmt::inhale(assume_expr, vir::Position::default());
                 encoded_statements.push(assume_stmt);
 
                 return Ok(true);
@@ -794,7 +789,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for stmt in &mut bb.stmts {
             if let vir::Stmt::Assert(assert) = stmt {
                 let expr = assert.expr.clone();
-                *stmt = vir::Stmt::Inhale(vir::Inhale { expr });
+                *stmt = vir::Stmt::inhale(expr, assert.position);
             }
         }
         match bb.successor.clone() {
@@ -1120,7 +1115,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         self.cfg_method.add_stmt(
             end_body_block,
-            vir::Stmt::Inhale( vir::Inhale {expr: false.into()} ),
+            vir::Stmt::inhale(false.into(), vir::Position::default()),
         );
         heads.push(Some(end_body_block));
 
@@ -2241,9 +2236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     borrow: Some(loan.index().into()),
                     position: pos,
                 });
-                stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: magic_wand
-                }));
+                stmts.push(vir::Stmt::inhale(magic_wand, vir::Position::default()));
                 // Emit the apply statement.
                 let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan.index().into(), pos);
                 debug!("{:?} at {:?}", statement, loan_location);
@@ -2835,9 +2828,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }));
                 } else {
                     stmts.push(vir::Stmt::comment("This assertion will not be checked"));
-                    stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                        expr: viper_guard,
-                    }));
+                    stmts.push(vir::Stmt::inhale(viper_guard, vir::Position::default()));
                 };
 
                 (stmts, MirSuccessor::Goto(target))
@@ -3374,13 +3365,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                           arg,
                           call_site_span
                         );
-                        stmts.push(vir::Stmt::Inhale (
-                            vir::Inhale {
-                                expr: vir::Expr::acc_permission(
-                                    arg_place.clone().field(val_field),
-                                    vir::PermAmount::Read
-                                )
-                            }
+                        stmts.push(vir::Stmt::inhale(
+                            vir::Expr::acc_permission(
+                                arg_place.clone().field(val_field),
+                                vir::PermAmount::Read
+                            ),
+                            vir::Position::default(),
                         ));
                     }
                     let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
@@ -3417,9 +3407,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // The return type is Never
                 // This means that the function call never returns
                 // So, we `assume false` after the function call
-                stmts_after.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: false.into()
-                }));
+                stmts_after.push(vir::Stmt::inhale(false.into(), vir::Position::default()));
                 // Return a dummy local variable
                 let never_ty = self.encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Never);
                 (self.locals.get_fresh(never_ty), None)
@@ -3581,14 +3569,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.replace_old_places_with_ghost_vars(Some(&post_label), magic_wand)
             })
             .collect();
-
+        let inhale_pos = self.register_error(call_site_span, ErrorCtxt::InhaleMethodPostcondition);
         let post_perm_spec = replace_fake_exprs(post_type_spec);
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: post_perm_spec.remove_read_permissions(),
+            position: inhale_pos,
         }));
         if let Some(access) = return_type_spec {
             stmts.push(vir::Stmt::Inhale( vir::Inhale {
                 expr: replace_fake_exprs(access),
+                position: inhale_pos,
             }));
         }
         for (from_place, to_place) in read_transfer {
@@ -3600,6 +3590,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: replace_fake_exprs(post_invs_spec),
+            position: inhale_pos,
         }));
 
         let post_func_spec = if resources::contains_resource_access_predicate(&post_func_spec)
@@ -3611,6 +3602,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: replace_fake_exprs(post_func_spec),
+            position: inhale_pos,
         }));
 
         // Exhale the permissions that were moved into magic wands.
@@ -3779,16 +3771,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
             .unwrap();
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: type_predicate,
-        }));
+        stmts.push(vir::Stmt::inhale(type_predicate, vir::Position::default()));
 
         // Initialize the lhs
-        stmts.push(
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: call_result,
-            })
-        );
+        stmts.push(vir::Stmt::inhale(call_result, vir::Position::default()));
 
         // Store a label for permissions got back from the call
         debug!(
@@ -4183,20 +4169,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: type_spec}),
+            vir::Stmt::inhale(type_spec, vir::Position::default()),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: mandatory_type_spec.into_iter().conjoin(),
-            }),
+            vir::Stmt::inhale(mandatory_type_spec.into_iter().conjoin(), vir::Position::default()),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: invs_spec,
-            }),
+            vir::Stmt::inhale(invs_spec, vir::Position::default()),
         );
         // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
         // soundness check becomes trivially satisfied.
@@ -4212,9 +4193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: func_spec
-            }),
+            vir::Stmt::inhale(func_spec, self.register_error(self.mir.span, ErrorCtxt::InhaleMethodPrecondition)),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
@@ -5544,15 +5523,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut stmts = vec![vir::Stmt::comment(format!(
             "Inhale the loop permissions invariant of block {loop_head:?}"
         ))];
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: permission_expr,
-        }));
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: equality_expr,
-        }));
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: invs_spec.into_iter().conjoin(),
-        }));
+        stmts.push(vir::Stmt::inhale(permission_expr, vir::Position::default()));
+        stmts.push(vir::Stmt::inhale(equality_expr, vir::Position::default()));
+        stmts.push(vir::Stmt::inhale(invs_spec.into_iter().conjoin(), vir::Position::default()));
         Ok(stmts)
     }
 
@@ -5570,9 +5543,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut stmts = vec![vir::Stmt::comment(format!(
             "Inhale the loop fnspec invariant of block {loop_head:?}"
         ))];
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: func_spec.into_iter().conjoin(),
-        }));
+        stmts.push(vir::Stmt::inhale(func_spec.into_iter().conjoin(), vir::Position::default()));
         Ok((stmts, func_spec_span))
     }
 
@@ -6040,9 +6011,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         {
             let mut alloc_stmts = self.encode_havoc(&encoded_lhs).with_span(span)?;
             let mut inhale_acc = |place| {
-                alloc_stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: vir::Expr::acc_permission(place, vir::PermAmount::Write),
-                }));
+                alloc_stmts.push(vir::Stmt::inhale(
+                        vir::Expr::acc_permission(place, vir::PermAmount::Write),
+                        vir::Position::default(),
+                ));
             };
             inhale_acc(encoded_lhs.clone().field(value_field.clone()));
             inhale_acc(
@@ -6364,9 +6336,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let slice_len_call = slice_types.len(self.encoder, slice_expr.clone());
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [slice_len_call] == [sequence_types.len(self.encoder, rhs_expr.clone())] }
-        }));
+        stmts.push(vir::Stmt::inhale(
+            vir_expr!{ [slice_len_call] == [sequence_types.len(self.encoder, rhs_expr.clone())] },
+            vir::Position::default()
+        ));
 
         let elem_snap_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs).with_span(span)?;
 
@@ -6388,12 +6361,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let indices = vir_expr! { ([vir::Expr::from(0usize)] <= [i]) && ([i] < [sequence_types.len(self.encoder, rhs_expr)]) };
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr! {
+        stmts.push(vir::Stmt::inhale(
+            vir_expr! {
                 forall i: Int ::
                 { [array_lookup_call] } { [slice_lookup_call] } ::
-                ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) }
-        }));
+                ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) },
+            vir::Position::default(),
+        ));
 
         // Store a label for permissions got back from the call
         debug!(
@@ -6487,12 +6461,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             idx,
             lookup_ret_ty,
         );
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr! {
+        stmts.push(vir::Stmt::inhale(
+            vir_expr! {
                 forall i: Int ::
                 { [lookup_pure_call] } ::
-                ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) }
-        }));
+                ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) },
+            vir::Position::default(),
+        ));
 
         Ok(stmts)
     }
@@ -6545,11 +6520,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Havoc `dst`
         stmts.extend(self.encode_havoc(dst)?);
         // Initialize `dst`
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: self.mir_encoder
+        stmts.push(vir::Stmt::inhale(
+            self.mir_encoder
                     .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
                     .unwrap(),
-        }));
+            vir::Position::default(),
+        ));
         Ok(stmts)
     }
 
@@ -6570,9 +6546,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut alloc_stmts = self.encode_havoc(&dst).with_span(span)?;
             let dst_field = dst.clone().field(field.clone());
             let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
-            alloc_stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: acc,
-            }));
+            alloc_stmts.push(vir::Stmt::inhale(acc, vir::Position::default()));
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_typed_ref_or_type_var() {
@@ -6582,9 +6556,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 dst_field,
                                 vir::PermAmount::Read
                             );
-                            alloc_stmts.push(vir::Stmt::Inhale(
-                                vir::Inhale { expr: pred_acc }
-                            ));
+                            alloc_stmts.push(vir::Stmt::inhale(pred_acc, vir::Position::default()));
                         } else {
                             // TODO: Inhale the predicate rooted at dst_field
                             return Err(SpannedEncodingError::unsupported(
@@ -6656,12 +6628,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: vir::Expr,
     ) -> EncodingResult<Vec<vir::Stmt>> {
         let mut stmts = self.encode_havoc_and_initialization(&dst)?;
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir::Expr::eq_cmp(
+        stmts.push(vir::Stmt::inhale(
+            vir::Expr::eq_cmp(
                 vir::Expr::snap_app(src),
                 vir::Expr::snap_app(dst),
             ),
-        }));
+            vir::Position::default(),
+        ));
         Ok(stmts)
     }
 
@@ -6774,9 +6747,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let discriminant = self
                         .encoder
                         .encode_discriminant_func_app(dst.clone(), adt_def)?;
-                    stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                        expr: vir::Expr::eq_cmp(discriminant, discr_value),
-                    }));
+                    stmts.push(vir::Stmt::inhale(
+                        vir::Expr::eq_cmp(discriminant, discr_value),
+                        vir::Position::default(),
+                    ));
 
                     let variant_name = variant_def.ident(tcx).to_string();
                     let new_dst_base = dst_base.variant(&variant_name);
@@ -6841,9 +6815,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .with_span(span)?;
 
                     stmts.push(
-                        vir::Stmt::Inhale( vir::Inhale {
-                            expr: vir_expr!{ [lookup_pure_call] == [vir::Expr::snap_app(encoded_operand)]},
-                        }),
+                        vir::Stmt::inhale(
+                            vir_expr!{ [lookup_pure_call] == [vir::Expr::snap_app(encoded_operand)]},
+                            vir::Position::default()
+                        ),
                     );
                 }
             }
@@ -6947,9 +6922,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             position: vir::Position::default(),
         }));
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [ lookup_pure_call ] == [ snap_lookup_res_val_field ] }
-        }));
+        stmts.push(vir::Stmt::inhale(
+            vir_expr!{ [ lookup_pure_call ] == [ snap_lookup_res_val_field ] },
+            vir::Position::default(),
+        ));
         Ok((lookup_res, stmts))
     }
 
@@ -7003,9 +6979,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             idx_val_int.clone(),
             lookup_ret_ty.clone(),
         );
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [ old(lookup_pure_call) ] == [ snap_res_val_field ] }
-        }));
+        stmts.push(vir::Stmt::inhale(
+            vir_expr!{ [ old(lookup_pure_call) ] == [ snap_res_val_field ] },
+            vir::Position::default(),
+        ));
 
         // inhale magic wand
         //

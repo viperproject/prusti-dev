@@ -74,10 +74,12 @@ impl vir::StmtFolder for Optimizer {
             position,
         })
     }
-    fn fold_inhale(&mut self, vir::Inhale { expr }: vir::Inhale) -> vir::Stmt {
+    fn fold_inhale(&mut self, vir::Inhale { expr, position }: vir::Inhale) -> vir::Stmt {
         let pulled_unfolding = self.replace_expr_unfolding(expr);
         let replaced_old = self.replace_expr_old(pulled_unfolding);
-        vir::Stmt::Inhale(vir::Inhale { expr: replaced_old })
+        vir::Stmt::Inhale(vir::Inhale { expr: replaced_old,
+            position
+        })
     }
 }
 
