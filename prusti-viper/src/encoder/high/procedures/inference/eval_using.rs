@@ -28,8 +28,10 @@ pub(super) fn wrap_in_eval_using(
                 vir_typed::Expression::LabelledOld(vir_typed::LabelledOld {
                     base: box vir_typed::Expression::Local(_),
                     ..
-                }) => vir_typed::EvalInContextKind::Old,
-                _ => vir_typed::EvalInContextKind::OldOpenedRefPredicate,
+                // }) => vir_typed::EvalInContextKind::Old,
+                // _ => vir_typed::EvalInContextKind::OldOpenedRefPredicate,
+                }) => vir_typed::EvalInContextKind::Predicate,
+                _ => vir_typed::EvalInContextKind::OpenedRefPredicate,
             };
             if !framing_places.contains(old_wrap) {
                 // FIXME: We should look up the actual state of the place in the
@@ -91,14 +93,24 @@ pub(super) fn wrap_in_eval_using(
         let context = if matches!(
             kind,
             vir_typed::EvalInContextKind::Predicate
-                | vir_typed::EvalInContextKind::OpenedRefPredicate
-                | vir_typed::EvalInContextKind::Old
-                | vir_typed::EvalInContextKind::OldOpenedRefPredicate
+                | vir_typed::EvalInContextKind::OpenedRefPredicate // | vir_typed::EvalInContextKind::Old
+                                                                   // | vir_typed::EvalInContextKind::OldOpenedRefPredicate
         ) {
-            vir_typed::Expression::acc_predicate(
-                vir_typed::Predicate::owned_non_aliased(framing_place, position),
-                position,
-            )
+            if let vir_typed::Expression::LabelledOld(labelled_old) = framing_place {
+                vir_typed::Expression::labelled_old(
+                    labelled_old.label,
+                    vir_typed::Expression::acc_predicate(
+                        vir_typed::Predicate::owned_non_aliased(*labelled_old.base, position),
+                        position,
+                    ),
+                    position,
+                )
+            } else {
+                vir_typed::Expression::acc_predicate(
+                    vir_typed::Predicate::owned_non_aliased(framing_place, position),
+                    position,
+                )
+            }
         } else {
             framing_place
         };

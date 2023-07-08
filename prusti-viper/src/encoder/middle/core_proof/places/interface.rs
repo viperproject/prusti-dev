@@ -114,8 +114,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         place: &vir_mid::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let mut encoder = PlaceEncoder {};
-        encoder.encode_expression(place, self)
+        if place.is_behind_pointer_dereference() {
+            self.place_option_none_constructor(place.position())
+        } else {
+            let mut encoder = PlaceEncoder {};
+            encoder.encode_expression(place, self)
+        }
     }
     fn encode_field_place(
         &mut self,
