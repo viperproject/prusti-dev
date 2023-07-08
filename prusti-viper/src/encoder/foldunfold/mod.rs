@@ -344,7 +344,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 // Rewrite statement
                 Ok(vir::Stmt::inhale(
                     self.replace_expr(&expr, &inner_pctxt)?,
-                    position
+                    position,
                 ))
             }
             vir::Stmt::TransferPerm(vir::TransferPerm {

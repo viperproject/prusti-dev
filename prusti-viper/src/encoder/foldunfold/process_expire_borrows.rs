@@ -475,9 +475,12 @@ fn patch_places(stmts: &[vir::Stmt], maybe_label: Option<&str>) -> Vec<vir::Stmt
                 | vir::Stmt::ApplyMagicWand(_)
                 | vir::Stmt::TransferPerm(_)
                 | vir::Stmt::Assign(_) => stmt.clone(),
-                vir::Stmt::Inhale(vir::Inhale { expr, position }) => vir::Stmt::Inhale(vir::Inhale {
-                    expr: patch_expr(label, expr), position: *position
-                }),
+                vir::Stmt::Inhale(vir::Inhale { expr, position }) => {
+                    vir::Stmt::Inhale(vir::Inhale {
+                        expr: patch_expr(label, expr),
+                        position: *position,
+                    })
+                }
                 vir::Stmt::Exhale(vir::Exhale { expr, position }) => {
                     vir::Stmt::Exhale(vir::Exhale {
                         expr: patch_expr(label, expr),
