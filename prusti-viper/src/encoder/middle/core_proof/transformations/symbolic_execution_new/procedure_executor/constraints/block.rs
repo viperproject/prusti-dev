@@ -523,8 +523,9 @@ impl BlockConstraints {
                 vir_low::Type::Map(_) => todo!("{ty}"),
                 vir_low::Type::Ref => todo!("{ty}"),
                 vir_low::Type::Domain(_) if program_context.is_place_option_type(ty) => {
-                    // Places have to be syntactically equal.
-                    false
+                    // Places have to be syntactically equal, except when they are both aliased (none).
+                    !program_context.is_place_non_aliased(arg1)
+                        && !program_context.is_place_non_aliased(arg2)
                 }
                 // vir_low::Type::Domain(_) if program_context.is_address_type(ty) => self
                 //     .equality_classes
