@@ -530,6 +530,14 @@ impl Stmt {
         Stmt::Assume(Assume { expr, position })
     }
 
+    pub fn assert(expr: Expr, position: Position) -> Self {
+        Stmt::Assert(Assert { expr, position })
+    }
+
+    pub fn refute(expr: Expr, position: Position) -> Self {
+        Stmt::Refute(Refute { expr, position })
+    }
+
     pub fn package_magic_wand(
         lhs: Expr,
         rhs: Expr,

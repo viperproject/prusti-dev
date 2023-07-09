@@ -12,6 +12,7 @@ use prusti_rustc_interface::span::source_map::SourceMap;
 use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
+use prusti_interface::specs::typed::DirectSpecificationKind;
 use log::{debug, trace};
 use super::PositionManager;
 use prusti_interface::data::ProcedureDefId;
@@ -30,8 +31,6 @@ pub enum PanicCause {
     Panic,
     /// Caused by an assert!()
     Assert,
-    /// Caused by an refute!()
-    Refute,
     /// Caused by an debug_assert!()
     DebugAssert,
     /// Caused by an unreachable!()
@@ -60,6 +59,7 @@ pub enum BuiltinMethodKind {
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
     Panic(PanicCause),
+    DirectSpecification(DirectSpecificationKind),
     /// A Viper `exhale expr` or `assert expr` that encodes the call of a Rust procedure with precondition `expr`
     ExhaleMethodPrecondition, // FIXME rename to not sugguest that it has to be an `exhale`, but can
                               // also be an `assert`
@@ -394,16 +394,6 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:insufficient.permission", ErrorCtxt::Panic(PanicCause::Assert | PanicCause::DebugAssert)) => {
-                    PrustiError::verification("there might be not enough resources for the asserted expression", error_span)
-                    .set_failing_assertion(opt_cause_span)
-            }
-
-            ("assert.failed:qp.not.injective", ErrorCtxt::Panic(PanicCause::Assert | PanicCause::DebugAssert)) => {
-                    PrustiError::verification("quantified resource in the asserted expression might not be injective", error_span)
-                    .set_failing_assertion(opt_cause_span)
-            }
-
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => {
                 PrustiError::verification("unreachable!(..) statement might be reachable", error_span)
                     .set_failing_assertion(opt_cause_span)
@@ -713,6 +703,34 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("assert.failed:assertion.false", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assertion)) => {
+                PrustiError::verification(
+                    "the asserted expression might not hold".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:assertion.false", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Exhalation)) => {
+                PrustiError::verification(
+                    "the exhaled expression might not hold".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:insufficient.permission", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assertion)) => {
+                PrustiError::verification(
+                    "there might be not enough resources for the asserted expression to hold".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:insufficient.permission", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Exhalation)) => {
+                PrustiError::verification(
+                    "there might be not enough resources for the exhale".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
             ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleMethodPrecondition) => {
                 PrustiError::verification(
                     "quantified resource in the callee's precondition might not be injective".to_string(),
@@ -744,6 +762,45 @@ impl<'tcx> ErrorManager<'tcx> {
             ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleLoopInvariantOnEntry | ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "quantified resource in the loop invariant might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assertion)) => {
+                PrustiError::verification(
+                    "quantified resource in the asserted expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            // Viper currently doesn't seem to report non-injective QP in `assume` making this case
+            // effectless
+            ("assume.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assumption)) => {
+                PrustiError::verification(
+                    "quantified resource in the assumed expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Exhalation)) => {
+                PrustiError::verification(
+                    "quantified resource in the exhaled expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Inhalation)) => {
+                PrustiError::verification(
+                    "quantified resource in the inhaled expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            // Viper currently doesn't seem to report non-injective QP in `refute` making this case
+            // effectless
+            ("refute.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Refutation)) => {
+                PrustiError::verification(
+                    "quantified resource in the refuted expression might not be injective".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }
@@ -808,7 +865,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 PrustiError::verification_with_help(format!("a loop iteration might leak instances of obligation `{}`", obligation_name), error_span, format!("make sure that any aquisition of instances of `{}` in the loop iteration is reflected in the loop invariant", obligation_name))
             }
 
-            ("refute.failed:refutation.true", ErrorCtxt::Panic(PanicCause::Refute)) => {
+            ("refute.failed:refutation.true", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Refutation)) => {
                 PrustiError::verification(
                     "the refuted expression holds in all cases or could not be reached",
                     error_span,

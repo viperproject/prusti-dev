@@ -84,11 +84,7 @@ pub struct SpecCollector<'a, 'tcx> {
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
     type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
-    prusti_assertions: Vec<LocalDefId>,
-    prusti_assumptions: Vec<LocalDefId>,
-    prusti_exhalations: Vec<LocalDefId>,
-    prusti_inhalations: Vec<LocalDefId>,
-    prusti_refutations: Vec<LocalDefId>,
+    direct_specs: Vec<(LocalDefId, typed::DirectSpecificationKind)>,
     ghost_begin: Vec<LocalDefId>,
     ghost_end: Vec<LocalDefId>,
 }
@@ -103,11 +99,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             loop_specs: vec![],
             loop_variants: vec![],
             type_specs: FxHashMap::default(),
-            prusti_assertions: vec![],
-            prusti_assumptions: vec![],
-            prusti_exhalations: vec![],
-            prusti_inhalations: vec![],
-            prusti_refutations: vec![],
+            direct_specs: vec![],
             ghost_begin: vec![],
             ghost_end: vec![],
         }
@@ -126,11 +118,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
-        self.determine_prusti_assertions(&mut def_spec);
-        self.determine_prusti_assumptions(&mut def_spec);
-        self.determine_prusti_exhalations(&mut def_spec);
-        self.determine_prusti_inhalations(&mut def_spec);
-        self.determine_prusti_refutations(&mut def_spec);
+        self.determine_direct_specs(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
@@ -267,52 +255,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             );
         }
     }
-    fn determine_prusti_assertions(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_assertions.iter() {
-            def_spec.prusti_assertions.insert(
+    fn determine_direct_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for (local_id, spec_kind) in self.direct_specs.iter() {
+            def_spec.direct_specs.insert(
                 local_id.to_def_id(),
-                typed::PrustiAssertion {
-                    assertion: *local_id,
-                },
-            );
-        }
-    }
-    fn determine_prusti_assumptions(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_assumptions.iter() {
-            def_spec.prusti_assumptions.insert(
-                local_id.to_def_id(),
-                typed::PrustiAssumption {
-                    assumption: *local_id,
-                },
-            );
-        }
-    }
-    fn determine_prusti_exhalations(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_exhalations.iter() {
-            def_spec.prusti_exhalations.insert(
-                local_id.to_def_id(),
-                typed::PrustiExhalation {
-                    exhalation: *local_id,
-                },
-            );
-        }
-    }
-    fn determine_prusti_inhalations(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_inhalations.iter() {
-            def_spec.prusti_inhalations.insert(
-                local_id.to_def_id(),
-                typed::PrustiInhalation {
-                    inhalation: *local_id,
-                },
-            );
-        }
-    }
-    fn determine_prusti_refutations(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_refutations.iter() {
-            def_spec.prusti_refutations.insert(
-                local_id.to_def_id(),
-                typed::PrustiRefutation {
-                    refutation: *local_id,
+                typed::DirectSpecification {
+                    specification: *local_id,
+                    kind: *spec_kind,
                 },
             );
         }
@@ -563,23 +512,23 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
 
             if has_prusti_attr(attrs, "prusti_assertion") {
-                self.prusti_assertions.push(local_id);
+                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Assertion));
             }
 
             if has_prusti_attr(attrs, "prusti_assumption") {
-                self.prusti_assumptions.push(local_id);
+                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Assumption));
             }
 
             if has_prusti_attr(attrs, "prusti_exhalation") {
-                self.prusti_exhalations.push(local_id);
+                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Exhalation));
             }
 
             if has_prusti_attr(attrs, "prusti_inhalation") {
-                self.prusti_inhalations.push(local_id);
+                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Inhalation));
             }
 
             if has_prusti_attr(attrs, "prusti_refutation") {
-                self.prusti_refutations.push(local_id);
+                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Refutation));
             }
 
             if has_prusti_attr(attrs, "ghost_begin") {

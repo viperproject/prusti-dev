@@ -27,15 +27,31 @@ fn f4() {
 }
 
 fn f5() {
-    prusti_assert!(forall(|x: usize| obl(1))); //~ ERROR quantified resource in the asserted expression might not be injective
-}
-
-fn f6() {
     loop {
         body_invariant!(forall(|x: usize| obl(1))); //~ ERROR quantified resource in the loop invariant might not be injective
     }
 }
 
-// TODO add cases for assume, inhale, exhale
+fn f6() {
+    prusti_assert!(forall(|x: usize| obl(1))); //~ ERROR quantified resource in the asserted expression might not be injective
+}
+
+fn f7() {
+    // Viper currently doesn't seem to report non-injective QP in `assume`
+    prusti_assume!(forall(|x: usize| obl(1)));
+}
+
+fn f8() {
+    prusti_exhale!(forall(|x: usize| obl(1))); //~ ERROR quantified resource in the exhaled expression might not be injective
+}
+
+fn f9() {
+    prusti_inhale!(forall(|x: usize| obl(1))); //~ ERROR quantified resource in the inhaled expression might not be injective
+}
+
+fn f10() {
+    // Viper currently doesn't seem to report non-injective QP in `refute`
+    prusti_refute!(forall(|x: usize| obl(1)));
+}
 
 fn main() {}

@@ -10,7 +10,6 @@ use crate::encoder::errors::{
     SpannedEncodingError, ErrorCtxt, EncodingError, WithSpan,
     EncodingResult, SpannedEncodingResult
 };
-use crate::encoder::errors::error_manager::PanicCause;
 use crate::encoder::foldunfold;
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::initialisation::InitInfo;
@@ -68,7 +67,7 @@ use ::log::{trace, debug};
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use std::convert::TryInto;
-use prusti_interface::specs::typed::{Pledge, SpecificationItem};
+use prusti_interface::specs::typed::{DirectSpecificationKind, Pledge, SpecificationItem};
 use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
 use crate::encoder::mir::{
@@ -224,15 +223,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_statements: &mut Vec<vir::Stmt>,
     ) -> SpannedEncodingResult<()> {
         let block = &self.mir[bb];
-        let _ = self.try_encode_assert(bb, block, encoded_statements)?
-        || self.try_encode_assume(bb, block, encoded_statements)?
-        || self.try_encode_exhale(bb, block, encoded_statements)?
-        || self.try_encode_inhale(bb, block, encoded_statements)?
-        || self.try_encode_refute(bb, block, encoded_statements)?;
+        let _ = self.try_encode_direct_spec(bb, block, encoded_statements)?;
         Ok(())
     }
 
-    fn try_encode_exhale(
+    fn try_encode_direct_spec(
         &mut self,
         bb: mir::BasicBlock,
         block: &mir::BasicBlockData<'tcx>,
@@ -244,141 +239,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                if self.encoder.get_prusti_exhalation(cl_def_id).is_none() {
-                    return Ok(false);
-                }
-                let exhale_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let exhale_stmt = vir::Stmt::exhale(exhale_expr, vir::Position::default());
-                encoded_statements.push(exhale_stmt);
-
-                return Ok(true);
-            }
-        }
-        Ok(false)
-    }
-
-    fn try_encode_inhale(
-        &mut self,
-        bb: mir::BasicBlock,
-        block: &mir::BasicBlockData<'tcx>,
-        encoded_statements: &mut Vec<vir::Stmt>,
-    ) -> SpannedEncodingResult<bool> {
-        for stmt in &block.statements {
-            if let mir::StatementKind::Assign(box (
-                _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
-            )) = stmt.kind
-            {
-                if self.encoder.get_prusti_inhalation(cl_def_id).is_none() {
-                    return Ok(false);
-                }
-                let inhale_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let inhale_stmt = vir::Stmt::inhale(inhale_expr, vir::Position::default());
-                encoded_statements.push(inhale_stmt);
-
-                return Ok(true);
-            }
-        }
-        Ok(false)
-    }
-
-    fn try_encode_assume(
-        &mut self,
-        bb: mir::BasicBlock,
-        block: &mir::BasicBlockData<'tcx>,
-        encoded_statements: &mut Vec<vir::Stmt>,
-    ) -> SpannedEncodingResult<bool> {
-        for stmt in &block.statements {
-            if let mir::StatementKind::Assign(box (
-                _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
-            )) = stmt.kind
-            {
-                if self.encoder.get_prusti_assumption(cl_def_id).is_none() {
-                    return Ok(false);
-                }
-                let assume_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let assume_stmt = vir::Stmt::assume(assume_expr, vir::Position::default());
-                encoded_statements.push(assume_stmt);
-
-                return Ok(true);
-            }
-        }
-        Ok(false)
-    }
-
-    fn try_encode_assert(
-        &mut self,
-        bb: mir::BasicBlock,
-        block: &mir::BasicBlockData<'tcx>,
-        encoded_statements: &mut Vec<vir::Stmt>,
-    ) -> SpannedEncodingResult<bool> {
-        for stmt in &block.statements {
-            if let mir::StatementKind::Assign(box (
-                _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
-            )) = stmt.kind
-            {
-                let assertion = match self.encoder.get_prusti_assertion(cl_def_id) {
+                let spec = match self.encoder.get_direct_spec(cl_def_id) {
                     Some(spec) => spec,
                     None => return Ok(false),
                 };
 
                 let span = self
                     .encoder
-                    .get_definition_span(assertion.assertion.to_def_id());
+                    .get_definition_span(spec.specification.to_def_id());
 
-                let assert_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let assert_stmt = vir::Stmt::Assert(
-                    vir::Assert {
-                        expr: assert_expr,
-                        position: self.register_error(span, ErrorCtxt::Panic(PanicCause::Assert))
-                    }
-                );
-
-                encoded_statements.push(assert_stmt);
-
-                return Ok(true);
-            }
-        }
-        Ok(false)
-    }
-
-    fn try_encode_refute(
-        &mut self,
-        bb: mir::BasicBlock,
-        block: &mir::BasicBlockData<'tcx>,
-        encoded_statements: &mut Vec<vir::Stmt>,
-    ) -> SpannedEncodingResult<bool> {
-        for stmt in &block.statements {
-            if let mir::StatementKind::Assign(box (
-                _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
-            )) = stmt.kind
-            {
-                let refutation = match self.encoder.get_prusti_refutation(cl_def_id) {
-                    Some(spec) => spec,
-                    None => return Ok(false),
+                let spec_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+                let position = self.register_error(span, ErrorCtxt::DirectSpecification(spec.kind));
+                let spec_stmt = match spec.kind {
+                    DirectSpecificationKind::Assertion => vir::Stmt::assert(spec_expr, position),
+                    DirectSpecificationKind::Assumption => vir::Stmt::assume(spec_expr, position),
+                    DirectSpecificationKind::Exhalation => vir::Stmt::exhale(spec_expr, position),
+                    DirectSpecificationKind::Inhalation => vir::Stmt::inhale(spec_expr, position),
+                    DirectSpecificationKind::Refutation => vir::Stmt::refute(spec_expr, position),
                 };
 
-                let span = self
-                    .encoder
-                    .get_definition_span(refutation.refutation.to_def_id());
-
-                let refute_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let refute_stmt = vir::Stmt::Refute(
-                    vir::Refute {
-                        expr: refute_expr,
-                        position: self.register_error(span, ErrorCtxt::Panic(PanicCause::Refute))
-                    }
-                );
-
-                encoded_statements.push(refute_stmt);
+                encoded_statements.push(spec_stmt);
 
                 return Ok(true);
             }
