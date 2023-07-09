@@ -16,11 +16,12 @@ impl DomainRewriteRuleDecl {
         } else {
             vec![Trigger::new(vec![self.source.clone()])]
         };
-        let body = Expression::forall(
-            self.variables.clone(),
-            triggers,
-            Expression::equals(self.source.clone(), self.target.clone()),
-        );
+        let equality = Expression::equals(self.source.clone(), self.target.clone());
+        let body = if self.variables.is_empty() {
+            equality
+        } else {
+            Expression::forall(self.variables.clone(), triggers, equality)
+        };
         DomainAxiomDecl {
             comment: self.comment.clone(),
             name: self.name.clone(),

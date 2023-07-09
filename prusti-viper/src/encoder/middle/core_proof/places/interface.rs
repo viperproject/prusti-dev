@@ -24,6 +24,8 @@ use vir_crate::{
 pub(in super::super) struct PlacesState {
     /// For which types array index axioms were generated.
     array_index_axioms: FxHashSet<String>,
+    /// Encoded simp rules for propagating `none` place.
+    encoded_none_simp_rules: FxHashSet<String>,
 }
 
 pub(in super::super) trait PlacesInterface {
@@ -68,10 +70,10 @@ pub(in super::super) trait PlacesInterface {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
     fn encode_place_array_index_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
-    fn encode_aliased_place_root(
-        &mut self,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression>;
+    // fn encode_aliased_place_root(
+    //     &mut self,
+    //     position: vir_low::Position,
+    // ) -> SpannedEncodingResult<vir_low::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
@@ -129,6 +131,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
         debug_assert_eq!(base_place.get_type(), &self.place_option_type()?);
+        let rule_name = format!(
+            "place_option_none${}$field${}",
+            base_type.get_identifier(),
+            field.name
+        );
+        if !self
+            .places_state
+            .encoded_none_simp_rules
+            .contains(&rule_name)
+        {
+            self.places_state
+                .encoded_none_simp_rules
+                .insert(rule_name.clone());
+            let none_place = self.place_option_none_constructor(position)?;
+            let source = self.encode_field_access_function_app(
+                PLACE_OPTION_DOMAIN_NAME,
+                none_place.clone(),
+                base_type,
+                field,
+                position,
+            )?;
+            let axiom = vir_low::DomainRewriteRuleDecl::new(
+                None,
+                rule_name,
+                false,
+                Vec::new(),
+                None,
+                source,
+                none_place,
+            );
+            self.declare_rewrite_rule(PLACE_OPTION_DOMAIN_NAME, axiom)?;
+        }
         self.encode_field_access_function_app(
             PLACE_OPTION_DOMAIN_NAME,
             base_place,
@@ -232,20 +266,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
-    fn encode_aliased_place_root(
-        &mut self,
-        _position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
-        unimplemented!();
-        // let return_type = self.place_type()?;
-        // let place_root = self.create_domain_func_app(
-        //     PLACE_OPTION_DOMAIN_NAME,
-        //     "aliased_place_root",
-        //     vec![],
-        //     return_type,
-        //     position,
-        // )?;
-        // self.encode_compute_address_for_place_root(&place_root)?;
-        // Ok(place_root)
-    }
+    // fn encode_aliased_place_root(
+    //     &mut self,
+    //     _position: vir_low::Position,
+    // ) -> SpannedEncodingResult<vir_low::Expression> {
+    //     unimplemented!();
+    //     // let return_type = self.place_type()?;
+    //     // let place_root = self.create_domain_func_app(
+    //     //     PLACE_OPTION_DOMAIN_NAME,
+    //     //     "aliased_place_root",
+    //     //     vec![],
+    //     //     return_type,
+    //     //     position,
+    //     // )?;
+    //     // self.encode_compute_address_for_place_root(&place_root)?;
+    //     // Ok(place_root)
+    // }
 }
