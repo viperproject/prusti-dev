@@ -160,7 +160,12 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
                 self.snap_function_call(MEMORY_BLOCK_PREDICATE_NAME, arguments)
             }
             vir_low::FunctionKind::CallerFor => {
-                unimplemented!("func_app: {func_app}");
+                let inlined_function = function
+                    .body
+                    .clone()
+                    .unwrap()
+                    .substitute_variables(&replacements);
+                Ok(inlined_function)
             }
             vir_low::FunctionKind::SnapRange => {
                 let predicate_name = self
@@ -172,7 +177,25 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
                 let predicate_name = self
                     .heap_encoder
                     .get_predicate_name_for_function(&func_app.function_name)?;
-                self.snap_function_call(&predicate_name, arguments)
+                let validity_function = {
+                    // FIXME: This is a hack, put it into OwnedPredicateInfo instead.
+                    match function.posts[0].clone() {
+                        vir_low::Expression::DomainFuncApp(domain_func_app) => {
+                            assert!(domain_func_app.function_name.starts_with("valid$Snap$"));
+                            assert_eq!(domain_func_app.arguments.len(), 1);
+                            domain_func_app
+                        }
+                        _ => unreachable!(),
+                    }
+                };
+                let call = self.snap_function_call(&predicate_name, arguments)?;
+                let ensures_validity = vir_low::Expression::domain_function_call(
+                    "HeapFunctions",
+                    format!("ensures${}", validity_function.function_name),
+                    vec![call],
+                    func_app.return_type,
+                );
+                Ok(ensures_validity)
             }
         }
     }

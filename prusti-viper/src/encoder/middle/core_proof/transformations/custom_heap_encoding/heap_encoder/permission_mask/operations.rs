@@ -159,7 +159,7 @@ impl TPermissionMaskOperations
     }
 
     fn perm_old_positive(&self) -> vir_low::Expression {
-        vir_low::Expression::greater_equals(
+        vir_low::Expression::greater_than(
             self.perm_old.clone(),
             vir_low::Expression::no_permission(),
         )
@@ -324,7 +324,7 @@ impl<'a> TQuantifiedPermissionMaskOperations
         heap_encoder: &mut HeapEncoder,
         predicate_location: Vec<vir_low::Expression>,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        Ok(vir_low::Expression::greater_equals(
+        Ok(vir_low::Expression::greater_than(
             self.perm_old(heap_encoder, predicate_location)?,
             vir_low::Expression::no_permission(),
         ))
