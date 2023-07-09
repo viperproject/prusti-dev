@@ -334,29 +334,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     .mir_encoder
                     .encode_operand_expr(discr)
                     .with_span(span)?;
-                for (value, target) in targets.iter() {
-                    // Convert int to bool, if required
-                    let viper_guard = match switch_ty.kind() {
-                        ty::TyKind::Bool => {
-                            if value == 0 {
-                                // If discr is 0 (false)
-                                vir::Expr::not(discr_val.clone())
-                            } else {
-                                // If discr is not 0 (true)
-                                discr_val.clone()
+                let default_target = if matches!(switch_ty.kind(), ty::TyKind::Bool)
+                    && targets.iter().count() == 1
+                    && targets.iter().next().unwrap().0 == 0
+                {
+                    // This a special case for a more natural encoding:
+                    // Given that A is bool variable in Rust,
+                    // if A { ...BB1... } else { ...BB2... }
+                    // would have
+                    //     discr = A
+                    //     targets = BB2 for value 0, BB1 otherwise
+                    // So using the general algorithm (see the else branch below), this would
+                    // get encoded as (!A ? ...BB2... : ...BB1...).
+                    // However (e.g. for error reporting), it is beneficial to produce the more natural
+                    // encoding (A ? ...BB1... : ...BB2...), which is what we do on the two lines below.
+                    cfg_targets.push((discr_val, targets.otherwise()));
+                    targets.iter().next().unwrap().1
+                } else {
+                    for (value, target) in targets.iter() {
+                        // Convert int to bool, if required
+                        let viper_guard = match switch_ty.kind() {
+                            ty::TyKind::Bool => {
+                                if value == 0 {
+                                    // If discr is 0 (false)
+                                    vir::Expr::not(discr_val.clone())
+                                } else {
+                                    // If discr is not 0 (true)
+                                    discr_val.clone()
+                                }
                             }
-                        }
 
-                        ty::TyKind::Int(_) | ty::TyKind::Uint(_) => vir::Expr::eq_cmp(
-                            discr_val.clone(),
-                            self.encoder.encode_int_cast(value, switch_ty),
-                        ),
+                            ty::TyKind::Int(_) | ty::TyKind::Uint(_) => vir::Expr::eq_cmp(
+                                discr_val.clone(),
+                                self.encoder.encode_int_cast(value, switch_ty),
+                            ),
 
-                        ref x => unreachable!("{:?}", x),
-                    };
-                    cfg_targets.push((viper_guard, target))
-                }
-                let default_target = targets.otherwise();
+                            ref x => unreachable!("{:?}", x),
+                        };
+                        cfg_targets.push((viper_guard, target))
+                    }
+                    targets.otherwise()
+                };
 
                 let default_target_terminator = self.mir.basic_blocks[default_target]
                     .terminator

@@ -207,11 +207,12 @@ impl ExprSimplifier {
                 right: Box::new(Self::apply_rules(op2)),
                 position: pos,
             }),
-            // added to satisfy Viper because we don't do desugaring of quantified permissions
-            // elsewhere; consider calling the Viper functions that does that instead
+            // the following transformations of foralls are necessary because the verifier backends rely on them (they are normally done by Silver when traslating the parse AST into real Viper AST);
+            // alternatively, consider calling the Silver functions that do this
+            // transform (forall A ==> B ==> C) into (forall (A && B) ==> C)
             ast::Expr::ForAll(ast::ForAll {
-                variables: vars,
-                triggers: trigs,
+                variables,
+                triggers,
                 body:
                     box ast::Expr::BinOp(ast::BinOp {
                         op_kind: ast::BinaryOpKind::Implies,
@@ -223,29 +224,46 @@ impl ExprSimplifier {
                                 right: box ex,
                                 ..
                             }),
-                        position: pos0,
+                        position: pos_body,
                     }),
                 position: pos_quant,
-            }) if !ex.is_pure() => Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
-                variables: vars,
-                triggers: trigs,
-                body: Box::new(ast::Expr::BinOp(ast::BinOp {
-                    op_kind: ast::BinaryOpKind::Implies,
-                    left: Box::new(ast::Expr::BinOp(ast::BinOp {
-                        op_kind: ast::BinaryOpKind::And,
-                        left: Box::new(c0),
-                        right: Box::new(c1),
-                        position: pos0,
-                    })),
-                    right: Box::new(ex),
-                    position: pos0,
-                })),
-                position: pos_quant,
-            })),
-            // same comment as above
+            }) if !ex.is_pure() => Self::apply_rules(
+                ast::Expr::forall(
+                    variables,
+                    triggers,
+                    ast::Expr::implies(ast::Expr::and(c0, c1).set_pos(pos_body), ex)
+                        .set_pos(pos_body),
+                )
+                .set_pos(pos_quant),
+            ),
+            // transform (forall A) into (forall true ==> A) if A is not an implication
             ast::Expr::ForAll(ast::ForAll {
-                variables: vars,
-                triggers: trigs,
+                variables,
+                triggers,
+                body: box body,
+                position,
+            }) if !body.is_pure()
+                && !matches!(
+                    body,
+                    ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::Implies,
+                        ..
+                    })
+                ) =>
+            {
+                Self::apply_rules(
+                    ast::Expr::forall(
+                        variables,
+                        triggers,
+                        ast::Expr::implies(true.into(), body.clone()).set_pos(body.pos()),
+                    )
+                    .set_pos(position),
+                )
+            }
+            // transform (forall A ==> (B && C)) into ((forall A ==> B) && (forall A ==> C))
+            ast::Expr::ForAll(ast::ForAll {
+                variables,
+                triggers,
                 body:
                     box ast::Expr::BinOp(ast::BinOp {
                         op_kind: ast::BinaryOpKind::Implies,
@@ -260,32 +278,25 @@ impl ExprSimplifier {
                         position: pos_body,
                     }),
                 position: pos_quant,
-            }) if !part0.is_pure() || !part1.is_pure() => ast::Expr::BinOp(ast::BinOp {
-                op_kind: ast::BinaryOpKind::And,
-                left: Box::new(Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
-                    variables: vars.clone(),
-                    triggers: trigs.clone(),
-                    body: Box::new(ast::Expr::BinOp(ast::BinOp {
-                        op_kind: ast::BinaryOpKind::Implies,
-                        left: Box::new(cond.clone()),
-                        right: Box::new(part0),
-                        position: pos_body,
-                    })),
-                    position: pos_quant,
-                }))),
-                right: Box::new(Self::apply_rules(ast::Expr::ForAll(ast::ForAll {
-                    variables: vars,
-                    triggers: trigs,
-                    body: Box::new(ast::Expr::BinOp(ast::BinOp {
-                        op_kind: ast::BinaryOpKind::Implies,
-                        left: Box::new(cond),
-                        right: Box::new(part1),
-                        position: pos_body,
-                    })),
-                    position: pos_quant,
-                }))),
-                position: pos_quant,
-            }),
+            }) if !part0.is_pure() || !part1.is_pure() => ast::Expr::and(
+                Self::apply_rules(
+                    ast::Expr::forall(
+                        variables.clone(),
+                        triggers.clone(),
+                        ast::Expr::implies(cond.clone(), part0).set_pos(pos_body),
+                    )
+                    .set_pos(pos_quant),
+                ),
+                Self::apply_rules(
+                    ast::Expr::forall(
+                        variables,
+                        triggers,
+                        ast::Expr::implies(cond, part1).set_pos(pos_body),
+                    )
+                    .set_pos(pos_quant),
+                ),
+            )
+            .set_pos(pos_quant),
             r => r,
         }
     }
