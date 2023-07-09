@@ -120,6 +120,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             UniqueRefCurrentSnapFunctionBuilder::new(self, normalized_type, type_decl)?;
         builder.create_parameters()?;
         builder.add_unique_ref_precondition()?;
+        builder.add_validity_postcondition()?;
         match &type_decl {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
@@ -258,6 +259,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         let mut builder = FracRefSnapFunctionBuilder::new(self, normalized_type, type_decl)?;
         builder.create_parameters()?;
         builder.add_frac_ref_precondition()?;
+        builder.add_validity_postcondition()?;
         match &type_decl {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)

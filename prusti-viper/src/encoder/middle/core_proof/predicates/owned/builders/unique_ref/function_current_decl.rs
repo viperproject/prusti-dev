@@ -196,11 +196,17 @@ impl<'l, 'p, 'v, 'tcx> UniqueRefCurrentSnapFunctionBuilder<'l, 'p, 'v, 'tcx> {
         self.inner.add_snapshot_body_postcondition(body)
     }
 
-    pub(in super::super::super) fn add_snapshot_postcondition(
+    // pub(in super::super::super) fn add_snapshot_postcondition(
+    //     &mut self,
+    //     expression: vir_low::Expression,
+    // ) -> SpannedEncodingResult<()> {
+    //     self.inner.add_snapshot_postcondition(expression)
+    // }
+
+    pub(in super::super::super) fn add_validity_postcondition(
         &mut self,
-        expression: vir_low::Expression,
     ) -> SpannedEncodingResult<()> {
-        self.inner.add_snapshot_postcondition(expression)
+        self.inner.add_validity_postcondition()
     }
 
     // pub(in super::super::super) fn add_validity_postcondition(

@@ -1,5 +1,6 @@
 use super::HeapEncoder;
 use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
+use rustc_hash::FxHashSet;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
     low::{
@@ -134,6 +135,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             vir_low::DomainDecl::new("HeapVersion", Vec::new(), Vec::new(), Vec::new());
         domains.push(heap_version_domain);
         let mut functions = Vec::new();
+        let mut axioms = Vec::new();
+        let mut already_encoded_ensures_validity_functions = FxHashSet::default();
         for predicate in self.predicates.iter_decls() {
             if let Some(snapshot_type) = self.get_snapshot_type_for_predicate(&predicate.name) {
                 let mut parameters = predicate.parameters.clone();
@@ -145,11 +148,56 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     self.heap_function_name(&predicate.name),
                     false,
                     parameters,
-                    snapshot_type,
+                    snapshot_type.clone(),
                 ));
+                if predicate.kind == vir_low::PredicateKind::Owned
+                    && !already_encoded_ensures_validity_functions.contains(&snapshot_type)
+                {
+                    already_encoded_ensures_validity_functions.insert(snapshot_type.clone());
+                    // Ensures validity function definition.
+                    let vir_low::Type::Domain(snapshot_domain) = &snapshot_type else {
+                        unreachable!("snapshot_type: {snapshot_type}")
+                    };
+                    // FIXME: Do not rely on strings. Use OwnedPredicateInfo instead.
+                    let validity_function_name = format!("valid${}", snapshot_domain.name);
+                    let ensures_validity_function_name =
+                        format!("ensures${}", validity_function_name);
+                    let parameter = vir_low::VariableDecl::new("snapshot", snapshot_type.clone());
+                    functions.push(vir_low::DomainFunctionDecl::new(
+                        ensures_validity_function_name.clone(),
+                        false,
+                        vec![parameter.clone()],
+                        snapshot_type.clone(),
+                    ));
+                    let function_call = vir_low::Expression::domain_function_call(
+                        "HeapFunctions",
+                        ensures_validity_function_name.clone(),
+                        vec![parameter.clone().into()],
+                        snapshot_type.clone(),
+                    );
+                    let validity_function_call = vir_low::Expression::domain_function_call(
+                        snapshot_domain.name.clone(),
+                        validity_function_name.clone(),
+                        vec![parameter.clone().into()],
+                        vir_low::Type::Bool,
+                    );
+                    let axiom_body = vir_low::Expression::forall(
+                        vec![parameter.clone()],
+                        vec![vir_low::Trigger::new(vec![function_call.clone()])],
+                        vir_low::Expression::and(
+                            vir_low::Expression::equals(function_call, parameter.clone().into()),
+                            validity_function_call,
+                        ),
+                    );
+                    let definitional_axiom = vir_low::DomainAxiomDecl::new(
+                        None,
+                        format!("{}$definitional_axiom", ensures_validity_function_name),
+                        axiom_body,
+                    );
+                    axioms.push(definitional_axiom);
+                }
             }
         }
-        let mut axioms = Vec::new();
         for (range_function_name, predicate) in self.predicates.iter_range_functions() {
             if let Some(snapshot_type) = self.get_snapshot_type_for_predicate(&predicate.name) {
                 if let Some(function_decl) = self.functions.get(range_function_name) {

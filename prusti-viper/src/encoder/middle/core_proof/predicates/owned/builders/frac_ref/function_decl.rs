@@ -265,6 +265,12 @@ impl<'l, 'p, 'v, 'tcx> FracRefSnapFunctionBuilder<'l, 'p, 'v, 'tcx> {
         self.inner.add_snapshot_body_postcondition(body)
     }
 
+    pub(in super::super::super) fn add_validity_postcondition(
+        &mut self,
+    ) -> SpannedEncodingResult<()> {
+        self.inner.add_validity_postcondition()
+    }
+
     pub(in super::super::super) fn add_structural_invariant(
         &mut self,
         decl: &vir_mid::type_decl::Struct,
