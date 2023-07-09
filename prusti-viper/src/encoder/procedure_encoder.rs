@@ -247,7 +247,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 let assume_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
 
-                let assume_stmt = vir::Stmt::inhale(assume_expr, vir::Position::default());
+                let assume_stmt = vir::Stmt::assume(assume_expr, vir::Position::default());
                 encoded_statements.push(assume_stmt);
 
                 return Ok(true);

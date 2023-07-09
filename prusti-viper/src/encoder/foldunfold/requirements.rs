@@ -75,6 +75,10 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
                 ref expr,
                 ref position,
             })
+            | &vir::Stmt::Assume(vir::Assume {
+                ref expr,
+                ref position,
+            })
             | &vir::Stmt::Assert(vir::Assert {
                 ref expr,
                 ref position,

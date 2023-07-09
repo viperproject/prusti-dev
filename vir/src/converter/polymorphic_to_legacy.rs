@@ -667,6 +667,9 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
             polymorphic::Stmt::Exhale(exhale) => {
                 legacy::Stmt::Exhale(exhale.expr.into(), exhale.position.into())
             }
+            polymorphic::Stmt::Assume(assume) => {
+                legacy::Stmt::Assume(assume.expr.into(), assume.position.into())
+            }
             polymorphic::Stmt::Assert(assert) => {
                 legacy::Stmt::Assert(assert.expr.into(), assert.position.into())
             }

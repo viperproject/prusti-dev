@@ -173,6 +173,14 @@ impl<'a> Verifier<'a> {
                 self.ast_utils.pretty_print(program)
             );
 
+            // verification backends rely on Silver first performing this rewrite of the Viper AST
+            let program = match self.ast_utils.rewrite_impure_assumes(program) {
+                Ok(prg) => prg,
+                Err(java_exception) => {
+                    return VerificationResult::JavaException(java_exception);
+                }
+            };
+
             run_timed!("Viper consistency checks", debug,
                 let consistency_errors = match self.ast_utils.check_consistency(program) {
                     Ok(errors) => errors,
@@ -194,7 +202,6 @@ impl<'a> Verifier<'a> {
                         .collect(),
                 );
             }
-
             let program_option = self.jni.new_option(Some(program.to_jobject()));
             self.jni.unwrap_result(self.frontend_wrapper.set___program(self.frontend_instance, program_option));
 

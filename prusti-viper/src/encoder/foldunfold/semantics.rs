@@ -60,6 +60,7 @@ impl ApplyOnState for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
+            | &vir::Stmt::Assume(_)
             | &vir::Stmt::Assert(_)
             | &vir::Stmt::Refute(_)
             | &vir::Stmt::Obtain(_) => {}

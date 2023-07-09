@@ -572,6 +572,7 @@ impl Generic for Stmt {
             Stmt::Label(label) => Stmt::Label(label.substitute(map)),
             Stmt::Inhale(inhale) => Stmt::Inhale(inhale.substitute(map)),
             Stmt::Exhale(exhale) => Stmt::Exhale(exhale.substitute(map)),
+            Stmt::Assume(assume) => Stmt::Assume(assume.substitute(map)),
             Stmt::Assert(assert) => Stmt::Assert(assert.substitute(map)),
             Stmt::Refute(refute) => Stmt::Refute(refute.substitute(map)),
             Stmt::MethodCall(method_call) => Stmt::MethodCall(method_call.substitute(map)),
@@ -636,6 +637,14 @@ impl Generic for Exhale {
         let mut exhale = self;
         exhale.expr = exhale.expr.substitute(map);
         exhale
+    }
+}
+
+impl Generic for Assume {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut assume = self;
+        assume.expr = assume.expr.substitute(map);
+        assume
     }
 }
 

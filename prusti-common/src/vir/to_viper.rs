@@ -174,6 +174,9 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 assert!(!pos.is_default(), "stmt with default pos: {self}");
                 ast.exhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
+            Stmt::Assume(ref expr, ref pos) => {
+                ast.assume(expr.to_viper(context, ast), pos.to_viper(context, ast))
+            }
             Stmt::Assert(ref expr, ref pos) => {
                 ast.assert(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }

@@ -22,6 +22,7 @@ pub enum Stmt {
     Label(String),
     Inhale(Expr, Position),
     Exhale(Expr, Position),
+    Assume(Expr, Position),
     Assert(Expr, Position),
     Refute(Expr, Position),
     /// MethodCall: method_name, args, targets
@@ -84,6 +85,7 @@ impl Hash for Stmt {
             Stmt::Label(s) => s.hash(state),
             Stmt::Inhale(e, p) => (e, p).hash(state),
             Stmt::Exhale(e, p) => (e, p).hash(state),
+            Stmt::Assume(e, p) => (e, p).hash(state),
             Stmt::Assert(e, p) => (e, p).hash(state),
             Stmt::Refute(e, p) => (e, p).hash(state),
             Stmt::MethodCall(s, v1, v2) => (s, v1, v2).hash(state),
@@ -132,6 +134,9 @@ impl fmt::Display for Stmt {
                 write!(f, "inhale {expr}")
             }
             Stmt::Exhale(ref expr, _) => write!(f, "exhale {expr}"),
+            Stmt::Assume(ref expr, _) => {
+                write!(f, "assume {expr}")
+            }
             Stmt::Assert(ref expr, _) => {
                 write!(f, "assert {expr}")
             }
@@ -303,6 +308,7 @@ impl Stmt {
         match self {
             Stmt::Inhale(_, ref p)
             | Stmt::Exhale(_, ref p)
+            | Stmt::Assume(_, ref p)
             | Stmt::Assert(_, ref p)
             | Stmt::Refute(_, ref p)
             | Stmt::Fold(_, _, _, _, ref p)
@@ -317,6 +323,7 @@ impl Stmt {
         match self {
             Stmt::Inhale(_, ref mut p)
             | Stmt::Exhale(_, ref mut p)
+            | Stmt::Assume(_, ref mut p)
             | Stmt::Assert(_, ref mut p)
             | Stmt::Refute(_, ref mut p)
             | Stmt::Fold(_, _, _, _, ref mut p)
@@ -387,6 +394,7 @@ pub trait StmtFolder {
             Stmt::Label(s) => self.fold_label(s),
             Stmt::Inhale(expr, pos) => self.fold_inhale(expr, pos),
             Stmt::Exhale(e, p) => self.fold_exhale(e, p),
+            Stmt::Assume(expr, pos) => self.fold_assume(expr, pos),
             Stmt::Assert(expr, pos) => self.fold_assert(expr, pos),
             Stmt::Refute(expr, pos) => self.fold_refute(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
@@ -423,6 +431,10 @@ pub trait StmtFolder {
 
     fn fold_exhale(&mut self, e: Expr, p: Position) -> Stmt {
         Stmt::Exhale(self.fold_expr(e), p)
+    }
+
+    fn fold_assume(&mut self, expr: Expr, pos: Position) -> Stmt {
+        Stmt::Assume(self.fold_expr(expr), pos)
     }
 
     fn fold_assert(&mut self, expr: Expr, pos: Position) -> Stmt {
@@ -540,6 +552,7 @@ pub trait FallibleStmtFolder {
             Stmt::Label(s) => self.fallible_fold_label(s),
             Stmt::Inhale(expr, pos) => self.fallible_fold_inhale(expr, pos),
             Stmt::Exhale(e, p) => self.fallible_fold_exhale(e, p),
+            Stmt::Assume(expr, pos) => self.fallible_fold_assume(expr, pos),
             Stmt::Assert(expr, pos) => self.fallible_fold_assert(expr, pos),
             Stmt::Refute(expr, pos) => self.fallible_fold_refute(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fallible_fold_method_call(s, ve, vv),
@@ -578,6 +591,10 @@ pub trait FallibleStmtFolder {
 
     fn fallible_fold_exhale(&mut self, e: Expr, p: Position) -> Result<Stmt, Self::Error> {
         Ok(Stmt::Exhale(self.fallible_fold_expr(e)?, p))
+    }
+
+    fn fallible_fold_assume(&mut self, expr: Expr, pos: Position) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Assume(self.fallible_fold_expr(expr)?, pos))
     }
 
     fn fallible_fold_assert(&mut self, expr: Expr, pos: Position) -> Result<Stmt, Self::Error> {
@@ -737,6 +754,7 @@ pub trait StmtWalker {
             Stmt::Label(s) => self.walk_label(s),
             Stmt::Inhale(expr, pos) => self.walk_inhale(expr, pos),
             Stmt::Exhale(e, p) => self.walk_exhale(e, p),
+            Stmt::Assume(expr, pos) => self.walk_assume(expr, pos),
             Stmt::Assert(expr, pos) => self.walk_assert(expr, pos),
             Stmt::Refute(expr, pos) => self.walk_refute(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
@@ -768,6 +786,10 @@ pub trait StmtWalker {
     }
 
     fn walk_exhale(&mut self, expr: &Expr, _pos: &Position) {
+        self.walk_expr(expr);
+    }
+
+    fn walk_assume(&mut self, expr: &Expr, _pos: &Position) {
         self.walk_expr(expr);
     }
 
