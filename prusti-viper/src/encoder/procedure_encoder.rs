@@ -226,8 +226,62 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let block = &self.mir[bb];
         let _ = self.try_encode_assert(bb, block, encoded_statements)?
         || self.try_encode_assume(bb, block, encoded_statements)?
+        || self.try_encode_exhale(bb, block, encoded_statements)?
+        || self.try_encode_inhale(bb, block, encoded_statements)?
         || self.try_encode_refute(bb, block, encoded_statements)?;
         Ok(())
+    }
+
+    fn try_encode_exhale(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir::Stmt>,
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+            )) = stmt.kind
+            {
+                if self.encoder.get_prusti_exhalation(cl_def_id).is_none() {
+                    return Ok(false);
+                }
+                let exhale_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+
+                let exhale_stmt = vir::Stmt::exhale(exhale_expr, vir::Position::default());
+                encoded_statements.push(exhale_stmt);
+
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    fn try_encode_inhale(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir::Stmt>,
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+            )) = stmt.kind
+            {
+                if self.encoder.get_prusti_inhalation(cl_def_id).is_none() {
+                    return Ok(false);
+                }
+                let inhale_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+
+                let inhale_stmt = vir::Stmt::inhale(inhale_expr, vir::Position::default());
+                encoded_statements.push(inhale_stmt);
+
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 
     fn try_encode_assume(

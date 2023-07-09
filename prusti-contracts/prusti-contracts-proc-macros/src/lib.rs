@@ -72,6 +72,18 @@ pub fn prusti_assume(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn prusti_exhale(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn prusti_inhale(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn prusti_refute(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -205,6 +217,18 @@ pub fn prusti_assert(tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
     prusti_specs::prusti_assume(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn prusti_exhale(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_exhale(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn prusti_inhale(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_inhale(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

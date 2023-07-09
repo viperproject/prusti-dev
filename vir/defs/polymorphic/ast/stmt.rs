@@ -674,7 +674,6 @@ pub trait StmtFolder {
         })
     }
 
-
     fn fold_assert(&mut self, statement: Assert) -> Stmt {
         let Assert { expr, position } = statement;
         Stmt::Assert(Assert {

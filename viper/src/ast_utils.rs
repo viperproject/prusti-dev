@@ -39,8 +39,10 @@ impl<'a> AstUtils<'a> {
     ) -> Result<Program<'a>, JavaException> {
         self.jni
             .unwrap_or_exception(
-                silver::ast::utility::ImpureAssumeRewriter::with(self.env).call_rewriteAssumes(program.to_jobject()))
-            .map(|rewritten_prg_obj| Program::new(rewritten_prg_obj))
+                silver::ast::utility::ImpureAssumeRewriter::with(self.env)
+                    .call_rewriteAssumes(program.to_jobject()),
+            )
+            .map(Program::new)
     }
 
     #[tracing::instrument(level = "debug", skip_all)]

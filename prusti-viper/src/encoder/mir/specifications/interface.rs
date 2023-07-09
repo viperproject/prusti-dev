@@ -99,6 +99,12 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the prusti assumption
     fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption>;
 
+    /// Get the prusti exhale
+    fn get_prusti_exhalation(&self, def_id: DefId) -> Option<typed::PrustiExhalation>;
+
+    /// Get the prusti inhale
+    fn get_prusti_inhalation(&self, def_id: DefId) -> Option<typed::PrustiInhalation>;
+
     /// Get the prusti refutation
     fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation>;
 
@@ -242,6 +248,22 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow()
             .get_assumption(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_exhalation(&self, def_id: DefId) -> Option<typed::PrustiExhalation> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_exhalation(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_inhalation(&self, def_id: DefId) -> Option<typed::PrustiInhalation> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_inhalation(&def_id)
             .cloned()
     }
 

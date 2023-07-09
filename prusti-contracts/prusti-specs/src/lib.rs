@@ -431,6 +431,14 @@ pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens)
 }
 
+pub fn prusti_exhale(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_exhalation, tokens)
+}
+
+pub fn prusti_inhale(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_inhalation, tokens)
+}
+
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens)
 }

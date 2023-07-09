@@ -17,6 +17,8 @@ pub struct DefSpecificationMap {
     pub type_specs: FxHashMap<DefId, TypeSpecification>,
     pub prusti_assertions: FxHashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: FxHashMap<DefId, PrustiAssumption>,
+    pub prusti_exhalations: FxHashMap<DefId, PrustiExhalation>,
+    pub prusti_inhalations: FxHashMap<DefId, PrustiInhalation>,
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
@@ -45,6 +47,14 @@ impl DefSpecificationMap {
 
     pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.prusti_assumptions.get(def_id)
+    }
+
+    pub fn get_exhalation(&self, def_id: &DefId) -> Option<&PrustiExhalation> {
+        self.prusti_exhalations.get(def_id)
+    }
+
+    pub fn get_inhalation(&self, def_id: &DefId) -> Option<&PrustiInhalation> {
+        self.prusti_inhalations.get(def_id)
     }
 
     pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
@@ -171,6 +181,16 @@ impl DefSpecificationMap {
             .values()
             .map(|spec| format!("{spec:?}"))
             .collect();
+        let exhalations: Vec<_> = self
+            .prusti_exhalations
+            .values()
+            .map(|spec| format!("{spec:?}"))
+            .collect();
+        let inhalations: Vec<_> = self
+            .prusti_inhalations
+            .values()
+            .map(|spec| format!("{spec:?}"))
+            .collect();
         let refutations: Vec<_> = self
             .prusti_refutations
             .values()
@@ -182,6 +202,8 @@ impl DefSpecificationMap {
         values.extend(type_specs);
         values.extend(asserts);
         values.extend(assumptions);
+        values.extend(exhalations);
+        values.extend(inhalations);
         values.extend(refutations);
         if hide_uuids {
             let uuid =
@@ -303,6 +325,16 @@ pub struct PrustiAssertion {
 #[derive(Debug, Clone)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiExhalation {
+    pub exhalation: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiInhalation {
+    pub inhalation: LocalDefId,
 }
 
 #[derive(Debug, Clone)]

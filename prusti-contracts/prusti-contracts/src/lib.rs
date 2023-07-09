@@ -33,6 +33,12 @@ pub use prusti_contracts_proc_macros::prusti_assert;
 /// A macro for writing assumptions using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_assume;
 
+/// A macro for exhaling expressions using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_exhale;
+
+/// A macro for inhaling expressions using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_inhale;
+
 /// A macro for writing refutations using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_refute;
 
