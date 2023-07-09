@@ -512,23 +512,28 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
 
             if has_prusti_attr(attrs, "prusti_assertion") {
-                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Assertion));
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Assertion));
             }
 
             if has_prusti_attr(attrs, "prusti_assumption") {
-                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Assumption));
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Assumption));
             }
 
             if has_prusti_attr(attrs, "prusti_exhalation") {
-                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Exhalation));
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Exhalation));
             }
 
             if has_prusti_attr(attrs, "prusti_inhalation") {
-                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Inhalation));
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Inhalation));
             }
 
             if has_prusti_attr(attrs, "prusti_refutation") {
-                self.direct_specs.push((local_id, typed::DirectSpecificationKind::Refutation));
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Refutation));
             }
 
             if has_prusti_attr(attrs, "ghost_begin") {

@@ -285,7 +285,7 @@ pub enum DirectSpecificationKind {
 #[derive(Debug, Clone)]
 pub struct DirectSpecification {
     pub specification: LocalDefId,
-    pub kind: DirectSpecificationKind
+    pub kind: DirectSpecificationKind,
 }
 
 #[derive(Debug, Clone)]
