@@ -1053,8 +1053,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             mir::StatementKind::StorageLive(..)
             | mir::StatementKind::StorageDead(..)
             | mir::StatementKind::FakeRead(..)
-            | mir::StatementKind::PlaceMention(..)
-            | mir::StatementKind::AscribeUserType(..) => {
+            | mir::StatementKind::PlaceMention(..) => {
                 // Nothing to do
             }
             mir::StatementKind::Assign(box (lhs, rhs)) => {
