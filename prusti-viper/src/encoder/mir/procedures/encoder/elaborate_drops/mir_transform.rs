@@ -77,7 +77,7 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>)
         }
     };
     let un_derefer = UnDerefer {
-        tcx: tcx,
+        tcx,
         derefer_sidetable: side_table,
     };
     let elaborate_patch = {
@@ -110,7 +110,7 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>)
             init_data: InitializationData { inits, uninits },
             drop_flags,
             patch: MirPatch::new(body),
-            un_derefer: un_derefer,
+            un_derefer,
             reachable,
         }
         .elaborate()
@@ -130,7 +130,7 @@ pub(in super::super) fn remove_dead_unwinds<'tcx>(
     // We only need to do this pass once, because unwind edges can only
     // reach cleanup blocks, which can't have unwind edges themselves.
     let mut dead_unwinds = Vec::new();
-    let mut flow_inits = MaybeInitializedPlaces::new(tcx, body, &env)
+    let mut flow_inits = MaybeInitializedPlaces::new(tcx, body, env)
         .into_engine(tcx, body)
         .pass_name("remove_dead_unwinds")
         .iterate_to_fixpoint()
@@ -162,7 +162,7 @@ pub(in super::super) fn remove_dead_unwinds<'tcx>(
         );
 
         let mut maybe_live = false;
-        on_all_drop_children_bits(tcx, body, &env, path, |child| {
+        on_all_drop_children_bits(tcx, body, env, path, |child| {
             maybe_live |= flow_inits.contains(child);
         });
 

@@ -6009,7 +6009,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::NullOp::AlignOf => layout.align().abi.bytes(),
             mir::NullOp::OffsetOf(_) => {
                 return Err(SpannedEncodingError::internal(
-                    format!("`OffsetOf` is not supported yet"),
+                    "`OffsetOf` is not supported yet".to_string(),
                     self.mir.source_info(location).span,
                 ))
             }
