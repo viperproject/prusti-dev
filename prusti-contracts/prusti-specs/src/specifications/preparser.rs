@@ -953,15 +953,11 @@ impl PrustiBinaryOp {
             // before the `f` call
             Self::Implies => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
-                // preserve span of LHS
-                let not_lhs = quote_spanned! { lhs.span() => !#lhs };
-                quote_spanned! { joined_span => #not_lhs || #rhs }
+                quote_spanned! { joined_span => if { #lhs } { #rhs } else { true } }
             }
             Self::ImpliesReverse => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
-                // preserve span of RHS
-                let not_rhs = quote_spanned! { rhs.span() => !#rhs };
-                quote_spanned! { joined_span => #not_rhs || #lhs }
+                quote_spanned! { joined_span => if { #rhs } { #lhs } else { true } }
             }
             Self::Or => quote_spanned! { span => #lhs || #rhs },
             Self::And => quote_spanned! { span => #lhs && #rhs },

@@ -401,12 +401,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 for (guard, target) in cfg_targets.into_iter() {
                     if let Some(then_expr) = states[&target].expr() {
                         final_expr = Some(if let Some(else_expr) = final_expr {
-                            if then_expr == &else_expr {
-                                // Optimization
-                                else_expr
-                            } else {
-                                vir::Expr::ite(guard, then_expr.clone(), else_expr)
-                            }
+                            vir::Expr::ite(guard, then_expr.clone(), else_expr)
                         } else {
                             // Define `final_expr` for the first time
                             then_expr.clone()
