@@ -130,7 +130,7 @@ impl<'tcx> EnvBody<'tcx> {
 
         let facts = BorrowckFacts {
             input_facts: RefCell::new(body_with_facts.input_facts.map(|f| *f)),
-            output_facts: body_with_facts.output_facts.unwrap(),
+            output_facts: body_with_facts.output_facts,
             location_table: RefCell::new(body_with_facts.location_table),
         };
 
