@@ -2,7 +2,7 @@ use crate::verifier::verify;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
-    specs::{self, cross_crate::CrossCrateSpecs},
+    specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
 };
 use prusti_rustc_interface::{
     borrowck::consumers,
@@ -32,11 +32,12 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResu
     // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
     // (anon) const bodies at all, and if so, how to get them?
     if !is_anon_const {
-        let body_with_facts = consumers::get_body_with_borrowck_facts(
-            tcx,
-            def_id,
-            consumers::ConsumerOptions::PoloniusOutputFacts,
-        );
+        let consumer_opts = if is_spec_fn(tcx, def_id.to_def_id()) || config::no_verify() {
+            consumers::ConsumerOptions::RegionInferenceContext
+        } else {
+            consumers::ConsumerOptions::PoloniusOutputFacts
+        };
+        let body_with_facts = consumers::get_body_with_borrowck_facts(tcx, def_id, consumer_opts);
         // SAFETY: This is safe because we are feeding in the same `tcx` that is
         // going to be used as a witness when pulling out the data.
         unsafe {
