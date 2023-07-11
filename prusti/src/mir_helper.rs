@@ -1,11 +1,17 @@
+use either::Either;
 use prusti_rustc_interface::{
     middle::{
-        mir::{self, patch::MirPatch, Body, TerminatorKind, visit::Visitor},
+        mir::{
+            self,
+            patch::MirPatch,
+            visit::{MutVisitor, Visitor},
+            Body, TerminatorKind,
+        },
         ty::{self, TyCtxt},
     },
     span::{self, def_id::DefId, Span},
 };
-use either::Either;
+use rustc_hash::FxHashMap;
 
 /// Given the name of a variable in the original program, find the
 /// corresponding mir local
@@ -87,7 +93,7 @@ pub fn rvalue_reference_to_local<'tcx>(
     mir::Rvalue::Ref(
         dummy_region,
         borrow_kind,
-        place, // the local to be dereferenced
+        place, // the local to be borrowed
     )
 }
 
@@ -344,3 +350,34 @@ pub fn replace_target(terminator: &mut mir::Terminator, new_target: mir::BasicBl
     }
 }
 
+pub struct ArgumentReplacer<'a, 'tcx> {
+    tcx: TyCtxt<'tcx>,
+    args_to_replace: &'a FxHashMap<mir::Local, mir::Local>,
+}
+
+impl<'a, 'tcx> ArgumentReplacer<'a, 'tcx> {
+    pub fn new(tcx: TyCtxt<'tcx>, args_to_replace: &'a FxHashMap<mir::Local, mir::Local>) -> Self {
+        Self {
+            tcx,
+            args_to_replace,
+        }
+    }
+}
+
+impl<'tcx, 'a> MutVisitor<'tcx> for ArgumentReplacer<'a, 'tcx> {
+    fn tcx(&self) -> TyCtxt<'tcx> {
+        self.tcx
+    }
+
+    fn visit_local(
+        &mut self,
+        local: &mut mir::Local,
+        context: mir::visit::PlaceContext,
+        _location: mir::Location,
+    ) {
+        if let Some(replace) = self.args_to_replace.get(local) {
+            assert!(!matches!(context, mir::visit::PlaceContext::NonUse(_)));
+            *local = *replace;
+        }
+    }
+}

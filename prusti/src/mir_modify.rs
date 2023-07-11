@@ -109,10 +109,10 @@ pub struct InsertChecksVisitor<'tcx> {
     expiration_locations: FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
     current_patcher: Option<MirPatch<'tcx>>,
     pledges_to_process: FxHashMap<mir::Local, PledgeToProcess<'tcx>>,
-    old_calls_to_process: Vec<OldCallToProcess<'tcx>>,
     current_def_id: Option<DefId>,
     body_copy: Body<'tcx>,
-    stored_arguments: FxHashSet<mir::Local>,
+    // maps from function arguments to their copies in old state
+    stored_arguments: FxHashMap<mir::Local, mir::Local>,
     mir_info: MirInfo,
     env_query: EnvQuery<'tcx>,
 }
@@ -131,11 +131,10 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             specs,
             current_patcher: None,
             pledges_to_process: Default::default(),
-            old_calls_to_process: Vec::new(),
             expiration_locations,
             current_def_id: None,
             body_copy,
-            stored_arguments: FxHashSet::default(),
+            stored_arguments: Default::default(),
             mir_info,
             env_query,
         }
@@ -151,6 +150,10 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
         // visit body, apply patches, possibly find pledges that need to be processed here:
         let def_id = body.source.def_id();
         self.current_def_id = Some(def_id);
+
+        // create locals for the clones of old, and replace them where needed
+        self.create_and_replace_arguments(body);
+
         self.current_patcher = Some(MirPatch::new(body));
         self.super_body(body);
         let mir_patch = self.current_patcher.take();
@@ -179,17 +182,24 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
         // currently points to, so we can keep prepending new blocks
         let mut current_target = prepend_dummy_block(body);
 
-        self.old_calls_to_process.iter().for_each(|to_process| {
-            let mut patch = MirPatch::new(body);
-            current_target = self
-                .process_old_call(*to_process, current_target, &mut patch)
-                .unwrap();
-            let terminator_kind = TerminatorKind::Goto {
-                target: current_target,
-            };
-            patch.patch_terminator(mir::START_BLOCK, terminator_kind);
-            patch.apply(body);
-        });
+        self.mir_info
+            .args_to_be_cloned
+            .clone()
+            .iter()
+            .for_each(|local| {
+                let mut patch = MirPatch::new(body);
+                current_target = self
+                    .insert_clone_argument(*local, current_target, &mut patch)
+                    .unwrap();
+                let terminator_kind = TerminatorKind::Goto {
+                    target: current_target,
+                };
+                patch.patch_terminator(mir::START_BLOCK, terminator_kind);
+                patch.apply(body);
+            });
+
+        // replace function arguments with their copies in all the locations
+        // that we identified earlier:
 
         // insert preconditions at the beginning of the body:
         let substs = ty::subst::InternalSubsts::identity_for_item(self.tcx, def_id);
@@ -296,30 +306,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                     let item_name = self.tcx.def_path_str(call_id);
                     // make sure the call is local:
                     if !call_id.is_local() {
-                        // extern specs will need to be handled here.
-
-                        if item_name == "prusti_contracts::old".to_string() {
-                            // old calls can still exist here. Find them, replace
-                            // with new locals
-                            println!("found old call!");
-                            let to_process_opt = self
-                                .handle_old_call(destination.local, args.clone())
-                                .unwrap();
-                            if let Some(to_process) = to_process_opt {
-                                self.old_calls_to_process.push(to_process);
-                                // in this case we also need to replace the old call
-                                let new_terminator_kind = mir::TerminatorKind::Goto {
-                                    // target can only be none if the call diverges
-                                    // TODO: discuss if this can ever happen here.
-                                    // I don't think it should..
-                                    target: target.unwrap(),
-                                };
-                                let mut patch = self.current_patcher.take().unwrap();
-                                patch.patch_terminator(block, new_terminator_kind);
-                                self.current_patcher = Some(patch);
-                            }
-                            return;
-                        }
+                        // extern specs preconditions will need to be handled here.
                     }
 
                     // The block that is executed after the annotated function
@@ -412,57 +399,9 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
 }
 
 impl<'tcx> InsertChecksVisitor<'tcx> {
-    /// If we encounter an old call with an argument that is also a mutable
-    /// argument of the original function, we need to replace it with a cloned
-    /// value!
-    /// If it's a reference, cloning it will dereference it, so we need an
-    /// additional local!
-    /// Returns Ok(None) if nothing went wrong, but there is no modification
-    /// to be processed
-    fn handle_old_call(
+    fn insert_clone_argument(
         &mut self,
-        receiver: mir::Local,
-        args: Vec<Operand<'tcx>>,
-    ) -> Result<Option<OldCallToProcess<'tcx>>, ()> {
-        // check if the argument given to old is a mutable argument:
-        // (if interior mutability is supported in the future, this might have
-        // to be extended, since even immutable references would have to be
-        // "cloned", even though normal cloning is not enough anymore then.)
-        // the argument should always be a single local:
-        assert!(args.len() == 1, "old was given more than one argument??");
-        let old_argument = local_from_operand(&args[0])?;
-        // argument locals are never passed directly to the function,
-        // so we have to look up if this argument to old is a copy / move
-        // of a function argument.
-        if let Some(original_argument) = self.mir_info.moved_args.get(&old_argument) {
-            println!("found a copy of a function argument!");
-            // also check that we have not yet created a variable storing this local
-            if self.stored_arguments.get(original_argument).is_some() {
-                return Ok(None);
-            } else {
-                self.stored_arguments.insert(*original_argument);
-            }
-
-            // this is already checked during creationg of moved_arguments
-            // if is_mutable_arg(&self.body_copy, original_argument) {
-            //     println!("We have to store an old_arg!");
-            // }
-
-            let arg_ty = get_locals_type(&self.body_copy, *original_argument)?;
-            Ok(Some(OldCallToProcess {
-                stored_local: receiver,
-                arg_to_store: *original_argument,
-                ty: arg_ty,
-            }))
-        } else {
-            // this is not a local we need to store!
-            Ok(None)
-        }
-    }
-
-    fn process_old_call(
-        &self,
-        to_process: OldCallToProcess<'tcx>,
+        arg: mir::Local,
         target: BasicBlock,
         patch: &mut MirPatch<'tcx>,
     ) -> Result<BasicBlock, ()> {
@@ -471,18 +410,22 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         // function.
         let clone_defid = get_clone_defid(self.tcx).ok_or(())?;
         let clone_trait_defid = self.tcx.lang_items().clone_trait().unwrap();
-        if !to_process.ty.is_ref() {
+        let local_decl = self.body_copy.local_decls.get(arg).unwrap();
+        let arg_ty = local_decl.ty;
+        let destination = *self.stored_arguments.get(&arg).unwrap();
+        println!("trying to clone arg: {:?} into destination: {:?}", arg, destination);
+        if !arg_ty.is_ref() {
             println!("handling a non-ref old arg");
-            let ref_ty = create_reference_type(self.tcx, to_process.ty);
+            let ref_ty = create_reference_type(self.tcx, arg_ty);
             let ref_arg = patch.new_internal(ref_ty, DUMMY_SP);
             // add a statement to deref the old_argument
-            let rvalue = rvalue_reference_to_local(self.tcx, to_process.arg_to_store, false);
+            let rvalue = rvalue_reference_to_local(self.tcx, arg, false);
             // the statement to be added to the block that has the call clone
             // terminator
             let ref_stmt = mir::StatementKind::Assign(box (mir::Place::from(ref_arg), rvalue));
 
             // create the substitution since clone is generic:
-            let generic_ty = ty::subst::GenericArg::from(to_process.ty);
+            let generic_ty = ty::subst::GenericArg::from(arg_ty);
             let substs = self.tcx.mk_substs(&[generic_ty]);
             // create the function operand:
             let clone_args = vec![Operand::Move(mir::Place::from(ref_arg))];
@@ -493,7 +436,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 clone_defid,
                 clone_args,
                 substs,
-                Some(to_process.stored_local.into()),
+                Some(destination.into()),
                 Some(target),
             )?;
             patch.add_statement(
@@ -508,12 +451,12 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             // let block_data = BasicBlockData::new()
         } else {
             // create a new local to store the result of clone:
-            let deref_ty = to_process.ty.builtin_deref(false).ok_or(())?.ty;
+            let deref_ty = arg_ty.builtin_deref(false).ok_or(())?.ty;
             println!("dereferenced type: {:?}", deref_ty);
-            let destination = patch.new_internal(deref_ty, DUMMY_SP);
+            let clone_dest = patch.new_internal(deref_ty, DUMMY_SP);
             let generic_ty = ty::subst::GenericArg::from(deref_ty);
             let substs = self.tcx.mk_substs(&[generic_ty]);
-            let clone_args = vec![Operand::Move(mir::Place::from(to_process.arg_to_store))];
+            let clone_args = vec![Operand::Move(mir::Place::from(arg))];
             // add an additional simple block afterwards, that dereferences
             // the the cloned value into the original receiver of old:
             // create it beforehand, so we can set the precedors target correctly
@@ -524,9 +467,9 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             let block_data = BasicBlockData::new(Some(terminator));
             let second_block = patch.new_block(block_data);
 
-            // deref the clone result
-            let rvalue = rvalue_reference_to_local(self.tcx, destination, true);
-            let ref_stmt = mir::StatementKind::Assign(box (to_process.stored_local.into(), rvalue));
+            // borrow the clone result
+            let rvalue = rvalue_reference_to_local(self.tcx, clone_dest, true);
+            let ref_stmt = mir::StatementKind::Assign(box (destination.into(), rvalue));
             patch.add_statement(
                 mir::Location {
                     block: second_block,
@@ -541,12 +484,34 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 clone_defid,
                 clone_args,
                 substs,
-                Some(destination.into()),
+                Some(clone_dest.into()),
                 Some(second_block),
             )?;
 
             Ok(new_block)
         }
+    }
+
+    pub fn create_and_replace_arguments(&mut self, body: &mut Body<'tcx>) {
+        let mut patcher = MirPatch::new(body);
+        for arg in &self.mir_info.args_to_be_cloned {
+            let ty = body.local_decls.get(*arg).unwrap().ty;
+            let new_var = patcher.new_internal(ty, DUMMY_SP);
+            self.stored_arguments.insert(*arg, new_var);
+        }
+        let mut replacer = ArgumentReplacer::new(self.tcx, &self.stored_arguments);
+        for (block, bb_data) in body.basic_blocks_mut().iter_enumerated_mut() {
+            for (statement_index, stmt) in bb_data.statements.iter_mut().enumerate() {
+                let loc = mir::Location {
+                    block,
+                    statement_index,
+                };
+                if self.mir_info.stmts_to_substitute_rhs.contains(&loc) {
+                    replacer.visit_statement(stmt, loc);
+                }
+            }
+        }
+        patcher.apply(body);
     }
 }
 
