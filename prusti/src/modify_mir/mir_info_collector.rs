@@ -1,10 +1,9 @@
-use crate::mir_helper::*;
+use super::mir_helper::*;
 use prusti_interface::{
-    environment::{blocks_dominated_by, is_check_closure, is_marked_check_block, EnvQuery},
+    environment::{blocks_dominated_by, is_check_closure, EnvQuery},
     utils::has_prusti_attr,
 };
 use prusti_rustc_interface::{
-    ast::ast,
     middle::{
         mir::{self, visit::Visitor, Statement, StatementKind},
         ty::TyCtxt,
@@ -12,7 +11,7 @@ use prusti_rustc_interface::{
     span::Span,
 };
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 
 pub struct MirInfo {
     pub check_blocks: FxHashMap<mir::BasicBlock, CheckBlockKind>,
@@ -41,7 +40,6 @@ pub fn collect_mir_info<'tcx>(tcx: TyCtxt<'tcx>, body: mir::Body<'tcx>) -> MirIn
 //   expiration location (when a user manually inserts `prusti_pledge_expires!()`)
 //   or blocks that are dominated by this kind of block
 struct MirInfoCollector<'tcx> {
-    tcx: TyCtxt<'tcx>,
     /// a MIR visitor collecting some information about old calls, run
     /// beforehand
     old_visitor: OldVisitor<'tcx>,
@@ -67,29 +65,26 @@ struct Dependency {
 impl<'tcx> Visitor<'tcx> for MirInfoCollector<'tcx> {
     fn visit_statement(&mut self, statement: &Statement<'tcx>, location: mir::Location) {
         self.super_statement(statement, location);
-        match &statement.kind {
-            StatementKind::Assign(box (recv, rvalue)) => {
-                // collect all locals contained in rvalue.
-                self.rvalue_visitor.visit_rvalue(rvalue, location);
-                // take the collected locals and reset visitor
-                let dependencies =
-                    std::mem::replace(&mut self.rvalue_visitor.dependencies, Default::default());
-                dependencies.iter().for_each(|local| {
-                    let dep = self.create_dependency(*local);
-                    if let Some(dependencies) = self.locals_dependencies.get_mut(&recv.local) {
-                        dependencies.insert(dep);
-                    } else {
-                        let dependencies = [dep].iter().cloned().collect();
-                        self.locals_dependencies.insert(recv.local, dependencies);
-                    }
-                    if let Some(location_vec) = self.assignment_locations.get_mut(&recv.local) {
-                        location_vec.push(location);
-                    } else {
-                        self.assignment_locations.insert(recv.local, vec![location]);
-                    }
-                });
-            }
-            _ => (),
+        if let StatementKind::Assign(box (recv, rvalue)) = &statement.kind {
+            // collect all locals contained in rvalue.
+            self.rvalue_visitor.visit_rvalue(rvalue, location);
+            // take the collected locals and reset visitor
+            let dependencies =
+                std::mem::take(&mut self.rvalue_visitor.dependencies);
+            dependencies.iter().for_each(|local| {
+                let dep = self.create_dependency(*local);
+                if let Some(dependencies) = self.locals_dependencies.get_mut(&recv.local) {
+                    dependencies.insert(dep);
+                } else {
+                    let dependencies = [dep].iter().cloned().collect();
+                    self.locals_dependencies.insert(recv.local, dependencies);
+                }
+                if let Some(location_vec) = self.assignment_locations.get_mut(&recv.local) {
+                    location_vec.push(location);
+                } else {
+                    self.assignment_locations.insert(recv.local, vec![location]);
+                }
+            });
         }
     }
 
@@ -100,7 +95,7 @@ impl<'tcx> Visitor<'tcx> for MirInfoCollector<'tcx> {
             args, destination, ..
         } = &terminator.kind
         {
-            args.into_iter().for_each(|arg| {
+            args.iter().for_each(|arg| {
                 if let mir::Operand::Move(place) | mir::Operand::Copy(place) = arg {
                     let dep = self.create_dependency(place.local);
                     if let Some(dependencies) = self.locals_dependencies.get_mut(&destination.local)
@@ -132,7 +127,6 @@ impl<'tcx> MirInfoCollector<'tcx> {
         let mut old_visitor = OldVisitor::new(tcx);
         old_visitor.visit_body(&body);
         Self {
-            tcx,
             old_visitor,
             locals_dependencies: Default::default(),
             assignment_locations: Default::default(),
@@ -145,7 +139,7 @@ impl<'tcx> MirInfoCollector<'tcx> {
 
     // Given the dependencies, figure out which arguments we need to clone
     // and which statements will need to be adjusted
-    pub fn process_dependencies(&self) -> (FxHashSet<mir::Local>, FxHashSet<mir::Location>){
+    pub fn process_dependencies(&self) -> (FxHashSet<mir::Local>, FxHashSet<mir::Location>) {
         let mut args_to_clone = FxHashSet::<mir::Local>::default();
         let mut stmts_to_adjust = FxHashSet::<mir::Location>::default();
         let mut encountered = FxHashSet::<mir::Local>::default();
@@ -165,23 +159,24 @@ impl<'tcx> MirInfoCollector<'tcx> {
                     if dep.is_mutable_arg {
                         args_to_clone.insert(dep.local);
                         depends_on_argument = true;
-                    } else if !dep.is_user_declared || dep.declared_within_old {
-                        if !encountered.contains(&dep.local) {
-                            // process this variable too!
-                            to_process.push(dep.local);
-                            encountered.insert(dep.local);
-                        }
+                    } else if (!dep.is_user_declared || dep.declared_within_old)
+                        && !encountered.contains(&dep.local)
+                    {
+                        // process this variable too!
+                        to_process.push(dep.local);
+                        encountered.insert(dep.local);
                     }
                 });
                 if depends_on_argument {
                     // we potentially have to replace function arguments with cloned
                     // values in the places these locals are assigned to
-                    assignment_locations.iter().for_each(|location| {stmts_to_adjust.insert(*location);});
+                    assignment_locations.iter().for_each(|location| {
+                        stmts_to_adjust.insert(*location);
+                    });
                 }
             }
         }
         (args_to_clone, stmts_to_adjust)
-
     }
     // determine all the relevant facts about this local
     fn create_dependency(&self, local: mir::Local) -> Dependency {
@@ -255,8 +250,8 @@ pub enum CheckBlockKind {
 }
 
 impl CheckBlockKind {
-    pub fn determine_kind<'tcx>(
-        env_query: EnvQuery<'tcx>,
+    pub fn determine_kind(
+        env_query: EnvQuery<'_>,
         bb_data: &mir::BasicBlockData,
     ) -> Option<Self> {
         for stmt in &bb_data.statements {
@@ -289,8 +284,8 @@ impl<'tcx> Visitor<'tcx> for RvalueVisitor {
     fn visit_local(
         &mut self,
         local: mir::Local,
-        context: mir::visit::PlaceContext,
-        location: mir::Location,
+        _context: mir::visit::PlaceContext,
+        _location: mir::Location,
     ) {
         self.dependencies.push(local);
     }
@@ -314,7 +309,7 @@ impl<'tcx> Visitor<'tcx> for OldVisitor<'tcx> {
             ..
         } = &terminator.kind
         {
-            if let Some((call_id, substs)) = func.const_fn_def() {
+            if let Some((call_id, _)) = func.const_fn_def() {
                 let item_name = self.tcx.def_path_str(call_id);
                 if &item_name[..] == "prusti_contracts::old" {
                     println!("old visitor found old function call");

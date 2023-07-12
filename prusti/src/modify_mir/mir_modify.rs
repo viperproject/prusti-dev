@@ -1,11 +1,8 @@
-use crate::{
+use crate::modify_mir::{
     mir_helper::*,
     mir_info_collector::{collect_mir_info, CheckBlockKind, MirInfo},
 };
-use prusti_interface::{
-    environment::{is_marked_check_block, EnvQuery},
-    specs::typed::{CheckKind, DefSpecificationMap},
-};
+use prusti_interface::specs::typed::{CheckKind, DefSpecificationMap};
 use prusti_rustc_interface::{
     data_structures::steal::Steal,
     interface::DEFAULT_QUERY_PROVIDERS,
@@ -21,7 +18,7 @@ use prusti_rustc_interface::{
         DUMMY_SP,
     },
 };
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 use std::{env, fs, io};
 
@@ -32,21 +29,15 @@ fn folder_present(name: &str) -> io::Result<bool> {
     Ok(metadata.is_dir())
 }
 
-pub static mut SPECS: Option<DefSpecificationMap> = None;
-pub static mut EXPIRATION_LOCATIONS: Option<
-    FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
-> = None;
-
 pub(crate) fn mir_checked(
     tcx: TyCtxt<'_>,
     def: ty::WithOptConstParam<LocalDefId>,
 ) -> &Steal<Body<'_>> {
     // let's get the specifications collected by prusti :)
     // SAFETY: Is definitely not safe at the moment
-    let specs_opt = unsafe { SPECS.clone() };
+    let specs_opt = unsafe { super::SPECS.clone() };
 
     if let Some(specs) = specs_opt {
-        let expiration_locations = unsafe { EXPIRATION_LOCATIONS.clone().unwrap() };
         // get mir body before invoking drops_elaborated query, otherwise it will
         // be stolen
         let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
@@ -56,8 +47,7 @@ pub(crate) fn mir_checked(
             println!("modifying mir for defid: {:?}", def_id);
         }
 
-        let mut visitor =
-            InsertChecksVisitor::new(tcx, specs, expiration_locations, stolen.clone());
+        let mut visitor = InsertChecksVisitor::new(tcx, specs, stolen.clone());
         visitor.visit_body(&mut stolen);
 
         // print mir of body:
@@ -74,12 +64,6 @@ pub(crate) fn mir_checked(
     }
 }
 
-// #[derive(Debug, Clone)]
-// pub enum ModificationToProcess<'tcx> {
-//     Pledge(PledgeToProcess<'tcx>),
-//     OldCall(OldCallToProcess),
-// }
-
 #[derive(Debug, Clone)]
 pub struct PledgeToProcess<'tcx> {
     check: DefId,
@@ -93,20 +77,11 @@ pub struct PledgeToProcess<'tcx> {
     substs: ty::subst::SubstsRef<'tcx>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct OldCallToProcess<'tcx> {
-    /// the local where the result of cloning should be stored in
-    stored_local: mir::Local,
-    /// the argument that should be stored
-    arg_to_store: mir::Local,
-    /// the type of the argument (and result) of the old call:
-    ty: ty::Ty<'tcx>,
-}
-
 pub struct InsertChecksVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
     specs: DefSpecificationMap,
-    expiration_locations: FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
+    // expiration locations are not computed correctly for this stage of the mir.
+    // expiration_locations: FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
     current_patcher: Option<MirPatch<'tcx>>,
     pledges_to_process: FxHashMap<mir::Local, PledgeToProcess<'tcx>>,
     current_def_id: Option<DefId>,
@@ -114,29 +89,20 @@ pub struct InsertChecksVisitor<'tcx> {
     // maps from function arguments to their copies in old state
     stored_arguments: FxHashMap<mir::Local, mir::Local>,
     mir_info: MirInfo,
-    env_query: EnvQuery<'tcx>,
 }
 
 impl<'tcx> InsertChecksVisitor<'tcx> {
-    pub fn new(
-        tcx: TyCtxt<'tcx>,
-        specs: DefSpecificationMap,
-        expiration_locations: FxHashMap<DefId, FxHashMap<mir::Local, mir::Location>>,
-        body_copy: Body<'tcx>,
-    ) -> Self {
+    pub fn new(tcx: TyCtxt<'tcx>, specs: DefSpecificationMap, body_copy: Body<'tcx>) -> Self {
         let mir_info = collect_mir_info(tcx, body_copy.clone());
-        let env_query = EnvQuery::new(tcx);
         Self {
             tcx,
             specs,
             current_patcher: None,
             pledges_to_process: Default::default(),
-            expiration_locations,
             current_def_id: None,
             body_copy,
             stored_arguments: Default::default(),
             mir_info,
-            env_query,
         }
     }
 }
@@ -228,49 +194,46 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
 
     fn visit_terminator(&mut self, terminator: &mut Terminator<'tcx>, location: mir::Location) {
         self.super_terminator(terminator, location);
-        match &mut terminator.kind {
+        if let TerminatorKind::SwitchInt { targets, .. } = &mut terminator.kind {
             // find switchInts with a check_only target.
-            TerminatorKind::SwitchInt { targets, .. } => {
-                let mut switch_iter = targets.iter();
-                if switch_iter.len() == 1 {
-                    let (value, target) = switch_iter.next().unwrap();
-                    let otherwise = targets.otherwise();
-                    // check if target is a check_block:
-                    if let Some(kind) = self.mir_info.check_blocks.get(&otherwise) {
-                        match kind {
-                            CheckBlockKind::PledgeExpires(local) => {
-                                // this check_block should terminate with a goto always!
-                                if let TerminatorKind::Goto { target } =
-                                    self.body_copy[otherwise].terminator.clone().unwrap().kind
-                                {
-                                    let pledge = self
-                                        .pledges_to_process
-                                        .get(&local)
-                                        .expect("pledge expiration without an actual pledge");
-                                    let mut patcher = self.current_patcher.take().unwrap();
-                                    let start_block = create_pledge_call_chain(
-                                        self.tcx,
-                                        pledge,
-                                        target,
-                                        &mut patcher,
-                                    )
-                                    .unwrap();
+            let switch_iter = targets.iter();
+            if switch_iter.len() == 1 {
+                // let (value, target) = switch_iter.next().unwrap();
+                let otherwise = targets.otherwise();
+                // check if target is a check_block:
+                if let Some(kind) = self.mir_info.check_blocks.get(&otherwise) {
+                    match kind {
+                        CheckBlockKind::PledgeExpires(local) => {
+                            // this check_block should terminate with a goto always!
+                            if let TerminatorKind::Goto { target } =
+                                self.body_copy[otherwise].terminator.clone().unwrap().kind
+                            {
+                                let pledge = self
+                                    .pledges_to_process
+                                    .get(local)
+                                    .expect("pledge expiration without an actual pledge");
+                                let mut patcher = self.current_patcher.take().unwrap();
+                                let start_block = create_pledge_call_chain(
+                                    self.tcx,
+                                    pledge,
+                                    target,
+                                    &mut patcher,
+                                )
+                                .unwrap();
 
-                                    let new_terminator = TerminatorKind::Goto {
-                                        target: start_block,
-                                    };
-                                    // skip this check block and instead call checks-chain
-                                    patcher.patch_terminator(otherwise, new_terminator);
-                                    self.current_patcher = Some(patcher)
-                                }
+                                let new_terminator = TerminatorKind::Goto {
+                                    target: start_block,
+                                };
+                                // skip this check block and instead call checks-chain
+                                patcher.patch_terminator(otherwise, new_terminator);
+                                self.current_patcher = Some(patcher)
                             }
-                            // nothing to do..
-                            CheckBlockKind::RuntimeAssertion => (),
                         }
+                        // nothing to do..
+                        CheckBlockKind::RuntimeAssertion => (),
                     }
                 }
             }
-            _ => (),
         }
     }
 
@@ -303,7 +266,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                 // if it's a static function call, we start looking if there are
                 // post-conditions we could check
                 if let Some((call_id, substs)) = func.const_fn_def() {
-                    let item_name = self.tcx.def_path_str(call_id);
+                    // let item_name = self.tcx.def_path_str(call_id);
                     // make sure the call is local:
                     if !call_id.is_local() {
                         // extern specs preconditions will need to be handled here.
@@ -409,11 +372,14 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         // otherwise we have to create a reference first, to pass to the clone
         // function.
         let clone_defid = get_clone_defid(self.tcx).ok_or(())?;
-        let clone_trait_defid = self.tcx.lang_items().clone_trait().unwrap();
+        // let clone_trait_defid = self.tcx.lang_items().clone_trait().unwrap();
         let local_decl = self.body_copy.local_decls.get(arg).unwrap();
         let arg_ty = local_decl.ty;
         let destination = *self.stored_arguments.get(&arg).unwrap();
-        println!("trying to clone arg: {:?} into destination: {:?}", arg, destination);
+        println!(
+            "trying to clone arg: {:?} into destination: {:?}",
+            arg, destination
+        );
         if !arg_ty.is_ref() {
             println!("handling a non-ref old arg");
             let ref_ty = create_reference_type(self.tcx, arg_ty);

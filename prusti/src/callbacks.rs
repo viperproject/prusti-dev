@@ -1,4 +1,4 @@
-use crate::{mir_modify, verifier::verify};
+use crate::{modify_mir, verifier::verify};
 
 use prusti_common::config;
 use prusti_interface::{
@@ -10,16 +10,15 @@ use prusti_rustc_interface::{
     hir::{def::DefKind, def_id::LocalDefId},
     interface::{interface::Compiler, Config, Queries},
     middle::ty::{
-            self,
-            query::{query_values::mir_borrowck, ExternProviders, Providers},
-            TyCtxt,
+        self,
+        query::{query_values::mir_borrowck, ExternProviders, Providers},
+        TyCtxt,
     },
     session::Session,
 };
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
-
 
 // Running `get_body_with_borrowck_facts` can be very slow, therefore we avoid it when not
 // necessary; for crates which won't be verified or spec_fns it suffices to load just the fn body
@@ -61,7 +60,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             config.override_queries = Some(
                 |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
                     providers.mir_borrowck = mir_borrowck;
-                    providers.mir_drops_elaborated_and_const_checked = mir_modify::mir_checked;
+                    providers.mir_drops_elaborated_and_const_checked = modify_mir::mir_modify::mir_checked;
                     // providers.mir_built = mir_modify::mir_built;
                 },
             );
@@ -153,7 +152,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 verify(env, def_spec.clone());
             }
             unsafe {
-                mir_modify::SPECS = Some(def_spec);
+                modify_mir::SPECS = Some(def_spec);
             }
         });
 
@@ -165,4 +164,3 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         }
     }
 }
-

@@ -488,42 +488,40 @@ impl VisitMut for CheckVisitor {
                     if self.check_type.is_closure() && self.within_old {
                         // let tokens = parse_quote! {old(#expr)};
                         // *expr = tokens;
-                    } else {
-                        if let Some(arg) = self.inputs.get_mut(&name) {
-                            // argument used within an old expression?
-                            // not already marked as used in old?
-                            if self.check_type.has_old_tuple() && (self.within_old || !arg.is_ref) {
-                                // if it was not already marked to be stored
-                                // needs to be checked for indeces to be correct
-                                if !arg.used_in_old {
-                                    println!("Marking variable {} to be stored", arg.name);
-                                    arg.used_in_old = true;
-                                    arg.old_store_index = self.highest_old_index;
-                                    self.highest_old_index += 1;
-                                }
-                                // replace the identifier with the correct field access
-                                let index_token: TokenStream =
-                                    arg.old_store_index.to_string().parse().unwrap();
-                                let tokens = if arg.is_ref {
-                                    // cloning will deref the value..
-                                    quote! {(&old_values.#index_token)}
-                                } else {
-                                    // unfortunately it could still be a reference..
-                                    // no real solution at this level
-                                    quote! {(old_values.#index_token)}
-                                };
-                                println!("tokens: {}", tokens);
-                                let new_path: syn::Expr = syn::parse2(tokens).unwrap();
-                                *expr = new_path;
+                    } else if let Some(arg) = self.inputs.get_mut(&name) {
+                        // argument used within an old expression?
+                        // not already marked as used in old?
+                        if self.check_type.has_old_tuple() && (self.within_old || !arg.is_ref) {
+                            // if it was not already marked to be stored
+                            // needs to be checked for indeces to be correct
+                            if !arg.used_in_old {
+                                println!("Marking variable {} to be stored", arg.name);
+                                arg.used_in_old = true;
+                                arg.old_store_index = self.highest_old_index;
+                                self.highest_old_index += 1;
                             }
-                        } else if self.within_before_expiry && name == *"result" {
-                            let new_path: syn::Expr = parse_quote! {
-                                (&result_before_expiry)
+                            // replace the identifier with the correct field access
+                            let index_token: TokenStream =
+                                arg.old_store_index.to_string().parse().unwrap();
+                            let tokens = if arg.is_ref {
+                                // cloning will deref the value..
+                                quote! {(&old_values.#index_token)}
+                            } else {
+                                // unfortunately it could still be a reference..
+                                // no real solution at this level
+                                quote! {(old_values.#index_token)}
                             };
+                            println!("tokens: {}", tokens);
+                            let new_path: syn::Expr = syn::parse2(tokens).unwrap();
                             *expr = new_path;
-                        } else {
-                            println!("identifier {} was not found in args\n\n", name);
                         }
+                    } else if self.within_before_expiry && name == *"result" {
+                        let new_path: syn::Expr = parse_quote! {
+                            (&result_before_expiry)
+                        };
+                        *expr = new_path;
+                    } else {
+                        println!("identifier {} was not found in args\n\n", name);
                     }
                 }
             }

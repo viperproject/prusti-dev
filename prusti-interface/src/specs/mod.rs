@@ -180,13 +180,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             .get(rhs)
                             .unwrap()
                             .to_def_id();
-                        let res = typed::CheckKind::Pledge {
+                        typed::CheckKind::Pledge {
                             check,
                             old_store,
                             check_before_expiry,
                             store_before_expiry,
-                        };
-                        res
+                        }
                     }
                     // Todo: Pledges, Assume?
                     _ => unreachable!(),

@@ -1,15 +1,14 @@
-use either::Either;
 use prusti_rustc_interface::{
     middle::{
         mir::{
             self,
             patch::MirPatch,
-            visit::{MutVisitor, Visitor},
+            visit::{MutVisitor},
             Body, TerminatorKind,
         },
         ty::{self, TyCtxt},
     },
-    span::{self, def_id::DefId, Span},
+    span::{self, def_id::DefId},
 };
 use rustc_hash::FxHashMap;
 
@@ -28,34 +27,16 @@ use rustc_hash::FxHashMap;
 // }
 
 /// Check whether this variable is mutable, or a mutable reference
-pub fn is_mutable_arg<'tcx>(body: &Body<'tcx>, local: mir::Local) -> bool {
+pub fn is_mutable_arg(body: &Body<'_>, local: mir::Local) -> bool {
     let args: Vec<mir::Local> = body.args_iter().collect();
     if args.contains(&local) {
         let local_decl = body.local_decls.get(local).unwrap();
-        match local_decl.mutability {
-            mir::Mutability::Mut => return true,
-            _ => (),
+        if local_decl.mutability == mir::Mutability::Mut {
+            return true;
         }
-        match local_decl.ty.ref_mutability() {
-            Some(mir::Mutability::Mut) => true,
-            _ => false,
-        }
+        matches!(local_decl.ty.ref_mutability(), Some(mir::Mutability::Mut))
     } else {
         false
-    }
-}
-
-pub fn get_locals_type<'tcx>(body: &Body<'tcx>, local: mir::Local) -> Result<ty::Ty<'tcx>, ()> {
-    Ok(body.local_decls.get(local).ok_or(())?.ty)
-}
-
-pub fn local_from_operand<'tcx>(operand: &mir::Operand<'tcx>) -> Result<mir::Local, ()> {
-    match operand {
-        mir::Operand::Copy(place) | mir::Operand::Move(place) => {
-            println!("Projections: {:#?}", place.projection);
-            Ok(place.local)
-        }
-        _ => return Err(()),
     }
 }
 
@@ -71,16 +52,16 @@ pub fn dummy_source_info() -> mir::SourceInfo {
     }
 }
 
-pub fn dummy_region<'tcx>(tcx: TyCtxt<'tcx>) -> ty::Region<'tcx> {
+pub fn dummy_region(tcx: TyCtxt<'_>) -> ty::Region<'_> {
     let kind = ty::RegionKind::ReErased;
     tcx.mk_region_from_kind(kind)
 }
 
-pub fn rvalue_reference_to_local<'tcx>(
-    tcx: TyCtxt<'tcx>,
+pub fn rvalue_reference_to_local(
+    tcx: TyCtxt<'_>,
     local: mir::Local,
     mutable: bool,
-) -> mir::Rvalue<'tcx> {
+) -> mir::Rvalue<'_> {
     let place = mir::Place::from(local);
     let dummy_region = dummy_region(tcx);
     let borrow_kind = if mutable {
@@ -109,7 +90,7 @@ pub fn create_reference_type<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::T
     )
 }
 
-pub fn get_clone_defid<'tcx>(tcx: TyCtxt<'tcx>) -> Option<DefId> {
+pub fn get_clone_defid(tcx: TyCtxt<'_>) -> Option<DefId> {
     let trait_defid = tcx.lang_items().clone_trait()?;
     tcx.associated_items(trait_defid)
         .find_by_name_and_kind(
@@ -208,55 +189,6 @@ pub fn create_call_block<'tcx>(
     let new_block_id = patch.new_block(blockdata);
 
     Ok((new_block_id, destination))
-}
-
-/// Creates one new block, moves all instructions following the passed location
-/// and the terminator to the new block, and changes the current terminator
-/// to point to this new block. If successful, returns index of the new block
-pub fn split_block_at_location(
-    body: &mut mir::Body<'_>,
-    location: mir::Location,
-) -> Result<mir::BasicBlock, ()> {
-    // check validity of the location:
-    let mut patch = MirPatch::new(body);
-    let block1: &mut mir::BasicBlockData =
-        body.basic_blocks_mut().get_mut(location.block).ok_or(())?;
-
-    let nr_instructions = block1.statements.len();
-    // check if the given location is valid
-    if nr_instructions <= location.statement_index {
-        return Err(());
-    }
-    // the statements that stay in the first block
-    let stmts1: Vec<mir::Statement> = block1.statements[0..=location.statement_index].to_vec();
-
-    let stmts2: Vec<mir::Statement> = if location.statement_index + 1 < nr_instructions {
-        // location is not the last instruction of the block
-        block1.statements[location.statement_index + 1..].to_vec()
-    } else {
-        vec![]
-    };
-
-    let new_block_data = mir::BasicBlockData {
-        statements: stmts2,
-        terminator: block1.terminator.clone(),
-        is_cleanup: block1.is_cleanup,
-    };
-    // add the new block:
-    let block2 = patch.new_block(new_block_data);
-    patch.apply(body);
-
-    // reborrow, because of patcher
-    let block1: &mut mir::BasicBlockData =
-        body.basic_blocks_mut().get_mut(location.block).ok_or(())?;
-    let terminator_between = mir::Terminator {
-        kind: mir::TerminatorKind::Goto { target: block2 },
-        source_info: dummy_source_info(),
-    };
-    block1.terminator = Some(terminator_between);
-    block1.statements = stmts1;
-
-    Ok(block2)
 }
 
 // If we re-order the IndexVec containing the basic blocks, we will need to adjust
