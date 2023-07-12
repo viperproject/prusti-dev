@@ -1,3 +1,5 @@
+#![allow(dropping_references)]
+
 #[derive(Clone, Default)]
 struct T {
     // Wrap in Box to have non-Copy types
