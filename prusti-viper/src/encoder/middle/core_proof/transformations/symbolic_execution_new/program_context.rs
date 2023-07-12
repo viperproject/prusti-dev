@@ -233,12 +233,12 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
         left: vir_low::Expression,
         right: vir_low::Expression,
         position: vir_low::Position,
-    ) -> vir_low::Expression {
+    ) -> Option<vir_low::Expression> {
+        // The domain may be missing if the type is trusted.
         let domain_name = self
             .snapshot_domains_info
             .type_domains
-            .get(left.get_type())
-            .unwrap_or_else(|| panic!("not found: {}", left.get_type()));
+            .get(left.get_type())?;
         let function_name = self
             .snapshot_domains_info
             .snapshot_domains
@@ -247,13 +247,13 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
             .snapshot_equality
             .as_ref()
             .unwrap_or_else(|| panic!("not found: {}", domain_name));
-        vir_low::Expression::domain_function_call(
+        let call = vir_low::Expression::domain_function_call(
             domain_name,
             function_name,
             vec![left, right, self.extensionality_gas_constant.clone()],
             vir_low::Type::Bool,
-        )
-        .set_default_position(position)
+        );
+        Some(call.set_default_position(position))
     }
 
     pub(super) fn get_bool_domain_info(&self) -> (vir_low::Type, SnapshotDomainInfo) {

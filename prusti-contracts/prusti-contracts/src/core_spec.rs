@@ -185,7 +185,6 @@ impl<T> ::core::ptr::NonNull<T> {
     #[pure]
     #[no_panic]
     #[no_panic_ensures_postcondition]
-    #[requires(!(self === core::ptr::NonNull::dangling()))]
     pub fn as_ptr(self) -> *mut T;
 }
 

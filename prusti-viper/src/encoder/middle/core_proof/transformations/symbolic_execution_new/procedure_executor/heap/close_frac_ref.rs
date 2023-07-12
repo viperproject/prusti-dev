@@ -155,14 +155,18 @@ impl ClosedFracRef {
                 // ```
                 //
                 // Instead, we use the following hack.
-                let extensionality_trigger = program_context
+                if let Some(extensionality_trigger) = program_context
                     .predicate_snapshots_extensionality_call(
                         predicate_snapshot.clone(),
                         instance_snapshot.clone(),
                         position,
-                    );
-                block_builder
-                    .add_statement(vir_low::Statement::assert(extensionality_trigger, position))?;
+                    )
+                {
+                    block_builder.add_statement(vir_low::Statement::assert(
+                        extensionality_trigger,
+                        position,
+                    ))?;
+                }
             }
         }
         Ok(())
