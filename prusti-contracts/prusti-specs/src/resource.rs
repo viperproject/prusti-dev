@@ -47,12 +47,29 @@ fn parse_resource_internal(
     let input: ResourceFnInput = parse_res.map_err(|e| {
         syn::Error::new(
             e.span(),
-            format!(
-                "`{}!` can only be used on function definitions; it supports no attributes",
-                macro_name
-            ),
+            format!("`{}!` can only be used on function definitions", macro_name),
         )
     })?;
+
+    for attribute in &input.attributes {
+        if attribute
+            .path
+            .to_token_stream()
+            .into_iter()
+            .map(|tok| tok.to_string())
+            .collect::<Vec<_>>()
+            != vec!["doc"]
+        {
+            return Err(syn::Error::new(
+                attribute.span(),
+                format!(
+                    "the function in `{}!` shall have only doc attributes",
+                    macro_name
+                ),
+            ));
+        }
+    }
+
     match &input.fn_sig.output {
         syn::ReturnType::Type(..) => {
             return Err(syn::Error::new(
@@ -85,9 +102,18 @@ fn parse_resource_internal(
             ),
         ))
     } else {
+        let attribute_tokens =
+            input
+                .attributes
+                .into_iter()
+                .fold(TokenStream::new(), |mut tokens, attribute| {
+                    attribute.to_tokens(&mut tokens);
+                    tokens
+                });
         let visibility = input.visibility;
         let signature = input.fn_sig;
         let patched = parse_quote_spanned!(span=>
+            #attribute_tokens
             #output_attribute
             #[prusti::specs_version = #SPECS_VERSION]
             #[allow(unused_variables)]
@@ -100,6 +126,7 @@ fn parse_resource_internal(
 
 #[derive(Debug)]
 struct ResourceFnInput {
+    attributes: Vec<syn::Attribute>,
     visibility: syn::Visibility,
     fn_sig: syn::Signature,
     body: Option<TokenStream>,
@@ -107,11 +134,8 @@ struct ResourceFnInput {
 
 impl syn::parse::Parse for ResourceFnInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let visibility = if input.peek(syn::Token![pub]) {
-            input.parse()?
-        } else {
-            syn::Visibility::Inherited
-        };
+        let attributes = input.call(syn::Attribute::parse_outer)?;
+        let visibility = input.parse()?;
         let fn_sig = input.parse()?;
 
         let body = if input.peek(syn::Token![;]) {
@@ -126,6 +150,7 @@ impl syn::parse::Parse for ResourceFnInput {
         };
 
         Ok(ResourceFnInput {
+            attributes,
             visibility,
             fn_sig,
             body,

@@ -378,20 +378,16 @@ pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }
 
-/*
-/// This function is used to specify the number of time credits required in a
-/// function specification. It defines the upper bound for its runtime.
-*/
 resource! {
+    /// This function is used to specify the number of time credits required in a
+    /// function specification. It defines the upper bound for its runtime.
     pub fn time_credits(amount: usize);
 }
 
-/*
-/// This function is used to specify the number of time receipts ensured at the
-/// end of the execution of a function in its specification. It defines the
-/// lower bound for its runtime.
-*/
 resource! {
+    /// This function is used to specify the number of time receipts ensured at the
+    /// end of the execution of a function in its specification. It defines the
+    /// lower bound for its runtime.
     pub fn time_receipts(amount: usize);
 }
 
