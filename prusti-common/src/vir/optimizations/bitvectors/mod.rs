@@ -68,8 +68,7 @@ pub fn replace_all_ints(program: &mut vir_poly::Program) {
                 }
             }
             vir_poly::Predicate::Bodyless(..) => {}
-            vir_poly::Predicate::ResourceAccess(_) => {}
-            vir_poly::Predicate::Obligation(_) => {}
+            vir_poly::Predicate::Resource(_) => {}
         }
     }
     let types = [

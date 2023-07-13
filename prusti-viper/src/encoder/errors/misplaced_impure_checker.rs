@@ -6,7 +6,7 @@
 
 use std::fmt::Debug;
 
-use vir_crate::polymorphic::{Position, program::Program, CfgMethod, ExprWalker, Expr, BinaryOpKind, BinOp, UnaryOpKind, UnaryOp, Cond, PredicateAccessPredicate, FieldAccessPredicate, ResourceAccessPredicate, ObligationAccessPredicate};
+use vir_crate::polymorphic::{Position, program::Program, CfgMethod, ExprWalker, Expr, BinaryOpKind, BinOp, UnaryOpKind, UnaryOp, Cond, PredicateAccessPredicate, FieldAccessPredicate, ResourceAccessPredicate};
 use crate::encoder::errors::PositionManager;
 use prusti_interface::PrustiError;
 
@@ -150,12 +150,5 @@ impl ExprWalker for ImpurityFinder {
         resource_access_predicate: &ResourceAccessPredicate,
         ) {
         self.impurity_pos = Some(resource_access_predicate.position);
-    }
-
-    fn walk_obligation_access_predicate(
-        &mut self,
-        obligation_access_predicate: &ObligationAccessPredicate,
-        ) {
-        self.impurity_pos = Some(obligation_access_predicate.position);
     }
 }

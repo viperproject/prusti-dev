@@ -33,7 +33,10 @@ use typed::SpecIdRef;
 
 use crate::specs::{
     external::ExternSpecResolver,
-    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
+    typed::{
+        ProcedureSpecification, ProcedureSpecificationKind, ResourceOptions, SpecGraph,
+        SpecificationItem,
+    },
 };
 use prusti_specs::specifications::common::SpecificationId;
 
@@ -43,13 +46,18 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+    resource: bool,
     obligation: bool,
 }
 
 impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
     fn from(refs: &ProcedureSpecRefs) -> Self {
         if refs.obligation {
-            ProcedureSpecificationKind::Obligation
+            ProcedureSpecificationKind::Resource(ResourceOptions { leak_checked: true })
+        } else if refs.resource {
+            ProcedureSpecificationKind::Resource(ResourceOptions {
+                leak_checked: false,
+            })
         } else if refs.abstract_predicate {
             ProcedureSpecificationKind::Predicate(None)
         } else if refs.pure {
@@ -406,14 +414,16 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     let trusted = has_prusti_attr(attrs, "trusted")
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
+    let resource = has_prusti_attr(attrs, "resource");
     let obligation = has_prusti_attr(attrs, "obligation");
 
-    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() || obligation {
+    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() || resource || obligation {
         Some(ProcedureSpecRefs {
             spec_id_refs,
             pure,
             abstract_predicate,
             trusted,
+            resource,
             obligation,
         })
     } else {

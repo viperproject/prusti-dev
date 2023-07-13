@@ -32,5 +32,6 @@ mod middle;
 mod purifier;
 pub mod counterexamples;
 mod definition_collector;
+mod leak_check_resolver;
 mod versioning;
 mod resources;

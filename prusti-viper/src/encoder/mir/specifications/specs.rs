@@ -7,7 +7,8 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_interface::{
-    environment::Environment,
+    data::ProcedureDefId,
+    environment::{EnvName, Environment},
     specs::typed::{
         DefSpecificationMap, DirectSpecification, GhostBegin, GhostEnd, LoopSpecification,
         ProcedureSpecification, ProcedureSpecificationKind, ProcedureSpecificationKindError,
@@ -121,6 +122,18 @@ impl<'tcx> Specifications<'tcx> {
             }
             _ => self.get_proc_spec(env, &query),
         }
+    }
+
+    pub fn get_proc_def_id(
+        &self,
+        proc_absolute_name: &str,
+        env_name: &EnvName<'tcx>,
+    ) -> Option<ProcedureDefId> {
+        self.user_typed_specs
+            .proc_specs
+            .keys()
+            .copied()
+            .find(|&def_id| env_name.get_absolute_item_name(def_id) == proc_absolute_name)
     }
 
     #[tracing::instrument(level = "debug", skip(self, env))]

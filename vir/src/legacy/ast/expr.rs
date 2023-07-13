@@ -31,10 +31,8 @@ pub enum Expr {
     MagicWand(Box<Expr>, Box<Expr>, Option<Borrow>, Position),
     /// PredicateAccessPredicate: predicate_name, arg, permission amount
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
-    /// ResourceAccessPredicate: resource name, amount, scope_id
-    ResourceAccessPredicate(String, Box<Expr>, isize, Position),
-    /// ObligationAccessPredicate: obligation name with arguments, amount (as integer)
-    ObligationAccessPredicate(ObligationAccess, Box<Expr>, Position),
+    /// ResourceAccessPredicate: resource name with arguments, amount (as integer)
+    ResourceAccessPredicate(ResourceAccess, Box<Expr>, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
@@ -59,8 +57,8 @@ pub enum Expr {
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
     /// Exists: variables, triggers, body
     Exists(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
-    /// ForPerm: variables, obligation access, body
-    ForPerm(Vec<LocalVar>, ObligationAccess, Box<Expr>, Position),
+    /// ForPerm: variables, resource access, body
+    ForPerm(Vec<LocalVar>, ResourceAccess, Box<Expr>, Position),
     /// let variable == (expr) in body
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -162,14 +160,14 @@ pub enum Const {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-pub struct ObligationAccess {
+pub struct ResourceAccess {
     pub name: String,
     pub args: Vec<Expr>,
     pub formal_arguments: Vec<LocalVar>,
     pub pos: Position,
 }
 
-impl fmt::Display for ObligationAccess {
+impl fmt::Display for ResourceAccess {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -222,10 +220,7 @@ impl fmt::Display for Expr {
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
                 write!(f, "acc({pred_name}({arg}), {perm})")
             }
-            Expr::ResourceAccessPredicate(resouce_name, amount, scope_id, _) => {
-                write!(f, "acc({resouce_name}({scope_id}), {amount}/1)")
-            }
-            Expr::ObligationAccessPredicate(ref access, ref amount, _) => {
+            Expr::ResourceAccessPredicate(ref access, ref amount, _) => {
                 write!(f, "acc({access}, {amount})")
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
@@ -418,8 +413,7 @@ impl Expr {
             | Expr::LabelledOld(_, _, p)
             | Expr::MagicWand(_, _, _, p)
             | Expr::PredicateAccessPredicate(_, _, _, p)
-            | Expr::ResourceAccessPredicate(_, _, _, p)
-            | Expr::ObligationAccessPredicate(_, _, p)
+            | Expr::ResourceAccessPredicate(_, _, p)
             | Expr::FieldAccessPredicate(_, _, p)
             | Expr::UnaryOp(_, _, p)
             | Expr::BinOp(_, _, _, p)
@@ -455,8 +449,8 @@ impl Expr {
             Expr::PredicateAccessPredicate(x, y, z, _) => {
                 Expr::PredicateAccessPredicate(x, y, z, pos)
             }
-            Expr::ResourceAccessPredicate(n, a, id, _) => {
-                Expr::ResourceAccessPredicate(n, a, id, pos)
+            Expr::ResourceAccessPredicate(acc, am, _) => {
+                Expr::ResourceAccessPredicate(acc, am, pos)
             }
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
@@ -504,9 +498,9 @@ impl Expr {
         Expr::PredicateAccessPredicate(name.to_string(), Box::new(place), perm, pos)
     }
 
-    pub fn resource_access_predicate<S: ToString>(name: S, amount: Expr, scope_id: isize) -> Self {
+    pub fn resource_access_predicate(access: ResourceAccess, amount: Expr) -> Self {
         let pos = amount.pos();
-        Expr::ResourceAccessPredicate(name.to_string(), Box::new(amount), scope_id, pos)
+        Expr::ResourceAccessPredicate(access, Box::new(amount), pos)
     }
 
     pub fn field_access_predicate(place: Expr, perm: PermAmount) -> Self {
@@ -1354,7 +1348,6 @@ impl Expr {
             }
             Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
-            Expr::ObligationAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1801,7 +1794,6 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::ResourceAccessPredicate(..) => f,
-                    f @ Expr::ObligationAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp(BinaryOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinaryOpKind::And, y, z, p)

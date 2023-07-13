@@ -161,26 +161,18 @@ pub trait ExprFolder: Sized {
         })
     }
 
-    fn fold_resource_access_predicate(&mut self, expr: ResourceAccessPredicate) -> Expr {
-        let ResourceAccessPredicate { amount, .. } = expr;
-        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
-            amount: self.fold_boxed(amount),
-            ..expr
-        })
-    }
-
-    fn fold_obligation_access(&mut self, access: ObligationAccess) -> ObligationAccess {
-        let ObligationAccess { args, .. } = access;
-        ObligationAccess {
+    fn fold_resource_access(&mut self, access: ResourceAccess) -> ResourceAccess {
+        let ResourceAccess { args, .. } = access;
+        ResourceAccess {
             args: args.into_iter().map(|e| self.fold(e)).collect(),
             ..access
         }
     }
 
-    fn fold_obligation_access_predicate(&mut self, expr: ObligationAccessPredicate) -> Expr {
-        let ObligationAccessPredicate { access, amount, .. } = expr;
-        Expr::ObligationAccessPredicate(ObligationAccessPredicate {
-            access: self.fold_obligation_access(access),
+    fn fold_resource_access_predicate(&mut self, expr: ResourceAccessPredicate) -> Expr {
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            access: self.fold_resource_access(access),
             amount: self.fold_boxed(amount),
             ..expr
         })
@@ -322,7 +314,7 @@ pub trait ExprFolder: Sized {
         } = expr;
         Expr::ForPerm(ForPerm {
             variables,
-            access: self.fold_obligation_access(access),
+            access: self.fold_resource_access(access),
             body: self.fold_boxed(body),
             position,
         })
@@ -493,9 +485,6 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.fold_resource_access_predicate(resource_access_predicate)
         }
-        Expr::ObligationAccessPredicate(obligation_access_predicate) => {
-            this.fold_obligation_access_predicate(obligation_access_predicate)
-        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fold_field_access_predicate(field_access_predicate)
         }
@@ -569,19 +558,15 @@ pub trait ExprWalker: Sized {
         let PredicateAccessPredicate { argument, .. } = expr;
         self.walk(argument);
     }
-    fn walk_resource_access_predicate(&mut self, expr: &ResourceAccessPredicate) {
-        let ResourceAccessPredicate { amount, .. } = expr;
-        self.walk(amount);
-    }
-    fn walk_obligation_access(&mut self, access: &ObligationAccess) {
-        let ObligationAccess { args, .. } = access;
+    fn walk_resource_access(&mut self, access: &ResourceAccess) {
+        let ResourceAccess { args, .. } = access;
         for arg in args {
             self.walk(arg);
         }
     }
-    fn walk_obligation_access_predicate(&mut self, expr: &ObligationAccessPredicate) {
-        let ObligationAccessPredicate { access, amount, .. } = expr;
-        self.walk_obligation_access(access);
+    fn walk_resource_access_predicate(&mut self, expr: &ResourceAccessPredicate) {
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        self.walk_resource_access(access);
         self.walk(amount);
     }
     fn walk_field_access_predicate(&mut self, expr: &FieldAccessPredicate) {
@@ -661,7 +646,7 @@ pub trait ExprWalker: Sized {
         for var in variables {
             self.walk_local_var(var);
         }
-        self.walk_obligation_access(access);
+        self.walk_resource_access(access);
         self.walk(body);
     }
     fn walk_let_expr(&mut self, expr: &LetExpr) {
@@ -785,9 +770,6 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         }
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.walk_resource_access_predicate(resource_access_predicate)
-        }
-        Expr::ObligationAccessPredicate(obligation_access_predicate) => {
-            this.walk_obligation_access_predicate(obligation_access_predicate)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.walk_field_access_predicate(field_access_predicate)
@@ -917,23 +899,12 @@ pub trait FallibleExprFolder: Sized {
         }))
     }
 
-    fn fallible_fold_resource_access_predicate(
+    fn fallible_fold_resource_access(
         &mut self,
-        expr: ResourceAccessPredicate,
-    ) -> Result<Expr, Self::Error> {
-        let ResourceAccessPredicate { amount, .. } = expr;
-        Ok(Expr::ResourceAccessPredicate(ResourceAccessPredicate {
-            amount: self.fallible_fold_boxed(amount)?,
-            ..expr
-        }))
-    }
-
-    fn fallible_fold_obligation_access(
-        &mut self,
-        access: ObligationAccess,
-    ) -> Result<ObligationAccess, Self::Error> {
-        let ObligationAccess { args, .. } = access;
-        Ok(ObligationAccess {
+        access: ResourceAccess,
+    ) -> Result<ResourceAccess, Self::Error> {
+        let ResourceAccess { args, .. } = access;
+        Ok(ResourceAccess {
             args: args
                 .into_iter()
                 .map(|e| self.fallible_fold(e))
@@ -942,13 +913,13 @@ pub trait FallibleExprFolder: Sized {
         })
     }
 
-    fn fallible_fold_obligation_access_predicate(
+    fn fallible_fold_resource_access_predicate(
         &mut self,
-        expr: ObligationAccessPredicate,
+        expr: ResourceAccessPredicate,
     ) -> Result<Expr, Self::Error> {
-        let ObligationAccessPredicate { access, amount, .. } = expr;
-        Ok(Expr::ObligationAccessPredicate(ObligationAccessPredicate {
-            access: self.fallible_fold_obligation_access(access)?,
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        Ok(Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            access: self.fallible_fold_resource_access(access)?,
             amount: self.fallible_fold_boxed(amount)?,
             ..expr
         }))
@@ -1096,7 +1067,7 @@ pub trait FallibleExprFolder: Sized {
         } = expr;
         Ok(Expr::ForPerm(ForPerm {
             variables,
-            access: self.fallible_fold_obligation_access(access)?,
+            access: self.fallible_fold_resource_access(access)?,
             body: self.fallible_fold_boxed(body)?,
             position,
         }))
@@ -1289,9 +1260,6 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.fallible_fold_resource_access_predicate(resource_access_predicate)
         }
-        Expr::ObligationAccessPredicate(obligation_access_predicate) => {
-            this.fallible_fold_obligation_access_predicate(obligation_access_predicate)
-        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_fold_field_access_predicate(field_access_predicate)
         }
@@ -1375,29 +1343,22 @@ pub trait FallibleExprWalker: Sized {
         let PredicateAccessPredicate { argument, .. } = expr;
         self.fallible_walk(argument)
     }
-    fn fallible_walk_resource_access_predicate(
+    fn fallible_walk_resource_access(
         &mut self,
-        expr: &ResourceAccessPredicate,
+        access: &ResourceAccess,
     ) -> Result<(), Self::Error> {
-        let ResourceAccessPredicate { amount, .. } = expr;
-        self.fallible_walk(amount)
-    }
-    fn fallible_walk_obligation_access(
-        &mut self,
-        access: &ObligationAccess,
-    ) -> Result<(), Self::Error> {
-        let ObligationAccess { args, .. } = access;
+        let ResourceAccess { args, .. } = access;
         for arg in args {
             self.fallible_walk(arg)?;
         }
         Ok(())
     }
-    fn fallible_walk_obligation_access_predicate(
+    fn fallible_walk_resource_access_predicate(
         &mut self,
-        expr: &ObligationAccessPredicate,
+        expr: &ResourceAccessPredicate,
     ) -> Result<(), Self::Error> {
-        let ObligationAccessPredicate { access, amount, .. } = expr;
-        self.fallible_walk_obligation_access(access)?;
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        self.fallible_walk_resource_access(access)?;
         self.fallible_walk(amount)
     }
     fn fallible_walk_field_access_predicate(
@@ -1482,7 +1443,7 @@ pub trait FallibleExprWalker: Sized {
         for var in variables {
             self.fallible_walk_local_var(var)?;
         }
-        self.fallible_walk_obligation_access(access)?;
+        self.fallible_walk_resource_access(access)?;
         self.fallible_walk(body)
     }
     fn fallible_walk_let_expr(&mut self, expr: &LetExpr) -> Result<(), Self::Error> {
@@ -1614,9 +1575,6 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         }
         Expr::ResourceAccessPredicate(resource_access_predicate) => {
             this.fallible_walk_resource_access_predicate(resource_access_predicate)
-        }
-        Expr::ObligationAccessPredicate(obligation_access_predicate) => {
-            this.fallible_walk_obligation_access_predicate(obligation_access_predicate)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_walk_field_access_predicate(field_access_predicate)

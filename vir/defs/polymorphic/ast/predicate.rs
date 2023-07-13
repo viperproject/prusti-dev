@@ -15,8 +15,7 @@ pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(Type, LocalVar),
-    ResourceAccess(ResourceType),
-    Obligation(ObligationPredicate),
+    Resource(ResourcePredicate),
 }
 
 impl fmt::Display for Predicate {
@@ -25,8 +24,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{}", p),
             Predicate::Enum(p) => write!(f, "{}", p),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
-            Predicate::ResourceAccess(resouce_type) => write!(f, "{}", resouce_type),
-            Predicate::Obligation(p) => write!(f, "{}", p),
+            Predicate::Resource(p) => write!(f, "{}", p),
         }
     }
 }
@@ -103,12 +101,8 @@ impl Predicate {
             variants,
         })
     }
-    /// Construct a predicate that corresponds to a specific resource type.
-    pub fn new_resource(typ: ResourceType) -> Predicate {
-        Predicate::ResourceAccess(typ)
-    }
-    pub fn new_obligation(name: String, params: Vec<LocalVar>) -> Predicate {
-        Predicate::Obligation(ObligationPredicate { name, params })
+    pub fn new_resource(name: String, params: Vec<LocalVar>) -> Predicate {
+        Predicate::Resource(ResourcePredicate { name, params })
     }
     /// A `self` place getter.
     pub fn self_place(&self) -> Expr {
@@ -116,11 +110,8 @@ impl Predicate {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
-            Predicate::ResourceAccess(_) => {
-                unreachable!("Resouce access predicate does not have `self` place.")
-            }
-            Predicate::Obligation(_) => {
-                unreachable!("Obligation predicate does not have `self` place.")
+            Predicate::Resource(_) => {
+                unreachable!("Resource predicate does not have `self` place.")
             }
         }
     }
@@ -130,11 +121,8 @@ impl Predicate {
             Predicate::Struct(p) => &p.typ,
             Predicate::Enum(p) => &p.typ,
             Predicate::Bodyless(typ, _) => typ,
-            Predicate::ResourceAccess(_) => {
-                unreachable!("Resouce access predicate does not have types.")
-            }
-            Predicate::Obligation(_) => {
-                unreachable!("Obligation predicate does not have types.")
+            Predicate::Resource(_) => {
+                unreachable!("Resource predicate does not have types.")
             }
         }
     }
@@ -144,8 +132,7 @@ impl Predicate {
             Predicate::Struct(p) => p.typ.name(),
             Predicate::Enum(p) => p.typ.name(),
             Predicate::Bodyless(ref typ, _) => typ.name(),
-            Predicate::ResourceAccess(typ) => typ.encode_as_string(),
-            Predicate::Obligation(p) => p.name.clone(),
+            Predicate::Resource(p) => p.name.clone(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -153,8 +140,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
-            Predicate::ResourceAccess(_) => None,
-            Predicate::Obligation(_) => None,
+            Predicate::Resource(_) => None,
         }
     }
     pub fn is_struct_with_empty_body(&self) -> bool {
@@ -163,8 +149,8 @@ impl Predicate {
             _ => false,
         }
     }
-    pub fn is_resource_predicate(&self) -> bool {
-        matches!(self, Predicate::ResourceAccess(..))
+    pub fn is_resource(&self) -> bool {
+        matches!(self, Predicate::Resource(_))
     }
 }
 
@@ -174,8 +160,7 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(typ, _) => typ.encode_as_string(),
-            Predicate::ResourceAccess(typ) => typ.encode_as_string(),
-            Predicate::Obligation(p) => p.get_identifier(),
+            Predicate::Resource(p) => p.get_identifier(),
         }
     }
 }
@@ -334,16 +319,16 @@ impl WithIdentifier for EnumPredicate {
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
 )]
-pub struct ObligationPredicate {
+pub struct ResourcePredicate {
     pub name: String,
     pub params: Vec<LocalVar>,
 }
 
-impl fmt::Display for ObligationPredicate {
+impl fmt::Display for ResourcePredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "obligation_predicate {}({})",
+            "resource_predicate {}({})",
             self.name,
             self.params
                 .iter()
@@ -354,7 +339,7 @@ impl fmt::Display for ObligationPredicate {
     }
 }
 
-impl WithIdentifier for ObligationPredicate {
+impl WithIdentifier for ResourcePredicate {
     fn get_identifier(&self) -> String {
         compute_identifier(&self.name, &[], &self.params, &Type::Bool)
     }

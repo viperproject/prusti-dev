@@ -218,7 +218,13 @@ pub enum ProcedureSpecificationKind {
     /// The specification is a predicate with the enclosed body.
     /// The body can be None to account for abstract predicates.
     Predicate(Option<DefId>),
-    Obligation,
+    Resource(ResourceOptions),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, TyEncodable, TyDecodable)]
+pub struct ResourceOptions {
+    /// true iff leak checks should be generated for this resource
+    pub leak_checked: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, TyEncodable, TyDecodable)]
@@ -232,7 +238,11 @@ impl Display for ProcedureSpecificationKind {
             ProcedureSpecificationKind::Impure => write!(f, "Impure"),
             ProcedureSpecificationKind::Pure => write!(f, "Pure"),
             ProcedureSpecificationKind::Predicate(_) => write!(f, "Predicate"),
-            ProcedureSpecificationKind::Obligation => write!(f, "Obligation"),
+            ProcedureSpecificationKind::Resource(ResourceOptions { leak_checked }) => write!(
+                f,
+                "Resource({} leak checks)",
+                if *leak_checked { "with" } else { "no" }
+            ),
         }
     }
 }

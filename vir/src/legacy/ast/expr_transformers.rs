@@ -150,35 +150,21 @@ pub trait ExprFolder: Sized {
             self.fold_position(pos),
         )
     }
-    fn fold_resource_access_predicate(
-        &mut self,
-        resource_name: String,
-        amount: Box<Expr>,
-        scope_id: isize,
-        pos: Position,
-    ) -> Expr {
-        Expr::ResourceAccessPredicate(
-            resource_name,
-            self.fold_boxed(amount),
-            scope_id,
-            self.fold_position(pos),
-        )
-    }
-    fn fold_obligation_access(&mut self, access: ObligationAccess) -> ObligationAccess {
-        ObligationAccess {
+    fn fold_resource_access(&mut self, access: ResourceAccess) -> ResourceAccess {
+        ResourceAccess {
             args: access.args.into_iter().map(|e| self.fold(e)).collect(),
             pos: self.fold_position(access.pos),
             ..access
         }
     }
-    fn fold_obligation_access_predicate(
+    fn fold_resource_access_predicate(
         &mut self,
-        access: ObligationAccess,
+        access: ResourceAccess,
         amount: Box<Expr>,
         pos: Position,
     ) -> Expr {
-        Expr::ObligationAccessPredicate(
-            self.fold_obligation_access(access),
+        Expr::ResourceAccessPredicate(
+            self.fold_resource_access(access),
             self.fold_boxed(amount),
             self.fold_position(pos),
         )
@@ -265,13 +251,13 @@ pub trait ExprFolder: Sized {
     fn fold_forperm(
         &mut self,
         vars: Vec<LocalVar>,
-        access: ObligationAccess,
+        access: ResourceAccess,
         body: Box<Expr>,
         p: Position,
     ) -> Expr {
         Expr::ForPerm(
             vars,
-            self.fold_obligation_access(access),
+            self.fold_resource_access(access),
             self.fold_boxed(body),
             self.fold_position(p),
         )
@@ -405,12 +391,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fold_predicate_access_predicate(x, y, z, p)
         }
-        Expr::ResourceAccessPredicate(n, a, id, p) => {
-            this.fold_resource_access_predicate(n, a, id, p)
-        }
-        Expr::ObligationAccessPredicate(ac, am, p) => {
-            this.fold_obligation_access_predicate(ac, am, p)
-        }
+        Expr::ResourceAccessPredicate(ac, am, p) => this.fold_resource_access_predicate(ac, am, p),
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fold_bin_op(x, y, z, p),
@@ -492,29 +473,19 @@ pub trait ExprWalker: Sized {
         self.walk(arg);
         self.walk_position(pos);
     }
-    fn walk_resource_access_predicate(
-        &mut self,
-        _resource_name: &str,
-        amount: &Expr,
-        _scope_id: isize,
-        pos: &Position,
-    ) {
-        self.walk(amount);
-        self.walk_position(pos);
-    }
-    fn walk_obligation_access(&mut self, access: &ObligationAccess) {
+    fn walk_resource_access(&mut self, access: &ResourceAccess) {
         for arg in &access.args {
             self.walk(arg);
         }
         self.walk_position(&access.pos);
     }
-    fn walk_obligation_access_predicate(
+    fn walk_resource_access_predicate(
         &mut self,
-        access: &ObligationAccess,
+        access: &ResourceAccess,
         amount: &Expr,
         pos: &Position,
     ) {
-        self.walk_obligation_access(access);
+        self.walk_resource_access(access);
         self.walk(amount);
         self.walk_position(pos);
     }
@@ -596,14 +567,14 @@ pub trait ExprWalker: Sized {
     fn walk_forperm(
         &mut self,
         vars: &[LocalVar],
-        access: &ObligationAccess,
+        access: &ResourceAccess,
         body: &Expr,
         pos: &Position,
     ) {
         for var in vars {
             self.walk_local_var(var);
         }
-        self.walk_obligation_access(access);
+        self.walk_resource_access(access);
         self.walk(body);
         self.walk_position(pos);
     }
@@ -715,11 +686,8 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::PredicateAccessPredicate(ref x, ref y, z, ref p) => {
             this.walk_predicate_access_predicate(x, y, z, p)
         }
-        Expr::ResourceAccessPredicate(ref n, ref a, id, ref p) => {
-            this.walk_resource_access_predicate(n, a, id, p)
-        }
-        Expr::ObligationAccessPredicate(ref ac, ref am, ref p) => {
-            this.walk_obligation_access_predicate(ac, am, p)
+        Expr::ResourceAccessPredicate(ref ac, ref am, ref p) => {
+            this.walk_resource_access_predicate(ac, am, p)
         }
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
@@ -827,25 +795,11 @@ pub trait FallibleExprFolder: Sized {
             pos,
         ))
     }
-    fn fallible_fold_resource_access_predicate(
+    fn fallible_fold_resource_access(
         &mut self,
-        resource_name: String,
-        amount: Box<Expr>,
-        scope_id: isize,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
-        Ok(Expr::ResourceAccessPredicate(
-            resource_name,
-            self.fallible_fold_boxed(amount)?,
-            scope_id,
-            pos,
-        ))
-    }
-    fn fallible_fold_obligation_access(
-        &mut self,
-        access: ObligationAccess,
-    ) -> Result<ObligationAccess, Self::Error> {
-        Ok(ObligationAccess {
+        access: ResourceAccess,
+    ) -> Result<ResourceAccess, Self::Error> {
+        Ok(ResourceAccess {
             args: access
                 .args
                 .into_iter()
@@ -854,14 +808,14 @@ pub trait FallibleExprFolder: Sized {
             ..access
         })
     }
-    fn fallible_fold_obligation_access_predicate(
+    fn fallible_fold_resource_access_predicate(
         &mut self,
-        access: ObligationAccess,
+        access: ResourceAccess,
         amount: Box<Expr>,
         pos: Position,
     ) -> Result<Expr, Self::Error> {
-        Ok(Expr::ObligationAccessPredicate(
-            self.fallible_fold_obligation_access(access)?,
+        Ok(Expr::ResourceAccessPredicate(
+            self.fallible_fold_resource_access(access)?,
             self.fallible_fold_boxed(amount)?,
             pos,
         ))
@@ -955,13 +909,13 @@ pub trait FallibleExprFolder: Sized {
     fn fallible_fold_forperm(
         &mut self,
         vars: Vec<LocalVar>,
-        access: ObligationAccess,
+        access: ResourceAccess,
         body: Box<Expr>,
         pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::ForPerm(
             vars,
-            self.fallible_fold_obligation_access(access)?,
+            self.fallible_fold_resource_access(access)?,
             self.fallible_fold_boxed(body)?,
             pos,
         ))
@@ -1135,11 +1089,8 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fallible_fold_predicate_access_predicate(x, y, z, p)
         }
-        Expr::ResourceAccessPredicate(n, a, id, p) => {
-            this.fallible_fold_resource_access_predicate(n, a, id, p)
-        }
-        Expr::ObligationAccessPredicate(ac, am, p) => {
-            this.fallible_fold_obligation_access_predicate(ac, am, p)
+        Expr::ResourceAccessPredicate(ac, am, p) => {
+            this.fallible_fold_resource_access_predicate(ac, am, p)
         }
         Expr::FieldAccessPredicate(x, y, p) => this.fallible_fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fallible_fold_unary_op(x, y, p),

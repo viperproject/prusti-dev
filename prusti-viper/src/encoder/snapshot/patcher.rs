@@ -63,15 +63,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
         }))
     }
 
-    fn fallible_fold_obligation_access(
+    fn fallible_fold_resource_access(
         &mut self,
-        vir::ObligationAccess {
+        vir::ResourceAccess {
             name,
             mut args,
             formal_arguments,
             position,
-        }: vir::ObligationAccess,
-    ) -> Result<vir::ObligationAccess, Self::Error> {
+        }: vir::ResourceAccess,
+    ) -> Result<vir::ResourceAccess, Self::Error> {
         args = args
             .into_iter()
             .zip(formal_arguments.iter())
@@ -85,7 +85,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                 }
             })
             .collect::<Result<_, _>>()?;
-        Ok(vir::ObligationAccess {
+        Ok(vir::ResourceAccess {
             name,
             args,
             formal_arguments,

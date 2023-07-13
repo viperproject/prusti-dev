@@ -360,8 +360,8 @@ fn get_all_required_expr_permissions(
             }
         }
 
-        vir::Expr::ObligationAccessPredicate(vir::ObligationAccessPredicate {
-            access: vir::ObligationAccess { args: inners, .. },
+        vir::Expr::ResourceAccessPredicate(vir::ResourceAccessPredicate {
+            access: vir::ResourceAccess { args: inners, .. },
             amount: amount_inner,
             ..
         }) => {

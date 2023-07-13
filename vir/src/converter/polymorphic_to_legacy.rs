@@ -142,9 +142,9 @@ impl From<polymorphic::Field> for legacy::Field {
     }
 }
 
-impl From<polymorphic::ObligationAccess> for legacy::ObligationAccess {
-    fn from(access: polymorphic::ObligationAccess) -> legacy::ObligationAccess {
-        legacy::ObligationAccess {
+impl From<polymorphic::ResourceAccess> for legacy::ResourceAccess {
+    fn from(access: polymorphic::ResourceAccess) -> legacy::ResourceAccess {
+        legacy::ResourceAccess {
             name: polymorphic::compute_identifier(
                 &access.name,
                 &[],
@@ -290,17 +290,9 @@ impl From<polymorphic::Expr> for legacy::Expr {
             }
             polymorphic::Expr::ResourceAccessPredicate(resource_access_predicate) => {
                 legacy::Expr::ResourceAccessPredicate(
-                    resource_access_predicate.resource_type.encode_as_string(),
+                    resource_access_predicate.access.into(),
                     Box::new((*resource_access_predicate.amount).into()),
-                    resource_access_predicate.scope_id,
                     resource_access_predicate.position.into(),
-                )
-            }
-            polymorphic::Expr::ObligationAccessPredicate(obligation_access_predicate) => {
-                legacy::Expr::ObligationAccessPredicate(
-                    obligation_access_predicate.access.into(),
-                    Box::new((*obligation_access_predicate.amount).into()),
-                    obligation_access_predicate.position.into(),
                 )
             }
             polymorphic::Expr::FieldAccessPredicate(field_access_predicate) => {
@@ -593,11 +585,8 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
             polymorphic::Predicate::Bodyless(typ, local_var) => {
                 legacy::Predicate::Bodyless(typ.encode_as_string(), local_var.into())
             }
-            polymorphic::Predicate::ResourceAccess(typ) => {
-                legacy::Predicate::ResourceAccess(typ.encode_as_string())
-            }
-            polymorphic::Predicate::Obligation(obligation_predicate) => {
-                legacy::Predicate::Obligation(obligation_predicate.into())
+            polymorphic::Predicate::Resource(resource_predicate) => {
+                legacy::Predicate::Resource(resource_predicate.into())
             }
         }
     }
@@ -637,16 +626,16 @@ impl From<polymorphic::EnumVariantIndex> for legacy::EnumVariantIndex {
     }
 }
 
-impl From<polymorphic::ObligationPredicate> for legacy::ObligationPredicate {
-    fn from(obligation_predicate: polymorphic::ObligationPredicate) -> legacy::ObligationPredicate {
-        legacy::ObligationPredicate {
+impl From<polymorphic::ResourcePredicate> for legacy::ResourcePredicate {
+    fn from(resource_predicate: polymorphic::ResourcePredicate) -> legacy::ResourcePredicate {
+        legacy::ResourcePredicate {
             name: polymorphic::compute_identifier(
-                &obligation_predicate.name,
+                &resource_predicate.name,
                 &[],
-                &obligation_predicate.params,
+                &resource_predicate.params,
                 &polymorphic::Type::Bool,
             ),
-            params: obligation_predicate
+            params: resource_predicate
                 .params
                 .into_iter()
                 .map(|p| p.into())

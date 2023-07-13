@@ -6,7 +6,7 @@
 
 use crate::{
     encoder::{
-        errors::{EncodingError, EncodingResult, ErrorCtxt, SpannedEncodingResult, WithSpan},
+        errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
         high::types::HighTypeEncoderInterface,
         mir::{
             pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
@@ -132,47 +132,6 @@ pub(super) fn inline_spec_item<'tcx>(
         .encode_pure_expression(def_id, parent_def_id, substs)?
         .replace_multiple_places(&body_replacements))
 }
-
-pub(super) fn encode_time_specifications<'tcx>(
-    encoder: &Encoder<'_, 'tcx>,
-    amount: &vir_crate::polymorphic::Expr,
-    resource_type: vir_crate::polymorphic::ResourceType,
-    parent_def_id: DefId,
-    span: Span,
-) -> vir_crate::polymorphic::Expr {
-    let error_ctxt = match resource_type {
-        vir_crate::polymorphic::ResourceType::TimeCredits => ErrorCtxt::NotEnoughTimeCredits,
-        vir_crate::polymorphic::ResourceType::TimeReceipts => ErrorCtxt::NotEnoughTimeReceipts,
-    };
-    let pos = encoder
-        .error_manager()
-        .register_error(span, error_ctxt, parent_def_id);
-    let amount_non_negative = vir_crate::polymorphic::Expr::ge_cmp(amount.clone(), 0.into());
-    let resource_access_predicate =
-        vir_crate::polymorphic::Expr::resource_access_predicate(resource_type, amount.clone(), -1)
-            .set_pos(pos);
-    vir_crate::polymorphic::Expr::and(amount_non_negative, resource_access_predicate)
-}
-
-/*
-pub(super) fn encode_obligation<'tcx>(
-    encoder: &Encoder<'_, 'tcx>,
-    name: &str,
-    args: Vec<vir_crate::polymorphic::Expr>,
-    parent_def_id: DefId,
-    span: Span,
-) -> vir_crate::polymorphic::Expr {
-    let const_one = vir_crate::polymorphic::Expr::Const(vir_crate::polymorphic::ConstExpr{
-        value: vir_crate::polymorphic::Const::Int(1),
-        position: vir_crate::polymorphic::Position::default(),
-    });
-    vir_crate::polymorphic::Expr::obligation_access_predicate(
-        vir_crate::polymorphic::ObligationAccess {
-            name: name.into(),
-            args: args.clone()
-        }, const_one)
-}
-*/
 
 pub(super) fn encode_quantifier<'tcx>(
     encoder: &Encoder<'_, 'tcx>,

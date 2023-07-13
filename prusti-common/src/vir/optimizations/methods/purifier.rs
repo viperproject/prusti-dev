@@ -202,7 +202,7 @@ impl ast::ExprWalker for VarCollector {
             ..
         }: &ast::ForPerm,
     ) {
-        self.walk_obligation_access(access);
+        self.walk_resource_access(access);
         self.walk(body);
         for var in variables {
             // TODO: This is not bullet proof against name collisions.

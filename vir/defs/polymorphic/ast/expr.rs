@@ -32,9 +32,8 @@ pub enum Expr {
     MagicWand(MagicWand),
     /// PredicateAccessPredicate: predicate_type, arg, permission amount
     PredicateAccessPredicate(PredicateAccessPredicate),
-    /// ResourceAccessPredicate: resource_type, amount
+    /// ResourceAccessPredicate: resource access, amount
     ResourceAccessPredicate(ResourceAccessPredicate),
-    ObligationAccessPredicate(ObligationAccessPredicate),
     FieldAccessPredicate(FieldAccessPredicate),
     UnaryOp(UnaryOp),
     BinOp(BinOp),
@@ -92,9 +91,6 @@ impl fmt::Display for Expr {
             }
             Expr::ResourceAccessPredicate(resource_access_predicate) => {
                 resource_access_predicate.fmt(f)
-            }
-            Expr::ObligationAccessPredicate(obligation_access_predicate) => {
-                obligation_access_predicate.fmt(f)
             }
             Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.fmt(f),
             Expr::UnaryOp(unary_op) => unary_op.fmt(f),
@@ -182,7 +178,6 @@ impl Expr {
             | Expr::MagicWand(MagicWand { position, .. })
             | Expr::PredicateAccessPredicate(PredicateAccessPredicate { position, .. })
             | Expr::ResourceAccessPredicate(ResourceAccessPredicate { position, .. })
-            | Expr::ObligationAccessPredicate(ObligationAccessPredicate { position, .. })
             | Expr::FieldAccessPredicate(FieldAccessPredicate { position, .. })
             | Expr::UnaryOp(UnaryOp { position, .. })
             | Expr::BinOp(BinOp { position, .. })
@@ -236,7 +231,6 @@ impl Expr {
             MagicWand,
             PredicateAccessPredicate,
             ResourceAccessPredicate,
-            ObligationAccessPredicate,
             FieldAccessPredicate,
             UnaryOp,
             BinOp,
@@ -287,41 +281,14 @@ impl Expr {
     }
 
     pub fn resource_access_predicate(
-        resource_type: ResourceType,
+        name: String,
+        args: Vec<Expr>,
+        formal_arguments: Vec<LocalVar>,
         amount: Expr,
-        scope_id: isize,
+        pos: Position,
     ) -> Self {
-        let pos = amount.pos();
         Expr::ResourceAccessPredicate(ResourceAccessPredicate {
-            resource_type,
-            amount: Box::new(amount),
-            scope_id,
-            position: pos,
-        })
-    }
-
-    pub fn unit_obligation_access_predicate(
-        name: String,
-        args: Vec<Expr>,
-        formal_arguments: Vec<LocalVar>,
-        pos: Position,
-    ) -> Self {
-        let const_one = Expr::Const(ConstExpr {
-            value: Const::Int(1),
-            position: Position::default(),
-        });
-        Expr::obligation_access_predicate(name, args, formal_arguments, const_one, pos)
-    }
-
-    pub fn obligation_access_predicate(
-        name: String,
-        args: Vec<Expr>,
-        formal_arguments: Vec<LocalVar>,
-        amount: Expr,
-        pos: Position,
-    ) -> Self {
-        Expr::ObligationAccessPredicate(ObligationAccessPredicate {
-            access: ObligationAccess {
+            access: ResourceAccess {
                 name,
                 args,
                 formal_arguments,
@@ -879,12 +846,6 @@ impl Expr {
             ) {
                 self.non_pure = true;
             }
-            fn walk_obligation_access_predicate(
-                &mut self,
-                _obligation_access_predicate: &ObligationAccessPredicate,
-            ) {
-                self.non_pure = true;
-            }
         }
         let mut walker = PurityFinder { non_pure: false };
         walker.walk(self);
@@ -1127,7 +1088,6 @@ impl Expr {
             }
             Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
             Expr::ResourceAccessPredicate(..) => &Type::Bool,
-            Expr::ObligationAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1204,7 +1164,6 @@ impl Expr {
                     ..
                 })
                 | Expr::ResourceAccessPredicate(..)
-                | Expr::ObligationAccessPredicate(..)
                 | Expr::ForAll(..)
                 | Expr::Exists(..)
                 | Expr::ForPerm(..) => true,
@@ -1580,7 +1539,6 @@ impl Expr {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     f @ Expr::ResourceAccessPredicate(..) => f,
-                    f @ Expr::ObligationAccessPredicate(..) => f,
                     Expr::BinOp(BinOp {
                         op_kind: BinaryOpKind::And,
                         left,
@@ -2148,51 +2106,19 @@ impl Hash for PredicateAccessPredicate {
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
 )]
-pub struct ResourceAccessPredicate {
-    pub resource_type: ResourceType,
-    pub amount: Box<Expr>,
-    // Global scope id is -1, loops' scope id is the index of the loop head block
-    pub scope_id: isize,
-    pub position: Position,
-}
-
-impl ResourceAccessPredicate {
-    pub fn replace_scope_id(&self, new_scope_id: isize) -> Expr {
-        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
-            scope_id: new_scope_id,
-            ..self.clone()
-        })
-    }
-}
-
-impl fmt::Display for ResourceAccessPredicate {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "acc({}({}), {}/1)",
-            self.resource_type.encode_as_string(),
-            self.scope_id,
-            self.amount
-        )
-    }
-}
-
-#[derive(
-    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
-)]
-pub struct ObligationAccess {
+pub struct ResourceAccess {
     pub name: String,
     pub args: Vec<Expr>,
     pub formal_arguments: Vec<LocalVar>,
     pub position: Position,
 }
 
-impl ObligationAccess {
-    pub fn replace_scope_id(&self, new_scope_id: isize) -> Self {
-        ObligationAccess {
+impl ResourceAccess {
+    pub fn replace_scope_id(self, new_scope_id: isize) -> Self {
+        ResourceAccess {
             args: self
                 .args
-                .iter()
+                .into_iter()
                 .enumerate()
                 .map(|(i, arg)| {
                     if i == 0 {
@@ -2201,16 +2127,16 @@ impl ObligationAccess {
                             position: Position::default(),
                         })
                     } else {
-                        arg.clone()
+                        arg
                     }
                 })
                 .collect(),
-            ..self.clone()
+            ..self
         }
     }
 }
 
-impl fmt::Display for ObligationAccess {
+impl fmt::Display for ResourceAccess {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -2228,22 +2154,22 @@ impl fmt::Display for ObligationAccess {
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
 )]
-pub struct ObligationAccessPredicate {
-    pub access: ObligationAccess,
+pub struct ResourceAccessPredicate {
+    pub access: ResourceAccess,
     pub amount: Box<Expr>,
     pub position: Position,
 }
 
-impl ObligationAccessPredicate {
-    pub fn replace_scope_id(&self, new_scope_id: isize) -> Expr {
-        Expr::ObligationAccessPredicate(ObligationAccessPredicate {
+impl ResourceAccessPredicate {
+    pub fn replace_scope_id(self, new_scope_id: isize) -> Expr {
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
             access: self.access.replace_scope_id(new_scope_id),
-            ..self.clone()
+            ..self
         })
     }
 }
 
-impl fmt::Display for ObligationAccessPredicate {
+impl fmt::Display for ResourceAccessPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "acc({}, {})", self.access, self.amount)
     }
@@ -2613,9 +2539,18 @@ impl Hash for Exists {
 #[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct ForPerm {
     pub variables: Vec<LocalVar>,
-    pub access: ObligationAccess,
+    pub access: ResourceAccess,
     pub body: Box<Expr>,
     pub position: Position,
+}
+
+impl ForPerm {
+    pub fn replace_scope_id(self, new_scope_id: isize) -> Expr {
+        Expr::ForPerm(ForPerm {
+            access: self.access.replace_scope_id(new_scope_id),
+            ..self
+        })
+    }
 }
 
 impl fmt::Display for ForPerm {

@@ -22,7 +22,6 @@ use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
 use crate::encoder::resources;
-use crate::encoder::resources::interface::ResourcesEncoderInterface;
 use crate::error_unsupported;
 use prusti_common::{
     config,
@@ -79,6 +78,7 @@ use crate::encoder::mir::{
     pure::PureFunctionEncoderInterface,
     types::MirTypeEncoderInterface,
     pure::SpecificationEncoderInterface,
+    pure::TimeReasoningInterface,
     specifications::SpecificationsInterface,
     type_invariants::TypeInvariantEncoderInterface,
 };
@@ -448,7 +448,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if config::time_reasoning() {
             // consume a time credits and produce a time receipt in the body of the function
             self.cfg_method
-                .add_stmts(start_cfg_block, self.get_tick_call(self.mir.span, 1, &[-1]));
+                .add_stmts(start_cfg_block, self.encoder.get_tick_call(self.mir.span, 1, &[-1], self.proc_def_id)?);
         }
 
         // Encode postcondition
@@ -929,7 +929,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if config::time_reasoning() {
                 // consume a time credit and produce a time receipt at each iteration of the loop
                 stmts.extend(
-                    self.get_tick_call(fnspec_span.clone(), 1, &scope_ids)
+                    self.encoder.get_tick_call(fnspec_span.clone(), 1, &scope_ids, self.proc_def_id)?
                         .into_iter(),
                 );
             }
@@ -3414,13 +3414,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_func_spec,
         ) = self.encode_precondition_expr(&procedure_contract, substs, fake_expr_spans)?;
 
-        let pre_func_spec = if resources::contains_resource_access_predicate(&pre_func_spec)
-            .with_span(call_site_span)?
-        {
-            resources::change_scope_id(pre_func_spec, scope_ids)
-        } else {
-            pre_func_spec
-        };
+        let pre_func_spec = resources::change_scope_id(pre_func_spec, scope_ids);
 
         let pos = self.register_error(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
         stmts.push(vir::Stmt::Exhale(vir::Exhale {
@@ -3527,13 +3521,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             position: inhale_pos,
         }));
 
-        let post_func_spec = if resources::contains_resource_access_predicate(&post_func_spec)
-            .with_span(call_site_span)?
-        {
-            resources::change_scope_id(post_func_spec, scope_ids)
-        } else {
-            post_func_spec
-        };
+        let post_func_spec = resources::change_scope_id(post_func_spec, scope_ids);
+
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: replace_fake_exprs(post_func_spec),
             position: inhale_pos,
@@ -5335,14 +5324,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.proc_def_id,
                             cl_substs,
                         )?;
-                        if resources::contains_resource_access_predicate(&invariant_expr)
-                            .with_span(self.mir.span)?
-                        {
-                            encoded_specs
-                                .push(resources::change_scope_id(invariant_expr, scope_ids));
-                        } else {
-                            encoded_specs.push(invariant_expr);
-                        }
+                        encoded_specs.push(resources::change_scope_id(invariant_expr, scope_ids));
                         let invariant = match spec {
                             prusti_interface::specs::typed::LoopSpecification::Invariant(inv) => inv,
                             _ => continue,

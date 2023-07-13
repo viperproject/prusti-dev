@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    errors::{SpannedEncodingError, SpannedEncodingResult, WithSpan},
+    errors::{SpannedEncodingResult, WithSpan},
     mir::{
         places::PlacesEncoderInterface,
         pure::{
@@ -19,9 +19,7 @@ use crate::encoder::{
                 encoder_high::{
                     encode_quantifier_high, inline_closure_high, inline_spec_item_high,
                 },
-                encoder_poly::{
-                    encode_quantifier, encode_time_specifications, inline_closure, inline_spec_item,
-                },
+                encoder_poly::{encode_quantifier, inline_closure, inline_spec_item},
             },
             PureEncodingContext,
         },
@@ -29,7 +27,6 @@ use crate::encoder::{
     mir_encoder::{MirEncoder, PlaceEncoder, PRECONDITION_LABEL},
     snapshot::interface::SnapshotEncoderInterface,
 };
-use prusti_common::config;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{mir, ty::subst::SubstsRef},
@@ -258,26 +255,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 vir_poly::Expr::snap_app(encoded_args[0].clone()),
                 vir_poly::Expr::snap_app(encoded_args[1].clone()),
             )),
-            "prusti_contracts::time_credits" | "prusti_contracts::time_receipts" => {
-                if config::time_reasoning() {
-                    Ok(encode_time_specifications(
-                        self,
-                        &encoded_args[0],
-                        vir_poly::ResourceType::from_function_name(fn_name),
-                        parent_def_id,
-                        span,
-                    ))
-                } else {
-                    let mut error = SpannedEncodingError::unsupported(
-                        "Time reasoning is disabled but found a call to a time_credits/time_receipts predicate.", 
-                        span
-                    );
-                    error.set_help(
-                        "To enable time reasoning set the TIME_REASONING option to true.",
-                    );
-                    Err(error)
-                }
-            }
             _ => unimplemented!(),
         }
     }

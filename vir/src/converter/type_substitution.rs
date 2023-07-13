@@ -151,9 +151,6 @@ impl Generic for Expr {
             Expr::ResourceAccessPredicate(resource_access_predicate) => {
                 Expr::ResourceAccessPredicate(resource_access_predicate.substitute(map))
             }
-            Expr::ObligationAccessPredicate(obligation_access_predicate) => {
-                Expr::ObligationAccessPredicate(obligation_access_predicate.substitute(map))
-            }
             Expr::FieldAccessPredicate(field_access_predicate) => {
                 Expr::FieldAccessPredicate(field_access_predicate.substitute(map))
             }
@@ -247,32 +244,24 @@ impl Generic for PredicateAccessPredicate {
     }
 }
 
-impl Generic for ResourceAccessPredicate {
+impl Generic for ResourceAccess {
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
-        let mut resource_access_predicate = self;
-        *resource_access_predicate.amount = resource_access_predicate.amount.substitute(map);
-        resource_access_predicate
-    }
-}
-
-impl Generic for ObligationAccess {
-    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
-        let mut obligation_access = self;
-        obligation_access.args = obligation_access
+        let mut resource_access = self;
+        resource_access.args = resource_access
             .args
             .into_iter()
             .map(|arg| arg.substitute(map))
             .collect();
-        obligation_access
+        resource_access
     }
 }
 
-impl Generic for ObligationAccessPredicate {
+impl Generic for ResourceAccessPredicate {
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
-        let mut obligation_access_predicate = self;
-        obligation_access_predicate.access = obligation_access_predicate.access.substitute(map);
-        *obligation_access_predicate.amount = obligation_access_predicate.amount.substitute(map);
-        obligation_access_predicate
+        let mut resource_access_predicate = self;
+        resource_access_predicate.access = resource_access_predicate.access.substitute(map);
+        *resource_access_predicate.amount = resource_access_predicate.amount.substitute(map);
+        resource_access_predicate
     }
 }
 
@@ -522,8 +511,7 @@ impl Generic for Predicate {
             Predicate::Bodyless(label, local_var) => {
                 Predicate::Bodyless(label, local_var.substitute(map))
             }
-            p @ Predicate::ResourceAccess(_) => p,
-            p @ Predicate::Obligation(_) => p,
+            p @ Predicate::Resource(_) => p,
         }
     }
 }

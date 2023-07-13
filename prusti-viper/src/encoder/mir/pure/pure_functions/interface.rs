@@ -361,8 +361,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                         ProcedureSpecificationKind::Impure => {
                             unreachable!("trying to encode an impure function in pure encoder")
                         }
-                        ProcedureSpecificationKind::Obligation => {
-                            unreachable!("trying to encode an obligation in pure encoder")
+                        ProcedureSpecificationKind::Resource(_) => {
+                            unreachable!("trying to encode a resource in pure encoder")
                         }
                     }
                 };
@@ -446,8 +446,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
-            self.is_pure(proc_def_id, Some(substs))
-                || self.is_obligation(proc_def_id, Some(substs)),
+            self.is_pure(proc_def_id, Some(substs)) || self.is_resource(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {proc_def_id:?}"
         );
 

@@ -108,6 +108,12 @@ pub fn predicate(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn resource(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn obligation(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -265,6 +271,12 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn predicate(tokens: TokenStream) -> TokenStream {
     prusti_specs::predicate(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn resource(tokens: TokenStream) -> TokenStream {
+    prusti_specs::resource(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

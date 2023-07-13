@@ -1,8 +1,13 @@
 use crate::encoder::mir::specifications::specs::Specifications;
 use prusti_interface::{
+    data::ProcedureDefId,
+    environment::EnvName,
     specs::{
         typed,
-        typed::{DefSpecificationMap, ProcedureSpecification, ProcedureSpecificationKind},
+        typed::{
+            DefSpecificationMap, ProcedureSpecification, ProcedureSpecificationKind,
+            ResourceOptions,
+        },
     },
     utils::has_spec_only_attr,
 };
@@ -18,6 +23,16 @@ impl<'tcx> SpecificationsState<'tcx> {
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
         }
+    }
+
+    pub fn get_procedure_def_id(
+        &self,
+        proc_absolute_name: &str,
+        env_name: &EnvName<'tcx>,
+    ) -> Option<ProcedureDefId> {
+        self.specs
+            .borrow()
+            .get_proc_def_id(proc_absolute_name, env_name)
     }
 }
 
@@ -72,7 +87,9 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     // TODO abstract-predicates: Maybe this should be deleted (and ProcedureSpecificationKind::is_pure)
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
-    fn is_obligation(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+    fn is_resource(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
+    fn is_leak_checked(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
     fn get_proc_kind(
         &self,
@@ -146,9 +163,17 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     #[tracing::instrument(level = "trace", skip(self), ret)]
-    fn is_obligation(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+    fn is_resource(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let kind = self.get_proc_kind(def_id, substs);
-        matches!(kind, ProcedureSpecificationKind::Obligation)
+        matches!(kind, ProcedureSpecificationKind::Resource(_))
+    }
+
+    fn is_leak_checked(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let kind = self.get_proc_kind(def_id, substs);
+        matches!(
+            kind,
+            ProcedureSpecificationKind::Resource(ResourceOptions { leak_checked: true })
+        )
     }
 
     fn get_proc_kind(

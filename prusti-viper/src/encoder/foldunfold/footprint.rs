@@ -164,7 +164,6 @@ impl ExprFootprintGetter for vir::Expr {
             }
 
             vir::Expr::ResourceAccessPredicate(_) => FxHashSet::default(),
-            vir::Expr::ObligationAccessPredicate(_) => FxHashSet::default(),
 
             vir::Expr::MagicWand(_) => {
                 // We don't track magic wands resources
@@ -215,8 +214,7 @@ impl PredicateFootprintGetter for vir::Predicate {
                 }
             }
             vir::Predicate::Bodyless(_, _) => FxHashSet::default(),
-            vir::Predicate::ResourceAccess(_) => FxHashSet::default(),
-            vir::Predicate::Obligation(_) => FxHashSet::default(),
+            vir::Predicate::Resource(_) => FxHashSet::default(),
         }
     }
 }

@@ -3,7 +3,7 @@ use super::{
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
-use crate::encoder::{errors::ErrorCtxt, high::types::HighTypeEncoderInterface};
+use crate::encoder::high::types::HighTypeEncoderInterface;
 use prusti_common::vir_local;
 use prusti_rustc_interface::span::Span;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -50,9 +50,8 @@ pub(super) fn collect_definitions(
         method_names: methods.iter().map(|method| method.name()).collect(),
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
         new_unfolded_predicates: Default::default(),
-        used_resource_types: Default::default(),
         used_predicates: Default::default(),
-        used_obligations: Default::default(),
+        used_resources: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
         used_builtin_domains,
@@ -74,11 +73,9 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// The list of encoded methods for checking that they do not clash with
     /// functions.
     method_names: FxHashSet<String>,
-    /// The set of all resource predicates that are mentioned in the method.
-    used_resource_types: FxHashSet<vir::ResourceType>,
     /// The set of all predicates that are mentioned in the method.
     used_predicates: FxHashSet<vir::Type>,
-    used_obligations: FxHashSet<(vir::FunctionIdentifier, String)>,
+    used_resources: FxHashSet<vir::FunctionIdentifier>,
     /// The set of predicates whose bodies have to be included because they are
     /// unfolded in the method.
     unfolded_predicates: FxHashSet<vir::Type>,
@@ -112,62 +109,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let domains = self.get_used_domains();
         let backend_types = self.get_used_backend_types();
         let fields = self.get_used_fields();
-
-        // replacing leak check markers with actual leak checks (TODO: perhaps move to another
-        // file)
-
-        let leak_checked_methods = methods
-            .into_iter()
-            .map(|mut method| -> SpannedEncodingResult<vir::CfgMethod> {
-                method = method
-                    .flat_map_statements(|stmt| -> SpannedEncodingResult<_> {
-                        match stmt {
-                            vir::Stmt::LeakCheck(vir::LeakCheck {
-                                scope_id,
-                                place,
-                                position,
-                            }) => {
-                                let mut checks = Vec::new();
-                                for (identifier, func_name) in &self.used_obligations {
-                                    let check_pos =
-                                        self.encoder.error_manager().duplicate_position(position);
-                                    let error_ctxt = match place {
-                                        vir::LeakCheckPlace::Function => {
-                                            ErrorCtxt::PostconditionObligationLeak(
-                                                func_name.clone(),
-                                            )
-                                        }
-                                        vir::LeakCheckPlace::Loop => {
-                                            ErrorCtxt::LoopObligationLeak(func_name.clone())
-                                        }
-                                    };
-                                    self.encoder
-                                        .error_manager()
-                                        .set_error(check_pos, error_ctxt);
-                                    checks.push(vir::Stmt::Assert(vir::Assert {
-                                        expr: self
-                                            .encoder
-                                            .get_obligation_leak_check(identifier, scope_id)?
-                                            .set_pos(check_pos),
-                                        position: check_pos,
-                                    }));
-                                }
-                                Ok(checks)
-                            }
-                            _ => Ok(vec![stmt]),
-                        }
-                    })
-                    .unwrap();
-                Ok(method)
-            })
-            .collect::<SpannedEncodingResult<Vec<_>>>()?;
         Ok(vir::Program {
             name,
             domains,
             backend_types,
             fields,
             builtin_methods: self.get_all_methods(),
-            methods: leak_checked_methods,
+            methods,
             functions,
             viper_predicates,
         })
@@ -256,13 +204,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             };
             predicates.push(predicate);
         }
-        for (identifier, _) in &self.used_obligations {
-            let obligation = self.encoder.get_obligation(identifier)?;
-            let obligation = (*obligation).clone();
-            predicates.push(obligation);
-        }
-        for resource in &self.used_resource_types {
-            predicates.push(vir::Predicate::ResourceAccess(resource.clone()));
+        for identifier in &self.used_resources {
+            let resource = self.encoder.get_resource(identifier)?;
+            let resource = (*resource).clone();
+            predicates.push(resource);
         }
         predicates.push(vir::Predicate::Bodyless(
             vir::Type::typed_ref("DeadBorrowToken$"),
@@ -954,35 +899,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
         self.used_predicates.insert(predicate_type.clone());
         FallibleExprWalker::fallible_walk(self, argument)
     }
-    fn fallible_walk_resource_access_predicate(
+    fn fallible_walk_resource_access(
         &mut self,
-        vir::ResourceAccessPredicate {
-            resource_type,
-            amount,
-            ..
-        }: &vir::ResourceAccessPredicate,
-    ) -> SpannedEncodingResult<()> {
-        self.used_resource_types.insert(resource_type.clone());
-        FallibleExprWalker::fallible_walk(self, amount)
-    }
-    fn fallible_walk_obligation_access(
-        &mut self,
-        vir::ObligationAccess {
+        vir::ResourceAccess {
             name,
             args,
             formal_arguments,
             ..
-        }: &vir::ObligationAccess,
+        }: &vir::ResourceAccess,
     ) -> SpannedEncodingResult<()> {
         let identifier: vir::FunctionIdentifier =
             compute_identifier(name, &[], formal_arguments, &vir::Type::Bool).into();
-        let user_friendly_name = if name.starts_with("m_") {
-            name.as_str()[2..].to_string()
-        } else {
-            name.clone()
-        };
-        self.used_obligations
-            .insert((identifier, user_friendly_name));
+        self.used_resources.insert(identifier);
         for arg in args {
             FallibleExprWalker::fallible_walk(self, arg)?;
         }

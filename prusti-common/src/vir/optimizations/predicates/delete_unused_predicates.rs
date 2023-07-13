@@ -67,8 +67,7 @@ fn get_used_predicates_in_predicate_map(
                 map.insert(p.typ.clone(), res);
             }
             Predicate::Bodyless(_, _) => { /* ignore */ }
-            Predicate::ResourceAccess(_) => { /* ignore */ }
-            Predicate::Obligation(_) => { /* ignore */ }
+            Predicate::Resource(_) => { /* ignore */ }
         }
     }
     map
@@ -128,8 +127,7 @@ pub fn delete_unused_predicates(
     // Remove the bodies of predicats that are never folded or unfolded
     predicates
         .iter_mut()
-        .filter(|p| !p.is_resource_predicate())
-        .filter(|p| !matches!(p, vir::polymorphic::Predicate::Obligation(_)))
+        .filter(|p| !p.is_resource())
         .for_each(|predicate| {
             let predicate_type = &predicate.get_type().clone();
             if !folded_predicates.contains(predicate_type) {
@@ -159,11 +157,7 @@ pub fn delete_unused_predicates(
         &collector.used_resource_predicates
     );
 
-    predicates.retain(|p| match p {
-        Predicate::Obligation(_) => true,
-        Predicate::ResourceAccess(typ) => collector.used_resource_predicates.contains(typ),
-        _ => reachable_predicates.contains(p.get_type()),
-    });
+    predicates.retain(|p| p.is_resource() || reachable_predicates.contains(p.get_type()));
 
     predicates
 }
@@ -198,18 +192,6 @@ impl ExprWalker for UsedPredicateCollector {
     ) {
         self.used_predicates.insert(predicate_type.clone());
         ExprWalker::walk(self, argument);
-    }
-
-    fn walk_resource_access_predicate(
-        &mut self,
-        ResourceAccessPredicate {
-            resource_type,
-            amount,
-            ..
-        }: &ResourceAccessPredicate,
-    ) {
-        self.used_resource_predicates.insert(resource_type.clone());
-        ExprWalker::walk(self, amount);
     }
 
     fn walk_unfolding(

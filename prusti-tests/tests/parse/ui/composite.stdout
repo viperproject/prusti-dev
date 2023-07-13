@@ -43,7 +43,10 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test1_$(NUM_UUID)() -> bool {
-    !!((!((true) && (true)) || ((true) && (true))): bool)
+    !!((if ((true) && (true)) {
+                                let rhs: bool = ((true) && (true));
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -53,8 +56,9 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test2_$(NUM_UUID)() -> bool {
-    !!(((((true) && ((!(true) || (true)))) && (((true) || (true)))) &&
-                            (true)): bool)
+    !!(((((true) &&
+                                            ((if (true) { let rhs: bool = (true); rhs } else { true })))
+                                    && (((true) || (true)))) && (true)): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -64,7 +68,10 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test3_$(NUM_UUID)() -> bool {
-    !!((!(((true) && (true))) || (true)): bool)
+    !!((if (((true) && (true))) {
+                                let rhs: bool = (true);
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -74,7 +81,11 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test4_$(NUM_UUID)() -> bool {
-    !!((!(((!(true) || (true))) && (true)) || (true)): bool)
+    !!((if (((if (true) { let rhs: bool = (true); rhs } else { true })) &&
+                                        (true)) {
+                                let rhs: bool = (true);
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -84,8 +95,11 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test5_$(NUM_UUID)() -> bool {
-    !!((((!(true) || (true))) &&
-                            ((!(true) || ((true) && (((true) || (true))))))): bool)
+    !!((((if (true) { let rhs: bool = (true); rhs } else { true })) &&
+                            ((if (true) {
+                                            let rhs: bool = ((true) && (((true) || (true))));
+                                            rhs
+                                        } else { true }))): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -95,8 +109,19 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test6_$(NUM_UUID)() -> bool {
-    !!((!(((true) && (true))) ||
-                            (!(true) || (!(true) || (!(true) || (true))))): bool)
+    !!((if (((true) && (true))) {
+                                let rhs: bool =
+                                    (if (true) {
+                                                let rhs: bool =
+                                                    (if (true) {
+                                                                let rhs: bool =
+                                                                    (if (true) { let rhs: bool = (true); rhs } else { true });
+                                                                rhs
+                                                            } else { true });
+                                                rhs
+                                            } else { true });
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -106,8 +131,14 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test7_$(NUM_UUID)() -> bool {
-    !!((!(((true) && (true))) ||
-                            (!(((true) && (true))) || (((true) && (true))))): bool)
+    !!((if (((true) && (true))) {
+                                let rhs: bool =
+                                    (if (((true) && (true))) {
+                                                let rhs: bool = (((true) && (true)));
+                                                rhs
+                                            } else { true });
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -117,7 +148,10 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test8_$(NUM_UUID)() -> bool {
-    !!((!(((true) || (true))) || (((true) || (true)))): bool)
+    !!((if (((true) || (true))) {
+                                let rhs: bool = (((true) || (true)));
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -127,8 +161,11 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test9_$(NUM_UUID)() -> bool {
-    !!((!(((true) || (true))) ||
-                            (((true) || (((true) && (((true) || (true)))))))): bool)
+    !!((if (((true) || (true))) {
+                                let rhs: bool =
+                                    (((true) || (((true) && (((true) || (true)))))));
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -163,10 +200,16 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test13_$(NUM_UUID)() -> bool {
-    !!((!(true) ||
-                            (!(::prusti_contracts::forall((),
-                                                #[prusti::spec_only] |a: i32, b: i32| -> bool
-                                                    { ((a == 5): bool) })) || (true))): bool)
+    !!((if (true) {
+                                let rhs: bool =
+                                    (if (::prusti_contracts::forall((),
+                                                        #[prusti::spec_only] |a: i32, b: i32| -> bool
+                                                            { ((a == 5): bool) })) {
+                                                let rhs: bool = (true);
+                                                rhs
+                                            } else { true });
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -176,10 +219,13 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test14_$(NUM_UUID)() -> bool {
-    !!((!(true) ||
-                            (::prusti_contracts::forall((),
-                                    #[prusti::spec_only] |a: i32| -> bool
-                                        { ((a == 5): bool) }))): bool)
+    !!((if (true) {
+                                let rhs: bool =
+                                    (::prusti_contracts::forall((),
+                                            #[prusti::spec_only] |a: i32| -> bool
+                                                { ((a == 5): bool) }));
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -189,9 +235,12 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test15_$(NUM_UUID)() -> bool {
-    !!((!(::prusti_contracts::forall((),
+    !!((if (::prusti_contracts::forall((),
                                         #[prusti::spec_only] |a: i32| -> bool { ((a == 5): bool) }))
-                            || (true)): bool)
+                                {
+                                let rhs: bool = (true);
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -201,13 +250,19 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test16_$(NUM_UUID)() -> bool {
-    !!((!(::prusti_contracts::forall((),
+    !!((if (::prusti_contracts::forall((),
                                         #[prusti::spec_only] |b: i32| -> bool
-                                            { ((b == 10): bool) })) ||
-                            (!(true) ||
-                                    (::prusti_contracts::forall((),
-                                            #[prusti::spec_only] |a: u32, b: u32| -> bool
-                                                { ((a == 5): bool) })))): bool)
+                                            { ((b == 10): bool) })) {
+                                let rhs: bool =
+                                    (if (true) {
+                                                let rhs: bool =
+                                                    (::prusti_contracts::forall((),
+                                                            #[prusti::spec_only] |a: u32, b: u32| -> bool
+                                                                { ((a == 5): bool) }));
+                                                rhs
+                                            } else { true });
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -242,10 +297,16 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test20_$(NUM_UUID)() -> bool {
-    !!((!(true) ||
-                            (!(::prusti_contracts::exists((),
-                                                #[prusti::spec_only] |a: i32, b: i32| -> bool
-                                                    { ((a == 5): bool) })) || (true))): bool)
+    !!((if (true) {
+                                let rhs: bool =
+                                    (if (::prusti_contracts::exists((),
+                                                        #[prusti::spec_only] |a: i32, b: i32| -> bool
+                                                            { ((a == 5): bool) })) {
+                                                let rhs: bool = (true);
+                                                rhs
+                                            } else { true });
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -255,10 +316,13 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test21_$(NUM_UUID)() -> bool {
-    !!((!(true) ||
-                            (::prusti_contracts::exists((),
-                                    #[prusti::spec_only] |a: i32| -> bool
-                                        { ((a == 5): bool) }))): bool)
+    !!((if (true) {
+                                let rhs: bool =
+                                    (::prusti_contracts::exists((),
+                                            #[prusti::spec_only] |a: i32| -> bool
+                                                { ((a == 5): bool) }));
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -268,9 +332,12 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test22_$(NUM_UUID)() -> bool {
-    !!((!(::prusti_contracts::exists((),
+    !!((if (::prusti_contracts::exists((),
                                         #[prusti::spec_only] |a: i32| -> bool { ((a == 5): bool) }))
-                            || (true)): bool)
+                                {
+                                let rhs: bool = (true);
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]
@@ -280,13 +347,19 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test23_$(NUM_UUID)() -> bool {
-    !!((!(::prusti_contracts::exists((),
+    !!((if (::prusti_contracts::exists((),
                                         #[prusti::spec_only] |b: i32| -> bool
-                                            { ((b == 10): bool) })) ||
-                            (!(true) ||
-                                    (::prusti_contracts::exists((),
-                                            #[prusti::spec_only] |a: u32, b: u32| -> bool
-                                                { ((a == 5): bool) })))): bool)
+                                            { ((b == 10): bool) })) {
+                                let rhs: bool =
+                                    (if (true) {
+                                                let rhs: bool =
+                                                    (::prusti_contracts::exists((),
+                                                            #[prusti::spec_only] |a: u32, b: u32| -> bool
+                                                                { ((a == 5): bool) }));
+                                                rhs
+                                            } else { true });
+                                rhs
+                            } else { true }): bool)
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]

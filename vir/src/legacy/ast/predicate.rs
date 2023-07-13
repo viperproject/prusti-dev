@@ -13,8 +13,7 @@ pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(String, LocalVar),
-    ResourceAccess(String),
-    Obligation(ObligationPredicate),
+    Resource(ResourcePredicate),
 }
 
 impl fmt::Display for Predicate {
@@ -23,8 +22,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{p}"),
             Predicate::Enum(p) => write!(f, "{p}"),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
-            Predicate::ResourceAccess(typ) => write!(f, "{typ}"),
-            Predicate::Obligation(p) => write!(f, "{p}"),
+            Predicate::Resource(p) => write!(f, "{p}"),
         }
     }
 }
@@ -109,11 +107,8 @@ impl Predicate {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
-            Predicate::ResourceAccess(_) => {
-                unreachable!("Resource access does not have `self` place.")
-            }
-            Predicate::Obligation(_) => {
-                unreachable!("Obligation predicate does not have `self` place.")
+            Predicate::Resource(_) => {
+                unreachable!("Resource predicate does not have `self` place.")
             }
         }
     }
@@ -123,8 +118,7 @@ impl Predicate {
             Predicate::Struct(p) => &p.name,
             Predicate::Enum(p) => &p.name,
             Predicate::Bodyless(ref name, _) => name,
-            Predicate::ResourceAccess(typ) => typ,
-            Predicate::Obligation(p) => &p.name,
+            Predicate::Resource(p) => &p.name,
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -132,8 +126,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
-            Predicate::ResourceAccess(_) => None,
-            Predicate::Obligation(_) => None,
+            Predicate::Resource(_) => None,
         }
     }
 
@@ -144,8 +137,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions(visitor),
             Predicate::Enum(p) => p.visit_expressions(visitor),
             Predicate::Bodyless(..) => {}
-            Predicate::ResourceAccess(_) => {}
-            Predicate::Obligation(_) => {}
+            Predicate::Resource(_) => {}
         }
     }
 
@@ -156,8 +148,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions_mut(visitor),
             Predicate::Enum(p) => p.visit_expressions_mut(visitor),
             Predicate::Bodyless(..) => {}
-            Predicate::ResourceAccess(_) => {}
-            Predicate::Obligation(_) => {}
+            Predicate::Resource(_) => {}
         }
     }
 }
@@ -168,8 +159,7 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(name, _) => name.clone(),
-            Predicate::ResourceAccess(typ) => typ.clone(),
-            Predicate::Obligation(p) => p.get_identifier(),
+            Predicate::Resource(p) => p.get_identifier(),
         }
     }
 }
@@ -342,16 +332,16 @@ impl WithIdentifier for EnumPredicate {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-pub struct ObligationPredicate {
+pub struct ResourcePredicate {
     pub name: String,
     pub params: Vec<LocalVar>,
 }
 
-impl fmt::Display for ObligationPredicate {
+impl fmt::Display for ResourcePredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "obligation_predicate {}({})",
+            "resource_predicate {}({})",
             self.name,
             self.params
                 .iter()
@@ -362,7 +352,7 @@ impl fmt::Display for ObligationPredicate {
     }
 }
 
-impl WithIdentifier for ObligationPredicate {
+impl WithIdentifier for ResourcePredicate {
     fn get_identifier(&self) -> String {
         self.name.clone()
     }

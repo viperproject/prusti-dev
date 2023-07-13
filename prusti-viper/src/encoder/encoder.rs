@@ -9,7 +9,7 @@ use prusti_common::utils::identifiers::encode_identifier;
 use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError, with_span::WithSpan};
+use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
 use crate::encoder::foldunfold;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::error_unsupported;
@@ -24,7 +24,7 @@ use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::mir;
-use prusti_rustc_interface::middle::{ty, ty::subst::SubstsRef};
+use prusti_rustc_interface::middle::ty;
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use std::fmt::Debug;
 use rustc_hash::{FxHashSet, FxHashMap};
@@ -50,7 +50,7 @@ use super::mir::{
     procedures::MirProcedureEncoderState,
     type_invariants::TypeInvariantEncoderState,
     pure::{
-        PureFunctionEncoderState, PureFunctionEncoderInterface, compute_key,
+        PureFunctionEncoderState, PureFunctionEncoderInterface, ResourceEncoderInterface,
     },
     types::{
         compute_discriminant_bounds,
@@ -70,8 +70,15 @@ pub struct Encoder<'v, 'tcx: 'v> {
     error_manager: RefCell<ErrorManager<'tcx>>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
-    obligations: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Predicate>>>,
-    obligation_checks: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::ForPerm>>>,
+    /// A map containing all resource definitions: identifier → resource definition (a predicate).
+    resources: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Predicate>>>,
+    /// A map containing all resource leak check expressions:
+    /// identifier (of a resource) → expression asserting that no instances of the resource are held
+    /// The checks here assert that no resources for scope_id = -2 are held, which is replaced by
+    /// the correct scope_id when the correct leak check expression is requested in get_leak_check
+    /// If a function identifier appears in the `resources` map, but not in here, then
+    /// that is interpreted as that leak checks shouldn't be emitted for this resource
+    leak_checks: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::ForPerm>>>,
     builtin_domains: RefCell<FxHashMap<BuiltinDomainKind, vir::Domain>>,
     builtin_domains_in_progress: RefCell<FxHashSet<BuiltinDomainKind>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -155,8 +162,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             env,
             error_manager: RefCell::new(ErrorManager::new(env.query.codemap())),
             functions: RefCell::new(FxHashMap::default()),
-            obligations: RefCell::new(FxHashMap::default()),
-            obligation_checks: RefCell::new(FxHashMap::default()),
+            resources: RefCell::new(FxHashMap::default()),
+            leak_checks: RefCell::new(FxHashMap::default()),
             builtin_domains: RefCell::new(FxHashMap::default()),
             builtin_domains_in_progress: RefCell::new(FxHashSet::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
@@ -238,7 +245,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn finalize_viper_program(&self, name: String, proc_def_id: DefId) -> SpannedEncodingResult<vir::Program> {
         let error_span = self.env.query.get_def_span(proc_def_id);
-        super::definition_collector::collect_definitions(error_span, self, name, self.get_used_viper_methods())
+        let leak_checked_methods = self.get_used_viper_methods()
+            .into_iter()
+            .map(|m| super::leak_check_resolver::resolve_leak_checks(self, m))
+            .collect::<SpannedEncodingResult<Vec<_>>>()?;
+        super::definition_collector::collect_definitions(error_span, self, name, leak_checked_methods)
     }
 
     pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
@@ -296,147 +307,44 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    fn ensure_obligation_encoded(
-        &self,
-        identifier: &vir::FunctionIdentifier,
-    ) -> SpannedEncodingResult<()> {
-        let function_descriptions = self
-            .pure_function_encoder_state
-            .function_descriptions
-            .borrow();
-        if let Some(function_description) = function_descriptions.get(identifier) {
-            let function_description = function_description.clone();
-            // We need to release the borrow here before encoding the function
-            // because otherwise encoding recursive functions cause a panic.
-            drop(function_descriptions);
-            self.encode_obligation_def(
-                function_description.proc_def_id,
-                function_description.parent_def_id,
-                function_description.substs,
-            )?;
-        } else {
-            unreachable!();
+    /// passing None for leak_check is interpreted as that this resource is not leak-checked,
+    /// so leak checks shouldn't be generated for it
+    pub(super) fn insert_resource(&self, resource: vir::Predicate, leak_check: Option<vir::ForPerm>) -> vir::FunctionIdentifier {
+        let identifier: vir::FunctionIdentifier = resource.get_identifier().into();
+        assert!(self.resources.borrow_mut().insert(identifier.clone(), Rc::new(resource)).is_none(), "{identifier:?} is not unique");
+        if let Some(leak_check) = leak_check {
+            self.leak_checks.borrow_mut().insert(identifier.clone(), Rc::new(leak_check));
         }
-        Ok(())
+        identifier
     }
 
-    fn encode_obligation_def(
-        &self,
-        proc_def_id: ProcedureDefId,
-        parent_def_id: ProcedureDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> SpannedEncodingResult<()> {
-        assert!(self.is_obligation(proc_def_id, Some(substs)), "procedure not marked as obligation");
-        //let mir_span = self.env().query.get_def_span(proc_def_id);
-        let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
-        if !self
-            .pure_function_encoder_state
-            .function_identifiers
-            .borrow()
-            .contains_key(&key)
-            && !self
-                .pure_function_encoder_state
-                .pure_functions_encoding_started
-                .borrow()
-                .contains(&key)
-        {
-            self.pure_function_encoder_state
-                .pure_functions_encoding_started
-                .borrow_mut()
-                .insert(key);
-
-            let sig = self.env().query.get_fn_sig_resolved(proc_def_id, substs, parent_def_id);
-            let obligation_name = self.encode_item_name(proc_def_id);
-            let mut args = vec![vir::LocalVar::new("scope_id", vir::Type::Int)];
-            let mut check_args = vec![];
-            let mut concrete_args = vec![vir::Expr::Const(vir::ConstExpr {
-                value: vir::Const::Int(-2),
-                position: vir::Position::default(),
-            })];
-            for local_idx in 1..sig.skip_binder().inputs().len() {
-                let local_ty = sig.input(local_idx);
-                let local = prusti_rustc_interface::middle::mir::Local::from_usize(local_idx + 1);
-                let var_name = format!("{local:?}_l_check"); // TODO: *ensure* that there are no local
-                                                             // variable name clashes
-                let var_span = self.get_spec_span(proc_def_id);
-                let var_type = self.encode_snapshot_type(local_ty.skip_binder()).with_span(var_span)?;
-                let local_var = vir::LocalVar::new(var_name, var_type);
-                args.push(local_var.clone());
-                check_args.push(local_var.clone());
-                concrete_args.push(vir::Expr::local(local_var));
-            }
-            let obligation = vir::Predicate::new_obligation(obligation_name.clone(), args.clone());
-            let ident: vir::FunctionIdentifier = obligation.get_identifier().into();
-            self.obligations.borrow_mut().insert(ident.clone(), Rc::new(obligation));
-
-            let obligation_access = vir::ObligationAccess {
-                name: obligation_name,
-                args: concrete_args,
-                formal_arguments: args.clone(),
-                position: vir::Position::default(),
-            };
-            let check = vir::ForPerm {
-                variables: check_args,
-                access: obligation_access,
-                body: Box::new(vir::Expr::Const(vir::ConstExpr {
-                    value: vir::Const::Bool(false),
-                    position: vir::Position::default(),
-                })),
-                position: vir::Position::default(),
-            };
-            self.obligation_checks.borrow_mut().insert(ident, Rc::new(check));
-        }
-        Ok(())
-    }
-
-    pub(super) fn get_obligation(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Predicate>> {
-        self.ensure_obligation_encoded(identifier)?;
-        if self.obligations.borrow().contains_key(identifier) {
-            let map = self.obligations.borrow();
+    pub(super) fn get_resource(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Predicate>> {
+        self.ensure_resource_encoded(identifier)?;
+        if self.resources.borrow().contains_key(identifier) {
+            let map = self.resources.borrow();
             Ok(map[identifier].clone())
         } else {
-            unreachable!("Not found obligation: {:?}", identifier);
+            unreachable!("Not found resource: {:?}", identifier);
         }
     }
 
-    pub(super) fn get_obligation_leak_check(&self, identifier: &vir::FunctionIdentifier, scope_id: isize) -> SpannedEncodingResult<vir::Expr> {
-        self.ensure_obligation_encoded(identifier)?;
-        if self.obligation_checks.borrow().contains_key(identifier) {
-            let map = self.obligation_checks.borrow();
-            let check = map[identifier].clone();
-            let vir::ForPerm {
-                    variables,
-                    access: vir::ObligationAccess {
-                        name,
-                        args,
-                        formal_arguments,
-                        position: access_position,
-                    },
-                    body,
-                    position,
-                } = (*check).clone();
-            Ok(vir::Expr::ForPerm(vir::ForPerm {
-                variables,
-                access: vir::ObligationAccess {
-                    name,
-                    args: args.into_iter().enumerate().map(|(i, a)| {
-                        if i == 0 {
-                            vir::Expr::Const(vir::ConstExpr {
-                                value: vir::Const::Int(scope_id.try_into().unwrap()),
-                                position: vir::Position::default(),
-                            })
-                        } else {
-                            a
-                        }
-                    }).collect(),
-                    formal_arguments,
-                    position: access_position,
-                },
-                body,
-                position,
-            }))
+    pub(super) fn has_leak_checks(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<bool> {
+        self.ensure_resource_encoded(identifier)?;
+        if self.resources.borrow().contains_key(identifier) {
+            Ok(self.leak_checks.borrow().contains_key(identifier))
         } else {
-            unreachable!("Not found obligation check: {:?}", identifier);
+            unreachable!("Not found resource: {:?}", identifier);
+        }
+    }
+
+    pub(super) fn get_leak_check(&self, identifier: &vir::FunctionIdentifier, scope_id: isize) -> SpannedEncodingResult<vir::Expr> {
+        self.ensure_resource_encoded(identifier)?;
+        if self.leak_checks.borrow().contains_key(identifier) {
+            let map = self.leak_checks.borrow();
+            let check = map[identifier].clone();
+            Ok((*check).clone().replace_scope_id(scope_id))
+        } else {
+            panic!("Not found leak check: {:?}. Is {:?} a leak-checked resource?", identifier, identifier);
         }
     }
 
@@ -915,9 +823,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                             );
                         },
                         ProcedureSpecificationKind::Predicate(_) |
-                        ProcedureSpecificationKind::Obligation => {
+                        ProcedureSpecificationKind::Resource(_) => {
                             debug!(
-                                "Predicates OR OBLIGATIONS will not be encoded or verified: {:?}",
+                                "Predicates or resources will not be encoded or verified: {:?}",
                                 proc_def_id
                             );
                         },
@@ -970,5 +878,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         let field = strct.field(self.encode_struct_field(field_name, ty)?);
         self.encode_value_expr(field, ty)
+    }
+
+    pub fn get_procedure_def_id(&self, proc_absolute_name: &str) -> Option<ProcedureDefId> {
+        // TODO: cache in a map?
+        self.specifications_state.get_procedure_def_id(proc_absolute_name, &self.env.name)
     }
 }

@@ -415,13 +415,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         Err(())
     }
 
-    fn fallible_fold_obligation_access_predicate(
-        &mut self,
-        _obligation_access_predicate: vir::polymorphic::ObligationAccessPredicate,
-    ) -> Result<vir::polymorphic::Expr, Self::Error> {
-        Err(())
-    }
-
     fn fallible_fold_field_access_predicate(
         &mut self,
         _field_access_predicate: ast::FieldAccessPredicate,

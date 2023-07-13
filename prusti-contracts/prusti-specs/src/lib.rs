@@ -15,7 +15,7 @@ mod type_cond_specs;
 mod parse_closure_macro;
 mod parse_quote_spanned;
 mod predicate;
-mod obligation;
+mod resource;
 mod rewriter;
 mod span_overrider;
 mod spec_attribute_kind;
@@ -825,8 +825,13 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
     parsed.into_token_stream()
 }
 
+pub fn resource(tokens: TokenStream) -> TokenStream {
+    let parsed = handle_result!(resource::parse_resource(tokens));
+    parsed.into_token_stream()
+}
+
 pub fn obligation(tokens: TokenStream) -> TokenStream {
-    let parsed = handle_result!(obligation::parse_obligation(tokens));
+    let parsed = handle_result!(resource::parse_obligation(tokens));
     parsed.into_token_stream()
 }
 

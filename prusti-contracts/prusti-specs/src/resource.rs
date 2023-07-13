@@ -1,25 +1,25 @@
-//! Obligation parsing
+//! Resource and obligation parsing
 
 use crate::SPECS_VERSION;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
-use syn::{parse_quote_spanned, spanned::Spanned};
+use syn::{parse_quote, parse_quote_spanned, spanned::Spanned};
 
 // TODO: reduce code duplication with predicate parsing (?)
 
 #[derive(Debug)]
-pub struct ParsedObligation {
+pub struct ParsedResource {
     patched: syn::ItemFn,
 }
 
-impl ToTokens for ParsedObligation {
+impl ToTokens for ParsedResource {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.patched.to_tokens(tokens);
     }
 }
 
-fn has_valid_amount_arg(obligation_sig: &syn::Signature) -> bool {
-    obligation_sig.inputs.first().map_or(false, |arg| {
+fn has_valid_amount_arg(resource_sig: &syn::Signature) -> bool {
+    resource_sig.inputs.first().map_or(false, |arg| {
         let token_strings = arg
             .into_token_stream()
             .into_iter()
@@ -29,19 +29,38 @@ fn has_valid_amount_arg(obligation_sig: &syn::Signature) -> bool {
     })
 }
 
-pub fn parse_obligation(tokens: TokenStream) -> syn::Result<ParsedObligation> {
+pub fn parse_resource(tokens: TokenStream) -> syn::Result<ParsedResource> {
+    parse_resource_internal(tokens, "resource", parse_quote!(#[prusti::resource]))
+}
+
+pub fn parse_obligation(tokens: TokenStream) -> syn::Result<ParsedResource> {
+    parse_resource_internal(tokens, "obligation", parse_quote!(#[prusti::obligation]))
+}
+
+fn parse_resource_internal(
+    tokens: TokenStream,
+    macro_name: &str,
+    output_attribute: TokenStream,
+) -> syn::Result<ParsedResource> {
     let span = tokens.span();
-    let input: ObligationFnInput = syn::parse2(tokens).map_err(|e| {
+    let parse_res = syn::parse2(tokens);
+    let input: ResourceFnInput = parse_res.map_err(|e| {
         syn::Error::new(
             e.span(),
-            "`obligation!` can only be used on function definitions; it supports no attributes",
+            format!(
+                "`{}!` can only be used on function definitions; it supports no attributes",
+                macro_name
+            ),
         )
     })?;
     match &input.fn_sig.output {
         syn::ReturnType::Type(..) => {
             return Err(syn::Error::new(
                 input.fn_sig.span(),
-                "`obligation!` shall not specify an output type",
+                format!(
+                    "the function in `{}!` shall not specify an output type",
+                    macro_name
+                ),
             ));
         }
         syn::ReturnType::Default => {}
@@ -50,7 +69,7 @@ pub fn parse_obligation(tokens: TokenStream) -> syn::Result<ParsedObligation> {
     if input.body.is_some() {
         Err(syn::Error::new(
             input.body.span(),
-            "`obligation!` shall not provide a body",
+            format!("the function in `{}!` shall not provide a body", macro_name),
         ))
     } else if !has_valid_amount_arg(&input.fn_sig) {
         let error_span = if let Some(arg) = input.fn_sig.inputs.first() {
@@ -60,28 +79,39 @@ pub fn parse_obligation(tokens: TokenStream) -> syn::Result<ParsedObligation> {
         };
         Err(syn::Error::new(
             error_span,
-            "the first argument of an obligation in `obligation!` must be `amount: usize`",
+            format!(
+                "the first argument of the function in `{}!` must be `amount: usize`",
+                macro_name
+            ),
         ))
     } else {
+        let visibility = input.visibility;
         let signature = input.fn_sig;
         let patched = parse_quote_spanned!(span=>
-            #[prusti::obligation]
+            #output_attribute
             #[prusti::specs_version = #SPECS_VERSION]
-            #signature -> bool { unimplemented!(); }
+            #[allow(unused_variables)]
+            #visibility #signature -> bool { unimplemented!(); }
         );
 
-        Ok(ParsedObligation { patched })
+        Ok(ParsedResource { patched })
     }
 }
 
 #[derive(Debug)]
-struct ObligationFnInput {
+struct ResourceFnInput {
+    visibility: syn::Visibility,
     fn_sig: syn::Signature,
     body: Option<TokenStream>,
 }
 
-impl syn::parse::Parse for ObligationFnInput {
+impl syn::parse::Parse for ResourceFnInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let visibility = if input.peek(syn::Token![pub]) {
+            input.parse()?
+        } else {
+            syn::Visibility::Inherited
+        };
         let fn_sig = input.parse()?;
 
         let body = if input.peek(syn::Token![;]) {
@@ -95,6 +125,10 @@ impl syn::parse::Parse for ObligationFnInput {
             Some(quote_spanned!(parsed_body.span()=> { #parsed_body }))
         };
 
-        Ok(ObligationFnInput { fn_sig, body })
+        Ok(ResourceFnInput {
+            visibility,
+            fn_sig,
+            body,
+        })
     }
 }

@@ -28,7 +28,7 @@ use crate::{
     error_unsupported,
 };
 use log::{debug, trace};
-use prusti_common::vir_local;
+use prusti_common::{config, vir_local};
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
@@ -592,7 +592,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state
                             }
 
-                            _ if full_func_proc_name.starts_with("prusti_contracts::") => {
+                            "prusti_contracts::exists"
+                            | "prusti_contracts::forall"
+                            | "prusti_contracts::specification_entailment"
+                            | "prusti_contracts::call_description"
+                            | "prusti_contracts::snap"
+                            | "prusti_contracts::snapshot_equality" => {
                                 let expr = self.encoder.encode_prusti_operation(
                                     full_func_proc_name,
                                     span,
@@ -607,6 +612,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                             // simple function call
                             _ => {
+                                if [
+                                    "prusti_contracts::time_credits",
+                                    "prusti_contracts::time_receipts",
+                                ]
+                                .contains(&full_func_proc_name)
+                                    && !config::time_reasoning()
+                                {
+                                    let mut error = SpannedEncodingError::unsupported(
+                                        "Time reasoning is disabled but found a call to a time_credits/time_receipts predicate.", 
+                                        span
+                                        );
+                                    error.set_help(
+                                        "To enable time reasoning set the TIME_REASONING option to true.",
+                                        );
+                                    return Err(error);
+                                }
                                 let (called_def_id, call_substs) = self
                                     .encoder
                                     .env()
@@ -614,13 +635,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .resolve_method_call(self.def_id, def_id, call_substs);
                                 trace!("Resolved function call: {:?}", called_def_id);
 
-                                let is_obligation =
-                                    self.encoder.is_obligation(called_def_id, Some(call_substs));
+                                let is_resource =
+                                    self.encoder.is_resource(called_def_id, Some(call_substs));
 
                                 let is_pure_function =
                                     self.encoder.is_pure(called_def_id, Some(call_substs));
                                 let (function_name, return_type) = if is_pure_function
-                                    || is_obligation
+                                    || is_resource
                                 {
                                     self.encoder
                                         .encode_pure_function_use(
@@ -659,7 +680,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encoder
                                     .encode_generic_arguments(called_def_id, call_substs)
                                     .with_span(term.source_info.span)?;
-                                let encoded_rhs = if is_obligation {
+                                let encoded_rhs = if is_resource {
                                     assert!(!encoded_args.is_empty());
                                     let amount = encoded_args[0].clone();
                                     let encoded_args = encoded_args
@@ -687,12 +708,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             }
                                         })
                                         .collect::<Vec<_>>();
-                                    vir::Expr::obligation_access_predicate(
-                                        function_name,
-                                        encoded_args,
-                                        formal_args,
-                                        amount,
-                                        pos,
+                                    vir::Expr::and(
+                                        vir::Expr::ge_cmp(amount.clone(), 0.into()),
+                                        vir::Expr::resource_access_predicate(
+                                            function_name,
+                                            encoded_args,
+                                            formal_args,
+                                            amount,
+                                            pos,
+                                        ),
                                     )
                                 } else {
                                     vir::Expr::func_app(
