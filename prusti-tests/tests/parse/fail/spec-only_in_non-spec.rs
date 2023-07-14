@@ -1,5 +1,11 @@
 use prusti_contracts::*;
 
+predicate! {
+    fn pred() -> bool {
+        true
+    }
+}
+
 resource! {
     fn rsrc(amount: usize);
 }
@@ -20,6 +26,8 @@ fn main() {
     snap(&(1 + 1)); //~ ERROR using the built-in `snap` in non-specification code is not allowed
 
     snapshot_equality(1 + 1, 3); //~ ERROR using the built-in `snapshot_equality` in non-specification code is not allowed
+    
+    pred(); //~ ERROR using a predicate in non-specification code is not allowed
 
     rsrc(12); //~ ERROR using a resource in non-specification code is not allowed
 

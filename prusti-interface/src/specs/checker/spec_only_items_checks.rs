@@ -77,7 +77,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalSpecOnlyItemsUsageChecker {
                         MultiSpan::from_span(usage_span),
                     )
                     .add_note(
-                        format!("this is a specification-only `{}`", item_kind.name()),
+                        format!("this is a specification-only {}", item_kind.name()),
                         def_span,
                     )
                 }
