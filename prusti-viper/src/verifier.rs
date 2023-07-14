@@ -13,7 +13,7 @@ use once_cell::sync::Lazy;
 use prusti_common::{
     config,
     report::log,
-    vir::{optimizations::optimize_program, program::Program},
+    vir::{optimizations::optimize_program, fixes::desugar_quantified_resources, program::Program},
     Stopwatch,
 };
 use prusti_interface::{
@@ -100,7 +100,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
 
         let mut programs: Vec<Program> = optimized_polymorphic_programs.into_iter()
-                .map(|program| Program::Legacy(program.into()))
+                .map(|program| Program::Legacy(desugar_quantified_resources(program).into()))
                 .collect();
         programs.extend(self.encoder.get_core_proof_programs());
 

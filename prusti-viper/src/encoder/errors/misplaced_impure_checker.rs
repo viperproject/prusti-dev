@@ -6,7 +6,7 @@
 
 use std::fmt::Debug;
 
-use vir_crate::polymorphic::{Position, program::Program, CfgMethod, ExprWalker, Expr, BinaryOpKind, BinOp, UnaryOpKind, UnaryOp, Cond, PredicateAccessPredicate, FieldAccessPredicate, ResourceAccessPredicate};
+use vir_crate::polymorphic::{Position, program::Program, CfgMethod, ExprWalker, Expr, BinaryOpKind, BinOp, UnaryOpKind, UnaryOp, Cond, PredicateAccessPredicate, FieldAccessPredicate, ResourceAccessPredicate, FuncApp, ResourceAccess, DomainFuncApp, Exists};
 use crate::encoder::errors::PositionManager;
 use prusti_interface::PrustiError;
 
@@ -51,6 +51,7 @@ impl MisplacedImpureChecker {
     }
 
     fn check_program(&mut self, program: &Program) {
+        // add other parts of the program to check if needed
         for method in &program.methods {
             self.check_method(method);
         }
@@ -64,13 +65,13 @@ impl MisplacedImpureChecker {
         checker.errors.into_iter().map(|e| e.into_prusti_error(position_manager)).collect()
     }
 
-    fn walk_and_check_for_impurities(&mut self, expr: &Expr, outer_pos: &Position, message: &str) {
+    fn walk_and_check_for_impurities(&mut self, expr: &Expr, outer_pos: &Position, illegal_inside: &str) {
         let err_count_before = self.errors.len();
         self.walk(expr);
         let err_count_after = self.errors.len();
         if err_count_before == err_count_after {
             if let Some(impurity_pos) = ImpurityFinder::find_impurity(expr) {
-                self.errors.push(MisplacedImpureError::new(impurity_pos, *outer_pos, message.to_string()));
+                self.errors.push(MisplacedImpureError::new(impurity_pos, *outer_pos, format!("resource access is illegal inside {}", illegal_inside)));
             }
         }
     }
@@ -80,16 +81,16 @@ impl ExprWalker for MisplacedImpureChecker {
     fn walk_bin_op(&mut self, BinOp { op_kind, left, right, position }: &BinOp) {
         match op_kind {
             BinaryOpKind::Or => {
-                self.walk_and_check_for_impurities(left, position, "resource access is illegal inside disjunctions");
-                self.walk_and_check_for_impurities(right, position, "resource access is illegal inside disjunctions");
+                self.walk_and_check_for_impurities(left, position, "disjunctions");
+                self.walk_and_check_for_impurities(right, position, "disjunctions");
             }
             BinaryOpKind::Implies => {
-                self.walk_and_check_for_impurities(left, position, "resource access is illegal on the left-hand side of implications");
+                self.walk_and_check_for_impurities(left, position, "the antecedents of implications");
                 self.walk(right)
             }
             BinaryOpKind::EqCmp | BinaryOpKind::NeCmp => {
-                self.walk_and_check_for_impurities(left, position, "resource access is illegal inside equality comparisons");
-                self.walk_and_check_for_impurities(right, position, "resource access is illegal inside equality comparisons");
+                self.walk_and_check_for_impurities(left, position, "equality comparisons");
+                self.walk_and_check_for_impurities(right, position, "equality comparisons");
             }
             _ => {
                 self.walk(left);
@@ -101,7 +102,7 @@ impl ExprWalker for MisplacedImpureChecker {
     fn walk_unary_op(&mut self, UnaryOp { op_kind, argument, position }: &UnaryOp) {
         match op_kind {
             UnaryOpKind::Not => {
-                self.walk_and_check_for_impurities(argument, position, "resource access is illegal inside negations");
+                self.walk_and_check_for_impurities(argument, position, "negations");
             }
             _ => {
                 self.walk(argument);
@@ -110,9 +111,47 @@ impl ExprWalker for MisplacedImpureChecker {
     }
 
     fn walk_cond(&mut self, Cond { guard, then_expr, else_expr, position }: &Cond) {
-        self.walk_and_check_for_impurities(guard, position, "resource access is illegal in guards of conditionals");
+        self.walk_and_check_for_impurities(guard, position, "guards of conditionals");
         self.walk(then_expr);
         self.walk(else_expr);
+    }
+
+    fn walk_func_app(&mut self, FuncApp {
+        arguments,
+        position,
+        ..
+    }: &FuncApp) {
+        for arg in arguments {
+            self.walk_and_check_for_impurities(arg, position, "function arguments");
+        }
+    }
+
+    fn walk_domain_func_app(&mut self, DomainFuncApp {
+        arguments,
+        position,
+        ..
+    }: &DomainFuncApp) {
+        for arg in arguments {
+            self.walk_and_check_for_impurities(arg, position, "function arguments");
+        }
+    }
+
+    fn walk_resource_access(&mut self, ResourceAccess {
+        args,
+        position,
+        ..
+    }: &ResourceAccess) {
+        for arg in args {
+            self.walk_and_check_for_impurities(arg, position, "resource access arguments");
+        }
+    }
+
+    fn walk_exists(&mut self, Exists {
+        body,
+        position,
+        ..
+    }: &Exists) {
+        self.walk_and_check_for_impurities(body, position, "existential quantifiers");
     }
 }
 

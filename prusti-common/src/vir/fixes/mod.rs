@@ -6,6 +6,7 @@
 
 //! Fix the potentially broken encoding.
 
-pub use self::ghost_vars::fix_ghost_vars;
+pub use self::{ghost_vars::fix_ghost_vars, quantified_resources::desugar_quantified_resources};
 
 mod ghost_vars;
+mod quantified_resources;
