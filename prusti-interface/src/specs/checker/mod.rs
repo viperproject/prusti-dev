@@ -1,13 +1,15 @@
 //! Module for verifying user-provided specifications after macro expansion
 
 mod common;
-mod predicate_checks;
+mod resource_declaration_checks;
+mod spec_only_items_checks;
 mod type_model_checks;
 mod version_checks;
 
 use crate::environment::Environment;
 use common::*;
-use predicate_checks::IllegalPredicateUsagesChecker;
+use resource_declaration_checks::ResourceDeclarationChecker;
+use spec_only_items_checks::IllegalSpecOnlyItemsUsageChecker;
 use type_model_checks::{IllegalModelUsagesChecker, ModelDefinedOnTypeWithoutFields};
 use version_checks::MismatchedVersionsChecker;
 
@@ -28,7 +30,8 @@ impl<'tcx> SpecChecker<'tcx> {
         Self {
             checks: vec![
                 Box::new(MismatchedVersionsChecker {}),
-                Box::new(IllegalPredicateUsagesChecker {}),
+                Box::new(ResourceDeclarationChecker {}),
+                Box::new(IllegalSpecOnlyItemsUsageChecker {}),
                 Box::new(IllegalModelUsagesChecker {}),
                 Box::new(ModelDefinedOnTypeWithoutFields {}),
             ],
