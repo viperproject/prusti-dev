@@ -6,10 +6,9 @@ use prusti_contracts::*;
 
 #[requires(time_credits(1))]
 #[ensures(time_receipts(2 - 4))] //~ ERROR
-fn main() {
-}
+fn main() {}
 
 #[requires(time_credits(1))]
 fn foo() {
-  assert!(time_credits(1 - 2)); //~ ERROR 
+    prusti_assert!(time_credits(1 - 2)); //~ ERROR
 }
