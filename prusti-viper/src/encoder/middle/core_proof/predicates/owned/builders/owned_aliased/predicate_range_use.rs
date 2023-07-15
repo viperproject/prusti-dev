@@ -64,9 +64,9 @@ where
     ) -> SpannedEncodingResult<vir_low::Expression> {
         use vir_low::macros::*;
         let size_type = self.lowerer.size_type_mid()?;
-        var_decls! {
-            index: Int
-        }
+        // var_decls! {
+        //     index: Int
+        // }
         let vir_mid::Type::Pointer(ty) = self.ty else {
             unreachable!()
         };
@@ -79,32 +79,58 @@ where
         let size = self
             .lowerer
             .encode_type_size_expression2(&pointer_type.target_type, &*pointer_type.target_type)?;
-        let element_address = self.lowerer.address_offset(
-            size,
-            initial_address,
-            index.clone().into(),
-            self.position,
-        )?;
-        let predicate = self.lowerer.owned_aliased(
-            self.context,
-            &ty.target_type,
-            self.generics,
-            element_address.clone(),
-            self.permission_amount,
-            self.position,
-        )?;
+        // let element_address = self.lowerer.address_offset(
+        //     size,
+        //     initial_address,
+        //     index.clone().into(),
+        //     self.position,
+        // )?;
+        // let predicate = self.lowerer.owned_aliased(
+        //     self.context,
+        //     &ty.target_type,
+        //     self.generics,
+        //     element_address.clone(),
+        //     self.permission_amount,
+        //     self.position,
+        // )?;
         let start_index =
             self.lowerer
                 .obtain_constant_value(&size_type, self.start_index, self.position)?;
         let end_index =
             self.lowerer
                 .obtain_constant_value(&size_type, self.end_index, self.position)?;
-        let body = expr!(
-            (([start_index] <= index) && (index < [end_index])) ==> [predicate]
-        );
+        // let body = expr!(
+        //     (([start_index] <= index) && (index < [end_index])) ==> [predicate]
+        // );
+        // let expression = vir_low::Expression::forall(
+        //     vec![index],
+        //     vec![vir_low::Trigger::new(vec![element_address])],
+        //     body,
+        // );
+
+        var_decls! {
+            element_address: Address
+        }
+        let predicate = self.lowerer.owned_aliased(
+            self.context,
+            &ty.target_type,
+            self.generics,
+            element_address.clone().into(),
+            self.permission_amount,
+            self.position,
+        )?;
+        let guard = self.lowerer.address_range_contains(
+            initial_address,
+            start_index,
+            end_index,
+            size,
+            element_address.clone().into(),
+            self.position,
+        )?;
+        let body = expr!([guard] ==> [predicate.clone()]);
         let expression = vir_low::Expression::forall(
-            vec![index],
-            vec![vir_low::Trigger::new(vec![element_address])],
+            vec![element_address],
+            vec![vir_low::Trigger::new(vec![predicate])],
             body,
         );
         Ok(expression)
