@@ -12,7 +12,9 @@ use crate::encoder::{
 };
 use vir_crate::{
     common::{
-        builtin_constants::ADDRESS_DOMAIN_NAME, expression::QuantifierHelpers, position::Positioned,
+        builtin_constants::{ADDRESS_DOMAIN_NAME, ALLOCATION_DOMAIN_NAME},
+        expression::{BinaryOperationHelpers, QuantifierHelpers},
+        position::Positioned,
     },
     low as vir_low,
     middle::{self as vir_mid},
@@ -20,7 +22,9 @@ use vir_crate::{
 
 pub(in super::super) trait AddressesInterface {
     fn address_domain(&self) -> &'static str;
+    fn allocation_domain(&self) -> &'static str;
     fn address_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
+    fn allocation_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
     fn address_null(
         &mut self,
         position: vir_low::Position,
@@ -88,12 +92,294 @@ pub(in super::super) trait AddressesInterface {
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
 }
 
+impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
+    fn encode_address_axioms(&mut self) -> SpannedEncodingResult<()> {
+        if !self.address_state.are_address_axioms_encoded {
+            self.address_state.are_address_axioms_encoded = true;
+            use vir_low::macros::*;
+            let size_type = self.size_type()?;
+            let address_type = self.address_type()?;
+            let allocation_type = self.allocation_type()?;
+            var_decls! {
+                allocation: Allocation,
+                address: Address,
+                index: Int,
+                element_size: {size_type.clone()}
+            }
+            let position = vir_low::Position::default();
+            {
+                // Address constructor is injective with respect to allocation
+                // and index. Both inverse functions are total, which is
+                // important for the performance.
+                {
+                    // ```
+                    // forall allocation, index, element_size ::
+                    //   {address_constructor(allocation, index, element_size)}
+                    //   get_allocation(address_constructor(allocation, index, element_size)) == allocation &&
+                    //   get_index(address_constructor(allocation, index, element_size), element_size) == index
+                    // ```
+                    let address_constructor = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "address_constructor$",
+                        vec![
+                            allocation.clone().into(),
+                            index.clone().into(),
+                            element_size.clone().into(),
+                        ],
+                        address_type.clone(),
+                        position,
+                    )?;
+                    let get_allocation = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "get_allocation$",
+                        vec![address_constructor.clone()],
+                        allocation_type.clone(),
+                        position,
+                    )?;
+                    let get_index = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "get_index$",
+                        vec![address_constructor.clone(), element_size.clone().into()],
+                        vir_low::Type::Int,
+                        position,
+                    )?;
+                    let body = vir_low::Expression::forall(
+                        vec![allocation.clone(), index.clone(), element_size.clone()],
+                        vec![vir_low::Trigger::new(vec![address_constructor])],
+                        expr! { ([get_allocation] == allocation) && ([get_index] == index) },
+                    );
+                    let axiom = vir_low::DomainAxiomDecl::new(
+                        None,
+                        "address_constructor$injectivity1",
+                        body,
+                    );
+                    self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+                }
+                {
+                    // ```
+                    // forall address, index, element_size ::
+                    //   {address_constructor(get_allocation(address), index, element_size)}
+                    //   address_constructor(get_allocation(address), index, element_size) == allocation
+                    // ```
+                    let get_allocation = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "get_allocation$",
+                        vec![address.clone().into()],
+                        allocation_type.clone(),
+                        position,
+                    )?;
+                    let address_constructor = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "address_constructor$",
+                        vec![
+                            get_allocation.clone(),
+                            index.clone().into(),
+                            element_size.clone().into(),
+                        ],
+                        address_type.clone(),
+                        position,
+                    )?;
+                    let body = vir_low::Expression::forall(
+                        vec![address.clone(), index.clone(), element_size.clone()],
+                        vec![vir_low::Trigger::new(vec![address_constructor.clone()])],
+                        expr! { [address_constructor] == address },
+                    );
+                    let axiom = vir_low::DomainAxiomDecl::new(
+                        None,
+                        "address_constructor$injectivity2",
+                        body,
+                    );
+                    self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+                }
+                {
+                    // ```
+                    // forall allocation, address, element_size ::
+                    //   {address_constructor(allocation, get_index(address, element_size), element_size)}
+                    //   address_constructor(allocation, get_index(address, element_size), element_size) == address
+                    // ```
+                    let get_index = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "get_index$",
+                        vec![address.clone().into(), element_size.clone().into()],
+                        vir_low::Type::Int,
+                        position,
+                    )?;
+                    let address_constructor = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "address_constructor$",
+                        vec![
+                            allocation.clone().into(),
+                            get_index.clone().into(),
+                            element_size.clone().into(),
+                        ],
+                        address_type.clone(),
+                        position,
+                    )?;
+                    let body = vir_low::Expression::forall(
+                        vec![allocation, address.clone(), element_size.clone()],
+                        vec![vir_low::Trigger::new(vec![address_constructor.clone()])],
+                        expr! { [address_constructor] == address },
+                    );
+                    let axiom = vir_low::DomainAxiomDecl::new(
+                        None,
+                        "address_constructor$injectivity3",
+                        body,
+                    );
+                    self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+                }
+            }
+            {
+                // Define range_contains function, which is used for defining
+                // quantified permissions.
+                // ```
+                // forall base_address, start_index, end_index, element_size, checked_address ::
+                // {address_range_contains(base_address, start_index, end_index, element_size, checked_address)}
+                //  address_range_contains(base_address, start_index, end_index, element_size, checked_address) ==
+                // (get_allocation(base_address) == get_allocation(checked_address) &&
+                // get_index(base_address, element_size) + start_index <= get_index(checked_address, element_size)) &&
+                // get_index(checked_address, element_size)) < get_index(base_address, element_size) + end_index
+                // )
+                // ```
+                var_decls! {
+                    base_address: Address,
+                    start_index: Int,
+                    end_index: Int,
+                    checked_address: Address
+                }
+                let address_range_contains = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "address_range_contains$",
+                    vec![
+                        base_address.clone().into(),
+                        start_index.clone().into(),
+                        end_index.clone().into(),
+                        element_size.clone().into(),
+                        checked_address.clone().into(),
+                    ],
+                    vir_low::Type::Bool,
+                    position,
+                )?;
+                let get_allocation_base_address = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_allocation$",
+                    vec![base_address.clone().into()],
+                    allocation_type.clone(),
+                    position,
+                )?;
+                let get_allocation_checked_address = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_allocation$",
+                    vec![checked_address.clone().into()],
+                    allocation_type.clone(),
+                    position,
+                )?;
+                let get_index_base_address = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_index$",
+                    vec![base_address.clone().into(), element_size.clone().into()],
+                    vir_low::Type::Int,
+                    position,
+                )?;
+                let get_index_checked_address = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_index$",
+                    vec![checked_address.clone().into(), element_size.clone().into()],
+                    vir_low::Type::Int,
+                    position,
+                )?;
+                let definition = expr! {
+                    (([get_allocation_base_address] == [get_allocation_checked_address]) &&
+                    (([get_index_base_address.clone()] + start_index) <= [get_index_checked_address.clone()])) &&
+                    ([get_index_checked_address] < ([get_index_base_address] + end_index))
+                };
+                let body = vir_low::Expression::forall(
+                    vec![
+                        base_address,
+                        start_index,
+                        end_index,
+                        element_size.clone(),
+                        checked_address,
+                    ],
+                    vec![vir_low::Trigger::new(vec![address_range_contains.clone()])],
+                    expr! { [address_range_contains] == [definition] },
+                );
+                let axiom =
+                    vir_low::DomainAxiomDecl::new(None, "address_range_contains$definition", body);
+                self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+            }
+            {
+                // Define `offset_address` function, which is used for computing
+                // new addresses by offsetting them.
+                // ```
+                // forall address, offset, element_size ::
+                // {offset_address(address, offset, element_size)}
+                // offset_address(address, offset, element_size) ==
+                // address_constructor(get_allocation(address), get_index(address, element_size) + offset, element_size)
+                // ```
+                var_decls! {
+                    offset: Int
+                }
+                let offset_address = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "offset_address$",
+                    vec![
+                        address.clone().into(),
+                        offset.clone().into(),
+                        element_size.clone().into(),
+                    ],
+                    address_type.clone(),
+                    position,
+                )?;
+                let get_allocation = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_allocation$",
+                    vec![address.clone().into()],
+                    allocation_type.clone(),
+                    position,
+                )?;
+                let get_index = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_index$",
+                    vec![address.clone().into(), element_size.clone().into()],
+                    vir_low::Type::Int,
+                    position,
+                )?;
+                let definition = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "address_constructor$",
+                    vec![
+                        get_allocation,
+                        vir_low::Expression::add(get_index, offset.clone().into()),
+                        element_size.clone().into(),
+                    ],
+                    address_type.clone(),
+                    position,
+                )?;
+                let body = vir_low::Expression::forall(
+                    vec![address, offset, element_size.clone()],
+                    vec![vir_low::Trigger::new(vec![offset_address.clone()])],
+                    expr! { [offset_address] == [definition] },
+                );
+                let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$definition", body);
+                self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
     fn address_domain(&self) -> &'static str {
         ADDRESS_DOMAIN_NAME
     }
+    fn allocation_domain(&self) -> &'static str {
+        ALLOCATION_DOMAIN_NAME
+    }
     fn address_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
         self.domain_type(self.address_domain())
+    }
+    fn allocation_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
+        self.domain_type(self.allocation_domain())
     }
     fn address_null(
         &mut self,
@@ -116,69 +402,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let address_type = self.address_type()?;
-        if !self.address_state.is_address_offset_axiom_encoded {
-            self.address_state.is_address_offset_axiom_encoded = true;
-            use vir_low::macros::*;
-            let size_type = self.size_type()?;
-            var_decls! {
-                address: Address,
-                index: Int,
-                size: {size_type}
-            }
-            {
-                let call = self.create_domain_func_app(
-                    ADDRESS_DOMAIN_NAME,
-                    "offset_address$",
-                    vec![
-                        size.clone().into(),
-                        address.clone().into(),
-                        index.clone().into(),
-                    ],
-                    address_type.clone(),
-                    position,
-                )?;
-                let injective_call = self.create_domain_func_app(
-                    ADDRESS_DOMAIN_NAME,
-                    "offset_address$inverse",
-                    vec![address.clone().into(), call.clone()],
-                    vir_low::Type::Int,
-                    position,
-                )?;
-                let forall_body = expr! {
-                    [injective_call] == index
-                };
-                let body = vir_low::Expression::forall(
-                    vec![size.clone(), address.clone(), index],
-                    vec![vir_low::Trigger::new(vec![call])],
-                    forall_body,
-                );
-                let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$injective", body);
-                self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
-            }
-            {
-                let call = self.create_domain_func_app(
-                    ADDRESS_DOMAIN_NAME,
-                    "offset_address$",
-                    vec![size.clone().into(), address.clone().into(), 0.into()],
-                    address_type.clone(),
-                    position,
-                )?;
-                let forall_body = expr! {
-                    [call.clone()] == address
-                };
-                let body = vir_low::Expression::forall(
-                    vec![size, address],
-                    vec![vir_low::Trigger::new(vec![call])],
-                    forall_body,
-                );
-                let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$zero_offset", body);
-                self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
-            }
-        }
+        self.encode_address_axioms()?;
         self.create_domain_func_app(
             ADDRESS_DOMAIN_NAME,
             "offset_address$",
-            vec![size, address, offset],
+            vec![address, offset, size],
             address_type,
             position,
         )
@@ -191,52 +419,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         checked_address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        if !self.address_state.is_address_range_contains_axiom_encoded {
-            self.address_state.is_address_range_contains_axiom_encoded = true;
-            use vir_low::macros::*;
-            let size_type = self.size_type()?;
-            var_decls! {
-                start_address: Address,
-                type_size: {size_type},
-                range_length: Int,
-                checked_address: Address,
-                index: Int
-            }
-            let call = self.create_domain_func_app(
-                ADDRESS_DOMAIN_NAME,
-                "address_range_contains$",
-                vec![
-                    type_size.clone().into(),
-                    start_address.clone().into(),
-                    range_length.clone().into(),
-                    checked_address.clone().into(),
-                ],
-                vir_low::Type::Bool,
-                position,
-            )?;
-            let offset_call = self.address_offset(
-                type_size.clone().into(),
-                start_address.clone().into(),
-                index.clone().into(),
-                position,
-            )?;
-            let exists_body = expr! {
-                (([0.into()] <= index) && (index < range_length)) &&
-                ([offset_call.clone()] == checked_address)
-            };
-            let exists = vir_low::Expression::exists(
-                vec![index],
-                vec![vir_low::Trigger::new(vec![offset_call])],
-                exists_body,
-            );
-            let forall = vir_low::Expression::forall(
-                vec![start_address, type_size, range_length, checked_address],
-                vec![vir_low::Trigger::new(vec![call.clone()])],
-                expr! { [call] == [exists] },
-            );
-            let axiom = vir_low::DomainAxiomDecl::new(None, "address_range_contains$axiom", forall);
-            self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
-        }
+        self.encode_address_axioms()?;
         self.create_domain_func_app(
             ADDRESS_DOMAIN_NAME,
             "address_range_contains$",

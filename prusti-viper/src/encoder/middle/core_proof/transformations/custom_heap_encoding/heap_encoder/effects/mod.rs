@@ -8,6 +8,7 @@ use super::{
     HeapEncoder,
 };
 use crate::encoder::errors::SpannedEncodingResult;
+use prusti_common::config;
 use vir_crate::{
     common::expression::{
         BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers, SyntacticEvaluation,
@@ -775,6 +776,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         );
         eprintln!("guard: {}", guard);
         eprintln!("predicate: {}", predicate);
+        unimplemented!();
         // Generate inverse functions for the variables.
         // ```
         // forall index: Int ::
@@ -1310,8 +1312,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             "variables: {}",
             vir_crate::common::display::cjoin(&variables)
         );
+        eprintln!("triggers: {}", vir_crate::common::display::cjoin(&triggers));
         eprintln!("guard: {}", guard);
         eprintln!("predicate: {}", predicate);
+        if config::custom_heap_encoding_omit_injective() {
+            assert_eq!(
+                variables.len(),
+                1,
+                "unimplemented: {}",
+                vir_crate::common::display::cjoin(&variables)
+            );
+            let variable = variables.first().unwrap();
+            for argument in &predicate.arguments {
+                match argument {
+                    vir_low::Expression::Local(local) if &local.variable == variable => {
+                        // The quantified variable is used directly. This means
+                        // that the expression is already bijective, so we do
+                        // not need to generate the inverse function.
+                    }
+                    _ => {
+                        assert!(!argument.contains_variable(variable), "{argument} contains {variable} and therefore needs an injective function");
+                    }
+                }
+            }
+            unimplemented!();
+        }
         // let guard = self.purify_snap_function_calls_in_expression(
         //     statements,
         //     guard,

@@ -122,6 +122,7 @@ lazy_static::lazy_static! {
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("custom_heap_encoding", false).unwrap();
+        settings.set_default("custom_heap_encoding_omit_injective", true).unwrap();
         settings.set_default("trace_with_symbolic_execution", false).unwrap();
         settings.set_default("trace_with_symbolic_execution_new", true).unwrap();
         settings.set_default("purify_with_symbolic_execution", false).unwrap();
@@ -1136,6 +1137,15 @@ pub fn report_symbolic_execution_purification() -> bool {
 /// true.
 pub fn custom_heap_encoding() -> bool {
     read_setting("custom_heap_encoding")
+}
+
+/// Whether to omit QP injectivity functions when generating the custom heap
+/// encoding.
+///
+/// **Note:** This option is taken into account only when `custom_heap_encoding` is
+/// true.
+pub fn custom_heap_encoding_omit_injective() -> bool {
+    read_setting("custom_heap_encoding_omit_injective")
 }
 
 /// Whether the core proof (memory safety) should be verified.
