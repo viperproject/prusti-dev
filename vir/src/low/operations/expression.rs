@@ -213,6 +213,30 @@ impl Expression {
         }
         PlaceReplacer { map }.fold_expression(self)
     }
+    pub fn contains_variable(&self, variable: &VariableDecl) -> bool {
+        struct VariableFinder<'a> {
+            variable: &'a VariableDecl,
+            found: bool,
+        }
+        impl<'a> ExpressionWalker for VariableFinder<'a> {
+            fn walk_local(&mut self, local: &Local) {
+                if local.variable == *self.variable {
+                    self.found = true;
+                }
+            }
+            fn walk_trigger(&mut self, trigger: &Trigger) {
+                for term in &trigger.terms {
+                    self.walk_expression(term);
+                }
+            }
+        }
+        let mut finder = VariableFinder {
+            variable,
+            found: false,
+        };
+        finder.walk_expression(self);
+        finder.found
+    }
     #[must_use]
     pub fn replace_predicate_permissions(self, new_predicate_permission: &Box<Expression>) -> Self {
         struct PermissionReplacer<'a> {

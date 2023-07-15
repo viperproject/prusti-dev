@@ -7,6 +7,7 @@ pub const ADDRESS_FIELD_NAME: &str = "address$";
 pub const PLACE_DOMAIN_NAME: &str = "Place";
 pub const PLACE_OPTION_DOMAIN_NAME: &str = "PlaceOption";
 pub const ADDRESS_DOMAIN_NAME: &str = "Address";
+pub const ALLOCATION_DOMAIN_NAME: &str = "Allocation";
 pub const LIFETIME_DOMAIN_NAME: &str = "Lifetime";
 pub const BYTE_DOMAIN_NAME: &str = "Byte";
 pub const BYTES_DOMAIN_NAME: &str = "Bytes";

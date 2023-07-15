@@ -5,6 +5,7 @@ pub macro ty {
     (Place) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::PLACE_DOMAIN_NAME.to_string())},
     (PlaceOption) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::PLACE_OPTION_DOMAIN_NAME.to_string())},
     (Address) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::ADDRESS_DOMAIN_NAME.to_string())},
+    (Allocation) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::ALLOCATION_DOMAIN_NAME.to_string())},
     (Lifetime) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::LIFETIME_DOMAIN_NAME.to_string())},
     (Byte) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::BYTE_DOMAIN_NAME.to_string())},
     (Bytes) => {$crate::low::ast::ty::Type::domain(crate::common::builtin_constants::BYTES_DOMAIN_NAME.to_string())},
@@ -229,6 +230,14 @@ pub macro expr {
     ($lhs: tt * $rhs: tt) => {
         $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::Mul,
+            $crate::low::macros::expr!( $lhs ),
+            $crate::low::macros::expr!( $rhs ),
+            Default::default(),
+        )
+    },
+    ($lhs: tt + $rhs: tt) => {
+        $crate::low::ast::expression::Expression::binary_op(
+            $crate::low::ast::expression::BinaryOpKind::Add,
             $crate::low::macros::expr!( $lhs ),
             $crate::low::macros::expr!( $rhs ),
             Default::default(),
