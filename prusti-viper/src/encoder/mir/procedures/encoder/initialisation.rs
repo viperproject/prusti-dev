@@ -2,7 +2,6 @@ use prusti_rustc_interface::{
     dataflow::{
         impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
         move_paths::MoveData,
-        un_derefer::UnDerefer,
         Analysis, MoveDataParamEnv, ResultsCursor,
     },
     middle::{mir, ty::TyCtxt},
@@ -18,9 +17,8 @@ impl<'mir, 'tcx> InitializationData<'mir, 'tcx> {
         tcx: TyCtxt<'tcx>,
         body: &'mir mut mir::Body<'tcx>,
         env: &'mir MoveDataParamEnv<'tcx>,
-        un_derefer: &'mir UnDerefer<'tcx>,
     ) -> Self {
-        super::elaborate_drops::mir_transform::remove_dead_unwinds(tcx, body, env, un_derefer);
+        super::elaborate_drops::mir_transform::remove_dead_unwinds(tcx, body, env);
 
         let inits = MaybeInitializedPlaces::new(tcx, body, env)
             .into_engine(tcx, body)
@@ -46,26 +44,22 @@ impl<'mir, 'tcx> InitializationData<'mir, 'tcx> {
 pub(super) fn create_move_data_param_env_and_un_derefer<'tcx>(
     tcx: TyCtxt<'tcx>,
     body: &mir::Body<'tcx>,
-) -> (MoveDataParamEnv<'tcx>, UnDerefer<'tcx>) {
+) -> MoveDataParamEnv<'tcx> {
     let def_id = body.source.def_id();
     let param_env = tcx.param_env_reveal_all_normalized(def_id);
-    let (side_table, move_data) = match MoveData::gather_moves(body, tcx, param_env) {
+    let move_data = match MoveData::gather_moves(body, tcx, param_env) {
         Ok(move_data) => move_data,
         Err((move_data, _)) => {
             tcx.sess.delay_span_bug(
                 body.span,
                 "No `move_errors` should be allowed in MIR borrowck",
             );
-            (Default::default(), move_data)
+            move_data
         }
     };
-    let un_derefer = UnDerefer {
-        tcx,
-        derefer_sidetable: side_table,
-    };
-    let env = MoveDataParamEnv {
+
+    MoveDataParamEnv {
         move_data,
         param_env,
-    };
-    (env, un_derefer)
+    }
 }

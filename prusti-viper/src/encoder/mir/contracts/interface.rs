@@ -14,7 +14,7 @@ use prusti_rustc_interface::{
     hir::{def_id::DefId, Mutability},
     middle::{
         mir, ty,
-        ty::{subst::SubstsRef, FnSig},
+        ty::{FnSig, GenericArgsRef},
     },
 };
 use rustc_hash::FxHashMap;
@@ -26,14 +26,14 @@ pub(crate) trait ContractsEncoderInterface<'tcx> {
     fn get_mir_procedure_contract_for_def(
         &self,
         proc_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>>;
 
     fn get_mir_procedure_contract_for_call(
         &self,
         caller_def_id: DefId,
         called_def_id: DefId,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>>;
 
     /// Get a contract for a procedure's definition site, using the
@@ -42,7 +42,7 @@ pub(crate) trait ContractsEncoderInterface<'tcx> {
     fn get_procedure_contract_for_def(
         &self,
         proc_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>>;
 
     /// Get a contract for a call to a procedure, with particular argument and
@@ -53,7 +53,7 @@ pub(crate) trait ContractsEncoderInterface<'tcx> {
         called_def_id: DefId,
         args: &[places::Local],
         target: places::Local,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>>;
 }
 
@@ -66,7 +66,7 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
     fn get_mir_procedure_contract_for_def(
         &self,
         proc_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         self.contracts_encoder_state
             .encoded_contracts
@@ -85,7 +85,7 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
         &self,
         caller_def_id: DefId,
         called_def_id: DefId,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         let (called_def_id, call_substs) =
             self.env()
@@ -102,7 +102,7 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
     fn get_procedure_contract_for_def(
         &self,
         proc_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         self.get_mir_procedure_contract_for_def(proc_def_id, substs)
             .as_ref()
@@ -117,7 +117,7 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
         called_def_id: DefId,
         args: &[places::Local],
         target: places::Local,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         let (called_def_id, call_substs) =
             self.env()
@@ -136,7 +136,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     specification: typed::ProcedureSpecification,
     proc_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
     let env = encoder.env();
     let args_ty: Vec<(mir::Local, ty::Ty<'tcx>)>;

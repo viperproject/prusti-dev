@@ -73,10 +73,8 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
         ) {
             let def_id = self.env_query.as_local_def_id(item.hir_id()).to_def_id();
             let adt_def = self.env_query.tcx().adt_def(def_id);
-            let ty = self
-                .env_query
-                .tcx()
-                .mk_adt(adt_def, self.env_query.identity_substs(def_id));
+            let tcx = self.env_query.tcx();
+            let ty = ty::Ty::new_adt(tcx, adt_def, self.env_query.identity_substs(def_id));
             self.types.push(ty);
         }
     }

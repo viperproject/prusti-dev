@@ -500,11 +500,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
             mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
             mir::BinOp::Le => vir::Expr::le_cmp(left, right),
-            mir::BinOp::Add => vir::Expr::add(left, right),
-            mir::BinOp::Sub => vir::Expr::sub(left, right),
+            mir::BinOp::AddUnchecked | mir::BinOp::Add => vir::Expr::add(left, right),
+            mir::BinOp::SubUnchecked | mir::BinOp::Sub => vir::Expr::sub(left, right),
             mir::BinOp::Rem => vir::Expr::rem(left, right),
             mir::BinOp::Div => vir::Expr::div(left, right),
-            mir::BinOp::Mul => vir::Expr::mul(left, right),
+            mir::BinOp::MulUnchecked | mir::BinOp::Mul => vir::Expr::mul(left, right),
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
@@ -526,11 +526,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd => vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, left, right),
             mir::BinOp::BitOr => vir::Expr::bin_op(vir::BinaryOpKind::BitOr, left, right),
             mir::BinOp::BitXor => vir::Expr::bin_op(vir::BinaryOpKind::BitXor, left, right),
-            mir::BinOp::Shl => vir::Expr::bin_op(vir::BinaryOpKind::Shl, left, right),
+            mir::BinOp::ShlUnchecked | mir::BinOp::Shl => vir::Expr::bin_op(vir::BinaryOpKind::Shl, left, right),
             // https://doc.rust-lang.org/reference/expressions/operator-expr.html#arithmetic-and-logical-binary-operators
             // Arithmetic right shift on signed integer types, logical right shift on unsigned integer types.
-            mir::BinOp::Shr if is_signed => vir::Expr::bin_op(vir::BinaryOpKind::AShr, left, right),
-            mir::BinOp::Shr => vir::Expr::bin_op(vir::BinaryOpKind::LShr, left, right),
+            mir::BinOp::ShrUnchecked | mir::BinOp::Shr if is_signed => vir::Expr::bin_op(vir::BinaryOpKind::AShr, left, right),
+            mir::BinOp::ShrUnchecked | mir::BinOp::Shr => vir::Expr::bin_op(vir::BinaryOpKind::LShr, left, right),
             mir::BinOp::Offset => {
                 error_unsupported!("operation '{:?}' is not supported", op);
             }

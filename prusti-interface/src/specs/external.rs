@@ -12,7 +12,7 @@ use crate::{
     environment::{EnvDiagnostic, EnvName, EnvQuery, Environment},
     PrustiError,
 };
-use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::ty::subst::SubstsRef};
+use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::ty::GenericArgsRef};
 use prusti_specs::ExternSpecKind;
 use std::cmp::{Eq, PartialEq};
 
@@ -60,7 +60,7 @@ impl ExternSpecDeclaration {
     /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions.
     fn from_method_call<'tcx>(
         def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
         env_query: EnvQuery<'tcx>,
     ) -> Self {
         let is_impl_method = env_query.is_trait_method_impl(def_id);
@@ -295,7 +295,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
 /// accomplished by a nested match rather than a full visitor?
 struct ExternSpecVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
-    spec_found: Option<(DefId, SubstsRef<'tcx>, Span)>,
+    spec_found: Option<(DefId, GenericArgsRef<'tcx>, Span)>,
 }
 
 impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
@@ -313,7 +313,7 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
         if let prusti_rustc_interface::hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
             if let prusti_rustc_interface::hir::ExprKind::Path(ref qself) = callee_expr.kind {
                 let tyck_res = self.env_query.tcx().typeck(callee_expr.hir_id.owner.def_id);
-                let substs = tyck_res.node_substs(callee_expr.hir_id);
+                let substs = tyck_res.node_args(callee_expr.hir_id);
                 let res = tyck_res.qpath_res(qself, callee_expr.hir_id);
                 if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
                     self.spec_found = Some((def_id, substs, ex.span));

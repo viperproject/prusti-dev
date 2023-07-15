@@ -16,6 +16,7 @@ use prusti_rustc_interface::{
     borrowck::consumers::{self, BodyWithBorrowckFacts},
     data_structures::fx::FxHashMap,
     driver::Compilation,
+    errors,
     hir::def_id::{DefId, LocalDefId},
     interface::{interface, Config, Queries},
     middle::{
@@ -23,7 +24,7 @@ use prusti_rustc_interface::{
         ty,
     },
     polonius_engine::{Algorithm, Output},
-    session::{Attribute, Session},
+    session::{self, Attribute, EarlyErrorHandler, Session},
 };
 use std::{cell::RefCell, rc::Rc};
 
@@ -146,6 +147,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
 
     fn after_analysis<'tcx>(
         &mut self,
+        _error_handler: &EarlyErrorHandler,
         compiler: &interface::Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
@@ -288,7 +290,10 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
 /// --analysis=ReachingDefsState or --analysis=DefinitelyInitializedAnalysis
 fn main() {
     env_logger::init();
-    prusti_rustc_interface::driver::init_rustc_env_logger();
+    let error_handler = EarlyErrorHandler::new(session::config::ErrorOutputType::HumanReadable(
+        errors::emitter::HumanReadableErrorType::Default(errors::emitter::ColorConfig::Auto),
+    ));
+    prusti_rustc_interface::driver::init_rustc_env_logger(&error_handler);
     let mut compiler_args = Vec::new();
     let mut callback_args = Vec::new();
     for arg in std::env::args() {

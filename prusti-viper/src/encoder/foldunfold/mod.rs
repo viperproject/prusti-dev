@@ -608,7 +608,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 .collect();
 
             let mut perms = acc_permissions;
-            perms.extend(pred_permissions.into_iter());
+            perms.extend(pred_permissions);
             trace!(
                 "required permissions: {{\n{}\n}}",
                 perms

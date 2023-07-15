@@ -6,7 +6,7 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         Mutability,
     },
-    middle::{mir, ty::subst::SubstsRef},
+    middle::{mir, ty::GenericArgsRef},
 };
 use rustc_hash::FxHashMap;
 use std::fmt;
@@ -47,8 +47,8 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
     pub fn functional_precondition<'a, 'tcx>(
         &'a self,
         env: &'a Environment<'tcx>,
-        substs: SubstsRef<'tcx>,
-    ) -> Vec<(DefId, SubstsRef<'tcx>)> {
+        substs: GenericArgsRef<'tcx>,
+    ) -> Vec<(DefId, GenericArgsRef<'tcx>)> {
         match &self.specification.pres {
             typed::SpecificationItem::Empty => vec![],
             typed::SpecificationItem::Inherent(pres)
@@ -80,8 +80,8 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
     pub fn functional_postcondition<'a, 'tcx>(
         &'a self,
         env: &'a Environment<'tcx>,
-        substs: SubstsRef<'tcx>,
-    ) -> Vec<(DefId, SubstsRef<'tcx>)> {
+        substs: GenericArgsRef<'tcx>,
+    ) -> Vec<(DefId, GenericArgsRef<'tcx>)> {
         match &self.specification.posts {
             typed::SpecificationItem::Empty => vec![],
             typed::SpecificationItem::Inherent(posts)
@@ -108,8 +108,8 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
     pub fn functional_termination_measure<'a, 'tcx>(
         &'a self,
         env: &'a Environment<'tcx>,
-        substs: SubstsRef<'tcx>,
-    ) -> Option<(LocalDefId, SubstsRef<'tcx>)> {
+        substs: GenericArgsRef<'tcx>,
+    ) -> Option<(LocalDefId, GenericArgsRef<'tcx>)> {
         match self.specification.terminates {
             typed::SpecificationItem::Empty => None,
             typed::SpecificationItem::Inherent(t) | typed::SpecificationItem::Refined(_, t) => {

@@ -1,3 +1,5 @@
+#![allow(clippy::needless_pass_by_ref_mut)] // see https://github.com/rust-lang/rust-clippy/issues/11179
+
 use crate::subprocess::{communicate, get_version, pass_error};
 use async_std::process::{Command, Stdio};
 use context::Context;
