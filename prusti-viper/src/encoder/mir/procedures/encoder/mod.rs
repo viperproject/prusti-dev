@@ -38,7 +38,7 @@ use prusti_rustc_interface::{
     data_structures::graph::WithStartNode,
     hir::def_id::DefId,
     index::IndexSlice,
-    middle::{mir, ty, ty::subst::SubstsRef},
+    middle::{mir, ty, ty::GenericArgsRef},
     span::Span,
 };
 use rustc_hash::FxHashSet;
@@ -77,11 +77,10 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let tcx = encoder.env().tcx();
     let (mir, lifetimes) = self::elaborate_drops::elaborate_drops(encoder, def_id, &procedure)?;
     let mir = &mir; // Mark body as immutable.
-    let (env, un_derefer) =
-        self::initialisation::create_move_data_param_env_and_un_derefer(tcx, mir);
+    let env = self::initialisation::create_move_data_param_env_and_un_derefer(tcx, mir);
     // TODO: the clone is required so that we can remove dead unwinds
     let mut no_dead_unwinds = mir.clone();
-    let init_data = InitializationData::new(tcx, &mut no_dead_unwinds, &env, &un_derefer);
+    let init_data = InitializationData::new(tcx, &mut no_dead_unwinds, &env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
     let specification_blocks =
         SpecificationBlocks::build(encoder.env().query, mir, &procedure, true);
@@ -319,7 +318,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_precondition_expressions(
         &mut self,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
         arguments: &[vir_high::Expression],
     ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
         let mut preconditions = Vec::new();
@@ -342,7 +341,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_postcondition_expressions(
         &mut self,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
         arguments: Vec<vir_high::Expression>,
         result: &vir_high::Expression,
         precondition_label: &str,
@@ -1232,7 +1231,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 target,
                 unwind,
                 fn_span,
-                from_hir_call: _,
+                call_source: _,
             } => {
                 self.encode_terminator_call(
                     block_builder,
@@ -1486,7 +1485,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         span: Span,
         called_def_id: DefId,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
         args: &[mir::Operand<'tcx>],
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
@@ -2093,7 +2092,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 target: _,
                 unwind: _,
                 fn_span: _,
-                from_hir_call: _,
+                call_source: _,
             } => {
                 if let ty::TyKind::FnDef(def_id, _substs) = literal.ty().kind() {
                     let full_called_function_name =

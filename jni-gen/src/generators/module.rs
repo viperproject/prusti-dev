@@ -41,7 +41,7 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
         })
         .unwrap_or_else(|| "// No modules".to_string());
 
-    vec![
+    [
         "//! Automatically generated code\n".to_string(),
         "#![allow(non_snake_case)]\n".to_string(),
         "pub mod builtins;\n".to_string(),

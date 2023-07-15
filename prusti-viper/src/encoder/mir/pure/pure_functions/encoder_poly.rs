@@ -27,7 +27,7 @@ use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local
 use prusti_rustc_interface::{
     hir,
     hir::def_id::DefId,
-    middle::{mir, ty, ty::subst::SubstsRef},
+    middle::{mir, ty, ty::GenericArgsRef},
     span::Span,
 };
 
@@ -46,7 +46,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     pure_encoding_context: PureEncodingContext,
     parent_def_id: DefId,
     /// Type substitutions applied to the MIR (if any) and the signature.
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
     /// Span of the function declaration.
     span: Span,
     /// Signature of the function to be encoded.
@@ -62,7 +62,7 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     pure_encoding_context: PureEncodingContext,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
     let mir = encoder
         .env()
@@ -83,7 +83,7 @@ pub(super) fn encode_promoted<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     promoted_id: mir::Promoted,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
     let tcx = encoder.env().tcx();
     let promoted_bodies = tcx.promoted_mir(proc_def_id);
@@ -148,7 +148,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         proc_def_id: DefId,
         pure_encoding_context: PureEncodingContext,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> Self {
         // should hold for extern specs as well (otherwise there would have
         // been an error reported earlier)

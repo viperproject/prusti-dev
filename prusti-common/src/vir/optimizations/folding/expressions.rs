@@ -163,7 +163,7 @@ fn check_requirements_conflict(
                 conflict_set.insert(base1);
             } else if base1 == base2 && !place1.has_prefix(place2) && !place2.has_prefix(place1) {
                 // Check if we have different variants.
-                for (part1, part2) in components1.into_iter().zip(components2.into_iter()) {
+                for (part1, part2) in components1.into_iter().zip(components2) {
                     match (part1, part2) {
                         (
                             ast::PlaceComponent::Variant(ast::Field { name: name1, .. }, _),

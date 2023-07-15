@@ -158,7 +158,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         adt: ty::AdtDef<'tcx>,
         idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: &ty::VariantDef,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: ty::GenericArgsRef<'tcx>,
     ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         self.current_path = Some(self.tcx.mk_place_downcast(old_path, adt, idx));
@@ -172,7 +172,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         &mut self,
         index: usize,
         field: &ty::FieldDef,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: ty::GenericArgsRef<'tcx>,
     ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         let ty = field.ty(self.tcx(), substs);

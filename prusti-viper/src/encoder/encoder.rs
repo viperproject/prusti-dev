@@ -325,7 +325,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     const_value.try_to_scalar()
                 }
                 ty::ConstKind::Unevaluated(ct) => {
-                    let mir_ct = mir::UnevaluatedConst::new(ct.def, ct.substs);
+                    let mir_ct = mir::UnevaluatedConst::new(ct.def, ct.args);
                     self.uneval_eval_intlike(mir_ct)
                 },
                 _ => error_unsupported!("unsupported const kind: {:?}", value),

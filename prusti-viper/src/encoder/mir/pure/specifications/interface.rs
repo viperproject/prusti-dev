@@ -29,7 +29,7 @@ use crate::encoder::{
 };
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::{mir, ty::subst::SubstsRef},
+    middle::{mir, ty::GenericArgsRef},
     span::Span,
 };
 use vir_crate::{
@@ -44,7 +44,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         span: Span,
         encoded_args: Vec<vir_high::Expression>,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     #[allow(clippy::too_many_arguments)]
@@ -55,7 +55,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         target_args: &[vir_high::Expression],
         target_return: Option<&vir_high::Expression>,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     fn encode_loop_spec_high(
@@ -63,7 +63,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     fn encode_prusti_operation(
@@ -72,7 +72,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         span: Span,
         encoded_args: Vec<vir_poly::Expr>,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr>;
 
     #[allow(clippy::too_many_arguments)]
@@ -84,7 +84,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         target_return: Option<&vir_poly::Expr>,
         targets_are_values: bool,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr>;
 
     fn encode_invariant(
@@ -92,7 +92,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr>;
 }
 
@@ -103,7 +103,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         span: Span,
         encoded_args: Vec<vir_high::Expression>,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         match fn_name {
             "prusti_contracts::forall" | "prusti_contracts::exists" => encode_quantifier_high(
@@ -125,7 +125,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         target_args: &[vir_high::Expression],
         target_return: Option<&vir_high::Expression>,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let encoded_assertion = inline_spec_item_high(
             self,
@@ -147,7 +147,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         // identify previous block: there should only be one
         let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
@@ -239,7 +239,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         span: Span,
         encoded_args: Vec<vir_poly::Expr>,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         match fn_name {
             "prusti_contracts::forall" | "prusti_contracts::exists" => encode_quantifier(
@@ -267,7 +267,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         target_return: Option<&vir_poly::Expr>,
         targets_are_values: bool,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         let mut encoded_assertion = inline_spec_item(
             self,
@@ -302,7 +302,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         // identify closure aggregate assign (the invariant body)
         let closure_assigns = mir.basic_blocks[invariant_block]
