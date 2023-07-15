@@ -29,23 +29,7 @@ pub(in super::super) struct PredicatesMemoryBlockState {
     is_memory_block_bytes_encoded: bool,
 }
 
-trait Private {
-    fn encode_generic_memory_block_predicate(
-        &mut self,
-        predicate_name: &str,
-        predicate_kind: vir_low::PredicateKind,
-    ) -> SpannedEncodingResult<()>;
-    fn encode_generic_memory_block_acc(
-        &mut self,
-        predicate_name: &str,
-        predicate_kind: vir_low::PredicateKind,
-        place: vir_low::Expression,
-        size: vir_low::Expression,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression>;
-}
-
-impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
     fn encode_generic_memory_block_predicate(
         &mut self,
         predicate_name: &str,
@@ -216,28 +200,48 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
     }
     fn encode_memory_block_range_acc(
         &mut self,
-        address: vir_low::Expression,
+        initial_address: vir_low::Expression,
         size: vir_low::Expression,
         start_index: vir_low::Expression,
         end_index: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         use vir_low::macros::*;
-        let size_type = self.size_type_mid()?;
+        // let size_type = self.size_type_mid()?;
+        // var_decls! {
+        //     index: Int
+        // }
+        // let element_address =
+        //     self.address_offset(size.clone(), address, index.clone().into(), position)?;
+        // let predicate = self.encode_memory_block_acc(element_address.clone(), size, position)?;
+        // let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
+        // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+        // let body = expr!(
+        //     (([start_index] <= index) && (index < [end_index])) ==> [predicate]
+        // );
+        // let expression = vir_low::Expression::forall(
+        //     vec![index],
+        //     vec![vir_low::Trigger::new(vec![element_address])],
+        //     body,
+        // );
+        // Ok(expression)
         var_decls! {
-            index: Int
+            element_address: Address
         }
-        let element_address =
-            self.address_offset(size.clone(), address, index.clone().into(), position)?;
-        let predicate = self.encode_memory_block_acc(element_address.clone(), size, position)?;
-        let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
-        let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
-        let body = expr!(
-            (([start_index] <= index) && (index < [end_index])) ==> [predicate]
-        );
+        let predicate =
+            self.encode_memory_block_acc(element_address.clone().into(), size.clone(), position)?;
+        let guard = self.address_range_contains(
+            initial_address,
+            start_index,
+            end_index,
+            size,
+            element_address.clone().into(),
+            position,
+        )?;
+        let body = expr!([guard] ==> [predicate.clone()]);
         let expression = vir_low::Expression::forall(
-            vec![index],
-            vec![vir_low::Trigger::new(vec![element_address])],
+            vec![element_address],
+            vec![vir_low::Trigger::new(vec![predicate])],
             body,
         );
         Ok(expression)

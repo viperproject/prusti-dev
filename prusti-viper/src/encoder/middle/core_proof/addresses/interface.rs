@@ -38,9 +38,10 @@ pub(in super::super) trait AddressesInterface {
     ) -> SpannedEncodingResult<vir_low::Expression>;
     fn address_range_contains(
         &mut self,
-        start_address: vir_low::Expression,
-        type_size: vir_low::Expression,
-        range_length: vir_low::Expression,
+        base_address: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        element_size: vir_low::Expression,
         checked_address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
@@ -413,9 +414,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
     }
     fn address_range_contains(
         &mut self,
-        start_address: vir_low::Expression,
-        type_size: vir_low::Expression,
-        range_length: vir_low::Expression,
+        base_address: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        element_size: vir_low::Expression,
         checked_address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
@@ -423,7 +425,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         self.create_domain_func_app(
             ADDRESS_DOMAIN_NAME,
             "address_range_contains$",
-            vec![type_size, start_address, range_length, checked_address],
+            vec![
+                base_address,
+                start_index,
+                end_index,
+                element_size,
+                checked_address,
+            ],
             vir_low::Type::Bool,
             position,
         )
