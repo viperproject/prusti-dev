@@ -22,7 +22,7 @@ The number of time steps a function needs to execute might also depend on the in
 
 The following are three more equivalent ways of specifying the same precondition of `do_work` as above.
 
-```rust,noplaygen
+```rust,noplaygen,ignore
 #[requires(time_credits(6))]
 #[requires(if more_work { time_credits(5) } else { true })]
 fn do_work(more_work: bool) {
@@ -30,14 +30,14 @@ fn do_work(more_work: bool) {
 }
 ```
 
-```rust,noplaypen
+```rust,noplaypen,ignore
 #[requires(time_credits(6) & (more_work ==> time_credits(5)))]
 fn do_work(more_work: bool) {
     // ...
 }
 ```
 
-```rust,noplaypen
+```rust,noplaypen,ignore
 #[requires(more_work ==> time_credits(11))]
 #[requires(!more_work ==> time_credits(6))]
 fn do_work(more_work: bool) {

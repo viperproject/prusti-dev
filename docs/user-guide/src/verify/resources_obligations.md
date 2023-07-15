@@ -1,4 +1,4 @@
-# Resources and Obligations
+# Resources and obligations
 
 One way of describing state that is otherwise not captured by a Prusti program is using resources and obligations. They are typically produced and consumed by [`#[trusted]`](trusted.md) functions that have some external effects (e.g. by calling functions in foreign non-Rust libraries or by interacting with the real world).
 
@@ -27,7 +27,6 @@ resource! {
 The general syntax is
 
 ```rust,noplaypen,ignore
-
 resource! {
     fn resource_name(amount: usize, ...);
 }
