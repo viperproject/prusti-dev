@@ -9,7 +9,7 @@ obligation! {
 fn alloc(loc: usize) {}
 
 #[ensures(alloced(n, loc))]
-fn multialloc(loc: usize, n: usize) { //~ ERROR the function might leak instances of obligation `alloced`
+fn multialloc(loc: usize, n: usize) { //~ ERROR function might leak instances of obligation `alloced`
     let mut i = 0;
     while i < n + 1 {
         body_invariant!(alloced(i, loc));

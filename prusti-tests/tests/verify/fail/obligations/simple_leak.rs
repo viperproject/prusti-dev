@@ -8,6 +8,6 @@ obligation! {
 #[ensures(alloced(1, loc))]
 fn alloc(loc: usize) {}
 
-fn main() { //~ ERROR the function might leak instances of obligation
+fn main() { //~ ERROR function might leak instances of obligation `alloced`
     alloc(64);
 }

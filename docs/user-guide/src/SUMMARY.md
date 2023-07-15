@@ -34,4 +34,6 @@
   - [Type models](verify/type-models.md)
   - [Counterexamples](verify/counterexample.md)
   - [Specifications in trait `impl` blocks](verify/impl_block_specs.md)
+  - [Resources and obligations](verify/resources_obligations.md)
+  - [Time reasoning](verify/time_reasoning.md)
 - [Specification Syntax](syntax.md)

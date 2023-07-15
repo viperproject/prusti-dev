@@ -21,6 +21,6 @@ fn multialloc(loc_from: usize, loc_to: usize) {
 #[ensures(alloced(1, 1))]
 #[ensures(alloced(1, 2))]
 #[ensures(alloced(1, 3))]
-fn main() { //~ ERROR the function might leak instances of obligation `alloced`
+fn main() { //~ ERROR function might leak instances of obligation `alloced`
     multialloc(1, 5); // << should be (1, 4) here
 }

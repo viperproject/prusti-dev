@@ -859,7 +859,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::PostconditionObligationLeak(obligation_name)) => {
-                PrustiError::verification_with_help(format!("the function might leak instances of obligation `{}`", obligation_name), error_span, format!("consider adding instances of `{}` to the function's postcondtion", obligation_name))
+                PrustiError::verification_with_help(format!("function might leak instances of obligation `{}`", obligation_name), error_span, format!("consider adding instances of `{}` to the function's postcondtion", obligation_name))
             }
             ("assert.failed:assertion.false", ErrorCtxt::LoopObligationLeak(obligation_name)) => {
                 PrustiError::verification_with_help(format!("a loop iteration might leak instances of obligation `{}`", obligation_name), error_span, format!("make sure that any aquisition of instances of `{}` in the loop iteration is reflected in the loop invariant", obligation_name))
