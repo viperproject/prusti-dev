@@ -1783,6 +1783,7 @@ pub(in super::super) trait BuiltinMethodsInterface {
         label: String,
         new_address: vir_low::Expression,
         new_start_index: vir_low::Expression,
+        new_end_index: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
 }
@@ -3799,7 +3800,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         old_end_index: vir_low::Expression,
         label: String,
         new_pointer_value: vir_low::Expression,
-        new_start_index: vir_low::Expression,
+        new_start_index_usize: vir_low::Expression,
+        new_end_index_usize: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         statements.push(vir_low::Statement::comment(format!(
@@ -3814,19 +3816,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         let target_type = &*pointer_type.target_type;
         let size = self.encode_type_size_expression2(target_type, target_type)?;
         let old_start_address = self.pointer_address(ty, old_pointer_value, position)?;
-        let new_start_address = self.pointer_address(ty, new_pointer_value, position)?;
-        let new_start_index = self.obtain_constant_value(&size_type, new_start_index, position)?;
-        let new_end_index = vir_low::Expression::add(
-            new_start_index.clone(),
-            vir_low::Expression::labelled_old(
-                Some(label.clone()),
-                vir_low::Expression::subtract(
-                    self.obtain_constant_value(&size_type, old_end_index, position)?,
-                    self.obtain_constant_value(&size_type, old_start_index.clone(), position)?,
-                ),
-                position,
-            ),
-        );
+        let new_start_address = self.pointer_address(ty, new_pointer_value.clone(), position)?;
+        let new_start_index =
+            self.obtain_constant_value(&size_type, new_start_index_usize.clone(), position)?;
+        let new_end_index =
+            self.obtain_constant_value(&size_type, new_end_index_usize.clone(), position)?;
+        // let new_end_index = vir_low::Expression::add(
+        //     new_start_index.clone(),
+        //     vir_low::Expression::labelled_old(
+        //         Some(label.clone()),
+        //         vir_low::Expression::subtract(
+        //             self.obtain_constant_value(&size_type, old_end_index, position)?,
+        //             self.obtain_constant_value(&size_type, old_start_index.clone(), position)?,
+        //         ),
+        //         position,
+        //     ),
+        // );
         {
             // For performance reasons, we do not have global extensionality
             // assumptions, but assume them when needed.
@@ -3970,27 +3975,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         statements.push(exhale_stash);
         // FIXME: Code duplication with encode_memory_block_range_acc.
         let exhale_raw = {
-            var_decls! {
-                index: Int
-            }
-            let element_address = self.address_offset(
-                size.clone(),
+            // var_decls! {
+            //     index: Int
+            // }
+            // let element_address = self.address_offset(
+            //     size.clone(),
+            //     new_start_address.clone(),
+            //     index.clone().into(),
+            //     position,
+            // )?;
+            // let predicate =
+            //     self.encode_memory_block_acc(element_address.clone(), size.clone(), position)?;
+            // // let new_start_index = self.obtain_constant_value(&size_type, new_start_address.clone(), position)?;
+            // // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+            // let body = expr!(
+            //     (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==> [predicate]
+            // );
+            // let expression = vir_low::Expression::forall(
+            //     vec![index],
+            //     vec![vir_low::Trigger::new(vec![element_address])],
+            //     body,
+            // );
+            let expression = self.encode_memory_block_range_acc(
                 new_start_address.clone(),
-                index.clone().into(),
+                size.clone(),
+                new_start_index_usize.clone(),
+                new_end_index_usize.clone(),
                 position,
             )?;
-            let predicate =
-                self.encode_memory_block_acc(element_address.clone(), size.clone(), position)?;
-            // let new_start_index = self.obtain_constant_value(&size_type, new_start_address.clone(), position)?;
-            // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
-            let body = expr!(
-                (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==> [predicate]
-            );
-            let expression = vir_low::Expression::forall(
-                vec![index],
-                vec![vir_low::Trigger::new(vec![element_address])],
-                body,
-            );
             vir_low::Statement::exhale(
                 expression,
                 // self.encode_memory_block_range_acc(
@@ -4005,34 +4017,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         };
         statements.push(exhale_raw);
         let inhale_owned = {
-            var_decls! {
-                index: Int
-            }
-            let element_address = self.address_offset(
-                size.clone(),
-                new_start_address.clone(),
-                index.clone().into(),
-                position,
-            )?;
-            let predicate = self.owned_aliased(
+            // var_decls! {
+            //     index: Int
+            // }
+            // let element_address = self.address_offset(
+            //     size.clone(),
+            //     new_start_address.clone(),
+            //     index.clone().into(),
+            //     position,
+            // )?;
+            // let predicate = self.owned_aliased(
+            //     CallContext::Procedure,
+            //     target_type,
+            //     target_type,
+            //     element_address.clone(),
+            //     None,
+            //     position,
+            // )?;
+            // // let new_start_index = self.obtain_constant_value(&size_type, new_start_address.clone(), position)?;
+            // // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+            // let body = expr!(
+            //     (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==>
+            //     [predicate]
+            // );
+            // let expression = vir_low::Expression::forall(
+            //     vec![index],
+            //     vec![vir_low::Trigger::new(vec![element_address])],
+            //     body,
+            // );
+            let expression = self.owned_aliased_range(
                 CallContext::Procedure,
-                target_type,
-                target_type,
-                element_address.clone(),
+                ty,
+                ty,
+                new_pointer_value.clone(),
+                new_start_index_usize.clone(),
+                new_end_index_usize.clone(),
                 None,
                 position,
             )?;
-            // let new_start_index = self.obtain_constant_value(&size_type, new_start_address.clone(), position)?;
-            // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
-            let body = expr!(
-                (([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) ==>
-                [predicate]
-            );
-            let expression = vir_low::Expression::forall(
-                vec![index],
-                vec![vir_low::Trigger::new(vec![element_address])],
-                body,
-            );
             vir_low::Statement::inhale(expression, position)
         };
         statements.push(inhale_owned);
