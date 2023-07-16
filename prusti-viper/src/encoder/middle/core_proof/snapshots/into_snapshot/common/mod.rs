@@ -1074,14 +1074,13 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     app.position,
                 )?;
                 let checked_address = lowerer.pointer_address(ty, args[2].clone(), app.position)?;
-                unimplemented!("Update to the new API.");
-                // lowerer.address_range_contains(
-                //     start_address,
-                //     type_size,
-                //     range_length,
-                //     checked_address,
-                //     app.position,
-                // )
+                lowerer.pointer_range_contains(
+                    start_address,
+                    type_size,
+                    range_length,
+                    checked_address,
+                    app.position,
+                )
             }
             BuiltinFunc::IsValid => {
                 let mut args = construct_args(self, lowerer)?;

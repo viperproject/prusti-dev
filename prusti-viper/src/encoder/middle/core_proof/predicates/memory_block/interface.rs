@@ -17,7 +17,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use vir_crate::{
     common::{
         builtin_constants::{BYTES_DOMAIN_NAME, BYTE_DOMAIN_NAME, MEMORY_BLOCK_PREDICATE_NAME},
-        expression::QuantifierHelpers,
+        expression::{BinaryOperationHelpers, QuantifierHelpers},
     },
     low::{self as vir_low, operations::ty::Typed},
     middle as vir_mid,
@@ -305,23 +305,51 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
     ) -> SpannedEncodingResult<vir_low::Expression> {
         use vir_low::macros::*;
         let size_type = self.size_type_mid()?;
+        // var_decls! {
+        //     index: Int
+        // }
+        // let element_address =
+        //     self.address_offset(size.clone(), address, index.clone().into(), position)?;
+        // let predicate = self.encode_memory_block_acc(element_address.clone(), size, position)?;
+        // let index_variable_replacement =
+        //     self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
+        // let replacements = std::iter::once((&index_variable, &index_variable_replacement))
+        //     .collect::<FxHashMap<_, _>>();
+        // let guard = expr! {
+        //     ([0.into()] <= index) && [guard.substitute_variables(&replacements)]
+        // };
+        // let body = expr!([guard] ==> [predicate]);
+        // let expression = vir_low::Expression::forall(
+        //     vec![index],
+        //     vec![vir_low::Trigger::new(vec![element_address])],
+        //     body,
+        // );
         var_decls! {
-            index: Int
+            element_address: Address
         }
-        let element_address =
-            self.address_offset(size.clone(), address, index.clone().into(), position)?;
-        let predicate = self.encode_memory_block_acc(element_address.clone(), size, position)?;
+        let start_index = self.index_into_allocation(size.clone(), address.clone(), position)?;
+        let index = vir_low::Expression::subtract(
+            self.index_into_allocation(size.clone(), element_address.clone().into(), position)?,
+            start_index,
+        );
         let index_variable_replacement =
             self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
         let replacements = std::iter::once((&index_variable, &index_variable_replacement))
             .collect::<FxHashMap<_, _>>();
+        let element_allocation =
+            self.address_allocation(element_address.clone().into(), position)?;
+        let address_allocation = self.address_allocation(address.clone(), position)?;
         let guard = expr! {
-            ([0.into()] <= index) && [guard.substitute_variables(&replacements)]
+            (([0.into()] <= [index]) &&
+            ([element_allocation] == [address_allocation])) &&
+            [guard.substitute_variables(&replacements)]
         };
-        let body = expr!([guard] ==> [predicate]);
+        let predicate =
+            self.encode_memory_block_acc(element_address.clone().into(), size.clone(), position)?;
+        let body = expr!([guard] ==> [predicate.clone()]);
         let expression = vir_low::Expression::forall(
-            vec![index],
-            vec![vir_low::Trigger::new(vec![element_address])],
+            vec![element_address],
+            vec![vir_low::Trigger::new(vec![predicate])],
             body,
         );
         Ok(expression)
