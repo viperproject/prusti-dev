@@ -36,6 +36,13 @@ pub(in super::super) trait AddressesInterface {
         offset: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn offset_from_address(
+        &mut self,
+        size: vir_low::Expression,
+        address: vir_low::Expression,
+        from_address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn address_range_contains(
         &mut self,
         base_address: vir_low::Expression,
@@ -411,6 +418,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
             address_type,
             position,
         )
+    }
+    fn offset_from_address(
+        &mut self,
+        size: vir_low::Expression,
+        address: vir_low::Expression,
+        from_address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_address_axioms()?;
+        let index1 = self.create_domain_func_app(
+            ADDRESS_DOMAIN_NAME,
+            "get_index$",
+            vec![address, size.clone()],
+            vir_low::Type::Int,
+            position,
+        )?;
+        let index2 = self.create_domain_func_app(
+            ADDRESS_DOMAIN_NAME,
+            "get_index$",
+            vec![from_address, size],
+            vir_low::Type::Int,
+            position,
+        )?;
+        let offset = vir_low::Expression::subtract(index2, index1);
+        Ok(offset)
     }
     fn address_range_contains(
         &mut self,

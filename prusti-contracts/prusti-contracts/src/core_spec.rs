@@ -74,6 +74,17 @@ impl<T> Pointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
+    #[structural_requires(address_from(self, origin) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
+    #[structural_requires(address_from(self, origin) >= Int::new_isize(0))]
+    #[ensures(Int::new_isize(result) == address_from(self, origin))]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    unsafe fn offset_from(self, origin: *const T) -> isize;
+
+    #[trusted]
+    #[terminates]
+    #[pure]
+    // FIXME: Check provenance.
     #[structural_requires(Int::new_usize(count) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
     #[ensures(result == address_offset(self, Int::new_usize(count)))]
     #[no_panic]
@@ -122,6 +133,17 @@ impl<T> MutPointer<T> {
     #[no_panic]
     #[no_panic_ensures_postcondition]
     unsafe fn add(self, count: usize) -> *mut T;
+
+    #[trusted]
+    #[terminates]
+    #[pure]
+    // FIXME: Check provenance.
+    #[structural_requires(address_from(self, origin) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
+    #[structural_requires(address_from(self, origin) >= Int::new_isize(0))]
+    #[ensures(Int::new_isize(result) == address_from(self, origin))]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    unsafe fn offset_from(self, origin: *const T) -> isize;
 
     #[no_panic]
     #[no_panic_ensures_postcondition]

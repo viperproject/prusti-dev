@@ -988,6 +988,11 @@ pub fn address_offset<T>(_ptr: *const T, _count: Int) -> *const T {
     unreachable!();
 }
 
+/// A ghost operation for computing the distance between two pointers in the units of `T`.
+pub fn address_from<T>(_ptr: *const T, _origin: *const T) -> Int {
+    unreachable!();
+}
+
 #[trusted]
 #[pure]
 #[no_panic]
