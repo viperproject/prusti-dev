@@ -35,6 +35,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 statements,
                 expression,
                 expression_evaluation_state_label,
+                Vec::new(),
                 position,
                 false,
             )?;
@@ -75,6 +76,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 statements,
                 expression,
                 expression_evaluation_state_label,
+                Vec::new(),
                 position,
                 true,
             )?;
@@ -94,6 +96,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 statements,
                 expression,
                 Some(evaluation_state.to_string()),
+                Vec::new(),
                 position,
                 true,
             )?;
@@ -482,6 +485,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 statements,
                 expression,
                 Some(expression_evaluation_state_label.to_string()),
+                Vec::new(),
                 position,
                 false,
             )?;
@@ -602,18 +606,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     if let vir_low::Expression::BinaryOp(vir_low::BinaryOp {
                         op_kind: vir_low::BinaryOpKind::Implies,
                         left: box guard,
-                        right: box vir_low::Expression::PredicateAccessPredicate(predicate),
+                        right: box vir_low::Expression::PredicateAccessPredicate(mut predicate),
                         ..
                     }) = *expression.body
                     {
+                        self.create_quantifier_variables_remap(&expression.variables)?;
                         let guard = self.purify_snap_function_calls_in_expression(
                             statements,
                             guard,
                             Some(expression_evaluation_state_label.to_string()),
+                            Vec::new(),
                             position,
                             false,
                         )?;
-                        self.create_quantifier_variables_remap(&expression.variables)?;
+                        predicate.arguments = self.purify_snap_function_calls_in_expressions(
+                            statements,
+                            predicate.arguments,
+                            Some(expression_evaluation_state_label.to_string()),
+                            vec![guard.clone()],
+                            position,
+                            false,
+                        )?;
                         eprintln!("guard: {guard}");
                         eprintln!("body: {predicate}");
                         match self.get_predicate_permission_mask_kind(&predicate.name)? {
@@ -755,7 +768,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         variables: Vec<vir_low::VariableDecl>,
         guard: vir_low::Expression,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
-        triggers: Vec<vir_low::Trigger>,
+        mut triggers: Vec<vir_low::Trigger>,
         position: vir_low::Position,
         // FIXME: The use of `expression_evaluation_state_label` is probably
         // wrong in both QP and non-QP inhale. Shouldn't arguments be always
@@ -776,7 +789,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         );
         eprintln!("guard: {}", guard);
         eprintln!("predicate: {}", predicate);
-        unimplemented!();
+        if self.is_predicate_already_injective(&variables, &predicate.arguments)?
+            && config::custom_heap_encoding_omit_injective()
+        {
+            unimplemented!("injective predicate");
+        }
         // Generate inverse functions for the variables.
         // ```
         // forall index: Int ::
@@ -886,10 +903,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     .push(inverse_function_trigger_function);
             }
         }
+        // Desugar predicates in the trigger.
+        for trigger in &mut triggers {
+            for term in &mut trigger.terms {
+                if !term.is_heap_independent() {
+                    let vir_low::Expression::PredicateAccessPredicate(trigger_predicate) = term else {
+                        unreachable!("expected a predicate as a trigger")
+                    };
+                    assert_eq!(trigger_predicate.name, predicate.name, "unimplemented");
+                    let trigger_perm = operations
+                        .perm_new(self, std::mem::take(&mut trigger_predicate.arguments))?;
+                    *term = trigger_perm;
+                }
+            }
+        }
         // `variable == inverse(e(variable))`
         let injectivity_axiom_body1 = vir_low::Expression::forall(
             variables.clone(),
-            triggers.clone(),
+            triggers,
             vir_low::Expression::and(
                 inverse_function_trigger_function_calls
                     .into_iter()
@@ -949,22 +980,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         //     ),
         //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
         // );
+        let purified_guard = self.purify_snap_function_calls_in_expression(
+            statements,
+            guard.clone(),
+            expression_evaluation_state_label.clone(),
+            Vec::new(),
+            position,
+            true,
+        )?;
         let permission_mask_assert_arguments = self.purify_snap_function_calls_in_expressions(
             statements,
             predicate.arguments.clone(),
             expression_evaluation_state_label.clone(),
+            vec![purified_guard.clone()],
             position,
             true,
         )?;
         let permission_mask_assert_statement = vir_low::Statement::assert(
             vir_low::Expression::implies(
-                self.purify_snap_function_calls_in_expression(
-                    statements,
-                    guard.clone(),
-                    expression_evaluation_state_label,
-                    position,
-                    true,
-                )?,
+                purified_guard,
                 operations.perm_old_greater_equals(
                     self,
                     permission_mask_assert_arguments,
@@ -1030,6 +1064,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 statements,
                 expression,
                 expression_evaluation_state_label,
+                Vec::new(),
                 position,
                 false,
             )?;
@@ -1116,6 +1151,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             statements,
                             *expression.left,
                             expression_evaluation_state_label.clone(),
+                            Vec::new(),
                             position,
                             false,
                         )?;
@@ -1148,6 +1184,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             statements,
                             guard,
                             expression_evaluation_state_label.clone(),
+                            Vec::new(),
                             position,
                             false,
                         )?;
@@ -1155,6 +1192,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             statements,
                             predicate.arguments,
                             expression_evaluation_state_label.clone(),
+                            vec![guard.clone()],
                             position,
                             false,
                         )?;
@@ -1287,13 +1325,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    fn is_predicate_already_injective(
+        &self,
+        quantified_variables: &[vir_low::VariableDecl],
+        predicate_arguments: &[vir_low::Expression],
+    ) -> SpannedEncodingResult<bool> {
+        assert_eq!(
+            quantified_variables.len(),
+            1,
+            "unimplemented: {}",
+            vir_crate::common::display::cjoin(&quantified_variables)
+        );
+        let variable = quantified_variables.first().unwrap();
+        for argument in predicate_arguments {
+            match argument {
+                vir_low::Expression::Local(local) if &local.variable == variable => {
+                    // The quantified variable is used directly. This means
+                    // that the expression is already bijective, so we do
+                    // not need to generate the inverse function.
+                }
+                _ => {
+                    if argument.contains_variable(variable) {
+                        // The argument contains the quantified variable, so
+                        // we need to generate the inverse function.
+                        return Ok(false);
+                    }
+                }
+            }
+        }
+        Ok(true)
+    }
+
     fn encode_expression_inhale_quantified_predicate<'a, Kind: PermissionMaskKind>(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         variables: Vec<vir_low::VariableDecl>,
         guard: vir_low::Expression,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
-        triggers: Vec<vir_low::Trigger>,
+        mut triggers: Vec<vir_low::Trigger>,
         position: vir_low::Position,
         // FIXME: The use of `expression_evaluation_state_label` is probably
         // wrong in both QP and non-QP inhale. Shouldn't arguments be always
@@ -1315,28 +1384,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         eprintln!("triggers: {}", vir_crate::common::display::cjoin(&triggers));
         eprintln!("guard: {}", guard);
         eprintln!("predicate: {}", predicate);
-        if config::custom_heap_encoding_omit_injective() {
-            assert_eq!(
-                variables.len(),
-                1,
-                "unimplemented: {}",
-                vir_crate::common::display::cjoin(&variables)
-            );
-            let variable = variables.first().unwrap();
-            for argument in &predicate.arguments {
-                match argument {
-                    vir_low::Expression::Local(local) if &local.variable == variable => {
-                        // The quantified variable is used directly. This means
-                        // that the expression is already bijective, so we do
-                        // not need to generate the inverse function.
-                    }
-                    _ => {
-                        assert!(!argument.contains_variable(variable), "{argument} contains {variable} and therefore needs an injective function");
-                    }
-                }
-            }
-            unimplemented!();
-        }
         // let guard = self.purify_snap_function_calls_in_expression(
         //     statements,
         //     guard,
@@ -1344,6 +1391,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         //     position,
         //     true,
         // )?;
+        // Desugar predicates in the trigger.
+        for trigger in &mut triggers {
+            for term in &mut trigger.terms {
+                if !term.is_heap_independent() {
+                    let vir_low::Expression::PredicateAccessPredicate(trigger_predicate) = term else {
+                        unreachable!("expected a predicate as a trigger")
+                    };
+                    assert_eq!(trigger_predicate.name, predicate.name, "unimplemented");
+                    let trigger_perm = operations
+                        .perm_new(self, std::mem::take(&mut trigger_predicate.arguments))?;
+                    *term = trigger_perm;
+                }
+            }
+        }
         if operations.can_assume_old_permission_is_none(&predicate.permission) {
             statements.push(vir_low::Statement::assume(
                 vir_low::Expression::forall(
@@ -1356,6 +1417,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 ),
                 position, // FIXME: use position of expression.permission with proper ErrorCtxt.
             ));
+        }
+        if self.is_predicate_already_injective(&variables, &predicate.arguments)?
+            && config::custom_heap_encoding_omit_injective()
+        {
+            unimplemented!("injective predicate");
         }
         // Generate inverse functions for the variables.
         // ```

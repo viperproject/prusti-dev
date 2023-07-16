@@ -164,6 +164,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 statements,
                 argument.clone(),
                 expression_evaluation_state_label.clone(),
+                Vec::new(), // FIXME: This is probably wrong.
                 position,
                 false,
             )?);

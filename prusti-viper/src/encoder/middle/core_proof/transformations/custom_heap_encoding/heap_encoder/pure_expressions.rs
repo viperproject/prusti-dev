@@ -14,6 +14,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         statements: &mut Vec<vir_low::Statement>,
         expressions: Vec<vir_low::Expression>,
         expression_evaluation_state_label: Option<String>,
+        initial_path_condition: Vec<vir_low::Expression>,
         position: vir_low::Position,
         is_in_frame_check: bool,
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
@@ -23,6 +24,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 statements,
                 expression,
                 expression_evaluation_state_label.clone(),
+                initial_path_condition.clone(),
                 position,
                 is_in_frame_check,
             )?;
@@ -37,6 +39,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         statements: &mut Vec<vir_low::Statement>,
         expression: vir_low::Expression,
         expression_evaluation_state_label: Option<String>,
+        initial_path_condition: Vec<vir_low::Expression>,
         position: vir_low::Position,
         is_in_frame_check: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
@@ -44,9 +47,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             expression_evaluation_state_label,
             heap_encoder: self,
             statements,
-            path_condition: Vec::new(),
+            path_condition: initial_path_condition,
             position,
             is_in_frame_check,
+            inside_trigger: false,
         };
         purifier.fallible_fold_expression(expression)
     }
@@ -61,6 +65,7 @@ struct Purifier<'e, 'p, 'v: 'p, 'tcx: 'v> {
     path_condition: Vec<vir_low::Expression>,
     position: vir_low::Position,
     is_in_frame_check: bool,
+    inside_trigger: bool,
 }
 
 impl<'e, 'p, 'v: 'p, 'tcx: 'v> Purifier<'e, 'p, 'v, 'tcx> {
@@ -149,12 +154,15 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
         let pres = self.fallible_fold_expression(pres)?;
         let assert_precondition = vir_low::Expression::implies(path_condition, pres);
         eprintln!("assert_precondition: {}", assert_precondition);
-        self.heap_encoder.encode_function_precondition_assert(
-            self.statements,
-            assert_precondition,
-            self.position,
-            self.expression_evaluation_state_label.clone(),
-        )?;
+        if !self.inside_trigger {
+            // Do not assert preconditions inside triggers.
+            self.heap_encoder.encode_function_precondition_assert(
+                self.statements,
+                assert_precondition,
+                self.position,
+                self.expression_evaluation_state_label.clone(),
+            )?;
+        }
         match function.kind {
             vir_low::FunctionKind::MemoryBlockBytes => {
                 self.snap_function_call(MEMORY_BLOCK_PREDICATE_NAME, arguments)
@@ -277,10 +285,13 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v,
         &mut self,
         mut trigger: vir_low::Trigger,
     ) -> Result<vir_low::Trigger, Self::Error> {
+        assert!(!self.inside_trigger);
+        self.inside_trigger = true;
         for term in std::mem::take(&mut trigger.terms) {
             let term = self.fallible_fold_expression(term)?;
             trigger.terms.push(term);
         }
+        self.inside_trigger = false;
         Ok(trigger)
     }
 }

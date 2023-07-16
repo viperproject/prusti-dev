@@ -25,6 +25,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     statements,
                     statement.expression,
                     None,
+                    Vec::new(),
                     statement.position,
                     false,
                 )?;
@@ -78,6 +79,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     statements,
                     statement.expression,
                     None,
+                    Vec::new(),
                     statement.position,
                     false,
                 )?;
