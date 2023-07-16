@@ -174,7 +174,7 @@ impl PrustiTokenStream {
                 (TokenTree::Group(group), _, _, _) => PrustiToken::Group(
                     group.span(),
                     group.delimiter(),
-                    box Self::new(group.stream()),
+                    Box::new(Self::new(group.stream())),
                 ),
                 (token, _, _, _) => PrustiToken::Token(token.clone()),
             });

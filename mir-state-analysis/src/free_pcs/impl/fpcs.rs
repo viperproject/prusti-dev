@@ -8,7 +8,7 @@ use std::fmt::{Debug, Formatter, Result};
 
 use derive_more::{Deref, DerefMut};
 use prusti_rustc_interface::{
-    dataflow::fmt::DebugWithContext, index::vec::IndexVec, middle::mir::Local,
+    dataflow::fmt::DebugWithContext, index::IndexVec, middle::mir::Local,
 };
 
 use crate::{

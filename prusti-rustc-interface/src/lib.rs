@@ -7,6 +7,7 @@
 extern crate rustc_smir;
 
 pub extern crate polonius_engine as polonius_engine;
+pub extern crate rustc_abi as abi;
 pub extern crate rustc_ast as ast;
 pub extern crate rustc_ast_pretty as ast_pretty;
 pub extern crate rustc_attr as attr;

@@ -128,7 +128,8 @@ impl AstRewriter {
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
             fn #item_name() -> #return_type {
-                #return_modifier ((#expr) : #return_type)
+                let val: #return_type = #expr;
+                val
             }
         };
 
