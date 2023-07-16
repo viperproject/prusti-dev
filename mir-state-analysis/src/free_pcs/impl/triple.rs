@@ -42,7 +42,8 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     _ => unreachable!(),
                 }
             }
-            &FakeRead(box (_, place)) => self.requires_read(place),
+            &FakeRead(box (_, place))
+            | &PlaceMention(box place) => self.requires_read(place),
             &SetDiscriminant { box place, .. } => self.requires_exclusive(place),
             &Deinit(box place) => {
                 // TODO: Maybe OK to also allow `Write` here?
@@ -69,7 +70,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             Goto { .. }
             | SwitchInt { .. }
             | Resume
-            | Abort
+            | Terminate
             | Unreachable
             | Assert { .. }
             | GeneratorDrop
@@ -87,11 +88,11 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 }
                 self.requires_exclusive(RETURN_PLACE);
             }
-            &Drop { place, .. } => {
+            &Drop { place, replace: false, .. } => {
                 self.requires_write(place);
                 self.ensures_write(place);
             }
-            &DropAndReplace { place, .. } => {
+            &Drop { place, replace: true, .. } => {
                 self.requires_write(place);
                 self.ensures_exclusive(place);
             }
@@ -130,10 +131,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 BorrowKind::Shallow => {
                     self.requires_read(place);
                     // self.ensures_blocked_read(place);
-                }
-                BorrowKind::Unique => {
-                    self.requires_exclusive(place);
-                    // self.ensures_blocked_exclusive(place);
                 }
                 BorrowKind::Mut { .. } => {
                     self.requires_exclusive(place);
