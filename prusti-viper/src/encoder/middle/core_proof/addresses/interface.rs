@@ -43,12 +43,31 @@ pub(in super::super) trait AddressesInterface {
         from_address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn index_into_allocation(
+        &mut self,
+        size: vir_low::Expression,
+        address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn address_allocation(
+        &mut self,
+        address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn address_range_contains(
         &mut self,
         base_address: vir_low::Expression,
         start_index: vir_low::Expression,
         end_index: vir_low::Expression,
         element_size: vir_low::Expression,
+        checked_address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn pointer_range_contains(
+        &mut self,
+        base_address: vir_low::Expression,
+        element_size: vir_low::Expression,
+        range_length: vir_low::Expression,
         checked_address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
@@ -427,22 +446,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.encode_address_axioms()?;
-        let index1 = self.create_domain_func_app(
-            ADDRESS_DOMAIN_NAME,
-            "get_index$",
-            vec![address, size.clone()],
-            vir_low::Type::Int,
-            position,
-        )?;
-        let index2 = self.create_domain_func_app(
-            ADDRESS_DOMAIN_NAME,
-            "get_index$",
-            vec![from_address, size],
-            vir_low::Type::Int,
-            position,
-        )?;
+        let index1 = self.index_into_allocation(size.clone(), address, position)?;
+        let index2 = self.index_into_allocation(size, from_address, position)?;
         let offset = vir_low::Expression::subtract(index2, index1);
         Ok(offset)
+    }
+    fn index_into_allocation(
+        &mut self,
+        size: vir_low::Expression,
+        address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_address_axioms()?;
+        self.create_domain_func_app(
+            ADDRESS_DOMAIN_NAME,
+            "get_index$",
+            vec![address, size],
+            vir_low::Type::Int,
+            position,
+        )
+    }
+    fn address_allocation(
+        &mut self,
+        address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_address_axioms()?;
+        let allocation_type = self.allocation_type()?;
+        self.create_domain_func_app(
+            ADDRESS_DOMAIN_NAME,
+            "get_allocation$",
+            vec![address],
+            allocation_type,
+            position,
+        )
     }
     fn address_range_contains(
         &mut self,
@@ -465,6 +502,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
                 checked_address,
             ],
             vir_low::Type::Bool,
+            position,
+        )
+    }
+    fn pointer_range_contains(
+        &mut self,
+        base_address: vir_low::Expression,
+        element_size: vir_low::Expression,
+        range_length: vir_low::Expression,
+        checked_address: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let start_index = self.create_domain_func_app(
+            ADDRESS_DOMAIN_NAME,
+            "get_index$",
+            vec![base_address.clone(), element_size.clone()],
+            vir_low::Type::Int,
+            position,
+        )?;
+        let end_index = vir_low::Expression::add(start_index.clone(), range_length);
+        self.address_range_contains(
+            base_address,
+            start_index,
+            end_index,
+            element_size,
+            checked_address,
             position,
         )
     }
