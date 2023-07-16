@@ -99,6 +99,14 @@ pub(in super::super::super) trait PredicatesMemoryBlockInterface {
         size: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_memory_block_range_acc_int_index(
+        &mut self,
+        initial_address: vir_low::Expression,
+        size: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_memory_block_range_acc(
         &mut self,
         address: vir_low::Expression,
@@ -198,7 +206,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             position,
         )
     }
-    fn encode_memory_block_range_acc(
+    fn encode_memory_block_range_acc_int_index(
         &mut self,
         initial_address: vir_low::Expression,
         size: vir_low::Expression,
@@ -207,15 +215,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         use vir_low::macros::*;
-        let size_type = self.size_type_mid()?;
+        // let size_type = self.size_type_mid()?;
         // var_decls! {
         //     index: Int
         // }
         // let element_address =
         //     self.address_offset(size.clone(), address, index.clone().into(), position)?;
         // let predicate = self.encode_memory_block_acc(element_address.clone(), size, position)?;
-        let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
-        let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+        // let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
+        // let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
         // let body = expr!(
         //     (([start_index] <= index) && (index < [end_index])) ==> [predicate]
         // );
@@ -245,6 +253,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             body,
         );
         Ok(expression)
+    }
+    fn encode_memory_block_range_acc(
+        &mut self,
+        initial_address: vir_low::Expression,
+        size: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let size_type = self.size_type_mid()?;
+        let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
+        let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+        self.encode_memory_block_range_acc_int_index(
+            initial_address,
+            size,
+            start_index,
+            end_index,
+            position,
+        )
     }
     fn memory_block_range(
         &mut self,

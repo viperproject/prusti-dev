@@ -1004,6 +1004,17 @@ impl IntoLow for vir_mid::Statement {
                 let old_end_index = statement.old_end_index.to_procedure_snapshot(lowerer)?;
                 let new_address = statement.new_address.to_procedure_snapshot(lowerer)?;
                 let new_start_index = statement.new_start_index.to_procedure_snapshot(lowerer)?;
+                let new_end_index = vir_mid::Expression::add(
+                    statement.new_start_index.clone(),
+                    vir_mid::Expression::labelled_old_no_pos(
+                        statement.old_label.clone(),
+                        vir_mid::Expression::subtract(
+                            statement.old_end_index.clone(),
+                            statement.old_start_index.clone(),
+                        ),
+                    ),
+                );
+                let new_end_index = new_end_index.to_procedure_snapshot(lowerer)?;
                 let mut statements = Vec::new();
                 lowerer.encode_restore_stash_range_call(
                     &mut statements,
@@ -1014,6 +1025,7 @@ impl IntoLow for vir_mid::Statement {
                     statement.old_label,
                     new_address,
                     new_start_index,
+                    new_end_index,
                     statement.position,
                 )?;
                 Ok(statements)
