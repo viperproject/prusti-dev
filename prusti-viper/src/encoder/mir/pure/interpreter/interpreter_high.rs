@@ -884,6 +884,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((PtrAddressOffset, encoded_args[0].get_type().clone()))
             }
+            "prusti_contracts::address_from" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((
+                    PtrAddressOffsetFrom,
+                    vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                ))
+            }
             "prusti_contracts::range_contains" => {
                 assert_eq!(encoded_args.len(), 3);
                 builtin((PtrRangeContains, vir_high::Type::Bool))

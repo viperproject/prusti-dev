@@ -275,6 +275,8 @@ pub enum BuiltinFunc {
     PtrOffset,
     /// Special-cased `add` function on pointers.
     PtrAdd,
+    /// A ghost inverse function for `PtrAddressOffset` that gives a distance in the number of elements.
+    PtrAddressOffsetFrom,
     /// Special-cased `is_null` function on pointers.
     PtrIsNull,
     /// Special-cased function whether a range of addresses contains another
