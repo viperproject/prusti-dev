@@ -5,11 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     data_structures::fx::FxHashSet,
     dataflow::storage,
     index::bit_set::BitSet,
     middle::{
-        mir::{tcx::PlaceTy, Body, Field, HasLocalDecls, Local, Mutability, ProjectionElem},
+        mir::{tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, ProjectionElem},
         ty::{TyCtxt, TyKind},
     },
 };
@@ -226,7 +227,7 @@ impl<'tcx> Place<'tcx> {
                     .unwrap_or_else(|| def.non_enum_variant());
                 for (index, field_def) in variant.fields.iter().enumerate() {
                     if Some(index) != without_field {
-                        let field = Field::from_usize(index);
+                        let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(
                             *self,
                             field,
@@ -239,7 +240,7 @@ impl<'tcx> Place<'tcx> {
             TyKind::Tuple(slice) => {
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
-                        let field = Field::from_usize(index);
+                        let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(*self, field, arg);
                         places.push(field_place.into());
                     }
@@ -248,7 +249,7 @@ impl<'tcx> Place<'tcx> {
             TyKind::Closure(_, substs) => {
                 for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
                     if Some(index) != without_field {
-                        let field = Field::from_usize(index);
+                        let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(*self, field, subst_ty);
                         places.push(field_place.into());
                     }
@@ -257,7 +258,7 @@ impl<'tcx> Place<'tcx> {
             TyKind::Generator(_, substs, _) => {
                 for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
                     if Some(index) != without_field {
-                        let field = Field::from_usize(index);
+                        let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(*self, field, subst_ty);
                         places.push(field_place.into());
                     }

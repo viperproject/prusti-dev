@@ -44,7 +44,7 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
     pub(crate) fn body(&self) -> &'mir Body<'tcx> {
         self.0.analysis().0.body()
     }
-    pub(crate) fn repacker(&self) -> PlaceRepacker<'mir, 'tcx> {
+    pub(crate) fn repacker(&mut self) -> PlaceRepacker<'mir, 'tcx> {
         self.0.results().analysis.0
     }
 }
@@ -68,7 +68,7 @@ impl<'a, 'mir, 'tcx> FreePcsCursor<'a, 'mir, 'tcx> {
 
         if location == self.end_stmt {
             // TODO: cleanup
-            let cursor = &self.analysis.0;
+            let cursor = &mut self.analysis.0;
             let state = cursor.get();
             let rp = self.analysis.repacker();
             let block = &self.analysis.body()[location.block];

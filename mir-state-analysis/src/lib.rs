@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(rustc_private)]
-#![feature(box_patterns, hash_drain_filter, drain_filter)]
+#![feature(box_patterns, extract_if, hash_extract_if)]
 
 pub mod free_pcs;
 pub mod utils;

@@ -142,7 +142,7 @@ impl<'tcx> RepackOp<'tcx> {
                 assert_ne!(*guide.projection.last().unwrap(), ProjectionElem::Deref);
                 let curr_state = state[place.local].get_allocated_mut();
                 let mut removed = curr_state
-                    .drain_filter(|p, _| place.related_to(*p))
+                    .extract_if(|p, _| place.related_to(*p))
                     .collect::<FxHashMap<_, _>>();
 
                 let (p, mut others, pkind) = place.expand_one_level(guide, rp);
@@ -181,7 +181,7 @@ impl<'tcx> RepackOp<'tcx> {
                 assert_eq!(*guide.projection.last().unwrap(), ProjectionElem::Deref);
                 let curr_state = state[place.local].get_allocated_mut();
                 let mut removed = curr_state
-                    .drain_filter(|p, _| place.related_to(*p))
+                    .extract_if(|p, _| place.related_to(*p))
                     .collect::<FxHashMap<_, _>>();
 
                 let (p, mut others, pkind) = place.expand_one_level(guide, rp);

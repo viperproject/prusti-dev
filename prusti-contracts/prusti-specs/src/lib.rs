@@ -1,7 +1,5 @@
 #![deny(unused_must_use)]
-#![feature(drain_filter)]
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 #![feature(proc_macro_span)]
 #![feature(if_let_guard)]
 #![feature(assert_matches)]
@@ -730,7 +728,8 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         #[prusti::type_invariant_spec]
         #[prusti::spec_id = #spec_id_str]
         fn #item_name(self) -> bool {
-            !!((#attr) : bool)
+            let val: bool = #attr;
+            val
         }
     };
 
