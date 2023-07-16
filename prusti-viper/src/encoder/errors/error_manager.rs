@@ -826,6 +826,7 @@ impl<'tcx> ErrorManager<'tcx> {
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionPermissionExhale) |
             ("exhale.failed:insufficient.permission", ErrorCtxt::AssertMethodPostcondition) |
+            ("exhale.failed:insufficient.permission", ErrorCtxt::AssertMethodPostconditionNoPanic) |
             ("exhale.failed:insufficient.permission", ErrorCtxt::Assign) |
             ("application.precondition:insufficient.permission", ErrorCtxt::AssertMethodPostcondition) |
             ("application.precondition:insufficient.permission", ErrorCtxt::TypeInvariantDefinition) => {
