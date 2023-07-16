@@ -10,8 +10,8 @@ mod program;
 #[derive(Clone, Default)]
 pub struct Context<'v> {
     inside_trigger: bool,
-    expression_cache: FxHashMap<u64, viper::Expr<'v>>,
-    expression_cache_validation: FxHashMap<u64, vir_low::Expression>,
+    expression_cache: FxHashMap<(u64, bool), viper::Expr<'v>>,
+    expression_cache_validation: FxHashMap<(u64, bool), vir_low::Expression>,
     statement_cache: FxHashMap<u64, viper::Stmt<'v>>,
     statement_cache_validation: FxHashMap<u64, vir_low::Statement>,
 }
@@ -32,11 +32,14 @@ impl<'v> Context<'v> {
         expression_hash: u64,
         expression: &vir_low::Expression,
     ) -> Option<viper::Expr<'v>> {
-        let viper_expression = self.expression_cache.get(&expression_hash).cloned();
+        let viper_expression = self
+            .expression_cache
+            .get(&(expression_hash, self.inside_trigger))
+            .cloned();
         if cfg!(debug_assertions) && viper_expression.is_some() {
             let cached_expression = self
                 .expression_cache_validation
-                .get(&expression_hash)
+                .get(&(expression_hash, self.inside_trigger))
                 .unwrap();
             assert_eq!(cached_expression, expression);
         }
@@ -52,12 +55,12 @@ impl<'v> Context<'v> {
         if cfg!(debug_assertions) {
             assert!(self
                 .expression_cache_validation
-                .insert(expression_hash, expression.clone())
+                .insert((expression_hash, self.inside_trigger), expression.clone())
                 .is_none());
         }
         assert!(self
             .expression_cache
-            .insert(expression_hash, viper_expression)
+            .insert((expression_hash, self.inside_trigger), viper_expression)
             .is_none());
     }
 
