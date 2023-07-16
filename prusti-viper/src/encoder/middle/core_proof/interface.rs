@@ -147,6 +147,10 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                 //     )?;
             }
             if config::custom_heap_encoding() {
+                program = super::transformations::desugar_conditionals::desugar_conditionals(
+                    &source_filename,
+                    program,
+                );
                 super::transformations::custom_heap_encoding::custom_heap_encoding(
                     self,
                     &mut program,
