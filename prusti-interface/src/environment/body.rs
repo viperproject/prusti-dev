@@ -143,8 +143,10 @@ impl<'tcx> EnvBody<'tcx> {
     /// Get local MIR body of spec or pure functions. Retrieves the body from
     /// the compiler (relatively cheap).
     fn load_local_mir(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBody<'tcx> {
-        // Throw away the borrowck facts
-        Self::load_local_mir_with_facts(tcx, def_id).body
+        // SAFETY: This is safe because we are feeding in the same `tcx`
+        // that was used to store the data.
+        let body = unsafe { mir_storage::retrieve_promoted_mir_body(tcx, def_id) };
+        MirBody(Rc::new(body))
     }
 
     fn get_monomorphised(
