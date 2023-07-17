@@ -6,11 +6,13 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     borrowck::consumers,
+    data_structures::steal::Steal,
     driver::Compilation,
     hir::{def::DefKind, def_id::LocalDefId},
+    index::IndexVec,
     interface::{interface::Compiler, Config, Queries},
     middle::{
-        mir::BorrowCheckResult,
+        mir::{self, BorrowCheckResult},
         query::{ExternProviders, Providers},
         ty::TyCtxt,
     },
@@ -50,12 +52,33 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResu
     original_mir_borrowck(tcx, def_id)
 }
 
+#[allow(clippy::needless_lifetimes)]
+#[tracing::instrument(level = "debug", skip(tcx))]
+fn mir_promoted<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    def_id: LocalDefId,
+) -> (
+    &'tcx Steal<mir::Body<'tcx>>,
+    &'tcx Steal<IndexVec<mir::Promoted, mir::Body<'tcx>>>,
+) {
+    let original_mir_promoted =
+        prusti_rustc_interface::interface::DEFAULT_QUERY_PROVIDERS.mir_promoted;
+    let result = original_mir_promoted(tcx, def_id);
+    // SAFETY: This is safe because we are feeding in the same `tcx` that is
+    // going to be used as a witness when pulling out the data.
+    unsafe {
+        mir_storage::store_promoted_mir_body(tcx, def_id, result.0.borrow().clone());
+    }
+    result
+}
+
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn config(&mut self, config: &mut Config) {
         assert!(config.override_queries.is_none());
         config.override_queries = Some(
             |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
                 providers.mir_borrowck = mir_borrowck;
+                providers.mir_promoted = mir_promoted;
             },
         );
     }
