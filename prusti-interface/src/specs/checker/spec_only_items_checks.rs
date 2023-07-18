@@ -252,12 +252,13 @@ impl<'v, 'tcx: 'v> NonSpecExprVisitor<'tcx> for CheckSpecOnlyItemsVisitor<'tcx> 
 
         // all the builtin specification functions in prusti_contracts
         // Needs to be updated when more are added!
-        static BUILTIN_SPEC_FUNCS: [&str; 6] = [
+        static BUILTIN_SPEC_FUNCS: [&str; 5] = [
             "before_expiry",
             "old",
             "forall",
             "exists",
-            "snap",
+            //"snap", // FIXME: `snap` might have been used in impure code in the past, so it's
+            //temporatily commented out. It should be uncommented here eventually.
             "snapshot_equality",
         ];
 
