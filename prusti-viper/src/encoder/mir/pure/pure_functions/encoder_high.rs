@@ -371,11 +371,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder.error_manager().set_error(
-                encoded_assertion.position().into(),
+            let original_position = encoded_assertion.position();
+            conjuncts.push(self.encoder.set_surrounding_error_context_for_expression(
+                encoded_assertion,
+                original_position,
                 ErrorCtxt::PureFunctionDefinition,
-            );
-            conjuncts.push(encoded_assertion);
+            ));
         }
         let post = conjuncts.into_iter().conjoin();
 
