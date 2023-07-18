@@ -479,10 +479,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder
-                .error_manager()
-                .set_error(encoded_assertion.pos(), ErrorCtxt::PureFunctionDefinition);
-            func_spec.push(encoded_assertion);
+            let new_pos = self.encoder.error_manager().set_surrounding_error_context(
+                encoded_assertion.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            func_spec.push(encoded_assertion.set_pos(new_pos));
         }
 
         Ok((
