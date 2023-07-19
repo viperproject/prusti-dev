@@ -1,10 +1,10 @@
 use crate::{
+    common::HasSignature,
+    rewriter::{AstRewriter, SpecItemType},
     runtime_checks::{
         boundary_extraction::{self, BoundExtractor},
         check_type::CheckType,
     },
-    common::HasSignature,
-    rewriter::{AstRewriter, SpecItemType},
     specifications::{common::SpecificationId, untyped},
 };
 use proc_macro2::TokenStream;
@@ -16,7 +16,8 @@ use syn::{
 };
 
 pub struct CheckTranslator {
-    /// The expression within the specification
+    /// The expression within the specification (the one that will
+    /// be modified by the Visitor)
     expression: Expr,
     lhs_expression: Option<Expr>,
     visitor: CheckVisitor,
@@ -36,7 +37,6 @@ pub struct RuntimeFunctions {
     /// for assert_after_expiry(), this is the lhs of the magic wand
     pub check_before_expiry: Option<syn::Item>,
 }
-
 
 impl RuntimeFunctions {
     /// consumes self, and returns vector of items
@@ -169,7 +169,10 @@ impl CheckTranslator {
         // -> have result
         // -> have old values
         // -> moved values need to be stored too
-        let executed_after = matches!(self.spec_type, SpecItemType::Postcondition | SpecItemType::Pledge);
+        let executed_after = matches!(
+            self.spec_type,
+            SpecItemType::Postcondition | SpecItemType::Pledge
+        );
         let expr_to_check: syn::Expr = if is_before_expiry_check {
             // if lhs is true, there has to be a lhs expression
             if let Some(expr) = self.lhs_expression.as_ref() {
@@ -198,7 +201,6 @@ impl CheckTranslator {
         );
         let contract_string = expr_to_check.to_token_stream().to_string();
         let failure_message = format!("Contract {} was violated at runtime", contract_string);
-        println!("Failure message: {}", failure_message);
         let id_attr: syn::Attribute = if is_before_expiry_check {
             parse_quote_spanned! {item.span() =>
                 #[prusti::check_before_expiry_id = #check_id_str]
@@ -248,7 +250,6 @@ impl CheckTranslator {
             };
             check_item.sig.inputs.push(before_expiry_arg);
         }
-        println!("Check function: {}", check_item.to_token_stream());
         syn::Item::Fn(check_item)
     }
 
@@ -278,7 +279,6 @@ impl CheckTranslator {
         let mut tuple: Punctuated<syn::Expr, syn::token::Comma> = Punctuated::new();
 
         old_exprs.iter().for_each(|el| {
-            println!("field number: (control sorted!) {}", el.old_store_index);
             let name_token: TokenStream = el.name.to_string().parse().unwrap();
             let tokens_stmt: syn::Expr = parse_quote_spanned! {item.span() =>
                 #name_token.clone()
@@ -308,7 +308,6 @@ impl CheckTranslator {
         // original annotated function
         res.sig.generics = item.sig().generics.clone();
         res.sig.inputs = item.sig().inputs.clone();
-        println!("Store fn: {}", res.to_token_stream());
         syn::Item::Fn(res)
     }
 
@@ -465,7 +464,6 @@ impl CheckVisitor {
             .filter_map(|el| Argument::try_from(&el).ok())
             .map(|el| (el.name.clone(), el))
             .collect();
-        println!("collected inputs: {:?}", inputs);
         Self {
             within_old: false,
             within_before_expiry: false,
@@ -483,7 +481,6 @@ impl VisitMut for CheckVisitor {
                 // collect arguments that occurr within old expression
                 // these are the ones we wanna clone
                 if let Some(ident) = expr_path.path.get_ident() {
-                    println!("Found identifier: {}", ident);
                     let name = ident.to_token_stream().to_string();
                     if self.check_type.is_closure() && self.within_old {
                         // let tokens = parse_quote! {old(#expr)};
@@ -491,11 +488,10 @@ impl VisitMut for CheckVisitor {
                     } else if let Some(arg) = self.inputs.get_mut(&name) {
                         // argument used within an old expression?
                         // not already marked as used in old?
-                        if self.check_type.has_old_tuple() && (self.within_old || !arg.is_ref) {
+                        if self.check_type.has_old_tuple() && (self.within_old || (!arg.is_ref && arg.is_mutable)) {
                             // if it was not already marked to be stored
                             // needs to be checked for indeces to be correct
                             if !arg.used_in_old {
-                                println!("Marking variable {} to be stored", arg.name);
                                 arg.used_in_old = true;
                                 arg.old_store_index = self.highest_old_index;
                                 self.highest_old_index += 1;
@@ -511,7 +507,6 @@ impl VisitMut for CheckVisitor {
                                 // no real solution at this level
                                 quote! {(old_values.#index_token)}
                             };
-                            println!("tokens: {}", tokens);
                             let new_path: syn::Expr = syn::parse2(tokens).unwrap();
                             *expr = new_path;
                         }
@@ -520,8 +515,6 @@ impl VisitMut for CheckVisitor {
                             (&result_before_expiry)
                         };
                         *expr = new_path;
-                    } else {
-                        println!("identifier {} was not found in args\n\n", name);
                     }
                 }
             }
@@ -536,7 +529,6 @@ impl VisitMut for CheckVisitor {
                 } else {
                     // still visit recursively
                     syn::visit_mut::visit_expr_mut(self, expr);
-                    println!("WARNING: Function call where name could not be extracted!\n\n");
                     return;
                 };
                 match name.as_str() {
@@ -548,30 +540,19 @@ impl VisitMut for CheckVisitor {
                             let sub_expr = call.args.pop();
                             // remove old-call and replace with content expression
                             *expr = sub_expr.unwrap().value().clone();
-                            println!("recognized old with sub_expr: {}!", quote! {#expr});
                             self.within_old = true;
                             self.visit_expr_mut(expr);
-                            println!("sub expression of old after modification: {}", quote!{#expr});
                             // will cause all variables below to be replaced by old_value.some_field
                             self.within_old = false;
-                            println!(
-                                "done searching contents of old(), expression now: {}",
-                                quote! {#expr}
-                            );
                         }
                     }
                     ":: prusti_contracts :: before_expiry" | "prusti_contracts :: before_expiry" | "before_expiry" => {
                         let sub_expr = call.args.pop();
                         *expr = sub_expr.unwrap().value().clone();
-                        println!("recognized before_expiry with sub_expr: {}!", quote! {#expr});
                         self.within_before_expiry = true;
                         self.visit_expr_mut(expr);
                         // will cause all variables below to be replaced by old_value.some_field
                         self.within_before_expiry = false;
-                        println!(
-                            "done searching contents of before_expiry(), expression now: {}",
-                            quote! {#expr}
-                        );
                     },
                     ":: prusti_contracts :: forall" => {
                         syn::visit_mut::visit_expr_call_mut(self, call);
@@ -628,6 +609,7 @@ pub struct Argument {
     /// whether or not this field is a reference. We assume that all ref types
     /// start with & (which obviously can be wrong)
     pub is_ref: bool,
+    pub is_mutable: bool,
 }
 
 impl TryFrom<&FnArg> for Argument {
@@ -636,6 +618,7 @@ impl TryFrom<&FnArg> for Argument {
         match arg {
             FnArg::Typed(syn::PatType { pat, ty, .. }) => {
                 if let syn::Pat::Ident(pat_ident) = *pat.clone() {
+                    let is_mutable = pat_ident.mutability.is_some();
                     let is_ref = matches!(**ty, syn::Type::Reference(_));
                     let arg = Argument {
                         name: pat_ident.ident.to_string(),
@@ -643,14 +626,16 @@ impl TryFrom<&FnArg> for Argument {
                         used_in_old: false,
                         old_store_index: 0, // meaningless unless used_in_old is true
                         is_ref,
+                        is_mutable,
                     };
                     Ok(arg)
                 } else {
                     Err(())
                 }
             }
-            FnArg::Receiver(syn::Receiver { reference, .. }) => {
+            FnArg::Receiver(syn::Receiver { reference, mutability, .. }) => {
                 let is_ref = reference.is_some();
+                let is_mutable = mutability.is_some();
                 let ty: syn::Type = if is_ref {
                     parse_quote! {&Self}
                 } else {
@@ -662,6 +647,7 @@ impl TryFrom<&FnArg> for Argument {
                     used_in_old: false,
                     old_store_index: 0,
                     is_ref,
+                    is_mutable,
                 };
                 Ok(arg)
             }
@@ -675,15 +661,12 @@ enum QuantifierKind {
 }
 
 fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierKind) -> syn::Expr {
-    println!("translate is called");
-    println!("quantifier nr args: {}", closure.inputs.len());
     let mut name_set: FxHashSet<String> = FxHashSet::default();
     // the variables that occurr as arguments
     let bound_vars: Vec<(String, syn::Type)> = closure
         .inputs
         .iter()
         .map(|pat: &syn::Pat| {
-            println!("Pattern: {:?}", pat);
             if let syn::Pat::Type(syn::PatType {
                 pat: box syn::Pat::Ident(id),
                 ty: box ty,
@@ -702,7 +685,6 @@ fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierK
         .collect();
 
     // look for the runtime_quantifier_bounds attribute:
-    println!("closure arguments: {:?}", bound_vars);
     let manual_bounds = BoundExtractor::manual_bounds(closure.clone(), bound_vars.clone());
     let bounds = manual_bounds
         .unwrap_or_else(|| BoundExtractor::derive_ranges(*closure.body.clone(), bound_vars));
@@ -711,7 +693,6 @@ fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierK
 
     for ((name, _), range_expr) in bounds.iter().rev() {
         let name_token: TokenStream = name.parse().unwrap();
-        println!("bounds extracted!");
 
         // maybe never turn them into strings in the first place..
         expr = match kind {
@@ -728,11 +709,9 @@ fn translate_quantifier_expression(closure: &syn::ExprClosure, kind: QuantifierK
                         holds_forall
                     }
                 };
-                println!("res: {}", res);
                 syn::parse2(res).unwrap()
             }
             QuantifierKind::Exists => {
-                println!("exists handled:");
                 let res = quote! {
                 {
                     let mut exists = false;

@@ -268,9 +268,6 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                 if let Some((call_id, substs)) = func.const_fn_def() {
                     // let item_name = self.tcx.def_path_str(call_id);
                     // make sure the call is local:
-                    if !call_id.is_local() {
-                        // extern specs preconditions will need to be handled here.
-                    }
 
                     // The block that is executed after the annotated function
                     // is called. Mutable copy because after appending the first
@@ -279,6 +276,28 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                     // since there might be multiple blocks to be inserted,
                     for check_kind in self.specs.get_runtime_checks(&call_id) {
                         match check_kind {
+                            CheckKind::Pre(check_id) => {
+                                // only insert check if called method is not local!
+                                if call_id.is_local() {
+                                    continue;
+                                } else {
+                                    let mut patch = self.current_patcher.take().unwrap();
+                                    let return_ty = fn_return_ty(self.tcx, check_id);
+                                    assert!(return_ty.is_unit());
+                                    let res = patch.new_internal(return_ty, DUMMY_SP);
+                                    caller_block = prepend_call(
+                                        self.tcx,
+                                        &mut patch,
+                                        check_id,
+                                        caller_block,
+                                        args.clone(),
+                                        substs,
+                                        call_fn_terminator.clone(),
+                                        res.into(),
+                                    );
+                                    self.current_patcher = Some(patch);
+                                }
+                            }
                             CheckKind::Post {
                                 check: check_id,
                                 old_store: old_store_id,
@@ -324,7 +343,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                 let before_expiry_place =
                                     Place::from(patch.new_internal(before_expiry_ty, DUMMY_SP));
 
-                                caller_block = prepend_store(
+                                caller_block = prepend_call(
                                     self.tcx,
                                     &mut patch,
                                     old_store,
@@ -481,36 +500,35 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
     }
 }
 
-/// caller_block is calling an annotated function. `prepend_store` creates
-/// a new block (new_block), moves the call to the annotated function into
-/// the new block, adjusts the original block to call a store function and sets
-/// its target to this new block
+/// Given a function call, prepend another function call directly before
+/// it. Done by moving the existing call to a new block, replacing the
+/// terminator of the existing block with a new call jumping to the new block
 #[allow(clippy::too_many_arguments)]
-fn prepend_store<'tcx>(
+fn prepend_call<'tcx>(
     tcx: TyCtxt<'tcx>,
     patcher: &mut MirPatch<'tcx>,
-    old_store_id: DefId,
+    fn_id: DefId,
     caller_block: BasicBlock,
     args: Vec<Operand<'tcx>>,
     substs: ty::subst::SubstsRef<'tcx>,
     terminator: Terminator<'tcx>,
-    old_dest_place: Place<'tcx>,
+    dest_place: Place<'tcx>,
 ) -> BasicBlock {
     // get the bodies of the store and check function
     let new_block_data = BasicBlockData::new(Some(terminator));
     let new_block = patcher.new_block(new_block_data);
 
-    let store_func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(old_store_id, substs));
-    let store_func = Operand::Constant(Box::new(Constant {
+    let func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(fn_id, substs));
+    let func = Operand::Constant(Box::new(Constant {
         span: DUMMY_SP,
         user_ty: None,
-        literal: ConstantKind::zero_sized(store_func_ty),
+        literal: ConstantKind::zero_sized(func_ty),
     }));
 
-    let store_terminator = TerminatorKind::Call {
-        func: store_func,
+    let terminator = TerminatorKind::Call {
+        func,
         args: args.clone(),
-        destination: old_dest_place,
+        destination: dest_place,
         target: Some(new_block),
         cleanup: None,
         from_hir_call: false,
@@ -518,7 +536,7 @@ fn prepend_store<'tcx>(
     };
     // the block that initially calls the check function, now calls the store
     // function
-    patcher.patch_terminator(caller_block, store_terminator);
+    patcher.patch_terminator(caller_block, terminator);
     new_block
 }
 
@@ -617,7 +635,7 @@ fn surround_call_with_store_and_check<'tcx>(
     let mut call_fn_terminator = original_terminator;
     replace_target(&mut call_fn_terminator, check_block);
 
-    let new_caller_block = prepend_store(
+    let new_caller_block = prepend_call(
         tcx,
         patch,
         old_store_id,
