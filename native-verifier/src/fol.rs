@@ -140,7 +140,7 @@ fn vir_statement_to_fol_statements(
                     }
                 }
             }
-            return statements;
+            statements
         }
         Statement::MethodCall(method_call) => {
             let method_decl = known_methods
