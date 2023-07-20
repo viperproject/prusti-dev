@@ -199,11 +199,18 @@ impl<'tcx> EnvBody<'tcx> {
 
     /// Get the MIR body of a local impure function, monomorphised
     /// with the given type substitutions.
+    ///
+    /// FIXME: This function is called only in pure contexts???
     pub fn get_impure_fn_body(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> MirBody<'tcx> {
         if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, None) {
             return body;
         }
-        let body = self.get_impure_fn_body_identity(def_id);
+        // let body = self.get_impure_fn_body_identity(def_id);
+        let body = if let Some(body) = self.pure_fns.local.get(&def_id) {
+            body.clone()
+        } else {
+            Self::load_local_mir(self.tcx, def_id)
+        };
         self.set_monomorphised(def_id.to_def_id(), substs, None, body)
     }
 
