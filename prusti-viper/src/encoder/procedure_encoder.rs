@@ -66,13 +66,14 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     errors::MultiSpan,
+    index::IndexSlice,
     middle::{
         mir,
         mir::{Mutability, TerminatorKind},
         ty::{self, subst::SubstsRef},
     },
     span::Span,
-    target::abi::Integer,
+    target::abi::{FieldIdx, Integer},
 };
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{collections::BTreeMap, convert::TryInto, fmt::Debug};
