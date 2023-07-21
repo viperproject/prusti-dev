@@ -770,8 +770,29 @@ impl Expression {
                     position,
                 }
             }
+            fn fold_predicate(&mut self, predicate: Predicate) -> Predicate {
+                PredicateFolder::fold_predicate(self, predicate)
+            }
+            fn fold_trigger(&mut self, trigger: Trigger) -> Trigger {
+                Trigger::new(
+                    trigger
+                        .terms
+                        .into_iter()
+                        .map(|term| ExpressionFolder::fold_expression(self, term))
+                        .collect::<Vec<_>>(),
+                )
+            }
         }
-        OldExpressionLabelSubstitutor { substitutor }.fold_expression(self)
+        impl<T> PredicateFolder for OldExpressionLabelSubstitutor<T>
+        where
+            T: Fn(String) -> String,
+        {
+            fn fold_expression(&mut self, expression: Expression) -> Expression {
+                ExpressionFolder::fold_expression(self, expression)
+            }
+        }
+        let mut substitutor = OldExpressionLabelSubstitutor { substitutor };
+        ExpressionFolder::fold_expression(&mut substitutor, self)
     }
     /// Simplify `Deref(AddrOf(P))` to `P`.
     #[must_use]
