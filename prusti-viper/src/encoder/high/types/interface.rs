@@ -147,6 +147,7 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn get_type_definition_span_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<MultiSpan>;
     fn get_type_decl_mid(&mut self, ty: &vir_mid::Type)
         -> SpannedEncodingResult<vir_mid::TypeDecl>;
+    fn has_invariant_mid(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool>;
 }
 
 impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -290,5 +291,14 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             self.decode_type_mid_into_high(ty.erase_lifetimes().erase_const_generics())?;
         let high_type_decl = self.encode_type_def_high(&high_type, true)?;
         high_type_decl.high_to_middle(self)
+    }
+    fn has_invariant_mid(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool> {
+        let high_type =
+            self.decode_type_mid_into_high(ty.erase_lifetimes().erase_const_generics())?;
+        let high_type_decl = self.encode_type_def_high(&high_type, true)?;
+        match high_type_decl {
+            vir_high::TypeDecl::Struct(decl) => Ok(decl.structural_invariant.is_some()),
+            _ => Ok(false),
+        }
     }
 }

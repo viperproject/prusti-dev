@@ -248,6 +248,9 @@ pub enum ErrorCtxt {
     UnexpectedAssumeAllocationNeverFails,
     /// A failure when case splitting.
     CaseSplit,
+    /// An unfold of a UniqueRef predicate, which is an illegal (unsound)
+    /// operation if the struct has a structural invariant.
+    IllegalUnfoldUniqueRef,
     // /// Permission error when dereferencing a raw pointer.
     // EnsureOwnedPredicate,
 }
@@ -882,6 +885,14 @@ impl<'tcx> ErrorManager<'tcx> {
                     error_span
                 ).set_failing_assertion(opt_cause_span)
                 .set_help("The function is required not to panic because of `#[no_panic]` annotation.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::IllegalUnfoldUniqueRef) => {
+                PrustiError::verification(
+                    "illegal unpack".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                .set_help("It is unsound to unpack mutable references into structs with structural invariants.")
             }
 
             ("exhale.failed:assertion.false", ErrorCtxt::CheckedBinaryOpPrecondition) |
