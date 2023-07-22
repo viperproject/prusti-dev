@@ -1,6 +1,6 @@
 use super::IntoLow;
 use crate::encoder::{
-    errors::SpannedEncodingResult,
+    errors::{ErrorCtxt, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface,
@@ -22,6 +22,7 @@ use crate::encoder::{
             SelfFramingAssertionToSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
             SnapshotVariablesInterface,
         },
+        transformations::encoder_context::EncoderContext,
         triggers::TriggersInterface,
         type_layouts::TypeLayoutsInterface,
         viewshifts::ViewShiftsInterface,
@@ -353,16 +354,8 @@ impl IntoLow for vir_mid::Statement {
                     lowerer.encode_lifetime_const_into_procedure_variable(statement.lifetime)?;
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.encode_expression_as_place_address(&statement.place)?;
-                // let root_address = lowerer.extract_root_address(&statement.place)?;
-                // let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let predicate = if statement.uniqueness.is_shared() {
-                    // let mut place_encoder =
-                    //     PlaceToSnapshot::for_place(PredicateKind::FracRef {
-                    //         lifetime: lifetime.clone().into(),
-                    //     });
-                    // let current_snapshot =
-                    //     place_encoder.expression_to_snapshot(lowerer, &statement.place, false)?;
-                    lowerer.frac_ref(
+                let mut low_statement = if statement.uniqueness.is_shared() {
+                    let predicate = lowerer.frac_ref(
                         CallContext::Procedure,
                         ty,
                         ty,
@@ -372,36 +365,28 @@ impl IntoLow for vir_mid::Statement {
                         None,
                         None,
                         statement.position,
-                    )?
+                    )?;
+                    vir_low::Statement::unfold_no_pos(predicate)
+                } else if !lowerer.encoder.has_invariant_mid(ty)? {
+                    let predicate = lowerer.unique_ref(
+                        CallContext::Procedure,
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.into(),
+                        None,
+                        None,
+                        statement.position,
+                    )?;
+                    vir_low::Statement::unfold_no_pos(predicate)
                 } else {
-                    // let mut place_encoder =
-                    //     PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
-                    //         lifetime: lifetime.clone().into(),
-                    //         is_final: false,
-                    //     });
-                    // let current_snapshot =
-                    //     place_encoder.expression_to_snapshot(lowerer, &statement.place, false)?;
-                    // let mut place_encoder =
-                    //     PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
-                    //         lifetime: lifetime.clone().into(),
-                    //         is_final: false,
-                    //     });
-                    // let final_snapshot =
-                    //     place_encoder.expression_to_snapshot(lowerer, &statement.place, true)?;
-                    // let final_snapshot = statement.place.to_procedure_final_snapshot(lowerer)?;
-                    lowerer.unique_ref(
-                        CallContext::Procedure,
-                        ty,
-                        ty,
-                        place,
-                        address,
-                        lifetime.into(),
-                        None,
-                        None,
+                    let position = lowerer.encoder.change_error_context(
                         statement.position,
-                    )?
+                        ErrorCtxt::IllegalUnfoldUniqueRef,
+                    );
+                    vir_low::Statement::assert_no_pos(false.into()).set_default_position(position)
                 };
-                let mut low_statement = vir_low::Statement::unfold_no_pos(predicate);
                 if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
                     low_statement = vir_low::Statement::conditional_no_pos(
