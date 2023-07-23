@@ -4879,21 +4879,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }),
         );
 
-        // Check for obligation leaks
-        self.cfg_method.add_stmt(
-            return_cfg_block,
-            vir::Stmt::comment("Assert that no obligations are leaked"),
-        );
-        self.cfg_method.add_stmt(
-            return_cfg_block,
-            vir::Stmt::LeakCheck(vir::LeakCheck {
-                scope_id: -1,
-                place: vir::LeakCheckPlace::Function,
-                position: func_pos, // doesn't matter that an error has already been registered for
-                                    // this position becase it will be only used after being
-                                    // duplicated
-            })
-        );
+        // don't add end-of-function leak checks if we're encoding a pure function because the
+        // postcondition of a pure function doesn't assert the resources
+        if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
+            // Check for obligation leaks
+            self.cfg_method.add_stmt(
+                return_cfg_block,
+                vir::Stmt::comment("Assert that no obligations are leaked"),
+            );
+            self.cfg_method.add_stmt(
+                return_cfg_block,
+                vir::Stmt::LeakCheck(vir::LeakCheck {
+                    scope_id: -1,
+                    place: vir::LeakCheckPlace::Function,
+                    position: func_pos, // doesn't matter that an error has already been registered for
+                                        // this position becase it will be only used after being
+                                        // duplicated
+                })
+            );
+        }
 
         // Assert type invariants
         self.cfg_method.add_stmt(

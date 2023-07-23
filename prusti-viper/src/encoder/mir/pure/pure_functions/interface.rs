@@ -346,6 +346,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                             pure_function_encoder.encode_bodyless_function()?
                         }
                         ProcedureSpecificationKind::Pure => {
+                            /*
+                            FIXME: This test is disabled because the new encoding cannot encode resources.
                             let function = pure_function_encoder.encode_function()?;
                             if config::use_new_encoder() {
                                 // Test the new encoding.
@@ -357,6 +359,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                                 )?;
                             }
                             function
+                            */
+                            pure_function_encoder.encode_function()?
                         }
                         ProcedureSpecificationKind::Impure => {
                             unreachable!("trying to encode an impure function in pure encoder")
