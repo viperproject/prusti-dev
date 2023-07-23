@@ -370,6 +370,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                             predicate_kind.lifetime.typed_to_middle_type(self.encoder)?,
                             vir_mid::ty::Uniqueness::Unique,
                             None,
+                            true,
                             position,
                         )
                     }
@@ -379,6 +380,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                             predicate_kind.lifetime.typed_to_middle_type(self.encoder)?,
                             vir_mid::ty::Uniqueness::Shared,
                             None,
+                            true,
                             position,
                         )
                     }
@@ -808,6 +810,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                                 lifetime.typed_to_middle_type(self.encoder)?,
                                 uniqueness.typed_to_middle_type(self.encoder)?,
                                 condition,
+                                false,
                                 position,
                             )
                         }

@@ -1,5 +1,7 @@
 use crate::encoder::{
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
+    errors::{
+        EncodingError, EncodingResult, SpannedEncodingError, SpannedEncodingResult, WithSpan,
+    },
     high::{
         lower::{predicates::IntoPredicates, IntoPolymorphic},
         to_middle::HighToMiddle,
@@ -10,11 +12,14 @@ use crate::encoder::{
 #[rustfmt::skip]
 use prusti_common::{config, report::log};
 use prusti_rustc_interface::{errors::MultiSpan, middle::ty};
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::cell::RefCell;
 use vir_crate::{
     high as vir_high,
-    middle::{self as vir_mid},
+    middle::{
+        self as vir_mid, ast::predicate::visitors::PredicateFallibleWalker,
+        visitors::ExpressionFallibleWalker,
+    },
     polymorphic as vir_poly,
 };
 
@@ -148,6 +153,11 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn get_type_decl_mid(&mut self, ty: &vir_mid::Type)
         -> SpannedEncodingResult<vir_mid::TypeDecl>;
     fn has_invariant_mid(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool>;
+    /// Get the places on which parts of the invariant depend.
+    fn get_invariant_constrained_places_mid(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_mid::Expression>>;
 }
 
 impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -300,5 +310,99 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             vir_high::TypeDecl::Struct(decl) => Ok(decl.structural_invariant.is_some()),
             _ => Ok(false),
         }
+    }
+    fn get_invariant_constrained_places_mid(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_mid::Expression>> {
+        struct Collector {
+            places: FxHashSet<vir_mid::Expression>,
+        }
+        impl ExpressionFallibleWalker for Collector {
+            type Error = SpannedEncodingError;
+            fn fallible_walk_expression(
+                &mut self,
+                expression: &vir_mid::Expression,
+            ) -> Result<(), Self::Error> {
+                if expression.is_place() {
+                    assert!(
+                        expression.get_last_dereference().is_none(),
+                        "unimplemented: {expression}"
+                    );
+                    self.places.insert(expression.clone());
+                    Ok(())
+                } else {
+                    vir_mid::visitors::default_fallible_walk_expression(self, expression)
+                }
+            }
+            fn fallible_walk_eval_in(
+                &mut self,
+                eval_in: &vir_mid::EvalIn,
+            ) -> Result<(), Self::Error> {
+                unimplemented!("eval_in in structural invariant: {eval_in}");
+            }
+            fn fallible_walk_deref_enum(
+                &mut self,
+                deref: &vir_mid::Deref,
+            ) -> Result<(), Self::Error> {
+                if deref.ty.is_pointer() {
+                    unimplemented!("raw pointer deref in structural invariant: {deref}");
+                } else {
+                    ExpressionFallibleWalker::fallible_walk_expression(self, &deref.base)
+                }
+            }
+            fn fallible_walk_predicate(
+                &mut self,
+                predicate: &vir_mid::Predicate,
+            ) -> Result<(), Self::Error> {
+                match predicate {
+                    vir_mid::Predicate::LifetimeToken(_) => todo!(),
+                    vir_mid::Predicate::MemoryBlockStack(_) => todo!(),
+                    vir_mid::Predicate::MemoryBlockStackDrop(_) => todo!(),
+                    vir_mid::Predicate::MemoryBlockHeap(_) => todo!(),
+                    vir_mid::Predicate::MemoryBlockHeapRange(_) => todo!(),
+                    vir_mid::Predicate::MemoryBlockHeapRangeGuarded(_) => todo!(),
+                    vir_mid::Predicate::MemoryBlockHeapDrop(predicate) => {
+                        let deref = predicate.address.get_last_dereferenced_pointer().unwrap();
+                        ExpressionFallibleWalker::fallible_walk_expression(self, deref)
+                    }
+                    vir_mid::Predicate::OwnedNonAliased(predicate) => {
+                        let deref = predicate.place.get_last_dereferenced_pointer().unwrap();
+                        ExpressionFallibleWalker::fallible_walk_expression(self, deref)
+                    }
+                    vir_mid::Predicate::OwnedRange(_) => todo!(),
+                    vir_mid::Predicate::OwnedSet(_) => todo!(),
+                    vir_mid::Predicate::UniqueRef(_) => todo!(),
+                    vir_mid::Predicate::UniqueRefRange(_) => todo!(),
+                    vir_mid::Predicate::FracRef(_) => todo!(),
+                    vir_mid::Predicate::FracRefRange(_) => todo!(),
+                }
+            }
+        }
+        impl PredicateFallibleWalker for Collector {
+            type Error = SpannedEncodingError;
+            fn fallible_walk_expression(
+                &mut self,
+                expression: &vir_mid::Expression,
+            ) -> Result<(), Self::Error> {
+                ExpressionFallibleWalker::fallible_walk_expression(self, expression)
+            }
+        }
+        let type_decl = self.get_type_decl_mid(ty)?;
+        let vir_mid::TypeDecl::Struct(decl) = type_decl else {
+            unreachable!(
+                "type {:?} is not a struct",
+                type_decl
+            );
+        };
+        let invariant = decl.structural_invariant.unwrap();
+        let mut collector = Collector {
+            places: FxHashSet::default(),
+        };
+        for expression in invariant {
+            ExpressionFallibleWalker::fallible_walk_expression(&mut collector, &expression)?;
+        }
+        let constrained_places = collector.places.into_iter().collect();
+        Ok(constrained_places)
     }
 }
