@@ -231,6 +231,8 @@ pub struct UnfoldRef {
     pub lifetime: LifetimeConst,
     pub uniqueness: Uniqueness,
     pub condition: Option<BlockMarkerCondition>,
+    /// Whether the unpack statement was written by the user.
+    pub is_user_written: bool,
     pub position: Position,
 }
 

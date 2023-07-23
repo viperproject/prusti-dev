@@ -380,6 +380,27 @@ impl IntoLow for vir_mid::Statement {
                         statement.position,
                     )?;
                     vir_low::Statement::unfold_no_pos(predicate)
+                } else if statement.is_user_written {
+                    assert!(statement.condition.is_none());
+                    let predicate = lowerer.unique_ref(
+                        CallContext::Procedure,
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.into(),
+                        None,
+                        None,
+                        statement.position,
+                    )?;
+                    let unfold_statement = vir_low::Statement::unfold_no_pos(predicate);
+                    for contrained_place in
+                        lowerer.encoder.get_invariant_constrained_places_mid(ty)?
+                    {
+                        eprintln!("contrained_place: {}", contrained_place);
+                    }
+                    unimplemented!();
+                    return Ok(vec![unfold_statement]);
                 } else {
                     let position = lowerer.encoder.change_error_context(
                         statement.position,
