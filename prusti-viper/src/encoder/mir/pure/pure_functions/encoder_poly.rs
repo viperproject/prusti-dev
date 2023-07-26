@@ -35,7 +35,7 @@ use vir_crate::{
     common::identifier::WithIdentifier,
     high as vir_high,
     high::operations::identifier::compute_function_identifier,
-    polymorphic::{self as vir, ExprIterator},
+    polymorphic::{self as vir, ExprIterator, FallibleExprWalker},
 };
 
 pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -313,6 +313,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let mut precondition = vec![type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)?];
+
+        let is_trusted = contract.specification.trusted.extract_inherit().expect("Expected trusted") && (self.proc_def_id == contract.specification.source || !self.proc_def_id.is_local());
+
+        if !is_trusted {
+            struct CallFinder<'a> {
+                function_name: &'a str,
+                span: Span,
+            }
+            impl<'a> FallibleExprWalker for CallFinder<'a> {
+                type Error = SpannedEncodingError;
+                fn fallible_walk_func_app(
+                    &mut self,
+                    func_app: &vir::FuncApp,
+                    ) -> Result<(), Self::Error> {
+                    if func_app.function_name == self.function_name {
+                        return Err(SpannedEncodingError::incorrect(
+                                "only trusted functions can call themselves in their contracts".to_string(),
+                                self.span,
+                                ));
+                    }
+                    for a in &func_app.arguments {
+                        self.fallible_walk(a)?;
+                    }
+                    Ok(())
+                }
+            }
+            let mut finder = CallFinder {
+                span: self.span,
+                function_name: function_name.as_str(),
+            };
+            for expr in precondition.iter().chain(&postcondition) {
+                finder.fallible_walk(expr)?;
+            }
+        }
 
         let formal_args = self.encode_formal_args()?;
         let return_type = self.encode_function_return_type()?;
