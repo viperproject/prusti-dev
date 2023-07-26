@@ -157,7 +157,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                 let place: mir::Place = local.into();
                 let destination = *self.stored_arguments.get(&local).unwrap();
                 (current_target, _) = self
-                    .insert_clone_argument(place, current_target, Some(destination), &mut patch)
+                    .insert_clone_argument(place, current_target, Some(destination), &mut patch, None)
                     .unwrap();
                 let terminator_kind = TerminatorKind::Goto {
                     target: current_target,
@@ -392,13 +392,20 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         target: BasicBlock,
         destination: Option<mir::Local>,
         patch: &mut MirPatch<'tcx>,
+        target_type_opt: Option<ty::Ty<'tcx>>,
     ) -> Result<(BasicBlock, mir::Local), ()> {
         // if we deal with a reference, we can directly call clone on it
         // otherwise we have to create a reference first, to pass to the clone
         // function.
         let clone_defid = get_clone_defid(self.tcx).ok_or(())?;
         // let clone_trait_defid = self.tcx.lang_items().clone_trait().unwrap();
-        let arg_ty = make_immutable(self.tcx, arg.ty(&self.body_copy.local_decls, self.tcx).ty);
+        //
+        let arg_ty = if let Some(target_type) = target_type_opt {
+            target_type
+        } else {
+            arg.ty(&self.body_copy.local_decls, self.tcx).ty
+        };
+        let mutable_ref = matches!(arg_ty.ref_mutability(), Some(mir::Mutability::Mut));
         println!("arg type: {:?}", arg_ty);
 
         let dest = destination.unwrap_or_else(|| patch.new_temp(arg_ty, DUMMY_SP));
@@ -460,7 +467,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             let second_block = patch.new_block(block_data);
 
             // borrow the clone result
-            let rvalue = rvalue_reference_to_local(self.tcx, clone_dest.into(), false);
+            let rvalue = rvalue_reference_to_local(self.tcx, clone_dest.into(), mutable_ref);
             let ref_stmt = mir::StatementKind::Assign(box (dest.into(), rvalue));
             patch.add_statement(
                 mir::Location {
@@ -487,7 +494,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
     pub fn create_and_replace_arguments(&mut self, body: &mut Body<'tcx>) {
         let mut patcher = MirPatch::new(body);
         for arg in &self.mir_info.args_to_be_cloned {
-            let ty = make_immutable(self.tcx, body.local_decls.get(*arg).unwrap().ty);
+            let ty = body.local_decls.get(*arg).unwrap().ty;
             let new_var = patcher.new_temp(ty, DUMMY_SP);
             self.stored_arguments.insert(*arg, new_var);
         }
@@ -591,9 +598,10 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                         old_tuple.push(operand.clone());
                     }
                     mir::Operand::Move(place) | mir::Operand::Copy(place) => {
+                        let target_ty = Some(old_tuple_fields[id]);
                         // prepends clone blocks before the actual function is called
                         let (start_block, destination) = self
-                            .insert_clone_argument(*place, current_target, None, patch)
+                            .insert_clone_argument(*place, current_target, None, patch, target_ty)
                             .unwrap();
                         current_target = start_block;
                         // add the result to our tuple:

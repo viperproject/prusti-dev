@@ -35,15 +35,15 @@ pub fn is_mutable_arg(body: &Body<'_>, local: mir::Local) -> bool {
     }
 }
 
-pub fn make_immutable<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-    match *ty.kind() {
-        ty::Ref(region, inner_ty, mir::Mutability::Mut) => {
-            let new_inner_ty = make_immutable(tcx, inner_ty);
-            tcx.mk_imm_ref(region, new_inner_ty)
-        }
-        _ => ty,
-    }
-}
+// pub fn make_immutable<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+//     match *ty.kind() {
+//         ty::Ref(region, inner_ty, mir::Mutability::Mut) => {
+//             let new_inner_ty = make_immutable(tcx, inner_ty);
+//             tcx.mk_imm_ref(region, new_inner_ty)
+//         }
+//         _ => ty,
+//     }
+// }
 
 pub fn fn_return_ty(tcx: TyCtxt<'_>, def_id: DefId) -> ty::Ty<'_> {
     let fn_sig = tcx.fn_sig(def_id).subst_identity();

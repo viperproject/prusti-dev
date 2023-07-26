@@ -227,9 +227,6 @@ impl CheckTranslator {
                 // a function with default return type does not make a lot of sense..
                 parse_quote!{()}
             };
-            if let syn::Type::Reference(ref mut ty_ref) = output_ty {
-                ty_ref.mutability = None;
-            }
             let before_expiry_arg = parse_quote_spanned! {item.span() =>
                 result_before_expiry: (#output_ty,)
             };
@@ -496,15 +493,10 @@ fn create_argument(arg: &FnArg, index: usize) -> Result<Argument, ()> {
             if let syn::Pat::Ident(pat_ident) = *pat.clone() {
                 let is_mutable = pat_ident.mutability.is_some();
 
-                let mut adjusted_ty = *ty.clone();
-                if let syn::Type::Reference(ref mut ty_ref) = adjusted_ty {
-                    ty_ref.mutability = None;
-                }
-
                 let is_ref = matches!(**ty, syn::Type::Reference(_));
                 let arg = Argument {
                     name: pat_ident.ident.to_string(),
-                    ty: adjusted_ty,
+                    ty: *ty.clone(),
                     used_in_old: false,
                     index,
                     is_ref,
