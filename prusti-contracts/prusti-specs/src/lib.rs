@@ -242,23 +242,19 @@ fn generate_for_ensures(
     let check_id = rewriter.generate_spec_id();
     let check_id_str = check_id.to_string();
     // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
-    let (check_item, store_item_opt) =
+    let check_item =
         rewriter.create_post_check(rewriter::SpecItemType::Postcondition, check_id, attr, item)?;
-    if let Some(store_item) = store_item_opt {
-        Ok((
-            vec![spec_item, check_item, store_item],
-            vec![
-                parse_quote_spanned! {item.span()=>
-                    #[prusti::post_spec_id_ref = #spec_id_str]
-                },
-                parse_quote_spanned! {item.span()=>
-                    #[prusti::post_check_id_ref = #check_id_str]
-                },
-            ],
-        ))
-    } else {
-        unreachable!();
-    }
+    Ok((
+        vec![spec_item, check_item],
+        vec![
+            parse_quote_spanned! {item.span()=>
+                #[prusti::post_spec_id_ref = #spec_id_str]
+            },
+            parse_quote_spanned! {item.span()=>
+                #[prusti::post_check_id_ref = #check_id_str]
+            },
+        ],
+    ))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
@@ -485,22 +481,25 @@ pub fn body_variant(tokens: TokenStream) -> TokenStream {
 
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let spec = generate_expression_closure(&AstRewriter::process_loop_invariant, tokens.clone());
-    let check = generate_runtime_expression_closure(&AstRewriter::runtime_check_loop_invariant, tokens);
-    quote!{#spec #check}
+    let check =
+        generate_runtime_expression_closure(&AstRewriter::runtime_check_loop_invariant, tokens);
+    quote! {#spec #check}
 }
 
 pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
     let spec = generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens.clone());
-    let check = generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assertion, tokens);
-    let res = quote!{#spec #check};
+    let check =
+        generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assertion, tokens);
+    let res = quote! {#spec #check};
     println!("result: {}", res);
     res
 }
 
 pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
     let spec = generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens.clone());
-    let check = generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assumption, tokens);
-    quote!{#spec #check}
+    let check =
+        generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assumption, tokens);
+    quote! {#spec #check}
 }
 
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
@@ -1216,9 +1215,7 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
     }
 }
 
-pub fn pledge_expires(
-    tokens: TokenStream,
-) -> TokenStream {
+pub fn pledge_expires(tokens: TokenStream) -> TokenStream {
     // make sure only 1 identifier is passed to this macro
     let expr = handle_result!(syn::parse2::<syn::Ident>(tokens.clone()));
     // create spec blocks starting with a spec_only closure so
@@ -1237,5 +1234,4 @@ pub fn pledge_expires(
             }
         }
     }
-
 }

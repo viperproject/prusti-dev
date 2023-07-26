@@ -30,14 +30,11 @@ pub enum CheckKind {
     Pre(DefId),
     Post {
         check: DefId,
-        old_store: DefId,
     }, // actual check and old_store function
     Assume(DefId),
     Pledge {
         check: DefId,
-        old_store: DefId,
         check_before_expiry: Option<DefId>,
-        store_before_expiry: DefId,
     },
 }
 
@@ -100,14 +97,14 @@ impl DefSpecificationMap {
         }
     }
 
-    pub fn get_post_checks(&self, def_id: &DefId) -> Vec<(DefId, DefId)> {
+    pub fn get_post_checks(&self, def_id: &DefId) -> Vec<DefId> {
         let checks_opt = self.checks.get(def_id);
         if let Some(checks) = checks_opt {
             checks
                 .iter()
                 .filter_map(|el| {
-                    if let CheckKind::Post { check, old_store } = el {
-                        Some((*check, *old_store))
+                    if let CheckKind::Post { check } = el {
+                        Some(*check)
                     } else {
                         None
                     }

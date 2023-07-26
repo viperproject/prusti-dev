@@ -1,14 +1,9 @@
 use prusti_rustc_interface::{
     middle::{
-        mir::{
-            self,
-            patch::MirPatch,
-            visit::{MutVisitor},
-            Body, TerminatorKind,
-        },
+        mir::{self, patch::MirPatch, visit::MutVisitor, Body, TerminatorKind},
         ty::{self, TyCtxt},
     },
-    span::{self, def_id::DefId},
+    span::{self, def_id::DefId, DUMMY_SP},
 };
 use rustc_hash::FxHashMap;
 
@@ -40,6 +35,16 @@ pub fn is_mutable_arg(body: &Body<'_>, local: mir::Local) -> bool {
     }
 }
 
+pub fn make_immutable<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+    match *ty.kind() {
+        ty::Ref(region, inner_ty, mir::Mutability::Mut) => {
+            let new_inner_ty = make_immutable(tcx, inner_ty);
+            tcx.mk_imm_ref(region, new_inner_ty)
+        }
+        _ => ty,
+    }
+}
+
 pub fn fn_return_ty(tcx: TyCtxt<'_>, def_id: DefId) -> ty::Ty<'_> {
     let fn_sig = tcx.fn_sig(def_id).subst_identity();
     fn_sig.output().skip_binder()
@@ -57,12 +62,22 @@ pub fn dummy_region(tcx: TyCtxt<'_>) -> ty::Region<'_> {
     tcx.mk_region_from_kind(kind)
 }
 
-pub fn rvalue_reference_to_local(
-    tcx: TyCtxt<'_>,
-    local: mir::Local,
+pub fn unit_const(tcx: TyCtxt<'_>) -> mir::Operand<'_> {
+    let unit_ty = tcx.mk_unit();
+    let constant_kind = mir::ConstantKind::zero_sized(unit_ty);
+    let constant = mir::Constant {
+        span: DUMMY_SP,
+        user_ty: None,
+        literal: constant_kind,
+    };
+    mir::Operand::Constant(box constant)
+}
+
+pub fn rvalue_reference_to_local<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    place: mir::Place<'tcx>,
     mutable: bool,
-) -> mir::Rvalue<'_> {
-    let place = mir::Place::from(local);
+) -> mir::Rvalue<'tcx> {
     let dummy_region = dummy_region(tcx);
     let borrow_kind = if mutable {
         mir::BorrowKind::Mut {
@@ -168,7 +183,7 @@ pub fn create_call_block<'tcx>(
             .subst(tcx, substs)
             .output()
             .skip_binder();
-        mir::Place::from(patch.new_internal(ret_ty, span::DUMMY_SP))
+        mir::Place::from(patch.new_temp(ret_ty, span::DUMMY_SP))
     };
 
     // args have to be constructed beforehand, including result or old_values

@@ -7,11 +7,11 @@ use crate::{
     },
     specifications::{common::SpecificationId, untyped},
 };
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use rustc_hash::{FxHashMap, FxHashSet};
 use syn::{
-    parse_quote, parse_quote_spanned, punctuated::Punctuated, spanned::Spanned,
+    parse_quote, parse_quote_spanned, spanned::Spanned,
     visit_mut::VisitMut, Expr, FnArg,
 };
 
@@ -30,10 +30,6 @@ pub struct RuntimeFunctions {
     /// the actual check function. For pledges, this is the check after
     /// expiration
     pub check_fn: syn::Item,
-    /// store old state function
-    pub store_fn: Option<syn::Item>,
-    /// store expressions evaluated in before expiry expression
-    pub store_before_expiry: Option<syn::Item>,
     /// for assert_after_expiry(), this is the lhs of the magic wand
     pub check_before_expiry: Option<syn::Item>,
 }
@@ -43,17 +39,9 @@ impl RuntimeFunctions {
     pub fn to_item_vec(&self) -> Vec<syn::Item> {
         let RuntimeFunctions {
             check_fn,
-            store_fn,
-            store_before_expiry,
             check_before_expiry,
         } = self;
         let mut res = vec![check_fn.clone()];
-        if let Some(store_fn) = store_fn {
-            res.push(store_fn.clone());
-        }
-        if let Some(store_before_expiry) = store_before_expiry {
-            res.push(store_before_expiry.clone());
-        }
         if let Some(check_before_expiry) = check_before_expiry {
             res.push(check_before_expiry.clone());
         }
@@ -71,43 +59,37 @@ pub fn translate_runtime_checks(
     item: &untyped::AnyFnItem,
 ) -> syn::Result<RuntimeFunctions> {
     let check_translator = CheckTranslator::new(item, expr, lhs, spec_type.clone());
-    let (check_fn, store_fn, store_before_expiry, check_before_expiry) = match spec_type {
+    let (check_fn, check_before_expiry) = match spec_type {
         SpecItemType::Pledge => {
             // most things to generate:
             let check_fn = check_translator.generate_check_function(item, check_id, false, true);
-            let store_item = check_translator.generate_store_function(item, check_id);
             let check_before_expiry =
                 check_translator.generate_check_function(item, check_id, true, false);
-            let store_before_expiry = check_translator.generate_store_before_expiry(item, check_id);
 
             (
                 check_fn,
-                Some(store_item),
-                Some(store_before_expiry),
                 Some(check_before_expiry),
             )
         }
         SpecItemType::Postcondition => {
             let check_fn = check_translator.generate_check_function(item, check_id, false, false);
-            let store_item = check_translator.generate_store_function(item, check_id);
-            (check_fn, Some(store_item), None, None)
+            (check_fn, None)
         }
         SpecItemType::Precondition => {
             let check_fn = check_translator.generate_check_function(item, check_id, false, false);
-            (check_fn, None, None, None)
+            (check_fn, None)
         }
         _ => unreachable!(),
     };
     syn::Result::Ok(RuntimeFunctions {
         check_fn,
-        store_fn,
-        store_before_expiry,
         check_before_expiry,
     })
 }
 
 pub fn translate_expression_runtime(tokens: TokenStream) -> syn::Expr {
-    // a bit different since we don't have any arguments here..
+    // a bit different since we don't generate a function, but just the
+    // code-fragment performing the check
     let mut expr: syn::Expr = syn::parse2(tokens).unwrap();
     let mut check_visitor = CheckVisitor::new(&dummy_fn(), CheckType::ClosureExpression);
     check_visitor.visit_expr_mut(&mut expr);
@@ -238,116 +220,22 @@ impl CheckTranslator {
             check_item.sig.inputs.push(old_arg);
         }
         if before_expiry_argument {
-            let output_ty = match &item.sig().output {
-                syn::ReturnType::Type(
-                    _,
-                    box syn::Type::Reference(syn::TypeReference { elem: box ty, .. }),
-                ) => ty.clone(),
-                _ => panic!("a pledge that doesnt return a reference?"),
+            let mut output_ty: syn::Type = if let syn::ReturnType::Type(_, box ty) = &item.sig().output {
+                ty.clone()
+            } else {
+                // probably not our job to throw an error here? But a pledge for
+                // a function with default return type does not make a lot of sense..
+                parse_quote!{()}
             };
+            if let syn::Type::Reference(ref mut ty_ref) = output_ty {
+                ty_ref.mutability = None;
+            }
             let before_expiry_arg = parse_quote_spanned! {item.span() =>
-                result_before_expiry: #output_ty
+                result_before_expiry: (#output_ty,)
             };
             check_item.sig.inputs.push(before_expiry_arg);
         }
         syn::Item::Fn(check_item)
-    }
-
-    // generate the function that clones old values and returns them.
-    pub fn generate_store_function(
-        &self,
-        item: &untyped::AnyFnItem,
-        check_id: SpecificationId,
-    ) -> syn::Item {
-        let item_name = syn::Ident::new(
-            &format!(
-                "prusti_{}_store_old_item_{}_{}",
-                self.spec_type,
-                item.sig().ident,
-                check_id,
-            ),
-            item.span(),
-        );
-        let check_id_str = check_id.to_string();
-        let mut old_exprs = self
-            .visitor
-            .inputs
-            .iter()
-            .filter_map(|(_, x)| if x.used_in_old { Some(x) } else { None })
-            .collect::<Vec<&Argument>>();
-        old_exprs.sort_by(|a, b| a.old_store_index.partial_cmp(&b.old_store_index).unwrap());
-        let mut tuple: Punctuated<syn::Expr, syn::token::Comma> = Punctuated::new();
-
-        old_exprs.iter().for_each(|el| {
-            let name_token: TokenStream = el.name.to_string().parse().unwrap();
-            let tokens_stmt: syn::Expr = parse_quote_spanned! {item.span() =>
-                #name_token.clone()
-            };
-            tuple.push(tokens_stmt);
-        });
-        if !tuple.empty_or_trailing() {
-            tuple.push_punct(syn::token::Comma::default());
-        }
-        let old_values_type = self.old_values_type(item);
-        // println!("resulting tuple: {}", quote!{#tuple});
-        let forget_statements = self.generate_forget_statements(item, true, false, false, false);
-
-        let item_name_str = item_name.to_string();
-        let mut res: syn::ItemFn = parse_quote_spanned! {item.span() =>
-            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
-            #[prusti::spec_only]
-            #[prusti::store_id = #check_id_str]
-            fn #item_name() -> #old_values_type {
-                println!("store function {} is performed", #item_name_str);
-                let old_values = (#tuple);
-                #forget_statements
-                return old_values;
-            }
-        };
-        // store function has the same generics and arguments as the
-        // original annotated function
-        res.sig.generics = item.sig().generics.clone();
-        res.sig.inputs = item.sig().inputs.clone();
-        syn::Item::Fn(res)
-    }
-
-    pub fn generate_store_before_expiry(
-        &self,
-        item: &untyped::AnyFnItem,
-        check_id: SpecificationId,
-    ) -> syn::Item {
-        let item_name = syn::Ident::new(
-            &format!(
-                "prusti_{}_store_before_expiry_item_{}_{}",
-                self.spec_type,
-                item.sig().ident,
-                check_id,
-            ),
-            item.span(),
-        );
-        let check_id_str = check_id.to_string();
-        let item_name_str = item_name.to_string();
-
-        let result_arg = AstRewriter::generate_result_arg(item);
-        let arg = Argument::try_from(&result_arg).unwrap();
-        let (result_type, arg_ty) = if let syn::Type::Reference(ty) = arg.ty {
-            let mut ty_ref = ty;
-            ty_ref.mutability = None;
-            ((*ty_ref.elem).clone(), syn::Type::Reference(ty_ref))
-        } else {
-            panic!("result of pledge does not look like a pointer")
-        };
-        let mut res: syn::ItemFn = parse_quote_spanned! { item.span() =>
-            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
-            #[prusti::spec_only]
-            #[prusti::store_before_expiry_id = #check_id_str]
-            fn #item_name (res : #arg_ty) -> #result_type {
-                println!("store before expiry function {} is performed", #item_name_str);
-                res.clone()
-            }
-        };
-        res.sig.generics = item.sig().generics.clone();
-        syn::Item::Fn(res)
     }
 
     /// After the visitor was run on an expression, this function
@@ -356,20 +244,19 @@ impl CheckTranslator {
     /// in old-expressions and not just all arguments
     pub fn old_values_type<T: Spanned>(&self, item: &T) -> syn::Type {
         let mut old_values_type: syn::Type = parse_quote_spanned! {item.span() => ()};
+        let mut arguments = self.visitor.inputs.values().collect::<Vec<&Argument>>();
+        // order the elements of the map by index
+        arguments.sort_by(|a, b| a.index.partial_cmp(&b.index).unwrap());
         if let syn::Type::Tuple(syn::TypeTuple { elems, .. }) = &mut old_values_type {
             // start adding the elements we want to store:
-            for i in 0..self.visitor.highest_old_index {
-                for el in self.visitor.inputs.values() {
-                    if el.used_in_old && el.old_store_index == i {
-                        match &el.ty {
-                            // if we have a reference, cloning will result in its inner type
-                            // (usually...)
-                            syn::Type::Reference(cloned_type) => {
-                                elems.push(*cloned_type.elem.clone())
-                            }
-                            _ => elems.push(el.ty.clone()),
-                        }
-                    }
+            for arg in arguments {
+                if arg.used_in_old {
+                    elems.push(arg.ty.clone());
+                } else {
+                    // if argument is never used in old, we use a unit type
+                    // in the tuple
+                    let unit_type: syn::Type = parse_quote_spanned! {arg.span => ()};
+                    elems.push(unit_type);
                 }
             }
             // if brackets contain only one type, it's not a tuple. Therefore
@@ -410,7 +297,7 @@ impl CheckTranslator {
         let mut stmts: Vec<syn::Stmt> = Vec::new();
         if forget_item_args {
             for fn_arg in item.sig().inputs.clone() {
-                if let Ok(arg) = Argument::try_from(&fn_arg) {
+                if let Ok(arg) = create_argument(&fn_arg, 0) {
                     let name: TokenStream = arg.name.parse().unwrap();
                     if !arg.is_ref {
                         stmts.push(parse_quote! {
@@ -460,8 +347,8 @@ impl CheckVisitor {
             .sig()
             .inputs
             .iter()
-            .cloned()
-            .filter_map(|el| Argument::try_from(&el).ok())
+            .enumerate()
+            .filter_map(|(id, el)| create_argument(el, id).ok())
             .map(|el| (el.name.clone(), el))
             .collect();
         Self {
@@ -491,28 +378,17 @@ impl VisitMut for CheckVisitor {
                         if self.check_type.has_old_tuple() && (self.within_old || (!arg.is_ref && arg.is_mutable)) {
                             // if it was not already marked to be stored
                             // needs to be checked for indeces to be correct
-                            if !arg.used_in_old {
-                                arg.used_in_old = true;
-                                arg.old_store_index = self.highest_old_index;
-                                self.highest_old_index += 1;
-                            }
+                            arg.used_in_old = true;
                             // replace the identifier with the correct field access
                             let index_token: TokenStream =
-                                arg.old_store_index.to_string().parse().unwrap();
-                            let tokens = if arg.is_ref {
-                                // cloning will deref the value..
-                                quote! {(&old_values.#index_token)}
-                            } else {
-                                // unfortunately it could still be a reference..
-                                // no real solution at this level
-                                quote! {(old_values.#index_token)}
-                            };
+                                arg.index.to_string().parse().unwrap();
+                            let tokens = quote! {(old_values.#index_token)};
                             let new_path: syn::Expr = syn::parse2(tokens).unwrap();
                             *expr = new_path;
                         }
                     } else if self.within_before_expiry && name == *"result" {
                         let new_path: syn::Expr = parse_quote! {
-                            (&result_before_expiry)
+                            result_before_expiry.0
                         };
                         *expr = new_path;
                     }
@@ -605,52 +481,64 @@ pub struct Argument {
     /// resulting from cloning them must be known at ast level
     pub used_in_old: bool,
     /// field in old-tuple (old_values.X) where this argument will be stored
-    pub old_store_index: usize,
+    pub index: usize,
     /// whether or not this field is a reference. We assume that all ref types
     /// start with & (which obviously can be wrong)
     pub is_ref: bool,
     pub is_mutable: bool,
+    pub span: Span,
 }
 
-impl TryFrom<&FnArg> for Argument {
-    type Error = ();
-    fn try_from(arg: &FnArg) -> Result<Self, Self::Error> {
-        match arg {
-            FnArg::Typed(syn::PatType { pat, ty, .. }) => {
-                if let syn::Pat::Ident(pat_ident) = *pat.clone() {
-                    let is_mutable = pat_ident.mutability.is_some();
-                    let is_ref = matches!(**ty, syn::Type::Reference(_));
-                    let arg = Argument {
-                        name: pat_ident.ident.to_string(),
-                        ty: *ty.clone(),
-                        used_in_old: false,
-                        old_store_index: 0, // meaningless unless used_in_old is true
-                        is_ref,
-                        is_mutable,
-                    };
-                    Ok(arg)
-                } else {
-                    Err(())
+fn create_argument(arg: &FnArg, index: usize) -> Result<Argument, ()> {
+    let span = arg.span();
+    match arg {
+        FnArg::Typed(syn::PatType { pat, ty, .. }) => {
+            if let syn::Pat::Ident(pat_ident) = *pat.clone() {
+                let is_mutable = pat_ident.mutability.is_some();
+
+                let mut adjusted_ty = *ty.clone();
+                if let syn::Type::Reference(ref mut ty_ref) = adjusted_ty {
+                    ty_ref.mutability = None;
                 }
-            }
-            FnArg::Receiver(syn::Receiver { reference, mutability, .. }) => {
-                let is_ref = reference.is_some();
-                let is_mutable = mutability.is_some();
-                let ty: syn::Type = if is_ref {
-                    parse_quote! {&Self}
-                } else {
-                    parse_quote! {Self}
-                };
+
+                let is_ref = matches!(**ty, syn::Type::Reference(_));
                 let arg = Argument {
-                    name: "self".to_string(),
-                    ty, // newer versions have this field! could be useful..
+                    name: pat_ident.ident.to_string(),
+                    ty: adjusted_ty,
                     used_in_old: false,
-                    old_store_index: 0,
+                    index,
                     is_ref,
                     is_mutable,
+                    span,
                 };
                 Ok(arg)
+            } else {
+                // TODO: proper error message
+                Err(())
             }
+        }
+        FnArg::Receiver(syn::Receiver {
+            reference,
+            mutability,
+            ..
+        }) => {
+            let is_ref = reference.is_some();
+            let is_mutable = mutability.is_some();
+            let ty: syn::Type = if is_ref {
+                parse_quote! {&Self}
+            } else {
+                parse_quote! {Self}
+            };
+            let arg = Argument {
+                name: "self".to_string(),
+                ty, // newer versions have this field! could be useful..
+                used_in_old: false,
+                index,
+                is_ref,
+                is_mutable,
+                span,
+            };
+            Ok(arg)
         }
     }
 }

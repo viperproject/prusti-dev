@@ -67,10 +67,10 @@ pub(crate) fn mir_checked(
 #[derive(Debug, Clone)]
 pub struct PledgeToProcess<'tcx> {
     check: DefId,
-    store_before_expiry: DefId,
     check_before_expiry: Option<DefId>,
     old_values_place: Place<'tcx>,
     before_expiry_place: Place<'tcx>,
+    before_expiry_ty: ty::Ty<'tcx>,
     destination: Place<'tcx>,
     // the args the function was called with
     args: Vec<Operand<'tcx>>,
@@ -152,10 +152,12 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
             .args_to_be_cloned
             .clone()
             .iter()
-            .for_each(|local| {
+            .for_each(|&local| {
                 let mut patch = MirPatch::new(body);
-                current_target = self
-                    .insert_clone_argument(*local, current_target, &mut patch)
+                let place: mir::Place = local.into();
+                let destination = *self.stored_arguments.get(&local).unwrap();
+                (current_target, _) = self
+                    .insert_clone_argument(place, current_target, Some(destination), &mut patch)
                     .unwrap();
                 let terminator_kind = TerminatorKind::Goto {
                     target: current_target,
@@ -213,8 +215,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     .get(local)
                                     .expect("pledge expiration without an actual pledge");
                                 let mut patcher = self.current_patcher.take().unwrap();
-                                let start_block = create_pledge_call_chain(
-                                    self.tcx,
+                                let start_block = self.create_pledge_call_chain(
                                     pledge,
                                     target,
                                     &mut patcher,
@@ -284,9 +285,8 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     let mut patch = self.current_patcher.take().unwrap();
                                     let return_ty = fn_return_ty(self.tcx, check_id);
                                     assert!(return_ty.is_unit());
-                                    let res = patch.new_internal(return_ty, DUMMY_SP);
-                                    caller_block = prepend_call(
-                                        self.tcx,
+                                    let res = patch.new_temp(return_ty, DUMMY_SP);
+                                    caller_block = self.prepend_call(
                                         &mut patch,
                                         check_id,
                                         caller_block,
@@ -298,26 +298,22 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     self.current_patcher = Some(patch);
                                 }
                             }
-                            CheckKind::Post {
-                                check: check_id,
-                                old_store: old_store_id,
-                            } => {
+                            CheckKind::Post { check: check_id } => {
                                 // since here, we don't have mutable access to the body,
                                 // we created a patcher beforehand which we can use here
                                 // and apply later
                                 let mut patch = self.current_patcher.take().unwrap();
-                                (caller_block, current_target) = surround_call_with_store_and_check(
-                                    self.tcx,
-                                    &mut patch,
-                                    check_id,
-                                    old_store_id,
-                                    caller_block,
-                                    current_target,
-                                    *destination,
-                                    args.clone(),
-                                    substs,
-                                    call_fn_terminator.clone(),
-                                );
+                                (caller_block, current_target) = self
+                                    .surround_call_with_store_and_check(
+                                        &mut patch,
+                                        check_id,
+                                        caller_block,
+                                        current_target,
+                                        *destination,
+                                        args.clone(),
+                                        substs,
+                                        call_fn_terminator.clone(),
+                                    );
                                 replace_target(&mut call_fn_terminator, current_target.unwrap());
 
                                 // If there are multiple checks, this also should behave
@@ -327,41 +323,50 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                             }
                             CheckKind::Pledge {
                                 check,
-                                old_store,
                                 check_before_expiry,
-                                store_before_expiry,
                             } => {
                                 // get patcher:
                                 let mut patch = self.current_patcher.take().unwrap();
                                 // 1. store old values, create local:
-                                let old_values_ty = fn_return_ty(self.tcx, old_store);
+                                let check_sig = self.tcx.fn_sig(check).subst(self.tcx, substs);
+                                let check_sig = self.tcx.normalize_erasing_late_bound_regions(
+                                    ty::ParamEnv::reveal_all(),
+                                    check_sig,
+                                );
+                                let inputs = check_sig.inputs();
+                                let old_values_ty = inputs[inputs.len() - 2];
+                                let before_expiry_ty = inputs[inputs.len() - 1];
+
                                 let old_values_place =
-                                    Place::from(patch.new_internal(old_values_ty, DUMMY_SP));
+                                    Place::from(patch.new_temp(old_values_ty, DUMMY_SP));
                                 // store_before_expiry has to always exist?
                                 // if yes:
-                                let before_expiry_ty = fn_return_ty(self.tcx, store_before_expiry);
                                 let before_expiry_place =
-                                    Place::from(patch.new_internal(before_expiry_ty, DUMMY_SP));
+                                    Place::from(patch.new_temp(before_expiry_ty, DUMMY_SP));
 
-                                caller_block = prepend_call(
-                                    self.tcx,
+                                let (chain_start, new_caller) = self.prepend_old_cloning(
                                     &mut patch,
-                                    old_store,
-                                    caller_block,
-                                    args.clone(),
-                                    substs,
                                     call_fn_terminator.clone(),
                                     old_values_place,
+                                    old_values_ty,
+                                    args.clone(),
                                 );
+                                patch.patch_terminator(
+                                    caller_block,
+                                    TerminatorKind::Goto {
+                                        target: chain_start,
+                                    },
+                                );
+                                caller_block = new_caller;
 
                                 // *destination is the loan!
                                 // figure out where it expires!
                                 let pledge_to_process = PledgeToProcess {
                                     check,
                                     check_before_expiry,
-                                    store_before_expiry,
                                     old_values_place,
                                     before_expiry_place,
+                                    before_expiry_ty,
                                     destination: *destination,
                                     args: args.clone(),
                                     substs,
@@ -382,27 +387,29 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
 
 impl<'tcx> InsertChecksVisitor<'tcx> {
     fn insert_clone_argument(
-        &mut self,
-        arg: mir::Local,
+        &self,
+        arg: mir::Place<'tcx>,
         target: BasicBlock,
+        destination: Option<mir::Local>,
         patch: &mut MirPatch<'tcx>,
-    ) -> Result<BasicBlock, ()> {
+    ) -> Result<(BasicBlock, mir::Local), ()> {
         // if we deal with a reference, we can directly call clone on it
         // otherwise we have to create a reference first, to pass to the clone
         // function.
         let clone_defid = get_clone_defid(self.tcx).ok_or(())?;
         // let clone_trait_defid = self.tcx.lang_items().clone_trait().unwrap();
-        let local_decl = self.body_copy.local_decls.get(arg).unwrap();
-        let arg_ty = local_decl.ty;
-        let destination = *self.stored_arguments.get(&arg).unwrap();
+        let arg_ty = make_immutable(self.tcx, arg.ty(&self.body_copy.local_decls, self.tcx).ty);
+        println!("arg type: {:?}", arg_ty);
+
+        let dest = destination.unwrap_or_else(|| patch.new_temp(arg_ty, DUMMY_SP));
         println!(
             "trying to clone arg: {:?} into destination: {:?}",
-            arg, destination
+            arg, dest
         );
         if !arg_ty.is_ref() {
             println!("handling a non-ref old arg");
             let ref_ty = create_reference_type(self.tcx, arg_ty);
-            let ref_arg = patch.new_internal(ref_ty, DUMMY_SP);
+            let ref_arg = patch.new_temp(ref_ty, DUMMY_SP);
             // add a statement to deref the old_argument
             let rvalue = rvalue_reference_to_local(self.tcx, arg, false);
             // the statement to be added to the block that has the call clone
@@ -421,7 +428,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 clone_defid,
                 clone_args,
                 substs,
-                Some(destination.into()),
+                Some(dest.into()),
                 Some(target),
             )?;
             patch.add_statement(
@@ -432,16 +439,16 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 ref_stmt,
             );
 
-            Ok(new_block)
+            Ok((new_block, dest))
             // let block_data = BasicBlockData::new()
         } else {
             // create a new local to store the result of clone:
             let deref_ty = arg_ty.builtin_deref(false).ok_or(())?.ty;
             println!("dereferenced type: {:?}", deref_ty);
-            let clone_dest = patch.new_internal(deref_ty, DUMMY_SP);
+            let clone_dest = patch.new_temp(deref_ty, DUMMY_SP);
             let generic_ty = ty::subst::GenericArg::from(deref_ty);
             let substs = self.tcx.mk_substs(&[generic_ty]);
-            let clone_args = vec![Operand::Move(mir::Place::from(arg))];
+            let clone_args = vec![Operand::Move(arg)];
             // add an additional simple block afterwards, that dereferences
             // the the cloned value into the original receiver of old:
             // create it beforehand, so we can set the precedors target correctly
@@ -453,8 +460,8 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             let second_block = patch.new_block(block_data);
 
             // borrow the clone result
-            let rvalue = rvalue_reference_to_local(self.tcx, clone_dest, true);
-            let ref_stmt = mir::StatementKind::Assign(box (destination.into(), rvalue));
+            let rvalue = rvalue_reference_to_local(self.tcx, clone_dest.into(), false);
+            let ref_stmt = mir::StatementKind::Assign(box (dest.into(), rvalue));
             patch.add_statement(
                 mir::Location {
                     block: second_block,
@@ -473,15 +480,15 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 Some(second_block),
             )?;
 
-            Ok(new_block)
+            Ok((new_block, dest))
         }
     }
 
     pub fn create_and_replace_arguments(&mut self, body: &mut Body<'tcx>) {
         let mut patcher = MirPatch::new(body);
         for arg in &self.mir_info.args_to_be_cloned {
-            let ty = body.local_decls.get(*arg).unwrap().ty;
-            let new_var = patcher.new_internal(ty, DUMMY_SP);
+            let ty = make_immutable(self.tcx, body.local_decls.get(*arg).unwrap().ty);
+            let new_var = patcher.new_temp(ty, DUMMY_SP);
             self.stored_arguments.insert(*arg, new_var);
         }
         let mut replacer = ArgumentReplacer::new(self.tcx, &self.stored_arguments);
@@ -498,157 +505,210 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         }
         patcher.apply(body);
     }
-}
 
-/// Given a function call, prepend another function call directly before
-/// it. Done by moving the existing call to a new block, replacing the
-/// terminator of the existing block with a new call jumping to the new block
-#[allow(clippy::too_many_arguments)]
-fn prepend_call<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    patcher: &mut MirPatch<'tcx>,
-    fn_id: DefId,
-    caller_block: BasicBlock,
-    args: Vec<Operand<'tcx>>,
-    substs: ty::subst::SubstsRef<'tcx>,
-    terminator: Terminator<'tcx>,
-    dest_place: Place<'tcx>,
-) -> BasicBlock {
-    // get the bodies of the store and check function
-    let new_block_data = BasicBlockData::new(Some(terminator));
-    let new_block = patcher.new_block(new_block_data);
+    #[allow(clippy::too_many_arguments)]
+    fn surround_call_with_store_and_check(
+        &self,
+        patch: &mut MirPatch<'tcx>,
+        check_id: DefId,
+        caller_block: BasicBlock,
+        target: Option<BasicBlock>,
+        result_operand: Place<'tcx>,
+        args: Vec<Operand<'tcx>>,
+        substs: ty::subst::SubstsRef<'tcx>,
+        original_terminator: Terminator<'tcx>,
+    ) -> (BasicBlock, Option<BasicBlock>) {
+        // find the type of that local
+        let check_sig = self.tcx.fn_sig(check_id).subst(self.tcx, substs);
+        let check_sig = self
+            .tcx
+            .normalize_erasing_late_bound_regions(ty::ParamEnv::reveal_all(), check_sig);
 
-    let func_ty = tcx.mk_ty_from_kind(TyKind::FnDef(fn_id, substs));
-    let func = Operand::Constant(Box::new(Constant {
-        span: DUMMY_SP,
-        user_ty: None,
-        literal: ConstantKind::zero_sized(func_ty),
-    }));
+        let old_ty = *check_sig.inputs().last().unwrap();
+        assert!(matches!(old_ty.kind(), ty::Tuple(_)));
 
-    let terminator = TerminatorKind::Call {
-        func,
-        args: args.clone(),
-        destination: dest_place,
-        target: Some(new_block),
-        cleanup: None,
-        from_hir_call: false,
-        fn_span: DUMMY_SP,
-    };
-    // the block that initially calls the check function, now calls the store
-    // function
-    patcher.patch_terminator(caller_block, terminator);
-    new_block
-}
+        let old_dest_place = Place::from(patch.new_temp(old_ty, DUMMY_SP));
 
-fn create_pledge_call_chain<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    pledge: &PledgeToProcess<'tcx>,
-    target: BasicBlock,
-    patcher: &mut MirPatch<'tcx>,
-) -> Result<BasicBlock, ()> {
-    // given a location, insert the call chain to check a pledge:
-    // since we need to know the targets for each call, the blocks need to be created
-    // in reversed order.
+        // construct arguments: first the arguments the function is called with, then the result of
+        // that call, then the old values:
+        let mut new_args = args.clone();
+        new_args.push(Operand::Move(result_operand));
+        new_args.push(Operand::Move(old_dest_place));
 
-    // Create call to check function:
-    let mut check_args = pledge.args.clone();
-    check_args.push(Operand::Move(pledge.destination)); //result arg
-    check_args.push(Operand::Move(pledge.old_values_place));
-    check_args.push(Operand::Move(pledge.before_expiry_place));
-    let (check_after_block, _) = create_call_block(
-        tcx,
-        patcher,
-        pledge.check,
-        check_args,
-        pledge.substs,
-        None,
-        Some(target),
-    )?;
+        // we store the target, create a new block per check function
+        // chain these with the final call having the original target,
+        // change the target of the call to the first block of our chain.
+        let (check_block, _) =
+            create_call_block(self.tcx, patch, check_id, new_args, substs, None, target).unwrap();
 
-    // If there is a check_before_expiry block, creat it
-    let next_target = if let Some(check_before_expiry) = pledge.check_before_expiry {
-        let before_check_args = vec![
-            Operand::Move(pledge.destination),
-            Operand::Move(pledge.old_values_place),
-        ];
-        let (new_block, _) = create_call_block(
-            tcx,
+        // the terminator that calls the original function, but in this case jumps to
+        // a check function after instead of original target
+        // for now we just construct it, this does not modify the terminator
+        // in the CFG yet
+        let mut call_terminator = original_terminator;
+        replace_target(&mut call_terminator, check_block);
+
+        let (chain_start, new_caller) =
+            self.prepend_old_cloning(patch, call_terminator, old_dest_place, old_ty, args);
+
+        println!("chain starting at: {:?}", chain_start);
+        // make the original caller_block point to the first clone block
+        // after separate_terminator_from_block this is a goto so we don't break
+        // anything
+        patch.patch_terminator(
+            caller_block,
+            TerminatorKind::Goto {
+                target: chain_start,
+            },
+        );
+        (new_caller, Some(check_block))
+    }
+
+    fn prepend_old_cloning(
+        &self,
+        patch: &mut MirPatch<'tcx>,
+        terminator: Terminator<'tcx>,
+        old_dest_place: mir::Place<'tcx>,
+        old_ty: ty::Ty<'tcx>,
+        args: Vec<Operand<'tcx>>,
+    ) -> (BasicBlock, BasicBlock) {
+        let new_block_data = BasicBlockData::new(Some(terminator));
+        let current_caller = patch.new_block(new_block_data);
+        let mut current_target = current_caller;
+
+        let mut old_tuple = Vec::new();
+        let old_tuple_fields = old_ty.tuple_fields();
+        for (id, operand) in args.iter().enumerate() {
+            let old_values_ty = old_tuple_fields.get(id).unwrap();
+            if old_values_ty.is_unit() {
+                // we already know from ast, that this variable does not need
+                // to be cloned
+                let unit_const = unit_const(self.tcx);
+                old_tuple.push(unit_const);
+            } else {
+                match operand {
+                    mir::Operand::Constant(_) => {
+                        old_tuple.push(operand.clone());
+                    }
+                    mir::Operand::Move(place) | mir::Operand::Copy(place) => {
+                        // prepends clone blocks before the actual function is called
+                        let (start_block, destination) = self
+                            .insert_clone_argument(*place, current_target, None, patch)
+                            .unwrap();
+                        current_target = start_block;
+                        // add the result to our tuple:
+                        old_tuple.push(mir::Operand::Move(destination.into()));
+                    }
+                }
+            }
+        }
+        let old_rvalue = mir::Rvalue::Aggregate(box mir::AggregateKind::Tuple, old_tuple);
+        let stmt_kind = mir::StatementKind::Assign(box (old_dest_place, old_rvalue));
+        let location = mir::Location {
+            block: current_caller,
+            statement_index: 0,
+        };
+        patch.add_statement(location, stmt_kind);
+
+        // (start of clone-chain, block calling annotated function)
+        (current_target, current_caller)
+    }
+
+    /// Given a function call, prepend another function call directly before
+    /// it. Done by moving the existing call to a new block, replacing the
+    /// terminator of the existing block with a new call jumping to the new block
+    #[allow(clippy::too_many_arguments)]
+    fn prepend_call(
+        &self,
+        patcher: &mut MirPatch<'tcx>,
+        fn_id: DefId,
+        caller_block: BasicBlock,
+        args: Vec<Operand<'tcx>>,
+        substs: ty::subst::SubstsRef<'tcx>,
+        terminator: Terminator<'tcx>,
+        dest_place: Place<'tcx>,
+    ) -> BasicBlock {
+        // get the bodies of the store and check function
+        let new_block_data = BasicBlockData::new(Some(terminator));
+        let new_block = patcher.new_block(new_block_data);
+
+        let func_ty = self.tcx.mk_ty_from_kind(TyKind::FnDef(fn_id, substs));
+        let func = Operand::Constant(Box::new(Constant {
+            span: DUMMY_SP,
+            user_ty: None,
+            literal: ConstantKind::zero_sized(func_ty),
+        }));
+
+        let terminator = TerminatorKind::Call {
+            func,
+            args: args.clone(),
+            destination: dest_place,
+            target: Some(new_block),
+            cleanup: None,
+            from_hir_call: false,
+            fn_span: DUMMY_SP,
+        };
+        // the block that initially calls the check function, now calls the store
+        // function
+        patcher.patch_terminator(caller_block, terminator);
+        new_block
+    }
+
+    fn create_pledge_call_chain(
+        &self,
+        pledge: &PledgeToProcess<'tcx>,
+        target: BasicBlock,
+        patcher: &mut MirPatch<'tcx>,
+    ) -> Result<BasicBlock, ()> {
+        // given a location, insert the call chain to check a pledge:
+        // since we need to know the targets for each call, the blocks need to be created
+        // in reversed order.
+
+        // Create call to check function:
+        let mut check_args = pledge.args.clone();
+        check_args.push(Operand::Move(pledge.destination)); //result arg
+        check_args.push(Operand::Move(pledge.old_values_place));
+        check_args.push(Operand::Move(pledge.before_expiry_place));
+        let (check_after_block, _) = create_call_block(
+            self.tcx,
             patcher,
-            check_before_expiry,
-            before_check_args,
+            pledge.check,
+            check_args,
             pledge.substs,
             None,
-            Some(check_after_block),
+            Some(target),
         )?;
-        new_block
-    } else {
-        check_after_block
-    };
 
-    // 1. Call store_before_expiry, result of original call is pledge.destination
-    let args = vec![Operand::Move(pledge.destination)];
-    let (store_block, _) = create_call_block(
-        tcx,
-        patcher,
-        pledge.store_before_expiry,
-        args,
-        pledge.substs,
-        Some(pledge.before_expiry_place),
-        Some(next_target),
-    )?;
+        // If there is a check_before_expiry block, creat it
+        let next_target = if let Some(check_before_expiry) = pledge.check_before_expiry {
+            let before_check_args = vec![
+                Operand::Move(pledge.destination),
+                Operand::Move(pledge.old_values_place),
+            ];
+            let (new_block, _) = create_call_block(
+                self.tcx,
+                patcher,
+                check_before_expiry,
+                before_check_args,
+                pledge.substs,
+                None,
+                Some(check_after_block),
+            )?;
+            new_block
+        } else {
+            check_after_block
+        };
 
-    Ok(store_block)
-}
+        // 1. Call store_before_expiry, result of original call is pledge.destination
+        let args = vec![Operand::Move(pledge.destination)];
+        let terminator = mir::Terminator {
+            source_info: dummy_source_info(),
+            kind: mir::TerminatorKind::Goto {
+                target: next_target,
+            },
+        };
+        let (clone_chain_start, _) = self.prepend_old_cloning(patcher, terminator, pledge.before_expiry_place, pledge.before_expiry_ty, args);
 
-#[allow(clippy::too_many_arguments)]
-fn surround_call_with_store_and_check<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    patch: &mut MirPatch<'tcx>,
-    check_id: DefId,
-    old_store_id: DefId,
-    caller_block: BasicBlock,
-    target: Option<BasicBlock>,
-    result_operand: Place<'tcx>,
-    args: Vec<Operand<'tcx>>,
-    substs: ty::subst::SubstsRef<'tcx>,
-    original_terminator: Terminator<'tcx>,
-) -> (BasicBlock, Option<BasicBlock>) {
-    // find the type of that local
-    let old_ret_ty = fn_return_ty(tcx, old_store_id);
-    let old_dest_place = Place::from(patch.new_internal(old_ret_ty, DUMMY_SP));
-
-    // construct arguments: first the arguments the function is called with, then the result of
-    // that call, then the old values:
-    let mut new_args = args.clone();
-    new_args.push(Operand::Move(result_operand));
-    new_args.push(Operand::Move(old_dest_place));
-
-    // we store the target, create a new block per check function
-    // chain these with the final call having the original target,
-    // change the target of the call to the first block of our chain.
-    let (check_block, _) =
-        create_call_block(tcx, patch, check_id, new_args, substs, None, target).unwrap();
-    let next_target = Some(check_block);
-
-    // the terminator that calls the original function, but in this case jumps to
-    // a check function after instead of original target
-    let mut call_fn_terminator = original_terminator;
-    replace_target(&mut call_fn_terminator, check_block);
-
-    let new_caller_block = prepend_call(
-        tcx,
-        patch,
-        old_store_id,
-        caller_block,
-        args,
-        substs,
-        call_fn_terminator.clone(),
-        old_dest_place,
-    );
-
-    // If there are multiple checks, this also should behave
-    // correctly, since on the second iteration this target
-    // is already the new block
-
-    (new_caller_block, next_target)
+        Ok(clone_chain_start)
+    }
 }

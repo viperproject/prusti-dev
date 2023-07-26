@@ -77,8 +77,6 @@ pub struct SpecCollector<'a, 'tcx> {
     spec_functions: FxHashMap<SpecificationId, LocalDefId>,
     /// the functions who's specifications have associated checks.
     check_functions: FxHashMap<SpecificationId, LocalDefId>,
-    store_functions: FxHashMap<SpecificationId, LocalDefId>,
-    store_before_expiry_functions: FxHashMap<SpecificationId, LocalDefId>,
     check_before_expiry_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
@@ -103,9 +101,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             spec_functions: FxHashMap::default(),
             check_functions: FxHashMap::default(),
             procedure_specs: FxHashMap::default(),
-            store_functions: FxHashMap::default(),
             procedure_checks: FxHashMap::default(),
-            store_before_expiry_functions: FxHashMap::default(),
             check_before_expiry_functions: FxHashMap::default(),
             loop_specs: vec![],
             loop_variants: vec![],
@@ -159,32 +155,20 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     }
                     SpecIdRef::Postcondition(id) => {
                         let fn_id = self.check_functions.get(id).unwrap();
-                        // postconditions always have a fn storing old values
-                        let store_fn_id = self.store_functions.get(id).unwrap();
                         typed::CheckKind::Post {
                             check: fn_id.to_def_id(),
-                            old_store: store_fn_id.to_def_id(),
                         }
                     }
                     SpecIdRef::Pledge { rhs, .. } => {
                         // can we treat both assert_on_expiry and after_expiry treat the same?
                         let check = self.check_functions.get(rhs).unwrap().to_def_id();
-                        let old_store = self.store_functions.get(rhs).unwrap().to_def_id();
-                        // this does not exist for after_expiry pledges
                         let check_before_expiry = self
                             .check_before_expiry_functions
                             .get(rhs)
                             .map(|id| id.to_def_id());
-                        let store_before_expiry = self
-                            .store_before_expiry_functions
-                            .get(rhs)
-                            .unwrap()
-                            .to_def_id();
                         typed::CheckKind::Pledge {
                             check,
-                            old_store,
                             check_before_expiry,
-                            store_before_expiry,
                         }
                     }
                     // Todo: Pledges, Assume?
@@ -659,13 +643,6 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             // check_id work just like spec_ids
             let check_id = parse_spec_id(raw_check_id, def_id);
             self.check_functions.insert(check_id, local_id);
-        } else if let Some(raw_store_id) = read_prusti_attr("store_id", attrs) {
-            let store_id = parse_spec_id(raw_store_id, def_id);
-            self.store_functions.insert(store_id, local_id);
-        } else if let Some(raw_store_expiry_id) = read_prusti_attr("store_before_expiry_id", attrs)
-        {
-            let id = parse_spec_id(raw_store_expiry_id, def_id);
-            self.store_before_expiry_functions.insert(id, local_id);
         } else if let Some(raw_before_expiry_check_id) =
             read_prusti_attr("check_before_expiry_id", attrs)
         {

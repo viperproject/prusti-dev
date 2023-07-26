@@ -174,9 +174,9 @@ impl AstRewriter {
         check_id: SpecificationId,
         tokens: TokenStream,
         item: &untyped::AnyFnItem,
-    ) -> syn::Result<(syn::Item, Option<syn::Item>)> {
+    ) -> syn::Result<syn::Item> {
         let res = translate_runtime_checks(spec_type, check_id, parse_prusti(tokens)?, None, item)?;
-        syn::Result::Ok((res.check_fn, res.store_fn))
+        syn::Result::Ok(res.check_fn)
     }
 
     /// Parse a pledge with lhs into a Rust expression
