@@ -184,15 +184,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 }
                 {
                     // ```
-                    // forall address, index, element_size ::
-                    //   {address_constructor(get_allocation(address), index, element_size)}
-                    //   address_constructor(get_allocation(address), index, element_size) == allocation
+                    // forall address, element_size ::
+                    //   {address_constructor(get_allocation(address), get_index(address, element_size), element_size)}
+                    //   address_constructor(get_allocation(address), get_index(address, element_size), element_size) == address
                     // ```
                     let get_allocation = self.create_domain_func_app(
                         ADDRESS_DOMAIN_NAME,
                         "get_allocation$",
                         vec![address.clone().into()],
                         allocation_type.clone(),
+                        position,
+                    )?;
+                    let get_index = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "get_index$",
+                        vec![address.clone().into(), element_size.clone().into()],
+                        vir_low::Type::Int,
                         position,
                     )?;
                     let address_constructor = self.create_domain_func_app(
@@ -209,47 +216,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                     let body = vir_low::Expression::forall(
                         vec![address.clone(), index.clone(), element_size.clone()],
                         vec![vir_low::Trigger::new(vec![address_constructor.clone()])],
-                        expr! { [address_constructor] == address },
+                        expr! { ([get_index] == index) ==> ([address_constructor] == address) },
                     );
                     let axiom = vir_low::DomainAxiomDecl::new(
                         None,
                         "address_constructor$injectivity2",
-                        body,
-                    );
-                    self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
-                }
-                {
-                    // ```
-                    // forall allocation, address, element_size ::
-                    //   {address_constructor(allocation, get_index(address, element_size), element_size)}
-                    //   address_constructor(allocation, get_index(address, element_size), element_size) == address
-                    // ```
-                    let get_index = self.create_domain_func_app(
-                        ADDRESS_DOMAIN_NAME,
-                        "get_index$",
-                        vec![address.clone().into(), element_size.clone().into()],
-                        vir_low::Type::Int,
-                        position,
-                    )?;
-                    let address_constructor = self.create_domain_func_app(
-                        ADDRESS_DOMAIN_NAME,
-                        "address_constructor$",
-                        vec![
-                            allocation.clone().into(),
-                            get_index.clone().into(),
-                            element_size.clone().into(),
-                        ],
-                        address_type.clone(),
-                        position,
-                    )?;
-                    let body = vir_low::Expression::forall(
-                        vec![allocation, address.clone(), element_size.clone()],
-                        vec![vir_low::Trigger::new(vec![address_constructor.clone()])],
-                        expr! { [address_constructor] == address },
-                    );
-                    let axiom = vir_low::DomainAxiomDecl::new(
-                        None,
-                        "address_constructor$injectivity3",
                         body,
                     );
                     self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
@@ -448,7 +419,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_address_axioms()?;
         let index1 = self.index_into_allocation(size.clone(), address, position)?;
         let index2 = self.index_into_allocation(size, from_address, position)?;
-        let offset = vir_low::Expression::subtract(index2, index1);
+        let offset = vir_low::Expression::subtract(index1, index2);
         Ok(offset)
     }
     fn index_into_allocation(

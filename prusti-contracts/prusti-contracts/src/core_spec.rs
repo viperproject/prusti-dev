@@ -74,6 +74,7 @@ impl<T> Pointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
+    #[structural_requires(same_allocation(self, origin))]
     #[structural_requires(address_from(self, origin) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
     #[structural_requires(address_from(self, origin) >= Int::new_isize(0))]
     #[ensures(Int::new_isize(result) == address_from(self, origin))]
@@ -138,6 +139,7 @@ impl<T> MutPointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
+    #[structural_requires(same_allocation(self, origin))]
     #[structural_requires(address_from(self, origin) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
     #[structural_requires(address_from(self, origin) >= Int::new_isize(0))]
     #[ensures(Int::new_isize(result) == address_from(self, origin))]
