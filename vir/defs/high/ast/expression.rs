@@ -279,6 +279,8 @@ pub enum BuiltinFunc {
     PtrAddressOffsetFrom,
     /// Special-cased `is_null` function on pointers.
     PtrIsNull,
+    /// Express that two pointers point to the same allocation.
+    PtrSameAllocation,
     /// Special-cased function whether a range of addresses contains another
     /// address.
     PtrRangeContains,

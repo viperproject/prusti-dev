@@ -1056,6 +1056,19 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     app.position,
                 )
             }
+            BuiltinFunc::PtrSameAllocation => {
+                let args = construct_args(self, lowerer)?;
+                let ty = app.arguments[0].get_type();
+                assert_eq!(args.len(), 2);
+                let address1 = lowerer.pointer_address(ty, args[0].clone(), app.position)?;
+                let address2 = lowerer.pointer_address(ty, args[1].clone(), app.position)?;
+                let allocation1 = lowerer.address_allocation(address1, app.position)?;
+                let allocation2 = lowerer.address_allocation(address2, app.position)?;
+                let equals = vir_low::Expression::equals(allocation1, allocation2);
+                let equals =
+                    lowerer.construct_constant_snapshot(app.get_type(), equals, app.position)?;
+                self.ensure_bool_expression(lowerer, app.get_type(), equals, expect_math_bool)
+            }
             BuiltinFunc::PtrRangeContains => {
                 let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 3);

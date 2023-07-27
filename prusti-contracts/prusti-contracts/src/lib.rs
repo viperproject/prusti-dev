@@ -993,6 +993,11 @@ pub fn address_from<T>(_ptr: *const T, _origin: *const T) -> Int {
     unreachable!();
 }
 
+/// A ghost operation for expressing that the two pointers belong to the same allocation.
+pub fn same_allocation<T>(_ptr1: *const T, _ptr2: *const T) -> bool {
+    unreachable!();
+}
+
 #[trusted]
 #[pure]
 #[no_panic]
