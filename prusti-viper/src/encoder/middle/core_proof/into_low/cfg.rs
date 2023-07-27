@@ -367,7 +367,7 @@ impl IntoLow for vir_mid::Statement {
                         statement.position,
                     )?;
                     vir_low::Statement::unfold_no_pos(predicate)
-                } else if !lowerer.encoder.has_invariant_mid(ty)? {
+                } else if !lowerer.encoder.has_invariant_mid(ty)? || true {
                     let predicate = lowerer.unique_ref(
                         CallContext::Procedure,
                         ty,
