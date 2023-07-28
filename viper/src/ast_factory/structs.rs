@@ -19,17 +19,6 @@ jobject_wrapper!(Predicate);
 jobject_wrapper!(LocalVarDecl);
 jobject_wrapper!(Stmt);
 
-// TODO: use these (?)
-/*
-jobject_wrapper!(Location);
-generate_conversion_from_to!(Predicate, Location);
-generate_conversion_from_to!(Field, Location);
-
-jobject_wrapper!(LocationAccess);
-jobject_wrapper!(PredicateAccess);
-generate_conversion_from_to!(PredicateAccess, LocationAccess);
-*/
-
 jobject_wrapper!(Declaration);
 generate_conversion_from_to!(Stmt, Declaration);
 generate_conversion_from_to!(LocalVarDecl, Declaration);

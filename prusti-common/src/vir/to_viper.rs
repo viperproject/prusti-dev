@@ -685,7 +685,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 pos.to_viper(context, ast),
             ),
             Expr::ForPerm(ref vars, ref access, ref body, ref _pos) => ast.for_perm(
-                // TODO: make work properly
                 &vars.to_viper_decl(context, ast)[..],
                 access.to_viper(context, ast),
                 body.to_viper(context, ast),

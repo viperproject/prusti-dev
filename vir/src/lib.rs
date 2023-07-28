@@ -1,7 +1,7 @@
 #![feature(box_patterns)]
 #![feature(decl_macro)]
 #![allow(unused_imports)]
-//#![deny(unused_must_use)]
+#![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
 #![deny(unused_mut)]
 #![deny(unused_variables)]

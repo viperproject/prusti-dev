@@ -75,7 +75,7 @@ fn complicated_procedure() {
 
 The same idea is used to prove lower and upper bounds on the running time of functions as explained in the chapter about [time reasoning](time_reasoning.md).
 
-Resources can also be asserted in universal quantifiers and loop invariants:
+Resources can also be asserted in universal quantifiers and [loop invariants](loop.md):
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/resources_clean_rooms.rs:code}}
@@ -104,11 +104,10 @@ The short-circuiting `&&` and `||` are equivalent to conditionals:
 
 Therefore, resources are allowed to appear on the left-hand side of `&&` and `||` but not on the right-hand side.
 
-## Loops
-TODO: explain the precise semantics of resources in loop invariants
-
 ## Pure functions
-[NOT IMPLEMENTED YET] Resources may appear in the preconditions of [`#[pure]`](pure.md) functions but not in their postconditions. When a pure function is called, the resources in the precondition are asserted (so verification fails if Prusti cannot prove that the caller has all the required resources), but they are not removed from the caller's state.
+Resources may appear in the preconditions of [`#[pure]`](pure.md) functions but not in their postconditions. When a pure function is called, the resources in the precondition are asserted (so verification fails if Prusti cannot prove that the caller has all the required resources), but they are not removed from the caller's state.
+
+> Note: The behavior of resources in the contracts of pure functions as described here might be not fully implemented yet and it might change in the future.
 
 ## Obligations
 
@@ -117,7 +116,7 @@ Obligations are declared and used almost identically to resources. The only two 
 * obligations are declared using the `obligation!` macro instead of `resource!`, but otherwise, the declarations have the same structure, and
 * for a program to verify, Prusti must prove that no instances of obligations are leaked.
 
-Obligations are leaked if at the end of a function, not all obligations that are held are asserted in the function postcondition or if from one loop iteration to another, more obligations are acquired than what the change of the obligations asserted in the loop invariant is.
+Obligations are leaked if at the end of a function, not all obligations that are held are asserted in the function postcondition or if from one loop iteration to another, more obligations are acquired than what the change of the obligations asserted in the [loop invariant](loop.md) is.
 
 In the following example, `with_resources` verifies, but `with_obligations` doesn't because obligations are leaked.
 
@@ -134,6 +133,20 @@ Obligations are primarily used for proving that all allocated resources are even
 ```
 
 `procedure1` verifies successfully. For `procedure2`, on the other hand, we get a verification error because if it exits through the `return;`, the allocated object does not get deallocated.
+
+## Loops
+When a [loop](loop.md) is encountered, only as many resources are taken from the currently executing function's state as the loop invariant in the first iteration asserts. At the end of the loop, as many resources are given back to the state of the enclosing function as the loop invariant in the last iteration asserts (plus/minus those produced/consumed in the last iteration after the invariant).
+
+Naturally then, it is not considered an obligation leak when the loop invariant in the first loop iteration doesn't assert all obligations currently held in the enclosing function since those that are not asserted just stay in the function's state for after the loop and are in that sense not leaked.
+
+Hence, an obligation leak inside a loop occurs only when the amount of an obligation held in one loop iteration increases more than the amount of this obligation asserted in the loop invariant.
+
+By this logic, the following program verifies.
+
+```rust,noplaygen
+{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/loop_resource_partial_assert.rs:code}}
+// Prusti: VERIFIES
+```
 
 ## `prusti_exhale!` and `prusti_inhale!`
 

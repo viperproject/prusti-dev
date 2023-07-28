@@ -202,6 +202,7 @@ impl<'a> Verifier<'a> {
                         .collect(),
                 );
             }
+
             let program_option = self.jni.new_option(Some(program.to_jobject()));
             self.jni.unwrap_result(self.frontend_wrapper.set___program(self.frontend_instance, program_option));
 

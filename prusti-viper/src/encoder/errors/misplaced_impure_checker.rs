@@ -7,7 +7,7 @@
 use std::fmt::Debug;
 
 use vir_crate::polymorphic::{Position, program::Program, CfgMethod, ExprWalker, Expr, BinaryOpKind, BinOp, UnaryOpKind, UnaryOp, Cond, PredicateAccessPredicate, FieldAccessPredicate, ResourceAccessPredicate, FuncApp, ResourceAccess, DomainFuncApp, Exists};
-use crate::encoder::errors::PositionManager;
+use crate::encoder::errors::{MultiSpan, PositionManager};
 use prusti_interface::PrustiError;
 
 #[derive(Clone, Debug)]
@@ -19,8 +19,7 @@ struct MisplacedImpureError {
 
 impl MisplacedImpureError {
     fn into_prusti_error(self, position_manager: &PositionManager) -> PrustiError {
-        // TODO: remove dangerous unwrap
-        let error = PrustiError::incorrect(self.message, position_manager.source_span.get(&self.impurity_pos.id()).unwrap().clone());
+        let error = PrustiError::incorrect(self.message, position_manager.source_span.get(&self.impurity_pos.id()).unwrap_or(&MultiSpan::new()).clone());
         error.push_primary_span(position_manager.source_span.get(&self.operator_pos.id()))
     }
 }

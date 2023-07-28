@@ -29,7 +29,7 @@ pub struct CfgMethod {
     #[serde(skip)]
     pub(crate) reserved_labels: FxHashSet<String>,
     pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
-    pub basic_blocks_labels: Vec<String>,
+    pub(crate) basic_blocks_labels: Vec<String>,
     #[serde(skip)]
     pub(crate) fresh_var_index: i32,
     #[serde(skip)]
@@ -170,7 +170,7 @@ impl CfgMethod {
         &self.formal_returns
     }
 
-    pub fn block_index(&self, index: usize) -> CfgBlockIndex {
+    pub(super) fn block_index(&self, index: usize) -> CfgBlockIndex {
         CfgBlockIndex {
             method_uuid: self.uuid,
             block_index: index,

@@ -2,7 +2,7 @@
 
 With the setting [`TIME_REASONING=true`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#time_reasoning), two built-in [resources](resources_obligations.md) are available: `time_credits` and `time_receipts`. They can be used to prove lower and upper bounds on the running time of functions.
 
-For the most part, they behave as any other resource defined by the user using the [`resource!` macro](resources_obligations.md). However, they are special in that at the beginning of every function and of every loop iteration (TODO: check this: is it at the _beginning_ of loop iterations?), one instance of `time_credits` is consumed and one instance of `time_receipts` is produced. If enough `time_credits` might not be available, verification fails with an error.
+For the most part, they behave as any other resource defined by the user using the [`resource!` macro](resources_obligations.md). However, they are special in that at the beginning of every function and in every loop iteration (specifically, right after the [loop invariant](loop.md)), one instance of `time_credits` is consumed and one instance of `time_receipts` is produced. If enough `time_credits` might not be available, verification fails with an error.
 
 Since the number of `time_credits` asserted in a function's precondition is an upper bound on the number of `time_credits` consumed inside the function, it serves as an upper bound on the running time of the function. Similarly, asserting a certain number of `time_receipts` in the postcondition entails a lower bound on the function's running time.
 
@@ -47,4 +47,4 @@ fn do_work(more_work: bool) {
 
 ## Pure functions
 
-[NOT IMPLEMENTED YET] `time_credits` and `time_receipts` may not appear in preconditions and postconditions of [`#[pure]`](pure.md) functions. For the purposes of time reasoning, the execution of pure functions is taken to be instantaneous: they do not produce or consume any `time_credits` or `time_receipts`.
+[NOT FULLY IMPLEMENTED YET, MIGHT CHANGE IN FUTURE] `time_credits` and `time_receipts` may not appear in preconditions and postconditions of [`#[pure]`](pure.md) functions. For the purposes of time reasoning, the execution of pure functions is taken to be instantaneous: they do not produce or consume any `time_credits` or `time_receipts`.

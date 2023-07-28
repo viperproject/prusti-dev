@@ -445,7 +445,7 @@ If not `None`, checks that the total number of unique triggers reported by the S
 
 ## `TIME_REASONING` 
 
-When enabled, the `time_credits` and `time_receipts` predicates are usable and functions' and loops' bodies will concume time credits and produce time receipts.
+When enabled, the `time_credits` and `time_receipts` predicates are usable and functions' and loops' bodies will consume time credits and produce time receipts.
 
 > **Note:** This is an experimental feature.
 > **Note:** Requires `SIMPLIFY_ENCODING` to be `true` and the `simplify_exprs` optimization to be enabled.

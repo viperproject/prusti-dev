@@ -564,7 +564,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             }
 
                             // Prusti-specific syntax
-                            // TODO: check we are in a spec function
                             "prusti_contracts::old" => {
                                 trace!("Encoding old expression {:?}", args[0]);
                                 assert_eq!(args.len(), 1);
