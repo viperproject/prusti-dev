@@ -36,7 +36,7 @@ pub struct BorrowckFacts {
     /// Polonius input facts.
     pub input_facts: RefCell<Option<AllInputFacts>>,
     /// Polonius output facts.
-    pub output_facts: Rc<AllOutputFacts>,
+    pub output_facts: Option<Rc<AllOutputFacts>>,
     /// The table that maps Polonius points to locations in the table.
     pub location_table: RefCell<Option<LocationTable>>,
 }

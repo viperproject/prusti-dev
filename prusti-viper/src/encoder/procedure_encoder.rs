@@ -53,11 +53,12 @@ use std::collections::{BTreeMap};
 use std::fmt::Debug;
 use std::iter::once;
 use prusti_interface::utils;
+use prusti_rustc_interface::index::IndexSlice;
 use prusti_rustc_interface::middle::mir::Mutability;
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::middle::mir::{TerminatorKind};
 use prusti_rustc_interface::middle::ty::{self, subst::SubstsRef};
-use prusti_rustc_interface::target::abi::Integer;
+use prusti_rustc_interface::target::abi::{FieldIdx, Integer};
 use rustc_hash::{FxHashMap, FxHashSet};
 use prusti_rustc_interface::span::Span;
 use prusti_rustc_interface::errors::MultiSpan;
@@ -1503,7 +1504,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_lhs,
                     ty,
                     aggregate,
-                    operands,
+                    operands.as_slice(),
                     location
                 )?
             },
@@ -1535,7 +1536,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location
                 )?
             }
-            mir::Rvalue::NullaryOp(op, op_ty) => {
+            mir::Rvalue::NullaryOp(ref op, op_ty) => {
                 self.encode_assign_nullary_op(
                     op,
                     op_ty,
@@ -2418,7 +2419,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (stmts, MirSuccessor::Kill)
             }
 
-            TerminatorKind::Abort => {
+            TerminatorKind::Terminate => {
                 let pos = self.register_error(term.source_info.span, ErrorCtxt::AbortTerminator);
                 stmts.push(vir::Stmt::Assert( vir::Assert {
                     expr: false.into(),
@@ -2742,7 +2743,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
 
                 // Check or assume the assertion
-                let (assert_msg, error_ctxt) = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                let (assert_msg, error_ctxt) = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     let mut s = String::new();
                     msg.fmt_assert_args(&mut s).unwrap();
                     (s, ErrorCtxt::BoundsCheckAssert)
@@ -5514,10 +5515,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         } else {
             // FIXME: why are we getting the MIR body for this?
-            let mir = self.encoder.env().body.get_impure_fn_body(
+            let mir = self.encoder.env().body.get_impure_fn_body_identity(
                 containing_def_id.expect_local(),
-                // TODO(tymap): identity substs here are probably wrong?
-                self.encoder.env().query.identity_substs(containing_def_id),
             );
             let return_ty = mir.return_ty();
             let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();
@@ -6003,7 +6002,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_nullary_op(
         &mut self,
-        op: mir::NullOp,
+        op: &mir::NullOp,
         op_ty: ty::Ty<'tcx>,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
@@ -6022,6 +6021,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::NullOp::SizeOf => layout.size().bytes(),
             // FIXME: abi or pref?
             mir::NullOp::AlignOf => layout.align().abi.bytes(),
+            mir::NullOp::OffsetOf(_) => {
+                return Err(SpannedEncodingError::internal(
+                    "`OffsetOf` is not supported yet".to_string(),
+                    self.mir.source_info(location).span,
+                ))
+            }
         };
         let bytes_vir = vir::Expr::from(bytes);
         self.encode_copy_value_assign(
@@ -6603,7 +6608,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: &vir::Expr,
         ty: ty::Ty<'tcx>,
         aggregate: &mir::AggregateKind<'tcx>,
-        operands: &[mir::Operand<'tcx>],
+        operands: &IndexSlice<FieldIdx, mir::Operand<'tcx>>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let span = self.mir_encoder.get_span_of_location(location);
@@ -6690,7 +6695,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     dst_base = new_dst_base;
                 }
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
-                    let operand = &operands[field_index];
+                    let operand = &operands[field_index.into()];
                     let field_name = field.ident(tcx).to_string();
                     let field_ty = field.ty(tcx, subst);
                     let encoded_field = self.encoder
@@ -6709,7 +6714,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {def_id:?}");
                 let cl_substs = substs.as_closure();
                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
-                    let operand = &operands[field_index];
+                    let operand = &operands[field_index.into()];
                     let field_name = format!("closure_{field_index}");
                     let encoded_field = self.encoder
                         .encode_raw_ref_field(field_name, field_ty)

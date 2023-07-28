@@ -186,7 +186,7 @@ mod trait_bounds {
             .find_trait_method_substs(context.proc_def_id, context.substs);
         let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
             trace!("Applying trait substs {:?}", trait_substs);
-            ty::EarlyBinder(param_env).subst(env.tcx(), trait_substs)
+            ty::EarlyBinder::bind(param_env).subst(env.tcx(), trait_substs)
         } else {
             param_env
         };
@@ -200,7 +200,7 @@ mod trait_bounds {
             param_env
         } else {
             trace!("Applying call substs {:?}", context.substs);
-            ty::EarlyBinder(param_env).subst(env.tcx(), context.substs)
+            ty::EarlyBinder::bind(param_env).subst(env.tcx(), context.substs)
         }
     }
 

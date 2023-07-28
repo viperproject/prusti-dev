@@ -722,8 +722,8 @@ fn translate_spec_ent(
         specification_entailment(
             #once,
             __cl_ref,
-            ( #( #[prusti::spec_only] || -> bool { ((#preconds): bool) }, )* ),
-            ( #( #[prusti::spec_only] || -> bool { ((#postconds): bool) }, )* ),
+            ( #( #[prusti::spec_only] || -> bool { #preconds }, )* ),
+            ( #( #[prusti::spec_only] || -> bool { #postconds }, )* ),
         )
     } }
 }
@@ -753,7 +753,7 @@ impl Quantifier {
                 quote_spanned! { full_span => ( #triggers ) }
             })
             .collect::<Vec<_>>();
-        let body = quote_spanned! { body.span() => ((#body): bool) };
+        let body = quote_spanned! { body.span() => #body };
         match self {
             Self::Forall => quote_spanned! { full_span => ::prusti_contracts::forall(
                 ( #( #trigger_sets, )* ),
@@ -1085,15 +1085,15 @@ mod tests {
             parse_prusti("forall(|x: i32| a ==> b)".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            ":: prusti_contracts :: forall (() , # [prusti :: spec_only] | x : i32 | -> bool { ((if (a) { let rhs : bool = (b) ; rhs } else { true }) : bool) })",
+            ":: prusti_contracts :: forall (() , # [prusti :: spec_only] | x : i32 | -> bool { if (a) { let rhs : bool = (b) ; rhs } else { true } })",
         );
         assert_eq!(
             parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
-            ":: prusti_contracts :: exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& (a) , & (b))) : bool) })",
+            ":: prusti_contracts :: exists (() , # [prusti :: spec_only] | x : i32 | -> bool { snapshot_equality (& (a) , & (b)) })",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
-            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { ((if (a) { let rhs : bool = (b) ; rhs } else { true }) : bool) })",
+            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { if (a) { let rhs : bool = (b) ; rhs } else { true } })",
         );
         assert_eq!(
             parse_prusti("assert!(a === b ==> b)".parse().unwrap())

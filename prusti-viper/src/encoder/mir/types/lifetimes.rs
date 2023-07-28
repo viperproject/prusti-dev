@@ -25,6 +25,17 @@ pub(super) fn extract_lifetimes_from_substs<'tcx>(
     Ok(())
 }
 
+pub(super) fn extract_lifetimes_from_types<'tcx>(
+    type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
+    types: impl IntoIterator<Item = ty::Ty<'tcx>>,
+    lifetimes: &mut Vec<vir_high::ty::LifetimeConst>,
+) -> SpannedEncodingResult<()> {
+    for ty in types {
+        extract_lifetimes_from_type(type_encoder, ty, lifetimes)?;
+    }
+    Ok(())
+}
+
 pub(super) fn extract_lifetimes_from_type<'tcx>(
     type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
     ty: ty::Ty<'tcx>,
@@ -42,7 +53,7 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         | ty::TyKind::Never => {}
         ty::TyKind::Adt(_, substs)
         | ty::TyKind::Closure(_, substs)
-        | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { substs, .. })
+        | ty::TyKind::Alias(_, ty::AliasTy { substs, .. })
         | ty::TyKind::FnDef(_, substs) => {
             extract_lifetimes_from_substs(type_encoder, substs, lifetimes)?
         }
@@ -78,9 +89,6 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         }
         ty::TyKind::Param(_param_ty) => {
             // FIXME: extract lifetimes from TyKind::Param()
-        }
-        ty::TyKind::Alias(ty::AliasKind::Projection, alias_ty) => {
-            extract_lifetimes_from_substs(type_encoder, alias_ty.substs, lifetimes)?
         }
         ty::TyKind::Bound(_, _)
         | ty::TyKind::Placeholder(_)

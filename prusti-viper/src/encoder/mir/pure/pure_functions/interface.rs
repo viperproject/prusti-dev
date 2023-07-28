@@ -8,7 +8,6 @@ use crate::encoder::{
     stub_function_encoder::StubFunctionEncoder,
 };
 use log::{debug, trace};
-use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_rustc_interface::middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -253,7 +252,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         }: mir::UnevaluatedConst<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         let promoted_id = promoted.expect("unevaluated const should have a promoted ID");
-        super::encoder_poly::encode_promoted(self, def, promoted_id, def.did, substs)
+        super::encoder_poly::encode_promoted(self, def, promoted_id, def, substs)
     }
 
     // FIXME: This should be refactored to depend on encode_pure_expression_high

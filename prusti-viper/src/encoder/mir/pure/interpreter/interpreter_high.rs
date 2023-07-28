@@ -31,7 +31,9 @@ use log::{debug, trace};
 use prusti_common::vir_high_local;
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     hir::def_id::DefId,
+    index::IndexSlice,
     middle::{mir, ty, ty::subst::SubstsRef},
     span::Span,
 };
@@ -113,7 +115,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         ty: vir_high::Type,
         lhs: &vir_high::Expression,
         aggregate: &mir::AggregateKind<'tcx>,
-        operands: &[mir::Operand<'tcx>],
+        operands: &IndexSlice<FieldIdx, mir::Operand<'tcx>>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
         let mut arguments = Vec::new();
@@ -180,7 +182,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Aggregate(aggregate, operands) => {
                 debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
-                self.apply_assign_aggregate(state, ty, &encoded_lhs, aggregate, operands, span)?
+                self.apply_assign_aggregate(
+                    state,
+                    ty,
+                    &encoded_lhs,
+                    aggregate,
+                    operands.as_slice(),
+                    span,
+                )?
             }
             mir::Rvalue::BinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_operand(left, span)?;
@@ -438,7 +447,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
+            let substs =
+                ty::EarlyBinder::bind(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some(target_block) = target {
                 let encoded_lhs = self.encode_place(destination).with_span(span)?;
@@ -890,7 +900,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::Abort | TerminatorKind::Resume { .. } => {
+            TerminatorKind::Terminate | TerminatorKind::Resume { .. } => {
                 assert!(states.is_empty());
                 let pos = self
                     .encoder
@@ -971,7 +981,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir_high::Expression::not(encoded_condition)
                 };
 
-                let error_ctxt = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                let error_ctxt = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     ErrorCtxt::BoundsCheckAssert
                 } else {
                     let assert_msg = msg.description().to_string();

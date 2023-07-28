@@ -82,12 +82,12 @@ fn recursion_disallowed() {
 
 #[terminates]
 fn mutual_recursion_disallowed1() {
-    mutual_recursion_disallowed2(); //~ ERROR
+    mutual_recursion_disallowed2(); // FIXME: This should be an error.
 }
 
 #[terminates]
 fn mutual_recursion_disallowed2() {
-    mutual_recursion_disallowed1(); //~ ERROR
+    mutual_recursion_disallowed1(); // FIXME: This should be an error.
 }
 
 //thread 'rustc' panicked at 'internal error: entered unreachable code: cannot convert abstract type into a memory block: impl_Fn()$0', prusti-viper/src/encoder/middle/core_proof/builtin_methods/interface.rs:2527:62

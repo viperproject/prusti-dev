@@ -19,7 +19,7 @@ use lazy_static::lazy_static;
 use log::info;
 use prusti_common::{config, report::user, Stopwatch};
 use prusti_rustc_interface::interface::interface::try_print_query_stack;
-use std::{borrow::Cow, env, panic};
+use std::{env, panic};
 use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
 use tracing_subscriber::{filter::EnvFilter, prelude::*};
 
@@ -86,14 +86,14 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
     let version_info = get_prusti_version_info();
 
-    let xs: Vec<Cow<'static, str>> = vec![
+    let xs: Vec<String> = vec![
         "Prusti or the compiler unexpectedly panicked. This is a bug.".into(),
-        format!("We would appreciate a bug report: {bug_report_url}").into(),
-        format!("Prusti version: {version_info}").into(),
+        format!("We would appreciate a bug report: {bug_report_url}"),
+        format!("Prusti version: {version_info}"),
     ];
 
-    for note in &xs {
-        handler.note_without_error(note.as_ref());
+    for note in xs {
+        handler.note_without_error(note);
     }
 
     // If backtraces are enabled, also print the query stack
@@ -209,7 +209,6 @@ fn main() {
         }
 
         rustc_args.push("-Zalways-encode-mir".to_owned());
-        rustc_args.push("-Zcrate-attr=feature(type_ascription)".to_owned());
         rustc_args.push("-Zcrate-attr=feature(stmt_expr_attributes)".to_owned());
         rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         rustc_args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
@@ -245,7 +244,7 @@ fn main() {
             ));
         }
 
-        let mut callbacks = PrustiCompilerCalls::default();
+        let mut callbacks = PrustiCompilerCalls;
 
         prusti_rustc_interface::driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
     });

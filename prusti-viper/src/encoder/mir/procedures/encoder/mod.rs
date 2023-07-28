@@ -37,8 +37,10 @@ use prusti_interface::{
     specs::typed::DirectSpecificationKind,
 };
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     data_structures::graph::WithStartNode,
     hir::def_id::DefId,
+    index::IndexSlice,
     middle::{mir, ty, ty::subst::SubstsRef},
     span::Span,
 };
@@ -817,7 +819,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location,
                     encoded_target,
                     aggregate_kind,
-                    operands,
+                    operands.as_slice(),
                 )?;
             }
             // mir::Rvalue::ShallowInitBox(Operand<'tcx>, Ty<'tcx>),
@@ -835,7 +837,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         encoded_target: vir_crate::high::Expression,
         aggregate_kind: &mir::AggregateKind<'tcx>,
-        operands: &[mir::Operand<'tcx>],
+        operands: &IndexSlice<FieldIdx, mir::Operand<'tcx>>,
     ) -> SpannedEncodingResult<()> {
         let ty = match aggregate_kind {
             mir::AggregateKind::Array(_) | mir::AggregateKind::Tuple => {
@@ -860,7 +862,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     assert!(ty.is_union());
                     let adt_def = tcx.adt_def(*adt_did);
                     let variant_def = adt_def.non_enum_variant();
-                    let field_name = variant_def.fields[(*active_field_index).into()]
+                    let field_name = variant_def.fields[*active_field_index]
                         .ident(tcx)
                         .to_string();
                     ty = ty.variant(field_name.into());
@@ -1213,20 +1215,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?);
                 SuccessorBuilder::exit_resume_panic()
             }
-            // TerminatorKind::DropAndReplace { target, unwind, .. }
             TerminatorKind::Drop {
                 place,
                 target,
                 unwind,
-            } => {
-                self.encode_terminator_drop(block_builder, location, span, *place, *target, unwind)?
-            }
+                replace: _,
+            } => self.encode_terminator_drop(
+                block_builder,
+                location,
+                span,
+                *place,
+                *target,
+                *unwind,
+            )?,
             TerminatorKind::Call {
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
                 destination,
                 target,
-                cleanup,
+                unwind,
                 fn_span,
                 from_hir_call: _,
             } => {
@@ -1238,7 +1245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     args,
                     *destination,
                     target,
-                    cleanup,
+                    *unwind,
                     *fn_span,
                 )?;
                 // The encoding of the call is expected to set the successor.
@@ -1249,7 +1256,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 expected,
                 msg,
                 target,
-                cleanup,
+                unwind,
             } => self.encode_terminator_assert(
                 block_builder,
                 span,
@@ -1257,7 +1264,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 *expected,
                 msg,
                 *target,
-                *cleanup,
+                *unwind,
             )?,
             // TerminatorKind::Yield { .. } => {
             //     graph.add_exit_edge(bb, "yield");
@@ -1378,7 +1385,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         span: Span,
         place: mir::Place<'tcx>,
         target: mir::BasicBlock,
-        unwind: &Option<mir::BasicBlock>,
+        unwind: mir::UnwindAction,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
         let target_block_label = self.encode_basic_block_label(target);
         let target_block_label = self.encode_lft_for_block_with_edge(
@@ -1412,10 +1419,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?;
         statement.check_no_default_position();
         block_builder.add_statement(statement);
-        if let Some(unwind_block) = unwind {
-            let encoded_unwind_block_label = self.encode_basic_block_label(*unwind_block);
+        if let mir::UnwindAction::Cleanup(unwind_block) = unwind {
+            let encoded_unwind_block_label = self.encode_basic_block_label(unwind_block);
             let encoded_unwind_block_label = self.encode_lft_for_block_with_edge(
-                *unwind_block,
+                unwind_block,
                 encoded_unwind_block_label,
                 location,
                 block_builder,
@@ -1441,7 +1448,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
-        cleanup: &Option<mir::BasicBlock>,
+        unwind: mir::UnwindAction,
         _fn_span: Span,
     ) -> SpannedEncodingResult<()> {
         if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
@@ -1454,7 +1461,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 args,
                 destination,
                 target,
-                cleanup,
+                unwind,
             )? {
                 self.encode_function_call(
                     block_builder,
@@ -1465,7 +1472,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     args,
                     destination,
                     target,
-                    cleanup,
+                    unwind,
                 )?;
             }
         } else {
@@ -1486,7 +1493,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: mir::Place<'tcx>,
         target: &Option<mir::BasicBlock>,
-        cleanup: &Option<mir::BasicBlock>,
+        unwind: mir::UnwindAction,
     ) -> SpannedEncodingResult<()> {
         // The called method might be a trait method.
         // We try to resolve it to the concrete implementation
@@ -1746,8 +1753,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 post_call_block_builder.build();
 
-                if let Some(cleanup_block) = cleanup {
-                    let encoded_cleanup_block = self.encode_basic_block_label(*cleanup_block);
+                if let mir::UnwindAction::Cleanup(cleanup_block) = unwind {
+                    let encoded_cleanup_block = self.encode_basic_block_label(cleanup_block);
                     let fresh_cleanup_label = self.fresh_basic_block_label();
                     let mut cleanup_block_builder =
                         block_builder.create_basic_block_builder(fresh_cleanup_label.clone());
@@ -1780,11 +1787,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.def_id,
                     )?;
                     cleanup_block_builder.add_statement(function_lifetime_return);
-                    self.encode_lft_for_block(
-                        *cleanup_block,
-                        location,
-                        &mut cleanup_block_builder,
-                    )?;
+                    self.encode_lft_for_block(cleanup_block, location, &mut cleanup_block_builder)?;
 
                     cleanup_block_builder.build();
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(
@@ -1797,7 +1800,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } else {
                 unimplemented!();
             }
-        } else if let Some(_cleanup_block) = cleanup {
+        } else if let mir::UnwindAction::Cleanup(_cleanup_block) = unwind {
             // TODO: add panic postconditions.
             unimplemented!();
         } else {
@@ -1817,7 +1820,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         expected: bool,
         msg: &mir::AssertMessage<'tcx>,
         target: mir::BasicBlock,
-        cleanup: Option<mir::BasicBlock>,
+        unwind: mir::UnwindAction,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
         let condition = self
             .encoder
@@ -1849,7 +1852,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.def_id,
             )?);
         }
-        let successor = if let Some(cleanup) = cleanup {
+        let successor = if let mir::UnwindAction::Cleanup(cleanup) = unwind {
             let successors = vec![
                 (guard, target_label),
                 (true.into(), self.encode_basic_block_label(cleanup)),
@@ -2091,7 +2094,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 args,
                 destination: _,
                 target: _,
-                cleanup: _,
+                unwind: _,
                 fn_span: _,
                 from_hir_call: _,
             } => {

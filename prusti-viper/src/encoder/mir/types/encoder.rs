@@ -272,7 +272,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::GeneratorWitnessMIR(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(_)
-            | ty::TyKind::Alias(ty::AliasKind::Projection, _)
             | ty::TyKind::Param(_)
             | ty::TyKind::Bound(..)
             | ty::TyKind::Placeholder(_)
@@ -283,7 +282,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::FnDef(did, _)
             | ty::TyKind::Closure(did, _)
             | ty::TyKind::Generator(did, _, _)
-            | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { def_id: did, .. }) => {
+            | ty::TyKind::Alias(_, ty::AliasTy { def_id: did, .. }) => {
                 self.encoder.env().query.get_def_span(did).into()
             }
         }
@@ -412,10 +411,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )
             }
             ty::TyKind::Tuple(elems) => {
-                let lifetimes = self.encoder.get_lifetimes_from_substs(elems.as_substs())?;
-                let const_parameters = self
-                    .encoder
-                    .get_const_parameters_from_substs(elems.as_substs())?;
+                let lifetimes = self.encoder.get_lifetimes_from_types(*elems)?;
+                let const_parameters = self.encoder.get_const_parameters_from_types(*elems)?;
                 let arguments = elems
                     .into_iter()
                     .map(|ty| self.encoder.encode_type_high(ty))

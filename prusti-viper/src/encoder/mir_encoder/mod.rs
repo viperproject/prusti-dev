@@ -19,7 +19,7 @@ use prusti_common::config;
 use prusti_rustc_interface::target::abi;
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::{mir, ty};
-use prusti_rustc_interface::index::vec::IndexVec;
+use prusti_rustc_interface::index::IndexVec;
 use prusti_rustc_interface::span::{Span, DUMMY_SP};
 use log::{trace, debug};
 use prusti_interface::environment::mir_utils::MirPlace;

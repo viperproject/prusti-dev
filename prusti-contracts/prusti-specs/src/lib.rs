@@ -746,7 +746,7 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         #[prusti::type_invariant_spec]
         #[prusti::spec_id = #spec_id_str]
         fn #item_name(self) -> bool {
-            !!((#attr) : bool)
+            !!(#attr)
         }
     };
 

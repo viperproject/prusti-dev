@@ -3,7 +3,6 @@
 
 // These feature flags are not needed when executing under Prusti
 // because it generates them for us.
-#![cfg_attr(feature = "prusti", feature(type_ascription))]
 #![cfg_attr(feature = "prusti", feature(register_tool))]
 #![cfg_attr(feature = "prusti", register_tool(prusti))]
 

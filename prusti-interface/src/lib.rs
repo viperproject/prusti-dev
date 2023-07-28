@@ -13,6 +13,7 @@
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
 #![feature(min_specialization)]
+#![feature(let_chains)]
 // We may want to remove this in the future.
 #![allow(clippy::needless_lifetimes)]
 

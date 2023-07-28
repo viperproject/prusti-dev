@@ -80,23 +80,23 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
 /// Used to encode unevaluated constants.
 pub(super) fn encode_promoted<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
-    proc_def_id: ty::WithOptConstParam<DefId>,
+    proc_def_id: DefId,
     promoted_id: mir::Promoted,
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
     let tcx = encoder.env().tcx();
-    let promoted_bodies = tcx.promoted_mir_opt_const_arg(proc_def_id);
+    let promoted_bodies = tcx.promoted_mir(proc_def_id);
     let param_env = tcx.param_env(parent_def_id);
     let mir = tcx.subst_and_normalize_erasing_regions(
         substs,
         param_env,
-        promoted_bodies[promoted_id].clone(),
+        ty::EarlyBinder::bind(promoted_bodies[promoted_id].clone()),
     );
     encode_mir(
         encoder,
         &mir,
-        proc_def_id.did,
+        proc_def_id,
         PureEncodingContext::Code,
         parent_def_id,
     )
@@ -314,7 +314,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mut precondition = vec![type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)?];
 
-        let is_trusted = contract.specification.trusted.extract_inherit().expect("Expected trusted") && (self.proc_def_id == contract.specification.source || !self.proc_def_id.is_local());
+        let is_trusted = contract
+            .specification
+            .trusted
+            .extract_inherit()
+            .expect("Expected trusted")
+            && (self.proc_def_id == contract.specification.source || !self.proc_def_id.is_local());
 
         if !is_trusted {
             struct CallFinder<'a> {
@@ -326,12 +331,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 fn fallible_walk_func_app(
                     &mut self,
                     func_app: &vir::FuncApp,
-                    ) -> Result<(), Self::Error> {
+                ) -> Result<(), Self::Error> {
                     if func_app.function_name == self.function_name {
                         return Err(SpannedEncodingError::incorrect(
-                                "only trusted functions can call themselves in their contracts".to_string(),
-                                self.span,
-                                ));
+                            "only trusted functions can call themselves in their contracts"
+                                .to_string(),
+                            self.span,
+                        ));
                     }
                     for a in &func_app.arguments {
                         self.fallible_walk(a)?;
@@ -513,10 +519,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder
-                .error_manager()
-                .set_error(encoded_assertion.pos(), ErrorCtxt::PureFunctionDefinition);
-            func_spec.push(encoded_assertion);
+            let new_pos = self.encoder.error_manager().set_surrounding_error_context(
+                encoded_assertion.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            func_spec.push(encoded_assertion.set_pos(new_pos));
         }
 
         Ok((
@@ -555,10 +562,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder
-                .error_manager()
-                .set_error(encoded_postcond.pos(), ErrorCtxt::PureFunctionDefinition);
-            func_spec.push(encoded_postcond);
+            let new_pos = self.encoder.error_manager().set_surrounding_error_context(
+                encoded_postcond.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            func_spec.push(encoded_postcond.set_pos(new_pos));
         }
 
         let post = func_spec.into_iter().conjoin();
