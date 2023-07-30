@@ -178,8 +178,6 @@ impl CheckTranslator {
             item,
             include_item_args,
             executed_after,
-            executed_after,
-            before_expiry_argument,
         );
         let contract_string = expr_to_check.to_token_stream().to_string();
         let failure_message = format!("Contract {} was violated at runtime", contract_string);
@@ -220,7 +218,7 @@ impl CheckTranslator {
             check_item.sig.inputs.push(old_arg);
         }
         if before_expiry_argument {
-            let mut output_ty: syn::Type = if let syn::ReturnType::Type(_, box ty) = &item.sig().output {
+            let output_ty: syn::Type = if let syn::ReturnType::Type(_, box ty) = &item.sig().output {
                 ty.clone()
             } else {
                 // probably not our job to throw an error here? But a pledge for
@@ -286,8 +284,6 @@ impl CheckTranslator {
         item: &untyped::AnyFnItem,
         forget_item_args: bool,
         has_result_arg: bool,
-        has_old_arg: bool,
-        has_before_expiry_arg: bool,
     ) -> syn::Block {
         // go through all inputs, if they are not references add a forget
         // statement
@@ -309,16 +305,6 @@ impl CheckTranslator {
         if has_result_arg {
             stmts.push(parse_quote! {
                 std::mem::forget(result);
-            })
-        }
-        if has_old_arg {
-            stmts.push(parse_quote! {
-                std::mem::forget(old_values);
-            })
-        }
-        if has_before_expiry_arg {
-            stmts.push(parse_quote! {
-                std::mem::forget(result_before_expiry);
             })
         }
         syn::Block {

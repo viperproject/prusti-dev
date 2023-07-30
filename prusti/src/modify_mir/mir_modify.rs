@@ -75,6 +75,7 @@ pub struct PledgeToProcess<'tcx> {
     // the args the function was called with
     args: Vec<Operand<'tcx>>,
     substs: ty::subst::SubstsRef<'tcx>,
+    locals_to_drop: Vec<mir::Local>,
 }
 
 pub struct InsertChecksVisitor<'tcx> {
@@ -156,8 +157,14 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                 let mut patch = MirPatch::new(body);
                 let place: mir::Place = local.into();
                 let destination = *self.stored_arguments.get(&local).unwrap();
-                (current_target, _) = self
-                    .insert_clone_argument(place, current_target, Some(destination), &mut patch, None)
+                (current_target, _, _) = self
+                    .insert_clone_argument(
+                        place,
+                        current_target,
+                        Some(destination),
+                        &mut patch,
+                        None,
+                    )
                     .unwrap();
                 let terminator_kind = TerminatorKind::Goto {
                     target: current_target,
@@ -215,12 +222,9 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     .get(local)
                                     .expect("pledge expiration without an actual pledge");
                                 let mut patcher = self.current_patcher.take().unwrap();
-                                let start_block = self.create_pledge_call_chain(
-                                    pledge,
-                                    target,
-                                    &mut patcher,
-                                )
-                                .unwrap();
+                                let start_block = self
+                                    .create_pledge_call_chain(pledge, target, &mut patcher)
+                                    .unwrap();
 
                                 let new_terminator = TerminatorKind::Goto {
                                     target: start_block,
@@ -344,13 +348,14 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                 let before_expiry_place =
                                     Place::from(patch.new_temp(before_expiry_ty, DUMMY_SP));
 
-                                let (chain_start, new_caller) = self.prepend_old_cloning(
-                                    &mut patch,
-                                    call_fn_terminator.clone(),
-                                    old_values_place,
-                                    old_values_ty,
-                                    args.clone(),
-                                );
+                                let (chain_start, new_caller, locals_to_drop) = self
+                                    .prepend_old_cloning(
+                                        &mut patch,
+                                        call_fn_terminator.clone(),
+                                        old_values_place,
+                                        old_values_ty,
+                                        args.clone(),
+                                    );
                                 patch.patch_terminator(
                                     caller_block,
                                     TerminatorKind::Goto {
@@ -370,6 +375,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
                                     destination: *destination,
                                     args: args.clone(),
                                     substs,
+                                    locals_to_drop,
                                 };
                                 self.pledges_to_process
                                     .insert(destination.local, pledge_to_process);
@@ -386,6 +392,9 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
 }
 
 impl<'tcx> InsertChecksVisitor<'tcx> {
+    // Clone an argument manually. Returns the basic_block that starts the cloning
+    // and the local variable the value is cloned into. Additionally, returns an
+    // optional other local, that has to be dropped!
     fn insert_clone_argument(
         &self,
         arg: mir::Place<'tcx>,
@@ -393,11 +402,12 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         destination: Option<mir::Local>,
         patch: &mut MirPatch<'tcx>,
         target_type_opt: Option<ty::Ty<'tcx>>,
-    ) -> Result<(BasicBlock, mir::Local), ()> {
+    ) -> Result<(BasicBlock, mir::Local, Option<mir::Local>), ()> {
         // if we deal with a reference, we can directly call clone on it
         // otherwise we have to create a reference first, to pass to the clone
         // function.
         let clone_defid = get_clone_defid(self.tcx).ok_or(())?;
+        let param_env = self.tcx.param_env(self.current_def_id.unwrap());
         // let clone_trait_defid = self.tcx.lang_items().clone_trait().unwrap();
         //
         let arg_ty = if let Some(target_type) = target_type_opt {
@@ -414,7 +424,8 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             arg, dest
         );
         if !arg_ty.is_ref() {
-            println!("handling a non-ref old arg");
+            // non-ref arg means we first deref and then clone. No need to
+            // drop, since result is moved to check
             let ref_ty = create_reference_type(self.tcx, arg_ty);
             let ref_arg = patch.new_temp(ref_ty, DUMMY_SP);
             // add a statement to deref the old_argument
@@ -446,13 +457,22 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 ref_stmt,
             );
 
-            Ok((new_block, dest))
+            Ok((new_block, dest, None))
             // let block_data = BasicBlockData::new()
         } else {
             // create a new local to store the result of clone:
             let deref_ty = arg_ty.builtin_deref(false).ok_or(())?.ty;
-            println!("dereferenced type: {:?}", deref_ty);
             let clone_dest = patch.new_temp(deref_ty, DUMMY_SP);
+            let to_drop = if deref_ty.needs_drop(self.tcx, param_env) {
+                Some(clone_dest)
+            } else {
+                None
+            };
+
+            println!(
+                "dereferenced type: {:?}, needs drop? {:?}",
+                deref_ty, to_drop
+            );
             let generic_ty = ty::subst::GenericArg::from(deref_ty);
             let substs = self.tcx.mk_substs(&[generic_ty]);
             let clone_args = vec![Operand::Move(arg)];
@@ -487,7 +507,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 Some(second_block),
             )?;
 
-            Ok((new_block, dest))
+            Ok((new_block, dest, to_drop))
         }
     }
 
@@ -527,15 +547,23 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
     ) -> (BasicBlock, Option<BasicBlock>) {
         // find the type of that local
         let check_sig = self.tcx.fn_sig(check_id).subst(self.tcx, substs);
+        let param_env = self.tcx.param_env(self.current_def_id.unwrap());
         let check_sig = self
             .tcx
-            .normalize_erasing_late_bound_regions(ty::ParamEnv::reveal_all(), check_sig);
+            .normalize_erasing_late_bound_regions(param_env, check_sig);
 
         let old_ty = *check_sig.inputs().last().unwrap();
         assert!(matches!(old_ty.kind(), ty::Tuple(_)));
 
         let old_dest_place = Place::from(patch.new_temp(old_ty, DUMMY_SP));
 
+        let drop_block_data = BasicBlockData::new(Some(Terminator {
+            source_info: dummy_source_info(),
+            kind: TerminatorKind::Goto {
+                target: BasicBlock::MAX,
+            },
+        }));
+        let drop_start = patch.new_block(drop_block_data);
         // construct arguments: first the arguments the function is called with, then the result of
         // that call, then the old values:
         let mut new_args = args.clone();
@@ -545,8 +573,16 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         // we store the target, create a new block per check function
         // chain these with the final call having the original target,
         // change the target of the call to the first block of our chain.
-        let (check_block, _) =
-            create_call_block(self.tcx, patch, check_id, new_args, substs, None, target).unwrap();
+        let (check_block, _) = create_call_block(
+            self.tcx,
+            patch,
+            check_id,
+            new_args,
+            substs,
+            None,
+            Some(drop_start),
+        )
+        .unwrap();
 
         // the terminator that calls the original function, but in this case jumps to
         // a check function after instead of original target
@@ -555,8 +591,20 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         let mut call_terminator = original_terminator;
         replace_target(&mut call_terminator, check_block);
 
-        let (chain_start, new_caller) =
+        let (chain_start, new_caller, locals_to_drop) =
             self.prepend_old_cloning(patch, call_terminator, old_dest_place, old_ty, args);
+
+        // TODO: create testcases for calls that have no target.
+        // Make sure they behave correctly in case of panic
+        let drop_chain_start =
+            self.create_drop_chain(patch, locals_to_drop, target.unwrap_or(BasicBlock::MAX));
+        // make drop_start point to this chain:
+        patch.patch_terminator(
+            drop_start,
+            TerminatorKind::Goto {
+                target: drop_chain_start,
+            },
+        );
 
         println!("chain starting at: {:?}", chain_start);
         // make the original caller_block point to the first clone block
@@ -571,6 +619,9 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         (new_caller, Some(check_block))
     }
 
+    // given a set of arguments, and the type that the old tuple should have
+    // create a chain of basic blocks that clones each of the arguments
+    // and puts them into a tuple
     fn prepend_old_cloning(
         &self,
         patch: &mut MirPatch<'tcx>,
@@ -578,13 +629,15 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         old_dest_place: mir::Place<'tcx>,
         old_ty: ty::Ty<'tcx>,
         args: Vec<Operand<'tcx>>,
-    ) -> (BasicBlock, BasicBlock) {
+    ) -> (BasicBlock, BasicBlock, Vec<mir::Local>) {
         let new_block_data = BasicBlockData::new(Some(terminator));
         let current_caller = patch.new_block(new_block_data);
         let mut current_target = current_caller;
 
         let mut old_tuple = Vec::new();
         let old_tuple_fields = old_ty.tuple_fields();
+
+        let mut locals_to_drop = Vec::new();
         for (id, operand) in args.iter().enumerate() {
             let old_values_ty = old_tuple_fields.get(id).unwrap();
             if old_values_ty.is_unit() {
@@ -600,9 +653,12 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                     mir::Operand::Move(place) | mir::Operand::Copy(place) => {
                         let target_ty = Some(old_tuple_fields[id]);
                         // prepends clone blocks before the actual function is called
-                        let (start_block, destination) = self
+                        let (start_block, destination, to_drop) = self
                             .insert_clone_argument(*place, current_target, None, patch, target_ty)
                             .unwrap();
+                        if let Some(to_drop) = to_drop {
+                            locals_to_drop.push(to_drop);
+                        }
                         current_target = start_block;
                         // add the result to our tuple:
                         old_tuple.push(mir::Operand::Move(destination.into()));
@@ -619,7 +675,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         patch.add_statement(location, stmt_kind);
 
         // (start of clone-chain, block calling annotated function)
-        (current_target, current_caller)
+        (current_target, current_caller, locals_to_drop)
     }
 
     /// Given a function call, prepend another function call directly before
@@ -672,6 +728,15 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
         // since we need to know the targets for each call, the blocks need to be created
         // in reversed order.
 
+        // annoying, but we have to create a block to start off the dropping chain
+        // early..
+        let drop_start_term = Terminator {
+            source_info: dummy_source_info(),
+            kind: TerminatorKind::Goto { target },
+        };
+        let drop_block_data = BasicBlockData::new(Some(drop_start_term));
+        let drop_block = patcher.new_block(drop_block_data);
+
         // Create call to check function:
         let mut check_args = pledge.args.clone();
         check_args.push(Operand::Move(pledge.destination)); //result arg
@@ -684,7 +749,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             check_args,
             pledge.substs,
             None,
-            Some(target),
+            Some(drop_block),
         )?;
 
         // If there is a check_before_expiry block, creat it
@@ -715,8 +780,48 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 target: next_target,
             },
         };
-        let (clone_chain_start, _) = self.prepend_old_cloning(patcher, terminator, pledge.before_expiry_place, pledge.before_expiry_ty, args);
+        let (clone_chain_start, _, locals_to_drop_after) = self.prepend_old_cloning(
+            patcher,
+            terminator,
+            pledge.before_expiry_place,
+            pledge.before_expiry_ty,
+            args,
+        );
+        let mut locals_to_drop = pledge.locals_to_drop.clone();
+        locals_to_drop.extend(locals_to_drop_after);
+        let drop_chain_start = self.create_drop_chain(patcher, locals_to_drop, target);
+        // adjust the check block's terminator
+        patcher.patch_terminator(
+            drop_block,
+            TerminatorKind::Goto {
+                target: drop_chain_start,
+            },
+        );
 
         Ok(clone_chain_start)
+    }
+
+    /// Create a chain of drop calls to drop the provided list of locals.
+    /// If there are no locals to drop, this function simply returns `target`
+    fn create_drop_chain(
+        &self,
+        patcher: &mut MirPatch,
+        locals_to_drop: Vec<mir::Local>,
+        target: BasicBlock,
+    ) -> BasicBlock {
+        let mut current_target = target;
+        for local in locals_to_drop.iter() {
+            let terminator = Terminator {
+                source_info: dummy_source_info(),
+                kind: TerminatorKind::Drop {
+                    place: (*local).into(),
+                    target: current_target,
+                    unwind: None,
+                },
+            };
+            let block_data = BasicBlockData::new(Some(terminator));
+            current_target = patcher.new_block(block_data);
+        }
+        current_target
     }
 }
