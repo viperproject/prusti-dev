@@ -13,7 +13,7 @@ mod validity;
 /// constructor.
 mod constructor;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(in super::super::super::super) enum PredicateKind {
     Owned,
     FracRef {

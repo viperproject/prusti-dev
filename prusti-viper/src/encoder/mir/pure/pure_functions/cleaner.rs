@@ -1,9 +1,10 @@
+use std::collections::BTreeMap;
 use crate::encoder::{
     errors::{SpannedEncodingError, SpannedEncodingResult},
     Encoder,
 };
-use prusti_interface::data::ProcedureDefId;
-use prusti_rustc_interface::span::Span;
+use prusti_interface::{data::ProcedureDefId, environment::debug_utils::to_text::ToText};
+use prusti_rustc_interface::{middle::ty, span::Span};
 use vir_crate::{
     common::{expression::SyntacticEvaluation, position::Positioned},
     high::{
@@ -22,10 +23,16 @@ pub(super) fn clean_encoding_result<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     expression: vir_high::Expression,
     proc_def_id: ProcedureDefId,
+    substs: ty::SubstsRef<'tcx>,
     span: Span,
 ) -> SpannedEncodingResult<vir_high::Expression> {
     let _position = expression.position();
-    let mut cleaner = Cleaner { encoder, span };
+    let lifetime_remap = construct_lifetime_remap(encoder, proc_def_id, substs)?;
+    let mut cleaner = Cleaner {
+        encoder,
+        span,
+        lifetime_remap,
+    };
 
     let expression = cleaner.fallible_fold_expression(expression)?;
     let expression = expression.simplify();
@@ -34,8 +41,44 @@ pub(super) fn clean_encoding_result<'p, 'v: 'p, 'tcx: 'v>(
     Ok(expression)
 }
 
+fn construct_lifetime_remap<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    proc_def_id: ProcedureDefId,
+    substs: ty::SubstsRef<'tcx>,
+) -> SpannedEncodingResult<BTreeMap<String, vir_high::ty::LifetimeConst>> {
+    let identity_substs = encoder.env().query.identity_substs(proc_def_id);
+    let mut lifetime_remap = BTreeMap::new();
+    for (identity_arg, arg) in identity_substs.iter().zip(substs.iter()) {
+        match identity_arg.unpack() {
+            ty::subst::GenericArgKind::Lifetime(lifetime) => match *lifetime {
+                ty::RegionKind::ReEarlyBound(data) => {
+                    let ty::subst::GenericArgKind::Lifetime(replacement_lifetime) = arg.unpack() else {
+                        unreachable!();
+                    };
+                    lifetime_remap.insert(
+                        data.name.to_string(),
+                        vir_high::ty::LifetimeConst {
+                            name: replacement_lifetime.to_text(),
+                        },
+                    );
+                }
+                ty::RegionKind::ReLateBound(_, _) => todo!(),
+                ty::RegionKind::ReFree(_) => todo!(),
+                ty::RegionKind::ReStatic => todo!(),
+                ty::RegionKind::ReVar(_) => todo!(),
+                ty::RegionKind::RePlaceholder(_) => todo!(),
+                ty::RegionKind::ReErased => todo!(),
+                ty::RegionKind::ReError(_) => todo!(),
+            },
+            _ => {}
+        }
+    }
+    Ok(lifetime_remap)
+}
+
 struct Cleaner<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
+    lifetime_remap: BTreeMap<String, vir_high::ty::LifetimeConst>,
     span: Span,
 }
 
@@ -64,6 +107,14 @@ fn clean_acc_predicate(predicate: vir_high::Predicate) -> vir_high::Predicate {
         // }) => {
         //     vir_high::Predicate::owned_non_aliased(*base, position)
         // }
+        vir_high::Predicate::UniqueRef(mut predicate) => {
+            predicate.place = peel_addr_of(predicate.place);
+            if !predicate.place.is_behind_pointer_dereference() {
+                // FIXME: A proper error message
+                unimplemented!("Must be behind pointer dereference: {}", predicate.place)
+            }
+            vir_high::Predicate::UniqueRef(predicate)
+        }
         vir_high::Predicate::MemoryBlockHeap(mut predicate) => {
             predicate.address = peel_addr_of(predicate.address);
             if !predicate.address.is_behind_pointer_dereference() {
@@ -208,18 +259,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Cleaner<'p, 'v, 'tcx> {
         default_fallible_fold_binary_op(self, binary_op)
     }
 
-    fn fallible_fold_builtin_func_app(
+    fn fallible_fold_builtin_func_app_enum(
         &mut self,
         mut builtin_func_app: vir_high::BuiltinFuncApp,
-    ) -> Result<vir_high::BuiltinFuncApp, Self::Error> {
-        if matches!(
-            builtin_func_app.function,
-            vir_high::BuiltinFunc::MemoryBlockBytes
-        ) {
-            let address = builtin_func_app.arguments[0].clone();
-            builtin_func_app.arguments[0] = peel_addr_of(address);
+    ) -> Result<vir_high::Expression, Self::Error> {
+        match builtin_func_app.function {
+            vir_high::BuiltinFunc::MemoryBlockBytes => {
+                let address = builtin_func_app.arguments[0].clone();
+                builtin_func_app.arguments[0] = peel_addr_of(address);
+            }
+            vir_high::BuiltinFunc::BuildingUniqueRefPredicateWithRealLifetime => {
+                let place = peel_addr_of(builtin_func_app.arguments.pop().unwrap());
+                let lifetime = builtin_func_app.arguments.pop().unwrap();
+                let vir_high::Expression::Constant(vir_high::Constant {
+                    value: vir_high::expression::ConstantValue::String(lifetime),
+                    ..
+                }) = lifetime else {
+                    unreachable!("lifetime: {lifetime:?}")
+                };
+                let lifetime = self.lifetime_remap.get(&lifetime).unwrap().clone();
+                let position = builtin_func_app.position;
+                let predicate = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::unique_ref(lifetime, place, position),
+                    position,
+                );
+                return Ok(predicate);
+            }
+            _ => {}
         }
-        default_fallible_fold_builtin_func_app(self, builtin_func_app)
+        Ok(vir_high::Expression::BuiltinFuncApp(
+            self.fallible_fold_builtin_func_app(builtin_func_app)?,
+        ))
     }
 
     fn fallible_fold_quantifier(
