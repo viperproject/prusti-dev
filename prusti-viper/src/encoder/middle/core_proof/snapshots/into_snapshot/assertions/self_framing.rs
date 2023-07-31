@@ -723,6 +723,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 //     predicate.position,
                 // )?
             }
+            vir_mid::Predicate::UniqueRef(predicate) => {
+                let lifetime = lowerer
+                    .encode_lifetime_const_into_procedure_variable(predicate.lifetime.clone())?
+                    .into();
+                let old_predicate_kind = std::mem::replace(
+                    &mut self.predicate_kind,
+                    PredicateKind::UniqueRef {
+                        lifetime,
+                        is_final: false,
+                    },
+                );
+                assert_eq!(old_predicate_kind, PredicateKind::Owned);
+                let ty = predicate.place.get_type();
+                let place = lowerer.encode_expression_as_place(&predicate.place)?;
+                let address = self.pointer_deref_into_address(lowerer, &predicate.place)?;
+                let acc = self.predicate(
+                    lowerer,
+                    ty,
+                    place.clone(),
+                    address.clone(),
+                    predicate.position,
+                )?;
+                let snap_call =
+                    self.snap_call(lowerer, ty, place, address, predicate.place.position())?;
+                self.maybe_store_snap_call(lowerer, &predicate.place, &snap_call)?;
+                self.snap_calls.push((predicate.place.clone(), snap_call));
+                self.predicate_kind = old_predicate_kind;
+                acc
+            }
             vir_mid::Predicate::MemoryBlockHeap(predicate) => {
                 match self.predicate_kind {
                     PredicateKind::Owned => {

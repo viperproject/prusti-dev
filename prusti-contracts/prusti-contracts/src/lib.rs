@@ -861,10 +861,23 @@ pub fn prusti_unq<T1, T2>(_lifetime: T1, _place: T2) -> bool {
     unreachable!();
 }
 
+/// Indicates that we have the unique reference capability to the specified
+/// place.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unq_real_lifetime<T1, T2>(_lifetime: T1, _place: T2) -> bool {
+    unreachable!();
+}
+
 #[macro_export]
 macro_rules! unq {
     ($lifetime:ident, $place:expr) => {
         $crate::prusti_unq(stringify!($lifetime), unsafe {
+            core::ptr::addr_of!($place)
+        })
+    };
+    ($lifetime:lifetime, $place:expr) => {
+        $crate::prusti_unq_real_lifetime(stringify!($lifetime), unsafe {
             core::ptr::addr_of!($place)
         })
     };

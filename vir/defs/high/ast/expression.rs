@@ -304,7 +304,11 @@ pub enum BuiltinFunc {
     BeforeExpiry,
     AfterExpiry,
     /// A function represents UniqueRef with its arguments not yet properly typed.
+    /// This version uses a lifetime identifier.
     BuildingUniqueRefPredicate,
+    /// A function represents UniqueRef with its arguments not yet properly typed. This
+    /// version uses the real lifetime like `'a` instead of a lifetime identifier.
+    BuildingUniqueRefPredicateWithRealLifetime,
     /// A function represents FracRef with its arguments not yet properly typed.
     BuildingFracRefPredicate,
     /// A function that signales whether allocation can fail.

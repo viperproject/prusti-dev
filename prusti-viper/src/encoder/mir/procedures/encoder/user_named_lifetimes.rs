@@ -8,6 +8,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         expression: vir_high::Expression,
     ) -> SpannedEncodingResult<vir_high::Expression> {
+        // FIXME: The resolving of BuildingUniqueRefPredicateWithRealLifetime
+        // is done in prusti-viper/src/encoder/mir/pure/pure_functions/cleaner.rs
         let mut resolver = Resolver {
             user_named_lifetimes: &self.user_named_lifetimes,
         };

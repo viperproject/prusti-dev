@@ -1213,6 +1213,9 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             BuiltinFunc::BuildingUniqueRefPredicate => {
                 unreachable!("UniqueRef should have been already built.")
             }
+            BuiltinFunc::BuildingUniqueRefPredicateWithRealLifetime => {
+                unreachable!("UniqueRef should have been already built.")
+            }
             BuiltinFunc::BuildingFracRefPredicate => {
                 unreachable!("FracRef should have been already built.")
             }
