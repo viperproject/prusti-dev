@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 use prusti_contracts::*;
 
 #[trusted]
@@ -12,7 +10,7 @@ fn test() {
     let mut z = None;
 
     loop {
-        let x = box 5;
+        let x = Box::new(5);
         if random() {
             y = Some(x);
         } else {

@@ -13,14 +13,14 @@ use analysis::{
 };
 use prusti_rustc_interface::{
     ast::ast,
-    borrowck::BodyWithBorrowckFacts,
+    borrowck::consumers::{self, BodyWithBorrowckFacts},
     data_structures::fx::FxHashMap,
     driver::Compilation,
     hir::def_id::{DefId, LocalDefId},
     interface::{interface, Config, Queries},
     middle::{
+        query::{queries::mir_borrowck::ProvidedValue, ExternProviders, Providers},
         ty,
-        ty::query::{query_values::mir_borrowck, ExternProviders, Providers},
     },
     polonius_engine::{Algorithm, Output},
     session::{Attribute, Session},
@@ -116,10 +116,11 @@ mod mir_storage {
 }
 
 #[allow(clippy::needless_lifetimes)]
-fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-    let body_with_facts = prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
+fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> ProvidedValue<'tcx> {
+    let body_with_facts = consumers::get_body_with_borrowck_facts(
         tcx,
-        ty::WithOptConstParam::unknown(def_id),
+        def_id,
+        consumers::ConsumerOptions::PoloniusOutputFacts,
     );
     // SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
@@ -190,12 +191,17 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                 // that was used to store the data.
                 let mut body_with_facts =
                     unsafe { self::mir_storage::retrieve_mir_body(tcx, local_def_id) };
-                body_with_facts.output_facts = Rc::new(Output::compute(
-                    &body_with_facts.input_facts,
+                body_with_facts.output_facts = Some(Rc::new(Output::compute(
+                    body_with_facts.input_facts.as_ref().unwrap(),
                     Algorithm::Naive,
                     true,
-                ));
-                assert!(!body_with_facts.input_facts.cfg_edge.is_empty());
+                )));
+                assert!(!body_with_facts
+                    .input_facts
+                    .as_ref()
+                    .unwrap()
+                    .cfg_edge
+                    .is_empty());
                 let body = &body_with_facts.body;
 
                 match abstract_domain {

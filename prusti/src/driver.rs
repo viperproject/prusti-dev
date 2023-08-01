@@ -7,7 +7,6 @@
 #![feature(rustc_private)]
 #![feature(proc_macro_internals)]
 #![feature(decl_macro)]
-#![feature(box_syntax)]
 #![feature(box_patterns)]
 #![deny(unused_must_use)]
 
@@ -23,7 +22,7 @@ use lazy_static::lazy_static;
 use log::info;
 use prusti_common::{config, report::user, Stopwatch};
 use prusti_rustc_interface::interface::interface::try_print_query_stack;
-use std::{borrow::Cow, env, panic};
+use std::{env, panic};
 use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
 use tracing_subscriber::{filter::EnvFilter, prelude::*};
 
@@ -33,7 +32,7 @@ const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/
 lazy_static! {
     static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
         let hook = panic::take_hook();
-        panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
+        panic::set_hook(Box::new(|info| report_prusti_ice(info, BUG_REPORT_URL)));
         hook
     };
 }
@@ -61,17 +60,19 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         prusti_rustc_interface::driver::DEFAULT_LOCALE_RESOURCES.to_vec(),
         false,
     );
-    let emitter = box prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
-        prusti_rustc_interface::errors::ColorConfig::Auto,
-        None,
-        None,
-        fallback_bundle,
-        false,
-        false,
-        None,
-        false,
-        false,
-        prusti_rustc_interface::errors::TerminalUrl::Auto,
+    let emitter = Box::new(
+        prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
+            prusti_rustc_interface::errors::ColorConfig::Auto,
+            None,
+            None,
+            fallback_bundle,
+            false,
+            false,
+            None,
+            false,
+            false,
+            prusti_rustc_interface::errors::TerminalUrl::Auto,
+        ),
     );
     let handler = prusti_rustc_interface::errors::Handler::with_emitter(true, None, emitter);
 
@@ -89,14 +90,14 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
     let version_info = get_prusti_version_info();
 
-    let xs: Vec<Cow<'static, str>> = vec![
+    let xs: Vec<String> = vec![
         "Prusti or the compiler unexpectedly panicked. This is a bug.".into(),
-        format!("We would appreciate a bug report: {bug_report_url}").into(),
-        format!("Prusti version: {version_info}").into(),
+        format!("We would appreciate a bug report: {bug_report_url}"),
+        format!("Prusti version: {version_info}"),
     ];
 
-    for note in &xs {
-        handler.note_without_error(note.as_ref());
+    for note in xs {
+        handler.note_without_error(note);
     }
 
     // If backtraces are enabled, also print the query stack
@@ -212,7 +213,6 @@ fn main() {
         }
 
         rustc_args.push("-Zalways-encode-mir".to_owned());
-        rustc_args.push("-Zcrate-attr=feature(type_ascription)".to_owned());
         rustc_args.push("-Zcrate-attr=feature(stmt_expr_attributes)".to_owned());
         rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         rustc_args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
@@ -248,7 +248,7 @@ fn main() {
             ));
         }
 
-        let mut callbacks = PrustiCompilerCalls::default();
+        let mut callbacks = PrustiCompilerCalls;
 
         prusti_rustc_interface::driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
     });

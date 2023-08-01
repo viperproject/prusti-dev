@@ -52,11 +52,12 @@ use prusti_interface::{
 use std::collections::{BTreeMap};
 use std::fmt::Debug;
 use prusti_interface::utils;
+use prusti_rustc_interface::index::IndexSlice;
 use prusti_rustc_interface::middle::mir::Mutability;
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::middle::mir::{TerminatorKind};
 use prusti_rustc_interface::middle::ty::{self, subst::SubstsRef};
-use prusti_rustc_interface::target::abi::Integer;
+use prusti_rustc_interface::target::abi::{FieldIdx, Integer};
 use rustc_hash::{FxHashMap, FxHashSet};
 use prusti_rustc_interface::span::Span;
 use prusti_rustc_interface::errors::MultiSpan;
@@ -1457,6 +1458,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | mir::StatementKind::FakeRead(..)
             | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::Coverage(..)
+            | mir::StatementKind::PlaceMention(..)
             | mir::StatementKind::Nop => vec![],
 
             mir::StatementKind::Assign(box (lhs, ref rhs)) => {
@@ -1525,7 +1527,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_lhs,
                     ty,
                     aggregate,
-                    operands,
+                    operands.as_slice(),
                     location
                 )?
             },
@@ -1557,7 +1559,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location
                 )?
             }
-            mir::Rvalue::NullaryOp(op, op_ty) => {
+            mir::Rvalue::NullaryOp(ref op, op_ty) => {
                 self.encode_assign_nullary_op(
                     op,
                     op_ty,
@@ -2112,7 +2114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Get the borrow information.
         if !self.procedure_contracts.contains_key(&loan_location) {
             return Err(SpannedEncodingError::internal(
-                format!("There is no procedure contract for loan {loan:?}. This could happen if you \
+                format!("there is no procedure contract for loan {loan:?}. This could happen if you \
                          are chaining pure functions, which is not fully supported."),
                 span
             ));
@@ -2128,7 +2130,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         match borrow_infos.len().cmp(&1) {
             std::cmp::Ordering::Less => (),
             std::cmp::Ordering::Greater => return Err(SpannedEncodingError::internal(
-                format!("We require at most one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
+                format!("we require at most one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
                 span,
             )),
             std::cmp::Ordering::Equal => {
@@ -2186,8 +2188,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
                 // Inhale the magic wand.
                 let magic_wand = vir::Expr::MagicWand( vir::MagicWand {
-                    left: box lhs.clone(),
-                    right: box rhs.clone(),
+                    left: Box::new(lhs.clone()),
+                    right: Box::new(rhs.clone()),
                     borrow: Some(loan.index().into()),
                     position: pos,
                 });
@@ -2443,7 +2445,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (stmts, MirSuccessor::Kill)
             }
 
-            TerminatorKind::Abort => {
+            TerminatorKind::Terminate => {
                 let pos = self.register_error(term.source_info.span, ErrorCtxt::AbortTerminator);
                 stmts.push(vir::Stmt::Assert( vir::Assert {
                     expr: false.into(),
@@ -2460,20 +2462,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             TerminatorKind::FalseUnwind { real_target, .. } => {
                 (stmts, MirSuccessor::Goto(real_target))
-            }
-
-            TerminatorKind::DropAndReplace {
-                target,
-                place: lhs,
-                ref value,
-                ..
-            } => {
-                let (encoded_lhs, pre_stmts, _, _) = self.encode_place(lhs, ArrayAccessKind::Mutable(None, location), location)?;
-                stmts.extend(pre_stmts);
-                stmts.extend(
-                    self.encode_assign_operand(&encoded_lhs, value, location)?
-                );
-                (stmts, MirSuccessor::Goto(target))
             }
 
             TerminatorKind::Call {
@@ -2775,7 +2763,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
 
                 // Check or assume the assertion
-                let (assert_msg, error_ctxt) = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                let (assert_msg, error_ctxt) = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     let mut s = String::new();
                     msg.fmt_assert_args(&mut s).unwrap();
                     (s, ErrorCtxt::BoundsCheckAssert)
@@ -5018,8 +5006,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tmp_var = self.get_pure_var_for_preserving_value(loop_head, place);
         vir::Expr::BinOp ( vir::BinOp {
             op_kind: vir::BinaryOpKind::EqCmp,
-            left: box tmp_var.into(),
-            right: box place.clone(),
+            left: Box::new(tmp_var.into()),
+            right: Box::new(place.clone()),
             position: vir::Position::default(),
         })
     }
@@ -5538,10 +5526,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         } else {
             // FIXME: why are we getting the MIR body for this?
-            let mir = self.encoder.env().body.get_impure_fn_body(
+            let mir = self.encoder.env().body.get_impure_fn_body_identity(
                 containing_def_id.expect_local(),
-                // TODO(tymap): identity substs here are probably wrong?
-                self.encoder.env().query.identity_substs(containing_def_id),
             );
             let return_ty = mir.return_ty();
             let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();
@@ -6015,7 +6001,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     fn encode_assign_nullary_op(
         &mut self,
-        op: mir::NullOp,
+        op: &mir::NullOp,
         op_ty: ty::Ty<'tcx>,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
@@ -6034,6 +6020,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::NullOp::SizeOf => layout.size().bytes(),
             // FIXME: abi or pref?
             mir::NullOp::AlignOf => layout.align().abi.bytes(),
+            mir::NullOp::OffsetOf(_) => {
+                return Err(SpannedEncodingError::internal(
+                    "`OffsetOf` is not supported yet".to_string(),
+                    self.mir.source_info(location).span,
+                ))
+            }
         };
         let bytes_vir = vir::Expr::from(bytes);
         self.encode_copy_value_assign(
@@ -6230,14 +6222,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let val_ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
         let slice_expr = encoded_lhs.field(val_ref_field);
         stmts.push(vir_stmt!{ inhale [vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
-            base: box slice_expr.clone(),
+            base: Box::new(slice_expr.clone()),
             permission: vir::PermAmount::Write,
             position: vir::Position::default(),
         })]});
 
         let slice_perm = vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {
             predicate_type: slice_types.sequence_pred_type.clone(),
-            argument: box slice_expr.clone(),
+            argument: Box::new(slice_expr.clone()),
             permission: if is_mut { vir::PermAmount::Write } else { vir::PermAmount::Read },
             position: vir::Position::default(),
         });
@@ -6607,7 +6599,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: &vir::Expr,
         ty: ty::Ty<'tcx>,
         aggregate: &mir::AggregateKind<'tcx>,
-        operands: &[mir::Operand<'tcx>],
+        operands: &IndexSlice<FieldIdx, mir::Operand<'tcx>>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let span = self.mir_encoder.get_span_of_location(location);
@@ -6693,7 +6685,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     dst_base = new_dst_base;
                 }
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
-                    let operand = &operands[field_index];
+                    let operand = &operands[field_index.into()];
                     let field_name = field.ident(tcx).to_string();
                     let field_ty = field.ty(tcx, subst);
                     let encoded_field = self.encoder
@@ -6712,7 +6704,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {def_id:?}");
                 let cl_substs = substs.as_closure();
                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
-                    let operand = &operands[field_index];
+                    let operand = &operands[field_index.into()];
                     let field_name = format!("closure_{field_index}");
                     let encoded_field = self.encoder
                         .encode_raw_ref_field(field_name, field_ty)
@@ -6975,7 +6967,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             PlaceEncoding::Variant { box base, field } => {
                 let (expr, stmts) = self.postprocess_place_encoding(base, array_encode_kind)?;
                 (vir::Expr::Variant( vir::Variant {
-                    base: box expr,
+                    base: Box::new(expr),
                     variant_index: field,
                     position: vir::Position::default(),
                 }),

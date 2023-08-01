@@ -1,10 +1,20 @@
 use crate::modify_mir::{
     mir_helper::*,
     mir_info_collector::{collect_mir_info, CheckBlockKind, MirInfo},
+    SPECS,
 };
-use prusti_interface::specs::typed::{CheckKind, DefSpecificationMap};
+use prusti_common::config;
+use prusti_interface::{
+    environment::Environment,
+    specs::{
+        self,
+        cross_crate::CrossCrateSpecs,
+        typed::{CheckKind, DefSpecificationMap},
+    },
+};
 use prusti_rustc_interface::{
     data_structures::steal::Steal,
+    index::IndexVec,
     interface::DEFAULT_QUERY_PROVIDERS,
     middle::{
         mir::{
@@ -29,39 +39,62 @@ fn folder_present(name: &str) -> io::Result<bool> {
     Ok(metadata.is_dir())
 }
 
-pub(crate) fn mir_checked(
-    tcx: TyCtxt<'_>,
-    def: ty::WithOptConstParam<LocalDefId>,
-) -> &Steal<Body<'_>> {
-    // let's get the specifications collected by prusti :)
+pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def_id: LocalDefId) -> &Steal<Body<'_>> {
+    println!("mir checked called for def_id: {:?}", def_id);
     // SAFETY: Is definitely not safe at the moment
-    let specs_opt = unsafe { super::SPECS.clone() };
-
-    if let Some(specs) = specs_opt {
-        // get mir body before invoking drops_elaborated query, otherwise it will
-        // be stolen
-        let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
-        let mut stolen = steal.steal();
-        let def_id = stolen.source.def_id();
-        if def_id.is_local() {
-            println!("modifying mir for defid: {:?}", def_id);
-        }
-
-        let mut visitor = InsertChecksVisitor::new(tcx, specs, stolen.clone());
-        visitor.visit_body(&mut stolen);
-
-        // print mir of body:
-        if let Ok(true) = folder_present("dump") {
-            let mut dump_file =
-                fs::File::create(format!("dump/dump_mir_adjusted_{:?}.txt", def_id)).unwrap();
-            pretty::write_mir_fn(tcx, &stolen, &mut |_, _| Ok(()), &mut dump_file).unwrap();
-        }
-
-        tcx.alloc_steal_mir(stolen)
-    } else {
-        println!("the specs could not be collected");
-        (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def)
+    if !config::insert_runtime_checks() {
+        return (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def_id);
     }
+    // let's get the specifications collected by prusti :)
+    let specs_opt = unsafe { SPECS.take() };
+    let specs = specs_opt.unwrap_or_else(|| {
+        let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
+        let spec_checker = specs::checker::SpecChecker::new();
+        spec_checker.check(&env);
+
+        let hir = env.query.hir();
+        let mut spec_collector = specs::SpecCollector::new(&mut env);
+        spec_collector.collect_specs(hir);
+
+        let mut def_spec = spec_collector.build_def_specs();
+        // Do print_typeckd_specs prior to importing cross crate
+        if config::print_typeckd_specs() {
+            for value in def_spec.all_values_debug(config::hide_uuids()) {
+                println!("{value}");
+            }
+        }
+        CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
+        def_spec
+    });
+
+    // get mir promoted: at this point should definitely not be stolen yet.
+    let (mir_promoted_steal, _) = tcx.mir_promoted(def_id);
+    let mir_promoted_body: mir::Body = mir_promoted_steal.borrow().clone();
+
+    // get mir body before invoking drops_elaborated query, otherwise it will
+    // be stolen
+    let steal = (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def_id);
+    let mut stolen = steal.steal();
+    let def_id = stolen.source.def_id();
+    if def_id.is_local() {
+        println!("modifying mir for defid: {:?}", def_id);
+    }
+    // print mir of body:
+    if let Ok(true) = folder_present("dump") {
+        let mut dump_file =
+            fs::File::create(format!("dump/dump_mir_adjusted_{:?}.txt", def_id)).unwrap();
+        pretty::write_mir_fn(tcx, &stolen, &mut |_, _| Ok(()), &mut dump_file).unwrap();
+    }
+
+    {
+        let mut visitor =
+            InsertChecksVisitor::new(tcx, specs.clone(), stolen.clone(), &mir_promoted_body);
+        visitor.visit_body(&mut stolen);
+    }
+
+    unsafe { SPECS = Some(specs)};
+
+    tcx.alloc_steal_mir(stolen)
 }
 
 #[derive(Debug, Clone)]
@@ -92,9 +125,14 @@ pub struct InsertChecksVisitor<'tcx> {
     mir_info: MirInfo,
 }
 
-impl<'tcx> InsertChecksVisitor<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, specs: DefSpecificationMap, body_copy: Body<'tcx>) -> Self {
-        let mir_info = collect_mir_info(tcx, body_copy.clone());
+impl<'tcx, 'a> InsertChecksVisitor<'tcx> {
+    pub fn new(
+        tcx: TyCtxt<'tcx>,
+        specs: DefSpecificationMap,
+        body_copy: Body<'tcx>,
+        mir_promoted: &'a Body<'tcx>,
+    ) -> Self {
+        let mir_info = collect_mir_info(tcx, body_copy.clone(), mir_promoted);
         Self {
             tcx,
             specs,
@@ -108,7 +146,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
     }
 }
 
-impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
+impl<'tcx, 'a> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
     fn tcx(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
@@ -391,7 +429,7 @@ impl<'tcx> MutVisitor<'tcx> for InsertChecksVisitor<'tcx> {
     }
 }
 
-impl<'tcx> InsertChecksVisitor<'tcx> {
+impl<'tcx, 'a> InsertChecksVisitor<'tcx> {
     // Clone an argument manually. Returns the basic_block that starts the cloning
     // and the local variable the value is cloned into. Additionally, returns an
     // optional other local, that has to be dropped!
@@ -432,7 +470,8 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             let rvalue = rvalue_reference_to_local(self.tcx, arg, false);
             // the statement to be added to the block that has the call clone
             // terminator
-            let ref_stmt = mir::StatementKind::Assign(box (mir::Place::from(ref_arg), rvalue));
+            let ref_stmt =
+                mir::StatementKind::Assign(Box::new((mir::Place::from(ref_arg), rvalue)));
 
             // create the substitution since clone is generic:
             let generic_ty = ty::subst::GenericArg::from(arg_ty);
@@ -488,7 +527,7 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
 
             // borrow the clone result
             let rvalue = rvalue_reference_to_local(self.tcx, clone_dest.into(), mutable_ref);
-            let ref_stmt = mir::StatementKind::Assign(box (dest.into(), rvalue));
+            let ref_stmt = mir::StatementKind::Assign(Box::new((dest.into(), rvalue)));
             patch.add_statement(
                 mir::Location {
                     block: second_block,
@@ -666,8 +705,11 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 }
             }
         }
-        let old_rvalue = mir::Rvalue::Aggregate(box mir::AggregateKind::Tuple, old_tuple);
-        let stmt_kind = mir::StatementKind::Assign(box (old_dest_place, old_rvalue));
+        let old_rvalue = mir::Rvalue::Aggregate(
+            Box::new(mir::AggregateKind::Tuple),
+            IndexVec::from_raw(old_tuple),
+        );
+        let stmt_kind = mir::StatementKind::Assign(Box::new((old_dest_place, old_rvalue)));
         let location = mir::Location {
             block: current_caller,
             statement_index: 0,
@@ -703,18 +745,17 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
             literal: ConstantKind::zero_sized(func_ty),
         }));
 
-        let terminator = TerminatorKind::Call {
+        let call_terminator = TerminatorKind::Call {
             func,
             args: args.clone(),
             destination: dest_place,
             target: Some(new_block),
-            cleanup: None,
             from_hir_call: false,
+            // is terminating on unwind sometimes not actually what we want?
+            unwind: mir::UnwindAction::Continue,
             fn_span: DUMMY_SP,
         };
-        // the block that initially calls the check function, now calls the store
-        // function
-        patcher.patch_terminator(caller_block, terminator);
+        patcher.patch_terminator(caller_block, call_terminator);
         new_block
     }
 
@@ -816,7 +857,8 @@ impl<'tcx> InsertChecksVisitor<'tcx> {
                 kind: TerminatorKind::Drop {
                     place: (*local).into(),
                     target: current_target,
-                    unwind: None,
+                    unwind: mir::UnwindAction::Continue,
+                    replace: false,
                 },
             };
             let block_data = BasicBlockData::new(Some(terminator));

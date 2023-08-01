@@ -156,7 +156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             PlaceEncoding::Variant { box base, field } => {
                 let postprocessed_base = self.postprocess_place_encoding(base)?;
                 vir::Expr::Variant(vir::Variant {
-                    base: box postprocessed_base,
+                    base: Box::new(postprocessed_base),
                     variant_index: field,
                     position: vir::Position::default(),
                 })
@@ -267,7 +267,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::Abort | TerminatorKind::Resume { .. } => {
+            TerminatorKind::Terminate | TerminatorKind::Resume { .. } => {
                 assert!(states.is_empty());
                 let pos = self.encoder.error_manager().register_error(
                     term.source_info.span,
@@ -735,7 +735,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir::Expr::not(cond_val)
                 };
 
-                let error_ctxt = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                let error_ctxt = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     ErrorCtxt::BoundsCheckAssert
                 } else {
                     let assert_msg = msg.description().to_string();
@@ -786,8 +786,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 }
             }
 
-            TerminatorKind::DropAndReplace { .. }
-            | TerminatorKind::Yield { .. }
+            TerminatorKind::Yield { .. }
             | TerminatorKind::GeneratorDrop
             | TerminatorKind::InlineAsm { .. } => {
                 return Err(SpannedEncodingError::internal(
@@ -833,6 +832,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             // | mir::StatementKind::ReadForMatch(..)
             // | mir::StatementKind::EndRegion(..)
             | mir::StatementKind::AscribeUserType(..)
+            | mir::StatementKind::PlaceMention(..)
              => {
                 // Nothing to do
             }
@@ -946,7 +946,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 }
                                 let mut field_exprs = vec![];
                                 for (field_index, field) in variant_def.fields.iter().enumerate() {
-                                    let operand = &operands[field_index];
+                                    let operand = &operands[field_index.into()];
                                     let field_name = field.ident(tcx).to_string();
                                     let field_ty = field.ty(tcx, subst);
                                     let encoded_field = self.encoder
@@ -982,7 +982,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let cl_substs = substs.as_closure();
                                 let mut field_exprs = vec![];
                                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
-                                    let operand = &operands[field_index];
+                                    let operand = &operands[field_index.into()];
                                     let field_name = format!("closure_{field_index}");
 
                                     let encoded_field = self.encoder
@@ -1024,7 +1024,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty)
                                     .with_span(span)?;
                                 let elems = vir::Expr::Seq( vir::Seq {
-                                    typ: vir::Type::Seq( vir::SeqType {typ: box encoded_elem_ty} ),
+                                    typ: vir::Type::Seq( vir::SeqType {typ: Box::new(encoded_elem_ty)} ),
                                     elements: encoded_operands,
                                     position: vir::Position::default(),
                                 });
@@ -1257,7 +1257,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty)
                             .with_span(span)?;
                         let elems = vir::Expr::Seq(vir::Seq {
-                            typ: vir::Type::Seq(vir::SeqType{ typ: box encoded_elem_ty }),
+                            typ: vir::Type::Seq(vir::SeqType{ typ: Box::new(encoded_elem_ty) }),
                             elements: (0..len).map(|_| encoded_operand.clone()).collect(),
                             position: vir::Position::default(),
                         });

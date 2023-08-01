@@ -1,5 +1,5 @@
 #![feature(nll)]
-#![feature(box_patterns, box_syntax)]
+#![feature(box_patterns)]
 
 use prusti_contracts::*;
 

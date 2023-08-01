@@ -1,5 +1,4 @@
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 #![feature(decl_macro)]
 #![allow(unused_imports)]
 #![deny(unused_must_use)]

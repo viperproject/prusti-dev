@@ -19,7 +19,7 @@ fn pred(m: &Struct) -> bool {
     outer(inner(&m))
     //~^ ERROR Prusti encountered an unexpected internal error
     //~| NOTE: We would appreciate a bug report
-    //~| NOTE: There is no procedure contract for loan
+    //~| NOTE: there is no procedure contract for loan
 }
 
 fn main() {}

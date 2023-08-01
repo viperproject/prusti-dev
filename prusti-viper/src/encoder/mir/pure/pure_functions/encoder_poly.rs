@@ -80,23 +80,23 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
 /// Used to encode unevaluated constants.
 pub(super) fn encode_promoted<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
-    proc_def_id: ty::WithOptConstParam<DefId>,
+    proc_def_id: DefId,
     promoted_id: mir::Promoted,
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
     let tcx = encoder.env().tcx();
-    let promoted_bodies = tcx.promoted_mir_opt_const_arg(proc_def_id);
+    let promoted_bodies = tcx.promoted_mir(proc_def_id);
     let param_env = tcx.param_env(parent_def_id);
     let mir = tcx.subst_and_normalize_erasing_regions(
         substs,
         param_env,
-        promoted_bodies[promoted_id].clone(),
+        ty::EarlyBinder::bind(promoted_bodies[promoted_id].clone()),
     );
     encode_mir(
         encoder,
         &mir,
-        proc_def_id.did,
+        proc_def_id,
         PureEncodingContext::Code,
         parent_def_id,
     )
@@ -479,10 +479,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder
-                .error_manager()
-                .set_error(encoded_assertion.pos(), ErrorCtxt::PureFunctionDefinition);
-            func_spec.push(encoded_assertion);
+            let new_pos = self.encoder.error_manager().set_surrounding_error_context(
+                encoded_assertion.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            func_spec.push(encoded_assertion.set_pos(new_pos));
         }
 
         Ok((
@@ -521,10 +522,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder
-                .error_manager()
-                .set_error(encoded_postcond.pos(), ErrorCtxt::PureFunctionDefinition);
-            func_spec.push(encoded_postcond);
+            let new_pos = self.encoder.error_manager().set_surrounding_error_context(
+                encoded_postcond.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            func_spec.push(encoded_postcond.set_pos(new_pos));
         }
 
         let post = func_spec.into_iter().conjoin();

@@ -4,6 +4,7 @@ use prusti_rustc_interface::{
         ty::{self, TyCtxt},
     },
     span::{self, def_id::DefId, DUMMY_SP},
+    index::IndexVec,
 };
 use rustc_hash::FxHashMap;
 
@@ -22,10 +23,14 @@ use rustc_hash::FxHashMap;
 // }
 
 /// Check whether this variable is mutable, or a mutable reference
-pub fn is_mutable_arg(body: &Body<'_>, local: mir::Local) -> bool {
+pub fn is_mutable_arg<'tcx>(
+    body: &Body<'_>,
+    local: mir::Local,
+    local_decls: &IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
+) -> bool {
     let args: Vec<mir::Local> = body.args_iter().collect();
     if args.contains(&local) {
-        let local_decl = body.local_decls.get(local).unwrap();
+        let local_decl = local_decls.get(local).unwrap();
         if local_decl.mutability == mir::Mutability::Mut {
             return true;
         }
@@ -59,7 +64,7 @@ pub fn dummy_source_info() -> mir::SourceInfo {
 
 pub fn dummy_region(tcx: TyCtxt<'_>) -> ty::Region<'_> {
     let kind = ty::RegionKind::ReErased;
-    tcx.mk_region_from_kind(kind)
+    ty::Region::new_from_kind(tcx, kind)
 }
 
 pub fn unit_const(tcx: TyCtxt<'_>) -> mir::Operand<'_> {
@@ -70,7 +75,7 @@ pub fn unit_const(tcx: TyCtxt<'_>) -> mir::Operand<'_> {
         user_ty: None,
         literal: constant_kind,
     };
-    mir::Operand::Constant(box constant)
+    mir::Operand::Constant(Box::new(constant))
 }
 
 pub fn rvalue_reference_to_local<'tcx>(
@@ -121,7 +126,7 @@ pub fn args_from_body<'tcx>(body: &Body<'tcx>) -> Vec<mir::Operand<'tcx>> {
     let mut args = Vec::new();
     let caller_nr_args = body.arg_count;
     // now the final mapping to operands:
-    for (local, _decl) in body.local_decls.iter_enumerated() {
+    for local in body.args_iter() {
         let index = local.index();
         if index != 0 && index <= caller_nr_args {
             args.push(mir::Operand::Copy(mir::Place {
@@ -192,7 +197,7 @@ pub fn create_call_block<'tcx>(
         args,
         destination,
         target,
-        cleanup: None,
+        unwind: mir::UnwindAction::Continue,
         from_hir_call: false,
         fn_span: tcx.def_span(call_id),
     };
@@ -220,53 +225,37 @@ pub fn replace_outgoing_edges(
                 update_if_equals(bb1, from, to);
             }
         }
-        TerminatorKind::Call {
-            target, cleanup, ..
-        } => {
+        TerminatorKind::Call { target, unwind, .. } => {
             if let Some(target) = target {
                 update_if_equals(target, from, to);
             }
-            if let Some(cleanup) = cleanup {
+            if let mir::UnwindAction::Cleanup(cleanup) = unwind {
                 update_if_equals(cleanup, from, to);
             }
         }
-        TerminatorKind::Assert {
-            target: target_bb,
-            cleanup: opt_bb,
-            ..
-        }
-        | TerminatorKind::DropAndReplace {
-            target: target_bb,
-            unwind: opt_bb,
-            ..
-        }
-        | TerminatorKind::Drop {
-            target: target_bb,
-            unwind: opt_bb,
-            ..
-        }
-        | TerminatorKind::Yield {
-            resume: target_bb,
-            drop: opt_bb,
-            ..
-        }
+        TerminatorKind::Assert { target, unwind, .. }
+        | TerminatorKind::Drop { target, unwind, .. }
         | TerminatorKind::FalseUnwind {
-            real_target: target_bb,
-            unwind: opt_bb,
+            real_target: target,
+            unwind,
         } => {
-            update_if_equals(target_bb, from, to);
-            if let Some(bb) = opt_bb {
+            update_if_equals(target, from, to);
+            if let mir::UnwindAction::Cleanup(bb) = unwind {
                 update_if_equals(bb, from, to);
             }
         }
         TerminatorKind::InlineAsm {
             destination,
-            cleanup,
+            unwind,
             ..
         } => {
             // is this prettier? does this even modify the blockdata?
-            destination.map(|mut x| update_if_equals(&mut x, from, to));
-            cleanup.map(|mut x| update_if_equals(&mut x, from, to));
+            if let Some(bb) = destination {
+                update_if_equals(bb, from, to);
+            }
+            if let mir::UnwindAction::Cleanup(bb) = unwind {
+                update_if_equals(bb, from, to)
+            }
         }
         TerminatorKind::FalseEdge {
             real_target,
@@ -275,8 +264,14 @@ pub fn replace_outgoing_edges(
             update_if_equals(real_target, from, to);
             update_if_equals(imaginary_target, from, to);
         }
+        TerminatorKind::Yield { resume, drop, .. } => {
+            update_if_equals(resume, from, to);
+            if let Some(bb) = drop {
+                update_if_equals(bb, from, to);
+            }
+        }
         TerminatorKind::Resume
-        | TerminatorKind::Abort
+        | TerminatorKind::Terminate
         | TerminatorKind::Return
         | TerminatorKind::Unreachable
         | TerminatorKind::GeneratorDrop => {}

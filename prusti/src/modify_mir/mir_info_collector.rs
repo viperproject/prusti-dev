@@ -4,6 +4,7 @@ use prusti_interface::{
     utils::has_prusti_attr,
 };
 use prusti_rustc_interface::{
+    index::IndexVec,
     middle::{
         mir::{self, visit::Visitor, Statement, StatementKind},
         ty::TyCtxt,
@@ -19,9 +20,14 @@ pub struct MirInfo {
     pub stmts_to_substitute_rhs: FxHashSet<mir::Location>,
 }
 
-pub fn collect_mir_info<'tcx>(tcx: TyCtxt<'tcx>, body: mir::Body<'tcx>) -> MirInfo {
+pub fn collect_mir_info<'tcx, 'a>(
+    tcx: TyCtxt<'tcx>,
+    body: mir::Body<'tcx>,
+    promoted: &'a mir::Body<'tcx>,
+) -> MirInfo {
+    println!("Collecting mir info for {:?}", body.source.def_id());
     let check_blocks = collect_check_blocks(tcx, &body);
-    let mut visitor = MirInfoCollector::new(body.clone(), tcx);
+    let mut visitor = MirInfoCollector::new(body.clone(), tcx, promoted);
     visitor.visit_body(&body);
     let (args_to_be_cloned, stmts_to_substitute_rhs) = visitor.process_dependencies();
     MirInfo {
@@ -39,7 +45,7 @@ pub fn collect_mir_info<'tcx>(tcx: TyCtxt<'tcx>, body: mir::Body<'tcx>) -> MirIn
 // - finding basic blocks, that contain an empty closure, referring to an
 //   expiration location (when a user manually inserts `prusti_pledge_expires!()`)
 //   or blocks that are dominated by this kind of block
-struct MirInfoCollector<'tcx> {
+struct MirInfoCollector<'tcx, 'a> {
     /// a MIR visitor collecting some information about old calls, run
     /// beforehand
     old_visitor: OldVisitor<'tcx>,
@@ -52,6 +58,7 @@ struct MirInfoCollector<'tcx> {
     body: mir::Body<'tcx>,
     /// the rvalue visitor, so we don't construct it for each assignment
     rvalue_visitor: RvalueVisitor,
+    local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
 }
 
 #[derive(Hash, Clone, Debug, PartialEq, Eq)]
@@ -62,15 +69,14 @@ struct Dependency {
     is_mutable_arg: bool,
 }
 
-impl<'tcx> Visitor<'tcx> for MirInfoCollector<'tcx> {
+impl<'tcx, 'a> Visitor<'tcx> for MirInfoCollector<'tcx, 'a> {
     fn visit_statement(&mut self, statement: &Statement<'tcx>, location: mir::Location) {
         self.super_statement(statement, location);
         if let StatementKind::Assign(box (recv, rvalue)) = &statement.kind {
             // collect all locals contained in rvalue.
             self.rvalue_visitor.visit_rvalue(rvalue, location);
             // take the collected locals and reset visitor
-            let dependencies =
-                std::mem::take(&mut self.rvalue_visitor.dependencies);
+            let dependencies = std::mem::take(&mut self.rvalue_visitor.dependencies);
             dependencies.iter().for_each(|local| {
                 let dep = self.create_dependency(*local);
                 if let Some(dependencies) = self.locals_dependencies.get_mut(&recv.local) {
@@ -122,8 +128,13 @@ impl<'tcx> Visitor<'tcx> for MirInfoCollector<'tcx> {
     }
 }
 
-impl<'tcx> MirInfoCollector<'tcx> {
-    pub(crate) fn new(body: mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+impl<'tcx, 'a> MirInfoCollector<'tcx, 'a> {
+    pub(crate) fn new(
+        body: mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+        promoted: &'a mir::Body<'tcx>,
+    ) -> Self {
+        // old visitor identifies spans of old within code
         let mut old_visitor = OldVisitor::new(tcx);
         old_visitor.visit_body(&body);
         Self {
@@ -134,6 +145,7 @@ impl<'tcx> MirInfoCollector<'tcx> {
             rvalue_visitor: RvalueVisitor {
                 dependencies: Default::default(),
             },
+            local_decls: &promoted.local_decls,
         }
     }
 
@@ -180,14 +192,24 @@ impl<'tcx> MirInfoCollector<'tcx> {
     }
     // determine all the relevant facts about this local
     fn create_dependency(&self, local: mir::Local) -> Dependency {
-        let local_decl = self.body.local_decls.get(local).unwrap();
-        let is_user_declared = local_decl.is_user_variable();
-        let declared_within_old = self
-            .old_visitor
-            .old_spans
-            .iter()
-            .any(|old_span| old_span.contains(local_decl.source_info.span));
-        let is_mutable_arg = is_mutable_arg(&self.body, local);
+        println!("Creating dependency for local: {:?}", local);
+        let local_decl = self.local_decls.get(local);
+
+        // is_user_variable leads to panics for certain variables..
+        let is_user_declared = if let Some(local_decl) = local_decl {
+            matches!(local_decl.local_info.as_ref(), mir::ClearCrossCrate::Set(_))
+                && local_decl.is_user_variable()
+        } else {
+            false
+        };
+        // if a variable is not user declared this doesn't matter
+        let declared_within_old = is_user_declared
+            && self
+                .old_visitor
+                .old_spans
+                .iter()
+                .any(|old_span| old_span.contains(local_decl.unwrap().source_info.span));
+        let is_mutable_arg = is_mutable_arg(&self.body, local, self.local_decls);
         Dependency {
             local,
             is_user_declared,
@@ -250,10 +272,7 @@ pub enum CheckBlockKind {
 }
 
 impl CheckBlockKind {
-    pub fn determine_kind(
-        env_query: EnvQuery<'_>,
-        bb_data: &mir::BasicBlockData,
-    ) -> Option<Self> {
+    pub fn determine_kind(env_query: EnvQuery<'_>, bb_data: &mir::BasicBlockData) -> Option<Self> {
         for stmt in &bb_data.statements {
             if let mir::StatementKind::Assign(box (
                 _,

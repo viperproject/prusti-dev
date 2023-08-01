@@ -1,7 +1,6 @@
 #![deny(unused_must_use)]
 #![feature(drain_filter)]
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 #![feature(proc_macro_span)]
 #![feature(if_let_guard)]
 #![feature(assert_matches)]
@@ -737,7 +736,11 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
         let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
         let item_span = item.span();
+
+        // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+        #[allow(clippy::redundant_clone)]
         let item_ident = item.ident.clone();
+
         let item_name = syn::Ident::new(
             &format!("prusti_trusted_item_{item_ident}_{spec_id}"),
             item_span,
@@ -806,7 +809,11 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
     let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
+
+    // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+    #[allow(clippy::redundant_clone)]
     let item_ident = item.ident.clone();
+
     let item_name = syn::Ident::new(
         &format!("prusti_invariant_item_{item_ident}_{spec_id}"),
         item_span,
@@ -822,11 +829,14 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         #[prusti::type_invariant_spec]
         #[prusti::spec_id = #spec_id_str]
         fn #item_name(self) -> bool {
-            !!((#attr) : bool)
+            !!(#attr)
         }
     };
 
+    // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+    #[allow(clippy::redundant_clone)]
     let generics = item.generics.clone();
+
     let generics_idents = generics
         .params
         .iter()

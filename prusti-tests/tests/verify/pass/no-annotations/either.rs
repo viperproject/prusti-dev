@@ -1,7 +1,4 @@
-//! Currently unsupported because `Box` and `Option` use a type parameter
-
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 enum Either {
     Left(i32),
