@@ -1664,11 +1664,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Generate an unsupported encoding error for unhandled borrow kinds.
     fn unsupported_borrow_kind(kind: mir::BorrowKind) -> EncodingError {
         match kind {
-            mir::BorrowKind::Mut { .. } => {
-                EncodingError::unsupported(
-                    "unsuported creation of unique borrows (implicitly created in closure bindings)",
-                )
-            }
             mir::BorrowKind::Shallow => {
                 EncodingError::unsupported(
                     "unsupported creation of shallow borrows (implicitly created when lowering matches)",
