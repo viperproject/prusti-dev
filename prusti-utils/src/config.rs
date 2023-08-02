@@ -86,7 +86,7 @@ lazy_static::lazy_static! {
         settings.set_default("log", "").unwrap();
         settings.set_default("log_style", "auto").unwrap();
         settings.set_default("log_dir", "log").unwrap();
-        settings.set_default("log_tracing", true).unwrap();
+        settings.set_default("log_tracing", false).unwrap();
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
