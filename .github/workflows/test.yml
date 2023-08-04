@@ -263,6 +263,40 @@ jobs:
           cd prusti-contracts/prusti-contracts-test/
           cargo +stable build
 
+  release-build:
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, windows-latest, macos-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '15'
+          distribution: 'zulu'
+
+      - name: Set up the environment
+        run: python x.py setup
+
+      - name: Build workspace with cargo --release
+        run: python x.py build --release --jobs=1 --workspace --exclude prusti-contracts-build --verbose
+        env:
+            CARGO_PROFILE_RELEASE_BUILD_OVERRIDE_DEBUG: true
+
+      - name: Build contracts with cargo --release
+        run: python x.py build --release --jobs=1 --package prusti-contracts-build --verbose
+        env:
+            CARGO_PROFILE_RELEASE_BUILD_OVERRIDE_DEBUG: true
+
   # Run Prusti on itself.
   # Disabled because of a bug when compiling jni-gen
   test-on-prusti:

@@ -12,7 +12,7 @@ fn main() {
     );
 
     let target: PathBuf = ["..", "target"].iter().collect();
-    force_reexport_specs(target.join("verify").as_path());
+    //force_reexport_specs(target.join("verify").as_path());
 
     // Copy just-built binaries to `target/dir` dir
     let bin_dir = if cfg!(debug_assertions) {
