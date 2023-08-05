@@ -23,6 +23,7 @@ pub extern crate rustc_serialize as serialize;
 pub extern crate rustc_session as session;
 pub extern crate rustc_span as span;
 pub extern crate rustc_target as target;
+pub extern crate rustc_mir_transform as mir_transform;
 
 // TODO: switch over to `rustc_smir` once RA knows about the crate
 // pub use rustc_smir::very_unstable::{borrowck, dataflow, hir, middle, trait_selection};

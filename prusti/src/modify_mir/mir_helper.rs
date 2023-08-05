@@ -1,32 +1,21 @@
 use prusti_rustc_interface::{
+    index::IndexVec,
     middle::{
         mir::{self, patch::MirPatch, visit::MutVisitor, Body, TerminatorKind},
         ty::{self, TyCtxt},
     },
     span::{self, def_id::DefId, DUMMY_SP},
-    index::IndexVec,
 };
 use rustc_hash::FxHashMap;
 
-/// Given the name of a variable in the original program, find the
-/// corresponding mir local
-// pub fn get_local_from_name(body: &Body<'_>, name: String) -> Option<mir::Local> {
-//     for debug_info in &body.var_debug_info {
-//         // find the corresponding local in the var_debug_info
-//         if debug_info.name.to_string() == name {
-//             if let mir::VarDebugInfoContents::Place(place) = debug_info.value {
-//                 return Some(place.local);
-//             }
-//         }
-//     }
-//     None
-// }
+// A set of functions that are often used during mir modifications
+
 
 /// Check whether this variable is mutable, or a mutable reference
-pub fn is_mutable_arg<'tcx>(
+pub fn is_mutable_arg(
     body: &Body<'_>,
     local: mir::Local,
-    local_decls: &IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
+    local_decls: &IndexVec<mir::Local, mir::LocalDecl<'_>>,
 ) -> bool {
     let args: Vec<mir::Local> = body.args_iter().collect();
     if args.contains(&local) {
@@ -162,55 +151,6 @@ pub fn prepend_dummy_block(body: &mut Body) -> mir::BasicBlock {
     new_block_id
 }
 
-pub fn create_call_block<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    patch: &mut MirPatch<'tcx>,
-    call_id: DefId,
-    args: Vec<mir::Operand<'tcx>>,
-    substs: ty::subst::SubstsRef<'tcx>,
-    destination: Option<mir::Place<'tcx>>,
-    target: Option<mir::BasicBlock>,
-) -> Result<(mir::BasicBlock, mir::Place<'tcx>), ()> {
-    // construct the function call
-    let func_ty = tcx.mk_ty_from_kind(ty::TyKind::FnDef(call_id, substs));
-    let func = mir::Operand::Constant(Box::new(mir::Constant {
-        span: span::DUMMY_SP,
-        user_ty: None,
-        literal: mir::ConstantKind::zero_sized(func_ty),
-    }));
-    // either use passed destination or create a new one
-    let destination = if let Some(dest) = destination {
-        dest
-    } else {
-        // find return type
-        let ret_ty = tcx
-            .fn_sig(call_id)
-            .subst(tcx, substs)
-            .output()
-            .skip_binder();
-        mir::Place::from(patch.new_temp(ret_ty, span::DUMMY_SP))
-    };
-
-    // args have to be constructed beforehand, including result or old_values
-    let terminator_kind = mir::TerminatorKind::Call {
-        func,
-        args,
-        destination,
-        target,
-        unwind: mir::UnwindAction::Continue,
-        from_hir_call: false,
-        fn_span: tcx.def_span(call_id),
-    };
-    let terminator = mir::Terminator {
-        source_info: dummy_source_info(),
-        kind: terminator_kind,
-    };
-    let blockdata = mir::BasicBlockData::new(Some(terminator));
-    let new_block_id = patch.new_block(blockdata);
-
-    Ok((new_block_id, destination))
-}
-
 // If we re-order the IndexVec containing the basic blocks, we will need to adjust
 // some the basic blocks that terminators point to. This is what this function does
 pub fn replace_outgoing_edges(
@@ -322,4 +262,29 @@ impl<'tcx, 'a> MutVisitor<'tcx> for ArgumentReplacer<'a, 'tcx> {
             *local = *replace;
         }
     }
+}
+
+// If this block is a goto block, and if it is returns its current target
+pub fn get_block_target(body: &Body<'_>, block: mir::BasicBlock) -> Option<mir::BasicBlock> {
+    let terminator: &Option<mir::Terminator> = &body.basic_blocks.get(block)?.terminator;
+    if let Some(mir::Terminator {
+        kind: mir::TerminatorKind::Goto { target },
+        ..
+    }) = terminator
+    {
+        Some(*target)
+    } else {
+        None
+    }
+}
+
+// are these the same types that we would get using local_decls and the locals
+// for each argument / the return local?
+pub fn fn_def_signature(tcx: TyCtxt<'_>, def_id: DefId) -> ty::FnSig {
+    // use identity substs for a function definitions, but never for calls!
+    let ident_substs = ty::subst::InternalSubsts::identity_for_item(tcx, def_id);
+    let binder_fn_sig = tcx.fn_sig(def_id);
+    let poly_fn_sig = binder_fn_sig.subst(tcx, ident_substs);
+    let param_env = tcx.param_env(def_id);
+    tcx.normalize_erasing_late_bound_regions(param_env, poly_fn_sig)
 }

@@ -3,7 +3,7 @@ use crate::{modify_mir, verifier::verify};
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
-    specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
+    specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn, typed::DefSpecificationMap},
 };
 use prusti_rustc_interface::{
     borrowck::consumers,
@@ -80,7 +80,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
                 providers.mir_borrowck = mir_borrowck;
                 providers.mir_promoted = mir_promoted;
-                providers.mir_drops_elaborated_and_const_checked = modify_mir::mir_modify::mir_drops_elaborated;
+                providers.mir_drops_elaborated_and_const_checked =
+                    modify_mir::mir_modify::mir_drops_elaborated;
             },
         );
     }
@@ -149,25 +150,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         queries.global_ctxt().unwrap().enter(|tcx| {
-            let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
-            let spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check(&env);
-            compiler.session().abort_if_errors();
-
-            let hir = env.query.hir();
-            let mut spec_collector = specs::SpecCollector::new(&mut env);
-            spec_collector.collect_specs(hir);
-
-            let mut def_spec = spec_collector.build_def_specs();
-            // Do print_typeckd_specs prior to importing cross crate
-            if config::print_typeckd_specs() {
-                for value in def_spec.all_values_debug(config::hide_uuids()) {
-                    println!("{value}");
-                }
-            }
-            CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
+            let (def_spec, env) = get_specs(tcx, Some(compiler));
             if !config::no_verify() {
-                verify(env, def_spec.clone());
+                verify(env, def_spec);
             }
         });
 
@@ -177,5 +162,45 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         } else {
             Compilation::Stop
         }
+    }
+}
+
+pub fn get_specs<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    compiler_opt: Option<&Compiler>,
+) -> (DefSpecificationMap, Environment<'tcx>) {
+    let specs_env_opt = unsafe { crate::SPEC_ENV.take() };
+    if let Some((specs, env)) = specs_env_opt {
+        let env_tcx: Environment<'tcx> = unsafe { std::mem::transmute(env) };
+        (specs, env_tcx)
+    } else {
+        let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
+
+        // when get_specs is first called from an overriden query
+        // (as is the case for runtime checks), we don't have
+        // access to the compiler, so for now we just skip the
+        // checking then
+        if let Some(compiler) = compiler_opt {
+            let spec_checker = specs::checker::SpecChecker::new();
+            spec_checker.check(&env);
+            compiler.session().abort_if_errors();
+        } else if env.diagnostic.has_errors() {
+            // TODO: still give some sensible error?
+            // Does it make a difference if we show the errors
+            // once get_specs returns in callbacks?
+            panic!("Spec checking caused errors. No good error message because runtime checks are enabled. This is a TODO");
+        }
+        let hir = env.query.hir();
+        let mut spec_collector = specs::SpecCollector::new(&mut env);
+        spec_collector.collect_specs(hir);
+
+        let mut def_spec = spec_collector.build_def_specs();
+        if config::print_typeckd_specs() {
+            for value in def_spec.all_values_debug(config::hide_uuids()) {
+                println!("{value}");
+            }
+        }
+        CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
+        (def_spec, env)
     }
 }

@@ -1,6 +1,8 @@
 use super::mir_helper::*;
+
 use prusti_interface::{
-    environment::{blocks_dominated_by, is_check_closure, EnvQuery},
+    environment::{blocks_dominated_by, is_check_closure, EnvQuery, Environment},
+    specs::typed::DefSpecificationMap,
     utils::has_prusti_attr,
 };
 use prusti_rustc_interface::{
@@ -9,31 +11,63 @@ use prusti_rustc_interface::{
         mir::{self, visit::Visitor, Statement, StatementKind},
         ty::TyCtxt,
     },
-    span::Span,
+    span::{def_id::DefId, Span},
 };
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
 
-pub struct MirInfo {
+// Info about a specific MIR Body that can be collected before we
+// actuallye start modifying it.
+// Note that depending on the modifications we perform, some of the
+// information (e.g. about blocks might no longer be accurate)
+pub struct MirInfo<'tcx> {
+    pub def_id: DefId,
+    pub specs: DefSpecificationMap,
+    pub env: Environment<'tcx>,
+    /// blocks that the translation specifically added to either mark
+    /// a location (manual pledge expiry) or that we identified to
+    /// be the check blocks for a `prusti_assert!`, `prusti_assume!` or
+    /// `body_invariant`.
     pub check_blocks: FxHashMap<mir::BasicBlock, CheckBlockKind>,
+    /// function arguments that have to be cloned on entry of the function
     pub args_to_be_cloned: FxHashSet<mir::Local>,
+    /// statements in which we should replace the occurrence of a function
+    /// argument with their clone
     pub stmts_to_substitute_rhs: FxHashSet<mir::Location>,
 }
 
-pub fn collect_mir_info<'tcx, 'a>(
-    tcx: TyCtxt<'tcx>,
-    body: mir::Body<'tcx>,
-    promoted: &'a mir::Body<'tcx>,
-) -> MirInfo {
-    println!("Collecting mir info for {:?}", body.source.def_id());
-    let check_blocks = collect_check_blocks(tcx, &body);
-    let mut visitor = MirInfoCollector::new(body.clone(), tcx, promoted);
-    visitor.visit_body(&body);
-    let (args_to_be_cloned, stmts_to_substitute_rhs) = visitor.process_dependencies();
-    MirInfo {
-        check_blocks,
-        args_to_be_cloned,
-        stmts_to_substitute_rhs,
+impl<'tcx> MirInfo<'tcx> {
+    // Collect this info given a body.
+    // mir_promoted is also passed in here, because some information
+    // is removed in mir_drops_elaborated
+    pub fn collect_mir_info<'a>(
+        tcx: TyCtxt<'tcx>,
+        body: mir::Body<'tcx>,
+        def_id: DefId,
+        local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
+    ) -> MirInfo<'tcx> {
+        println!("Collecting mir info for {:?}", body.source.def_id());
+        let (specs, env) = crate::callbacks::get_specs(tcx, None);
+        let check_blocks = collect_check_blocks(tcx, &body);
+        let mut visitor = MirInfoCollector::new(body.clone(), tcx, local_decls);
+        visitor.visit_body(&body);
+        let (args_to_be_cloned, stmts_to_substitute_rhs) = visitor.process_dependencies();
+        MirInfo {
+            def_id,
+            specs,
+            env,
+            check_blocks,
+            args_to_be_cloned,
+            stmts_to_substitute_rhs,
+        }
+    }
+    // when MirInfo is no longer required, put specs and env back into
+    // global statics (because we only want to compute them once)
+    // consider putting this inside of drop for MirInfo
+    pub fn store_specs_env(self) {
+        let MirInfo { env, specs, .. } = self;
+        let static_env = unsafe { std::mem::transmute(env) };
+        unsafe { crate::SPEC_ENV = Some((specs, static_env)) };
     }
 }
 
@@ -48,7 +82,7 @@ pub fn collect_mir_info<'tcx, 'a>(
 struct MirInfoCollector<'tcx, 'a> {
     /// a MIR visitor collecting some information about old calls, run
     /// beforehand
-    old_visitor: OldVisitor<'tcx>,
+    old_visitor: OldSpanFinder<'tcx>,
     /// dependencies between locals, for each local get a list of other locals
     /// that it depends on
     locals_dependencies: FxHashMap<mir::Local, FxHashSet<Dependency>>,
@@ -101,6 +135,7 @@ impl<'tcx, 'a> Visitor<'tcx> for MirInfoCollector<'tcx, 'a> {
             args, destination, ..
         } = &terminator.kind
         {
+            // collect dependencies
             args.iter().for_each(|arg| {
                 if let mir::Operand::Move(place) | mir::Operand::Copy(place) = arg {
                     let dep = self.create_dependency(place.local);
@@ -132,10 +167,10 @@ impl<'tcx, 'a> MirInfoCollector<'tcx, 'a> {
     pub(crate) fn new(
         body: mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        promoted: &'a mir::Body<'tcx>,
+        local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
     ) -> Self {
         // old visitor identifies spans of old within code
-        let mut old_visitor = OldVisitor::new(tcx);
+        let mut old_visitor = OldSpanFinder::new(tcx);
         old_visitor.visit_body(&body);
         Self {
             old_visitor,
@@ -145,7 +180,7 @@ impl<'tcx, 'a> MirInfoCollector<'tcx, 'a> {
             rvalue_visitor: RvalueVisitor {
                 dependencies: Default::default(),
             },
-            local_decls: &promoted.local_decls,
+            local_decls,
         }
     }
 
@@ -162,8 +197,7 @@ impl<'tcx, 'a> MirInfoCollector<'tcx, 'a> {
             // we put locals in here that are dependencies of old arguments and
             // that are not user defined
             let mut to_process = vec![*old_arg];
-            while !to_process.is_empty() {
-                let local = to_process.pop().unwrap();
+            while let Some(local) = to_process.pop() {
                 let deps = self.locals_dependencies.get(&local).unwrap();
                 let assignment_locations = self.assignment_locations.get(&local).unwrap();
                 let mut depends_on_argument = false;
@@ -310,7 +344,7 @@ impl<'tcx> Visitor<'tcx> for RvalueVisitor {
     }
 }
 
-struct OldVisitor<'tcx> {
+struct OldSpanFinder<'tcx> {
     tcx: TyCtxt<'tcx>,
     old_spans: Vec<Span>,
     old_args: FxHashSet<mir::Local>,
@@ -318,7 +352,7 @@ struct OldVisitor<'tcx> {
 
 // spans of old calls need to be resolved first, so we can determine
 // whether locals are defined inside them later.
-impl<'tcx> Visitor<'tcx> for OldVisitor<'tcx> {
+impl<'tcx> Visitor<'tcx> for OldSpanFinder<'tcx> {
     fn visit_terminator(&mut self, terminator: &mir::Terminator<'tcx>, location: mir::Location) {
         self.super_terminator(terminator, location);
         if let mir::TerminatorKind::Call {
@@ -345,9 +379,9 @@ impl<'tcx> Visitor<'tcx> for OldVisitor<'tcx> {
     }
 }
 
-impl<'tcx> OldVisitor<'tcx> {
+impl<'tcx> OldSpanFinder<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        OldVisitor {
+        OldSpanFinder {
             old_spans: Default::default(),
             old_args: Default::default(),
             tcx,
