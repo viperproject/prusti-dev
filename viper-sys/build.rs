@@ -146,6 +146,7 @@ fn main() {
             java_class!("viper.silver.frontend.SilFrontend", vec![
                 method!("setVerifier"),
                 method!("verification"),
+                method!("result"),
                 method!("getVerificationResult"),
                 method!("setState"),
                 method!("verifier"),
