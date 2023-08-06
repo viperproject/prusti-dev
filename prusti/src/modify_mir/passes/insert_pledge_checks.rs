@@ -1,6 +1,8 @@
+use crate::modify_mir::mir_helper::dummy_source_info;
+
 use super::super::{
-    mir_modifications::MirModifier,
     mir_info_collector::{CheckBlockKind, MirInfo},
+    mir_modifications::MirModifier,
 };
 use prusti_interface::specs::typed::CheckKind;
 use prusti_rustc_interface::{
@@ -39,7 +41,7 @@ pub struct PledgeToProcess<'tcx> {
     // a local that is set when a function with a pledge is called
     // and then checked before a runtime check at an expiration location
     // is performed.
-    // pub local_guard: mir::Local,
+    pub guard_place: mir::Place<'tcx>,
 }
 
 impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
@@ -70,6 +72,25 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
         let patcher_ref = self.patch_opt.take().unwrap();
         patcher_ref.into_inner().apply(body);
     }
+
+    pub fn set_guard_true_block(
+        &self,
+        destination: mir::Place<'tcx>,
+        target: mir::BasicBlock,
+    ) -> mir::BasicBlock {
+        let stmt_kind = self.set_bool_stmt(destination, true);
+        let stmt = mir::Statement {
+            source_info: dummy_source_info(),
+            kind: stmt_kind,
+        };
+        let terminator = mir::Terminator {
+            source_info: dummy_source_info(),
+            kind: mir::TerminatorKind::Goto { target },
+        };
+        let mut new_block = mir::BasicBlockData::new(Some(terminator));
+        new_block.statements.push(stmt);
+        self.patcher().new_block(new_block)
+    }
 }
 
 impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
@@ -85,7 +106,6 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
         match &terminator.kind {
             mir::TerminatorKind::Call {
                 func,
-                
                 destination,
                 args,
                 ..
@@ -114,6 +134,10 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                             let before_expiry_place = mir::Place::from(
                                 self.patcher().new_temp(before_expiry_ty, DUMMY_SP),
                             );
+
+                            let bool_ty = self.tcx.mk_ty_from_kind(ty::TyKind::Bool);
+                            let local_guard = self.patcher().new_temp(bool_ty, DUMMY_SP).into();
+
                             // create the clones of old that will be passed to
                             // the check function. Make the chain end with the
                             // original function call
@@ -125,12 +149,13 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                                     args.clone(),
                                     true,
                                 );
-                            // replace the old caller with a goto, to the start
+                            let set_guard_block =
+                                self.set_guard_true_block(local_guard, chain_start);
                             // of our function
                             self.patcher().patch_terminator(
                                 caller_block,
                                 mir::TerminatorKind::Goto {
-                                    target: chain_start,
+                                    target: set_guard_block,
                                 },
                             );
                             // update the call_location (just in case there are
@@ -146,6 +171,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                                 args: args.clone(),
                                 substs,
                                 locals_to_drop,
+                                guard_place: local_guard,
                             };
                             // TODO: create a test where the result is assigned
                             // to the field of a tuple
@@ -173,10 +199,11 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                                         .unwrap()
                                         .kind
                                 {
-                                    let pledge = self
-                                        .pledges_to_process
-                                        .get(local)
-                                        .expect("pledge expiration without an actual pledge");
+                                    let pledge = self.pledges_to_process.get(local).expect(
+                                        "pledge expiration without an actual pledge,\
+                                                seems like our assumption that calls of pledges are\
+                                                always encountered before the expiration is wrong",
+                                    );
                                     let start_block =
                                         self.create_pledge_call_chain(pledge, *target).unwrap();
 

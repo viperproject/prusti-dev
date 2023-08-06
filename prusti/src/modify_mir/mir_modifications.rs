@@ -4,16 +4,15 @@ use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
         mir::{
-            self, patch::MirPatch, BasicBlock, BasicBlockData, Constant,
-            Operand, Place, Terminator, TerminatorKind,
+            self, patch::MirPatch, BasicBlock, BasicBlockData, Constant, Operand, Place,
+            Terminator, TerminatorKind,
         },
         ty::{self, TyCtxt, TyKind},
     },
     span::{def_id::DefId, DUMMY_SP},
 };
 
-use std::cell::RefMut;
-
+use std::{cell::RefMut, u128};
 
 /// A general set of operations that are used to modify the MIR
 pub trait MirModifier<'tcx> {
@@ -316,7 +315,29 @@ pub trait MirModifier<'tcx> {
             },
         );
 
-        Ok(clone_chain_start)
+        // wrap an `if pledge_guard around the whole thing`
+        let term_switchint = mir::TerminatorKind::SwitchInt {
+            discr: mir::Operand::Copy(pledge.guard_place),
+            targets: mir::terminator::SwitchTargets::new(
+                [(u128::MIN, target)].into_iter(),
+                clone_chain_start,
+            ),
+        };
+        let terminator = mir::Terminator {
+            source_info: dummy_source_info(),
+            kind: term_switchint,
+        };
+        let check_guard_block = mir::BasicBlockData::new(Some(terminator));
+        let start_block = self.patcher().new_block(check_guard_block);
+        let unset_guard_stmt = self.set_bool_stmt(pledge.guard_place, false);
+        self.patcher().add_statement(
+            mir::Location {
+                block: clone_chain_start,
+                statement_index: 0,
+            },
+            unset_guard_stmt,
+        );
+        Ok(start_block)
     }
 
     /// Create a chain of drop calls to drop the provided list of locals.
@@ -398,5 +419,20 @@ pub trait MirModifier<'tcx> {
         let new_block_id = self.patcher().new_block(blockdata);
 
         Ok((new_block_id, destination))
+    }
+
+    fn set_bool_stmt(
+        &self,
+        destination: mir::Place<'tcx>,
+        value: bool,
+    ) -> mir::StatementKind<'tcx> {
+        let const_kind = mir::ConstantKind::from_bool(self.tcx(), value);
+        let const_true = mir::Constant {
+            span: DUMMY_SP,
+            user_ty: None,
+            literal: const_kind,
+        };
+        let rhs = mir::Rvalue::Use(mir::Operand::Constant(Box::new(const_true)));
+        mir::StatementKind::Assign(Box::new((destination, rhs)))
     }
 }
