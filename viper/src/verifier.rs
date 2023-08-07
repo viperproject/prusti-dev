@@ -150,6 +150,10 @@ impl<'a> Verifier<'a> {
                 self.verifier_wrapper
                     .call_parseCommandLine(self.verifier_instance, args),
             );
+            self.jni.unwrap_result(
+                self.frontend_wrapper
+                    .call_resetPlugins(self.frontend_instance),
+            );
         });
         self
     }
