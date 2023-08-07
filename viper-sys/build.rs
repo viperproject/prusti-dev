@@ -150,6 +150,7 @@ fn main() {
                 method!("getVerificationResult"),
                 method!("setState"),
                 method!("verifier"),
+                method!("resetPlugins"),
                 trait_field!("_verifier"),
                 trait_field!("_program"),
             ]),
