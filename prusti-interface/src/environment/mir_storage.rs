@@ -81,11 +81,8 @@ pub(super) unsafe fn retrieve_promoted_mir_body<'tcx>(
     def_id: LocalDefId,
 ) -> mir::Body<'tcx> {
     let body_without_facts: mir::Body<'static> = SHARED_STATE_WITHOUT_FACTS.with(|state| {
-        let map = state.borrow();
-        // get instead of remove, because we might call it more than once with
-        // runtime checks. TODO: see if there is a better solution, at the moment
-        // the problem is that Environment can not really be stored after construction
-        map.get(&def_id).unwrap().clone()
+        let mut map = state.borrow_mut();
+        map.remove(&def_id).unwrap()
     });
     // SAFETY: See the module level comment.
     unsafe { std::mem::transmute(body_without_facts) }

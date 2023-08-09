@@ -28,7 +28,10 @@ impl CheckType {
             SpecItemType::Postcondition => Self::Postcondition,
             SpecItemType::Precondition => Self::Precondition,
             SpecItemType::Pledge => Self::Pledge,
-            _ => panic!("spec type {:?} are not supported to be translated to runtime-checks.", spec)
+            _ => panic!(
+                "spec type {:?} are not supported to be translated to runtime-checks.",
+                spec
+            ),
         }
     }
 }

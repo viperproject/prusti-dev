@@ -1,6 +1,7 @@
 use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
+        middle::exported_symbols,
         mir::{self, patch::MirPatch, visit::MutVisitor, Body, TerminatorKind},
         ty::{self, TyCtxt},
     },
@@ -9,7 +10,6 @@ use prusti_rustc_interface::{
 use rustc_hash::FxHashMap;
 
 // A set of functions that are often used during mir modifications
-
 
 /// Check whether this variable is mutable, or a mutable reference
 pub fn is_mutable_arg(
@@ -287,4 +287,21 @@ pub fn fn_def_signature(tcx: TyCtxt<'_>, def_id: DefId) -> ty::FnSig {
     let poly_fn_sig = binder_fn_sig.subst(tcx, ident_substs);
     let param_env = tcx.param_env(def_id);
     tcx.normalize_erasing_late_bound_regions(param_env, poly_fn_sig)
+}
+
+pub fn find_random_bool_defid<'tcx>(tcx: TyCtxt<'tcx>) -> Option<DefId> {
+    for &cnum in tcx.crates(()).iter() {
+        let crate_name = tcx.crate_name(cnum);
+        if crate_name.as_str() == "prusti_contracts" {
+            for (def_id_symbol, _) in tcx.exported_symbols(cnum).iter() {
+                if let exported_symbols::ExportedSymbol::NonGeneric(def_id) = def_id_symbol {
+                    let item_name = tcx.item_name(*def_id);
+                    if item_name.as_str() == "random_bool" {
+                        return Some(*def_id);
+                    }
+                }
+            }
+        }
+    }
+    None
 }

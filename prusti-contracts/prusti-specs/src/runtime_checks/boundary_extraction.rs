@@ -51,10 +51,11 @@ impl BoundExtractor {
             panic!("multiple args without manually defined boundaries are not allowed");
         }
         let name_set: FxHashSet<String> = args.iter().map(|el| el.0.clone()).collect();
-        args.into_iter().map(|(name, ty)| {
-            let range_expr = match ty.to_token_stream().to_string().as_str() {
-                "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32" | "u64"
-                | "u128" | "usize" => {
+        args.into_iter()
+            .map(|(name, ty)| {
+                let range_expr = match ty.to_token_stream().to_string().as_str() {
+                    "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32"
+                    | "u64" | "u128" | "usize" => {
                         let bounds = Self::extract_bounds(closure.clone(), &name, &name_set);
                         let mut upper_bound_opt = None;
                         let mut lower_bound_opt = None;
@@ -93,12 +94,14 @@ impl BoundExtractor {
                                 }
                             }
                         }
-                        let upper_bound = upper_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
-                            #ty::MAX
-                        });
-                        let lower_bound = lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
-                            #ty::MIN
-                        });
+                        let upper_bound =
+                            upper_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                                #ty::MAX
+                            });
+                        let lower_bound =
+                            lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                                #ty::MIN
+                            });
 
                         if include_upper {
                             parse_quote_spanned! {closure.span() =>
@@ -109,11 +112,12 @@ impl BoundExtractor {
                                 (#lower_bound)..(#upper_bound)
                             }
                         }
-                },
-                _ => panic!("runtime checks only supported for primitive types"),
-            };
-        ((name, ty), range_expr)
-        }).collect()
+                    }
+                    _ => panic!("runtime checks only supported for primitive types"),
+                };
+                ((name, ty), range_expr)
+            })
+            .collect()
     }
 
     pub fn extract_bounds(

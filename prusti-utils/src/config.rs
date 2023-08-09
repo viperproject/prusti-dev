@@ -147,6 +147,7 @@ lazy_static::lazy_static! {
         settings.set_default("cargo_command", "check").unwrap();
 
         settings.set_default("insert_runtime_checks", "false").unwrap();
+        settings.set_default("remove_dead_blocks", "false").unwrap();
 
         // Flags for testing.
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
@@ -1036,4 +1037,9 @@ pub fn num_errors_per_function() -> u32 {
 /// When enabled, insert runtime checks into generated executables.
 pub fn insert_runtime_checks() -> bool {
     read_setting("insert_runtime_checks")
+}
+
+/// Try to use verification to identify unused blocks and eliminate them
+pub fn remove_dead_blocks() -> bool {
+    read_setting("remove_dead_blocks")
 }

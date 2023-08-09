@@ -1,4 +1,4 @@
-use super::super::{mir_helper::*, mir_modifications::MirModifier, mir_info_collector::MirInfo};
+use super::super::{mir_helper::*, mir_info_collector::MirInfo, mir_modifications::MirModifier};
 use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
@@ -14,7 +14,7 @@ use std::cell::{RefCell, RefMut};
 /// (in case they have them)
 pub struct PreconditionInserter<'tcx, 'a> {
     tcx: TyCtxt<'tcx>,
-    body_info: &'a MirInfo<'tcx>,
+    body_info: &'a MirInfo,
     /// making modifications from a Visitor often requires access
     /// to a patcher! But from the visiting methods we don't have
     /// direct access to a mutable body
@@ -26,7 +26,7 @@ pub struct PreconditionInserter<'tcx, 'a> {
 impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
     pub fn new(
         tcx: TyCtxt<'tcx>,
-        body_info: &'a MirInfo<'tcx>,
+        body_info: &'a MirInfo,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
     ) -> Self {
@@ -46,14 +46,9 @@ impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
         let substs = ty::subst::InternalSubsts::identity_for_item(self.tcx, self.body_info.def_id);
         let args = args_from_body(body);
         for check_id in self.body_info.specs.get_pre_checks(&self.body_info.def_id) {
-            (current_target, _) = self.create_call_block(
-                check_id,
-                args.clone(),
-                substs,
-                None,
-                Some(current_target),
-            )
-            .unwrap();
+            (current_target, _) = self
+                .create_call_block(check_id, args.clone(), substs, None, Some(current_target))
+                .unwrap();
         }
         // make the starting block (which should already be a dummy)
         // point to the first precondition check

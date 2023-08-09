@@ -773,7 +773,7 @@ impl Quantifier {
             })
             .collect::<Vec<_>>();
         let body = quote_spanned! { body.span() => #body };
-        let attr = attr.map(|attr| quote_spanned!{attr.span() => #[prusti::#attr]});
+        let attr = attr.map(|attr| quote_spanned! {attr.span() => #[prusti::#attr]});
         match self {
             Self::Forall => quote_spanned! { full_span => ::prusti_contracts::forall(
                 ( #( #trigger_sets, )* ),

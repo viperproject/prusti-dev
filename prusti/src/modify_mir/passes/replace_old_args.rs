@@ -1,8 +1,4 @@
-use super::super::{
-    mir_info_collector::{MirInfo},
-    mir_helper::*,
-    mir_modifications::MirModifier,
-};
+use super::super::{mir_helper::*, mir_info_collector::MirInfo, mir_modifications::MirModifier};
 
 use prusti_rustc_interface::{
     index::IndexVec,
@@ -17,7 +13,7 @@ use std::cell::{RefCell, RefMut};
 
 pub struct CloneOldArgs<'tcx, 'a> {
     tcx: TyCtxt<'tcx>,
-    body_info: &'a MirInfo<'tcx>,
+    body_info: &'a MirInfo,
     patch_opt: Option<RefCell<MirPatch<'tcx>>>,
     def_id: DefId,
     local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
@@ -27,7 +23,7 @@ pub struct CloneOldArgs<'tcx, 'a> {
 impl<'tcx, 'a> CloneOldArgs<'tcx, 'a> {
     pub fn new(
         tcx: TyCtxt<'tcx>,
-        body_info: &'a MirInfo<'tcx>,
+        body_info: &'a MirInfo,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
     ) -> Self {
@@ -70,7 +66,8 @@ impl<'tcx, 'a> CloneOldArgs<'tcx, 'a> {
         self.patch_opt = Some(patch.into());
         let mut drop_on_return = Vec::new();
         // clone the arguments:
-        let mut current_target = get_block_target(body, mir::START_BLOCK).expect("Bug: Body must start with a Goto block at this stage");
+        let mut current_target = get_block_target(body, mir::START_BLOCK)
+            .expect("Bug: Body must start with a Goto block at this stage");
         for local in self.body_info.args_to_be_cloned.iter() {
             let place: mir::Place = (*local).into();
             let destination = *self.stored_arguments.get(local).unwrap();

@@ -1,5 +1,6 @@
-use crate::{modify_mir, verifier::verify};
+use crate::{modify_mir::mir_modify, verifier::verify};
 
+use lazy_static::lazy_static;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
@@ -9,19 +10,29 @@ use prusti_rustc_interface::{
     borrowck::consumers,
     data_structures::steal::Steal,
     driver::Compilation,
-    hir::{def::DefKind, def_id::LocalDefId},
+    hir::def::DefKind,
     index::IndexVec,
     interface::{interface::Compiler, Config, Queries},
     middle::{
-        mir::{self, BorrowCheckResult},
+        mir::{self, BorrowCheckResult, MirPass, START_BLOCK},
         query::{ExternProviders, Providers},
-        ty::TyCtxt,
+        ty::{self, TyCtxt, TypeVisitableExt},
     },
+    mir_transform::{self, inline},
     session::Session,
+    span::def_id::LocalDefId,
+    trait_selection::traits,
 };
+use std::sync::Mutex;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
+
+// globals used to pass information between overriden queries and after_analysis
+static mut SPECS: Option<DefSpecificationMap> = None;
+lazy_static! {
+    static ref VERIFIED: Mutex<bool> = Mutex::new(false);
+}
 
 // Running `get_body_with_borrowck_facts` can be very slow, therefore we avoid it when not
 // necessary; for crates which won't be verified or spec_fns it suffices to load just the fn body
@@ -64,13 +75,103 @@ fn mir_promoted<'tcx>(
 ) {
     let original_mir_promoted =
         prusti_rustc_interface::interface::DEFAULT_QUERY_PROVIDERS.mir_promoted;
-    let result = original_mir_promoted(tcx, def_id);
+    let (body_steal, promoted_steal) = original_mir_promoted(tcx, def_id);
+    let mut body = body_steal.steal();
+
+    // clone the body and potentially make some modifications that should
+    // not end up in the actual body
+    if config::remove_dead_blocks() {
+        println!("removing dead code is enabled");
+        mir_modify::insert_asserts_for_reachability(&mut body, def_id.to_def_id(), tcx);
+    }
     // SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
     unsafe {
-        mir_storage::store_promoted_mir_body(tcx, def_id, result.0.borrow().clone());
+        mir_storage::store_promoted_mir_body(tcx, def_id, body.clone());
     }
-    result
+    (tcx.alloc_steal_mir(body), promoted_steal)
+}
+
+// a copy of the rust compilers implementation of this query +
+// + verification on its first call
+// + dead code elimination if enabled
+// + insertion of runtime checks if enabled
+pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<mir::Body<'_>> {
+    // run verification here, otherwise we can't rely on results in
+    // drops elaborated
+    if !config::no_verify() {
+        let mut already_verified = VERIFIED.lock().unwrap();
+        if !*already_verified {
+            println!("Starting Verification");
+            let (def_spec, env) = get_specs(tcx, None);
+            verify(env, def_spec.clone());
+            *already_verified = true;
+            store_defspec(def_spec);
+        }
+    }
+
+    // original compiler code
+    if tcx.sess.opts.unstable_opts.drop_tracking_mir
+        && let DefKind::Generator = tcx.def_kind(def)
+    {
+        tcx.ensure_with_value().mir_generator_witnesses(def);
+    }
+    let mir_borrowck = tcx.mir_borrowck(def);
+
+    let is_fn_like = tcx.def_kind(def).is_fn_like();
+    if is_fn_like {
+        // Do not compute the mir call graph without said call graph actually being used.
+        if inline::Inline.is_enabled(&tcx.sess) {
+            tcx.ensure_with_value()
+                .mir_inliner_callees(ty::InstanceDef::Item(def.to_def_id()));
+        }
+    }
+
+    let (body, _) = tcx.mir_promoted(def);
+    let mut body = body.steal();
+
+    // ################################################
+    // Inserted Modifications
+    // ################################################
+    let local_decls = body.local_decls.clone();
+    let def_id = def.to_def_id();
+    if config::remove_dead_blocks() {
+        mir_modify::dead_code_elimination(tcx, &mut body, def_id);
+    }
+    if config::insert_runtime_checks() {
+        mir_modify::insert_runtime_checks(&mut body, def_id, tcx, &local_decls);
+    }
+    // ################################################
+    // End of Modifications, back to original compiler
+    // code!
+    // ################################################
+
+    if let Some(error_reported) = mir_borrowck.tainted_by_errors {
+        body.tainted_by_errors = Some(error_reported);
+    }
+    let predicates = tcx
+        .predicates_of(body.source.def_id())
+        .predicates
+        .iter()
+        .filter_map(|(p, _)| if p.is_global() { Some(*p) } else { None });
+    if traits::impossible_predicates(tcx, traits::elaborate(tcx, predicates).collect()) {
+        // Clear the body to only contain a single `unreachable` statement.
+        let bbs = body.basic_blocks.as_mut();
+        bbs.raw.truncate(1);
+        bbs[START_BLOCK].statements.clear();
+        bbs[START_BLOCK].terminator_mut().kind = mir::TerminatorKind::Unreachable;
+        body.var_debug_info.clear();
+        body.local_decls.raw.truncate(body.arg_count + 1);
+    }
+
+    mir_transform::run_analysis_to_runtime_passes(tcx, &mut body);
+
+    // Only available once rust is updated!
+    // Now that drop elaboration has been performed, we can check for
+    // unconditional drop recursion.
+    // mir_build::lints::check_drop_recursion(tcx, &body);
+
+    tcx.alloc_steal_mir(body)
 }
 
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
@@ -80,8 +181,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
                 providers.mir_borrowck = mir_borrowck;
                 providers.mir_promoted = mir_promoted;
-                providers.mir_drops_elaborated_and_const_checked =
-                    modify_mir::mir_modify::mir_drops_elaborated;
+                providers.mir_drops_elaborated_and_const_checked = mir_drops_elaborated;
             },
         );
     }
@@ -146,16 +246,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn after_analysis<'tcx>(
         &mut self,
         compiler: &Compiler,
-        queries: &'tcx Queries<'tcx>,
+        _queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
-        compiler.session().abort_if_errors();
-        queries.global_ctxt().unwrap().enter(|tcx| {
-            let (def_spec, env) = get_specs(tcx, Some(compiler));
-            if !config::no_verify() {
-                verify(env, def_spec);
-            }
-        });
-
         compiler.session().abort_if_errors();
         if config::full_compilation() {
             Compilation::Continue
@@ -169,38 +261,40 @@ pub fn get_specs<'tcx>(
     tcx: TyCtxt<'tcx>,
     compiler_opt: Option<&Compiler>,
 ) -> (DefSpecificationMap, Environment<'tcx>) {
-    let specs_env_opt = unsafe { crate::SPEC_ENV.take() };
-    if let Some((specs, env)) = specs_env_opt {
-        let env_tcx: Environment<'tcx> = unsafe { std::mem::transmute(env) };
-        (specs, env_tcx)
-    } else {
-        let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
+    let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
 
-        // when get_specs is first called from an overriden query
-        // (as is the case for runtime checks), we don't have
-        // access to the compiler, so for now we just skip the
-        // checking then
-        if let Some(compiler) = compiler_opt {
-            let spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check(&env);
-            compiler.session().abort_if_errors();
-        } else if env.diagnostic.has_errors() {
-            // TODO: still give some sensible error?
-            // Does it make a difference if we show the errors
-            // once get_specs returns in callbacks?
-            panic!("Spec checking caused errors. No good error message because runtime checks are enabled. This is a TODO");
-        }
-        let hir = env.query.hir();
-        let mut spec_collector = specs::SpecCollector::new(&mut env);
-        spec_collector.collect_specs(hir);
-
-        let mut def_spec = spec_collector.build_def_specs();
-        if config::print_typeckd_specs() {
-            for value in def_spec.all_values_debug(config::hide_uuids()) {
-                println!("{value}");
-            }
-        }
-        CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
-        (def_spec, env)
+    // when get_specs is first called from an overriden query
+    // (as is the case for runtime checks), we don't have
+    // access to the compiler, so for now we just skip the
+    // checking then
+    if let Some(compiler) = compiler_opt {
+        let spec_checker = specs::checker::SpecChecker::new();
+        spec_checker.check(&env);
+        compiler.session().abort_if_errors();
+    } else if env.diagnostic.has_errors() {
+        // TODO: still give some sensible error?
+        // Does it make a difference if we show the errors
+        // once get_specs returns in callbacks?
+        panic!("Spec checking caused errors. No good error message because runtime checks are enabled. This is a TODO");
     }
+    let hir = env.query.hir();
+    let mut spec_collector = specs::SpecCollector::new(&mut env);
+    spec_collector.collect_specs(hir);
+
+    let mut def_spec = spec_collector.build_def_specs();
+    if config::print_typeckd_specs() {
+        for value in def_spec.all_values_debug(config::hide_uuids()) {
+            println!("{value}");
+        }
+    }
+    CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
+    (def_spec, env)
+}
+
+pub fn store_defspec(def_spec: DefSpecificationMap) {
+    unsafe { SPECS = Some(def_spec) };
+}
+
+pub fn get_defspec() -> DefSpecificationMap {
+    unsafe { SPECS.take().unwrap() }
 }

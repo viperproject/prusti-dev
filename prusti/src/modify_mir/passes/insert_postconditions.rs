@@ -1,4 +1,4 @@
-use super::super::{mir_helper::*, mir_modifications::MirModifier, mir_info_collector::MirInfo};
+use super::super::{mir_helper::*, mir_info_collector::MirInfo, mir_modifications::MirModifier};
 use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
@@ -11,7 +11,7 @@ use std::cell::{RefCell, RefMut};
 
 pub struct PostconditionInserter<'tcx, 'a> {
     tcx: TyCtxt<'tcx>,
-    body_info: &'a MirInfo<'tcx>,
+    body_info: &'a MirInfo,
     patch_opt: Option<RefCell<MirPatch<'tcx>>>,
     def_id: DefId,
     local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
@@ -20,7 +20,7 @@ pub struct PostconditionInserter<'tcx, 'a> {
 impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
     pub fn new(
         tcx: TyCtxt<'tcx>,
-        body_info: &'a MirInfo<'tcx>,
+        body_info: &'a MirInfo,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
     ) -> Self {

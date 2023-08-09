@@ -18,7 +18,7 @@ use std::cell::{RefCell, RefMut};
 
 pub struct PledgeInserter<'tcx, 'a> {
     tcx: TyCtxt<'tcx>,
-    body_info: &'a MirInfo<'tcx>,
+    body_info: &'a MirInfo,
     patch_opt: Option<RefCell<MirPatch<'tcx>>>,
     pledges_to_process: FxHashMap<mir::Local, PledgeToProcess<'tcx>>,
     body_copy: Option<mir::Body<'tcx>>,
@@ -47,7 +47,7 @@ pub struct PledgeToProcess<'tcx> {
 impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
     pub fn new(
         tcx: TyCtxt<'tcx>,
-        body_info: &'a MirInfo<'tcx>,
+        body_info: &'a MirInfo,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
     ) -> Self {

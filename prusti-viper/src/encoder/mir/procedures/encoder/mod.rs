@@ -26,6 +26,7 @@ use log::debug;
 use prusti_common::config;
 use prusti_interface::environment::{
     debug_utils::to_text::ToText,
+    inserted_locations_store,
     mir_analyses::{
         allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
         initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
@@ -1257,6 +1258,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } => self.encode_terminator_assert(
                 block_builder,
                 span,
+                location,
                 cond,
                 *expected,
                 msg,
@@ -1813,6 +1815,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         span: Span,
+        location: mir::Location,
         cond: &mir::Operand<'tcx>,
         expected: bool,
         msg: &mir::AssertMessage<'tcx>,
@@ -1834,6 +1837,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut s = String::new();
             msg.fmt_assert_args(&mut s).unwrap();
             (s, ErrorCtxt::BoundsCheckAssert)
+        } else if inserted_locations_store::contains(self.def_id, location) {
+            // an assertion that was inserted for reachability check
+            let assert_msg =
+                "Assertion inserted by Prusti, if you see this as a user this is a bug".to_string();
+            (
+                assert_msg,
+                ErrorCtxt::InsertedReachabilityAssertion(self.def_id, location),
+            )
         } else {
             let assert_msg = msg.description().to_string();
             (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))

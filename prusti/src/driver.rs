@@ -22,13 +22,10 @@ use callbacks::PrustiCompilerCalls;
 use lazy_static::lazy_static;
 use log::info;
 use prusti_common::{config, report::user, Stopwatch};
-use prusti_interface::{environment::Environment, specs::typed::DefSpecificationMap};
 use prusti_rustc_interface::interface::interface::try_print_query_stack;
 use std::{env, panic};
 use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
 use tracing_subscriber::{filter::EnvFilter, prelude::*};
-
-pub static mut SPEC_ENV: Option<(DefSpecificationMap, Environment<'static>)> = None;
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";

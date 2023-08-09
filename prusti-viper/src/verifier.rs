@@ -150,6 +150,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             debug!("Verification error in {}: {:?}", method, verification_error);
             let mut prusti_error = error_manager.translate_verification_error(&verification_error);
 
+            if prusti_error.is_ignored() {
+                continue
+            }
             // annotate with counterexample, if requested
             if config::counterexample() {
                 if config::unsafe_core_proof() {

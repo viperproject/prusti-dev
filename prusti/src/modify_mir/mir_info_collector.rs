@@ -1,7 +1,9 @@
+use crate::callbacks;
+
 use super::mir_helper::*;
 
 use prusti_interface::{
-    environment::{blocks_dominated_by, is_check_closure, EnvQuery, Environment},
+    environment::{blocks_dominated_by, is_check_closure, EnvQuery},
     specs::typed::DefSpecificationMap,
     utils::has_prusti_attr,
 };
@@ -20,10 +22,9 @@ use std::hash::Hash;
 // actuallye start modifying it.
 // Note that depending on the modifications we perform, some of the
 // information (e.g. about blocks might no longer be accurate)
-pub struct MirInfo<'tcx> {
+pub struct MirInfo {
     pub def_id: DefId,
     pub specs: DefSpecificationMap,
-    pub env: Environment<'tcx>,
     /// blocks that the translation specifically added to either mark
     /// a location (manual pledge expiry) or that we identified to
     /// be the check blocks for a `prusti_assert!`, `prusti_assume!` or
@@ -36,18 +37,18 @@ pub struct MirInfo<'tcx> {
     pub stmts_to_substitute_rhs: FxHashSet<mir::Location>,
 }
 
-impl<'tcx> MirInfo<'tcx> {
+impl MirInfo {
     // Collect this info given a body.
     // mir_promoted is also passed in here, because some information
     // is removed in mir_drops_elaborated
-    pub fn collect_mir_info<'a>(
+    pub fn collect_mir_info<'a, 'tcx>(
         tcx: TyCtxt<'tcx>,
         body: mir::Body<'tcx>,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
-    ) -> MirInfo<'tcx> {
+    ) -> MirInfo {
         println!("Collecting mir info for {:?}", body.source.def_id());
-        let (specs, env) = crate::callbacks::get_specs(tcx, None);
+        let specs = crate::callbacks::get_defspec();
         let check_blocks = collect_check_blocks(tcx, &body);
         let mut visitor = MirInfoCollector::new(body.clone(), tcx, local_decls);
         visitor.visit_body(&body);
@@ -55,7 +56,6 @@ impl<'tcx> MirInfo<'tcx> {
         MirInfo {
             def_id,
             specs,
-            env,
             check_blocks,
             args_to_be_cloned,
             stmts_to_substitute_rhs,
@@ -65,9 +65,8 @@ impl<'tcx> MirInfo<'tcx> {
     // global statics (because we only want to compute them once)
     // consider putting this inside of drop for MirInfo
     pub fn store_specs_env(self) {
-        let MirInfo { env, specs, .. } = self;
-        let static_env = unsafe { std::mem::transmute(env) };
-        unsafe { crate::SPEC_ENV = Some((specs, static_env)) };
+        let MirInfo { specs, .. } = self;
+        callbacks::store_defspec(specs);
     }
 }
 

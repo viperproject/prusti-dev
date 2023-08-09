@@ -10,10 +10,7 @@ use crate::{
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use rustc_hash::{FxHashMap, FxHashSet};
-use syn::{
-    parse_quote, parse_quote_spanned, spanned::Spanned,
-    visit_mut::VisitMut, Expr, FnArg,
-};
+use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut, Expr, FnArg};
 
 pub struct CheckTranslator {
     /// The expression within the specification (the one that will
@@ -66,10 +63,7 @@ pub fn translate_runtime_checks(
             let check_before_expiry =
                 check_translator.generate_check_function(item, check_id, true, false);
 
-            (
-                check_fn,
-                Some(check_before_expiry),
-            )
+            (check_fn, Some(check_before_expiry))
         }
         SpecItemType::Postcondition => {
             let check_fn = check_translator.generate_check_function(item, check_id, false, false);
@@ -174,11 +168,8 @@ impl CheckTranslator {
         } else {
             None
         };
-        let forget_statements = self.generate_forget_statements(
-            item,
-            include_item_args,
-            executed_after,
-        );
+        let forget_statements =
+            self.generate_forget_statements(item, include_item_args, executed_after);
         let contract_string = expr_to_check.to_token_stream().to_string();
         let failure_message = format!("Contract {} was violated at runtime", contract_string);
         let id_attr: syn::Attribute = if is_before_expiry_check {
@@ -218,12 +209,13 @@ impl CheckTranslator {
             check_item.sig.inputs.push(old_arg);
         }
         if before_expiry_argument {
-            let output_ty: syn::Type = if let syn::ReturnType::Type(_, box ty) = &item.sig().output {
+            let output_ty: syn::Type = if let syn::ReturnType::Type(_, box ty) = &item.sig().output
+            {
                 ty.clone()
             } else {
                 // probably not our job to throw an error here? But a pledge for
                 // a function with default return type does not make a lot of sense..
-                parse_quote!{()}
+                parse_quote! {()}
             };
             let before_expiry_arg = parse_quote_spanned! {item.span() =>
                 result_before_expiry: (#output_ty,)

@@ -29,6 +29,7 @@ use prusti_common::{
     vir::{ToGraphViz, fixes::fix_ghost_vars},
     vir_local, vir_expr, vir_stmt
 };
+use prusti_interface::environment::inserted_locations_store;
 use vir_crate::{
     polymorphic::{
         self as vir,
@@ -2767,6 +2768,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let mut s = String::new();
                     msg.fmt_assert_args(&mut s).unwrap();
                     (s, ErrorCtxt::BoundsCheckAssert)
+                } else if inserted_locations_store::contains(self.proc_def_id, location) {
+                    let assert_msg = "Assertion inserted by Prusti, if you see this as a user this is a bug".to_string();
+                    (assert_msg, ErrorCtxt::InsertedReachabilityAssertion(self.proc_def_id, location))
                 } else {
                     let assert_msg = msg.description().to_string();
                     (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))
