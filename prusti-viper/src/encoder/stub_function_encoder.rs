@@ -10,12 +10,10 @@ use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use vir_crate::polymorphic as vir;
 use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::middle::ty::subst::SubstsRef;
+use prusti_rustc_interface::middle::ty::GenericArgsRef;
 use prusti_rustc_interface::middle::mir;
 use log::debug;
-
 use crate::encoder::errors::WithSpan;
-
 use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -23,7 +21,7 @@ pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     proc_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
@@ -32,7 +30,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
         mir: &'p mir::Body<'tcx>,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> Self {
         StubFunctionEncoder {
             encoder,

@@ -2,7 +2,7 @@ use super::TypeEncoder;
 use crate::encoder::{
     errors::{EncodingError, EncodingResult, SpannedEncodingError, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
-    mir::types::interface::ty::SubstsRef,
+    mir::types::interface::ty::GenericArgsRef,
 };
 use prusti_rustc_interface::{
     abi::FieldIdx,
@@ -45,11 +45,11 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     ) -> SpannedEncodingResult<Vec<vir_high::ty::LifetimeConst>>;
     fn get_lifetimes_from_substs(
         &self,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir_high::ty::LifetimeConst>>;
     fn get_const_parameters_from_substs(
         &self,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir_high::VariableDecl>>;
     fn get_const_parameters_from_types(
         &self,
@@ -89,7 +89,7 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     fn encode_adt_def(
         &self,
         adt_def: ty::AdtDef<'tcx>,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: ty::GenericArgsRef<'tcx>,
         variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
     ) -> SpannedEncodingResult<vir_high::TypeDecl>;
     fn encode_type_bounds_high(
@@ -185,7 +185,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     }
     fn get_lifetimes_from_substs(
         &self,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir_high::ty::LifetimeConst>> {
         let mut lifetimes = Vec::new();
         super::lifetimes::extract_lifetimes_from_substs(self, substs, &mut lifetimes)?;
@@ -201,7 +201,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     }
     fn get_const_parameters_from_substs(
         &self,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir_high::VariableDecl>> {
         let mut const_parameters = Vec::new();
         super::const_parameters::extract_const_parameters_from_substs(
@@ -432,7 +432,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     fn encode_adt_def(
         &self,
         adt_def: ty::AdtDef<'tcx>,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: ty::GenericArgsRef<'tcx>,
         variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
     ) -> SpannedEncodingResult<vir_high::TypeDecl> {
         super::encoder::encode_adt_def(self, adt_def, substs, variant_index)

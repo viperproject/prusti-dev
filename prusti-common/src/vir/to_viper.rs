@@ -316,7 +316,9 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             }
             Stmt::ApplyMagicWand(ref wand, ref pos) => {
-                let Expr::MagicWand(_, _, Some(borrow), _) = wand else { unreachable!() };
+                let Expr::MagicWand(_, _, Some(borrow), _) = wand else {
+                    unreachable!()
+                };
                 let borrow: usize = borrow_id(*borrow);
                 let borrow: Expr = borrow.into();
                 let inhale = ast.inhale(
@@ -618,7 +620,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ContainerOpKind::SeqLen => ast.seq_length(left.to_viper(context, ast)),
             },
             Expr::Seq(ty, elems, _pos) => {
-                let Type::Seq(box elem_ty) = ty else { unreachable!() };
+                let Type::Seq(box elem_ty) = ty else {
+                    unreachable!()
+                };
                 let viper_elem_ty = elem_ty.to_viper(context, ast);
                 if elems.is_empty() {
                     ast.empty_seq(viper_elem_ty)
@@ -631,7 +635,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
             }
             Expr::Map(ty, elems, _pos) => {
-                let Type::Map(box key_ty, box val_ty) = ty else { unreachable!() };
+                let Type::Map(box key_ty, box val_ty) = ty else {
+                    unreachable!()
+                };
                 let viper_key_ty = key_ty.to_viper(context, ast);
                 let viper_val_ty = val_ty.to_viper(context, ast);
                 if elems.is_empty() {

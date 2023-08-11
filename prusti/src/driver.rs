@@ -18,7 +18,11 @@ use callbacks::PrustiCompilerCalls;
 use lazy_static::lazy_static;
 use log::info;
 use prusti_common::{config, report::user, Stopwatch};
-use prusti_rustc_interface::interface::interface::try_print_query_stack;
+use prusti_rustc_interface::{
+    errors,
+    interface::interface::try_print_query_stack,
+    session::{self, EarlyErrorHandler},
+};
 use std::{env, panic};
 use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
 use tracing_subscriber::{filter::EnvFilter, prelude::*};
@@ -130,7 +134,10 @@ fn init_loggers() -> Option<FlushGuard> {
         None
     };
 
-    prusti_rustc_interface::driver::init_rustc_env_logger();
+    let error_handler = EarlyErrorHandler::new(session::config::ErrorOutputType::HumanReadable(
+        errors::emitter::HumanReadableErrorType::Default(errors::emitter::ColorConfig::Auto),
+    ));
+    prusti_rustc_interface::driver::init_rustc_env_logger(&error_handler);
     guard
 }
 

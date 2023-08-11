@@ -37,7 +37,7 @@ fn from_methods(
     removed_functions: &FxHashSet<String>,
 ) -> FxHashSet<String> {
     let removed_methods = methods
-        .drain_filter(|method| match method.kind {
+        .extract_if(|method| match method.kind {
             vir_low::MethodKind::LowMemoryOperation => true,
             vir_low::MethodKind::MirOperation | vir_low::MethodKind::Havoc => false,
         })

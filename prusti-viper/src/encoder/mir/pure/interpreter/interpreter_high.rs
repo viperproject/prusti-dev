@@ -34,7 +34,7 @@ use prusti_rustc_interface::{
     abi::FieldIdx,
     hir::def_id::DefId,
     index::IndexSlice,
-    middle::{mir, ty, ty::subst::SubstsRef},
+    middle::{mir, ty, ty::GenericArgsRef},
     span::Span,
 };
 use rustc_hash::FxHashMap;
@@ -58,7 +58,7 @@ pub(in super::super) struct ExpressionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> 
     pure_encoding_context: PureEncodingContext,
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 }
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
@@ -73,7 +73,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> Self {
         Self {
             encoder,
@@ -249,10 +249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 state.substitute_value(&encoded_lhs, expr);
             }
             &mir::Rvalue::Ref(_, kind, place) => {
-                if !matches!(
-                    kind,
-                    mir::BorrowKind::Unique | mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared
-                ) {
+                if !matches!(kind, mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared) {
                     return Err(SpannedEncodingError::unsupported(
                         format!("unsupported kind of reference: {kind:?}"),
                         span,
@@ -287,7 +284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 state.substitute_value(&encoded_lhs, encoded_rhs);
             }
             mir::Rvalue::Cast(
-                mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize),
+                mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize),
                 operand,
                 cast_ty,
             ) => {
@@ -447,8 +444,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            let substs =
-                ty::EarlyBinder::bind(*call_substs).subst(self.encoder.env().tcx(), self.substs);
+            let substs = ty::EarlyBinder::bind(*call_substs)
+                .instantiate(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some(target_block) = target {
                 let encoded_lhs = self.encode_place(destination).with_span(span)?;
@@ -537,7 +534,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         args: &[prusti_rustc_interface::middle::mir::Operand<'tcx>],
         encoded_args: &[vir_high::Expression],
         span: Span,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<Option<ExprBackwardInterpreterState>> {
         let lifetimes = self.encoder.get_lifetimes_from_substs(substs)?;
         use vir_high::{expression::BuiltinFunc::*, ty::*};
@@ -807,7 +804,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         args: Vec<vir_high::Expression>,
         span: Span,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         let (function_name, return_type) = self
             .encoder

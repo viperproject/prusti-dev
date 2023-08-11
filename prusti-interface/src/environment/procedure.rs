@@ -247,7 +247,7 @@ pub fn get_loop_invariant<'tcx>(
     bb_data: &BasicBlockData<'tcx>,
 ) -> Option<(
     ProcedureDefId,
-    prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
+    prusti_rustc_interface::middle::ty::GenericArgsRef<'tcx>,
 )> {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (
@@ -354,8 +354,8 @@ fn get_nonspec_basic_blocks(
     for (bb, _) in bb_graph.iter() {
         if is_marked_specification_block(env_query, &mir[*bb]) {
             spec_basic_blocks.insert(*bb);
-            spec_basic_blocks.extend(blocks_definitely_leading_to(&bb_graph, *bb).into_iter());
-            spec_basic_blocks.extend(blocks_dominated_by(mir, *bb).into_iter());
+            spec_basic_blocks.extend(blocks_definitely_leading_to(&bb_graph, *bb));
+            spec_basic_blocks.extend(blocks_dominated_by(mir, *bb));
         }
     }
     debug!("spec basic blocks: {spec_basic_blocks:#?}");
