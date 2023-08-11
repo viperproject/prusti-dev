@@ -142,6 +142,26 @@ impl From<polymorphic::Field> for legacy::Field {
     }
 }
 
+impl From<polymorphic::ResourceAccess> for legacy::ResourceAccess {
+    fn from(access: polymorphic::ResourceAccess) -> legacy::ResourceAccess {
+        legacy::ResourceAccess {
+            name: polymorphic::compute_identifier(
+                &access.name,
+                &[],
+                &access.formal_arguments,
+                &polymorphic::Type::Bool,
+            ),
+            args: access.args.into_iter().map(|e| e.into()).collect(),
+            formal_arguments: access
+                .formal_arguments
+                .into_iter()
+                .map(|formal_argument| formal_argument.into())
+                .collect(),
+            pos: access.position.into(),
+        }
+    }
+}
+
 // domain
 impl From<polymorphic::Domain> for legacy::Domain {
     fn from(domain: polymorphic::Domain) -> legacy::Domain {
@@ -268,6 +288,13 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     predicate_access_predicate.position.into(),
                 )
             }
+            polymorphic::Expr::ResourceAccessPredicate(resource_access_predicate) => {
+                legacy::Expr::ResourceAccessPredicate(
+                    resource_access_predicate.access.into(),
+                    Box::new((*resource_access_predicate.amount).into()),
+                    resource_access_predicate.position.into(),
+                )
+            }
             polymorphic::Expr::FieldAccessPredicate(field_access_predicate) => {
                 legacy::Expr::FieldAccessPredicate(
                     Box::new((*field_access_predicate.base).into()),
@@ -352,6 +379,16 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     .collect(),
                 Box::new((*exists.body).into()),
                 exists.position.into(),
+            ),
+            polymorphic::Expr::ForPerm(for_perm) => legacy::Expr::ForPerm(
+                for_perm
+                    .variables
+                    .into_iter()
+                    .map(|variable| variable.into())
+                    .collect(),
+                for_perm.access.into(),
+                Box::new((*for_perm.body).into()),
+                for_perm.position.into(),
             ),
             polymorphic::Expr::LetExpr(let_expr) => legacy::Expr::LetExpr(
                 let_expr.variable.into(),
@@ -548,6 +585,9 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
             polymorphic::Predicate::Bodyless(typ, local_var) => {
                 legacy::Predicate::Bodyless(typ.encode_as_string(), local_var.into())
             }
+            polymorphic::Predicate::Resource(resource_predicate) => {
+                legacy::Predicate::Resource(resource_predicate.into())
+            }
         }
     }
 }
@@ -586,15 +626,38 @@ impl From<polymorphic::EnumVariantIndex> for legacy::EnumVariantIndex {
     }
 }
 
+impl From<polymorphic::ResourcePredicate> for legacy::ResourcePredicate {
+    fn from(resource_predicate: polymorphic::ResourcePredicate) -> legacy::ResourcePredicate {
+        legacy::ResourcePredicate {
+            name: polymorphic::compute_identifier(
+                &resource_predicate.name,
+                &[],
+                &resource_predicate.params,
+                &polymorphic::Type::Bool,
+            ),
+            params: resource_predicate
+                .params
+                .into_iter()
+                .map(|p| p.into())
+                .collect(),
+        }
+    }
+}
+
 // stmt
 impl From<polymorphic::Stmt> for legacy::Stmt {
     fn from(stmt: polymorphic::Stmt) -> legacy::Stmt {
         match stmt {
             polymorphic::Stmt::Comment(comment) => legacy::Stmt::Comment(comment.comment),
             polymorphic::Stmt::Label(label) => legacy::Stmt::Label(label.label),
-            polymorphic::Stmt::Inhale(inhale) => legacy::Stmt::Inhale(inhale.expr.into()),
+            polymorphic::Stmt::Inhale(inhale) => {
+                legacy::Stmt::Inhale(inhale.expr.into(), inhale.position.into())
+            }
             polymorphic::Stmt::Exhale(exhale) => {
                 legacy::Stmt::Exhale(exhale.expr.into(), exhale.position.into())
+            }
+            polymorphic::Stmt::Assume(assume) => {
+                legacy::Stmt::Assume(assume.expr.into(), assume.position.into())
             }
             polymorphic::Stmt::Assert(assert) => {
                 legacy::Stmt::Assert(assert.expr.into(), assert.position.into())
@@ -692,6 +755,9 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
             ),
             polymorphic::Stmt::Downcast(downcast) => {
                 legacy::Stmt::Downcast(downcast.base.into(), downcast.field.into())
+            }
+            polymorphic::Stmt::LeakCheck(_) => {
+                panic!("all leak check markers needs to removed before convering polymorphic VIR to legacy!");
             }
         }
     }

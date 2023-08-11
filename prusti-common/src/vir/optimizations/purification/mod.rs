@@ -1,5 +1,5 @@
 use crate::vir::polymorphic_vir::{
-    ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
+    ast, cfg, utils::walk_method, Expr, Field, LocalVar, Position, Stmt, Type,
 };
 use log::debug;
 use rustc_hash::FxHashSet;
@@ -88,9 +88,10 @@ fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
                                 &variable.clone().into(),
                             )
                             .purify();
-                        block.stmts.push(Stmt::Inhale(ast::Inhale {
-                            expr: ast::ExprFolder::fold(&mut p, purified_predicate),
-                        }));
+                        block.stmts.push(Stmt::inhale(
+                            ast::ExprFolder::fold(&mut p, purified_predicate),
+                            Position::default(),
+                        ));
                     }
                 }
             } else {
@@ -303,9 +304,7 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
                             &l.clone().into(),
                         )
                         .purify();
-                    return Stmt::Inhale(ast::Inhale {
-                        expr: self.fold_expr(purified_predicate),
-                    });
+                    return Stmt::inhale(self.fold_expr(purified_predicate), Position::default());
                 } else {
                     return Stmt::comment("replaced unfold".to_string());
                 }

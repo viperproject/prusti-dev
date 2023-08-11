@@ -7,7 +7,7 @@
 use crate::vir::polymorphic_vir::{
     ast::*,
     cfg::CfgMethod,
-    utils::{walk_functions, walk_methods},
+    utils::{walk_builtin_methods, walk_functions, walk_methods},
 };
 use log::debug;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -15,10 +15,12 @@ use rustc_hash::{FxHashMap, FxHashSet};
 fn collect_info_from_methods_and_functions(
     methods: &[CfgMethod],
     functions: &[Function],
+    builtin_methods: &[BodylessMethod],
 ) -> UsedPredicateCollector {
     let mut collector = UsedPredicateCollector::new();
     walk_methods(methods, &mut collector);
     walk_functions(functions, &mut collector);
+    walk_builtin_methods(builtin_methods, &mut collector);
 
     // DeadBorrowToken$ is a used predicate but it does not appear in VIR
     // becaue it is only created when viper code is created from VIR
@@ -65,6 +67,7 @@ fn get_used_predicates_in_predicate_map(
                 map.insert(p.typ.clone(), res);
             }
             Predicate::Bodyless(_, _) => { /* ignore */ }
+            Predicate::Resource(_) => { /* ignore */ }
         }
     }
     map
@@ -108,9 +111,10 @@ fn visit_predicate(
 pub fn delete_unused_predicates(
     methods: &[CfgMethod],
     functions: &[Function],
+    builtin_methods: &[BodylessMethod],
     mut predicates: Vec<Predicate>,
 ) -> Vec<Predicate> {
-    let collector = collect_info_from_methods_and_functions(methods, functions);
+    let collector = collect_info_from_methods_and_functions(methods, functions, builtin_methods);
     let used_predicates_in_functions_and_methods = collector.used_predicates;
     let folded_predicates = collector.folded_predicates;
     let mut predicates_in_predicates_map = get_used_predicates_in_predicate_map(&predicates);
@@ -121,18 +125,21 @@ pub fn delete_unused_predicates(
     );
 
     // Remove the bodies of predicats that are never folded or unfolded
-    predicates.iter_mut().for_each(|predicate| {
-        let predicate_type = &predicate.get_type().clone();
-        if !folded_predicates.contains(predicate_type) {
-            if let Predicate::Struct(sp) = predicate {
-                debug!("Removed body of {}", predicate_type);
-                sp.body = None;
+    predicates
+        .iter_mut()
+        .filter(|p| !p.is_resource())
+        .for_each(|predicate| {
+            let predicate_type = &predicate.get_type().clone();
+            if !folded_predicates.contains(predicate_type) {
+                if let Predicate::Struct(sp) = predicate {
+                    debug!("Removed body of {}", predicate_type);
+                    sp.body = None;
 
-                // since the predicate now has no body update the predicate map accordingly
-                predicates_in_predicates_map.remove(predicate_type);
+                    // since the predicate now has no body update the predicate map accordingly
+                    predicates_in_predicates_map.remove(predicate_type);
+                }
             }
-        }
-    });
+        });
 
     debug!(
         "Map of predicates used in predicates {:?}",
@@ -145,8 +152,12 @@ pub fn delete_unused_predicates(
     );
 
     debug!("All the used predicates are {:?}", &reachable_predicates);
+    debug!(
+        "All the used resource predicates are {:?}",
+        &collector.used_resource_predicates
+    );
 
-    predicates.retain(|p| reachable_predicates.contains(p.get_type()));
+    predicates.retain(|p| p.is_resource() || reachable_predicates.contains(p.get_type()));
 
     predicates
 }
@@ -156,6 +167,8 @@ struct UsedPredicateCollector {
     used_predicates: FxHashSet<Type>,
     /// set of all predicates that are folded or unfolded
     folded_predicates: FxHashSet<Type>,
+    /// set of all resource predicates that are used
+    used_resource_predicates: FxHashSet<ResourceType>,
 }
 
 impl UsedPredicateCollector {
@@ -163,6 +176,7 @@ impl UsedPredicateCollector {
         UsedPredicateCollector {
             used_predicates: FxHashSet::default(),
             folded_predicates: FxHashSet::default(),
+            used_resource_predicates: FxHashSet::default(),
         }
     }
 }

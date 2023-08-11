@@ -161,6 +161,23 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_resource_access(&mut self, access: ResourceAccess) -> ResourceAccess {
+        let ResourceAccess { args, .. } = access;
+        ResourceAccess {
+            args: args.into_iter().map(|e| self.fold(e)).collect(),
+            ..access
+        }
+    }
+
+    fn fold_resource_access_predicate(&mut self, expr: ResourceAccessPredicate) -> Expr {
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            access: self.fold_resource_access(access),
+            amount: self.fold_boxed(amount),
+            ..expr
+        })
+    }
+
     fn fold_field_access_predicate(&mut self, expr: FieldAccessPredicate) -> Expr {
         let FieldAccessPredicate {
             base,
@@ -283,6 +300,21 @@ pub trait ExprFolder: Sized {
                     )
                 })
                 .collect::<Vec<_>>(),
+            body: self.fold_boxed(body),
+            position,
+        })
+    }
+
+    fn fold_forperm(&mut self, expr: ForPerm) -> Expr {
+        let ForPerm {
+            variables,
+            access,
+            body,
+            position,
+        } = expr;
+        Expr::ForPerm(ForPerm {
+            variables,
+            access: self.fold_resource_access(access),
             body: self.fold_boxed(body),
             position,
         })
@@ -450,6 +482,9 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fold_predicate_access_predicate(predicate_access_predicate)
         }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.fold_resource_access_predicate(resource_access_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fold_field_access_predicate(field_access_predicate)
         }
@@ -459,6 +494,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Cond(cond) => this.fold_cond(cond),
         Expr::ForAll(forall) => this.fold_forall(forall),
         Expr::Exists(exists) => this.fold_exists(exists),
+        Expr::ForPerm(forperm) => this.fold_forperm(forperm),
         Expr::LetExpr(let_expr) => this.fold_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fold_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fold_domain_func_app(domain_func_app),
@@ -521,6 +557,17 @@ pub trait ExprWalker: Sized {
     fn walk_predicate_access_predicate(&mut self, expr: &PredicateAccessPredicate) {
         let PredicateAccessPredicate { argument, .. } = expr;
         self.walk(argument);
+    }
+    fn walk_resource_access(&mut self, access: &ResourceAccess) {
+        let ResourceAccess { args, .. } = access;
+        for arg in args {
+            self.walk(arg);
+        }
+    }
+    fn walk_resource_access_predicate(&mut self, expr: &ResourceAccessPredicate) {
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        self.walk_resource_access(access);
+        self.walk(amount);
     }
     fn walk_field_access_predicate(&mut self, expr: &FieldAccessPredicate) {
         let FieldAccessPredicate { base, .. } = expr;
@@ -587,6 +634,19 @@ pub trait ExprWalker: Sized {
         for var in variables {
             self.walk_local_var(var);
         }
+        self.walk(body);
+    }
+    fn walk_forperm(&mut self, expr: &ForPerm) {
+        let ForPerm {
+            variables,
+            access,
+            body,
+            ..
+        } = expr;
+        for var in variables {
+            self.walk_local_var(var);
+        }
+        self.walk_resource_access(access);
         self.walk(body);
     }
     fn walk_let_expr(&mut self, expr: &LetExpr) {
@@ -708,6 +768,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.walk_predicate_access_predicate(predicate_access_predicate)
         }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.walk_resource_access_predicate(resource_access_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.walk_field_access_predicate(field_access_predicate)
         }
@@ -717,6 +780,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Cond(cond) => this.walk_cond(cond),
         Expr::ForAll(forall) => this.walk_forall(forall),
         Expr::Exists(exists) => this.walk_exists(exists),
+        Expr::ForPerm(forperm) => this.walk_forperm(forperm),
         Expr::LetExpr(let_expr) => this.walk_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.walk_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.walk_domain_func_app(domain_func_app),
@@ -832,6 +896,32 @@ pub trait FallibleExprFolder: Sized {
             argument: self.fallible_fold_boxed(argument)?,
             permission,
             position,
+        }))
+    }
+
+    fn fallible_fold_resource_access(
+        &mut self,
+        access: ResourceAccess,
+    ) -> Result<ResourceAccess, Self::Error> {
+        let ResourceAccess { args, .. } = access;
+        Ok(ResourceAccess {
+            args: args
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+            ..access
+        })
+    }
+
+    fn fallible_fold_resource_access_predicate(
+        &mut self,
+        expr: ResourceAccessPredicate,
+    ) -> Result<Expr, Self::Error> {
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        Ok(Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            access: self.fallible_fold_resource_access(access)?,
+            amount: self.fallible_fold_boxed(amount)?,
+            ..expr
         }))
     }
 
@@ -963,6 +1053,21 @@ pub trait FallibleExprFolder: Sized {
                     ))
                 })
                 .collect::<Result<Vec<_>, _>>()?,
+            body: self.fallible_fold_boxed(body)?,
+            position,
+        }))
+    }
+
+    fn fallible_fold_forperm(&mut self, expr: ForPerm) -> Result<Expr, Self::Error> {
+        let ForPerm {
+            variables,
+            access,
+            body,
+            position,
+        } = expr;
+        Ok(Expr::ForPerm(ForPerm {
+            variables,
+            access: self.fallible_fold_resource_access(access)?,
             body: self.fallible_fold_boxed(body)?,
             position,
         }))
@@ -1152,6 +1257,9 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fallible_fold_predicate_access_predicate(predicate_access_predicate)
         }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.fallible_fold_resource_access_predicate(resource_access_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_fold_field_access_predicate(field_access_predicate)
         }
@@ -1161,6 +1269,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Cond(cond) => this.fallible_fold_cond(cond),
         Expr::ForAll(forall) => this.fallible_fold_forall(forall),
         Expr::Exists(exists) => this.fallible_fold_exists(exists),
+        Expr::ForPerm(forperm) => this.fallible_fold_forperm(forperm),
         Expr::LetExpr(let_expr) => this.fallible_fold_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fallible_fold_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fallible_fold_domain_func_app(domain_func_app),
@@ -1234,6 +1343,24 @@ pub trait FallibleExprWalker: Sized {
         let PredicateAccessPredicate { argument, .. } = expr;
         self.fallible_walk(argument)
     }
+    fn fallible_walk_resource_access(
+        &mut self,
+        access: &ResourceAccess,
+    ) -> Result<(), Self::Error> {
+        let ResourceAccess { args, .. } = access;
+        for arg in args {
+            self.fallible_walk(arg)?;
+        }
+        Ok(())
+    }
+    fn fallible_walk_resource_access_predicate(
+        &mut self,
+        expr: &ResourceAccessPredicate,
+    ) -> Result<(), Self::Error> {
+        let ResourceAccessPredicate { access, amount, .. } = expr;
+        self.fallible_walk_resource_access(access)?;
+        self.fallible_walk(amount)
+    }
     fn fallible_walk_field_access_predicate(
         &mut self,
         expr: &FieldAccessPredicate,
@@ -1304,6 +1431,19 @@ pub trait FallibleExprWalker: Sized {
                 self.fallible_walk(expr)?;
             }
         }
+        self.fallible_walk(body)
+    }
+    fn fallible_walk_forperm(&mut self, expr: &ForPerm) -> Result<(), Self::Error> {
+        let ForPerm {
+            variables,
+            access,
+            body,
+            ..
+        } = expr;
+        for var in variables {
+            self.fallible_walk_local_var(var)?;
+        }
+        self.fallible_walk_resource_access(access)?;
         self.fallible_walk(body)
     }
     fn fallible_walk_let_expr(&mut self, expr: &LetExpr) -> Result<(), Self::Error> {
@@ -1433,6 +1573,9 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fallible_walk_predicate_access_predicate(predicate_access_predicate)
         }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.fallible_walk_resource_access_predicate(resource_access_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_walk_field_access_predicate(field_access_predicate)
         }
@@ -1442,6 +1585,7 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::Cond(cond) => this.fallible_walk_cond(cond),
         Expr::ForAll(forall) => this.fallible_walk_forall(forall),
         Expr::Exists(exists) => this.fallible_walk_exists(exists),
+        Expr::ForPerm(forperm) => this.fallible_walk_forperm(forperm),
         Expr::LetExpr(let_expr) => this.fallible_walk_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fallible_walk_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fallible_walk_domain_func_app(domain_func_app),

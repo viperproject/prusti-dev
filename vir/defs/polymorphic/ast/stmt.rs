@@ -20,6 +20,7 @@ pub enum Stmt {
     Label(Label),
     Inhale(Inhale),
     Exhale(Exhale),
+    Assume(Assume),
     Assert(Assert),
     Refute(Refute),
     /// MethodCall: method_name, args, targets
@@ -64,6 +65,7 @@ pub enum Stmt {
     /// * place to the enumeration instance
     /// * field that encodes the variant
     Downcast(Downcast),
+    LeakCheck(LeakCheck),
 }
 
 impl fmt::Display for Stmt {
@@ -73,6 +75,7 @@ impl fmt::Display for Stmt {
             Stmt::Label(label) => label.fmt(f),
             Stmt::Inhale(inhale) => inhale.fmt(f),
             Stmt::Exhale(exhale) => exhale.fmt(f),
+            Stmt::Assume(assume) => assume.fmt(f),
             Stmt::Assert(assert) => assert.fmt(f),
             Stmt::Refute(refute) => refute.fmt(f),
             Stmt::MethodCall(method_call) => method_call.fmt(f),
@@ -88,6 +91,7 @@ impl fmt::Display for Stmt {
             Stmt::ExpireBorrows(expire_borrows) => expire_borrows.fmt(f),
             Stmt::If(if_stmt) => if_stmt.fmt(f),
             Stmt::Downcast(downcast) => downcast.fmt(f),
+            Stmt::LeakCheck(leak_check) => leak_check.fmt(f),
         }
     }
 }
@@ -137,6 +141,7 @@ impl fmt::Display for Label {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Inhale {
     pub expr: Expr,
+    pub position: Position,
 }
 
 impl fmt::Display for Inhale {
@@ -158,13 +163,19 @@ impl fmt::Display for Exhale {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct Assert {
+pub struct Assume {
     pub expr: Expr,
     pub position: Position,
 }
 
+impl fmt::Display for Assume {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "assume {}", self.expr)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct Refute {
+pub struct Assert {
     pub expr: Expr,
     pub position: Position,
 }
@@ -173,6 +184,12 @@ impl fmt::Display for Assert {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "assert {}", self.expr)
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Refute {
+    pub expr: Expr,
+    pub position: Position,
 }
 
 impl fmt::Display for Refute {
@@ -450,6 +467,40 @@ impl fmt::Display for Downcast {
     }
 }
 
+// needed for error good reporting
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum LeakCheckPlace {
+    Function, // leak check after a function's postcondition
+    Loop,     // leak check after a loop's invariant
+}
+
+impl LeakCheckPlace {
+    fn description(&self) -> &'static str {
+        match self {
+            LeakCheckPlace::Function => "function",
+            LeakCheckPlace::Loop => "loop",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct LeakCheck {
+    pub scope_id: isize,
+    pub place: LeakCheckPlace,
+    pub position: Position,
+}
+
+impl fmt::Display for LeakCheck {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "{} leak check for scope_id = {}",
+            self.place.description(),
+            self.scope_id
+        )
+    }
+}
+
 impl Stmt {
     pub fn is_comment(&self) -> bool {
         matches!(self, Stmt::Comment(_))
@@ -467,12 +518,24 @@ impl Stmt {
         })
     }
 
-    pub fn inhale(expr: Expr) -> Self {
-        Stmt::Inhale(Inhale { expr })
+    pub fn inhale(expr: Expr, position: Position) -> Self {
+        Stmt::Inhale(Inhale { expr, position })
     }
 
     pub fn exhale(expr: Expr, position: Position) -> Self {
         Stmt::Exhale(Exhale { expr, position })
+    }
+
+    pub fn assume(expr: Expr, position: Position) -> Self {
+        Stmt::Assume(Assume { expr, position })
+    }
+
+    pub fn assert(expr: Expr, position: Position) -> Self {
+        Stmt::Assert(Assert { expr, position })
+    }
+
+    pub fn refute(expr: Expr, position: Position) -> Self {
+        Stmt::Refute(Refute { expr, position })
     }
 
     pub fn package_magic_wand(
@@ -507,8 +570,9 @@ impl Stmt {
     // TODO: Potentially add more variants based on how they are used in encoders
     pub fn pos(&self) -> Option<&Position> {
         match self {
-            Stmt::PackageMagicWand(PackageMagicWand { position, .. }) => Some(position),
-            Stmt::Exhale(Exhale { position, .. }) => Some(position),
+            Stmt::PackageMagicWand(PackageMagicWand { position, .. })
+            | Stmt::Inhale(Inhale { position, .. })
+            | Stmt::Exhale(Exhale { position, .. }) => Some(position),
             _ => None,
         }
     }
@@ -530,6 +594,7 @@ impl Stmt {
                 variables,
                 position,
             }),
+            Stmt::Inhale(Inhale { expr, .. }) => Stmt::Inhale(Inhale { expr, position }),
             Stmt::Exhale(Exhale { expr, .. }) => Stmt::Exhale(Exhale { expr, position }),
             x => x,
         }
@@ -559,6 +624,7 @@ pub trait StmtFolder {
             Stmt::Label(label) => self.fold_label(label),
             Stmt::Inhale(inhale) => self.fold_inhale(inhale),
             Stmt::Exhale(exhale) => self.fold_exhale(exhale),
+            Stmt::Assume(assume) => self.fold_assume(assume),
             Stmt::Assert(assert) => self.fold_assert(assert),
             Stmt::Refute(refute) => self.fold_refute(refute),
             Stmt::MethodCall(method_call) => self.fold_method_call(method_call),
@@ -576,6 +642,7 @@ pub trait StmtFolder {
             Stmt::ExpireBorrows(expire_borrows) => self.fold_expire_borrows(expire_borrows),
             Stmt::If(if_stmt) => self.fold_if(if_stmt),
             Stmt::Downcast(downcast) => self.fold_downcast(downcast),
+            Stmt::LeakCheck(leak_check) => self.fold_leak_check(leak_check),
         }
     }
 
@@ -592,15 +659,24 @@ pub trait StmtFolder {
     }
 
     fn fold_inhale(&mut self, statement: Inhale) -> Stmt {
-        let Inhale { expr } = statement;
+        let Inhale { expr, position } = statement;
         Stmt::Inhale(Inhale {
             expr: self.fold_expr(expr),
+            position,
         })
     }
 
     fn fold_exhale(&mut self, statement: Exhale) -> Stmt {
         let Exhale { expr, position } = statement;
         Stmt::Exhale(Exhale {
+            expr: self.fold_expr(expr),
+            position,
+        })
+    }
+
+    fn fold_assume(&mut self, statement: Assume) -> Stmt {
+        let Assume { expr, position } = statement;
+        Stmt::Assume(Assume {
             expr: self.fold_expr(expr),
             position,
         })
@@ -761,6 +837,10 @@ pub trait StmtFolder {
             field,
         })
     }
+
+    fn fold_leak_check(&mut self, statement: LeakCheck) -> Stmt {
+        Stmt::LeakCheck(statement)
+    }
 }
 
 pub trait FallibleStmtFolder {
@@ -772,6 +852,7 @@ pub trait FallibleStmtFolder {
             Stmt::Label(label) => self.fallible_fold_label(label),
             Stmt::Inhale(inhale) => self.fallible_fold_inhale(inhale),
             Stmt::Exhale(exhale) => self.fallible_fold_exhale(exhale),
+            Stmt::Assume(assume) => self.fallible_fold_assume(assume),
             Stmt::Assert(assert) => self.fallible_fold_assert(assert),
             Stmt::Refute(refute) => self.fallible_fold_refute(refute),
             Stmt::MethodCall(method_call) => self.fallible_fold_method_call(method_call),
@@ -793,6 +874,7 @@ pub trait FallibleStmtFolder {
             }
             Stmt::If(if_stmt) => self.fallible_fold_if(if_stmt),
             Stmt::Downcast(downcast) => self.fallible_fold_downcast(downcast),
+            Stmt::LeakCheck(leak_check) => self.fallible_fold_leak_check(leak_check),
         }
     }
 
@@ -809,15 +891,24 @@ pub trait FallibleStmtFolder {
     }
 
     fn fallible_fold_inhale(&mut self, statement: Inhale) -> Result<Stmt, Self::Error> {
-        let Inhale { expr } = statement;
+        let Inhale { expr, position } = statement;
         Ok(Stmt::Inhale(Inhale {
             expr: self.fallible_fold_expr(expr)?,
+            position,
         }))
     }
 
     fn fallible_fold_exhale(&mut self, statement: Exhale) -> Result<Stmt, Self::Error> {
         let Exhale { expr, position } = statement;
         Ok(Stmt::Exhale(Exhale {
+            expr: self.fallible_fold_expr(expr)?,
+            position,
+        }))
+    }
+
+    fn fallible_fold_assume(&mut self, statement: Assume) -> Result<Stmt, Self::Error> {
+        let Assume { expr, position } = statement;
+        Ok(Stmt::Assume(Assume {
             expr: self.fallible_fold_expr(expr)?,
             position,
         }))
@@ -1009,6 +1100,10 @@ pub trait FallibleStmtFolder {
             field,
         }))
     }
+
+    fn fallible_fold_leak_check(&mut self, statement: LeakCheck) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::LeakCheck(statement))
+    }
 }
 
 pub trait StmtWalker {
@@ -1018,6 +1113,7 @@ pub trait StmtWalker {
             Stmt::Label(label) => self.walk_label(label),
             Stmt::Inhale(inhale) => self.walk_inhale(inhale),
             Stmt::Exhale(exhale) => self.walk_exhale(exhale),
+            Stmt::Assume(assume) => self.walk_assume(assume),
             Stmt::Assert(assert) => self.walk_assert(assert),
             Stmt::Refute(refute) => self.walk_refute(refute),
             Stmt::MethodCall(method_call) => self.walk_method_call(method_call),
@@ -1035,6 +1131,7 @@ pub trait StmtWalker {
             Stmt::ExpireBorrows(expire_borrows) => self.walk_expire_borrows(expire_borrows),
             Stmt::If(if_stmt) => self.walk_if(if_stmt),
             Stmt::Downcast(downcast) => self.walk_downcast(downcast),
+            Stmt::LeakCheck(leak_check) => self.walk_leak_check(leak_check),
         }
     }
 
@@ -1047,12 +1144,17 @@ pub trait StmtWalker {
     fn walk_label(&mut self, _label: &Label) {}
 
     fn walk_inhale(&mut self, statement: &Inhale) {
-        let Inhale { expr } = statement;
+        let Inhale { expr, .. } = statement;
         self.walk_expr(expr);
     }
 
     fn walk_exhale(&mut self, statement: &Exhale) {
         let Exhale { expr, .. } = statement;
+        self.walk_expr(expr);
+    }
+
+    fn walk_assume(&mut self, statement: &Assume) {
+        let Assume { expr, .. } = statement;
         self.walk_expr(expr);
     }
 
@@ -1163,6 +1265,8 @@ pub trait StmtWalker {
         let Downcast { base, .. } = statement;
         self.walk_expr(base);
     }
+
+    fn walk_leak_check(&mut self, _statement: &LeakCheck) {}
 }
 
 pub trait FallibleStmtWalker {
@@ -1174,6 +1278,7 @@ pub trait FallibleStmtWalker {
             Stmt::Label(label) => self.fallible_walk_label(label),
             Stmt::Inhale(inhale) => self.fallible_walk_inhale(inhale),
             Stmt::Exhale(exhale) => self.fallible_walk_exhale(exhale),
+            Stmt::Assume(assume) => self.fallible_walk_assume(assume),
             Stmt::Assert(assert) => self.fallible_walk_assert(assert),
             Stmt::Refute(refute) => self.fallible_walk_refute(refute),
             Stmt::MethodCall(method_call) => self.fallible_walk_method_call(method_call),
@@ -1195,6 +1300,7 @@ pub trait FallibleStmtWalker {
             }
             Stmt::If(if_stmt) => self.fallible_walk_if(if_stmt),
             Stmt::Downcast(downcast) => self.fallible_walk_downcast(downcast),
+            Stmt::LeakCheck(leak_check) => self.fallible_walk_leak_check(leak_check),
         }
     }
 
@@ -1215,13 +1321,19 @@ pub trait FallibleStmtWalker {
     }
 
     fn fallible_walk_inhale(&mut self, statement: &Inhale) -> Result<(), Self::Error> {
-        let Inhale { expr } = statement;
+        let Inhale { expr, .. } = statement;
         self.fallible_walk_expr(expr)?;
         Ok(())
     }
 
     fn fallible_walk_exhale(&mut self, statement: &Exhale) -> Result<(), Self::Error> {
         let Exhale { expr, .. } = statement;
+        self.fallible_walk_expr(expr)?;
+        Ok(())
+    }
+
+    fn fallible_walk_assume(&mut self, statement: &Assume) -> Result<(), Self::Error> {
+        let Assume { expr, .. } = statement;
         self.fallible_walk_expr(expr)?;
         Ok(())
     }
@@ -1367,6 +1479,10 @@ pub trait FallibleStmtWalker {
     fn fallible_walk_downcast(&mut self, statement: &Downcast) -> Result<(), Self::Error> {
         let Downcast { base, .. } = statement;
         self.fallible_walk_expr(base)?;
+        Ok(())
+    }
+
+    fn fallible_walk_leak_check(&mut self, _statement: &LeakCheck) -> Result<(), Self::Error> {
         Ok(())
     }
 }

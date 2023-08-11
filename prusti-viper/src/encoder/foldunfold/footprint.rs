@@ -129,6 +129,9 @@ impl ExprFootprintGetter for vir::Expr {
                 perm_difference(body.get_footprint(predicates), vars_places)
             }
 
+            // TODO: implement?
+            vir::Expr::ForPerm(_) => FxHashSet::default(),
+
             vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
                 box ref argument,
                 permission,
@@ -159,6 +162,8 @@ impl ExprFootprintGetter for vir::Expr {
 
                 Some(perm).into_iter().collect()
             }
+
+            vir::Expr::ResourceAccessPredicate(_) => FxHashSet::default(),
 
             vir::Expr::MagicWand(_) => {
                 // We don't track magic wands resources
@@ -209,6 +214,7 @@ impl PredicateFootprintGetter for vir::Predicate {
                 }
             }
             vir::Predicate::Bodyless(_, _) => FxHashSet::default(),
+            vir::Predicate::Resource(_) => FxHashSet::default(),
         }
     }
 }

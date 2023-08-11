@@ -33,7 +33,10 @@ use typed::SpecIdRef;
 
 use crate::specs::{
     external::ExternSpecResolver,
-    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
+    typed::{
+        ProcedureSpecification, ProcedureSpecificationKind, ResourceOptions, SpecGraph,
+        SpecificationItem,
+    },
 };
 use prusti_specs::specifications::common::SpecificationId;
 
@@ -43,11 +46,19 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+    resource: bool,
+    obligation: bool,
 }
 
 impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
     fn from(refs: &ProcedureSpecRefs) -> Self {
-        if refs.abstract_predicate {
+        if refs.obligation {
+            ProcedureSpecificationKind::Resource(ResourceOptions { leak_checked: true })
+        } else if refs.resource {
+            ProcedureSpecificationKind::Resource(ResourceOptions {
+                leak_checked: false,
+            })
+        } else if refs.abstract_predicate {
             ProcedureSpecificationKind::Predicate(None)
         } else if refs.pure {
             ProcedureSpecificationKind::Pure
@@ -81,9 +92,7 @@ pub struct SpecCollector<'a, 'tcx> {
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
     type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
-    prusti_assertions: Vec<LocalDefId>,
-    prusti_assumptions: Vec<LocalDefId>,
-    prusti_refutations: Vec<LocalDefId>,
+    direct_specs: Vec<(LocalDefId, typed::DirectSpecificationKind)>,
     ghost_begin: Vec<LocalDefId>,
     ghost_end: Vec<LocalDefId>,
 }
@@ -98,9 +107,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             loop_specs: vec![],
             loop_variants: vec![],
             type_specs: FxHashMap::default(),
-            prusti_assertions: vec![],
-            prusti_assumptions: vec![],
-            prusti_refutations: vec![],
+            direct_specs: vec![],
             ghost_begin: vec![],
             ghost_end: vec![],
         }
@@ -119,9 +126,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
-        self.determine_prusti_assertions(&mut def_spec);
-        self.determine_prusti_assumptions(&mut def_spec);
-        self.determine_prusti_refutations(&mut def_spec);
+        self.determine_direct_specs(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
@@ -258,32 +263,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             );
         }
     }
-    fn determine_prusti_assertions(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_assertions.iter() {
-            def_spec.prusti_assertions.insert(
+    fn determine_direct_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for (local_id, spec_kind) in self.direct_specs.iter() {
+            def_spec.direct_specs.insert(
                 local_id.to_def_id(),
-                typed::PrustiAssertion {
-                    assertion: *local_id,
-                },
-            );
-        }
-    }
-    fn determine_prusti_assumptions(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_assumptions.iter() {
-            def_spec.prusti_assumptions.insert(
-                local_id.to_def_id(),
-                typed::PrustiAssumption {
-                    assumption: *local_id,
-                },
-            );
-        }
-    }
-    fn determine_prusti_refutations(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_refutations.iter() {
-            def_spec.prusti_refutations.insert(
-                local_id.to_def_id(),
-                typed::PrustiRefutation {
-                    refutation: *local_id,
+                typed::DirectSpecification {
+                    specification: *local_id,
+                    kind: *spec_kind,
                 },
             );
         }
@@ -428,13 +414,17 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     let trusted = has_prusti_attr(attrs, "trusted")
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
+    let resource = has_prusti_attr(attrs, "resource");
+    let obligation = has_prusti_attr(attrs, "obligation");
 
-    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
+    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() || resource || obligation {
         Some(ProcedureSpecRefs {
             spec_id_refs,
             pure,
             abstract_predicate,
             trusted,
+            resource,
+            obligation,
         })
     } else {
         None
@@ -532,15 +522,28 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
 
             if has_prusti_attr(attrs, "prusti_assertion") {
-                self.prusti_assertions.push(local_id);
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Assertion));
             }
 
             if has_prusti_attr(attrs, "prusti_assumption") {
-                self.prusti_assumptions.push(local_id);
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Assumption));
+            }
+
+            if has_prusti_attr(attrs, "prusti_exhalation") {
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Exhalation));
+            }
+
+            if has_prusti_attr(attrs, "prusti_inhalation") {
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Inhalation));
             }
 
             if has_prusti_attr(attrs, "prusti_refutation") {
-                self.prusti_refutations.push(local_id);
+                self.direct_specs
+                    .push((local_id, typed::DirectSpecificationKind::Refutation));
             }
 
             if has_prusti_attr(attrs, "ghost_begin") {

@@ -148,6 +148,9 @@ impl Generic for Expr {
             Expr::PredicateAccessPredicate(predicate_access_predicate) => {
                 Expr::PredicateAccessPredicate(predicate_access_predicate.substitute(map))
             }
+            Expr::ResourceAccessPredicate(resource_access_predicate) => {
+                Expr::ResourceAccessPredicate(resource_access_predicate.substitute(map))
+            }
             Expr::FieldAccessPredicate(field_access_predicate) => {
                 Expr::FieldAccessPredicate(field_access_predicate.substitute(map))
             }
@@ -160,6 +163,7 @@ impl Generic for Expr {
             Expr::Cond(cond) => Expr::Cond(cond.substitute(map)),
             Expr::ForAll(for_all) => Expr::ForAll(for_all.substitute(map)),
             Expr::Exists(exists) => Expr::Exists(exists.substitute(map)),
+            Expr::ForPerm(for_perm) => Expr::ForPerm(for_perm.substitute(map)),
             Expr::LetExpr(let_expr) => Expr::LetExpr(let_expr.substitute(map)),
             Expr::FuncApp(func_app) => Expr::FuncApp(func_app.substitute(map)),
             Expr::DomainFuncApp(domain_func_app) => {
@@ -237,6 +241,27 @@ impl Generic for PredicateAccessPredicate {
         let mut predicate_access_predicate = self;
         *predicate_access_predicate.argument = predicate_access_predicate.argument.substitute(map);
         predicate_access_predicate
+    }
+}
+
+impl Generic for ResourceAccess {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut resource_access = self;
+        resource_access.args = resource_access
+            .args
+            .into_iter()
+            .map(|arg| arg.substitute(map))
+            .collect();
+        resource_access
+    }
+}
+
+impl Generic for ResourceAccessPredicate {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut resource_access_predicate = self;
+        resource_access_predicate.access = resource_access_predicate.access.substitute(map);
+        *resource_access_predicate.amount = resource_access_predicate.amount.substitute(map);
+        resource_access_predicate
     }
 }
 
@@ -362,6 +387,19 @@ impl Generic for Exists {
     }
 }
 
+impl Generic for ForPerm {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut for_perm = self;
+        for_perm.variables = for_perm
+            .variables
+            .into_iter()
+            .map(|variable| variable.substitute(map))
+            .collect();
+        *for_perm.body = for_perm.body.substitute(map);
+        for_perm
+    }
+}
+
 impl Generic for LetExpr {
     fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
         let mut let_expr = self;
@@ -473,6 +511,7 @@ impl Generic for Predicate {
             Predicate::Bodyless(label, local_var) => {
                 Predicate::Bodyless(label, local_var.substitute(map))
             }
+            p @ Predicate::Resource(_) => p,
         }
     }
 }
@@ -521,6 +560,7 @@ impl Generic for Stmt {
             Stmt::Label(label) => Stmt::Label(label.substitute(map)),
             Stmt::Inhale(inhale) => Stmt::Inhale(inhale.substitute(map)),
             Stmt::Exhale(exhale) => Stmt::Exhale(exhale.substitute(map)),
+            Stmt::Assume(assume) => Stmt::Assume(assume.substitute(map)),
             Stmt::Assert(assert) => Stmt::Assert(assert.substitute(map)),
             Stmt::Refute(refute) => Stmt::Refute(refute.substitute(map)),
             Stmt::MethodCall(method_call) => Stmt::MethodCall(method_call.substitute(map)),
@@ -542,6 +582,7 @@ impl Generic for Stmt {
             }
             Stmt::If(if_stmt) => Stmt::If(if_stmt.substitute(map)),
             Stmt::Downcast(downcast) => Stmt::Downcast(downcast.substitute(map)),
+            Stmt::LeakCheck(leak_check) => Stmt::LeakCheck(leak_check.substitute(map)),
         }
     }
 }
@@ -584,6 +625,14 @@ impl Generic for Exhale {
         let mut exhale = self;
         exhale.expr = exhale.expr.substitute(map);
         exhale
+    }
+}
+
+impl Generic for Assume {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut assume = self;
+        assume.expr = assume.expr.substitute(map);
+        assume
     }
 }
 
@@ -746,6 +795,12 @@ impl Generic for Downcast {
         downcast.base = downcast.base.substitute(map);
         downcast.field = downcast.field.substitute(map);
         downcast
+    }
+}
+
+impl Generic for LeakCheck {
+    fn substitute(self, _map: &FxHashMap<TypeVar, Type>) -> Self {
+        self
     }
 }
 
@@ -2090,24 +2145,26 @@ mod tests {
         test(source, expected, &SUBSTITUTION_MAP);
 
         // Inhale
-        source = Stmt::Inhale(Inhale {
-            expr: Expr::Local(Local {
+        source = Stmt::inhale(
+            Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
                 position,
             }),
-        });
-        expected = Stmt::Inhale(Inhale {
-            expr: Expr::Local(Local {
+            Position::default(),
+        );
+        expected = Stmt::inhale(
+            Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
                 position,
             }),
-        });
+            Position::default(),
+        );
         test(source, expected, &SUBSTITUTION_MAP);
 
         // Exhale
@@ -2426,15 +2483,16 @@ mod tests {
                 position,
             }),
             package_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::type_var("T"),
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2468,15 +2526,16 @@ mod tests {
                 position,
             }),
             package_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::Int,
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2699,15 +2758,16 @@ mod tests {
                 position,
             }),
             then_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::type_var("T"),
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2720,15 +2780,16 @@ mod tests {
                 }),
             ],
             else_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::type_var("T"),
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2750,15 +2811,16 @@ mod tests {
                 position,
             }),
             then_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::Int,
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2771,15 +2833,16 @@ mod tests {
                 }),
             ],
             else_stmts: vec![
-                Stmt::Inhale(Inhale {
-                    expr: Expr::Local(Local {
+                Stmt::inhale(
+                    Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::Int,
                         },
                         position,
                     }),
-                }),
+                    Position::default(),
+                ),
                 Stmt::Exhale(Exhale {
                     expr: Expr::Local(Local {
                         variable: LocalVar {

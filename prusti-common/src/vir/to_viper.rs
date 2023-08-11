@@ -167,16 +167,15 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
         match self {
             Stmt::Comment(ref comment) => ast.comment(comment),
             Stmt::Label(ref label) => ast.label(label, &[]),
-            Stmt::Inhale(ref expr) => {
-                let fake_position = Position::default();
-                ast.inhale(
-                    expr.to_viper(context, ast),
-                    fake_position.to_viper(context, ast),
-                )
+            Stmt::Inhale(ref expr, ref pos) => {
+                ast.inhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
             Stmt::Exhale(ref expr, ref pos) => {
                 assert!(!pos.is_default(), "stmt with default pos: {self}");
                 ast.exhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
+            }
+            Stmt::Assume(ref expr, ref pos) => {
+                ast.assume(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
             Stmt::Assert(ref expr, ref pos) => {
                 ast.assert(expr.to_viper(context, ast), pos.to_viper(context, ast))
@@ -409,44 +408,50 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     perm.to_viper(context, ast),
                     pos.to_viper(context, ast),
                 ),
+            Expr::ResourceAccessPredicate(ref access, ref amount, ref pos) => ast
+                .predicate_access_predicate_with_pos(
+                    access.to_viper(context, ast),
+                    ast.fractional_perm(amount.to_viper(context, ast), ast.int_lit(1)),
+                    pos.to_viper(context, ast),
+                ),
             Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
                 .field_access_predicate_with_pos(
                     loc.to_viper(context, ast),
                     perm.to_viper(context, ast),
                     pos.to_viper(context, ast),
                 ),
-            Expr::UnaryOp(op, ref expr, ref pos) => match expr.get_type() {
-                Type::Float(float_ty) => {
-                    let size = match float_ty {
-                        Float::F32 => viper::FloatSizeViper::F32,
-                        Float::F64 => viper::FloatSizeViper::F64,
-                    };
-                    let op_kind = match op {
-                        UnaryOpKind::Minus => viper::UnOpFloat::Neg,
-                        UnaryOpKind::IsNaN => viper::UnOpFloat::IsNan,
-                        _ => unreachable!("illegal unary operation for floats: {}", op),
-                    };
-                    ast.float_unop(op_kind, size, expr.to_viper(context, ast))
-                }
-                Type::BitVector(bitvector_ty) => {
-                    let bv_size = lower_bitvector_signed_size(*bitvector_ty);
-                    let op_kind = match op {
-                        UnaryOpKind::Not => viper::UnOpBv::Not,
-                        UnaryOpKind::Minus => viper::UnOpBv::Neg,
-                        _ => unreachable!("illegal unary operation for bitvectors: {}", op),
-                    };
-                    ast.bv_unnop(op_kind, bv_size, expr.to_viper(context, ast))
-                }
-                typ => match op {
-                    UnaryOpKind::Not => {
-                        ast.not_with_pos(expr.to_viper(context, ast), pos.to_viper(context, ast))
+            Expr::UnaryOp(op, ref expr, ref pos) => {
+                let viper_expr = expr.to_viper(context, ast);
+                let viper_pos = pos.to_viper(context, ast);
+                match expr.get_type() {
+                    Type::Float(float_ty) => {
+                        let size = match float_ty {
+                            Float::F32 => viper::FloatSizeViper::F32,
+                            Float::F64 => viper::FloatSizeViper::F64,
+                        };
+                        let op_kind = match op {
+                            UnaryOpKind::Minus => viper::UnOpFloat::Neg,
+                            UnaryOpKind::IsNaN => viper::UnOpFloat::IsNan,
+                            _ => unreachable!("illegal unary operation for floats: {}", op),
+                        };
+                        ast.float_unop_with_pos(op_kind, size, viper_expr, viper_pos)
                     }
-                    UnaryOpKind::Minus => {
-                        ast.minus_with_pos(expr.to_viper(context, ast), pos.to_viper(context, ast))
+                    Type::BitVector(bitvector_ty) => {
+                        let bv_size = lower_bitvector_signed_size(*bitvector_ty);
+                        let op_kind = match op {
+                            UnaryOpKind::Not => viper::UnOpBv::Not,
+                            UnaryOpKind::Minus => viper::UnOpBv::Neg,
+                            _ => unreachable!("illegal unary operation for bitvectors: {}", op),
+                        };
+                        ast.bv_unnop_with_pos(op_kind, bv_size, viper_expr, viper_pos)
                     }
-                    _ => unreachable!("illegal unary operation {} for type {}", op, typ),
-                },
-            },
+                    typ => match op {
+                        UnaryOpKind::Not => ast.not_with_pos(viper_expr, viper_pos),
+                        UnaryOpKind::Minus => ast.minus_with_pos(viper_expr, viper_pos),
+                        _ => unreachable!("illegal unary operation {} for type {}", op, typ),
+                    },
+                }
+            }
             Expr::BinOp(op, ref left, ref right, ref pos) => match left.get_maybe_type() {
                 Some(Type::Float(float_ty)) => {
                     let size = match float_ty {
@@ -467,11 +472,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                         BinaryOpKind::Max => viper::BinOpFloat::Max,
                         _ => unreachable!("illegal binary operation for floats: {}", op),
                     };
-                    ast.float_binop(
+                    ast.float_binop_with_pos(
                         float_op_kind,
                         size,
                         left.to_viper(context, ast),
                         right.to_viper(context, ast),
+                        pos.to_viper(context, ast),
                     )
                 }
                 Some(Type::BitVector(bitvector_ty)) => {
@@ -525,11 +531,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                                     unreachable!("illegal binary operation for bitvectors: {}", op)
                                 }
                             };
-                            ast.bv_binop(
+                            ast.bv_binop_with_pos(
                                 op_kind,
                                 viper_size,
                                 left.to_viper(context, ast),
                                 right.to_viper(context, ast),
+                                pos.to_viper(context, ast),
                             )
                         }
                     }
@@ -677,6 +684,11 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 body.to_viper(context, ast),
                 pos.to_viper(context, ast),
             ),
+            Expr::ForPerm(ref vars, ref access, ref body, ref _pos) => ast.for_perm(
+                &vars.to_viper_decl(context, ast)[..],
+                access.to_viper(context, ast),
+                body.to_viper(context, ast),
+            ),
             Expr::LetExpr(ref var, ref expr, ref body, ref pos) => ast.let_expr_with_pos(
                 var.to_viper_decl(context, ast),
                 expr.to_viper(context, ast),
@@ -775,35 +787,36 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Trigger<'v>> for (&'a Trigger, &'b Position)
 
 impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        let viper_pos = self.1.to_viper(context, ast);
         match self.0 {
-            Const::Bool(true) => ast.true_lit_with_pos(self.1.to_viper(context, ast)),
-            Const::Bool(false) => ast.false_lit_with_pos(self.1.to_viper(context, ast)),
-            Const::Int(x) => ast.int_lit_with_pos(*x, self.1.to_viper(context, ast)),
-            Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(context, ast)),
-            Const::Float(FloatConst::F32(val)) => ast.backend_f32_lit(*val),
-            Const::Float(FloatConst::F64(val)) => ast.backend_f64_lit(*val),
+            Const::Bool(true) => ast.true_lit_with_pos(viper_pos),
+            Const::Bool(false) => ast.false_lit_with_pos(viper_pos),
+            Const::Int(x) => ast.int_lit_with_pos(*x, viper_pos),
+            Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, viper_pos),
+            Const::Float(FloatConst::F32(val)) => ast.backend_f32_lit_with_pos(*val, viper_pos),
+            Const::Float(FloatConst::F64(val)) => ast.backend_f64_lit_with_pos(*val, viper_pos),
             Const::BitVector(bv_const) => match bv_const.typ {
                 BitVector::Signed(BitVectorSize::BV8) | BitVector::Unsigned(BitVectorSize::BV8) => {
-                    ast.backend_bv8_lit_str(&bv_const.value)
+                    ast.backend_bv8_lit_str_with_pos(&bv_const.value, viper_pos)
                 }
                 BitVector::Signed(BitVectorSize::BV16)
                 | BitVector::Unsigned(BitVectorSize::BV16) => {
-                    ast.backend_bv16_lit_str(&bv_const.value)
+                    ast.backend_bv16_lit_str_with_pos(&bv_const.value, viper_pos)
                 }
                 BitVector::Signed(BitVectorSize::BV32)
                 | BitVector::Unsigned(BitVectorSize::BV32) => {
-                    ast.backend_bv32_lit_str(&bv_const.value)
+                    ast.backend_bv32_lit_str_with_pos(&bv_const.value, viper_pos)
                 }
                 BitVector::Signed(BitVectorSize::BV64)
                 | BitVector::Unsigned(BitVectorSize::BV64) => {
-                    ast.backend_bv64_lit_str(&bv_const.value)
+                    ast.backend_bv64_lit_str_with_pos(&bv_const.value, viper_pos)
                 }
                 BitVector::Signed(BitVectorSize::BV128)
                 | BitVector::Unsigned(BitVectorSize::BV128) => {
-                    ast.backend_bv128_lit_str(&bv_const.value)
+                    ast.backend_bv128_lit_str_with_pos(&bv_const.value, viper_pos)
                 }
             },
-            Const::FnPtr => ast.null_lit_with_pos(self.1.to_viper(context, ast)),
+            Const::FnPtr => ast.null_lit_with_pos(viper_pos),
         }
     }
 }
@@ -817,6 +830,7 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
             Predicate::Bodyless(name, this) => {
                 ast.predicate(name, &[this.to_viper_decl(context, ast)], None)
             }
+            Predicate::Resource(p) => p.to_viper(context, ast),
         }
     }
 }
@@ -844,6 +858,17 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for EnumPredicate {
             &[self.this.to_viper_decl(context, ast)],
             Some(self.body().to_viper(context, ast)),
         )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Predicate<'v>> for ResourcePredicate {
+    #[tracing::instrument(
+        name = "ResourcePredicate::to_viper",
+        level = "trace",
+        skip(context, ast)
+    )]
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
+        ast.predicate(&self.name, &self.params.to_viper_decl(context, ast), None)
     }
 }
 
@@ -939,6 +964,16 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a BackendFuncDecl {
             self.return_type.to_viper(context, ast),
             &self.domain_name,
             &self.interpretation,
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::Expr<'v>> for &'a ResourceAccess {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.predicate_access_with_pos(
+            &self.args.to_viper(context, ast)[..],
+            &self.name,
+            self.pos.to_viper(context, ast),
         )
     }
 }

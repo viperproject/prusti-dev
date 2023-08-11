@@ -33,6 +33,18 @@ impl<'a> AstUtils<'a> {
             .map(|java_vec| self.jni.seq_to_vec(java_vec))
     }
 
+    pub(crate) fn rewrite_impure_assumes(
+        &self,
+        program: Program<'a>,
+    ) -> Result<Program<'a>, JavaException> {
+        self.jni
+            .unwrap_or_exception(
+                silver::ast::utility::ImpureAssumeRewriter::with(self.env)
+                    .call_rewriteAssumes(program.to_jobject()),
+            )
+            .map(Program::new)
+    }
+
     #[tracing::instrument(level = "debug", skip_all)]
     pub fn pretty_print(&self, program: Program<'a>) -> String {
         let fast_pretty_printer_wrapper =

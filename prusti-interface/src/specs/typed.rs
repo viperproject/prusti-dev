@@ -15,9 +15,7 @@ pub struct DefSpecificationMap {
     pub proc_specs: FxHashMap<DefId, SpecGraph<ProcedureSpecification>>,
     pub loop_specs: FxHashMap<DefId, LoopSpecification>,
     pub type_specs: FxHashMap<DefId, TypeSpecification>,
-    pub prusti_assertions: FxHashMap<DefId, PrustiAssertion>,
-    pub prusti_assumptions: FxHashMap<DefId, PrustiAssumption>,
-    pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
+    pub direct_specs: FxHashMap<DefId, DirectSpecification>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
 }
@@ -39,16 +37,8 @@ impl DefSpecificationMap {
         self.type_specs.get(def_id)
     }
 
-    pub fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
-        self.prusti_assertions.get(def_id)
-    }
-
-    pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
-        self.prusti_assumptions.get(def_id)
-    }
-
-    pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
-        self.prusti_refutations.get(def_id)
+    pub fn get_direct_spec(&self, def_id: &DefId) -> Option<&DirectSpecification> {
+        self.direct_specs.get(def_id)
     }
 
     pub fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
@@ -161,18 +151,8 @@ impl DefSpecificationMap {
             .values()
             .map(|spec| format!("{spec:?}"))
             .collect();
-        let asserts: Vec<_> = self
-            .prusti_assertions
-            .values()
-            .map(|spec| format!("{spec:?}"))
-            .collect();
-        let assumptions: Vec<_> = self
-            .prusti_assumptions
-            .values()
-            .map(|spec| format!("{spec:?}"))
-            .collect();
-        let refutations: Vec<_> = self
-            .prusti_refutations
+        let direct_specs: Vec<_> = self
+            .direct_specs
             .values()
             .map(|spec| format!("{spec:?}"))
             .collect();
@@ -180,9 +160,7 @@ impl DefSpecificationMap {
         values.extend(loop_specs);
         values.extend(proc_specs);
         values.extend(type_specs);
-        values.extend(asserts);
-        values.extend(assumptions);
-        values.extend(refutations);
+        values.extend(direct_specs);
         if hide_uuids {
             let uuid =
                 Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}").unwrap();
@@ -240,6 +218,13 @@ pub enum ProcedureSpecificationKind {
     /// The specification is a predicate with the enclosed body.
     /// The body can be None to account for abstract predicates.
     Predicate(Option<DefId>),
+    Resource(ResourceOptions),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, TyEncodable, TyDecodable)]
+pub struct ResourceOptions {
+    /// true iff leak checks should be generated for this resource
+    pub leak_checked: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, TyEncodable, TyDecodable)]
@@ -253,6 +238,11 @@ impl Display for ProcedureSpecificationKind {
             ProcedureSpecificationKind::Impure => write!(f, "Impure"),
             ProcedureSpecificationKind::Pure => write!(f, "Pure"),
             ProcedureSpecificationKind::Predicate(_) => write!(f, "Predicate"),
+            ProcedureSpecificationKind::Resource(ResourceOptions { leak_checked }) => write!(
+                f,
+                "Resource({} leak checks)",
+                if *leak_checked { "with" } else { "no" }
+            ),
         }
     }
 }
@@ -293,19 +283,19 @@ impl TypeSpecification {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct PrustiAssertion {
-    pub assertion: LocalDefId,
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub enum DirectSpecificationKind {
+    Assertion,
+    Assumption,
+    Exhalation,
+    Inhalation,
+    Refutation,
 }
 
 #[derive(Debug, Clone)]
-pub struct PrustiAssumption {
-    pub assumption: LocalDefId,
-}
-
-#[derive(Debug, Clone)]
-pub struct PrustiRefutation {
-    pub refutation: LocalDefId,
+pub struct DirectSpecification {
+    pub specification: LocalDefId,
+    pub kind: DirectSpecificationKind,
 }
 
 #[derive(Debug, Clone)]

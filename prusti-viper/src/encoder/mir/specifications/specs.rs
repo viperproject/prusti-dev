@@ -7,11 +7,12 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_interface::{
-    environment::Environment,
+    data::ProcedureDefId,
+    environment::{EnvName, Environment},
     specs::typed::{
-        DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
-        ProcedureSpecificationKind, ProcedureSpecificationKindError, PrustiAssertion,
-        PrustiAssumption, PrustiRefutation, Refinable, SpecificationItem, TypeSpecification,
+        DefSpecificationMap, DirectSpecification, GhostBegin, GhostEnd, LoopSpecification,
+        ProcedureSpecification, ProcedureSpecificationKind, ProcedureSpecificationKindError,
+        Refinable, SpecificationItem, TypeSpecification,
     },
     PrustiError,
 };
@@ -82,18 +83,8 @@ impl<'tcx> Specifications<'tcx> {
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
-        self.user_typed_specs.get_assertion(def_id)
-    }
-
-    #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
-        self.user_typed_specs.get_assumption(def_id)
-    }
-
-    #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
-        self.user_typed_specs.get_refutation(def_id)
+    pub(super) fn get_direct_spec(&self, def_id: &DefId) -> Option<&DirectSpecification> {
+        self.user_typed_specs.get_direct_spec(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
@@ -131,6 +122,18 @@ impl<'tcx> Specifications<'tcx> {
             }
             _ => self.get_proc_spec(env, &query),
         }
+    }
+
+    pub fn get_proc_def_id(
+        &self,
+        proc_absolute_name: &str,
+        env_name: &EnvName<'tcx>,
+    ) -> Option<ProcedureDefId> {
+        self.user_typed_specs
+            .proc_specs
+            .keys()
+            .copied()
+            .find(|&def_id| env_name.get_absolute_item_name(def_id) == proc_absolute_name)
     }
 
     #[tracing::instrument(level = "debug", skip(self, env))]

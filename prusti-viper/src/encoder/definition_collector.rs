@@ -51,6 +51,7 @@ pub(super) fn collect_definitions(
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
         new_unfolded_predicates: Default::default(),
         used_predicates: Default::default(),
+        used_resources: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
         used_builtin_domains,
@@ -74,6 +75,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     method_names: FxHashSet<String>,
     /// The set of all predicates that are mentioned in the method.
     used_predicates: FxHashSet<vir::Type>,
+    used_resources: FxHashSet<vir::FunctionIdentifier>,
     /// The set of predicates whose bodies have to be included because they are
     /// unfolded in the method.
     unfolded_predicates: FxHashSet<vir::Type>,
@@ -127,6 +129,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             // make sure we include all the fields
             if let Some(body) = predicate.body().as_ref() {
                 self.fallible_walk_expr(body)?;
+            }
+        }
+        for vir::BodylessMethod { pres, posts, .. } in self.encoder.get_builtin_methods().values() {
+            // make sure we include builtin pres and posts expressions of builtin methods
+            for expr in pres {
+                self.fallible_walk_expr(expr)?;
+            }
+            for expr in posts {
+                self.fallible_walk_expr(expr)?;
             }
         }
         vir::utils::fallible_walk_methods(methods, self)?;
@@ -192,6 +203,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 predicate
             };
             predicates.push(predicate);
+        }
+        for identifier in &self.used_resources {
+            let resource = self.encoder.get_resource(identifier)?;
+            let resource = (*resource).clone();
+            predicates.push(resource);
         }
         predicates.push(vir::Predicate::Bodyless(
             vir::Type::typed_ref("DeadBorrowToken$"),
@@ -882,6 +898,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.used_predicates.insert(predicate_type.clone());
         FallibleExprWalker::fallible_walk(self, argument)
+    }
+    fn fallible_walk_resource_access(
+        &mut self,
+        vir::ResourceAccess {
+            name,
+            args,
+            formal_arguments,
+            ..
+        }: &vir::ResourceAccess,
+    ) -> SpannedEncodingResult<()> {
+        let identifier: vir::FunctionIdentifier =
+            compute_identifier(name, &[], formal_arguments, &vir::Type::Bool).into();
+        self.used_resources.insert(identifier);
+        for arg in args {
+            FallibleExprWalker::fallible_walk(self, arg)?;
+        }
+        Ok(())
     }
     fn fallible_walk_unfolding(
         &mut self,

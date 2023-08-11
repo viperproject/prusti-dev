@@ -33,6 +33,12 @@ pub use prusti_contracts_proc_macros::prusti_assert;
 /// A macro for writing assumptions using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_assume;
 
+/// A macro for exhaling expressions using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_exhale;
+
+/// A macro for inhaling expressions using prusti syntax
+pub use prusti_contracts_proc_macros::prusti_inhale;
+
 /// A macro for writing refutations using prusti syntax
 pub use prusti_contracts_proc_macros::prusti_refute;
 
@@ -45,6 +51,10 @@ pub use prusti_contracts_proc_macros::extern_spec;
 /// A macro for defining a predicate using prusti expression syntax instead
 /// of just Rust expressions.
 pub use prusti_contracts_proc_macros::predicate;
+
+pub use prusti_contracts_proc_macros::resource;
+
+pub use prusti_contracts_proc_macros::obligation;
 
 /// Macro for creating type models.
 pub use prusti_contracts_proc_macros::model;
@@ -366,6 +376,19 @@ pub fn snap<T>(_x: &T) -> T {
 /// are not. Importantly, addresses are not taken into consideration.
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
+}
+
+resource! {
+    /// This function is used to specify the number of time credits required in a
+    /// function specification. It defines the upper bound for its runtime.
+    pub fn time_credits(amount: usize);
+}
+
+resource! {
+    /// This function is used to specify the number of time receipts ensured at the
+    /// end of the execution of a function in its specification. It defines the
+    /// lower bound for its runtime.
+    pub fn time_receipts(amount: usize);
 }
 
 pub use private::*;

@@ -6,6 +6,8 @@
 
 pub use self::encoder::Encoder;
 
+pub use self::errors::misplaced_impure_checker::MisplacedImpureChecker;
+
 mod builtin_encoder;
 #[allow(clippy::module_inception)]
 mod encoder;
@@ -30,4 +32,6 @@ mod middle;
 mod purifier;
 pub mod counterexamples;
 mod definition_collector;
+mod leak_check_resolver;
 mod versioning;
+mod resources;

@@ -180,6 +180,9 @@ fn main() {
                 object_getter!(),
                 method!("pretty", "(Lviper/silver/ast/Node;)Ljava/lang/String;")
             ]),
+            java_class!("viper.silver.ast.utility.ImpureAssumeRewriter", vec![
+                method!("rewriteAssumes"),
+            ]),
             java_class!("viper.silver.ast.AbstractAssign$", vec![
                 object_getter!(),
                 method!("apply"),
@@ -224,6 +227,9 @@ fn main() {
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.Assert", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.Assume", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.plugin.standard.refute.Refute", vec![

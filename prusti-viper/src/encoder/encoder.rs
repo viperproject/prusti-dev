@@ -50,7 +50,7 @@ use super::mir::{
     procedures::MirProcedureEncoderState,
     type_invariants::TypeInvariantEncoderState,
     pure::{
-        PureFunctionEncoderState, PureFunctionEncoderInterface,
+        PureFunctionEncoderState, PureFunctionEncoderInterface, ResourceEncoderInterface,
     },
     types::{
         compute_discriminant_bounds,
@@ -70,6 +70,15 @@ pub struct Encoder<'v, 'tcx: 'v> {
     error_manager: RefCell<ErrorManager<'tcx>>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
+    /// A map containing all resource definitions: identifier → resource definition (a predicate).
+    resources: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Predicate>>>,
+    /// A map containing all resource leak check expressions:
+    /// identifier (of a resource) → expression asserting that no instances of the resource are held
+    /// The checks here assert that no resources for scope_id = -2 are held, which is replaced by
+    /// the correct scope_id when the correct leak check expression is requested in get_leak_check
+    /// If a function identifier appears in the `resources` map, but not in here, then
+    /// that is interpreted as that leak checks shouldn't be emitted for this resource
+    leak_checks: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::ForPerm>>>,
     builtin_domains: RefCell<FxHashMap<BuiltinDomainKind, vir::Domain>>,
     builtin_domains_in_progress: RefCell<FxHashSet<BuiltinDomainKind>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -153,6 +162,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             env,
             error_manager: RefCell::new(ErrorManager::new(env.query.codemap())),
             functions: RefCell::new(FxHashMap::default()),
+            resources: RefCell::new(FxHashMap::default()),
+            leak_checks: RefCell::new(FxHashMap::default()),
             builtin_domains: RefCell::new(FxHashMap::default()),
             builtin_domains_in_progress: RefCell::new(FxHashSet::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
@@ -234,7 +245,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn finalize_viper_program(&self, name: String, proc_def_id: DefId) -> SpannedEncodingResult<vir::Program> {
         let error_span = self.env.query.get_def_span(proc_def_id);
-        super::definition_collector::collect_definitions(error_span, self, name, self.get_used_viper_methods())
+        let leak_checked_methods = self.get_used_viper_methods()
+            .into_iter()
+            .map(|m| super::leak_check_resolver::resolve_leak_checks(self, m))
+            .collect::<SpannedEncodingResult<Vec<_>>>()?;
+        super::definition_collector::collect_definitions(error_span, self, name, leak_checked_methods)
     }
 
     pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
@@ -289,6 +304,47 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             Ok(self.get_snapshot_function(identifier))
         } else {
             unreachable!("Not found function: {:?}", identifier)
+        }
+    }
+
+    /// passing None for leak_check is interpreted as that this resource is not leak-checked,
+    /// so leak checks shouldn't be generated for it
+    pub(super) fn insert_resource(&self, resource: vir::Predicate, leak_check: Option<vir::ForPerm>) -> vir::FunctionIdentifier {
+        let identifier: vir::FunctionIdentifier = resource.get_identifier().into();
+        assert!(self.resources.borrow_mut().insert(identifier.clone(), Rc::new(resource)).is_none(), "{identifier:?} is not unique");
+        if let Some(leak_check) = leak_check {
+            self.leak_checks.borrow_mut().insert(identifier.clone(), Rc::new(leak_check));
+        }
+        identifier
+    }
+
+    pub(super) fn get_resource(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Predicate>> {
+        self.ensure_resource_encoded(identifier)?;
+        if self.resources.borrow().contains_key(identifier) {
+            let map = self.resources.borrow();
+            Ok(map[identifier].clone())
+        } else {
+            unreachable!("Not found resource: {:?}", identifier);
+        }
+    }
+
+    pub(super) fn has_leak_checks(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<bool> {
+        self.ensure_resource_encoded(identifier)?;
+        if self.resources.borrow().contains_key(identifier) {
+            Ok(self.leak_checks.borrow().contains_key(identifier))
+        } else {
+            unreachable!("Not found resource: {:?}", identifier);
+        }
+    }
+
+    pub(super) fn get_leak_check(&self, identifier: &vir::FunctionIdentifier, scope_id: isize) -> SpannedEncodingResult<vir::Expr> {
+        self.ensure_resource_encoded(identifier)?;
+        if self.leak_checks.borrow().contains_key(identifier) {
+            let map = self.leak_checks.borrow();
+            let check = map[identifier].clone();
+            Ok((*check).clone().replace_scope_id(scope_id))
+        } else {
+            panic!("Not found leak check: {:?}. Is {:?} a leak-checked resource?", identifier, identifier);
         }
     }
 
@@ -766,9 +822,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                                 proc_def_id
                             );
                         },
-                        ProcedureSpecificationKind::Predicate(_) => {
+                        ProcedureSpecificationKind::Predicate(_) |
+                        ProcedureSpecificationKind::Resource(_) => {
                             debug!(
-                                "Predicates will not be encoded or verified: {:?}",
+                                "Predicates or resources will not be encoded or verified: {:?}",
                                 proc_def_id
                             );
                         },
@@ -821,5 +878,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         let field = strct.field(self.encode_struct_field(field_name, ty)?);
         self.encode_value_expr(field, ty)
+    }
+
+    pub fn get_procedure_def_id(&self, proc_absolute_name: &str) -> Option<ProcedureDefId> {
+        // TODO: cache in a map?
+        self.specifications_state.get_procedure_def_id(proc_absolute_name, &self.env.name)
     }
 }

@@ -24,6 +24,7 @@ pub struct Optimizations {
     pub purify_vars: bool,
     pub fix_quantifiers: bool,
     pub fix_unfoldings: bool,
+    pub simplify_exprs: bool,
     pub remove_unused_vars: bool,
     pub remove_trivial_assertions: bool,
     pub clean_cfg: bool,
@@ -39,6 +40,7 @@ impl Optimizations {
             purify_vars: false,
             fix_quantifiers: false,
             fix_unfoldings: false,
+            simplify_exprs: false,
             remove_unused_vars: false,
             remove_trivial_assertions: false,
             clean_cfg: false,
@@ -55,6 +57,7 @@ impl Optimizations {
             fix_quantifiers: true,
             // Disabled because https://github.com/viperproject/prusti-dev/issues/892 has been fixed
             fix_unfoldings: false,
+            simplify_exprs: true,
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,
@@ -142,6 +145,7 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<String>>("dump_fold_unfold_state_of_blocks", None).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
+        settings.set_default("time_reasoning", false).unwrap();
 
         settings.set_default("cargo_path", "cargo").unwrap();
         settings.set_default("cargo_command", "check").unwrap();
@@ -365,6 +369,12 @@ pub fn java_home() -> String {
 /// When enabled, Prusti will check for an absence of `panic!`s.
 pub fn check_panics() -> bool {
     read_setting("check_panics")
+}
+
+/// When enabled, the time reasoning constrains are verified. Otherwise they are ignored.
+/// Note that this is an experimental feature.
+pub fn time_reasoning() -> bool {
+    read_setting("time_reasoning")
 }
 
 /// When enabled, the encoded program is simplified before it is passed to
@@ -704,6 +714,7 @@ pub fn verify_only_basic_block_path() -> Vec<String> {
 /// - `"purify_vars"`
 /// - `"fix_quantifiers"`
 /// - `"fix_unfoldings"`
+/// - `"simplify_exprs"`
 /// - `"remove_unused_vars"`
 /// - `"remove_trivial_assertions"`
 /// - `"clean_cfg"`
@@ -723,6 +734,7 @@ pub fn optimizations() -> Optimizations {
             "purify_vars" => opt.purify_vars = true,
             "fix_quantifiers" => opt.fix_quantifiers = true,
             "fix_unfoldings" => opt.fix_unfoldings = true,
+            "simplify_exprs" => opt.simplify_exprs = true,
             "remove_unused_vars" => opt.remove_unused_vars = true,
             "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
             "clean_cfg" => opt.clean_cfg = true,

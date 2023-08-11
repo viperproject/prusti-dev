@@ -158,7 +158,7 @@ pub fn add_folding_unfolding_to_function(
     let old_exprs = FxHashMap::default();
     let mut pctxt = PathCtxt::new(formal_vars, &predicates, &old_exprs);
     for pre in &function.pres {
-        pctxt.apply_stmt(&vir::Stmt::Inhale(vir::Inhale { expr: pre.clone() }))?;
+        pctxt.apply_stmt(&vir::Stmt::inhale(pre.clone(), vir::Position::default()))?;
     }
     // Add appropriate unfolding around expressions
     let result = vir::Function {
@@ -331,7 +331,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Stmt, FoldUnfoldError> {
         match stmt {
-            vir::Stmt::Inhale(vir::Inhale { expr }) => {
+            vir::Stmt::Inhale(vir::Inhale { expr, position }) => {
                 // Compute inner state
                 let mut inner_pctxt = pctxt.clone();
                 let inner_state = inner_pctxt.mut_state();
@@ -342,9 +342,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 )?;
 
                 // Rewrite statement
-                Ok(vir::Stmt::Inhale(vir::Inhale {
-                    expr: self.replace_expr(&expr, &inner_pctxt)?,
-                }))
+                Ok(vir::Stmt::inhale(
+                    self.replace_expr(&expr, &inner_pctxt)?,
+                    position,
+                ))
             }
             vir::Stmt::TransferPerm(vir::TransferPerm {
                 left,
@@ -545,7 +546,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     let mut labelled_pctxt = pctxt.clone();
                     let labelled_state = labelled_pctxt.mut_state();
                     labelled_state.remove_all();
-                    vir::Stmt::Inhale(vir::Inhale { expr: left.clone() })
+                    vir::Stmt::inhale(left.clone(), vir::Position::default())
                         .apply_on_state(labelled_state, pctxt.predicates())?;
                     if let vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
                         box ref argument,
@@ -799,7 +800,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         stmts.push(stmt.clone());
 
         // 6. Recombine permissions into full if read was carved out during fold.
-        if let vir::Stmt::Inhale(vir::Inhale { expr }) = &stmt {
+        if let vir::Stmt::Inhale(vir::Inhale { expr, .. }) = &stmt {
             // We may need to recombine predicates for which read permission was taking during
             // an unfold operation.
             let inhaled_places = expr.extract_predicate_places(vir::PermAmount::Read);
@@ -908,9 +909,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     lhs_read_access.clone(),
                     target.clone(),
                 );
-                let stmt = vir::Stmt::Inhale(vir::Inhale {
-                    expr: lhs_read_access,
-                });
+                let stmt = vir::Stmt::inhale(lhs_read_access, vir::Position::default());
                 pctxt.apply_stmt(&stmt)?;
                 stmts.push(stmt);
             }
@@ -959,9 +958,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     lhs_read_access.clone(),
                     target.clone(),
                 );
-                let stmt = vir::Stmt::Inhale(vir::Inhale {
-                    expr: lhs_read_access,
-                });
+                let stmt = vir::Stmt::inhale(lhs_read_access, vir::Position::default());
                 pctxt.apply_stmt(&stmt)?;
                 stmts.push(stmt);
             }

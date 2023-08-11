@@ -31,6 +31,8 @@ pub enum Expr {
     MagicWand(Box<Expr>, Box<Expr>, Option<Borrow>, Position),
     /// PredicateAccessPredicate: predicate_name, arg, permission amount
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
+    /// ResourceAccessPredicate: resource name with arguments, amount (as integer)
+    ResourceAccessPredicate(ResourceAccess, Box<Expr>, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
@@ -55,6 +57,8 @@ pub enum Expr {
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
     /// Exists: variables, triggers, body
     Exists(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
+    /// ForPerm: variables, resource access, body
+    ForPerm(Vec<LocalVar>, ResourceAccess, Box<Expr>, Position),
     /// let variable == (expr) in body
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -155,6 +159,29 @@ pub enum Const {
     FnPtr,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+pub struct ResourceAccess {
+    pub name: String,
+    pub args: Vec<Expr>,
+    pub formal_arguments: Vec<LocalVar>,
+    pub pos: Position,
+}
+
+impl fmt::Display for ResourceAccess {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}({})",
+            self.name,
+            self.args
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -192,6 +219,9 @@ impl fmt::Display for Expr {
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{op}({expr})"),
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
                 write!(f, "acc({pred_name}({arg}), {perm})")
+            }
+            Expr::ResourceAccessPredicate(ref access, ref amount, _) => {
+                write!(f, "acc({access}, {amount})")
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
                 write!(f, "acc({expr}, {perm})")
@@ -249,6 +279,16 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
                 body
+            ),
+            Expr::ForPerm(ref vars, ref access, ref body, ref _pos) => write!(
+                f,
+                "forperm {}: Ref [{}] :: {}",
+                vars.iter()
+                    .map(|x| format!("{x:?}"))
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                access,
+                body,
             ),
             Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => {
                 write!(f, "(let {var:?} == ({expr}) in {body})",)
@@ -373,6 +413,7 @@ impl Expr {
             | Expr::LabelledOld(_, _, p)
             | Expr::MagicWand(_, _, _, p)
             | Expr::PredicateAccessPredicate(_, _, _, p)
+            | Expr::ResourceAccessPredicate(_, _, p)
             | Expr::FieldAccessPredicate(_, _, p)
             | Expr::UnaryOp(_, _, p)
             | Expr::BinOp(_, _, _, p)
@@ -380,6 +421,7 @@ impl Expr {
             | Expr::Cond(_, _, _, p)
             | Expr::ForAll(_, _, _, p)
             | Expr::Exists(_, _, _, p)
+            | Expr::ForPerm(_, _, _, p)
             | Expr::LetExpr(_, _, _, p)
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
@@ -406,6 +448,9 @@ impl Expr {
             Expr::MagicWand(x, y, b, _) => Expr::MagicWand(x, y, b, pos),
             Expr::PredicateAccessPredicate(x, y, z, _) => {
                 Expr::PredicateAccessPredicate(x, y, z, pos)
+            }
+            Expr::ResourceAccessPredicate(acc, am, _) => {
+                Expr::ResourceAccessPredicate(acc, am, pos)
             }
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
@@ -451,6 +496,11 @@ impl Expr {
     pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
         let pos = place.pos();
         Expr::PredicateAccessPredicate(name.to_string(), Box::new(place), perm, pos)
+    }
+
+    pub fn resource_access_predicate(access: ResourceAccess, amount: Expr) -> Self {
+        let pos = amount.pos();
+        Expr::ResourceAccessPredicate(access, Box::new(amount), pos)
     }
 
     pub fn field_access_predicate(place: Expr, perm: PermAmount) -> Self {
@@ -824,7 +874,9 @@ impl Expr {
 
     pub fn is_only_permissions(&self) -> bool {
         match self {
-            Expr::PredicateAccessPredicate(..) | Expr::FieldAccessPredicate(..) => true,
+            Expr::PredicateAccessPredicate(..)
+            | Expr::ResourceAccessPredicate(..)
+            | Expr::FieldAccessPredicate(..) => true,
             Expr::BinOp(BinaryOpKind::And, box lhs, box rhs, _) => {
                 lhs.is_only_permissions() && rhs.is_only_permissions()
             }
@@ -1294,7 +1346,8 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {self:?}");
                 typ1?
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
+            Expr::ResourceAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1740,6 +1793,7 @@ impl Expr {
             fn fold(&mut self, e: Expr) -> Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
+                    f @ Expr::ResourceAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp(BinaryOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinaryOpKind::And, y, z, p)
@@ -1758,6 +1812,7 @@ impl Expr {
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
                     | Expr::Exists(..)
+                    | Expr::ForPerm(..)
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)

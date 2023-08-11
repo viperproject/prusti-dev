@@ -12,7 +12,8 @@ use prusti_rustc_interface::span::source_map::SourceMap;
 use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
-use log::debug;
+use prusti_interface::specs::typed::DirectSpecificationKind;
+use log::{debug, trace};
 use super::PositionManager;
 use prusti_interface::data::ProcedureDefId;
 
@@ -30,8 +31,6 @@ pub enum PanicCause {
     Panic,
     /// Caused by an assert!()
     Assert,
-    /// Caused by an refute!()
-    Refute,
     /// Caused by an debug_assert!()
     DebugAssert,
     /// Caused by an unreachable!()
@@ -60,8 +59,10 @@ pub enum BuiltinMethodKind {
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
     Panic(PanicCause),
-    /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
-    ExhaleMethodPrecondition,
+    DirectSpecification(DirectSpecificationKind),
+    /// A Viper `exhale expr` or `assert expr` that encodes the call of a Rust procedure with precondition `expr`
+    ExhaleMethodPrecondition, // FIXME rename to not sugguest that it has to be an `exhale`, but can
+                              // also be an `assert`
     /// An error when assuming method's functional specification.
     UnexpectedAssumeMethodPrecondition,
     /// An error when assuming method's functional specification.
@@ -72,6 +73,11 @@ pub enum ErrorCtxt {
     AssertMethodPostconditionTypeInvariants,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
+    /// A Viper `inhale expr` that encodes the call of a Rust procedure with precondition `expr`
+    /// Errors might occur when `expr` contains quantified resources which are not injective
+    InhaleMethodPostcondition,
+    /// A Viper `inhale expr` that encodes the begin of a Rust procedure with precondition `expr`
+    InhaleMethodPrecondition,
     /// A generic loop invariant error.
     LoopInvariant,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
@@ -188,6 +194,14 @@ pub enum ErrorCtxt {
     /// The state that fold-unfold algorithm deduced as unreachable, is actually
     /// reachable.
     UnreachableFoldingState,
+    // There is not enough time credits to execute this code.
+    NotEnoughTimeCredits,
+    // The code did not create enough time receipts.
+    NotEnoughTimeReceipts,
+    /// Function might leak obligations; obligation name as argument
+    PostconditionObligationLeak(String),
+    /// Loop iteration might leak obligations; obligation name as argument
+    LoopObligationLeak(String),
 }
 
 /// The error manager
@@ -224,6 +238,11 @@ impl<'tcx> ErrorManager<'tcx> {
     /// Register the ErrorCtxt on an existing VIR position.
     #[tracing::instrument(level = "trace", skip(self))]
     pub fn set_error(&mut self, pos: Position, error_ctxt: ErrorCtxt) {
+        trace!(
+            "Register error {:?} at position id {:?}",
+            error_ctxt,
+            pos.id()
+        );
         assert_ne!(pos, Position::default(), "Trying to register an error on a default position");
         if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
             debug_assert_eq!(
@@ -254,6 +273,7 @@ impl<'tcx> ErrorManager<'tcx> {
     /// Equivalent to calling `set_error` on the output of `register_span`.
     pub fn register_error<T: Into<MultiSpan> + Debug>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(def_id, span);
+        debug!("Error {:?} registered at pos {:?}", error_ctxt, pos);
         self.set_error(pos, error_ctxt);
         pos
     }
@@ -369,8 +389,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) |
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::DebugAssert)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert | PanicCause::DebugAssert)) => {
                     PrustiError::verification("the asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
@@ -403,8 +422,38 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_help("This might be a bug in the Rust compiler.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
+            // TODO: this is a temporary fix for detecting time credits/receipts errors. 
+            // Ideally time credits/receipts errors should have the `NotEnoughTimeCredits`/`NotEnoughTimeReceipts` error context and would be 
+            // handled by the previous cases. For this we need to be able to debug the positions that are given to Viper.
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPrecondition) if ver_error.message.contains("There might be insufficient permission to access m_prusti_contracts$$time_credits") => {
+                PrustiError::verification("Not enough time credits to call function.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantOnEntry) if ver_error.message.contains("There might be insufficient permission to access m_prusti_contracts$$time_credits") => {
+                PrustiError::verification("Not enough time credits for invariant in the first loop iteration.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantOnEntry) if ver_error.message.contains("There might be insufficient permission to access m_prusti_contracts$$time_receipts") => {
+                PrustiError::verification("Not enough time receipts for invariant in the first loop iteration.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantAfterIteration) if ver_error.message.contains("There might be insufficient permission to access m_prusti_contracts$$time_credits") => {
+                PrustiError::verification("Not enough time credits for invariant after a loop iteration that preserves the loop condition.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantAfterIteration) if ver_error.message.contains("There might be insufficient permission to access m_prusti_contracts$$time_receipts") => {
+                PrustiError::verification("Not enough time receipts for invariant after a loop iteration that preserves the loop condition.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) if ver_error.message.contains("There might be insufficient permission to access m_prusti_contracts$$time_credits") => {
+                PrustiError::verification("Not enough time credits at the end of the function.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) if ver_error.message.contains("There might be insufficient permission to access m_prusti_contracts$$time_receipts") => {
+                PrustiError::verification("Not enough time receipts at the end of the function.".to_string(), error_span)
+            }
+
+            ("assert.failed:assertion.false" | "exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
                 PrustiError::verification("precondition might not hold.", error_span)
+                    .set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPrecondition) => {
+                PrustiError::verification("there might be not enough resources to satisfy the function precondition", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -415,40 +464,43 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
+            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
                 PrustiError::verification("postcondition might not hold.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPostcondition) => {
+                PrustiError::verification("function might not produce resources asserted in the postcondition.", error_span)
+                    .push_primary_span(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false" | "assert.failed:insufficient.permission", ErrorCtxt::AssertLoopInvariantOnEntry) | ("exhale.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
                 PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
-            ("fold.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+                PrustiError::verification("there might be not enough resources for the loop invariant to hold in the first loop iteration.", error_span)
+                    .push_primary_span(opt_cause_span)
+            }
+
+            ("fold.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry | ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
                 PrustiError::verification(
                     "implicit type invariant of a variable might not hold on loop entry.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) | ("exhale.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+                PrustiError::verification(
+                    "loop invariant might not hold after a loop iteration that preserves the loop condition.",
+                    error_span
+                ).push_primary_span(opt_cause_span)
+            }
+
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+                PrustiError::verification("there might be not enough resources for the loop invariant to hold after a loop iteration that preserves the loop condition.", error_span)
                     .push_primary_span(opt_cause_span)
-            }
-
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
-                PrustiError::verification(
-                    "loop invariant might not hold after a loop iteration that preserves the loop condition.",
-                    error_span
-                ).push_primary_span(opt_cause_span)
-            }
-
-            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
-                PrustiError::verification(
-                    "loop invariant might not hold after a loop iteration that preserves the loop condition.",
-                    error_span
-                ).push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::DropCall) => {
@@ -651,6 +703,108 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("assert.failed:assertion.false", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assertion)) => {
+                PrustiError::verification(
+                    "the asserted expression might not hold".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:assertion.false", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Exhalation)) => {
+                PrustiError::verification(
+                    "the exhaled expression might not hold".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:insufficient.permission", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assertion)) => {
+                PrustiError::verification(
+                    "there might be not enough resources for the asserted expression to hold".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:insufficient.permission", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Exhalation)) => {
+                PrustiError::verification(
+                    "there might be not enough resources for the exhale".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleMethodPrecondition) => {
+                PrustiError::verification(
+                    "quantified resource in the callee's precondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:qp.not.injective", ErrorCtxt::InhaleMethodPostcondition) => {
+                PrustiError::verification(
+                    "quantified resource in the callee's postcondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:qp.not.injective", ErrorCtxt::InhaleMethodPrecondition) => {
+                PrustiError::verification(
+                    "quantified resource in the function's precondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleMethodPostcondition) => {
+                PrustiError::verification(
+                    "quantified resource in the function's postcondition might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::ExhaleLoopInvariantOnEntry | ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+                PrustiError::verification(
+                    "quantified resource in the loop invariant might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assertion)) => {
+                PrustiError::verification(
+                    "quantified resource in the asserted expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            // Viper currently doesn't seem to report non-injective QP in `assume` making this case
+            // effectless
+            ("assume.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Assumption)) => {
+                PrustiError::verification(
+                    "quantified resource in the assumed expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("exhale.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Exhalation)) => {
+                PrustiError::verification(
+                    "quantified resource in the exhaled expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Inhalation)) => {
+                PrustiError::verification(
+                    "quantified resource in the inhaled expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            // Viper currently doesn't seem to report non-injective QP in `refute` making this case
+            // effectless
+            ("refute.failed:qp.not.injective", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Refutation)) => {
+                PrustiError::verification(
+                    "quantified resource in the refuted expression might not be injective".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
             ("assert.failed:assertion.false", ErrorCtxt::UnexpectedReachableLoop) => {
                 PrustiError::verification(
                     "this loop might not terminate".to_string(),
@@ -697,8 +851,21 @@ impl<'tcx> ErrorManager<'tcx> {
                     error_span
                 )
             }
+            ("exhale.failed:insufficient.permission" | "assert.failed:insufficient.permission", ErrorCtxt::NotEnoughTimeCredits) => {
+                PrustiError::verification("Not enough time credits.".to_string(), error_span)
+            }
+            ("exhale.failed:insufficient.permission" | "assert.failed:insufficient.permission", ErrorCtxt::NotEnoughTimeReceipts) => {
+                PrustiError::verification("Not enough time receipts.".to_string(), error_span)
+            }
 
-            ("refute.failed:refutation.true", ErrorCtxt::Panic(PanicCause::Refute)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::PostconditionObligationLeak(obligation_name)) => {
+                PrustiError::verification_with_help(format!("function might leak instances of obligation `{}`", obligation_name), error_span, format!("consider adding instances of `{}` to the function's postcondtion", obligation_name))
+            }
+            ("assert.failed:assertion.false", ErrorCtxt::LoopObligationLeak(obligation_name)) => {
+                PrustiError::verification_with_help(format!("a loop iteration might leak instances of obligation `{}`", obligation_name), error_span, format!("make sure that any aquisition of instances of `{}` in the loop iteration is reflected in the loop invariant", obligation_name))
+            }
+
+            ("refute.failed:refutation.true", ErrorCtxt::DirectSpecification(DirectSpecificationKind::Refutation)) => {
                 PrustiError::verification(
                     "the refuted expression holds in all cases or could not be reached",
                     error_span,

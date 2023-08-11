@@ -7,6 +7,7 @@
 //! Function simplifier that simplifies expressions.
 
 use crate::vir::polymorphic_vir::ast::{self, ExprFolder};
+use log::trace;
 
 pub trait Simplifier {
     /// Simplify by doing constant evaluation.
@@ -19,8 +20,12 @@ impl Simplifier for ast::Function {
     /// <https://github.com/viperproject/silicon/issues/387>
     #[tracing::instrument(level = "debug", skip(self), fields(self = %self), ret(Display))]
     fn simplify(mut self) -> Self {
+        trace!("[enter] simplify = {}", self);
         let new_body = self.body.map(|b| b.simplify());
         self.body = new_body;
+        self.posts = self.posts.into_iter().map(|p| p.simplify()).collect();
+        self.pres = self.pres.into_iter().map(|p| p.simplify()).collect();
+        trace!("[exit] simplify = {}", self);
         self
     }
 }
@@ -28,8 +33,11 @@ impl Simplifier for ast::Function {
 impl Simplifier for ast::Expr {
     #[must_use]
     fn simplify(self) -> Self {
+        trace!("[enter] simplify = {:?}", self);
         let mut folder = ExprSimplifier {};
-        folder.fold(self)
+        let res = folder.fold(self);
+        trace!("[exit] simplify = {:?}", res);
+        res
     }
 }
 
@@ -44,13 +52,14 @@ impl ExprSimplifier {
                 argument:
                     box ast::Expr::Const(ast::ConstExpr {
                         value: ast::Const::Bool(b),
-                        ..
+                        position: inner_pos,
                     }),
                 position: pos,
             }) => ast::Expr::Const(ast::ConstExpr {
                 value: ast::Const::Bool(!b),
                 position: pos,
-            }),
+            })
+            .set_default_pos(inner_pos),
             ast::Expr::UnaryOp(ast::UnaryOp {
                 op_kind: ast::UnaryOpKind::Not,
                 argument:
@@ -58,41 +67,52 @@ impl ExprSimplifier {
                         op_kind: ast::BinaryOpKind::EqCmp,
                         box left,
                         box right,
-                        ..
+                        position: inner_pos,
                     }),
                 position: pos,
-            }) => ast::Expr::BinOp(ast::BinOp {
+            }) if !matches!(left.get_type(), ast::Type::Float(_)) => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::NeCmp,
                 left: Box::new(left),
                 right: Box::new(right),
                 position: pos,
-            }),
-            ast::Expr::BinOp(ast::BinOp {
-                op_kind: ast::BinaryOpKind::And,
-                left:
-                    box ast::Expr::Const(ast::ConstExpr {
-                        value: ast::Const::Bool(b1),
-                        ..
-                    }),
-                right:
-                    box ast::Expr::Const(ast::ConstExpr {
-                        value: ast::Const::Bool(b2),
-                        ..
+            })
+            .set_default_pos(inner_pos),
+            ast::Expr::UnaryOp(ast::UnaryOp {
+                op_kind: ast::UnaryOpKind::Not,
+                argument:
+                    box ast::Expr::BinOp(ast::BinOp {
+                        op_kind: ast::BinaryOpKind::NeCmp,
+                        box left,
+                        box right,
+                        position: inner_pos,
                     }),
                 position: pos,
-            }) => ast::Expr::Const(ast::ConstExpr {
-                value: ast::Const::Bool(b1 && b2),
+            }) if !matches!(left.get_type(), ast::Type::Float(_)) => ast::Expr::BinOp(ast::BinOp {
+                op_kind: ast::BinaryOpKind::EqCmp,
+                left: Box::new(left),
+                right: Box::new(right),
                 position: pos,
-            }),
+            })
+            .set_default_pos(inner_pos),
+            ast::Expr::UnaryOp(ast::UnaryOp {
+                op_kind: ast::UnaryOpKind::Not,
+                argument:
+                    box ast::Expr::UnaryOp(ast::UnaryOp {
+                        op_kind: ast::UnaryOpKind::Not,
+                        box argument,
+                        ..
+                    }),
+                ..
+            }) => argument,
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left:
                     box ast::Expr::Const(ast::ConstExpr {
                         value: ast::Const::Bool(b),
-                        ..
+                        position: inner_pos,
                     }),
                 right: box conjunct,
-                ..
+                position: pos,
             })
             | ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
@@ -100,25 +120,26 @@ impl ExprSimplifier {
                 right:
                     box ast::Expr::Const(ast::ConstExpr {
                         value: ast::Const::Bool(b),
-                        ..
+                        position: inner_pos,
                     }),
-                ..
+                position: pos,
             }) => {
                 if b {
                     conjunct
                 } else {
-                    false.into()
+                    Into::<ast::Expr>::into(false).set_pos(inner_pos)
                 }
             }
+            .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Or,
                 left:
                     box ast::Expr::Const(ast::ConstExpr {
                         value: ast::Const::Bool(b),
-                        ..
+                        position: inner_pos,
                     }),
                 right: box disjunct,
-                ..
+                position: pos,
             })
             | ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Or,
@@ -126,28 +147,29 @@ impl ExprSimplifier {
                 right:
                     box ast::Expr::Const(ast::ConstExpr {
                         value: ast::Const::Bool(b),
-                        ..
+                        position: inner_pos,
                     }),
-                ..
+                position: pos,
             }) => {
                 if b {
-                    true.into()
+                    Into::<ast::Expr>::into(true).set_pos(inner_pos)
                 } else {
                     disjunct
                 }
             }
+            .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Implies,
                 left: guard,
                 right:
                     box ast::Expr::Const(ast::ConstExpr {
                         value: ast::Const::Bool(b),
-                        ..
+                        position: inner_pos,
                     }),
                 position: pos,
             }) => {
                 if b {
-                    true.into()
+                    Into::<ast::Expr>::into(true).set_pos(pos)
                 } else {
                     ast::Expr::UnaryOp(ast::UnaryOp {
                         op_kind: ast::UnaryOpKind::Not,
@@ -156,22 +178,24 @@ impl ExprSimplifier {
                     })
                 }
             }
+            .set_default_pos(inner_pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Implies,
                 left:
                     box ast::Expr::Const(ast::ConstExpr {
                         value: ast::Const::Bool(b),
-                        ..
+                        position: inner_pos,
                     }),
                 right: box body,
-                ..
+                position: pos,
             }) => {
                 if b {
                     body
                 } else {
-                    true.into()
+                    Into::<ast::Expr>::into(true).set_pos(inner_pos)
                 }
             }
+            .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left: box op1,

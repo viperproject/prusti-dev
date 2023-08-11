@@ -72,6 +72,18 @@ pub fn prusti_assume(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn prusti_exhale(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn prusti_inhale(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn prusti_refute(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -91,6 +103,18 @@ pub fn extern_spec(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
 pub fn predicate(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn resource(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn obligation(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
@@ -203,6 +227,18 @@ pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
 
 #[cfg(feature = "prusti")]
 #[proc_macro]
+pub fn prusti_exhale(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_exhale(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn prusti_inhale(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_inhale(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
 pub fn prusti_refute(tokens: TokenStream) -> TokenStream {
     prusti_specs::prusti_refutation(tokens.into()).into()
 }
@@ -235,6 +271,18 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn predicate(tokens: TokenStream) -> TokenStream {
     prusti_specs::predicate(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn resource(tokens: TokenStream) -> TokenStream {
+    prusti_specs::resource(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn obligation(tokens: TokenStream) -> TokenStream {
+    prusti_specs::obligation(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

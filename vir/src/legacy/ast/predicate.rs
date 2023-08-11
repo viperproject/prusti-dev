@@ -13,6 +13,7 @@ pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(String, LocalVar),
+    Resource(ResourcePredicate),
 }
 
 impl fmt::Display for Predicate {
@@ -21,6 +22,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{p}"),
             Predicate::Enum(p) => write!(f, "{p}"),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
+            Predicate::Resource(p) => write!(f, "{p}"),
         }
     }
 }
@@ -105,6 +107,9 @@ impl Predicate {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
+            Predicate::Resource(_) => {
+                unreachable!("Resource predicate does not have `self` place.")
+            }
         }
     }
     /// The predicate name getter.
@@ -113,6 +118,7 @@ impl Predicate {
             Predicate::Struct(p) => &p.name,
             Predicate::Enum(p) => &p.name,
             Predicate::Bodyless(ref name, _) => name,
+            Predicate::Resource(p) => &p.name,
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -120,6 +126,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
+            Predicate::Resource(_) => None,
         }
     }
 
@@ -130,6 +137,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions(visitor),
             Predicate::Enum(p) => p.visit_expressions(visitor),
             Predicate::Bodyless(..) => {}
+            Predicate::Resource(_) => {}
         }
     }
 
@@ -140,6 +148,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions_mut(visitor),
             Predicate::Enum(p) => p.visit_expressions_mut(visitor),
             Predicate::Bodyless(..) => {}
+            Predicate::Resource(_) => {}
         }
     }
 }
@@ -150,6 +159,7 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(name, _) => name.clone(),
+            Predicate::Resource(p) => p.get_identifier(),
         }
     }
 }
@@ -316,6 +326,33 @@ impl EnumPredicate {
 }
 
 impl WithIdentifier for EnumPredicate {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub struct ResourcePredicate {
+    pub name: String,
+    pub params: Vec<LocalVar>,
+}
+
+impl fmt::Display for ResourcePredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "resource_predicate {}({})",
+            self.name,
+            self.params
+                .iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
+impl WithIdentifier for ResourcePredicate {
     fn get_identifier(&self) -> String {
         self.name.clone()
     }

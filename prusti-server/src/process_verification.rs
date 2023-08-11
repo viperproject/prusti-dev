@@ -82,6 +82,7 @@ pub fn process_verification_request<'v, 't: 'v>(
     }
 
     // Early return in case of cache hit
+    /*
     if config::enable_cache() {
         if let Some(mut result) = cache.get(hash) {
             info!(
@@ -98,6 +99,7 @@ pub fn process_verification_request<'v, 't: 'v>(
             return result;
         }
     };
+    */
 
     let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
 

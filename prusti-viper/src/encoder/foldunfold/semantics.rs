@@ -60,11 +60,12 @@ impl ApplyOnState for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
+            | &vir::Stmt::Assume(_)
             | &vir::Stmt::Assert(_)
             | &vir::Stmt::Refute(_)
             | &vir::Stmt::Obtain(_) => {}
 
-            &vir::Stmt::Inhale(vir::Inhale { ref expr }) => {
+            &vir::Stmt::Inhale(vir::Inhale { ref expr, .. }) => {
                 inhale_expr(expr, state, predicates)?;
             }
 
@@ -513,6 +514,8 @@ impl ApplyOnState for vir::Stmt {
                     }
                 }
             }
+
+            &vir::Stmt::LeakCheck(..) => {}
 
             ref x => unimplemented!("{}", x),
         }

@@ -501,6 +501,42 @@ impl Type {
     }
 }
 
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash,
+)]
+pub enum ResourceType {
+    TimeCredits,
+    TimeReceipts,
+}
+
+impl fmt::Display for ResourceType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ResourceType::TimeCredits => write!(f, "TimeCredits"),
+            ResourceType::TimeReceipts => write!(f, "TimeReceipts"),
+        }
+    }
+}
+
+impl ResourceType {
+    pub fn from_function_name(function_name: &str) -> ResourceType {
+        match function_name {
+            "prusti_contracts::time_credits" => ResourceType::TimeCredits,
+            "prusti_contracts::time_receipts" => ResourceType::TimeReceipts,
+            _ => unreachable!(
+                "Function name: {} does not match any resource type.",
+                function_name
+            ),
+        }
+    }
+    pub fn encode_as_string(&self) -> String {
+        match self {
+            ResourceType::TimeCredits => "time_credits".to_string(),
+            ResourceType::TimeReceipts => "time_receipts".to_string(),
+        }
+    }
+}
+
 use crate::common::display;
 
 #[derive(

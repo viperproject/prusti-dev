@@ -52,7 +52,7 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_) | &vir::Stmt::Label(_) => FxHashSet::default(),
 
-            &vir::Stmt::Inhale(vir::Inhale { ref expr }) => perm_difference(
+            &vir::Stmt::Inhale(vir::Inhale { ref expr, .. }) => perm_difference(
                 expr.get_required_stmt_permissions(predicates),
                 expr.get_footprint(predicates),
             ),
@@ -72,6 +72,10 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
             }
 
             &vir::Stmt::Refute(vir::Refute {
+                ref expr,
+                ref position,
+            })
+            | &vir::Stmt::Assume(vir::Assume {
                 ref expr,
                 ref position,
             })
@@ -214,6 +218,8 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
                 base.get_required_stmt_permissions(predicates)
             }
 
+            &vir::Stmt::LeakCheck(..) => FxHashSet::default(),
+
             ref x => unimplemented!("{}", x),
         }
     }
@@ -352,6 +358,22 @@ fn get_all_required_expr_permissions(
                 reqs.extend(inner_reqs);
                 discr.extend(inner_discr);
             }
+        }
+
+        vir::Expr::ResourceAccessPredicate(vir::ResourceAccessPredicate {
+            access: vir::ResourceAccess { args: inners, .. },
+            amount: amount_inner,
+            ..
+        }) => {
+            for inner in inners {
+                let (inner_reqs, inner_discr) = get_all_required_expr_permissions(inner, preds);
+                reqs.extend(inner_reqs);
+                discr.extend(inner_discr);
+            }
+            let (am_inner_reqs, am_inner_discr) =
+                get_all_required_expr_permissions(amount_inner, preds);
+            reqs.extend(am_inner_reqs);
+            discr.extend(am_inner_discr);
         }
 
         vir::Expr::Unfolding(vir::Unfolding {

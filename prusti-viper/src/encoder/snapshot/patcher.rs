@@ -63,6 +63,36 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
         }))
     }
 
+    fn fallible_fold_resource_access(
+        &mut self,
+        vir::ResourceAccess {
+            name,
+            mut args,
+            formal_arguments,
+            position,
+        }: vir::ResourceAccess,
+    ) -> Result<vir::ResourceAccess, Self::Error> {
+        args = args
+            .into_iter()
+            .zip(formal_arguments.iter())
+            .map(|(mut arg, formal_arg)| {
+                arg = FallibleExprFolder::fallible_fold(self, arg)?;
+                // TODO: same comment as in fallible_fold_func_app above (?)
+                if *arg.get_type() != formal_arg.typ {
+                    self.snapshot_encoder.snap_app(self.encoder, arg)
+                } else {
+                    Ok(arg)
+                }
+            })
+            .collect::<Result<_, _>>()?;
+        Ok(vir::ResourceAccess {
+            name,
+            args,
+            formal_arguments,
+            position,
+        })
+    }
+
     fn fallible_fold_domain_func_app(
         &mut self,
         vir::DomainFuncApp {

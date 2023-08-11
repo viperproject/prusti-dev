@@ -24,14 +24,17 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
-use prusti_interface::environment::{
-    debug_utils::to_text::ToText,
-    mir_analyses::{
-        allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
-        initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
+use prusti_interface::{
+    environment::{
+        debug_utils::to_text::ToText,
+        mir_analyses::{
+            allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
+            initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
+        },
+        mir_body::borrowck::{facts::RichLocation, lifetimes::Lifetimes},
+        Procedure,
     },
-    mir_body::borrowck::{facts::RichLocation, lifetimes::Lifetimes},
-    Procedure,
+    specs::typed::DirectSpecificationKind,
 };
 use prusti_rustc_interface::{
     abi::FieldIdx,
@@ -1974,14 +1977,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                let assertion = match self.encoder.get_prusti_assertion(cl_def_id) {
-                    Some(spec) => spec,
-                    None => return Ok(false),
+                let assertion = match self.encoder.get_direct_spec(cl_def_id) {
+                    Some(spec) if spec.kind == DirectSpecificationKind::Assertion => spec,
+                    _ => return Ok(false),
                 };
 
                 let span = self
                     .encoder
-                    .get_definition_span(assertion.assertion.to_def_id());
+                    .get_definition_span(assertion.specification.to_def_id());
 
                 let error_ctxt = ErrorCtxt::Panic(PanicCause::Assert);
 
@@ -2023,14 +2026,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                let assumption = match self.encoder.get_prusti_assumption(cl_def_id) {
-                    Some(spec) => spec,
-                    None => return Ok(false),
+                let assumption = match self.encoder.get_direct_spec(cl_def_id) {
+                    Some(spec) if spec.kind == DirectSpecificationKind::Assumption => spec,
+                    _ => return Ok(false),
                 };
 
                 let span = self
                     .encoder
-                    .get_definition_span(assumption.assumption.to_def_id());
+                    .get_definition_span(assumption.specification.to_def_id());
 
                 // I don't expect an assumption to raise an error
                 let error_ctxt = ErrorCtxt::Assumption;

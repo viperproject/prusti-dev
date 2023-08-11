@@ -32,6 +32,8 @@ pub enum Expr {
     MagicWand(MagicWand),
     /// PredicateAccessPredicate: predicate_type, arg, permission amount
     PredicateAccessPredicate(PredicateAccessPredicate),
+    /// ResourceAccessPredicate: resource access, amount
+    ResourceAccessPredicate(ResourceAccessPredicate),
     FieldAccessPredicate(FieldAccessPredicate),
     UnaryOp(UnaryOp),
     BinOp(BinOp),
@@ -49,6 +51,8 @@ pub enum Expr {
     ForAll(ForAll),
     /// Exists: variables, triggers, body
     Exists(Exists),
+    /// ForPerm: variable, access predicates, body
+    ForPerm(ForPerm),
     /// let variable == (expr) in body
     LetExpr(LetExpr),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -85,6 +89,9 @@ impl fmt::Display for Expr {
             Expr::PredicateAccessPredicate(predicate_access_predicate) => {
                 predicate_access_predicate.fmt(f)
             }
+            Expr::ResourceAccessPredicate(resource_access_predicate) => {
+                resource_access_predicate.fmt(f)
+            }
             Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.fmt(f),
             Expr::UnaryOp(unary_op) => unary_op.fmt(f),
             Expr::BinOp(bin_op) => bin_op.fmt(f),
@@ -92,6 +99,7 @@ impl fmt::Display for Expr {
             Expr::Cond(cond) => cond.fmt(f),
             Expr::ForAll(for_all) => for_all.fmt(f),
             Expr::Exists(exists) => exists.fmt(f),
+            Expr::ForPerm(for_perm) => for_perm.fmt(f),
             Expr::LetExpr(let_expr) => let_expr.fmt(f),
             Expr::FuncApp(func_app) => func_app.fmt(f),
             Expr::DomainFuncApp(domain_func_app) => domain_func_app.fmt(f),
@@ -169,6 +177,7 @@ impl Expr {
             | Expr::LabelledOld(LabelledOld { position, .. })
             | Expr::MagicWand(MagicWand { position, .. })
             | Expr::PredicateAccessPredicate(PredicateAccessPredicate { position, .. })
+            | Expr::ResourceAccessPredicate(ResourceAccessPredicate { position, .. })
             | Expr::FieldAccessPredicate(FieldAccessPredicate { position, .. })
             | Expr::UnaryOp(UnaryOp { position, .. })
             | Expr::BinOp(BinOp { position, .. })
@@ -176,6 +185,7 @@ impl Expr {
             | Expr::Cond(Cond { position, .. })
             | Expr::ForAll(ForAll { position, .. })
             | Expr::Exists(Exists { position, .. })
+            | Expr::ForPerm(ForPerm { position, .. })
             | Expr::LetExpr(LetExpr { position, .. })
             | Expr::FuncApp(FuncApp { position, .. })
             | Expr::DomainFuncApp(DomainFuncApp { position, .. })
@@ -220,6 +230,7 @@ impl Expr {
             LabelledOld,
             MagicWand,
             PredicateAccessPredicate,
+            ResourceAccessPredicate,
             FieldAccessPredicate,
             UnaryOp,
             BinOp,
@@ -230,6 +241,7 @@ impl Expr {
             Cond,
             ForAll,
             Exists,
+            ForPerm,
             LetExpr,
             FuncApp,
             DomainFuncApp,
@@ -264,6 +276,25 @@ impl Expr {
             predicate_type,
             argument: Box::new(place),
             permission: perm,
+            position: pos,
+        })
+    }
+
+    pub fn resource_access_predicate(
+        name: String,
+        args: Vec<Expr>,
+        formal_arguments: Vec<LocalVar>,
+        amount: Expr,
+        pos: Position,
+    ) -> Self {
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            access: ResourceAccess {
+                name,
+                args,
+                formal_arguments,
+                position: pos,
+            },
+            amount: Box::new(amount),
             position: pos,
         })
     }
@@ -617,7 +648,9 @@ impl Expr {
 
     pub fn is_only_permissions(&self) -> bool {
         match self {
-            Expr::PredicateAccessPredicate(..) | Expr::FieldAccessPredicate(..) => true,
+            Expr::PredicateAccessPredicate(..)
+            | Expr::ResourceAccessPredicate(..)
+            | Expr::FieldAccessPredicate(..) => true,
             Expr::BinOp(BinOp {
                 op_kind: BinaryOpKind::And,
                 left,
@@ -804,6 +837,12 @@ impl Expr {
             fn walk_field_access_predicate(
                 &mut self,
                 _field_access_predicate: &FieldAccessPredicate,
+            ) {
+                self.non_pure = true;
+            }
+            fn walk_resource_access_predicate(
+                &mut self,
+                _resource_access_predicate: &ResourceAccessPredicate,
             ) {
                 self.non_pure = true;
             }
@@ -1047,7 +1086,8 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
                 typ1
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::ForPerm(..) => &Type::Bool,
+            Expr::ResourceAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1123,8 +1163,10 @@ impl Expr {
                     return_type: Type::Bool,
                     ..
                 })
+                | Expr::ResourceAccessPredicate(..)
                 | Expr::ForAll(..)
-                | Expr::Exists(..) => true,
+                | Expr::Exists(..)
+                | Expr::ForPerm(..) => true,
                 Expr::BinOp(BinOp { op_kind, .. }) => {
                     use self::BinaryOpKind::*;
                     *op_kind == EqCmp
@@ -1496,6 +1538,7 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
+                    f @ Expr::ResourceAccessPredicate(..) => f,
                     Expr::BinOp(BinOp {
                         op_kind: BinaryOpKind::And,
                         left,
@@ -1521,6 +1564,7 @@ impl Expr {
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
                     | Expr::Exists(..)
+                    | Expr::ForPerm(..)
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
@@ -2059,6 +2103,78 @@ impl Hash for PredicateAccessPredicate {
     }
 }
 
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
+pub struct ResourceAccess {
+    pub name: String,
+    pub args: Vec<Expr>,
+    pub formal_arguments: Vec<LocalVar>,
+    pub position: Position,
+}
+
+impl ResourceAccess {
+    pub fn replace_scope_id(self, new_scope_id: isize) -> Self {
+        ResourceAccess {
+            args: self
+                .args
+                .into_iter()
+                .enumerate()
+                .map(|(i, arg)| {
+                    if i == 0 {
+                        Expr::Const(ConstExpr {
+                            value: Const::Int(new_scope_id.try_into().unwrap()),
+                            position: Position::default(),
+                        })
+                    } else {
+                        arg
+                    }
+                })
+                .collect(),
+            ..self
+        }
+    }
+}
+
+impl fmt::Display for ResourceAccess {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}({})",
+            self.name,
+            self.args
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
+pub struct ResourceAccessPredicate {
+    pub access: ResourceAccess,
+    pub amount: Box<Expr>,
+    pub position: Position,
+}
+
+impl ResourceAccessPredicate {
+    pub fn replace_scope_id(self, new_scope_id: isize) -> Expr {
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            access: self.access.replace_scope_id(new_scope_id),
+            ..self
+        })
+    }
+}
+
+impl fmt::Display for ResourceAccessPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "acc({}, {})", self.access, self.amount)
+    }
+}
+
 #[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct FieldAccessPredicate {
     pub base: Box<Expr>,
@@ -2417,6 +2533,52 @@ impl PartialEq for Exists {
 impl Hash for Exists {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&self.variables, &self.triggers, &*self.body).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub struct ForPerm {
+    pub variables: Vec<LocalVar>,
+    pub access: ResourceAccess,
+    pub body: Box<Expr>,
+    pub position: Position,
+}
+
+impl ForPerm {
+    pub fn replace_scope_id(self, new_scope_id: isize) -> Expr {
+        Expr::ForPerm(ForPerm {
+            access: self.access.replace_scope_id(new_scope_id),
+            ..self
+        })
+    }
+}
+
+impl fmt::Display for ForPerm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "forperm {}: Ref [{}] :: {}",
+            (self.variables)
+                .iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", "),
+            self.access,
+            self.body
+        )
+    }
+}
+
+impl PartialEq for ForPerm {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.variables, &self.access, &*self.body)
+            == (&other.variables, &other.access, &*other.body)
+    }
+}
+
+impl Hash for ForPerm {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&self.variables, &self.access, &*self.body).hash(state);
     }
 }
 

@@ -378,6 +378,23 @@ impl CfgMethod {
         Ok(self)
     }
 
+    pub fn flat_map_statements<E, F: FnMut(Stmt) -> Result<Vec<Stmt>, E>>(
+        mut self,
+        mut f: F,
+    ) -> Result<Self, E> {
+        for block in self.basic_blocks.iter_mut() {
+            block.stmts = block
+                .stmts
+                .drain(..)
+                .map(&mut f)
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
+                .flatten()
+                .collect::<Vec<_>>();
+        }
+        Ok(self)
+    }
+
     pub fn walk_successors<F: FnMut(&Successor)>(&self, mut walker: F) {
         for block in self.basic_blocks.iter() {
             walker(&block.successor);

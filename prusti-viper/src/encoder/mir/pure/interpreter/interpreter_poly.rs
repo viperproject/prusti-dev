@@ -28,7 +28,7 @@ use crate::{
     error_unsupported,
 };
 use log::{debug, trace};
-use prusti_common::vir_local;
+use prusti_common::{config, vir_local};
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
@@ -334,29 +334,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     .mir_encoder
                     .encode_operand_expr(discr)
                     .with_span(span)?;
-                for (value, target) in targets.iter() {
-                    // Convert int to bool, if required
-                    let viper_guard = match switch_ty.kind() {
-                        ty::TyKind::Bool => {
-                            if value == 0 {
-                                // If discr is 0 (false)
-                                vir::Expr::not(discr_val.clone())
-                            } else {
-                                // If discr is not 0 (true)
-                                discr_val.clone()
+                let default_target = if matches!(switch_ty.kind(), ty::TyKind::Bool)
+                    && targets.iter().count() == 1
+                    && targets.iter().next().unwrap().0 == 0
+                {
+                    // This a special case for a more natural encoding:
+                    // Given that A is bool variable in Rust,
+                    // if A { ...BB1... } else { ...BB2... }
+                    // would have
+                    //     discr = A
+                    //     targets = BB2 for value 0, BB1 otherwise
+                    // So using the general algorithm (see the else branch below), this would
+                    // get encoded as (!A ? ...BB2... : ...BB1...).
+                    // However (e.g. for error reporting), it is beneficial to produce the more natural
+                    // encoding (A ? ...BB1... : ...BB2...), which is what we do on the two lines below.
+                    cfg_targets.push((discr_val, targets.otherwise()));
+                    targets.iter().next().unwrap().1
+                } else {
+                    for (value, target) in targets.iter() {
+                        // Convert int to bool, if required
+                        let viper_guard = match switch_ty.kind() {
+                            ty::TyKind::Bool => {
+                                if value == 0 {
+                                    // If discr is 0 (false)
+                                    vir::Expr::not(discr_val.clone())
+                                } else {
+                                    // If discr is not 0 (true)
+                                    discr_val.clone()
+                                }
                             }
-                        }
 
-                        ty::TyKind::Int(_) | ty::TyKind::Uint(_) => vir::Expr::eq_cmp(
-                            discr_val.clone(),
-                            self.encoder.encode_int_cast(value, switch_ty),
-                        ),
+                            ty::TyKind::Int(_) | ty::TyKind::Uint(_) => vir::Expr::eq_cmp(
+                                discr_val.clone(),
+                                self.encoder.encode_int_cast(value, switch_ty),
+                            ),
 
-                        ref x => unreachable!("{:?}", x),
-                    };
-                    cfg_targets.push((viper_guard, target))
-                }
-                let default_target = targets.otherwise();
+                            ref x => unreachable!("{:?}", x),
+                        };
+                        cfg_targets.push((viper_guard, target))
+                    }
+                    targets.otherwise()
+                };
 
                 let default_target_terminator = self.mir.basic_blocks[default_target]
                     .terminator
@@ -383,12 +401,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 for (guard, target) in cfg_targets.into_iter() {
                     if let Some(then_expr) = states[&target].expr() {
                         final_expr = Some(if let Some(else_expr) = final_expr {
-                            if then_expr == &else_expr {
-                                // Optimization
-                                else_expr
-                            } else {
-                                vir::Expr::ite(guard, then_expr.clone(), else_expr)
-                            }
+                            vir::Expr::ite(guard, then_expr.clone(), else_expr)
                         } else {
                             // Define `final_expr` for the first time
                             then_expr.clone()
@@ -428,32 +441,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .with_span(span)?;
 
                         match full_func_proc_name {
-                            "prusti_contracts::old" => {
-                                assert_eq!(args.len(), 1);
-
-                                // Return an error for unsupported old(..) types
-
-                                let encoded_rhs = self.mir_encoder.encode_old_expr(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    PRECONDITION_LABEL,
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
-                            "prusti_contracts::before_expiry" => {
-                                trace!("Encoding before_expiry expression {:?}", args[0]);
-                                assert_eq!(args.len(), 1);
-                                let encoded_rhs = self.mir_encoder.encode_old_expr(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    WAND_LHS_LABEL,
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
                             "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
                                 if self.encoder.has_structural_eq_impl(
                                     self.mir_encoder.get_operand_ty(&args[0]),
@@ -577,7 +564,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             }
 
                             // Prusti-specific syntax
-                            // TODO: check we are in a spec function
+                            "prusti_contracts::old" => {
+                                trace!("Encoding old expression {:?}", args[0]);
+                                assert_eq!(args.len(), 1);
+
+                                // Return an error for unsupported old(..) types
+
+                                let encoded_rhs = self.mir_encoder.encode_old_expr(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    PRECONDITION_LABEL,
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
+                                state
+                            }
+
+                            "prusti_contracts::before_expiry" => {
+                                trace!("Encoding before_expiry expression {:?}", args[0]);
+                                assert_eq!(args.len(), 1);
+                                let encoded_rhs = self.mir_encoder.encode_old_expr(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    WAND_LHS_LABEL,
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
+                                state
+                            }
+
                             "prusti_contracts::exists"
                             | "prusti_contracts::forall"
                             | "prusti_contracts::specification_entailment"
@@ -598,6 +611,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                             // simple function call
                             _ => {
+                                if [
+                                    "prusti_contracts::time_credits",
+                                    "prusti_contracts::time_receipts",
+                                ]
+                                .contains(&full_func_proc_name)
+                                    && !config::time_reasoning()
+                                {
+                                    let mut error = SpannedEncodingError::unsupported(
+                                        "Time reasoning is disabled but found a call to a time_credits/time_receipts predicate.", 
+                                        span
+                                        );
+                                    error.set_help(
+                                        "To enable time reasoning set the TIME_REASONING option to true.",
+                                        );
+                                    return Err(error);
+                                }
                                 let (called_def_id, call_substs) = self
                                     .encoder
                                     .env()
@@ -605,9 +634,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .resolve_method_call(self.def_id, def_id, call_substs);
                                 trace!("Resolved function call: {:?}", called_def_id);
 
+                                let is_resource =
+                                    self.encoder.is_resource(called_def_id, Some(call_substs));
+
                                 let is_pure_function =
                                     self.encoder.is_pure(called_def_id, Some(call_substs));
-                                let (function_name, return_type) = if is_pure_function {
+                                let (function_name, return_type) = if is_pure_function
+                                    || is_resource
+                                {
                                     self.encoder
                                         .encode_pure_function_use(
                                             called_def_id,
@@ -645,14 +679,54 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encoder
                                     .encode_generic_arguments(called_def_id, call_substs)
                                     .with_span(term.source_info.span)?;
-                                let encoded_rhs = vir::Expr::func_app(
-                                    function_name,
-                                    type_arguments,
-                                    encoded_args,
-                                    formal_args,
-                                    return_type,
-                                    pos,
-                                );
+                                let encoded_rhs = if is_resource {
+                                    assert!(!encoded_args.is_empty());
+                                    let amount = encoded_args[0].clone();
+                                    let encoded_args = encoded_args
+                                        .into_iter()
+                                        .enumerate()
+                                        .map(|(i, arg)| {
+                                            if i == 0 {
+                                                vir::Expr::Const(vir::ConstExpr {
+                                                    value: vir::Const::Int(-1),
+                                                    position: vir::Position::default(),
+                                                })
+                                            } else {
+                                                arg
+                                            }
+                                        })
+                                        .collect::<Vec<_>>();
+                                    let formal_args = formal_args
+                                        .into_iter()
+                                        .enumerate()
+                                        .map(|(i, arg)| {
+                                            if i == 0 {
+                                                vir::LocalVar::new("scope_id", vir::Type::Int)
+                                            } else {
+                                                arg
+                                            }
+                                        })
+                                        .collect::<Vec<_>>();
+                                    vir::Expr::and(
+                                        vir::Expr::ge_cmp(amount.clone(), 0.into()),
+                                        vir::Expr::resource_access_predicate(
+                                            function_name,
+                                            encoded_args,
+                                            formal_args,
+                                            amount,
+                                            pos,
+                                        ),
+                                    )
+                                } else {
+                                    vir::Expr::func_app(
+                                        function_name,
+                                        type_arguments,
+                                        encoded_args,
+                                        formal_args,
+                                        return_type,
+                                        pos,
+                                    )
+                                };
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&encoded_lhs, encoded_rhs);
                                 state
@@ -799,11 +873,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         if let Some(state_expr) = state.expr_mut() {
             let mut expr = mem::replace(state_expr, true.into());
-            expr = expr.set_default_pos(
-                self.encoder
-                    .error_manager()
-                    .register_span(self.caller_def_id, span),
-            );
+            // the span of the return terminator is confusing/not useful, so
+            // don't set the position in that case
+            // removing this check might break the error span reporting for a
+            // postcondition like `#[ensures(result)]`
+            if !matches!(term.kind, TerminatorKind::Return) {
+                expr = expr.set_default_pos(
+                    self.encoder
+                        .error_manager()
+                        .register_span(self.caller_def_id, span),
+                );
+            }
             let _ = mem::replace(state_expr, expr);
         }
 
@@ -1291,11 +1371,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         if let Some(state_expr) = state.expr_mut() {
             let mut expr = mem::replace(state_expr, true.into());
-            expr = expr.set_default_pos(self.encoder.error_manager().register_error(
-                span,
-                ErrorCtxt::PureFunctionDefinition,
-                self.caller_def_id,
-            ));
+            // the span of the StorageDead statement is confusing/not useful, so
+            // don't set the position in that case
+            // removing this check might break the error span reporting for a
+            // postcondition like `#[ensures(result)]`
+            if !matches!(stmt.kind, mir::StatementKind::StorageDead(..)) {
+                expr = expr.set_default_pos(self.encoder.error_manager().register_error(
+                    span,
+                    ErrorCtxt::PureFunctionDefinition,
+                    self.caller_def_id,
+                ));
+            }
             let _ = mem::replace(state_expr, expr);
         }
 

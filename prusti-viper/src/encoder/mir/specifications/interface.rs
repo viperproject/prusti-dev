@@ -1,8 +1,13 @@
 use crate::encoder::mir::specifications::specs::Specifications;
 use prusti_interface::{
+    data::ProcedureDefId,
+    environment::EnvName,
     specs::{
         typed,
-        typed::{DefSpecificationMap, ProcedureSpecification, ProcedureSpecificationKind},
+        typed::{
+            DefSpecificationMap, ProcedureSpecification, ProcedureSpecificationKind,
+            ResourceOptions,
+        },
     },
     utils::has_spec_only_attr,
 };
@@ -18,6 +23,16 @@ impl<'tcx> SpecificationsState<'tcx> {
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
         }
+    }
+
+    pub fn get_procedure_def_id(
+        &self,
+        proc_absolute_name: &str,
+        env_name: &EnvName<'tcx>,
+    ) -> Option<ProcedureDefId> {
+        self.specs
+            .borrow()
+            .get_proc_def_id(proc_absolute_name, env_name)
     }
 }
 
@@ -72,6 +87,10 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     // TODO abstract-predicates: Maybe this should be deleted (and ProcedureSpecificationKind::is_pure)
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
+    fn is_resource(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
+    fn is_leak_checked(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
     fn get_proc_kind(
         &self,
         def_id: DefId,
@@ -91,14 +110,8 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the specifications attached to the `def_id` type.
     fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification>;
 
-    /// Get the prusti assertion
-    fn get_prusti_assertion(&self, def_id: DefId) -> Option<typed::PrustiAssertion>;
-
-    /// Get the prusti assumption
-    fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption>;
-
-    /// Get the prusti refutation
-    fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation>;
+    /// Get the direct prusti specification (assert, assume, exhale, inhale, refute)
+    fn get_direct_spec(&self, def_id: DefId) -> Option<typed::DirectSpecification>;
 
     /// Get the begin marker of the ghost block
     fn get_ghost_begin(&self, def_id: DefId) -> Option<typed::GhostBegin>;
@@ -147,6 +160,20 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             pure = true;
         }
         pure
+    }
+
+    #[tracing::instrument(level = "trace", skip(self), ret)]
+    fn is_resource(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let kind = self.get_proc_kind(def_id, substs);
+        matches!(kind, ProcedureSpecificationKind::Resource(_))
+    }
+
+    fn is_leak_checked(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let kind = self.get_proc_kind(def_id, substs);
+        matches!(
+            kind,
+            ProcedureSpecificationKind::Resource(ResourceOptions { leak_checked: true })
+        )
     }
 
     fn get_proc_kind(
@@ -221,27 +248,11 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .cloned()
     }
 
-    fn get_prusti_assertion(&self, def_id: DefId) -> Option<typed::PrustiAssertion> {
+    fn get_direct_spec(&self, def_id: DefId) -> Option<typed::DirectSpecification> {
         self.specifications_state
             .specs
             .borrow()
-            .get_assertion(&def_id)
-            .cloned()
-    }
-
-    fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption> {
-        self.specifications_state
-            .specs
-            .borrow()
-            .get_assumption(&def_id)
-            .cloned()
-    }
-
-    fn get_prusti_refutation(&self, def_id: DefId) -> Option<typed::PrustiRefutation> {
-        self.specifications_state
-            .specs
-            .borrow()
-            .get_refutation(&def_id)
+            .get_direct_spec(&def_id)
             .cloned()
     }
 

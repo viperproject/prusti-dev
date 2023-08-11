@@ -150,6 +150,25 @@ pub trait ExprFolder: Sized {
             self.fold_position(pos),
         )
     }
+    fn fold_resource_access(&mut self, access: ResourceAccess) -> ResourceAccess {
+        ResourceAccess {
+            args: access.args.into_iter().map(|e| self.fold(e)).collect(),
+            pos: self.fold_position(access.pos),
+            ..access
+        }
+    }
+    fn fold_resource_access_predicate(
+        &mut self,
+        access: ResourceAccess,
+        amount: Box<Expr>,
+        pos: Position,
+    ) -> Expr {
+        Expr::ResourceAccessPredicate(
+            self.fold_resource_access(access),
+            self.fold_boxed(amount),
+            self.fold_position(pos),
+        )
+    }
     fn fold_field_access_predicate(
         &mut self,
         receiver: Box<Expr>,
@@ -228,6 +247,20 @@ pub trait ExprFolder: Sized {
         p: Position,
     ) -> Expr {
         Expr::Exists(x, y, self.fold_boxed(z), self.fold_position(p))
+    }
+    fn fold_forperm(
+        &mut self,
+        vars: Vec<LocalVar>,
+        access: ResourceAccess,
+        body: Box<Expr>,
+        p: Position,
+    ) -> Expr {
+        Expr::ForPerm(
+            vars,
+            self.fold_resource_access(access),
+            self.fold_boxed(body),
+            self.fold_position(p),
+        )
     }
     fn fold_let_expr(
         &mut self,
@@ -358,6 +391,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fold_predicate_access_predicate(x, y, z, p)
         }
+        Expr::ResourceAccessPredicate(ac, am, p) => this.fold_resource_access_predicate(ac, am, p),
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fold_bin_op(x, y, z, p),
@@ -367,6 +401,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Cond(x, y, z, p) => this.fold_cond(x, y, z, p),
         Expr::ForAll(x, y, z, p) => this.fold_forall(x, y, z, p),
         Expr::Exists(x, y, z, p) => this.fold_exists(x, y, z, p),
+        Expr::ForPerm(x, y, z, p) => this.fold_forperm(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(x, y, p) => this.fold_domain_func_app(x, y, p),
@@ -436,6 +471,22 @@ pub trait ExprWalker: Sized {
         pos: &Position,
     ) {
         self.walk(arg);
+        self.walk_position(pos);
+    }
+    fn walk_resource_access(&mut self, access: &ResourceAccess) {
+        for arg in &access.args {
+            self.walk(arg);
+        }
+        self.walk_position(&access.pos);
+    }
+    fn walk_resource_access_predicate(
+        &mut self,
+        access: &ResourceAccess,
+        amount: &Expr,
+        pos: &Position,
+    ) {
+        self.walk_resource_access(access);
+        self.walk(amount);
         self.walk_position(pos);
     }
     fn walk_field_access_predicate(
@@ -510,6 +561,20 @@ pub trait ExprWalker: Sized {
         for var in vars {
             self.walk_local_var(var);
         }
+        self.walk(body);
+        self.walk_position(pos);
+    }
+    fn walk_forperm(
+        &mut self,
+        vars: &[LocalVar],
+        access: &ResourceAccess,
+        body: &Expr,
+        pos: &Position,
+    ) {
+        for var in vars {
+            self.walk_local_var(var);
+        }
+        self.walk_resource_access(access);
         self.walk(body);
         self.walk_position(pos);
     }
@@ -621,6 +686,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::PredicateAccessPredicate(ref x, ref y, z, ref p) => {
             this.walk_predicate_access_predicate(x, y, z, p)
         }
+        Expr::ResourceAccessPredicate(ref ac, ref am, ref p) => {
+            this.walk_resource_access_predicate(ac, am, p)
+        }
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
         Expr::BinOp(x, ref y, ref z, ref p) => this.walk_bin_op(x, y, z, p),
@@ -630,6 +698,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Cond(ref x, ref y, ref z, ref p) => this.walk_cond(x, y, z, p),
         Expr::ForAll(ref x, ref y, ref z, ref p) => this.walk_forall(x, y, z, p),
         Expr::Exists(ref x, ref y, ref z, ref p) => this.walk_exists(x, y, z, p),
+        Expr::ForPerm(ref x, ref y, ref z, ref p) => this.walk_forperm(x, y, z, p),
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(ref x, ref y, ref p) => this.walk_domain_func_app(x, y, p),
@@ -726,6 +795,31 @@ pub trait FallibleExprFolder: Sized {
             pos,
         ))
     }
+    fn fallible_fold_resource_access(
+        &mut self,
+        access: ResourceAccess,
+    ) -> Result<ResourceAccess, Self::Error> {
+        Ok(ResourceAccess {
+            args: access
+                .args
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+            ..access
+        })
+    }
+    fn fallible_fold_resource_access_predicate(
+        &mut self,
+        access: ResourceAccess,
+        amount: Box<Expr>,
+        pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        Ok(Expr::ResourceAccessPredicate(
+            self.fallible_fold_resource_access(access)?,
+            self.fallible_fold_boxed(amount)?,
+            pos,
+        ))
+    }
     fn fallible_fold_field_access_predicate(
         &mut self,
         receiver: Box<Expr>,
@@ -811,6 +905,20 @@ pub trait FallibleExprFolder: Sized {
         p: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::Exists(x, y, self.fallible_fold_boxed(z)?, p))
+    }
+    fn fallible_fold_forperm(
+        &mut self,
+        vars: Vec<LocalVar>,
+        access: ResourceAccess,
+        body: Box<Expr>,
+        pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        Ok(Expr::ForPerm(
+            vars,
+            self.fallible_fold_resource_access(access)?,
+            self.fallible_fold_boxed(body)?,
+            pos,
+        ))
     }
     fn fallible_fold_let_expr(
         &mut self,
@@ -981,6 +1089,9 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fallible_fold_predicate_access_predicate(x, y, z, p)
         }
+        Expr::ResourceAccessPredicate(ac, am, p) => {
+            this.fallible_fold_resource_access_predicate(ac, am, p)
+        }
         Expr::FieldAccessPredicate(x, y, p) => this.fallible_fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fallible_fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fallible_fold_bin_op(x, y, z, p),
@@ -990,6 +1101,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Cond(x, y, z, p) => this.fallible_fold_cond(x, y, z, p),
         Expr::ForAll(x, y, z, p) => this.fallible_fold_forall(x, y, z, p),
         Expr::Exists(x, y, z, p) => this.fallible_fold_exists(x, y, z, p),
+        Expr::ForPerm(x, y, z, p) => this.fallible_fold_forperm(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fallible_fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fallible_fold_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(x, y, p) => this.fallible_fold_domain_func_app(x, y, p),

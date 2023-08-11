@@ -13,7 +13,7 @@ use once_cell::sync::Lazy;
 use prusti_common::{
     config,
     report::log,
-    vir::{optimizations::optimize_program, program::Program},
+    vir::{optimizations::optimize_program, fixes::desugar_quantified_resources, program::Program},
     Stopwatch,
 };
 use prusti_interface::{
@@ -29,6 +29,7 @@ use prusti_server::{
 };
 use viper::{self, PersistentCache, Viper};
 use vir_crate::common::check_mode::CheckMode;
+use crate::encoder::MisplacedImpureChecker;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.
@@ -78,19 +79,29 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         let polymorphic_programs = self.encoder.get_viper_programs();
 
-        let mut programs: Vec<Program> = if config::simplify_encoding() {
+        let optimized_polymorphic_programs = if config::simplify_encoding() {
             stopwatch.start_next("optimizing Viper program");
             let source_file_name = self.encoder.env().name.source_file_name();
             polymorphic_programs
                 .into_iter()
-                .map(|program| Program::Legacy(optimize_program(program, &source_file_name).into()))
+                .map(|program| optimize_program(program, &source_file_name))
                 .collect()
         } else {
             polymorphic_programs
-                .into_iter()
-                .map(|program| Program::Legacy(program.into()))
-                .collect()
         };
+
+        let misplaced_impure_errors = MisplacedImpureChecker::check_for_misplaced_impure(&optimized_polymorphic_programs, self.encoder.error_manager().position_manager());
+
+        if !misplaced_impure_errors.is_empty() {
+            for error in misplaced_impure_errors {
+                error.emit(&self.env.diagnostic);
+            }
+            return VerificationResult::Failure;
+        }
+
+        let mut programs: Vec<Program> = optimized_polymorphic_programs.into_iter()
+                .map(|program| Program::Legacy(desugar_quantified_resources(program).into()))
+                .collect();
         programs.extend(self.encoder.get_core_proof_programs());
 
         stopwatch.start_next("verifying Viper program");

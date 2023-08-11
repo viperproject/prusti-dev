@@ -8,11 +8,14 @@ use crate::{common::identifier::WithIdentifier, enum_predicate, polymorphic::ast
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(Type, LocalVar),
+    Resource(ResourcePredicate),
 }
 
 impl fmt::Display for Predicate {
@@ -21,6 +24,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{}", p),
             Predicate::Enum(p) => write!(f, "{}", p),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
+            Predicate::Resource(p) => write!(f, "{}", p),
         }
     }
 }
@@ -97,12 +101,18 @@ impl Predicate {
             variants,
         })
     }
+    pub fn new_resource(name: String, params: Vec<LocalVar>) -> Predicate {
+        Predicate::Resource(ResourcePredicate { name, params })
+    }
     /// A `self` place getter.
     pub fn self_place(&self) -> Expr {
         match self {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
+            Predicate::Resource(_) => {
+                unreachable!("Resource predicate does not have `self` place.")
+            }
         }
     }
     /// The predicate type getter.
@@ -111,6 +121,9 @@ impl Predicate {
             Predicate::Struct(p) => &p.typ,
             Predicate::Enum(p) => &p.typ,
             Predicate::Bodyless(typ, _) => typ,
+            Predicate::Resource(_) => {
+                unreachable!("Resource predicate does not have types.")
+            }
         }
     }
     /// The predicate name getter.
@@ -119,6 +132,7 @@ impl Predicate {
             Predicate::Struct(p) => p.typ.name(),
             Predicate::Enum(p) => p.typ.name(),
             Predicate::Bodyless(ref typ, _) => typ.name(),
+            Predicate::Resource(p) => p.name.clone(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -126,6 +140,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
+            Predicate::Resource(_) => None,
         }
     }
     pub fn is_struct_with_empty_body(&self) -> bool {
@@ -133,6 +148,9 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.has_empty_body(),
             _ => false,
         }
+    }
+    pub fn is_resource(&self) -> bool {
+        matches!(self, Predicate::Resource(_))
     }
 }
 
@@ -142,12 +160,15 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(typ, _) => typ.encode_as_string(),
+            Predicate::Resource(p) => p.get_identifier(),
         }
     }
 }
 
 /// The predicate for types that have exactly one variant.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct StructPredicate {
     /// The predicate name in Viper.
     pub typ: Type,
@@ -223,7 +244,9 @@ impl WithIdentifier for StructPredicate {
 }
 
 /// The predicate for types that have 0 or more than one variants.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct EnumPredicate {
     /// The predicate name in Viper.
     pub typ: Type,
@@ -290,5 +313,34 @@ impl EnumPredicate {
 impl WithIdentifier for EnumPredicate {
     fn get_identifier(&self) -> String {
         self.typ.name()
+    }
+}
+
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
+pub struct ResourcePredicate {
+    pub name: String,
+    pub params: Vec<LocalVar>,
+}
+
+impl fmt::Display for ResourcePredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "resource_predicate {}({})",
+            self.name,
+            self.params
+                .iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
+impl WithIdentifier for ResourcePredicate {
+    fn get_identifier(&self) -> String {
+        compute_identifier(&self.name, &[], &self.params, &Type::Bool)
     }
 }

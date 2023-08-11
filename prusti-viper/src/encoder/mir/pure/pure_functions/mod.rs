@@ -11,5 +11,5 @@ mod encoder_high;
 mod encoder_poly;
 
 pub(crate) use interface::{
-    PureEncodingContext, PureFunctionEncoderInterface, PureFunctionEncoderState,
+    compute_key, PureEncodingContext, PureFunctionEncoderInterface, PureFunctionEncoderState,
 };

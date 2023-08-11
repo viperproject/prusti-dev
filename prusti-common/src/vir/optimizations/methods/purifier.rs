@@ -193,6 +193,22 @@ impl ast::ExprWalker for VarCollector {
             self.all_vars.remove(var);
         }
     }
+    fn walk_forperm(
+        &mut self,
+        ast::ForPerm {
+            variables,
+            access,
+            body,
+            ..
+        }: &ast::ForPerm,
+    ) {
+        self.walk_resource_access(access);
+        self.walk(body);
+        for var in variables {
+            // TODO: This is not bullet proof against name collisions.
+            self.all_vars.remove(var);
+        }
+    }
 }
 
 impl ast::StmtWalker for VarCollector {
@@ -214,7 +230,9 @@ impl ast::StmtWalker for VarCollector {
         if is_purifiable_method(method_name) {
             self.is_pure_context = true;
         }
-        assert!(arguments.is_empty());
+        for arg in arguments {
+            self.walk_expr(arg);
+        }
         for target in targets {
             self.walk_local_var(target);
         }
@@ -421,7 +439,7 @@ impl ast::StmtFolder for VarPurifier {
         assert!(arguments.len() == 1);
         if is_purifiable_predicate(&predicate) && self.is_pure(&arguments[0]) {
             let new_expr = self.get_replacement_bounds(&predicate, &arguments[0]);
-            ast::Stmt::Inhale(ast::Inhale { expr: new_expr })
+            ast::Stmt::inhale(new_expr, ast::Position::default())
         } else {
             ast::Stmt::Unfold(ast::Unfold {
                 predicate,
@@ -468,8 +486,7 @@ impl ast::StmtFolder for VarPurifier {
             mut targets,
         }: ast::MethodCall,
     ) -> ast::Stmt {
-        assert!(targets.len() == 1);
-        if self.pure_vars.contains(&targets[0]) {
+        if targets.len() == 1 && self.pure_vars.contains(&targets[0]) {
             let target = &targets[0];
             let replacement = self
                 .replacements

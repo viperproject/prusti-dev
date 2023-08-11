@@ -10,7 +10,6 @@ use crate::encoder::errors::{
     SpannedEncodingError, ErrorCtxt, EncodingError, WithSpan,
     EncodingResult, SpannedEncodingResult
 };
-use crate::encoder::errors::error_manager::PanicCause;
 use crate::encoder::foldunfold;
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::initialisation::InitInfo;
@@ -22,6 +21,7 @@ use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
+use crate::encoder::resources;
 use crate::error_unsupported;
 use prusti_common::{
     config,
@@ -51,6 +51,7 @@ use prusti_interface::{
 };
 use std::collections::{BTreeMap};
 use std::fmt::Debug;
+use std::iter::once;
 use prusti_interface::utils;
 use prusti_rustc_interface::index::IndexSlice;
 use prusti_rustc_interface::middle::mir::Mutability;
@@ -66,7 +67,7 @@ use ::log::{trace, debug};
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use std::convert::TryInto;
-use prusti_interface::specs::typed::{Pledge, SpecificationItem};
+use prusti_interface::specs::typed::{DirectSpecificationKind, Pledge, SpecificationItem};
 use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
 use crate::encoder::mir::{
@@ -78,6 +79,7 @@ use crate::encoder::mir::{
     pure::PureFunctionEncoderInterface,
     types::MirTypeEncoderInterface,
     pure::SpecificationEncoderInterface,
+    pure::TimeReasoningInterface,
     specifications::SpecificationsInterface,
     type_invariants::TypeInvariantEncoderInterface,
 };
@@ -222,13 +224,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_statements: &mut Vec<vir::Stmt>,
     ) -> SpannedEncodingResult<()> {
         let block = &self.mir[bb];
-        let _ = self.try_encode_assert(bb, block, encoded_statements)?
-        || self.try_encode_assume(bb, block, encoded_statements)?
-        || self.try_encode_refute(bb, block, encoded_statements)?;
+        let _ = self.try_encode_direct_spec(bb, block, encoded_statements)?;
         Ok(())
     }
 
-    fn try_encode_assume(
+    fn try_encode_direct_spec(
         &mut self,
         bb: mir::BasicBlock,
         block: &mir::BasicBlockData<'tcx>,
@@ -240,94 +240,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                if self.encoder.get_prusti_assumption(cl_def_id).is_none() {
-                    return Ok(false);
-                }
-                let assume_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let assume_stmt = vir::Stmt::Inhale(
-                    vir::Inhale {
-                        expr: assume_expr
-                    }
-                );
-
-                encoded_statements.push(assume_stmt);
-
-                return Ok(true);
-            }
-        }
-        Ok(false)
-    }
-
-    fn try_encode_assert(
-        &mut self,
-        bb: mir::BasicBlock,
-        block: &mir::BasicBlockData<'tcx>,
-        encoded_statements: &mut Vec<vir::Stmt>,
-    ) -> SpannedEncodingResult<bool> {
-        for stmt in &block.statements {
-            if let mir::StatementKind::Assign(box (
-                _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
-            )) = stmt.kind
-            {
-                let assertion = match self.encoder.get_prusti_assertion(cl_def_id) {
+                let spec = match self.encoder.get_direct_spec(cl_def_id) {
                     Some(spec) => spec,
                     None => return Ok(false),
                 };
 
                 let span = self
                     .encoder
-                    .get_definition_span(assertion.assertion.to_def_id());
+                    .get_definition_span(spec.specification.to_def_id());
 
-                let assert_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let assert_stmt = vir::Stmt::Assert(
-                    vir::Assert {
-                        expr: assert_expr,
-                        position: self.register_error(span, ErrorCtxt::Panic(PanicCause::Assert))
-                    }
-                );
-
-                encoded_statements.push(assert_stmt);
-
-                return Ok(true);
-            }
-        }
-        Ok(false)
-    }
-
-    fn try_encode_refute(
-        &mut self,
-        bb: mir::BasicBlock,
-        block: &mir::BasicBlockData<'tcx>,
-        encoded_statements: &mut Vec<vir::Stmt>,
-    ) -> SpannedEncodingResult<bool> {
-        for stmt in &block.statements {
-            if let mir::StatementKind::Assign(box (
-                _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
-            )) = stmt.kind
-            {
-                let refutation = match self.encoder.get_prusti_refutation(cl_def_id) {
-                    Some(spec) => spec,
-                    None => return Ok(false),
+                let spec_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+                let position = self.register_error(span, ErrorCtxt::DirectSpecification(spec.kind));
+                let spec_stmt = match spec.kind {
+                    DirectSpecificationKind::Assertion => vir::Stmt::assert(spec_expr, position),
+                    DirectSpecificationKind::Assumption => vir::Stmt::assume(spec_expr, position),
+                    DirectSpecificationKind::Exhalation => vir::Stmt::exhale(spec_expr, position),
+                    DirectSpecificationKind::Inhalation => vir::Stmt::inhale(spec_expr, position),
+                    DirectSpecificationKind::Refutation => vir::Stmt::refute(spec_expr, position),
                 };
 
-                let span = self
-                    .encoder
-                    .get_definition_span(refutation.refutation.to_def_id());
-
-                let refute_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
-
-                let refute_stmt = vir::Stmt::Refute(
-                    vir::Refute {
-                        expr: refute_expr,
-                        position: self.register_error(span, ErrorCtxt::Panic(PanicCause::Refute))
-                    }
-                );
-
-                encoded_statements.push(refute_stmt);
+                encoded_statements.push(spec_stmt);
 
                 return Ok(true);
             }
@@ -490,6 +422,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             &self.procedure.get_reachable_nonspec_cfg_blocks(),
             0,
             return_cfg_block,
+            &[-1],
         )?;
         if !unresolved_edges.is_empty() {
             return Err(SpannedEncodingError::internal(
@@ -512,6 +445,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Encode preconditions
         self.encode_preconditions(start_cfg_block, precondition_weakening)?;
+
+        if config::time_reasoning() {
+            // consume a time credits and produce a time receipt in the body of the function
+            self.cfg_method
+                .add_stmts(start_cfg_block, self.encoder.get_tick_call(self.mir.span, 1, &[-1], self.proc_def_id)?);
+        }
 
         // Encode postcondition
         self.encode_postconditions(return_cfg_block, postcondition_strengthening)?;
@@ -610,6 +549,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ordered_group_blocks: &[BasicBlockIndex],
         group_loop_depth: usize,
         return_block: CfgBlockIndex,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<(Option<CfgBlockIndex>, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
         // Encode the CFG blocks
         let mut bb_map: FxHashMap<_, _> = FxHashMap::default();
@@ -619,13 +559,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let curr_loop_depth = loop_info.get_loop_depth(curr_bb);
             let (curr_block, curr_edges) = if curr_loop_depth == group_loop_depth {
                 // This block is not in a nested loop
-                self.encode_block(label_prefix, curr_bb, return_block)?
+                self.encode_block(label_prefix, curr_bb, return_block, scope_ids)?
             } else {
                 debug_assert!(curr_loop_depth > group_loop_depth);
                 let is_loop_head = loop_info.is_loop_head(curr_bb);
                 if curr_loop_depth == group_loop_depth + 1 && is_loop_head {
                     // Encode a nested loop
-                    self.encode_loop(label_prefix, curr_bb, return_block)?
+                    self.encode_loop(label_prefix, curr_bb, return_block, scope_ids)?
                 } else {
                     debug_assert!(curr_loop_depth > group_loop_depth + 1 || !is_loop_head);
                     // Skip the inner block of a nested loop
@@ -672,11 +612,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(still_unresolved_edges)
     }
 
-    fn stmt_preconditions(&self, stmt: &vir::Stmt) -> Vec<(Option<String>, vir::Expr)> {
+    fn stmt_preconditions_and_impure_postconditions(&self, stmt: &vir::Stmt) -> Vec<(Option<String>, vir::Expr)> {
         use vir::{ExprFolder, StmtWalker};
         struct FindFnApps<'a, 'b, 'c> {
             recurse: bool,
-            preconds: Vec<(Option<String>, vir::Expr)>,
+            conds: Vec<(Option<String>, vir::Expr)>,
             encoder: &'a Encoder<'b, 'c>,
         }
         fn is_const_true(expr: &vir::Expr) -> bool {
@@ -688,16 +628,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )
         }
         impl<'a, 'b, 'c> FindFnApps<'a, 'b, 'c> {
-            fn push_precond(&mut self, expr: vir::Expr, fn_name: Option<String>) {
+            fn push_cond(&mut self, expr: vir::Expr, fn_name: Option<String>) {
                 let expr = self.fold(expr);
                 if !is_const_true(&expr) {
-                    self.preconds.push((fn_name, expr));
+                    self.conds.push((fn_name, expr));
                 }
             }
         }
         impl<'a, 'b, 'c> StmtWalker for FindFnApps<'a, 'b, 'c> {
             fn walk_exhale(&mut self, statement: &vir::Exhale) {
-                self.push_precond(statement.expr.clone(), None);
+                self.push_cond(statement.expr.clone(), None);
+            }
+            fn walk_inhale(&mut self, statement: &vir::Inhale) {
+                let expr = statement.expr.clone();
+                if !expr.is_pure() {
+                    self.push_cond(expr, None);
+                } else {
+                    self.walk_expr(&expr);
+                }
             }
             fn walk_expr(&mut self, expr: &vir::Expr) {
                 self.fold(expr.clone());
@@ -713,7 +661,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // Avoid recursively collecting preconditions: they should be self-framing anyway
                     self.recurse = false;
                     let pres: vir::Expr = pres.into_iter().fold(true.into(), |acc, expr| vir_expr! { [acc] && [expr] });
-                    self.push_precond(pres, Some(function_name));
+                    self.push_cond(pres, Some(function_name));
                     self.recurse = true;
 
                     for arg in arguments {
@@ -750,23 +698,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
         let mut walker = FindFnApps {
-            recurse: true, preconds: Vec::new(), encoder: self.encoder
+            recurse: true, conds: Vec::new(), encoder: self.encoder
         };
         walker.walk(stmt);
-        walker.preconds
+        walker.conds
     }
-    fn block_preconditions(&self, block: &CfgBlockIndex) -> Vec<(Option<String>, vir::Expr)> {
+    fn block_preconditions_and_impure_postconditions(&self, block: &CfgBlockIndex) -> Vec<(Option<String>, vir::Expr)> {
         let bb = &self.cfg_method.basic_blocks[block.block_index];
-        let mut preconds: Vec<_> = bb.stmts.iter().flat_map(|stmt| self.stmt_preconditions(stmt)).collect();
+        let mut preconds: Vec<_> = bb.stmts.iter().flat_map(|stmt| self.stmt_preconditions_and_impure_postconditions(stmt)).collect();
         match &bb.successor {
             Successor::Undefined => (),
             Successor::Return => (),
-            Successor::Goto(cbi) => preconds.extend(self.block_preconditions(cbi)),
+            Successor::Goto(cbi) => preconds.extend(self.block_preconditions_and_impure_postconditions(cbi)),
             Successor::GotoSwitch(succs, def) => {
                 preconds.extend(
-                    succs.iter().flat_map(|cond_bb| self.block_preconditions(&cond_bb.1))
+                    succs.iter().flat_map(|cond_bb| self.block_preconditions_and_impure_postconditions(&cond_bb.1))
                 );
-                preconds.extend(self.block_preconditions(def));
+                preconds.extend(self.block_preconditions_and_impure_postconditions(def));
             }
         }
         preconds
@@ -776,7 +724,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for stmt in &mut bb.stmts {
             if let vir::Stmt::Assert(assert) = stmt {
                 let expr = assert.expr.clone();
-                *stmt = vir::Stmt::Inhale(vir::Inhale { expr });
+                *stmt = vir::Stmt::inhale(expr, assert.position);
             }
         }
         match bb.successor.clone() {
@@ -826,6 +774,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         label_prefix: &str,
         loop_head: BasicBlockIndex,
         return_block: CfgBlockIndex,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
         let loop_info = self.loop_encoder.loops();
         debug_assert!(loop_info.is_loop_head(loop_head));
@@ -877,20 +826,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("before_invariant_block: {:?}", before_invariant_block);
         debug!("after_guard_block: {:?}", after_guard_block);
         debug!("after_inv_block: {:?}", after_inv_block);
+
+        let loop_span = loop_body.iter()
+            .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
+            .filter(|&span| span.contains(loop_head_span))
+            .min()
+            .unwrap();
+
         if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
             debug!(
                 "{:?} is conditional branch in loop {:?}",
                 before_invariant_block, loop_head
             );
-            let loop_head_span = self.mir_encoder.get_span_of_basic_block(loop_head);
             return Err(SpannedEncodingError::incorrect(
                 "the loop invariant cannot be in a conditional branch of the loop",
-                loop_body
-                    .iter()
-                    .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
-                    .filter(|&span| span.contains(loop_head_span))
-                    .min()
-                    .unwrap(),
+                loop_span
             ));
         }
 
@@ -921,6 +871,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_guard_evaluation,
             loop_depth,
             return_block,
+            scope_ids,
         )?;
         heads.push(first_g_head);
 
@@ -930,12 +881,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_body_before_inv,
             loop_depth,
             return_block,
+            scope_ids,
         )?;
         heads.push(first_b1_head);
 
         // Calculate if `G` and `B1` are safe to include as the first `body_invariant!(...)`
-        let mut preconds = first_g_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default();
-        preconds.extend(first_b1_head.map(|cbi| self.block_preconditions(&cbi)).unwrap_or_default());
+        let mut preconds = first_g_head.map(|cbi| self.block_preconditions_and_impure_postconditions(&cbi)).unwrap_or_default();
+        preconds.extend(first_b1_head.map(|cbi| self.block_preconditions_and_impure_postconditions(&cbi)).unwrap_or_default());
 
         // Build the "invariant" CFG block (start - G - B1 - *invariant* - B2 - G - B1 - end)
         // (1) checks the loop invariant on entry
@@ -963,14 +915,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .set_successor(inv_pre_block, vir::Successor::Goto(inv_post_block_perms));
         {
             let stmts =
-                self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, false)?;
+                self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, false, scope_ids)?;
             self.cfg_method.add_stmts(inv_pre_block, stmts);
         }
+        let scope_ids: Vec<isize> = scope_ids
+            .iter()
+            .copied()
+            .chain(once(loop_head.index() as isize))
+            .collect();
         // We'll add later more statements at the end of inv_pre_block, to havoc local variables
         let fnspec_span = {
-            let (stmts, fnspec_span) =
-                self.encode_loop_invariant_inhale_fnspec_stmts(loop_head, before_invariant_block, false)?;
-            self.cfg_method.add_stmts(inv_post_block_fnspc, stmts); fnspec_span
+            let (mut stmts, fnspec_span) =
+                self.encode_loop_invariant_inhale_fnspec_stmts(loop_head, before_invariant_block, false, &scope_ids)?;
+            if config::time_reasoning() {
+                // consume a time credit and produce a time receipt at each iteration of the loop
+                stmts.extend(
+                    self.encoder.get_tick_call(fnspec_span.clone(), 1, &scope_ids, self.proc_def_id)?
+                        .into_iter(),
+                );
+            }
+            self.cfg_method.add_stmts(inv_post_block_fnspc, stmts);
+            fnspec_span
         };
         {
             let stmts =
@@ -985,6 +950,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 loop_guard_evaluation,
                 loop_depth,
                 return_block,
+                &scope_ids,
             )?;
             if let Some(mid_g_head) = &mid_g.0 {
                 self.block_assert_to_assume(mid_g_head);
@@ -996,6 +962,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 loop_body_before_inv,
                 loop_depth,
                 return_block,
+                &scope_ids,
             )?;
             if let Some(mid_b1_head) = &mid_b1.0 {
                 self.block_assert_to_assume(mid_b1_head);
@@ -1033,6 +1000,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_body_after_inv,
             loop_depth,
             return_block,
+            &scope_ids,
         )?;
         heads.push(last_b2_head);
 
@@ -1042,6 +1010,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_guard_evaluation,
             loop_depth,
             return_block,
+            &scope_ids,
         )?;
         heads.push(last_g_head);
 
@@ -1051,6 +1020,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_body_before_inv,
             loop_depth,
             return_block,
+            &scope_ids,
         )?;
         heads.push(last_b1_head);
 
@@ -1067,13 +1037,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let stmts = self.encode_loop_invariant_exhale_stmts(
                 loop_head,
                 before_invariant_block,
-                true
+                true,
+                &scope_ids,
             )?;
             self.cfg_method.add_stmts(end_body_block, stmts);
+            self.cfg_method.add_stmt(end_body_block, vir::Stmt::LeakCheck(vir::LeakCheck {
+                scope_id: loop_head.index() as isize,
+                place: vir::LeakCheckPlace::Loop,
+                position: self.register_span(loop_span),
+            }));
         }
         self.cfg_method.add_stmt(
             end_body_block,
-            vir::Stmt::Inhale( vir::Inhale {expr: false.into()} ),
+            vir::Stmt::inhale(false.into(), vir::Position::default()),
         );
         heads.push(Some(end_body_block));
 
@@ -1237,6 +1213,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         label_prefix: &str,
         bbi: BasicBlockIndex,
         return_block: CfgBlockIndex,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
         debug_assert!(!self.procedure.is_spec_block(bbi));
 
@@ -1259,12 +1236,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         self.encode_execution_flag(bbi, curr_block)?;
-        let opt_successor = self.encode_block_statements(bbi, curr_block)?;
+        let opt_successor = self.encode_block_statements(bbi, curr_block, scope_ids)?;
         let mir_successor: MirSuccessor = if let Some(successor) = opt_successor {
             // In case of unsupported statements, we do not encode the terminator
             successor
         } else {
-            self.encode_block_terminator(bbi, curr_block)?
+            self.encode_block_terminator(bbi, curr_block, scope_ids)?
         };
 
         // Make sure that the
@@ -1334,6 +1311,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         bbi: BasicBlockIndex,
         cfg_block: CfgBlockIndex,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<Option<MirSuccessor>> {
         debug_assert!(!self.procedure.is_spec_block(bbi));
         let bb_data = &self.mir.basic_blocks[bbi];
@@ -1345,7 +1323,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 statement_index: stmt_index,
             };
             {
-                let (stmts, opt_succ) = self.encode_statement_at(location)?;
+                let (stmts, opt_succ) = self.encode_statement_at(location, scope_ids)?;
                 debug_assert!(matches!(opt_succ, None | Some(MirSuccessor::Kill)));
                 self.cfg_method.add_stmts(cfg_block, stmts);
                 if opt_succ.is_some() {
@@ -1369,13 +1347,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         bbi: BasicBlockIndex,
         curr_block: CfgBlockIndex,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<MirSuccessor> {
         let bb_data = &self.mir.basic_blocks[bbi];
         let location = mir::Location {
             block: bbi,
             statement_index: bb_data.statements.len(),
         };
-        let (stmts, opt_mir_successor) = self.encode_statement_at(location)?;
+        let (stmts, opt_mir_successor) = self.encode_statement_at(location, scope_ids)?;
         self.cfg_method.add_stmts(curr_block, stmts);
         Ok(opt_mir_successor.unwrap())
     }
@@ -1386,6 +1365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_statement_at(
         &mut self,
         location: mir::Location,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, Option<MirSuccessor>)> {
         let span = self.mir_encoder.get_span_of_location(location);
         let bb_data = &self.mir[location.block];
@@ -1396,7 +1376,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|stmts| (stmts, None))
         } else {
             let mir_term = bb_data.terminator();
-            self.encode_terminator(mir_term, location)
+            self.encode_terminator(mir_term, location, scope_ids)
                 .map(|(stmts, succ)| (stmts, Some(succ)))
         };
 
@@ -1681,6 +1661,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Encode the lhs and the rhs of the assignment that create the loan
     #[tracing::instrument(level = "debug", skip(self))]
     fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> SpannedEncodingResult<(vir::Expr, Option<vir::Expr>, bool, Vec<vir::Stmt>)> {
+        debug!("encode_loan_places '{:?}'", loan_places);
         let location = loan_places.location;
         let span = self.mir_encoder.get_span_of_location(location);
 
@@ -2189,9 +2170,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     borrow: Some(loan.index().into()),
                     position: pos,
                 });
-                stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: magic_wand
-                }));
+                stmts.push(vir::Stmt::inhale(magic_wand, vir::Position::default()));
                 // Emit the apply statement.
                 let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan.index().into(), pos);
                 debug!("{:?} at {:?}", statement, loan_location);
@@ -2250,6 +2229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_expiring_borrows_at(&mut self, location: mir::Location)
         -> SpannedEncodingResult<Vec<vir::Stmt>>
     {
+        debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
         let stmts = self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None, false)?;
         Ok(self.set_stmts_default_pos(stmts, self.mir_encoder.get_span_of_location(location)))
@@ -2261,6 +2241,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, MirSuccessor)> {
         let mut stmts: Vec<vir::Stmt> = vec![vir::Stmt::comment(format!("[mir] {:?}", term.kind))];
         let span = self.mir_encoder.get_span_of_location(location);
@@ -2564,6 +2545,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     target,
                                     vir::BinaryOpKind::EqCmp,
                                     call_substs,
+                                    scope_ids,
                                 )?
                             );
                         }
@@ -2586,6 +2568,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     target,
                                     vir::BinaryOpKind::NeCmp,
                                     call_substs,
+                                    scope_ids,
                                 )?
                             );
                         }
@@ -2604,6 +2587,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         target,
                                         *cl_def_id,
                                         call_substs,
+                                        scope_ids,
                                     )?);
                                 }
 
@@ -2617,6 +2601,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "core::slice::<impl [T]>::len" => {
+                            debug!("Encoding call of slice::len");
                             stmts.extend(
                                 self.encode_slice_len_call(
                                     destination,
@@ -2646,6 +2631,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                         "core::ops::Index::index" |
                         "std::ops::Index::index" => {
+                            debug!("Encoding call of array/slice index call");
                             stmts.extend(
                                 self.encode_sequence_index_call(
                                     destination,
@@ -2701,6 +2687,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         target,
                                         called_def_id,
                                         call_substs,
+                                        scope_ids,
                                     )?
                                 );
                             }
@@ -2775,9 +2762,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }));
                 } else {
                     stmts.push(vir::Stmt::comment("This assertion will not be checked"));
-                    stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                        expr: viper_guard,
-                    }));
+                    stmts.push(vir::Stmt::inhale(viper_guard, vir::Position::default()));
                 };
 
                 (stmts, MirSuccessor::Goto(target))
@@ -2851,6 +2836,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         error_span: Span
     ) -> EncodingResult<Vec<vir::Stmt>> {
+        trace!(
+            "encode_sequence_index_call(destination={:?}, args={:?})",
+            destination,
+            args
+        );
         // args[0] is the base array/slice, args[1] is the index
         // index is not specified exactly, as std::ops::Index::index is a trait method, so all we
         // know is there needs to be an impl Index<Idx> for T
@@ -3070,6 +3060,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         target: Option<BasicBlockIndex>,
         bin_op: vir::BinaryOpKind,
         substs: ty::subst::SubstsRef<'tcx>,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
@@ -3117,6 +3108,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 target,
                 called_def_id,
                 substs,
+                scope_ids,
             )
         }
     }
@@ -3169,6 +3161,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         target: Option<BasicBlockIndex>,
         called_def_id: ProcedureDefId,
         mut substs: ty::subst::SubstsRef<'tcx>,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let full_func_proc_name = &self
             .encoder
@@ -3306,13 +3299,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                           arg,
                           call_site_span
                         );
-                        stmts.push(vir::Stmt::Inhale (
-                            vir::Inhale {
-                                expr: vir::Expr::acc_permission(
-                                    arg_place.clone().field(val_field),
-                                    vir::PermAmount::Read
-                                )
-                            }
+                        stmts.push(vir::Stmt::inhale(
+                            vir::Expr::acc_permission(
+                                arg_place.clone().field(val_field),
+                                vir::PermAmount::Read
+                            ),
+                            vir::Position::default(),
                         ));
                     }
                     let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
@@ -3349,9 +3341,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // The return type is Never
                 // This means that the function call never returns
                 // So, we `assume false` after the function call
-                stmts_after.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: false.into()
-                }));
+                stmts_after.push(vir::Stmt::inhale(false.into(), vir::Position::default()));
                 // Return a dummy local variable
                 let never_ty = self.encoder.env().tcx().mk_ty_from_kind(ty::TyKind::Never);
                 (self.locals.get_fresh(never_ty), None)
@@ -3423,8 +3413,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_invs_spec,
             pre_func_spec,
         ) = self.encode_precondition_expr(&procedure_contract, substs, fake_expr_spans)?;
+
+        let pre_func_spec = resources::change_scope_id(pre_func_spec, scope_ids);
+
         let pos = self.register_error(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
-        stmts.push(vir::Stmt::Assert( vir::Assert {
+        stmts.push(vir::Stmt::Exhale(vir::Exhale {
             expr: replace_fake_exprs(pre_func_spec),
             position: pos,
         }));
@@ -3504,14 +3497,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.replace_old_places_with_ghost_vars(Some(&post_label), magic_wand)
             })
             .collect();
-
+        let inhale_pos = self.register_error(call_site_span, ErrorCtxt::InhaleMethodPostcondition);
         let post_perm_spec = replace_fake_exprs(post_type_spec);
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: post_perm_spec.remove_read_permissions(),
+            position: inhale_pos,
         }));
         if let Some(access) = return_type_spec {
             stmts.push(vir::Stmt::Inhale( vir::Inhale {
                 expr: replace_fake_exprs(access),
+                position: inhale_pos,
             }));
         }
         for (from_place, to_place) in read_transfer {
@@ -3523,9 +3518,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: replace_fake_exprs(post_invs_spec),
+            position: inhale_pos,
         }));
+
+        let post_func_spec = resources::change_scope_id(post_func_spec, scope_ids);
+
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: replace_fake_exprs(post_func_spec),
+            position: inhale_pos,
         }));
 
         // Exhale the permissions that were moved into magic wands.
@@ -3694,16 +3694,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
             .unwrap();
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: type_predicate,
-        }));
+        stmts.push(vir::Stmt::inhale(type_predicate, vir::Position::default()));
 
         // Initialize the lhs
-        stmts.push(
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: call_result,
-            })
-        );
+        stmts.push(vir::Stmt::inhale(call_result, vir::Position::default()));
 
         // Store a label for permissions got back from the call
         debug!(
@@ -4098,20 +4092,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: type_spec}),
+            vir::Stmt::inhale(type_spec, vir::Position::default()),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: mandatory_type_spec.into_iter().conjoin(),
-            }),
+            vir::Stmt::inhale(mandatory_type_spec.into_iter().conjoin(), vir::Position::default()),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: invs_spec,
-            }),
+            vir::Stmt::inhale(invs_spec, vir::Position::default()),
         );
         // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
         // soundness check becomes trivially satisfied.
@@ -4127,9 +4116,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale( vir::Inhale {
-                expr: func_spec
-            }),
+            vir::Stmt::inhale(func_spec, self.register_error(self.mir.span, ErrorCtxt::InhaleMethodPrecondition)),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
@@ -4877,20 +4864,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        // Assert functional specification of postcondition
+        // Exhale functional specification of postcondition (exhale for resources)
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::comment("Assert functional specification of postcondition"),
+            vir::Stmt::comment("Exhale functional specification of postcondition"),
         );
-        let func_pos = self.register_error(self.mir.span, ErrorCtxt::AssertMethodPostcondition);
+        let func_pos = self.register_error(self.mir.span, ErrorCtxt::ExhaleMethodPostcondition);
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert( vir::Assert {
+            vir::Stmt::Exhale(vir::Exhale {
                 expr: patched_func_spec,
                 position: func_pos,
             }),
         );
+
+        // don't add end-of-function leak checks if we're encoding a pure function because the
+        // postcondition of a pure function doesn't assert the resources
+        if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
+            // Check for obligation leaks
+            self.cfg_method.add_stmt(
+                return_cfg_block,
+                vir::Stmt::comment("Assert that no obligations are leaked"),
+            );
+            self.cfg_method.add_stmt(
+                return_cfg_block,
+                vir::Stmt::LeakCheck(vir::LeakCheck {
+                    scope_id: -1,
+                    place: vir::LeakCheckPlace::Function,
+                    position: func_pos, // doesn't matter that an error has already been registered for
+                                        // this position becase it will be only used after being
+                                        // duplicated
+                })
+            );
+        }
 
         // Assert type invariants
         self.cfg_method.add_stmt(
@@ -5295,6 +5302,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         loop_head: BasicBlockIndex,
         _loop_inv_block: BasicBlockIndex,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<(Vec<vir::Expr>, MultiSpan)> {
         let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!(
@@ -5314,12 +5322,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
                 )) = stmt.kind {
                     if let Some(spec) = self.encoder.get_loop_specs(cl_def_id) {
-                        encoded_specs.push(self.encoder.encode_invariant(
+                        let invariant_expr = self.encoder.encode_invariant(
                             self.mir,
                             bbi,
                             self.proc_def_id,
                             cl_substs,
-                        )?);
+                        )?;
+                        encoded_specs.push(resources::change_scope_id(invariant_expr, scope_ids));
                         let invariant = match spec {
                             prusti_interface::specs::typed::LoopSpecification::Invariant(inv) => inv,
                             _ => continue,
@@ -5338,13 +5347,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop_iteration: bool,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         if !after_loop_iteration {
             self.pure_var_for_preserving_value_map
                 .insert(loop_head, FxHashMap::default());
         }
         let (func_spec, func_spec_span) =
-            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block, scope_ids)?;
         let (permissions, equalities, invs_spec) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)
                 .with_span(func_spec_span.clone())?;
@@ -5396,18 +5406,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         });
         stmts.extend(obtain_predicates);
 
-        stmts.push(vir::Stmt::Assert( vir::Assert {
+        stmts.push(vir::Stmt::Exhale(vir::Exhale {
             expr: func_spec.into_iter().conjoin(),
-            position: assert_pos,
+            position: exhale_pos,
         }));
         stmts.push(vir::Stmt::Assert( vir::Assert {
             expr: invs_spec.into_iter().conjoin(),
-            position: exhale_pos,
+            position: assert_pos,
         }));
         let equalities_expr = equalities.into_iter().conjoin();
         stmts.push(vir::Stmt::Assert( vir::Assert {
             expr: equalities_expr,
-            position: exhale_pos,
+            position: assert_pos,
         }));
         let permission_expr = permissions.into_iter().conjoin();
         stmts.push(vir::Stmt::Exhale( vir::Exhale {
@@ -5433,15 +5443,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut stmts = vec![vir::Stmt::comment(format!(
             "Inhale the loop permissions invariant of block {loop_head:?}"
         ))];
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: permission_expr,
-        }));
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: equality_expr,
-        }));
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: invs_spec.into_iter().conjoin(),
-        }));
+        stmts.push(vir::Stmt::inhale(permission_expr, vir::Position::default()));
+        stmts.push(vir::Stmt::inhale(equality_expr, vir::Position::default()));
+        stmts.push(vir::Stmt::inhale(invs_spec.into_iter().conjoin(), vir::Position::default()));
         Ok(stmts)
     }
 
@@ -5451,16 +5455,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
+        scope_ids: &[isize],
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, MultiSpan)> {
         let (func_spec, func_spec_span) =
-            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block, scope_ids)?;
 
         let mut stmts = vec![vir::Stmt::comment(format!(
             "Inhale the loop fnspec invariant of block {loop_head:?}"
         ))];
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: func_spec.into_iter().conjoin(),
-        }));
+        stmts.push(vir::Stmt::inhale(func_spec.into_iter().conjoin(), vir::Position::default()));
         Ok((stmts, func_spec_span))
     }
 
@@ -5699,6 +5702,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        trace!(
+            "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
+            lhs,
+            operand,
+            location
+        );
         let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match operand {
             mir::Operand::Move(place) => {
@@ -5920,9 +5929,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         {
             let mut alloc_stmts = self.encode_havoc(&encoded_lhs).with_span(span)?;
             let mut inhale_acc = |place| {
-                alloc_stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: vir::Expr::acc_permission(place, vir::PermAmount::Write),
-                }));
+                alloc_stmts.push(vir::Stmt::inhale(
+                        vir::Expr::acc_permission(place, vir::PermAmount::Write),
+                        vir::Position::default(),
+                ));
             };
             inhale_acc(encoded_lhs.clone().field(value_field.clone()));
             inhale_acc(
@@ -5971,6 +5981,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        trace!(
+            "[enter] encode_assign_unary_op(op={:?}, operand={:?})",
+            op,
+            operand
+        );
         let encoded_val = self.mir_encoder.encode_operand_expr(operand)
             .with_span(
                 self.mir_encoder.get_span_of_location(location)
@@ -6189,6 +6204,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        trace!(
+            "encode_assign_slice(lhs={:?}, operand={:?}, ty={:?})",
+            encoded_lhs,
+            operand,
+            ty
+        );
         debug_assert!(ty.is_slice_ref());
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = Vec::new();
@@ -6239,9 +6260,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let slice_len_call = slice_types.len(self.encoder, slice_expr.clone());
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [slice_len_call] == [sequence_types.len(self.encoder, rhs_expr.clone())] }
-        }));
+        stmts.push(vir::Stmt::inhale(
+            vir_expr!{ [slice_len_call] == [sequence_types.len(self.encoder, rhs_expr.clone())] },
+            vir::Position::default()
+        ));
 
         let elem_snap_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs).with_span(span)?;
 
@@ -6263,12 +6285,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let indices = vir_expr! { ([vir::Expr::from(0usize)] <= [i]) && ([i] < [sequence_types.len(self.encoder, rhs_expr)]) };
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr! {
+        stmts.push(vir::Stmt::inhale(
+            vir_expr! {
                 forall i: Int ::
                 { [array_lookup_call] } { [slice_lookup_call] } ::
-                ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) }
-        }));
+                ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) },
+            vir::Position::default(),
+        ));
 
         // Store a label for permissions got back from the call
         debug!(
@@ -6362,12 +6385,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             idx,
             lookup_ret_ty,
         );
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr! {
+        stmts.push(vir::Stmt::inhale(
+            vir_expr! {
                 forall i: Int ::
                 { [lookup_pure_call] } ::
-                ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) }
-        }));
+                ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) },
+            vir::Position::default(),
+        ));
 
         Ok(stmts)
     }
@@ -6415,15 +6439,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Havoc and assume permission on fields
     #[tracing::instrument(level = "debug", skip(self))]
     fn encode_havoc_and_initialization(&mut self, dst: &vir::Expr) -> EncodingResult<Vec<vir::Stmt>> {
+        debug!("Encode havoc and allocation {:?}", dst);
         let mut stmts = vec![];
         // Havoc `dst`
         stmts.extend(self.encode_havoc(dst)?);
         // Initialize `dst`
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: self.mir_encoder
+        stmts.push(vir::Stmt::inhale(
+            self.mir_encoder
                     .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
                     .unwrap(),
-        }));
+            vir::Position::default(),
+        ));
         Ok(stmts)
     }
 
@@ -6444,9 +6470,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut alloc_stmts = self.encode_havoc(&dst).with_span(span)?;
             let dst_field = dst.clone().field(field.clone());
             let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
-            alloc_stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: acc,
-            }));
+            alloc_stmts.push(vir::Stmt::inhale(acc, vir::Position::default()));
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_typed_ref_or_type_var() {
@@ -6456,9 +6480,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 dst_field,
                                 vir::PermAmount::Read
                             );
-                            alloc_stmts.push(vir::Stmt::Inhale(
-                                vir::Inhale { expr: pred_acc }
-                            ));
+                            alloc_stmts.push(vir::Stmt::inhale(pred_acc, vir::Position::default()));
                         } else {
                             // TODO: Inhale the predicate rooted at dst_field
                             return Err(SpannedEncodingError::unsupported(
@@ -6530,12 +6552,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: vir::Expr,
     ) -> EncodingResult<Vec<vir::Stmt>> {
         let mut stmts = self.encode_havoc_and_initialization(&dst)?;
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir::Expr::eq_cmp(
+        stmts.push(vir::Stmt::inhale(
+            vir::Expr::eq_cmp(
                 vir::Expr::snap_app(src),
                 vir::Expr::snap_app(dst),
             ),
-        }));
+            vir::Position::default(),
+        ));
         Ok(stmts)
     }
 
@@ -6648,9 +6671,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let discriminant = self
                         .encoder
                         .encode_discriminant_func_app(dst.clone(), adt_def)?;
-                    stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                        expr: vir::Expr::eq_cmp(discriminant, discr_value),
-                    }));
+                    stmts.push(vir::Stmt::inhale(
+                        vir::Expr::eq_cmp(discriminant, discr_value),
+                        vir::Position::default(),
+                    ));
 
                     let variant_name = variant_def.ident(tcx).to_string();
                     let new_dst_base = dst_base.variant(&variant_name);
@@ -6715,9 +6739,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .with_span(span)?;
 
                     stmts.push(
-                        vir::Stmt::Inhale( vir::Inhale {
-                            expr: vir_expr!{ [lookup_pure_call] == [vir::Expr::snap_app(encoded_operand)]},
-                        }),
+                        vir::Stmt::inhale(
+                            vir_expr!{ [lookup_pure_call] == [vir::Expr::snap_app(encoded_operand)]},
+                            vir::Position::default()
+                        ),
                     );
                 }
             }
@@ -6821,9 +6846,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             position: vir::Position::default(),
         }));
 
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [ lookup_pure_call ] == [ snap_lookup_res_val_field ] }
-        }));
+        stmts.push(vir::Stmt::inhale(
+            vir_expr!{ [ lookup_pure_call ] == [ snap_lookup_res_val_field ] },
+            vir::Position::default(),
+        ));
         Ok((lookup_res, stmts))
     }
 
@@ -6877,9 +6903,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             idx_val_int.clone(),
             lookup_ret_ty.clone(),
         );
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [ old(lookup_pure_call) ] == [ snap_res_val_field ] }
-        }));
+        stmts.push(vir::Stmt::inhale(
+            vir_expr!{ [ old(lookup_pure_call) ] == [ snap_res_val_field ] },
+            vir::Position::default(),
+        ));
 
         // inhale magic wand
         //
@@ -6961,8 +6988,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
+    pub fn register_error<T: Into<MultiSpan> + Debug>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
         self.mir_encoder.register_error(span, error_ctxt)
+    }
+
+    pub fn register_span<T: Into<MultiSpan> + Debug>(&self, span: T) -> vir::Position {
+        self.mir_encoder.register_span(span)
     }
 }
 
