@@ -221,8 +221,7 @@ impl PrustiTokenStream {
                     PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op)) => Ok(op.to_tokens(span)),
                     _ => err(token.span(), "unexpected Prusti syntax"),
                 })
-                .collect::<Result<Vec<_>, _>>()?
-                .into_iter(),
+                .collect::<Result<Vec<_>, _>>()?,
         ))
     }
 

@@ -7,6 +7,7 @@
 //! This module defines the interface provided to a verifier.
 
 use prusti_rustc_interface::middle::ty::{self, TyCtxt};
+use rustc_middle::ty::GenericArgsRef;
 
 pub mod body;
 pub mod borrowck;
@@ -45,7 +46,6 @@ use self::{
     collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
 };
 use crate::data::ProcedureDefId;
-use rustc_middle::ty::SubstsRef;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'tcx> {
@@ -139,7 +139,7 @@ impl<'tcx> Environment<'tcx> {
         &self,
         caller_def_id: ProcedureDefId,
         called_def_id: ProcedureDefId,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
     ) -> bool {
         if called_def_id == caller_def_id {
             true

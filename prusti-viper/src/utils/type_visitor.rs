@@ -7,7 +7,7 @@
 use prusti_rustc_interface::hir::Mutability;
 use prusti_rustc_interface::middle::ty::{
     AdtDef, FieldDef, List, ParamTy, Region, AliasKind, AliasTy, Ty, TyCtxt,
-    TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
+    TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, GenericArgsRef, Const
 };
 use prusti_rustc_interface::hir::def_id::DefId;
 
@@ -126,7 +126,7 @@ pub trait TypeVisitor<'tcx>: Sized {
     fn visit_adt(
         &mut self,
         adt_def: AdtDef<'tcx>,
-        substs: SubstsRef<'tcx>
+        substs: GenericArgsRef<'tcx>
     ) -> Result<(), Self::Error> {
         walk_adt(self, adt_def, substs)
     }
@@ -137,7 +137,7 @@ pub trait TypeVisitor<'tcx>: Sized {
         adt: AdtDef<'tcx>,
         idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: &VariantDef,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     )  -> Result<(), Self::Error> {
         walk_adt_variant(self, variant, substs)
     }
@@ -147,7 +147,7 @@ pub trait TypeVisitor<'tcx>: Sized {
         &mut self,
         index: usize,
         field: &FieldDef,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> Result<(), Self::Error> {
         walk_field(self, field, substs)
     }
@@ -193,7 +193,7 @@ pub trait TypeVisitor<'tcx>: Sized {
     fn visit_closure(
         &mut self,
         def_id: DefId,
-        substs: SubstsRef<'tcx>
+        substs: GenericArgsRef<'tcx>
     ) -> Result<(), Self::Error> {
         walk_closure(self, def_id, substs)
     }
@@ -202,7 +202,7 @@ pub trait TypeVisitor<'tcx>: Sized {
     fn visit_fndef(
         &mut self,
         def_id: DefId,
-        substs: SubstsRef<'tcx>
+        substs: GenericArgsRef<'tcx>
     ) -> Result<(), Self::Error> {
         walk_fndef(self, def_id, substs)
     }
@@ -220,7 +220,7 @@ pub trait TypeVisitor<'tcx>: Sized {
 pub fn walk_adt<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
     adt_def: AdtDef<'tcx>,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> Result<(), E> {
     for (idx, variant) in adt_def.variants().iter_enumerated() {
         visitor.visit_adt_variant(adt_def, idx, variant, substs)?;
@@ -231,7 +231,7 @@ pub fn walk_adt<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 pub fn walk_adt_variant<'a, 'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
     variant: &VariantDef,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> Result<(), E> {
     for (index, field) in variant.fields.iter().enumerate() {
         visitor.visit_field(index, field, substs)?;
@@ -242,7 +242,7 @@ pub fn walk_adt_variant<'a, 'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 pub fn walk_field<'a, 'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
     field: &FieldDef,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> Result<(), E> {
     let ty = field.ty(visitor.tcx(), substs);
     visitor.visit_ty(ty)
@@ -286,7 +286,7 @@ pub fn walk_raw_ptr<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
     _def_id: DefId,
-    substs: SubstsRef<'tcx>
+    substs: GenericArgsRef<'tcx>
 ) -> Result<(), E> {
     let cl_substs = substs.as_closure();
     // TODO: when are there bound typevars? can type visitor deal with generics?
@@ -303,7 +303,7 @@ pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 pub fn walk_fndef<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
     _def_id: DefId,
-    substs: SubstsRef<'tcx>
+    substs: GenericArgsRef<'tcx>
 ) -> Result<(), E> {
     for ty in substs.types() {
         visitor.visit_ty(ty)?;

@@ -95,6 +95,7 @@ impl fmt::Display for PermAmount {
     }
 }
 
+#[allow(clippy::incorrect_partial_ord_impl_on_ord_type)]
 impl PartialOrd for PermAmount {
     fn partial_cmp(&self, other: &PermAmount) -> Option<Ordering> {
         match (self, other) {

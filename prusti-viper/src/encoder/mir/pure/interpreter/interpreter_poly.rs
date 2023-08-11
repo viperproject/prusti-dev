@@ -1160,8 +1160,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
-                    | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
                         let (encoded_place, _, _) = self.encode_place(place).with_span(span)?;
                         // TODO: Instead of generating an `AddrOf(..)` expression, here we could
@@ -1211,7 +1210,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, lhs_ref_ty) => {
+                    mir::Rvalue::Cast(mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize), ref operand, lhs_ref_ty) => {
                         let rhs_ref_ty = self.mir_encoder.get_operand_ty(operand);
                         if lhs_ref_ty.is_slice_ref() && rhs_ref_ty.is_array_ref() {
                             let lhs_ty = lhs_ref_ty.peel_refs();

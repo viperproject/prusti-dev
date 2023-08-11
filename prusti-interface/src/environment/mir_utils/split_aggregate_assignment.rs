@@ -50,7 +50,7 @@ impl<'tcx> SplitAggregateAssignment<'tcx> for mir::Statement<'tcx> {
                 let items_ty = mir.local_decls[local].ty.tuple_items().unwrap();
                 operands
                     .into_iter()
-                    .zip(items_ty.into_iter())
+                    .zip(items_ty)
                     .enumerate()
                     .map(|(i, (rhs, ty))| {
                         let field = FieldIdx::from_usize(i);
@@ -63,7 +63,7 @@ impl<'tcx> SplitAggregateAssignment<'tcx> for mir::Statement<'tcx> {
             mir::Rvalue::Use(_) | mir::Rvalue::Ref(_, _, _) => vec![(lhs, rhs)],
             // slice creation is ok
             mir::Rvalue::Cast(
-                mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize),
+                mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize),
                 _,
                 cast_ty,
             ) if cast_ty.is_slice_ref() => vec![(lhs, rhs)],

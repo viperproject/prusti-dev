@@ -2,7 +2,7 @@ use crate::encoder::{
     errors::EncodingResult, high::lower::IntoPolymorphic,
     mir::generics::MirGenericsEncoderInterface,
 };
-use prusti_rustc_interface::{hir::def_id::DefId, middle::ty::subst::SubstsRef};
+use prusti_rustc_interface::{hir::def_id::DefId, middle::ty::GenericArgsRef};
 use vir_crate::polymorphic as vir_poly;
 
 pub(crate) trait HighGenericsEncoderInterface<'tcx> {
@@ -10,7 +10,7 @@ pub(crate) trait HighGenericsEncoderInterface<'tcx> {
     fn encode_generic_arguments(
         &self,
         def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_poly::Type>>;
 }
 
@@ -22,7 +22,7 @@ impl<'v, 'tcx: 'v> HighGenericsEncoderInterface<'tcx> for super::super::super::E
     fn encode_generic_arguments(
         &self,
         def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_poly::Type>> {
         let type_arguments = self.encode_generic_arguments_high(def_id, substs)?;
         Ok(type_arguments.lower(self))

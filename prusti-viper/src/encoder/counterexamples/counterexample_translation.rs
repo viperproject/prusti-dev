@@ -419,7 +419,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         variant: &ty::VariantDef,
         sil_entry: Option<&ModelEntry>,
         vir_name: String,
-        subst: ty::subst::SubstsRef<'tcx>,
+        subst: ty::GenericArgsRef<'tcx>,
         silicon_ce_entries: &FxHashMap<String, ModelEntry>,
     ) -> Vec<(String, Entry)> {
         let mut field_entries = vec![];
@@ -716,7 +716,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         variant: &ty::VariantDef,
         snapshot_var: Option<&ModelEntry>,
         encoded_typ: String,
-        subst: ty::subst::SubstsRef<'tcx>,
+        subst: ty::GenericArgsRef<'tcx>,
     ) -> Vec<(String, Entry)> {
         match snapshot_var {
             Some(ModelEntry::DomainValue(domain, _)) => {

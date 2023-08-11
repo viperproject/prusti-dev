@@ -44,15 +44,13 @@ pub enum PrustiErrorKind {
 
 impl PartialOrd for PrustiError {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.span
-            .primary_span()
-            .partial_cmp(&other.span.primary_span())
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for PrustiError {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
+        self.span.primary_span().cmp(&other.span.primary_span())
     }
 }
 

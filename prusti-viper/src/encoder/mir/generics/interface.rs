@@ -2,7 +2,7 @@ use crate::encoder::{errors::EncodingResult, mir::types::MirTypeEncoderInterface
 
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::ty::{self, subst::SubstsRef},
+    middle::ty::{self, GenericArgsRef},
     span::symbol::Symbol,
 };
 use vir_crate::high::{self as vir_high};
@@ -20,7 +20,7 @@ pub(crate) trait MirGenericsEncoderInterface<'tcx> {
     fn encode_generic_arguments_high(
         &self,
         def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_high::ty::Type>>;
     fn encode_param(&self, name: Symbol, index: u32) -> vir_high::ty::TypeVar;
 }
@@ -46,14 +46,14 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
     fn encode_generic_arguments_high(
         &self,
         def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_high::ty::Type>> {
         assert_eq!(substs.len(), self.env().query.identity_substs(def_id).len());
         Ok(substs
             .iter()
             // TODO(tymap): ignoring const params and lifetimes for now
             .filter_map(|generic| match generic.unpack() {
-                ty::subst::GenericArgKind::Type(ty) => Some(ty),
+                ty::GenericArgKind::Type(ty) => Some(ty),
                 _ => None,
             })
             .map(|ty| self.encode_type_high(ty))

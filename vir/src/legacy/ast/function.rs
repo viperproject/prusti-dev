@@ -47,12 +47,7 @@ impl fmt::Display for Function {
 
 impl Function {
     pub fn inline_body(&self, args: Vec<Expr>) -> Expr {
-        let subst: FxHashMap<LocalVar, Expr> = self
-            .formal_args
-            .iter()
-            .cloned()
-            .zip(args.into_iter())
-            .collect();
+        let subst: FxHashMap<LocalVar, Expr> = self.formal_args.iter().cloned().zip(args).collect();
         // TODO: this does not handle let expressions, quantifiers, and so on
         self.body.clone().unwrap().fold_expr(|orig_expr| {
             if let Expr::Local(ref local, ref _pos) = orig_expr {
