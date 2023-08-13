@@ -959,21 +959,30 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream, is_structural: bool) ->
         }
     };
 
-    // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
-    #[allow(clippy::redundant_clone)]
-    let generics = item.generics.clone();
+    let generics = &item.generics;
 
-    let generics_idents = generics
-        .params
-        .iter()
-        .filter_map(|generic_param| match generic_param {
-            syn::GenericParam::Type(type_param) => Some(type_param.ident.clone()),
-            _ => None,
-        })
-        .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
+    let mut generic_params = generics.params.clone();
+    for param in &mut generic_params {
+        match param {
+            syn::GenericParam::Type(param) => {
+                param.attrs = Vec::new();
+                param.colon_token = None;
+                param.bounds = syn::punctuated::Punctuated::new();
+                param.eq_token = None;
+                param.default = None;
+            }
+            syn::GenericParam::Lifetime(param) => {
+                param.attrs = Vec::new();
+                param.colon_token = None;
+                param.bounds = syn::punctuated::Punctuated::new();
+            }
+            syn::GenericParam::Const(_) => {}
+        }
+    }
+
     // TODO: similarly to extern_specs, don't generate an actual impl
     let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
-        impl #generics #item_ident < #generics_idents > {
+        impl #generics #item_ident < #generic_params > {
             #spec_item
         }
     };

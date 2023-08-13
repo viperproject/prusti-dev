@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use super::permission::{Blocked, Permission};
 use crate::encoder::{
     errors::SpannedEncodingResult, high::to_typed::types::HighToTypedTypeEncoderInterface, Encoder,
@@ -773,11 +774,20 @@ impl CollectPermissionChanges for vir_typed::SetUnionVariant {
 
 fn add_struct_expansion(
     place: &vir_typed::Expression,
-    fields: Vec<vir_typed::FieldDecl>,
+    struct_decl: vir_typed::ast::type_decl::Struct,
     permissions: &mut Vec<Permission>,
 ) {
     let position = place.position();
-    for field in fields {
+    let ty = place.get_type();
+    let ty_lifetimes = ty.get_lifetimes_top_level_only();
+    assert_eq!(ty_lifetimes.len(), struct_decl.lifetimes.len());
+    let lifetime_replacement_map: BTreeMap<_, _> = ty_lifetimes
+        .iter()
+        .zip(struct_decl.lifetimes.into_iter())
+        .map(|(ty_lifetime, struct_lifetime)| (struct_lifetime, ty_lifetime.clone()))
+        .collect();
+    for mut field in struct_decl.fields {
+        field.ty = field.ty.replace_lifetimes(&lifetime_replacement_map);
         permissions.push(Permission::Owned(vir_typed::Expression::field(
             place.clone(),
             field,
@@ -801,7 +811,7 @@ impl CollectPermissionChanges for vir_typed::Pack {
                 vir_typed::TypeDecl::Struct(decl) => {
                     // if decl.is_manually_managed_type() {
                     produced_permissions.push(Permission::Owned(self.place.clone()));
-                    add_struct_expansion(&self.place, decl.fields, consumed_permissions);
+                    add_struct_expansion(&self.place, decl, consumed_permissions);
                     // } else {
                     //     produced_permissions.push(Permission::Owned(self.place.clone()));
                     //     add_struct_expansion(&self.place, decl.fields, consumed_permissions);
@@ -857,14 +867,15 @@ impl CollectPermissionChanges for vir_typed::Unpack {
         if self.place.is_behind_pointer_dereference() {
             consumed_permissions.push(Permission::Owned(self.place.clone()));
         } else {
+            eprintln!("Unpack: {}", self);
             let type_decl = encoder.encode_type_def_typed(self.place.get_type())?;
             if let vir_typed::TypeDecl::Struct(decl) = type_decl {
                 if decl.is_manually_managed_type() {
                     consumed_permissions.push(Permission::Owned(self.place.clone()));
-                    add_struct_expansion(&self.place, decl.fields, produced_permissions);
+                    add_struct_expansion(&self.place, decl, produced_permissions);
                 } else {
                     consumed_permissions.push(Permission::Owned(self.place.clone()));
-                    add_struct_expansion(&self.place, decl.fields, produced_permissions);
+                    add_struct_expansion(&self.place, decl, produced_permissions);
                     // unimplemented!(
                     //     "Unpacking an automatically managed type: {}\n{}",
                     //     self.place,

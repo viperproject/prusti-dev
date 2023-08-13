@@ -1,10 +1,10 @@
-use std::collections::BTreeMap;
 use crate::encoder::{
     errors::{SpannedEncodingError, SpannedEncodingResult},
     Encoder,
 };
 use prusti_interface::{data::ProcedureDefId, environment::debug_utils::to_text::ToText};
 use prusti_rustc_interface::{middle::ty, span::Span};
+use std::collections::BTreeMap;
 use vir_crate::{
     common::{expression::SyntacticEvaluation, position::Positioned},
     high::{
@@ -80,6 +80,21 @@ struct Cleaner<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     lifetime_remap: BTreeMap<String, vir_high::ty::LifetimeConst>,
     span: Span,
+}
+
+impl<'p, 'v: 'p, 'tcx: 'v> Cleaner<'p, 'v, 'tcx> {
+    fn lifetime_name_to_lifetime_const(
+        &self,
+        lifetime: vir_high::Expression,
+    ) -> vir_high::ty::LifetimeConst {
+        let vir_high::Expression::Constant(vir_high::Constant {
+        value: vir_high::expression::ConstantValue::String(lifetime),
+        ..
+    }) = lifetime else {
+        unreachable!("lifetime: {lifetime:?}")
+    };
+        self.lifetime_remap.get(&lifetime).unwrap().clone()
+    }
 }
 
 fn peel_addr_of(place: vir_high::Expression) -> vir_high::Expression {
@@ -270,17 +285,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Cleaner<'p, 'v, 'tcx> {
             }
             vir_high::BuiltinFunc::BuildingUniqueRefPredicateWithRealLifetime => {
                 let place = peel_addr_of(builtin_func_app.arguments.pop().unwrap());
-                let lifetime = builtin_func_app.arguments.pop().unwrap();
-                let vir_high::Expression::Constant(vir_high::Constant {
-                    value: vir_high::expression::ConstantValue::String(lifetime),
-                    ..
-                }) = lifetime else {
-                    unreachable!("lifetime: {lifetime:?}")
-                };
-                let lifetime = self.lifetime_remap.get(&lifetime).unwrap().clone();
+                let lifetime =
+                    self.lifetime_name_to_lifetime_const(builtin_func_app.arguments.pop().unwrap());
                 let position = builtin_func_app.position;
                 let predicate = vir_high::Expression::acc_predicate(
                     vir_high::Predicate::unique_ref(lifetime, place, position),
+                    position,
+                );
+                return Ok(predicate);
+            }
+            vir_high::BuiltinFunc::BuildingUniqueRefPredicateRangeWithRealLifetime => {
+                let end_index = builtin_func_app.arguments.pop().unwrap();
+                let start_index = builtin_func_app.arguments.pop().unwrap();
+                let address = builtin_func_app.arguments.pop().unwrap();
+                let lifetime =
+                    self.lifetime_name_to_lifetime_const(builtin_func_app.arguments.pop().unwrap());
+                let position = builtin_func_app.position;
+                let predicate = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::unique_ref_range(
+                        lifetime,
+                        address,
+                        start_index,
+                        end_index,
+                        position,
+                    ),
                     position,
                 );
                 return Ok(predicate);

@@ -309,6 +309,8 @@ pub enum BuiltinFunc {
     /// A function represents UniqueRef with its arguments not yet properly typed. This
     /// version uses the real lifetime like `'a` instead of a lifetime identifier.
     BuildingUniqueRefPredicateWithRealLifetime,
+    /// Same as `BuildingUniqueRefPredicateWithRealLifetime`, but for QPs.
+    BuildingUniqueRefPredicateRangeWithRealLifetime,
     /// A function represents FracRef with its arguments not yet properly typed.
     BuildingFracRefPredicate,
     /// A function that signales whether allocation can fail.

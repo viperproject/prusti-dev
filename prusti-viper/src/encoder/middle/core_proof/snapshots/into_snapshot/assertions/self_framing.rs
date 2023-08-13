@@ -277,59 +277,83 @@ impl SelfFramingAssertionToSnapshot {
         ty: &vir_mid::Type,
         place: vir_low::Expression,
         address: vir_low::Expression,
+        used_predicate_kind: PredicateKind,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.created_predicate_types.push(ty.clone());
-        match &self.predicate_kind {
-            PredicateKind::Owned => lowerer.owned_non_aliased(
-                self.call_context(),
-                ty,
-                ty,
-                place,
-                address,
-                None,
-                position,
-            ),
-            PredicateKind::FracRef { lifetime } => {
-                let TODO_target_slice_len = None;
-                lowerer.frac_ref(
+        match used_predicate_kind {
+            PredicateKind::Owned => match &self.predicate_kind {
+                PredicateKind::Owned => lowerer.owned_non_aliased(
                     self.call_context(),
                     ty,
                     ty,
                     place,
                     address,
-                    lifetime.clone(),
-                    TODO_target_slice_len,
                     None,
                     position,
-                )
-            }
-            PredicateKind::UniqueRef { lifetime, is_final } => {
-                assert!(!is_final);
-                let TODO_target_slice_len = None;
-                // let _final_snapshot = lowerer.unique_ref_snap(
-                //     self.call_context(),
-                //     ty,
-                //     ty,
-                //     place.clone(),
-                //     address.clone(),
-                //     lifetime.clone(),
-                //     TODO_target_slice_len.clone(),
-                //     true,
-                //     position,
-                // )?;
-                lowerer.unique_ref(
-                    self.call_context(),
-                    ty,
-                    ty,
-                    place,
-                    address,
-                    lifetime.clone(),
-                    TODO_target_slice_len,
-                    None,
-                    position,
-                )
-            }
+                ),
+                PredicateKind::FracRef { lifetime } => {
+                    let TODO_target_slice_len = None;
+                    lowerer.frac_ref(
+                        self.call_context(),
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.clone(),
+                        TODO_target_slice_len,
+                        None,
+                        position,
+                    )
+                }
+                PredicateKind::UniqueRef { lifetime, is_final } => {
+                    assert!(!is_final);
+                    let TODO_target_slice_len = None;
+                    lowerer.unique_ref(
+                        self.call_context(),
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.clone(),
+                        TODO_target_slice_len,
+                        None,
+                        position,
+                    )
+                }
+            },
+            PredicateKind::FracRef { lifetime } => todo!(),
+            PredicateKind::UniqueRef { lifetime, is_final } => match &self.predicate_kind {
+                PredicateKind::UniqueRef { .. } | PredicateKind::Owned => {
+                    assert!(!is_final);
+                    let TODO_target_slice_len = None;
+                    lowerer.unique_ref(
+                        self.call_context(),
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.clone(),
+                        TODO_target_slice_len,
+                        None,
+                        position,
+                    )
+                }
+                PredicateKind::FracRef { lifetime } => {
+                    let TODO_target_slice_len = None;
+                    lowerer.frac_ref(
+                        self.call_context(),
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.clone(),
+                        TODO_target_slice_len,
+                        None,
+                        position,
+                    )
+                }
+            },
         }
     }
 
@@ -682,6 +706,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                     ty,
                     place.clone(),
                     address.clone(),
+                    PredicateKind::Owned,
                     predicate.position,
                 )?;
                 let snap_call =
@@ -724,17 +749,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 // )?
             }
             vir_mid::Predicate::UniqueRef(predicate) => {
-                let lifetime = lowerer
-                    .encode_lifetime_const_into_procedure_variable(predicate.lifetime.clone())?
-                    .into();
-                let old_predicate_kind = std::mem::replace(
-                    &mut self.predicate_kind,
-                    PredicateKind::UniqueRef {
-                        lifetime,
-                        is_final: false,
-                    },
-                );
-                assert_eq!(old_predicate_kind, PredicateKind::Owned);
+                let lifetime =
+                    self.encode_lifetime_in_self_context(lowerer, predicate.lifetime.clone())?;
                 let ty = predicate.place.get_type();
                 let place = lowerer.encode_expression_as_place(&predicate.place)?;
                 let address = self.pointer_deref_into_address(lowerer, &predicate.place)?;
@@ -743,13 +759,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                     ty,
                     place.clone(),
                     address.clone(),
+                    PredicateKind::UniqueRef {
+                        lifetime,
+                        is_final: false,
+                    },
                     predicate.position,
                 )?;
+                // self.predicate_kind = old_predicate_kind;
                 let snap_call =
                     self.snap_call(lowerer, ty, place, address, predicate.place.position())?;
                 self.maybe_store_snap_call(lowerer, &predicate.place, &snap_call)?;
                 self.snap_calls.push((predicate.place.clone(), snap_call));
-                self.predicate_kind = old_predicate_kind;
+                acc
+            }
+            vir_mid::Predicate::UniqueRefRange(predicate) => {
+                let ty = predicate.address.get_type();
+                let lifetime =
+                    self.encode_lifetime_in_self_context(lowerer, predicate.lifetime.clone())?;
+                let address = self.expression_to_snapshot(lowerer, &predicate.address, true)?;
+                let start_index =
+                    self.expression_to_snapshot(lowerer, &predicate.start_index, true)?;
+                let end_index = self.expression_to_snapshot(lowerer, &predicate.end_index, true)?;
+                self.range_snap_calls
+                    .push((address.clone(), (ty.clone(), predicate.position)));
+                self.maybe_store_range_snap_call(lowerer, &address, ty, predicate.position)?;
+                let vir_mid::Type::Pointer(pointer_type) = ty else {
+                    unreachable!();
+                };
+                self.created_predicate_types
+                    .push((*pointer_type.target_type).clone());
+                let used_predicate_kind = unimplemented!();
+                let acc = self.predicate_range(
+                    lowerer,
+                    ty,
+                    address,
+                    start_index,
+                    end_index,
+                    predicate.position,
+                )?;
                 acc
             }
             vir_mid::Predicate::MemoryBlockHeap(predicate) => {

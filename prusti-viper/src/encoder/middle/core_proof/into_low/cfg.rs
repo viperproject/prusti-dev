@@ -1499,6 +1499,8 @@ impl IntoLow for vir_mid::Statement {
                 let current_snapshot =
                     place_encoder.expression_to_snapshot(lowerer, &statement.place, true)?;
                 arguments.push(current_snapshot);
+                arguments.extend(lowerer.create_lifetime_arguments(CallContext::Procedure, ty)?);
+                arguments.extend(lowerer.create_const_arguments(CallContext::Procedure, ty)?);
                 // }
                 Ok(vec![Statement::method_call(
                     method_name!(frac_bor_atomic_acc<ty>),
@@ -1546,16 +1548,22 @@ impl IntoLow for vir_mid::Statement {
                 //     None,
                 //     statement.position,
                 // )?;
-                let statements = vec![stmtp! { statement.position =>
-                    call close_frac_ref<ty>(
-                        lifetime,
-                        [perm_amount],
-                        [place],
-                        [address],
-                        [current_snapshot],
-                        tmp_frac_ref_perm
-                    )
-                }];
+                let mut arguments = vec![
+                    lifetime.clone().into(),
+                    perm_amount,
+                    place,
+                    address,
+                    current_snapshot,
+                    tmp_frac_ref_perm.clone().into(),
+                ];
+                arguments.extend(lowerer.create_lifetime_arguments(CallContext::Procedure, ty)?);
+                arguments.extend(lowerer.create_const_arguments(CallContext::Procedure, ty)?);
+                let statements = vec![Statement::method_call(
+                    method_name!(close_frac_ref<ty>),
+                    arguments,
+                    Vec::new(),
+                    statement.position,
+                )];
                 Ok(statements)
                 // Ok(vec![stmtp! {
                 //     statement.position =>

@@ -872,6 +872,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 subst_with(encoded_rhs)
             }
+            "prusti_contracts::prusti_unq_real_lifetime_range" => {
+                assert_eq!(encoded_args.len(), 4);
+                let lifetime = encoded_args[0].clone();
+                let address = encoded_args[1].clone();
+                let start = encoded_args[2].clone();
+                let end = encoded_args[3].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::BuildingUniqueRefPredicateRangeWithRealLifetime,
+                    Vec::new(),
+                    vec![lifetime, address, start, end],
+                    vir_high::Type::Bool,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
             "prusti_contracts::prusti_shr" => {
                 assert_eq!(encoded_args.len(), 2);
                 let lifetime = encoded_args[0].clone();

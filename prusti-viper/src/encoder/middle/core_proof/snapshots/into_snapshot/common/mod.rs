@@ -1213,7 +1213,8 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             BuiltinFunc::BuildingUniqueRefPredicate => {
                 unreachable!("UniqueRef should have been already built.")
             }
-            BuiltinFunc::BuildingUniqueRefPredicateWithRealLifetime => {
+            BuiltinFunc::BuildingUniqueRefPredicateWithRealLifetime
+            | BuiltinFunc::BuildingUniqueRefPredicateRangeWithRealLifetime => {
                 unreachable!("UniqueRef should have been already built.")
             }
             BuiltinFunc::BuildingFracRefPredicate => {
@@ -1310,6 +1311,24 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
     // ) -> SpannedEncodingResult<vir_low::Expression>;
 
     fn call_context(&self) -> CallContext;
+
+    fn encode_lifetime_in_self_context(
+        &self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        lifetime: vir_mid::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let encoded_lifetime = match self.call_context() {
+            CallContext::BuiltinMethod => {
+                crate::encoder::middle::core_proof::snapshots::IntoPureSnapshot::to_pure_snapshot(
+                    &lifetime, lowerer,
+                )?
+            }
+            CallContext::Procedure => {
+                lowerer.encode_lifetime_const_into_procedure_variable(lifetime)?
+            }
+        };
+        Ok(encoded_lifetime.into())
+    }
 
     fn unfolding_to_snapshot_with_body(
         &mut self,
