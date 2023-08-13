@@ -35,7 +35,7 @@ pub(in super::super::super::super) struct AssertionToSnapshotConstructor<'a> {
     /// Mapping from deref range fields to their positions in the arguments' list.
     deref_range_fields: BTreeMap<usize, vir_mid::Expression>,
     /// Which places are framed on the path being explored.
-    framed_places: Vec<vir_mid::Expression>,
+    framed_places: Vec<FramingPredicate>,
     /// Which addresses are framed on the path being explored.
     ///
     /// The tuple is `(address, start_index, end_index)`.
@@ -74,6 +74,12 @@ fn deref_fields_into_maps(
         })
         .collect();
     (deref_fields, deref_range_fields)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum FramingPredicate {
+    Owned(vir_mid::ast::predicate::OwnedNonAliased),
+    UniqueRef(vir_mid::ast::predicate::UniqueRef),
 }
 
 impl<'a> AssertionToSnapshotConstructor<'a> {
@@ -147,6 +153,13 @@ impl<'a> AssertionToSnapshotConstructor<'a> {
         }
     }
 
+    fn framed_place_contains(&self, place: &vir_mid::Expression) -> Option<&FramingPredicate> {
+        self.framed_places.iter().find(|predicate| match predicate {
+            FramingPredicate::Owned(owned) => owned.place == *place,
+            FramingPredicate::UniqueRef(unique_ref) => unique_ref.place == *place,
+        })
+    }
+
     // FIXME: Code duplication.
     fn snap_call<'p, 'v, 'tcx>(
         &mut self,
@@ -154,44 +167,78 @@ impl<'a> AssertionToSnapshotConstructor<'a> {
         ty: &vir_mid::Type,
         place: vir_low::Expression,
         address: vir_low::Expression,
+        framing_predicate: &FramingPredicate,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        match &self.predicate_kind {
-            PredicateKind::Owned => lowerer.owned_non_aliased_snap(
-                CallContext::BuiltinMethod,
-                ty,
-                ty,
-                place,
-                address,
-                position,
-            ),
-            PredicateKind::FracRef { lifetime } => {
-                let TODO_target_slice_len = None;
-                lowerer.frac_ref_snap(
+        match framing_predicate {
+            FramingPredicate::Owned(_) => match &self.predicate_kind {
+                PredicateKind::Owned => lowerer.owned_non_aliased_snap(
                     CallContext::BuiltinMethod,
                     ty,
                     ty,
                     place,
                     address,
-                    lifetime.clone(),
-                    TODO_target_slice_len,
                     position,
-                )
-            }
-            PredicateKind::UniqueRef { lifetime, is_final } => {
-                let TODO_target_slice_len = None;
-                lowerer.unique_ref_snap(
-                    CallContext::BuiltinMethod,
-                    ty,
-                    ty,
-                    place,
-                    address,
-                    lifetime.clone(),
-                    TODO_target_slice_len,
-                    *is_final,
-                    position,
-                )
-            }
+                ),
+                PredicateKind::FracRef { lifetime } => {
+                    let TODO_target_slice_len = None;
+                    lowerer.frac_ref_snap(
+                        CallContext::BuiltinMethod,
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.clone(),
+                        TODO_target_slice_len,
+                        position,
+                    )
+                }
+                PredicateKind::UniqueRef { lifetime, is_final } => {
+                    let TODO_target_slice_len = None;
+                    lowerer.unique_ref_snap(
+                        CallContext::BuiltinMethod,
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.clone(),
+                        TODO_target_slice_len,
+                        *is_final,
+                        position,
+                    )
+                }
+            },
+            FramingPredicate::UniqueRef(predicate) => match &self.predicate_kind {
+                PredicateKind::Owned | PredicateKind::UniqueRef { .. } => {
+                    let TODO_target_slice_len = None;
+                    let lifetime =
+                        self.encode_lifetime_in_self_context(lowerer, predicate.lifetime.clone())?;
+                    lowerer.unique_ref_snap(
+                        CallContext::BuiltinMethod,
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime,
+                        TODO_target_slice_len,
+                        false,
+                        position,
+                    )
+                }
+                PredicateKind::FracRef { lifetime } => {
+                    let TODO_target_slice_len = None;
+                    lowerer.frac_ref_snap(
+                        CallContext::BuiltinMethod,
+                        ty,
+                        ty,
+                        place,
+                        address,
+                        lifetime.clone(),
+                        TODO_target_slice_len,
+                        position,
+                    )
+                }
+            },
         }
     }
 
@@ -280,24 +327,33 @@ impl<'a> AssertionToSnapshotConstructor<'a> {
         let mut arguments = self.regular_field_arguments.clone();
         for deref_field in self.deref_fields.clone().values() {
             let ty = deref_field.get_type();
-            let deref_field_snapshot = if self.framed_places.contains(deref_field) {
-                // The place is framed, generate the snap call.
-                let place = lowerer.encode_expression_as_place(deref_field)?;
-                // Note: we cannot use `encode_expression_as_place_address` here
-                // because that method can be used only inside procedure with
-                // SSA addresses. Therefore, we need to compute the address
-                // ourselves.
-                let address = self.compute_deref_address(lowerer, deref_field)?;
-                let snap_call = self.snap_call(lowerer, ty, place, address, self.position)?;
-                if self.is_in_old_state {
-                    vir_low::Expression::labelled_old(None, snap_call, self.position)
+            let deref_field_snapshot =
+                if let Some(framing_predicate) = self.framed_place_contains(deref_field) {
+                    let framing_predicate = (*framing_predicate).clone();
+                    // The place is framed, generate the snap call.
+                    let place = lowerer.encode_expression_as_place(deref_field)?;
+                    // Note: we cannot use `encode_expression_as_place_address` here
+                    // because that method can be used only inside procedure with
+                    // SSA addresses. Therefore, we need to compute the address
+                    // ourselves.
+                    let address = self.compute_deref_address(lowerer, deref_field)?;
+                    let snap_call = self.snap_call(
+                        lowerer,
+                        ty,
+                        place,
+                        address,
+                        &framing_predicate,
+                        self.position,
+                    )?;
+                    if self.is_in_old_state {
+                        vir_low::Expression::labelled_old(None, snap_call, self.position)
+                    } else {
+                        snap_call
+                    }
                 } else {
-                    snap_call
-                }
-            } else {
-                // The place is not framed. Create a dangling (null) snapshot.
-                self.generate_dangling_snapshot(lowerer, ty)?
-            };
+                    // The place is not framed. Create a dangling (null) snapshot.
+                    self.generate_dangling_snapshot(lowerer, ty)?
+                };
             arguments.push(deref_field_snapshot);
         }
         for deref_range_field in self.deref_range_fields.clone().values() {
@@ -474,7 +530,8 @@ impl<'a, 'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx>
                 // Do nothing.
             }
             vir_mid::Predicate::OwnedNonAliased(predicate) => {
-                self.framed_places.push(predicate.place.clone());
+                self.framed_places
+                    .push(FramingPredicate::Owned(predicate.clone()));
             }
             vir_mid::Predicate::OwnedRange(predicate) => {
                 self.framed_range_addresses.push((
@@ -484,8 +541,17 @@ impl<'a, 'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx>
                 ));
             }
             vir_mid::Predicate::OwnedSet(_) => todo!(),
-            vir_mid::Predicate::UniqueRef(_) => todo!(),
-            vir_mid::Predicate::UniqueRefRange(_) => todo!(),
+            vir_mid::Predicate::UniqueRef(predicate) => {
+                self.framed_places
+                    .push(FramingPredicate::UniqueRef(predicate.clone()));
+            }
+            vir_mid::Predicate::UniqueRefRange(predicate) => {
+                self.framed_range_addresses.push((
+                    predicate.address.clone(),
+                    predicate.start_index.clone(),
+                    predicate.end_index.clone(),
+                ));
+            }
             vir_mid::Predicate::FracRef(_) => todo!(),
             vir_mid::Predicate::FracRefRange(_) => todo!(),
         }
@@ -514,7 +580,7 @@ impl<'a, 'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx>
     }
 
     fn call_context(&self) -> CallContext {
-        todo!()
+        CallContext::BuiltinMethod
     }
 
     fn owned_non_aliased_snap(

@@ -151,6 +151,8 @@ impl PrustiTokenStream {
                     PrustiToken::Quantifier(ident.span(), Quantifier::Exists),
                 (TokenTree::Ident(ident), _, _, _) if ident == "raw_range" =>
                     PrustiToken::QuantifiedPermission(ident.span(), QuantifiedPermission::Raw),
+                (TokenTree::Ident(ident), _, _, _) if ident == "unq_range" =>
+                    PrustiToken::QuantifiedPermission(ident.span(), QuantifiedPermission::UniqueRef),
                 (TokenTree::Punct(punct), _, _, _)
                     if punct.as_char() == ',' && punct.spacing() == Alone =>
                     PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Comma)),
@@ -335,16 +337,14 @@ impl PrustiTokenStream {
                 let args = Self {
                     tokens,
                     source_span: self.source_span,
-                }
-                .parse()?;
+                };
                 if let Some(closure_args) = closure_args {
                     let triggers = stream.extract_triggers()?;
-                    eprintln!("triggers: {:?}", triggers);
                     let index = closure_args.parse()?;
                     let body = stream.parse()?;
-                    kind.translate_guarded_range(span, args, triggers, index, body)
+                    kind.translate_guarded_range(span, args, triggers, index, body)?
                 } else {
-                    kind.translate_usize_range(span, args)
+                    kind.translate_usize_range(span, args)?
                 }
             }
 
@@ -534,6 +534,23 @@ impl PrustiTokenStream {
             res.pop();
         }
         res
+    }
+
+    fn split_head(mut self, split_on: PrustiBinaryOp) -> syn::Result<(Self, Self)> {
+        if self.tokens.is_empty() {
+            return err(self.source_span, "no tokens");
+        }
+        let mut head = Self {
+            tokens: VecDeque::new(),
+            source_span: self.source_span,
+        };
+        while let Some(token) = self.tokens.pop_front() {
+            if matches!(token, PrustiToken::BinOp(_, t) if t == split_on) {
+                return Ok((head, self));
+            }
+            head.tokens.push_back(token);
+        }
+        err(self.source_span, "not enough tokens")
     }
 
     fn extract_triggers(&mut self) -> syn::Result<Vec<Vec<TokenStream>>> {
@@ -808,17 +825,18 @@ impl Quantifier {
 #[derive(Debug, Clone)]
 enum QuantifiedPermission {
     Raw,
+    UniqueRef,
 }
 
 impl QuantifiedPermission {
     fn translate_guarded_range(
         &self,
         span: Span,
-        arguments: TokenStream,
+        arguments: PrustiTokenStream,
         triggers: Vec<Vec<TokenStream>>,
         index: TokenStream,
         body: TokenStream,
-    ) -> TokenStream {
+    ) -> syn::Result<TokenStream> {
         let full_span = join_spans(span, body.span());
         let trigger_sets = triggers
             .into_iter()
@@ -833,23 +851,51 @@ impl QuantifiedPermission {
         let body = quote_spanned! { body.span() => ((#body): bool) };
         let tokens = match self {
             Self::Raw => {
+                let arguments = arguments.parse()?;
                 quote_spanned! { full_span => ::prusti_contracts::prusti_raw_range_guarded(
                     #arguments
                     ( #( #trigger_sets, )* ),
                     #[prusti::spec_only] | #index: usize | -> bool { #body }
                 ) }
             }
+            Self::UniqueRef => {
+                let (lifetime, tail) = arguments.split_head(PrustiBinaryOp::Rust(RustOp::Comma))?;
+                let lifetime = lifetime.parse()?;
+                let arguments = tail.parse()?;
+                // FIXME: This code is untested and missing the implementation.
+                quote_spanned! { full_span => ::prusti_contracts::prusti_unq_real_lifetime_range_guarded(
+                    stringify!(#lifetime),
+                    #arguments
+                    ( #( #trigger_sets, )* ),
+                    #[prusti::spec_only] | #index: usize | -> bool { #body }
+                ) }
+            }
         };
-        tokens
+        Ok(tokens)
     }
 
-    fn translate_usize_range(&self, span: Span, args: TokenStream) -> TokenStream {
-        let full_span = join_spans(span, args.span());
-        match self {
+    fn translate_usize_range(
+        &self,
+        span: Span,
+        arguments: PrustiTokenStream,
+    ) -> syn::Result<TokenStream> {
+        let full_span = join_spans(span, arguments.source_span);
+        let tokens = match self {
             Self::Raw => {
-                quote_spanned! { full_span => ::prusti_contracts::prusti_raw_range(#args) }
+                let arguments = arguments.parse()?;
+                quote_spanned! { full_span => ::prusti_contracts::prusti_raw_range(#arguments) }
             }
-        }
+            Self::UniqueRef => {
+                let (lifetime, tail) = arguments.split_head(PrustiBinaryOp::Rust(RustOp::Comma))?;
+                let lifetime = lifetime.parse()?;
+                let arguments = tail.parse()?;
+                quote_spanned! { full_span => ::prusti_contracts::prusti_unq_real_lifetime_range(
+                    stringify!(#lifetime),
+                    #arguments
+                ) }
+            }
+        };
+        Ok(tokens)
     }
 }
 

@@ -88,6 +88,38 @@ impl Type {
             _ => false,
         }
     }
+    /// Returns the lifetimes of the current type without recursing into its type parameters.
+    pub fn get_lifetimes_top_level_only(&self) -> &[LifetimeConst] {
+        match self {
+            Self::MBool => &[],
+            Self::MInt => &[],
+            Self::MFloat32 => &[],
+            Self::MFloat64 => &[],
+            Self::MPerm => &[],
+            Self::MByte => &[],
+            Self::MBytes => &[],
+            Self::Lifetime => &[],
+            Self::Bool => &[],
+            Self::Int(_) => &[],
+            Self::Sequence(ty) => &ty.lifetimes,
+            Self::Map(ty) => &ty.lifetimes,
+            Self::Float(_ty) => &[],
+            Self::TypeVar(_ty) => &[],
+            Self::Struct(ty) => &ty.lifetimes,
+            Self::Enum(ty) => &ty.lifetimes,
+            Self::Array(ty) => &ty.lifetimes,
+            Self::Slice(ty) => &ty.lifetimes,
+            Self::Reference(_ty) => &[],
+            Self::Pointer(_ty) => &[],
+            Self::FnPointer => &[],
+            Self::Str => &[],
+            Self::Closure(_ty) => &[],
+            Self::FunctionDef(_ty) => &[],
+            Self::Projection(ty) => &ty.lifetimes,
+            Self::Unsupported(_ty) => &[],
+            Self::Trusted(ty) => &ty.lifetimes,
+        }
+    }
     #[must_use]
     pub fn erase_lifetimes(&self) -> Self {
         struct DefaultLifetimeEraser {}

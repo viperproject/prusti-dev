@@ -883,6 +883,18 @@ macro_rules! unq {
     };
 }
 
+/// Indicates that we have the unique reference capability to the specified range.
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unq_real_lifetime_range<L, T>(
+    _lifetime: L,
+    _address: T,
+    _start: usize,
+    _end: usize,
+) -> bool {
+    unreachable!();
+}
+
 /// Deref a raw pointer with the specified offset.
 #[doc(hidden)]
 #[trusted]

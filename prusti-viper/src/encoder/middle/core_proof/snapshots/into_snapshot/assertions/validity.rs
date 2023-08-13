@@ -149,6 +149,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for ValidityAsserti
                 lowerer
                     .encode_snapshot_valid_call_for_type(address, predicate.address.get_type())?
             }
+            vir_mid::Predicate::UniqueRef(predicate) => {
+                self.framed_places.push(predicate.place.clone());
+                let place = self.expression_to_snapshot(lowerer, &predicate.place, false)?;
+                self.framed_places.pop();
+                lowerer.encode_snapshot_valid_call_for_type(place, predicate.place.get_type())?
+            }
+            vir_mid::Predicate::UniqueRefRange(predicate) => {
+                self.framed_range_addresses.push(predicate.address.clone());
+                let address = self.expression_to_snapshot(lowerer, &predicate.address, false)?;
+                self.framed_range_addresses.pop();
+                lowerer
+                    .encode_snapshot_valid_call_for_type(address, predicate.address.get_type())?
+            }
             vir_mid::Predicate::MemoryBlockHeap(_)
             | vir_mid::Predicate::MemoryBlockHeapRange(_)
             | vir_mid::Predicate::MemoryBlockHeapDrop(_) => true.into(),

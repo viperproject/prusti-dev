@@ -3022,7 +3022,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let frac_ref_access = self.frac_ref_full_vars_with_current_snapshot(
                 CallContext::BuiltinMethod,
                 ty,
-                ty,
+                &type_decl,
                 &place,
                 &address,
                 &current_snapshot,
@@ -3035,7 +3035,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 self.frac_ref_snap(
                     CallContext::BuiltinMethod,
                     ty,
-                    ty,
+                    &type_decl,
                     place.clone().into(),
                     address.clone().into(),
                     lifetime.clone().into(),
@@ -3062,13 +3062,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 Some(owned_perm.clone().into()),
                 position,
             )?;
-            let parameters = vec![
+            let mut parameters = vec![
                 lifetime.clone(),
                 lifetime_perm.clone(),
                 place.clone(),
                 address.clone(),
                 current_snapshot.clone(),
             ];
+            parameters.extend(self.create_lifetime_parameters(&type_decl)?);
+            parameters.extend(self.create_const_parameters(&type_decl)?);
             let close_frac_ref_predicate = expr! {
                 acc(CloseFracRef<ty>(
                     lifetime,
@@ -3124,18 +3126,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     None,
                 );
                 self.declare_predicate(close_frac_ref_predicate_decl)?;
+                let mut parameters = vec![
+                    lifetime.clone(),
+                    lifetime_perm,
+                    place.clone(),
+                    address.clone(),
+                    current_snapshot.clone(),
+                    owned_perm,
+                ];
+                parameters.extend(self.create_lifetime_parameters(&type_decl)?);
+                parameters.extend(self.create_const_parameters(&type_decl)?);
                 // Apply the viewshift encoded in the `CloseFracRef` predicate.
                 let close_method = vir_low::MethodDecl::new(
                     method_name! { close_frac_ref<ty> },
                     vir_low::MethodKind::MirOperation,
-                    vec![
-                        lifetime.clone(),
-                        lifetime_perm,
-                        place.clone(),
-                        address.clone(),
-                        current_snapshot.clone(),
-                        owned_perm,
-                    ],
+                    parameters,
                     Vec::new(),
                     vec![
                         lifetime_perm_bounds,
