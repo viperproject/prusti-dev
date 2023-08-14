@@ -21,13 +21,10 @@ fn fib(n: i32) -> i32 {
 #[ensures(result == match n {
     0 => 0,
     1 => 1,
-    _ => fib2(n - 1) + fib2(n - 2),
+    _ => fib2(n - 1) + fib2(n - 2), //~ ERROR: precondition of pure function call might not hold
 })]
 fn fib2(n: i32) -> i32 {
     //~^ ERROR: only trusted functions can call themselves in their contracts
-    //~^^ ERROR: Prusti encountered an unexpected internal error
-    //~| NOTE: We would appreciate a bug report
-    //~| NOTE: Rust function m_fib2 encoded both as a Viper method and function
     match n {
         0 => 0,
         1 => 1,

@@ -673,9 +673,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
+    /// To be used for encoding impure functions.
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         let full_name = format!("m_{}", encode_identifier(self.env.name.get_unique_item_name(def_id)));
         let short_name = format!("m_{}", encode_identifier(
+            self.env.name.get_item_name(def_id)
+        ));
+        self.intern_viper_identifier(full_name, short_name)
+    }
+
+    /// To be used for encoding pure functions.
+    pub fn encode_pure_item_name(&self, def_id: DefId) -> String {
+        let full_name = format!("f_{}", encode_identifier(self.env.name.get_unique_item_name(def_id)));
+        let short_name = format!("f_{}", encode_identifier(
             self.env.name.get_item_name(def_id)
         ));
         self.intern_viper_identifier(full_name, short_name)

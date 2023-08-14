@@ -84,7 +84,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     pub fn encode_function_name(&self) -> String {
         // TODO: It would be nice to somehow mark that this function is a stub
         // in the encoding.
-        self.encoder.encode_item_name(self.proc_def_id)
+        self.encoder.encode_pure_item_name(self.proc_def_id)
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
