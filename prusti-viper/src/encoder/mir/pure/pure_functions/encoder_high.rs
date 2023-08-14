@@ -235,7 +235,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_function_name(&self) -> String {
-        self.encoder.encode_item_name(self.proc_def_id)
+        self.encoder.encode_pure_item_name(self.proc_def_id)
     }
 
     #[tracing::instrument(level = "debug", skip_all, fields(proc_def_id = ?self.proc_def_id))]
