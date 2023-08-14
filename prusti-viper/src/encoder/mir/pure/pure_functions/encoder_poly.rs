@@ -590,7 +590,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function_name(&self) -> String {
-        self.encoder.encode_item_name(self.proc_def_id)
+        self.encoder.encode_pure_item_name(self.proc_def_id)
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {

@@ -235,6 +235,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_function_name(&self) -> String {
+        // FIXME: This should use encode_pure_item_name to support mutual recursion, but that
+        // change makes some tests fail.
         self.encoder.encode_item_name(self.proc_def_id)
     }
 

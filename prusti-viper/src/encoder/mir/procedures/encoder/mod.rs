@@ -1717,9 +1717,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 {
                     // If we are verifying a pure function, we always need
                     // to encode it as a method
-                    //
-                    // FIXME: This is not enough, we also need to handle
-                    // mutual-recursion case.
                     let (function_name, return_type) = self
                         .encoder
                         .encode_pure_function_use_high(called_def_id, self.def_id, call_substs)
