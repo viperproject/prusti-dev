@@ -1005,6 +1005,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             // Cannot add loop guard to loop invariant
             let fn_names: Vec<_> = preconds.iter().filter_map(|(name, _)| name.as_ref()).map(|name| {
+                if let Some(rust_name) = name.strip_prefix("f_") {
+                    return rust_name
+                };
                 name.strip_prefix("m_").unwrap_or(name)
             }).collect();
             let warning_msg = if fn_names.is_empty() {
