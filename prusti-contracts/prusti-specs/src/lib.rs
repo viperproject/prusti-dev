@@ -539,8 +539,6 @@ fn generate_runtime_expression_closure(
     quote_spanned! {callsite_span=>
         else if true {
             #closure
-        } else {
-            || ();
         }
     }
 }

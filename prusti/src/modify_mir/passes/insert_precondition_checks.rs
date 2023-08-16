@@ -14,7 +14,7 @@ use std::cell::{RefCell, RefMut};
 /// (in case they have them)
 pub struct PreconditionInserter<'tcx, 'a> {
     tcx: TyCtxt<'tcx>,
-    body_info: &'a MirInfo,
+    body_info: &'a MirInfo<'tcx>,
     /// making modifications from a Visitor often requires access
     /// to a patcher! But from the visiting methods we don't have
     /// direct access to a mutable body
@@ -26,7 +26,7 @@ pub struct PreconditionInserter<'tcx, 'a> {
 impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
     pub fn new(
         tcx: TyCtxt<'tcx>,
-        body_info: &'a MirInfo,
+        body_info: &'a MirInfo<'tcx>,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
     ) -> Self {

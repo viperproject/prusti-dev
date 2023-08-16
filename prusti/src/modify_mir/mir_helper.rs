@@ -1,7 +1,6 @@
 use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
-        middle::exported_symbols,
         mir::{self, patch::MirPatch, visit::MutVisitor, Body, TerminatorKind},
         ty::{self, TyCtxt},
     },
@@ -278,6 +277,27 @@ pub fn get_block_target(body: &Body<'_>, block: mir::BasicBlock) -> Option<mir::
     }
 }
 
+pub fn get_successors(body: &Body<'_>, location: mir::Location) -> Vec<mir::Location> {
+    let statements_len = body[location.block].statements.len();
+    if location.statement_index < statements_len {
+        vec![mir::Location {
+            statement_index: location.statement_index + 1,
+            ..location
+        }]
+    } else {
+        body[location.block]
+            .terminator
+            .as_ref()
+            .unwrap()
+            .successors()
+            .map(|block| mir::Location {
+                block,
+                statement_index: 0,
+            })
+            .collect()
+    }
+}
+
 // are these the same types that we would get using local_decls and the locals
 // for each argument / the return local?
 pub fn fn_def_signature(tcx: TyCtxt<'_>, def_id: DefId) -> ty::FnSig {
@@ -287,21 +307,4 @@ pub fn fn_def_signature(tcx: TyCtxt<'_>, def_id: DefId) -> ty::FnSig {
     let poly_fn_sig = binder_fn_sig.subst(tcx, ident_substs);
     let param_env = tcx.param_env(def_id);
     tcx.normalize_erasing_late_bound_regions(param_env, poly_fn_sig)
-}
-
-pub fn find_random_bool_defid<'tcx>(tcx: TyCtxt<'tcx>) -> Option<DefId> {
-    for &cnum in tcx.crates(()).iter() {
-        let crate_name = tcx.crate_name(cnum);
-        if crate_name.as_str() == "prusti_contracts" {
-            for (def_id_symbol, _) in tcx.exported_symbols(cnum).iter() {
-                if let exported_symbols::ExportedSymbol::NonGeneric(def_id) = def_id_symbol {
-                    let item_name = tcx.item_name(*def_id);
-                    if item_name.as_str() == "random_bool" {
-                        return Some(*def_id);
-                    }
-                }
-            }
-        }
-    }
-    None
 }

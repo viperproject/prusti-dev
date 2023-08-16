@@ -37,9 +37,16 @@ impl ViperBackendConfig {
         let mut verifier_args = config::extra_verifier_args();
         match backend {
             VerificationBackend::Silicon => {
+                // If we want to remove dead code, numberOfErrorsToReport has to
+                // be set to 0 (so all reachable errors are reported!)
+                let num_errors_per_function = if config::remove_dead_code() {
+                    0
+                } else {
+                    config::num_errors_per_function()
+                };
                 verifier_args.push(format!(
                     "--numberOfErrorsToReport={}",
-                    config::num_errors_per_function()
+                    num_errors_per_function
                 ));
                 if config::use_more_complete_exhale() {
                     verifier_args.push("--enableMoreCompleteExhale".to_string());

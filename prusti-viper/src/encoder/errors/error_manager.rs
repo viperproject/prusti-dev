@@ -9,7 +9,7 @@ use std::fmt::Debug;
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
 use prusti_rustc_interface::span::{source_map::SourceMap, def_id::DefId};
-use prusti_rustc_interface::middle::mir::Location;
+use prusti_rustc_interface::middle::mir::BasicBlock;
 use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::{PrustiError, environment::inserted_locations_store};
@@ -189,7 +189,7 @@ pub enum ErrorCtxt {
     /// The state that fold-unfold algorithm deduced as unreachable, is actually
     /// reachable.
     UnreachableFoldingState,
-    InsertedReachabilityAssertion(DefId, Location)
+    InsertedReachabilityRefutation(DefId, BasicBlock)
 }
 
 /// The error manager
@@ -706,9 +706,9 @@ impl<'tcx> ErrorManager<'tcx> {
                     error_span,
                 )
             }
-            (_err_id, ErrorCtxt::InsertedReachabilityAssertion(def_id, location)) => {
+            (_err_id, ErrorCtxt::InsertedReachabilityRefutation(def_id, bb)) => {
                 // this location is reachable. Mark it:
-                inserted_locations_store::set_reachable(*def_id, *location);
+                inserted_locations_store::set_block_unreachable(*def_id, *bb);
                 // return a cancelled error, because these should not cause
                 // a failure
                 PrustiError::ignore_verification("Inserted assertion is reachable", error_span)

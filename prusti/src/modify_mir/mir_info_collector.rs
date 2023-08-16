@@ -1,9 +1,8 @@
-use crate::callbacks;
-
 use super::mir_helper::*;
 
 use prusti_interface::{
-    environment::{blocks_dominated_by, is_check_closure, EnvQuery},
+    environment::{blocks_dominated_by, is_check_closure, EnvQuery, Environment},
+    globals,
     specs::typed::DefSpecificationMap,
     utils::has_prusti_attr,
 };
@@ -22,9 +21,10 @@ use std::hash::Hash;
 // actuallye start modifying it.
 // Note that depending on the modifications we perform, some of the
 // information (e.g. about blocks might no longer be accurate)
-pub struct MirInfo {
+pub struct MirInfo<'tcx> {
     pub def_id: DefId,
     pub specs: DefSpecificationMap,
+    pub env: Environment<'tcx>,
     /// blocks that the translation specifically added to either mark
     /// a location (manual pledge expiry) or that we identified to
     /// be the check blocks for a `prusti_assert!`, `prusti_assume!` or
@@ -37,18 +37,18 @@ pub struct MirInfo {
     pub stmts_to_substitute_rhs: FxHashSet<mir::Location>,
 }
 
-impl MirInfo {
+impl<'tcx> MirInfo<'tcx> {
     // Collect this info given a body.
     // mir_promoted is also passed in here, because some information
     // is removed in mir_drops_elaborated
-    pub fn collect_mir_info<'a, 'tcx>(
+    pub fn collect_mir_info<'a>(
         tcx: TyCtxt<'tcx>,
         body: mir::Body<'tcx>,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
-    ) -> MirInfo {
-        println!("Collecting mir info for {:?}", body.source.def_id());
-        let specs = crate::callbacks::get_defspec();
+    ) -> MirInfo<'tcx> {
+        let specs = globals::get_defspec();
+        let env = globals::get_env();
         let check_blocks = collect_check_blocks(tcx, &body);
         let mut visitor = MirInfoCollector::new(body.clone(), tcx, local_decls);
         visitor.visit_body(&body);
@@ -56,6 +56,7 @@ impl MirInfo {
         MirInfo {
             def_id,
             specs,
+            env,
             check_blocks,
             args_to_be_cloned,
             stmts_to_substitute_rhs,
@@ -65,8 +66,8 @@ impl MirInfo {
     // global statics (because we only want to compute them once)
     // consider putting this inside of drop for MirInfo
     pub fn store_specs_env(self) {
-        let MirInfo { specs, .. } = self;
-        callbacks::store_defspec(specs);
+        let MirInfo { specs, env, .. } = self;
+        globals::store_spec_env(specs, env);
     }
 }
 
@@ -225,7 +226,6 @@ impl<'tcx, 'a> MirInfoCollector<'tcx, 'a> {
     }
     // determine all the relevant facts about this local
     fn create_dependency(&self, local: mir::Local) -> Dependency {
-        println!("Creating dependency for local: {:?}", local);
         let local_decl = self.local_decls.get(local);
 
         // is_user_variable leads to panics for certain variables..
@@ -268,11 +268,9 @@ pub fn collect_check_blocks<'tcx>(
     // more than one block containing such a closure.
     let mut check_blocks = marked_check_blocks.clone();
     for (bb, bb_kind) in marked_check_blocks {
-        println!("Looking for dominated blocks of {:?}", bb);
         let dominated_blocks = blocks_dominated_by(body, bb);
         for bb_dominated in dominated_blocks {
             if bb_dominated != bb {
-                println!("\tblock {:?}", bb_dominated);
                 assert!(check_blocks.get(&bb_dominated).is_none());
                 check_blocks.insert(bb_dominated, bb_kind);
             }
@@ -364,7 +362,6 @@ impl<'tcx> Visitor<'tcx> for OldSpanFinder<'tcx> {
             if let Some((call_id, _)) = func.const_fn_def() {
                 let item_name = self.tcx.def_path_str(call_id);
                 if &item_name[..] == "prusti_contracts::old" {
-                    println!("old visitor found old function call");
                     self.old_spans.push(*fn_span);
                     assert!(args.len() == 1);
                     if let mir::Operand::Copy(place) | mir::Operand::Move(place) =

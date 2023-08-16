@@ -25,6 +25,7 @@ pub mod data;
 pub mod environment;
 pub mod specs;
 pub mod utils;
+pub mod globals;
 
 pub use prusti_error::*;
 

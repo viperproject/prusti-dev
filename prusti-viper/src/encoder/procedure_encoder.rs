@@ -29,7 +29,7 @@ use prusti_common::{
     vir::{ToGraphViz, fixes::fix_ghost_vars},
     vir_local, vir_expr, vir_stmt
 };
-use prusti_interface::environment::inserted_locations_store;
+use prusti_interface::{globals, environment::inserted_locations_store};
 use vir_crate::{
     polymorphic::{
         self as vir,
@@ -599,6 +599,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 |writer| method_with_fold_unfold.to_graphviz(writer),
             );
         }
+        // store polonius info for runtime checks:
+        globals::store_polonius_info(self.proc_def_id, self.polonius_info.take().unwrap());
+
         Ok((method_with_fold_unfold, loan_expirations))
     }
 
@@ -1263,6 +1266,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
+        if config::remove_dead_code() && self.procedure.is_non_spec_switch_int_target(bbi) {
+            self.encode_reachability_refute(bbi, curr_block)?;
+        }
         self.encode_execution_flag(bbi, curr_block)?;
         let opt_successor = self.encode_block_statements(bbi, curr_block)?;
         let mir_successor: MirSuccessor = if let Some(successor) = opt_successor {
@@ -1328,6 +1334,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 source: true.into(),
                 kind: vir::AssignKind::Copy,
             }),
+        );
+        Ok(())
+    }
+
+    /// Insert a refute fals to deterimine rechability
+    fn encode_reachability_refute(&mut self, bbi: BasicBlockIndex, cfg_block: CfgBlockIndex) -> SpannedEncodingResult<()> {
+        let pos = self.register_error(self.mir_encoder.get_span_of_basic_block(bbi), ErrorCtxt::InsertedReachabilityRefutation(self.proc_def_id, bbi));
+        inserted_locations_store::add_reachability_check(self.proc_def_id, bbi);
+        let false_const = vir::Expr::Const(vir::ConstExpr {
+            value: vir::Const::Bool(false),
+            position: pos
+        });
+        self.cfg_method.add_stmt(
+            cfg_block,
+            vir::Stmt::Refute(vir::Refute {
+                expr: false_const,
+                position: pos
+            })
         );
         Ok(())
     }
@@ -2228,10 +2252,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let mut stmts: Vec<vir::Stmt> = vec![];
-        for loan in &loans {
-            // assert!(self.loan_expiration_location.get(loan).is_none());
-            self.loan_expiration_location.insert(*loan, location);
-        }
         if !loans.is_empty() {
             let vir_reborrowing_dag =
                 self.construct_vir_reborrowing_dag(&loans, zombie_loans, location, end_location, is_in_package_stmt)?;
@@ -2768,9 +2788,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let mut s = String::new();
                     msg.fmt_assert_args(&mut s).unwrap();
                     (s, ErrorCtxt::BoundsCheckAssert)
-                } else if inserted_locations_store::contains(self.proc_def_id, location) {
-                    let assert_msg = "Assertion inserted by Prusti, if you see this as a user this is a bug".to_string();
-                    (assert_msg, ErrorCtxt::InsertedReachabilityAssertion(self.proc_def_id, location))
                 } else {
                     let assert_msg = msg.description().to_string();
                     (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))

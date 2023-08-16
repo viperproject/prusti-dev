@@ -245,13 +245,14 @@ pub trait MirModifier<'tcx> {
         &self,
         pledge: &PledgeToProcess<'tcx>,
         target: BasicBlock,
-    ) -> Result<BasicBlock, ()> {
+    ) -> Result<(BasicBlock, BasicBlock), ()> {
         // given a location, insert the call chain to check a pledge:
         // since we need to know the targets for each call, the blocks need to be created
         // in reversed order.
 
         // annoying, but we have to create a block to start off the dropping chain
-        // early..
+        // early.. Even though at this point we don't know which locals we will
+        // have to drop
         let drop_start_term = Terminator {
             source_info: dummy_source_info(),
             kind: TerminatorKind::Goto { target },
@@ -297,16 +298,16 @@ pub trait MirModifier<'tcx> {
                 target: next_target,
             },
         };
-        let (clone_chain_start, _, locals_to_drop_after) = self.prepend_old_cloning(
+        let (clone_chain_start, _, locals_to_drop_before_expiry) = self.prepend_old_cloning(
             terminator,
             pledge.before_expiry_place,
             pledge.before_expiry_ty,
             vec![mir::Operand::Move(pledge.destination)],
             true, // this clone will be passed to a check function
         );
-        let mut locals_to_drop = pledge.locals_to_drop.clone();
-        locals_to_drop.extend(locals_to_drop_after);
-        let (drop_chain_start, _) = self.create_drop_chain(locals_to_drop, Some(target));
+        // so far we can only drop the values created for before_expiry
+        let (drop_chain_start, _) =
+            self.create_drop_chain(locals_to_drop_before_expiry, Some(target));
         // adjust the check block's terminator
         self.patcher().patch_terminator(
             drop_block,
@@ -337,7 +338,7 @@ pub trait MirModifier<'tcx> {
             },
             unset_guard_stmt,
         );
-        Ok(start_block)
+        Ok((start_block, drop_block))
     }
 
     /// Create a chain of drop calls to drop the provided list of locals.

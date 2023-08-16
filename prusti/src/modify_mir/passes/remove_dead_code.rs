@@ -17,11 +17,16 @@ impl<'tcx, 'a> DeadCodeElimination<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId) -> Self {
         // collect all the blocks that were inserted but didnt generate
         // a verification error:
-        let reachability_map = inserted_locations_store::get_function_map(def_id).unwrap();
+        let reachability_map =
+            inserted_locations_store::get_reachability_map(def_id).unwrap_or_default();
         let unreachable_blocks: FxHashSet<mir::BasicBlock> = reachability_map
             .iter()
-            .filter_map(|(loc, reachable)| (!reachable).then_some(loc.block))
+            .filter_map(|(bb, reachable)| (!reachable).then_some(*bb))
             .collect();
+        println!(
+            "unreachable blocks for method: {:?}, {:#?}",
+            def_id, unreachable_blocks
+        );
         Self {
             tcx,
             unreachable_blocks,
@@ -29,6 +34,9 @@ impl<'tcx, 'a> DeadCodeElimination<'tcx> {
     }
 
     pub fn run(&mut self, body: &mut mir::Body<'tcx>) {
+        if self.unreachable_blocks.is_empty() {
+            return;
+        }
         self.visit_body(body);
     }
 }
@@ -65,6 +73,9 @@ impl<'tcx, 'a> MutVisitor<'tcx> for DeadCodeElimination<'tcx> {
                     } else {
                         let switch_targets =
                             mir::terminator::SwitchTargets::new(targets_vec.into_iter(), otherwise);
+                        if switch_targets.all_targets().len() != targets.all_targets().len() {
+                            println!("SwitchInt in block {:?} was changed", location.block);
+                        }
                         Some(mir::TerminatorKind::SwitchInt {
                             discr: discr.clone(),
                             targets: switch_targets,
@@ -73,8 +84,8 @@ impl<'tcx, 'a> MutVisitor<'tcx> for DeadCodeElimination<'tcx> {
                 } else {
                     // if none of the targets is reachable, then this block
                     // must be unreachable itself!!
-                    assert!(self.unreachable_blocks.contains(&location.block));
-                    None
+                    // make it actually unreachable?
+                    Some(mir::TerminatorKind::Unreachable)
                 }
             }
             // potentially perform some checks on sanity of our results.

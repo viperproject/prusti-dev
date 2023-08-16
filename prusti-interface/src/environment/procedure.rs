@@ -33,6 +33,7 @@ pub struct Procedure<'tcx> {
     loop_info: loops::ProcedureLoops,
     reachable_basic_blocks: FxHashSet<BasicBlock>,
     nonspec_basic_blocks: FxHashSet<BasicBlock>,
+    switch_int_targets: FxHashSet<BasicBlock>,
 }
 
 impl<'tcx> Procedure<'tcx> {
@@ -47,6 +48,7 @@ impl<'tcx> Procedure<'tcx> {
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(env.query, &mir, &real_edges);
         let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
+        let switch_int_targets = build_switch_int_targets(&mir);
 
         Self {
             tcx: env.tcx(),
@@ -57,6 +59,7 @@ impl<'tcx> Procedure<'tcx> {
             loop_info,
             reachable_basic_blocks,
             nonspec_basic_blocks,
+            switch_int_targets,
         }
     }
 
@@ -196,6 +199,10 @@ impl<'tcx> Procedure<'tcx> {
 
     pub fn successors(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
         self.real_edges.successors(bbi)
+    }
+
+    pub fn is_non_spec_switch_int_target(&self, bbi: BasicBlockIndex) -> bool {
+        !self.is_spec_block(bbi) && self.switch_int_targets.contains(&bbi)
     }
 }
 
@@ -443,4 +450,19 @@ fn build_nonspec_basic_blocks(
     }
 
     get_nonspec_basic_blocks(env_query, bb_graph, mir)
+}
+
+/// Returns the set of basic blocks that are a target of a switchInt terminator
+fn build_switch_int_targets(body: &Body) -> FxHashSet<BasicBlock> {
+    let mut switch_targets: FxHashSet<BasicBlock> = Default::default();
+    for (_bb, bb_data) in body.basic_blocks.iter_enumerated() {
+        if let Some(mir::Terminator {
+            kind: mir::TerminatorKind::SwitchInt { targets, .. },
+            ..
+        }) = &bb_data.terminator
+        {
+            switch_targets.extend(targets.all_targets());
+        }
+    }
+    switch_targets
 }

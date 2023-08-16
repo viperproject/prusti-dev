@@ -1,9 +1,9 @@
 use crate::{modify_mir::mir_modify, verifier::verify};
 
-use lazy_static::lazy_static;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
+    globals,
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn, typed::DefSpecificationMap},
 };
 use prusti_rustc_interface::{
@@ -23,16 +23,9 @@ use prusti_rustc_interface::{
     span::def_id::LocalDefId,
     trait_selection::traits,
 };
-use std::sync::Mutex;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
-
-// globals used to pass information between overriden queries and after_analysis
-static mut SPECS: Option<DefSpecificationMap> = None;
-lazy_static! {
-    static ref VERIFIED: Mutex<bool> = Mutex::new(false);
-}
 
 // Running `get_body_with_borrowck_facts` can be very slow, therefore we avoid it when not
 // necessary; for crates which won't be verified or spec_fns it suffices to load just the fn body
@@ -76,14 +69,9 @@ fn mir_promoted<'tcx>(
     let original_mir_promoted =
         prusti_rustc_interface::interface::DEFAULT_QUERY_PROVIDERS.mir_promoted;
     let (body_steal, promoted_steal) = original_mir_promoted(tcx, def_id);
-    let mut body = body_steal.steal();
+    // is there still a reason to steal it if we don't modify it?
+    let body = body_steal.steal();
 
-    // clone the body and potentially make some modifications that should
-    // not end up in the actual body
-    if config::remove_dead_blocks() {
-        println!("removing dead code is enabled");
-        mir_modify::insert_asserts_for_reachability(&mut body, def_id.to_def_id(), tcx);
-    }
     // SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
     unsafe {
@@ -100,13 +88,12 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
     // run verification here, otherwise we can't rely on results in
     // drops elaborated
     if !config::no_verify() {
-        let mut already_verified = VERIFIED.lock().unwrap();
-        if !*already_verified {
+        if !globals::verified() {
             println!("Starting Verification");
             let (def_spec, env) = get_specs(tcx, None);
-            verify(env, def_spec.clone());
-            *already_verified = true;
-            store_defspec(def_spec);
+            let env = verify(env, def_spec.clone());
+            globals::set_verified();
+            globals::store_spec_env(def_spec, env);
         }
     }
 
@@ -135,7 +122,7 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
     // ################################################
     let local_decls = body.local_decls.clone();
     let def_id = def.to_def_id();
-    if config::remove_dead_blocks() {
+    if config::remove_dead_code() {
         mir_modify::dead_code_elimination(tcx, &mut body, def_id);
     }
     if config::insert_runtime_checks() {
@@ -289,12 +276,4 @@ pub fn get_specs<'tcx>(
     }
     CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
     (def_spec, env)
-}
-
-pub fn store_defspec(def_spec: DefSpecificationMap) {
-    unsafe { SPECS = Some(def_spec) };
-}
-
-pub fn get_defspec() -> DefSpecificationMap {
-    unsafe { SPECS.take().unwrap() }
 }

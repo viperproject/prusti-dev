@@ -370,10 +370,4 @@ pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }
 
-/// A function used to generate booleans that are unknown to
-/// prusti
-pub fn random_bool() -> bool {
-    true
-}
-
 pub use private::*;
