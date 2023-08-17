@@ -129,11 +129,11 @@ fn main() {
                 method!("apply"),
             ]),
             // Silicon
-            java_class!("viper.silicon.MinimalSiliconFrontendAPI", vec![
+            java_class!("viper.silicon.SiliconFrontendAPI", vec![
                 constructor!("(Lviper/silver/reporter/Reporter;)V"),
             ]),
             // Carbon
-            java_class!("viper.carbon.MinimalCarbonFrontendAPI", vec![
+            java_class!("viper.carbon.CarbonFrontendAPI", vec![
                 constructor!("(Lviper/silver/reporter/Reporter;)V"),
             ]),
             // Silver
