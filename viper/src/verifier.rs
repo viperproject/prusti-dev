@@ -51,10 +51,10 @@ impl<'a> Verifier<'a> {
             let unwrapped_frontend_instance = {
                 match backend {
                     VerificationBackend::Silicon => {
-                        silicon::MinimalSiliconFrontendAPI::with(env).new(reporter)
+                        silicon::SiliconFrontendAPI::with(env).new(reporter)
                     }
                     VerificationBackend::Carbon => {
-                        carbon::MinimalCarbonFrontendAPI::with(env).new(reporter)
+                        carbon::CarbonFrontendAPI::with(env).new(reporter)
                     }
                 }
             };

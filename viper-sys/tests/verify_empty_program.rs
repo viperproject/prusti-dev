@@ -48,7 +48,7 @@ fn verify_empty_program() {
 
     env.with_local_frame(32, || {
         let reporter = viper::silver::reporter::NoopReporter_object::with(&env).singleton()?;
-        let silicon = viper::silicon::MinimalSiliconFrontendAPI::with(&env).new(reporter, )?;
+        let silicon = viper::silicon::SiliconFrontendAPI::with(&env).new(reporter, )?;
         let frontend = viper::silver::frontend::ViperFrontendAPI::with(&env);
 
         let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(&env);
@@ -57,10 +57,6 @@ fn verify_empty_program() {
         array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("--z3Exe")?)?;
 
         array_buffer_wrapper.call_append(silicon_args_array, *env.new_string(&z3_path)?)?;
-
-        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("--ignoreFile")?)?;
-
-        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("dummy.vpr")?)?;
 
         let silicon_args_seq = array_buffer_wrapper.call_toSeq(silicon_args_array)?;
 
