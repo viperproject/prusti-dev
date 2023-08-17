@@ -72,8 +72,10 @@ impl Ord for ExpirationLocation {
 
 #[derive(Debug, Clone)]
 pub struct PledgeToProcess<'tcx> {
+    pub name: String,
     pub check: DefId,
     pub check_before_expiry: Option<DefId>,
+    pub result_copy_place: mir::Place<'tcx>,
     pub old_values_place: mir::Place<'tcx>,
     pub old_values_ty: ty::Ty<'tcx>,
     pub before_expiry_place: mir::Place<'tcx>,
@@ -164,7 +166,6 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                     block: bb,
                     statement_index,
                 };
-                // do we need to worry about zombie loans? Not sure what that is..
                 let loans_dying = polonius_info.get_loans_dying_at(location, false);
                 for loan in loans_dying.iter() {
                     // check if any of the loans are associated with one of
@@ -172,6 +173,8 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                     if let Some(place) = pledge_loans.get(&loan) {
                         // a pledge is associated with this loan and dies here!!
                         modification_list.push((ExpirationLocation::Location(location), *place));
+                        let pledge = self.pledges_to_process.get(place).unwrap();
+                        println!("Pledge for function {} is associated with loan {:?} and dies at {:?}", pledge.name, loan, location);
                     }
                 }
                 if statement_index == nr_statements
@@ -352,6 +355,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
             func,
             destination,
             args,
+            target,
             ..
         } = &terminator.kind
         {
@@ -365,6 +369,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                     {
                         if self.first_pass {
                             // TODO: pack that into a function, use correct param_env
+                            let name = self.tcx.def_path_debug_str(call_id);
                             let check_sig = self.tcx.fn_sig(check).subst(self.tcx, substs);
                             let check_sig = self.tcx.normalize_erasing_late_bound_regions(
                                 ty::ParamEnv::reveal_all(),
@@ -382,12 +387,19 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                                 self.patcher().new_temp(before_expiry_ty, DUMMY_SP),
                             );
 
+                            // create a copy of the result in case it becomes a zombie later
+                            let result_ty = destination.ty(self.local_decls(), self.tcx).ty;
+                            let result_copy_place = mir::Place::from(self.patcher().new_temp(result_ty, DUMMY_SP));
+                            println!("Pledge result type: {:?}", result_ty);
+
                             // create a guard local
                             let bool_ty = self.tcx.mk_ty_from_kind(ty::TyKind::Bool);
                             let local_guard = self.patcher().new_temp(bool_ty, DUMMY_SP).into();
                             let pledge_to_process = PledgeToProcess {
+                                name,
                                 check,
                                 check_before_expiry,
+                                result_copy_place,
                                 old_values_place,
                                 old_values_ty,
                                 before_expiry_place,
@@ -431,6 +443,14 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                                     target: set_guard_block,
                                 },
                             );
+                            // Copy the result after the function has been called:
+                            // If it has a target, otherwise it doesn't matter at all..
+                            if let Some(target) = target {
+                                let location = mir::Location{ block: *target, statement_index: 0};
+                                let result_operand = mir::Operand::Copy(pledge.destination);
+                                let stmt = mir::StatementKind::Assign(Box::new((pledge.result_copy_place, mir::Rvalue::Use(result_operand))));
+                                self.patcher().add_statement(location, stmt);
+                            }
                             self.pledges_to_process.insert(*destination, pledge);
                         }
                     }

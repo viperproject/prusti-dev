@@ -19,6 +19,8 @@ pub struct CheckTranslator {
     lhs_expression: Option<Expr>,
     visitor: CheckVisitor,
     spec_type: SpecItemType,
+    expr_span: Span,
+    lhs_expr_span: Option<Span>,
 }
 
 /// this struct contains all possible items needed to check certain
@@ -98,6 +100,8 @@ impl CheckTranslator {
         spec_type: SpecItemType,
     ) -> Self {
         // figure out keywords
+        let expr_span = tokens.span();
+        let lhs_expr_span = lhs_tokens_opt.as_ref().map(|tokens| tokens.span());
         let mut expression: syn::Expr = syn::parse2::<syn::Expr>(tokens).unwrap();
         let check_type = CheckType::from_spectype(&spec_type);
         let mut visitor = CheckVisitor::new(item, check_type);
@@ -115,6 +119,8 @@ impl CheckTranslator {
             lhs_expression,
             visitor,
             spec_type,
+            expr_span,
+            lhs_expr_span,
         }
     }
 
@@ -149,17 +155,17 @@ impl CheckTranslator {
             self.spec_type,
             SpecItemType::Postcondition | SpecItemType::Pledge
         );
-        let expr_to_check: syn::Expr = if is_before_expiry_check {
+        let (expr_to_check, expr_span): (syn::Expr, Span) = if is_before_expiry_check {
             // if lhs is true, there has to be a lhs expression
             if let Some(expr) = self.lhs_expression.as_ref() {
-                expr.clone()
+                (expr.clone(), self.lhs_expr_span.unwrap())
             } else {
-                parse_quote_spanned! {item.span() =>
+                (parse_quote_spanned! {item.span() =>
                     true
-                }
+                }, item.span())
             }
         } else {
-            self.expression.clone()
+            (self.expression.clone(), self.expr_span)
         };
 
         let item_name_str = item_name.to_string();
@@ -170,7 +176,7 @@ impl CheckTranslator {
         };
         let forget_statements =
             self.generate_forget_statements(item, include_item_args, executed_after);
-        let contract_string = expr_to_check.to_token_stream().to_string();
+        let contract_string = expr_span.source_text().unwrap_or("unresolved contract".to_string());
         let failure_message = format!("Contract {} was violated at runtime", contract_string);
         let id_attr: syn::Attribute = if is_before_expiry_check {
             parse_quote_spanned! {item.span() =>

@@ -262,7 +262,7 @@ pub trait MirModifier<'tcx> {
 
         // Create call to check function:
         let mut check_args = pledge.args.clone();
-        check_args.push(mir::Operand::Move(pledge.destination)); //result arg
+        check_args.push(mir::Operand::Move(pledge.result_copy_place)); //result arg
         check_args.push(mir::Operand::Move(pledge.old_values_place));
         check_args.push(mir::Operand::Move(pledge.before_expiry_place));
         let (check_after_block, _) = self.create_call_block(
@@ -276,7 +276,7 @@ pub trait MirModifier<'tcx> {
         // If there is a check_before_expiry block, creat it
         let next_target = if let Some(check_before_expiry) = pledge.check_before_expiry {
             let before_check_args = vec![
-                mir::Operand::Move(pledge.destination),
+                mir::Operand::Move(pledge.result_copy_place),
                 mir::Operand::Move(pledge.old_values_place),
             ];
             let (new_block, _) = self.create_call_block(
@@ -302,7 +302,7 @@ pub trait MirModifier<'tcx> {
             terminator,
             pledge.before_expiry_place,
             pledge.before_expiry_ty,
-            vec![mir::Operand::Move(pledge.destination)],
+            vec![mir::Operand::Move(pledge.result_copy_place)],
             true, // this clone will be passed to a check function
         );
         // so far we can only drop the values created for before_expiry
