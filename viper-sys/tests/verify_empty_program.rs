@@ -48,7 +48,7 @@ fn verify_empty_program() {
 
     env.with_local_frame(32, || {
         let reporter = viper::silver::reporter::NoopReporter_object::with(&env).singleton()?;
-        let silicon = viper::silicon::SiliconFrontendAPI::with(&env).new(reporter, )?;
+        let silicon = viper::silicon::SiliconFrontendAPI::with(&env).new(reporter)?;
         let frontend = viper::silver::frontend::ViperFrontendAPI::with(&env);
 
         let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(&env);

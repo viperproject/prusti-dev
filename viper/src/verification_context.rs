@@ -93,7 +93,6 @@ impl<'a> VerificationContext<'a> {
 
         debug!("Verifier arguments: '{}'", verifier_args.to_vec().join(" "));
 
-        Verifier::new(&self.env, backend, report_path, smt_manager)
-            .initialize(&verifier_args)
+        Verifier::new(&self.env, backend, report_path, smt_manager).initialize(&verifier_args)
     }
 }
