@@ -218,7 +218,6 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         state.check_consistency();
         let actions = ensure_required_permissions(self, state, consumed_permissions.clone())?;
         self.process_actions(actions)?;
-        // TODO: Remove permission reasoning
         state.remove_permissions(&consumed_permissions)?;
         state.insert_permissions(produced_permissions)?;
         match &statement {

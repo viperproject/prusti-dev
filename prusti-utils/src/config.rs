@@ -69,7 +69,7 @@ lazy_static::lazy_static! {
 
         // 0. Default values
         settings.set_default("be_rustc", false).unwrap();
-        settings.set_default("viper_backend", "Lithium").unwrap();
+        settings.set_default("viper_backend", "Silicon").unwrap();
         settings.set_default::<Option<String>>("smt_solver_path", env::var("Z3_EXE").ok()).unwrap();
         settings.set_default::<Option<String>>("smt_solver_wrapper_path", None).unwrap();
         settings.set_default::<Option<String>>("boogie_path", env::var("BOOGIE_EXE").ok()).unwrap();
@@ -81,7 +81,7 @@ lazy_static::lazy_static! {
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
         settings.set_default("encode_unsigned_num_constraint", true).unwrap();
-        settings.set_default("encode_bitvectors", true).unwrap();
+        settings.set_default("encode_bitvectors", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log", "").unwrap();
         settings.set_default("log_style", "auto").unwrap();
@@ -92,7 +92,7 @@ lazy_static::lazy_static! {
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
         settings.set_default("dump_nll_facts", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
-        settings.set_default("max_log_file_name_length", 240).unwrap();
+        settings.set_default("max_log_file_name_length", 60).unwrap();
         settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
         settings.set_default("dump_reborrowing_dag_in_debug_info", false).unwrap();
         settings.set_default("dump_borrowck_info", false).unwrap();
@@ -104,7 +104,7 @@ lazy_static::lazy_static! {
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
-        settings.set_default("skip_unsupported_features", true).unwrap();
+        settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
@@ -114,16 +114,16 @@ lazy_static::lazy_static! {
         settings.set_default("json_communication", false).unwrap();
         settings.set_default("optimizations", "all").unwrap();
         settings.set_default("intern_names", true).unwrap();
-        settings.set_default("enable_purification_optimization", true).unwrap();
+        settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
-        settings.set_default("unsafe_core_proof", true).unwrap();
-        settings.set_default("verify_core_proof", false).unwrap();
+        settings.set_default("unsafe_core_proof", false).unwrap();
+        settings.set_default("verify_core_proof", true).unwrap();
         settings.set_default("verify_specifications", true).unwrap();
         settings.set_default("verify_types", false).unwrap();
         settings.set_default("verify_specifications_with_core_proof", false).unwrap();
-        settings.set_default("verify_specifications_backend", "Lithium").unwrap();
+        settings.set_default("verify_specifications_backend", "Silicon").unwrap();
         settings.set_default("use_eval_axioms", true).unwrap();
-        settings.set_default("inline_caller_for", true).unwrap();
+        settings.set_default("inline_caller_for", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();

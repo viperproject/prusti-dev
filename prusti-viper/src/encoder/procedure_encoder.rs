@@ -70,7 +70,7 @@ use prusti_rustc_interface::{
     middle::{
         mir,
         mir::{Mutability, TerminatorKind},
-        ty::{self, subst::SubstsRef},
+        ty::{self, GenericArgsRef},
     },
     span::Span,
     target::abi::{FieldIdx, Integer},
