@@ -9,20 +9,21 @@ Prusti
 [Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust,
 built upon the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
 
-By default Prusti verifies absence of integer overflows and panics by proving that statements such as `unreachable!()` and `panic!()` are unreachable.
+By default Prusti verifies absence of integer overflows and panics, proving that statements such as `unreachable!()` and `panic!()` are unreachable.
 Overflow checking can be disabled with a configuration flag, treating all integers as unbounded.
-In Prusti, the functional behaviour of a function can be specified by using annotations, among which are preconditions, postconditions, and loop invariants.
+In Prusti, the functional behaviour of functions and external libraries can be specified by using annotations, among which are preconditions, postconditions, and loop invariants.
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
 
-Documentation
--------------
+Useful links
+------------
 
-* The [user guide](https://viperproject.github.io/prusti-dev/user-guide/) contains installation instructions, a guided tutorial and a description of various verification features.
-* The [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/) contains Prusti details intended to make the project more approachable for new contributors.
-
-Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
-
+* 💻 [VS Code extension](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) to use Prusti from your IDE.
+* 📖 [User guide](https://viperproject.github.io/prusti-dev/user-guide/), containing installation instructions, a guided tutorial and a description of various verification features.
+* 🧰 [Developer guide](https://viperproject.github.io/prusti-dev/dev-guide/), meant for new contributors.
+* 📚 [List of publications](http://www.pm.inf.ethz.ch/research/prusti.html). To cite the Prusti verifier, please use [this BibTeX entry](http://pm.inf.ethz.ch/publications/getbib.php?action=bibtex&bibname=Own&id=AstrauskasMuellerPoliSummers19b).
+* ⚖️ [License](https://github.com/viperproject/prusti-dev/blob/master/LICENSE) of the source code (Mozilla Public License Version 2.0, with exceptions).
+* 💬 Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
 
 Getting Prusti
 --------------
@@ -80,4 +81,4 @@ Quick example
 3. Fix the buggy line with `let mid = low + ((high - low) / 2);`
 4. Run Prusti. Now the `bisect` function verifies.
 
-Congratulations! You just proved absence of panics and integer overflows in the `bisect` function. To additionally prove that the result is correct (i.e. such that `f(x) == target`), see [this example](prusti-tests/tests/verify_overflow/pass/overflow/bisect.rs).
+Congratulations! You just proved absence of panics and integer overflows in the `bisect` function. To additionally prove that the result is correct (i.e. such that `f(x) == target`), see [this example](https://github.com/viperproject/prusti-dev/blob/master/prusti-tests/tests/verify_overflow/pass/overflow/bisect.rs).

@@ -2,7 +2,6 @@
 
 #![feature(nll)]
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 use prusti_contracts::*;
 

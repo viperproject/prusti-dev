@@ -293,17 +293,16 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 let value = value_str.parse::<u32>().ok()?;
                 Entry::Char(char::from_u32(value)?)
             }
-            (ty::TyKind::Ref(_, typ, _), Some(ModelEntry::Ref(_, map))) => Entry::Ref(
-                box self
-                    .translate_silicon_entry(
-                        *typ,
-                        map.get("val_ref"),
-                        format!("{vir_name}.val_ref"),
-                        silicon_ce_entries,
-                    )
-                    .unwrap_or_default(),
-            ),
-            (ty::TyKind::Ref(..), _) => Entry::Ref(box Entry::Unknown),
+            (ty::TyKind::Ref(_, typ, _), Some(ModelEntry::Ref(_, map))) => Entry::Ref(Box::new(
+                self.translate_silicon_entry(
+                    *typ,
+                    map.get("val_ref"),
+                    format!("{vir_name}.val_ref"),
+                    silicon_ce_entries,
+                )
+                .unwrap_or_default(),
+            )),
+            (ty::TyKind::Ref(..), _) => Entry::Ref(Box::new(Entry::Unknown)),
             (ty::TyKind::Tuple(subst), Some(ModelEntry::Ref(_, map))) => {
                 let len = subst.len();
                 let mut fields = vec![];
@@ -336,9 +335,11 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                         silicon_ce_entries,
                     )
                     .unwrap_or_default();
-                Entry::Box(box entry)
+                Entry::Box(Box::new(entry))
             }
-            (ty::TyKind::Adt(adt_def, _), _) if adt_def.is_box() => Entry::Box(box Entry::Unknown),
+            (ty::TyKind::Adt(adt_def, _), _) if adt_def.is_box() => {
+                Entry::Box(Box::new(Entry::Unknown))
+            }
             (ty::TyKind::Adt(adt_def, subst), _) if adt_def.is_struct() => {
                 let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
@@ -418,7 +419,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         variant: &ty::VariantDef,
         sil_entry: Option<&ModelEntry>,
         vir_name: String,
-        subst: ty::subst::SubstsRef<'tcx>,
+        subst: ty::GenericArgsRef<'tcx>,
         silicon_ce_entries: &FxHashMap<String, ModelEntry>,
     ) -> Vec<(String, Entry)> {
         let mut field_entries = vec![];
@@ -589,20 +590,19 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                         if let Some(encoded_typ) = encoded_typ_option {
                             let new_encoded_typ = Some(encoded_typ.replacen("ref$", "", 1)); //remove a ref
                             let sil_entry = map.get("val_ref");
-                            Entry::Ref(
-                                box self
-                                    .translate_silicon_entry_with_snapshot(
-                                        *typ,
-                                        sil_entry,
-                                        new_encoded_typ,
-                                    )
-                                    .unwrap_or_default(),
-                            )
+                            Entry::Ref(Box::new(
+                                self.translate_silicon_entry_with_snapshot(
+                                    *typ,
+                                    sil_entry,
+                                    new_encoded_typ,
+                                )
+                                .unwrap_or_default(),
+                            ))
                         } else {
-                            Entry::Ref(box Entry::Unknown)
+                            Entry::Ref(Box::new(Entry::Unknown))
                         }
                     }
-                    _ => Entry::Ref(box Entry::Unknown),
+                    _ => Entry::Ref(Box::new(Entry::Unknown)),
                 }
             }
             ty::TyKind::Tuple(subst) => match snapshot_var {
@@ -642,7 +642,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                         encoded_typ_option,
                     )
                     .unwrap_or_default();
-                Entry::Box(box entry)
+                Entry::Box(Box::new(entry))
             }
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_struct() => {
                 let variant = adt_def.variants().iter().next().unwrap();
@@ -716,7 +716,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         variant: &ty::VariantDef,
         snapshot_var: Option<&ModelEntry>,
         encoded_typ: String,
-        subst: ty::subst::SubstsRef<'tcx>,
+        subst: ty::GenericArgsRef<'tcx>,
     ) -> Vec<(String, Entry)> {
         match snapshot_var {
             Some(ModelEntry::DomainValue(domain, _)) => {

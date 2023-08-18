@@ -18,11 +18,11 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::Bool => vir_poly::Type::typed_ref("bool"),
             vir_high::Type::Int(int) => vir_poly::Type::typed_ref(int.to_string().to_lowercase()),
             vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
-                typ: box ty.element_type.lower(encoder),
+                typ: Box::new(ty.element_type.lower(encoder)),
             }),
             vir_high::Type::Map(ty) => vir_poly::Type::Map(vir_poly::MapType {
-                key_type: box ty.key_type.lower(encoder),
-                val_type: box ty.val_type.lower(encoder),
+                key_type: Box::new(ty.key_type.lower(encoder)),
+                val_type: Box::new(ty.val_type.lower(encoder)),
             }),
             vir_high::Type::Float(float) => {
                 vir_poly::Type::typed_ref(float.to_string().to_lowercase())

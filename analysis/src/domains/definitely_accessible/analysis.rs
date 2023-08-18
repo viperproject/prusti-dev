@@ -14,7 +14,7 @@ use crate::{
     PointwiseState,
 };
 use prusti_rustc_interface::{
-    borrowck::BodyWithBorrowckFacts,
+    borrowck::consumers::BodyWithBorrowckFacts,
     data_structures::fx::{FxHashMap, FxHashSet},
     middle::{mir, ty::TyCtxt},
     span::def_id::DefId,
@@ -48,8 +48,8 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         let borrowed_analysis = MaybeBorrowedAnalysis::new(self.tcx, self.body_with_facts);
         let def_init = def_init_analysis.run_fwd_analysis()?;
         let borrowed = borrowed_analysis.run_analysis()?;
-        let location_table = &self.body_with_facts.location_table;
-        let borrowck_out_facts = self.body_with_facts.output_facts.as_ref();
+        let location_table = self.body_with_facts.location_table.as_ref().unwrap();
+        let borrowck_out_facts = self.body_with_facts.output_facts.as_ref().unwrap().as_ref();
         let var_live_on_entry: FxHashMap<_, _> = borrowck_out_facts
             .var_live_on_entry
             .iter()

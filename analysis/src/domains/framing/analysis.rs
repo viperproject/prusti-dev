@@ -11,7 +11,7 @@ use crate::{
     PointwiseState,
 };
 use prusti_rustc_interface::{
-    borrowck::BodyWithBorrowckFacts,
+    borrowck::consumers::BodyWithBorrowckFacts,
     middle::{
         mir,
         mir::visit::{NonMutatingUseContext, PlaceContext, Visitor},
@@ -105,7 +105,6 @@ impl<'mir, 'tcx: 'mir> Visitor<'tcx> for ComputeFramingState<'mir, 'tcx> {
     ) {
         let place = (*place).into();
         match context {
-            PlaceContext::NonMutatingUse(NonMutatingUseContext::UniqueBorrow) => todo!(),
             PlaceContext::MutatingUse(_)
             | PlaceContext::NonMutatingUse(NonMutatingUseContext::Move) => {
                 // No permission can be framed

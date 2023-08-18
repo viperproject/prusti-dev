@@ -10,7 +10,7 @@ pub mod m {
         let mut i: usize = 0;
         while i < 14 {
             body_invariant!(i < 14);
-            let t1 = a[i + 1] + (a[i] >> 2);
+            let t1 = a[i + 1] + (a[i] >> 2u32);
             a[i + 1] = t1;
             let t2 = a[i] & 0x3f;
             a[i] = t2;
@@ -22,7 +22,7 @@ pub mod m {
         let mut i: usize = 0;
         while i < 14 {
             body_invariant!(i < 14);
-            let t1 = a[i + 1] + (a[i] >> 2);
+            let t1 = a[i + 1] + (a[i] >> 2u32);
             a[i + 1] = t1;
             let t2 = a[i] & 0x3f;
             a[i] = t2;
@@ -37,7 +37,7 @@ pub mod m {
         let mut i: usize = 0;
         while i < 14 {
             body_invariant!(i < 14);
-            let t1 = a[i + 1] + (a[i] >> 2);
+            let t1 = a[i + 1] + (a[i] >> 2u32);
             a[i + 1] = t1;
             let t2 = a[i] & 0x3f;
             a[i] = t2;
@@ -49,7 +49,7 @@ pub mod m {
         let mut i: usize = 0;
         while i < 14 {
             body_invariant!(i < 14);
-            let t1 = a[i + 1] + (a[i] >> 2);
+            let t1 = a[i + 1] + (a[i] >> 2u32);
             a[i + 1] = t1;
             let t2 = a[i] & 0x3f;
             a[i] = t2;

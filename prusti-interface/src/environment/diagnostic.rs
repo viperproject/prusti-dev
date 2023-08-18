@@ -25,13 +25,13 @@ impl<'tcx> EnvDiagnostic<'tcx> {
     ) {
         diagnostic.set_span(sp);
         if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
+            diagnostic.help(help_msg.clone());
         }
         for (note_msg, opt_note_sp) in notes {
             if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
+                diagnostic.span_note(note_sp.clone(), note_msg.clone());
             } else {
-                diagnostic.note(note_msg);
+                diagnostic.note(note_msg.clone());
             }
         }
     }
@@ -44,7 +44,7 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         help: &Option<String>,
         notes: &[(String, Option<S>)],
     ) {
-        let mut diagnostic = self.tcx.sess.struct_err(msg);
+        let mut diagnostic = self.tcx.sess.struct_err(msg.to_string());
         Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         for warn in self.warn_buffer.borrow_mut().iter_mut() {
             self.tcx.sess.diagnostic().emit_diagnostic(warn);
@@ -60,7 +60,7 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         help: &Option<String>,
         notes: &[(String, Option<S>)],
     ) {
-        let mut diagnostic = self.tcx.sess.struct_warn(msg);
+        let mut diagnostic = self.tcx.sess.struct_warn(msg.to_string());
         Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         diagnostic.emit();
     }
@@ -73,7 +73,7 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         help: &Option<String>,
         notes: &[(String, Option<S>)],
     ) {
-        let mut diagnostic = self.tcx.sess.struct_warn(msg);
+        let mut diagnostic = self.tcx.sess.struct_warn(msg.to_string());
         Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         diagnostic.buffer(&mut self.warn_buffer.borrow_mut());
     }

@@ -8,7 +8,7 @@ use crate::encoder::{
     },
 };
 use prusti_rustc_interface::{
-    middle::{mir::BasicBlock, ty::subst::SubstsRef},
+    middle::{mir::BasicBlock, ty::GenericArgsRef},
     span::Span,
 };
 use vir_crate::{
@@ -34,7 +34,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
         span: Span,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
         arguments: &[vir_high::Expression],
     ) -> SpannedEncodingResult<TerminationMeasure> {
         assert!(self.encoder.terminates(self.def_id, None));
@@ -115,7 +115,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder: &mut BasicBlockBuilder,
         span: Span,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
         arguments: &[vir_high::Expression],
     ) -> SpannedEncodingResult<()> {
         let called_fun = procedure_contract.def_id;

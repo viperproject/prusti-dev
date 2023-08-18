@@ -1,6 +1,6 @@
 # Loop body invariants
 
-To verify loops, including loops in which the loop condition has side effects, Prusti allows specifying the *invariant of the loop body* using the `body_invariant!(...);` statement. The expression inside the parentheses should be a [Prusti specification](../syntax.md). There may be any number of body invariants in any given loop, but they must all be written at the beginning of the loop body.
+To verify loops, including loops in which the loop condition has side effects, Prusti allows specifying the *invariant of the loop body* using the `body_invariant!(...);` statement. The expression inside the parentheses should be a [Prusti specification](../syntax.md). There may be any number of body invariants in any given loop, but they must all be written next to each other.
 
 | Feature | Status |
 | --- | --- |
@@ -11,7 +11,7 @@ To verify loops, including loops in which the loop condition has side effects, P
 
 In general, given the loop:
 
-```rust
+```rust,noplaypen,ignore
 while {
   G; // possibly side-effectful
   g // loop condition
@@ -35,7 +35,7 @@ Finally, the loop body invariant is not enforced when exiting from a loop with a
 
 As an example, consider the following program. The loop condition calls `test_and_increment`, and the call has side effects:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[ensures(result == (old(*i) >= 0))]

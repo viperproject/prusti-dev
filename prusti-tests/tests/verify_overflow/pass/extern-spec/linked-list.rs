@@ -1,3 +1,5 @@
+#![feature(allocator_api)]
+
 use prusti_contracts::*;
 
 use std::collections::LinkedList;
@@ -6,7 +8,7 @@ use std::collections::LinkedList;
 #[trusted]
 #[pure]
 #[requires(index < list.len())]
-fn get<T: Copy>(list: &LinkedList<T>, index: usize) -> T {
+fn get<T: Copy, A: std::alloc::Allocator + Clone>(list: &LinkedList<T, A>, index: usize) -> T {
     for (i, elem) in list.iter().enumerate() {
         if i == index {
             return *elem;
@@ -16,13 +18,26 @@ fn get<T: Copy>(list: &LinkedList<T>, index: usize) -> T {
 }
 
 #[extern_spec]
-impl<T> LinkedList<T>
+impl<T> LinkedList<T, std::alloc::Global>
 where
     T: Copy + PartialEq,
 {
     #[ensures(result.is_empty())]
-    pub fn new() -> LinkedList<T>;
+    pub fn new() -> LinkedList<T, std::alloc::Global>;
 
+    #[ensures(self.len() == old(self.len() + other.len()))]
+    #[ensures(forall (|i: usize| (i < old(self.len())) ==>
+        get(self, i) == old(get(self, i))))]
+    #[ensures(forall (|j: usize| (old(self.len()) <= j && j < self.len()) ==>
+        get(self, j) == old(get(other, j - self.len()))))]
+    #[ensures(other.len() == 0)]
+    pub fn append(&mut self, other: &mut LinkedList<T, std::alloc::Global>);
+}
+
+#[extern_spec]
+impl<T, A> LinkedList<T, A>
+    where T: Copy + PartialEq,
+          A: std::alloc::Allocator + Clone {
     #[pure]
     #[ensures(result ==> self.len() == 0)]
     #[ensures(!result ==> self.len() > 0)]
@@ -58,14 +73,6 @@ where
     get(self, i) == old(get(self, i))))]
     pub fn pop_back(&mut self) -> Option<T>;
 
-    #[ensures(self.len() == old(self.len() + other.len()))]
-    #[ensures(forall (|i: usize| (i < old(self.len())) ==>
-        get(self, i) == old(get(self, i))))]
-    #[ensures(forall (|j: usize| (old(self.len()) <= j && j < self.len()) ==>
-        get(self, j) == old(get(other, j - self.len()))))]
-    #[ensures(other.len() == 0)]
-    pub fn append(&mut self, other: &mut LinkedList<T>);
-
     #[requires(at <= self.len())]
     #[ensures(result.len() == old(self.len()) - at)]
     #[ensures(self.len() == at)]
@@ -73,7 +80,7 @@ where
         get(self, i) == old(get(self, i))))]
     #[ensures(forall (|j: usize| (j < result.len()) ==>
         get(&result, j) == old(get(self, j + at))))]
-    pub fn split_off(&mut self, at: usize) -> LinkedList<T>;
+    pub fn split_off(&mut self, at: usize) -> LinkedList<T, A>;
 }
 
 fn main() {

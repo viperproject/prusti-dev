@@ -173,9 +173,6 @@ fn new_viper_verifier<'v, 't: 'v>(
         }
     } else {
         report_path = None;
-        if backend_config.backend == VerificationBackend::Silicon {
-            verifier_args.extend(vec!["--disableTempDirectory".to_string()]);
-        }
     }
     let (smt_solver, smt_manager) = if config::use_smt_wrapper() {
         std::env::set_var("PRUSTI_ORIGINAL_SMT_SOLVER_PATH", config::smt_solver_path());

@@ -2,7 +2,7 @@
 
 Sometimes specifications express a fact which is true about a function, but the verifier cannot prove it automatically, or it uses features not yet supported by Prusti. In such cases, it is possible to mark a function as `#[trusted]`:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[trusted]
@@ -16,7 +16,7 @@ fn xor_swap(a: &mut i32, b: &mut i32) {
 
 In the above example, the contract for `xor_swap` is correct, but Prusti would not be able to verify it because it uses currently unsupported XOR operations.
 
-While a common application of `#[trusted]` is to wrap functions from the standard library or external libraries, notice that [external specifications](external.md) provide a more robust solution for this use case.
+While a common application of `#[trusted]` is to wrap functions from the standard library or external libraries, note that [external specifications](external.md) provide a more robust solution for this use case.
 
 ## Why trusted functions are dangerous
 
@@ -24,7 +24,7 @@ When declaring a function as `#[trusted]`, Prusti ignores the function's body an
 As the example below demonstrates, a single wrong, yet trusted, specification may lead to wrong and unexpected verification results.
 Hence, some care is needed to ensure that the specifications of trusted functions are indeed correct.
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[trusted]

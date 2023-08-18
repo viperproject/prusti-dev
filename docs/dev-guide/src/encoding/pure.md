@@ -4,7 +4,12 @@ To encode specifications and side-effect-free functions (marked with `#[pure]`),
 
 For example, the Rust function:
 
-```rust
+```rust,noplaypen
+# // The next line is only used to enable mdBook doctests for this file to work
+# extern crate prusti_contracts;
+# 
+# use prusti_contracts::*;
+# 
 #[pure]
 fn hello(a: i32) -> i32 {
   let mut b = 10;
