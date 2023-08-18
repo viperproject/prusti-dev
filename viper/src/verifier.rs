@@ -88,13 +88,17 @@ impl<'a> Verifier<'a> {
                     .call_initialize(self.frontend_instance, args),
             );
             let verifier_wrapper = silver::verifier::Verifier::with(self.env);
-            let verifier_instance =
-                self.jni.unwrap_result(self.frontend_wrapper.call_verifier(self.frontend_instance));
+            let verifier_instance = self
+                .jni
+                .unwrap_result(self.frontend_wrapper.call_verifier(self.frontend_instance));
 
-            let name =
-                self.jni.to_string(self.jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
+            let name = self.jni.to_string(
+                self.jni
+                    .unwrap_result(verifier_wrapper.call_name(verifier_instance)),
+            );
             let build_version = self.jni.to_string(
-                self.jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),
+                self.jni
+                    .unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),
             );
             info!("Using backend {} version {}", name, build_version);
         });
