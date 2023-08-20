@@ -29,7 +29,7 @@ use prusti_common::{
     vir::{ToGraphViz, fixes::fix_ghost_vars},
     vir_local, vir_expr, vir_stmt
 };
-use prusti_interface::{globals, environment::inserted_locations_store};
+use prusti_interface::globals;
 use vir_crate::{
     polymorphic::{
         self as vir,
@@ -1341,7 +1341,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Insert a refute fals to deterimine rechability
     fn encode_reachability_refute(&mut self, bbi: BasicBlockIndex, cfg_block: CfgBlockIndex) -> SpannedEncodingResult<()> {
         let pos = self.register_error(self.mir_encoder.get_span_of_basic_block(bbi), ErrorCtxt::InsertedReachabilityRefutation(self.proc_def_id, bbi));
-        inserted_locations_store::add_reachability_check(self.proc_def_id, bbi);
+        globals::add_reachability_check(self.proc_def_id, bbi);
         let false_const = vir::Expr::Const(vir::ConstExpr {
             value: vir::Const::Bool(false),
             position: pos
@@ -2783,18 +2783,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::Expr::not(cond_var.into())
                 };
 
+                if config::remove_dead_code() {
+                    globals::add_encoded_assertion(self.proc_def_id, location.block);
+                }
+                let ignore = config::remove_dead_code()
+                    && (!self.check_panics
+                        || (!config::check_overflows()
+                            && matches!(msg, box mir::AssertKind::Overflow(..) | box mir::AssertKind::OverflowNeg(..))));
                 // Check or assume the assertion
                 let (assert_msg, error_ctxt) = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     let mut s = String::new();
                     msg.fmt_assert_args(&mut s).unwrap();
-                    (s, ErrorCtxt::BoundsCheckAssert)
+                    (s, ErrorCtxt::BoundsCheckAssert(self.proc_def_id, location.block, ignore))
                 } else {
                     let assert_msg = msg.description().to_string();
-                    (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))
+                    (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg, self.proc_def_id, location.block, ignore))
                 };
 
                 stmts.push(vir::Stmt::comment(format!("Rust assertion: {assert_msg}")));
-                if self.check_panics {
+                if self.check_panics || config::remove_dead_code() {
                     stmts.push(vir::Stmt::Assert( vir::Assert {
                         expr: viper_guard,
                         position: self.register_error(

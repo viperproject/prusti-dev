@@ -27,7 +27,6 @@ mod name;
 pub mod polonius_info;
 mod procedure;
 mod query;
-pub mod inserted_locations_store;
 
 pub use self::{
     body::EnvBody,

@@ -736,7 +736,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 };
 
                 let error_ctxt = if let box mir::AssertKind::BoundsCheck { .. } = msg {
-                    ErrorCtxt::BoundsCheckAssert
+                    ErrorCtxt::BoundsCheckAssertSpec
                 } else {
                     let assert_msg = msg.description().to_string();
                     ErrorCtxt::PureFunctionAssertTerminator(assert_msg)

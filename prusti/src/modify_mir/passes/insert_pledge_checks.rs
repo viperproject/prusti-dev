@@ -174,7 +174,10 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                         // a pledge is associated with this loan and dies here!!
                         modification_list.push((ExpirationLocation::Location(location), *place));
                         let pledge = self.pledges_to_process.get(place).unwrap();
-                        println!("Pledge for function {} is associated with loan {:?} and dies at {:?}", pledge.name, loan, location);
+                        println!(
+                            "Pledge for function {} is associated with loan {:?} and dies at {:?}",
+                            pledge.name, loan, location
+                        );
                     }
                 }
                 if statement_index == nr_statements
@@ -389,7 +392,8 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
 
                             // create a copy of the result in case it becomes a zombie later
                             let result_ty = destination.ty(self.local_decls(), self.tcx).ty;
-                            let result_copy_place = mir::Place::from(self.patcher().new_temp(result_ty, DUMMY_SP));
+                            let result_copy_place =
+                                mir::Place::from(self.patcher().new_temp(result_ty, DUMMY_SP));
                             println!("Pledge result type: {:?}", result_ty);
 
                             // create a guard local
@@ -446,9 +450,15 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                             // Copy the result after the function has been called:
                             // If it has a target, otherwise it doesn't matter at all..
                             if let Some(target) = target {
-                                let location = mir::Location{ block: *target, statement_index: 0};
+                                let location = mir::Location {
+                                    block: *target,
+                                    statement_index: 0,
+                                };
                                 let result_operand = mir::Operand::Copy(pledge.destination);
-                                let stmt = mir::StatementKind::Assign(Box::new((pledge.result_copy_place, mir::Rvalue::Use(result_operand))));
+                                let stmt = mir::StatementKind::Assign(Box::new((
+                                    pledge.result_copy_place,
+                                    mir::Rvalue::Use(result_operand),
+                                )));
                                 self.patcher().add_statement(location, stmt);
                             }
                             self.pledges_to_process.insert(*destination, pledge);

@@ -160,9 +160,12 @@ impl CheckTranslator {
             if let Some(expr) = self.lhs_expression.as_ref() {
                 (expr.clone(), self.lhs_expr_span.unwrap())
             } else {
-                (parse_quote_spanned! {item.span() =>
-                    true
-                }, item.span())
+                (
+                    parse_quote_spanned! {item.span() =>
+                        true
+                    },
+                    item.span(),
+                )
             }
         } else {
             (self.expression.clone(), self.expr_span)
@@ -176,7 +179,9 @@ impl CheckTranslator {
         };
         let forget_statements =
             self.generate_forget_statements(item, include_item_args, executed_after);
-        let contract_string = expr_span.source_text().unwrap_or("unresolved contract".to_string());
+        let contract_string = expr_span
+            .source_text()
+            .unwrap_or("unresolved contract".to_string());
         let failure_message = format!("Contract {} was violated at runtime", contract_string);
         let id_attr: syn::Attribute = if is_before_expiry_check {
             parse_quote_spanned! {item.span() =>

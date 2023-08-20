@@ -1,4 +1,4 @@
-use prusti_rustc_interface::span::def_id::DefId;
+use prusti_rustc_interface::{middle::mir, span::def_id::DefId};
 use rustc_hash::FxHashMap;
 use std::cell::RefCell;
 
@@ -13,6 +13,65 @@ thread_local! {
     pub static ENV: RefCell<Option<Environment<'static>>> = RefCell::new(None);
     pub static VERIFIED: RefCell<bool> = RefCell::new(false);
     pub static POLONIUS: RefCell<FxHashMap<DefId, PoloniusInfo<'static, 'static>>> = RefCell::default();
+    pub static REACHABILITY_CHECKS: RefCell<FxHashMap<DefId, FxHashMap<mir::BasicBlock, bool>>> =
+        Default::default();
+    // for each encoded assertion, after verification stores true if this assertion
+    // will never panic, or false if it possibly panics (after verification)
+    pub static VERIFIED_ASSERTIONS: RefCell<FxHashMap<DefId, FxHashMap<mir::BasicBlock, bool>>> = Default::default();
+}
+
+pub fn add_encoded_assertion(def_id: DefId, bb: mir::BasicBlock) {
+    VERIFIED_ASSERTIONS.with(|cell| {
+        let mut map = cell.borrow_mut();
+        let entry = map.entry(def_id);
+        // insert true first, if it generates an error set if to false
+        // (if it doesnt generate an error it's either unreachable, or
+        // actually verifiably true and can be removed later)
+        entry.or_default().insert(bb, true);
+    })
+}
+
+pub fn set_assertion_violated(def_id: DefId, bb: mir::BasicBlock) {
+    VERIFIED_ASSERTIONS.with(|cell| {
+        let mut map = cell.borrow_mut();
+        let fn_map = map.get_mut(&def_id).unwrap();
+        assert!(fn_map.get(&bb).is_some());
+        fn_map.insert(bb, false);
+    })
+}
+
+pub fn get_assertion_map(def_id: DefId) -> Option<FxHashMap<mir::BasicBlock, bool>> {
+    VERIFIED_ASSERTIONS.with(|cell| {
+        let map = cell.borrow();
+        map.get(&def_id).cloned()
+    })
+}
+
+// add the location when inserting refute(false) into encoding.
+// Assume it's reachable, if we catch an error for it later we know it's not!
+pub fn add_reachability_check(def_id: DefId, bb: mir::BasicBlock) {
+    REACHABILITY_CHECKS.with(|cell| {
+        let mut map = cell.borrow_mut();
+        let entry = map.entry(def_id);
+        entry.or_default().insert(bb, true);
+    })
+}
+
+pub fn set_block_unreachable(def_id: DefId, bb: mir::BasicBlock) {
+    REACHABILITY_CHECKS.with(|cell| {
+        let mut map = cell.borrow_mut();
+        let fn_map = map.get_mut(&def_id).unwrap();
+        // make sure this location is actually in here
+        assert!(fn_map.get(&bb).is_some());
+        fn_map.insert(bb, false);
+    })
+}
+
+pub fn get_reachability_map(def_id: DefId) -> Option<FxHashMap<mir::BasicBlock, bool>> {
+    REACHABILITY_CHECKS.with(|cell| {
+        let map = cell.borrow();
+        map.get(&def_id).cloned()
+    })
 }
 
 pub fn store_spec_env<'tcx>(def_spec: DefSpecificationMap, env: Environment<'tcx>) {

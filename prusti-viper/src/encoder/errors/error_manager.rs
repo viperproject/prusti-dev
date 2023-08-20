@@ -12,7 +12,7 @@ use prusti_rustc_interface::span::{source_map::SourceMap, def_id::DefId};
 use prusti_rustc_interface::middle::mir::BasicBlock;
 use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
-use prusti_interface::{PrustiError, environment::inserted_locations_store};
+use prusti_interface::{PrustiError, globals};
 use log::debug;
 use super::PositionManager;
 use prusti_interface::data::ProcedureDefId;
@@ -100,10 +100,19 @@ pub enum ErrorCtxt {
     /// Finding the value of the termination measure at the begin of a method unexpectedly caused an error
     UnexpectedAssignMethodTerminationMeasure,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
-    /// Arguments: the message of the Rust assertion
-    AssertTerminator(String),
+    /// Arguments:
+    /// * the message of the Rust assertion
+    /// * 2 fields to identify this assertion in the MIR for optimizations
+    /// * bool whether to ignore this error (meaning not report it to user,
+    /// because it's only required for optimizations)
+    AssertTerminator(String, DefId, BasicBlock, bool),
+    /// A Viper `assert false` in the context of a bounds check in specifications
+    BoundsCheckAssertSpec,
     /// A Viper `assert false` in the context of a bounds check
-    BoundsCheckAssert,
+    /// Arguments:
+    /// * 2 fields to identify this assertion in the MIR for optimizations
+    /// * bool whether to ignore this error (meaning not report it to user,
+    BoundsCheckAssert(DefId, BasicBlock, bool),
     /// A Viper `assert false` in the context of a hardcoded bounds check (e.g. when we hardcode a `index`)
     /// TODO: remove this in favor of extern_spec for e.g. the stdlib `fn index(...)`
     SliceRangeBoundsCheckAssert(String),
@@ -387,9 +396,14 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => {
-                PrustiError::verification(format!("assertion might fail with \"{message}\""), error_span)
-                    .set_failing_assertion(opt_cause_span)
+            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message, def_id, bb, ignore)) => {
+                if *ignore {
+                    globals::set_assertion_violated(*def_id, *bb);
+                    PrustiError::ignore_verification(format!("failing assertion used for mir optimization, bug if seen by a user"), error_span)
+                } else {
+                    PrustiError::verification(format!("assertion might fail with \"{message}\""), error_span)
+                        .set_failing_assertion(opt_cause_span)
+                }
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => {
@@ -542,6 +556,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PureFunctionAssertTerminator(ref message),
             ) => {
+
                 PrustiError::disabled_verification(
                     format!("assertion might fail with \"{message}\""),
                     error_span
@@ -609,8 +624,21 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::BoundsCheckAssert) |
-            ("application.precondition:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
+            ("assert.failed:assertion.false", ErrorCtxt::BoundsCheckAssert(def_id, bb, ignore)) => {
+                if *ignore {
+                    globals::set_assertion_violated(*def_id, *bb);
+                    PrustiError::ignore_verification(
+                        "an assertion failed but is only relevant for optimizations. Bug if seen by a user".to_string(),
+                        error_span
+                    )
+                } else {
+                    PrustiError::verification(
+                        "the array or slice index may be out of bounds".to_string(),
+                        error_span,
+                    ).set_failing_assertion(opt_cause_span)
+                }
+            }
+            ("application.precondition:assertion.false", ErrorCtxt::BoundsCheckAssertSpec) => {
                 PrustiError::verification(
                     "the array or slice index may be out of bounds".to_string(),
                     error_span,
@@ -708,7 +736,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
             (_err_id, ErrorCtxt::InsertedReachabilityRefutation(def_id, bb)) => {
                 // this location is reachable. Mark it:
-                inserted_locations_store::set_block_unreachable(*def_id, *bb);
+                globals::set_block_unreachable(*def_id, *bb);
                 // return a cancelled error, because these should not cause
                 // a failure
                 PrustiError::ignore_verification("Inserted assertion is reachable", error_span)
