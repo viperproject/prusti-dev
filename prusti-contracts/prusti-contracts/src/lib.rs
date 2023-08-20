@@ -66,7 +66,9 @@ pub use prusti_contracts_proc_macros::terminates;
 /// A macro to annotate body variant of a loop to prove termination
 pub use prusti_contracts_proc_macros::body_variant;
 
-pub use prusti_contracts_proc_macros::prusti_pledge_expires;
+/// A macro to explicitly annotate a quantifier with ranges for their
+/// runtime checks
+pub use prusti_contracts_proc_macros::quantifier_runtime_bounds;
 
 #[cfg(not(feature = "prusti"))]
 mod private {

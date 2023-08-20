@@ -218,14 +218,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 );
             });
         }
-        // can we modify ast? just stealing it does not work obviously..
-        //  queries.global_ctxt().unwrap().enter(|tcx: TyCtxt<'tcx>| {
-        //     let (resolver, mut krate_rc) = tcx.resolver_for_lowering(()).steal();
-        //     let krate: &mut Crate = Rc::get_mut(&mut krate_rc).unwrap();
-        //     // let _visitor = MutVisitor;
-        //     tcx.arena.alloc(Steal::new((resolver, Rc::new(krate.clone()))))
-        // });
-
         Compilation::Continue
     }
 
@@ -237,6 +229,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         if config::full_compilation() {
+            // verification moved into mir_drops_elaborated query!
             Compilation::Continue
         } else {
             Compilation::Stop

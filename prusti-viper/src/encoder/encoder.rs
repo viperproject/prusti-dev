@@ -104,7 +104,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// this requires special care when encoding array/slice accesses which may come with
     /// bound checks included in the MIR.
     pub(super) is_encoding_trigger: Cell<bool>,
-    pub expiration_locations: RefCell<FxHashMap<ProcedureDefId, FxHashMap<mir::Local, mir::Location>>>,
 }
 
 pub enum EncodingTask<'tcx> {
@@ -178,7 +177,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             specifications_state: SpecificationsState::new(def_spec),
             mir_procedure_mapping: Default::default(),
             discriminants_state: Default::default(),
-            expiration_locations: Default::default(),
         }
     }
 
@@ -624,13 +622,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let procedure = self.env.get_procedure(def_id);
             let proc_encoder = ProcedureEncoder::new(self, &procedure)?;
             let mut method = match proc_encoder.encode() {
-                Ok((result, loan_expirations)) => {
-                    let mut expiration_locations = self.expiration_locations.borrow_mut();
-                    // detect multiple expiration locations
-                    assert!(expiration_locations.get(&def_id).is_none());
-                    expiration_locations.insert(def_id, loan_expirations);
-                    result
-                },
+                Ok(result) => result,
                 Err(error) => {
                     self.register_encoding_error(error);
                     StubProcedureEncoder::new(self, &procedure).encode()
@@ -866,7 +858,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                     match proc_kind {
                         _ if self.is_trusted(proc_def_id, None) => {
-                            // let _ = self.encode_procedure(proc_def_id);
                             debug!(
                                 "Trusted procedure will not be encoded or verified: {:?}",
                                 proc_def_id

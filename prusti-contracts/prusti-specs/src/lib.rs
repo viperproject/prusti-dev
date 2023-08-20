@@ -159,16 +159,11 @@ fn generate_spec_and_assertions(
 ) -> GeneratedResult {
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
-    let is_trusted = !prusti_attributes
-        .iter()
-        .filter(|x| matches!(x.0, SpecAttributeKind::Trusted))
-        .collect::<Vec<&(SpecAttributeKind, TokenStream)>>()
-        .is_empty();
 
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
-            SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item, is_trusted),
+            SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
@@ -224,7 +219,6 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
 fn generate_for_ensures(
     attr: TokenStream,
     item: &untyped::AnyFnItem,
-    _is_trusted: bool, // may be used in future
 ) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();

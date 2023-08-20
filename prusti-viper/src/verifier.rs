@@ -214,10 +214,6 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         result
     }
-
-    pub fn get_expiration_locations(&self) -> FxHashMap<ProcedureDefId, FxHashMap<mir::Local, mir::Location>> {
-        self.encoder.expiration_locations.borrow().clone()
-    }
 }
 
 /// Verify a list of programs.
@@ -293,5 +289,4 @@ fn verify_programs(
             })
             .collect()
     }
-
 }
