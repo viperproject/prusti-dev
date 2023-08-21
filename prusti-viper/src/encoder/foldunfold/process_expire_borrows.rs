@@ -197,7 +197,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 for perm in &dropped_permissions {
                     let comment = format!("restored (from log): {perm}");
                     let key = (predecessor, curr_block_index);
-                    let entry = cfg.edges.entry(key).or_insert_with(Vec::new);
+                    let entry = cfg.edges.entry(key).or_default();
                     entry.push(vir::Stmt::comment(comment));
                 }
                 pctxt
@@ -228,7 +228,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     }
                 }
                 let key = (src_index, curr_block_index);
-                let entry = cfg.edges.entry(key).or_insert_with(Vec::new);
+                let entry = cfg.edges.entry(key).or_default();
                 entry.extend(stmts_to_add);
             }
         }

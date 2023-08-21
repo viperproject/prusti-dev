@@ -30,7 +30,7 @@ pub(super) fn extract_closure_from_ty<'tcx>(
                 substs,
                 env_query.get_def_span(def_id),
                 sig.inputs()[0].tuple_fields().to_vec(),
-                cl_substs.upvar_tys().collect(),
+                cl_substs.upvar_tys().iter().collect(),
             )
         }
         _ => unreachable!("expected closure type"),

@@ -980,7 +980,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             &mir::AggregateKind::Closure(_def_id, substs) => {
                                 let cl_substs = substs.as_closure();
                                 let mut field_exprs = vec![];
-                                for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
+                                for (field_index, field_ty) in cl_substs.upvar_tys().iter().enumerate() {
                                     let operand = &operands[field_index.into()];
                                     let field_name = format!("closure_{field_index}");
 

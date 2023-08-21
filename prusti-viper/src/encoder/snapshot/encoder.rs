@@ -686,7 +686,7 @@ impl SnapshotEncoder {
             ty::TyKind::Closure(_def_id, substs) => {
                 let cl_substs = substs.as_closure();
                 let mut fields = vec![];
-                for (field_num, field_ty) in cl_substs.upvar_tys().enumerate() {
+                for (field_num, field_ty) in cl_substs.upvar_tys().iter().enumerate() {
                     let field_name = format!("closure_{field_num}");
                     fields.push(SnapshotField {
                         name: field_name.to_string(),

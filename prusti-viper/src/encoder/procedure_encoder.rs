@@ -49,8 +49,7 @@ use prusti_interface::{
     },
     PrustiError,
 };
-use std::collections::{BTreeMap};
-use std::fmt::Debug;
+use std::{collections::{BTreeMap}, convert::TryInto, fmt::{Debug, Write}};
 use prusti_interface::utils;
 use prusti_rustc_interface::index::IndexSlice;
 use prusti_rustc_interface::middle::mir::Mutability;
@@ -65,7 +64,6 @@ use prusti_interface::specs::typed;
 use ::log::{trace, debug};
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
-use std::convert::TryInto;
 use prusti_interface::specs::typed::{Pledge, SpecificationItem};
 use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
@@ -1251,7 +1249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         self.cfg_blocks_map
             .entry(bbi)
-            .or_insert_with(FxHashSet::default)
+            .or_default()
             .insert(curr_block);
 
         if self.loop_encoder.is_loop_head(bbi) {
@@ -5250,17 +5248,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         trace!(
             "[exit] encode_loop_invariant_permissions permissions={}",
             permissions
-                .iter()
-                .map(|p| format!("{p}, "))
-                .collect::<String>()
+                .iter().fold(String::new(), |mut output, p| {
+                    let _ = write!(output, "{p}, ");
+                    output
+                })
         );
 
         trace!(
             "[exit] encode_loop_invariant_permissions equalities={}",
             equalities
-                .iter()
-                .map(|p| format!("{p}, "))
-                .collect::<String>()
+                .iter().fold(String::new(), |mut output, p| {
+                    let _ = write!(output, "{p}, ");
+                    output
+                })
         );
 
         Ok((permissions, equalities, invs_spec))
@@ -6686,7 +6686,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // TODO: might need to assert history invariants?
                 assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {def_id:?}");
                 let cl_substs = substs.as_closure();
-                for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
+                for (field_index, field_ty) in cl_substs.upvar_tys().iter().enumerate() {
                     let operand = &operands[field_index.into()];
                     let field_name = format!("closure_{field_index}");
                     let encoded_field = self.encoder

@@ -474,6 +474,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let cl_substs = internal_substs.as_closure();
                 let arguments = cl_substs
                     .upvar_tys()
+                    .iter()
                     .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
                     .collect();
                 let name = encode_closure_name(self.encoder, *def_id);
