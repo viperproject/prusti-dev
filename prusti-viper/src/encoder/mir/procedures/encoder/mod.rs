@@ -503,7 +503,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.derived_lifetimes_yet_to_kill.clear();
         self.reborrow_lifetimes_to_remove_for_block
             .entry(bb)
-            .or_insert_with(BTreeSet::new);
+            .or_default();
         self.current_basic_block = Some(bb);
         let label = self.encode_basic_block_label(bb);
         let mut block_builder = procedure_builder.create_basic_block_builder(label);

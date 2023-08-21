@@ -10,7 +10,7 @@ use super::super::{
 };
 use crate::polymorphic::ast::*;
 use rustc_hash::FxHashMap;
-use std::fmt;
+use std::fmt::{self, Write};
 
 // TODO: Fix by boxing all `Expr`s.
 #[allow(clippy::large_enum_variant)]
@@ -1372,8 +1372,8 @@ pub trait FallibleStmtWalker {
 }
 
 pub fn stmts_to_str(stmts: &[Stmt]) -> String {
-    stmts
-        .iter()
-        .map(|stmt| format!("{}\n", stmt))
-        .collect::<String>()
+    stmts.iter().fold(String::new(), |mut output, stmt| {
+        let _ = writeln!(output, "{stmt}");
+        output
+    })
 }
