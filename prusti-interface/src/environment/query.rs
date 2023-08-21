@@ -7,9 +7,7 @@ use prusti_rustc_interface::{
     hir::hir_id::HirId,
     middle::{
         hir::map::Map,
-        ty::{
-            self, BoundConstness, GenericArgsRef, ImplPolarity, ParamEnv, TraitPredicate, TyCtxt,
-        },
+        ty::{self, GenericArgsRef, ImplPolarity, ParamEnv, TraitPredicate, TyCtxt},
     },
     span::{
         def_id::{DefId, LocalDefId},
@@ -291,7 +289,6 @@ impl<'tcx> EnvQuery<'tcx> {
                 ParamEnv::reveal_all(),
                 TraitPredicate {
                     trait_ref,
-                    constness: BoundConstness::NotConst,
                     polarity: ImplPolarity::Positive,
                 },
             );

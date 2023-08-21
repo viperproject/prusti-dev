@@ -16,7 +16,7 @@ use crate::encoder::high::types::HighTypeEncoderInterface;
 use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz, Stopwatch};
 use prusti_rustc_interface::middle::mir;
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{self, fmt, ops::Deref};
+use std::{self, fmt, fmt::Write, ops::Deref};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{
@@ -865,8 +865,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 "acc_perms = {}",
                 acc_perms
                     .iter()
-                    .map(|(a, p, id)| format!("({a}, {p}, {id}), "))
-                    .collect::<String>()
+                    .fold(String::new(), |mut output, (a, p, id)| {
+                        let _ = write!(output, "({a}, {p}, {id}), ");
+                        output
+                    })
             );
             for (place, perm_amount, _) in acc_perms {
                 trace!("acc place: {} {}", place, perm_amount);
