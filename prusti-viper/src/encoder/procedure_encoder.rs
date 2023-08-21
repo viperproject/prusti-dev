@@ -6686,7 +6686,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // TODO: might need to assert history invariants?
                 assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {def_id:?}");
                 let cl_substs = substs.as_closure();
-                for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
+                for (field_index, field_ty) in cl_substs.upvar_tys().iter().enumerate() {
                     let operand = &operands[field_index.into()];
                     let field_name = format!("closure_{field_index}");
                     let encoded_field = self.encoder
