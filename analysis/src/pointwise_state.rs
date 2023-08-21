@@ -123,9 +123,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> PointwiseState<'mir, 'tcx, S> {
         &mut self,
         block: mir::BasicBlock,
     ) -> &mut FxHashMap<mir::BasicBlock, S> {
-        self.state_after_block
-            .entry(block)
-            .or_insert_with(FxHashMap::default)
+        self.state_after_block.entry(block).or_default()
     }
 
     /// Update the state before the `location`.
