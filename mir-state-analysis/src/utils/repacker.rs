@@ -11,12 +11,14 @@ use prusti_rustc_interface::{
     middle::{
         mir::{
             tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
-            ProjectionElem,
+            ProjectionElem, PlaceElem,
         },
-        ty::{TyCtxt, TyKind},
+        ty::{Ty, TyCtxt, TyKind, RegionVid},
     },
     target::abi::FieldIdx,
 };
+
+use crate::utils::ty::{DeepTypeVisitor, Stack, DeepTypeVisitable};
 
 use super::Place;
 
@@ -67,6 +69,10 @@ impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
 
     pub fn body(self) -> &'a Body<'tcx> {
         self.mir
+    }
+
+    pub fn tcx(self) -> TyCtxt<'tcx> {
+        self.tcx
     }
 }
 
@@ -196,7 +202,7 @@ impl<'tcx> Place<'tcx> {
                 (other_places, ProjectionRefKind::Other)
             }
             ProjectionElem::Deref => {
-                let typ = self.ty(repacker.mir, repacker.tcx);
+                let typ = self.ty(repacker);
                 let kind = match typ.ty.kind() {
                     TyKind::Ref(_, _, mutbl) => ProjectionRefKind::Ref(*mutbl),
                     TyKind::RawPtr(ptr) => ProjectionRefKind::RawPtr(ptr.mutbl),
@@ -223,7 +229,7 @@ impl<'tcx> Place<'tcx> {
         repacker: PlaceRepacker<'_, 'tcx>,
     ) -> Vec<Self> {
         let mut places = Vec::new();
-        let typ = self.ty(repacker.mir, repacker.tcx);
+        let typ = self.ty(repacker);
         if !matches!(typ.ty.kind(), TyKind::Adt(..)) {
             assert!(
                 typ.variant_index.is_none(),
@@ -313,6 +319,9 @@ impl<'tcx> Place<'tcx> {
 // }
 
 impl<'tcx> Place<'tcx> {
+    pub fn ty(self, repacker: PlaceRepacker<'_, 'tcx>) -> PlaceTy<'tcx> {
+        (*self).ty(repacker.mir, repacker.tcx)
+    }
     // pub fn get_root(self, repacker: PlaceRepacker<'_, 'tcx>) -> RootPlace<'tcx> {
     //     if let Some(idx) = self.projection.iter().rev().position(RootPlace::is_indirect) {
     //         let idx = self.projection.len() - idx;
@@ -326,7 +335,7 @@ impl<'tcx> Place<'tcx> {
 
     /// Should only be called on a `Place` obtained from `RootPlace::get_parent`.
     pub fn get_ref_mutability(self, repacker: PlaceRepacker<'_, 'tcx>) -> Mutability {
-        let typ = self.ty(repacker.mir, repacker.tcx);
+        let typ = self.ty(repacker);
         if let TyKind::Ref(_, _, mutability) = typ.ty.kind() {
             *mutability
         } else {
@@ -369,5 +378,26 @@ impl<'tcx> Place<'tcx> {
             typ = typ.projection_ty(repacker.tcx, *elem);
         }
         None
+    }
+
+    pub fn all_behind_region(self, r: RegionVid, repacker: PlaceRepacker<'_, 'tcx>) -> Vec<Self> {
+        struct AllBehindWalker<'tcx>(Place<'tcx>, Vec<Place<'tcx>>, TyCtxt<'tcx>);
+        impl<'tcx> DeepTypeVisitor<'tcx> for AllBehindWalker<'tcx> {
+            fn tcx(&self) -> TyCtxt<'tcx> {
+                self.2
+            }
+
+            fn visit_rec(&mut self, ty: Ty<'tcx>, stack: &mut Stack<'tcx>) {
+                ty.visit_with(self, stack);
+            }
+        }
+        todo!()
+    }
+
+    pub fn mk_deref(self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
+        let elems = repacker.tcx.mk_place_elems_from_iter(
+            self.projection.iter().copied().chain(std::iter::once(PlaceElem::Deref))
+        );
+        Self::new(self.local, elems)
     }
 }

@@ -1,5 +1,5 @@
 use crate::verifier::verify;
-use mir_state_analysis::test_free_pcs;
+use mir_state_analysis::{test_coupling_graph, test_free_pcs};
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
@@ -167,6 +167,19 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         let current_procedure = env.get_procedure(*proc_id);
                         let mir = current_procedure.get_mir_rc();
                         test_free_pcs(&mir, tcx);
+                    }
+                } else if config::test_coupling_graph() {
+                    for proc_id in env.get_annotated_procedures_and_types().0.iter() {
+                        let mir = env.body.get_impure_fn_body_identity(proc_id.expect_local());
+                        let facts = env
+                            .body
+                            .try_get_local_mir_borrowck_facts(proc_id.expect_local())
+                            .unwrap();
+                        let facts2 = env
+                            .body
+                            .try_get_local_mir_borrowck_facts2(proc_id.expect_local())
+                            .unwrap();
+                        test_coupling_graph(&*mir, &*facts, &*facts2, tcx);
                     }
                 } else {
                     verify(env, def_spec);

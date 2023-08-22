@@ -132,6 +132,7 @@ lazy_static::lazy_static! {
         settings.set_default("num_errors_per_function", 1).unwrap();
         // TODO: remove this option
         settings.set_default("test_free_pcs", false).unwrap();
+        settings.set_default("test_coupling_graph", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -1036,4 +1037,8 @@ pub fn num_errors_per_function() -> u32 {
 // TODO: remove
 pub fn test_free_pcs() -> bool {
     read_setting("test_free_pcs")
+}
+
+pub fn test_coupling_graph() -> bool {
+    read_setting("test_coupling_graph")
 }

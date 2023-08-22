@@ -10,7 +10,7 @@ use rustc_hash::FxHashMap;
 use rustc_middle::ty::GenericArgsRef;
 use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc};
 
-use crate::environment::{borrowck::facts::BorrowckFacts, mir_storage};
+use crate::environment::{borrowck::facts::{BorrowckFacts, BorrowckFacts2}, mir_storage};
 
 /// Stores any possible MIR body (from the compiler) that
 /// Prusti might want to work with. Cheap to clone
@@ -33,6 +33,7 @@ struct BodyWithBorrowckFacts<'tcx> {
     body: MirBody<'tcx>,
     /// Cached borrowck information.
     borrowck_facts: Rc<BorrowckFacts>,
+    borrowck_facts2: Rc<BorrowckFacts2<'tcx>>,
 }
 
 /// Bodies which need not be synched across crates and so can be
@@ -138,10 +139,15 @@ impl<'tcx> EnvBody<'tcx> {
             output_facts: body_with_facts.output_facts,
             location_table: RefCell::new(body_with_facts.location_table),
         };
+        let facts2 = BorrowckFacts2 {
+            borrow_set: body_with_facts.borrow_set,
+            region_inference_context: body_with_facts.region_inference_context,
+        };
 
         BodyWithBorrowckFacts {
             body: MirBody(Rc::new(body_with_facts.body)),
             borrowck_facts: Rc::new(facts),
+            borrowck_facts2: Rc::new(facts2),
         }
     }
 
@@ -313,6 +319,17 @@ impl<'tcx> EnvBody<'tcx> {
             .borrow()
             .get(&def_id)
             .map(|body| body.borrowck_facts.clone())
+    }
+
+    #[tracing::instrument(level = "debug", skip(self))]
+    pub fn try_get_local_mir_borrowck_facts2(
+        &self,
+        def_id: LocalDefId,
+    ) -> Option<Rc<BorrowckFacts2<'tcx>>> {
+        self.local_impure_fns
+            .borrow()
+            .get(&def_id)
+            .map(|body| body.borrowck_facts2.clone())
     }
 
     /// Ensures that the MIR body of a local spec is cached. This must be called on all specs,
