@@ -98,8 +98,15 @@ impl PersistentCache {
         match fs::File::create(cache_loc) {
             Ok(f) => {
                 info!("Saving cache to \"{}\"", cache_loc.display());
-                bincode::serialize_into(&mut io::BufWriter::new(f), &ResultCache::from(self))
-                    .unwrap_or_else(|e| error!("Failed to write cache: {e}"));
+                let mut cache_buffer = io::BufWriter::new(f);
+                bincode::serialize_into(&mut cache_buffer, &ResultCache::from(self))
+                    .unwrap_or_else(|e| error!("Failed to serialize the cache: {e}"));
+                match cache_buffer.into_inner() {
+                    Err(e) => error!("Failed to flush the cache file: {e}"),
+                    Ok(f) => f
+                        .sync_all()
+                        .unwrap_or_else(|e| error!("Failed to sync the cache file to disk: {e}")),
+                }
             }
             Err(e) => error!("Failed to create cache file: {e}"),
         }

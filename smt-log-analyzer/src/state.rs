@@ -667,6 +667,7 @@ impl State {
                 self.traced_quantifier_triggers.as_ref().unwrap().as_bytes(),
             )
             .unwrap();
+            file.sync_all().unwrap();
         }
     }
 

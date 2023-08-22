@@ -20,6 +20,7 @@ fn main() {
             let fname = deps_dir.path().join("asm.jar");
             let mut dest = File::create(fname.clone()).unwrap();
             copy(&mut response.into_reader(), &mut dest).unwrap();
+            dest.sync_all().unwrap();
             fname.to_str().unwrap().to_string()
         }
     };
