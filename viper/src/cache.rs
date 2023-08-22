@@ -103,7 +103,8 @@ impl PersistentCache {
                     .unwrap_or_else(|e| error!("Failed to serialize the cache: {e}"));
                 match cache_buffer.into_inner() {
                     Err(e) => error!("Failed to flush the cache file: {e}"),
-                    Ok(f) => f.sync_all()
+                    Ok(f) => f
+                        .sync_all()
                         .unwrap_or_else(|e| error!("Failed to sync the cache file to disk: {e}")),
                 }
             }
