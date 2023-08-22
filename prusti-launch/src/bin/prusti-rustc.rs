@@ -113,6 +113,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         for arg in cmd.get_args() {
             writeln!(file, "{}", arg.to_str().unwrap()).unwrap();
         }
+        file.sync_all().unwrap();
     }
     if let Ok(path) = env::var("PRUSTI_RUSTC_LOG_ENV") {
         let mut file = std::fs::File::create(path).unwrap();
@@ -125,6 +126,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             )
             .unwrap();
         }
+        file.sync_all().unwrap();
     }
 
     let exit_status = cmd.status().unwrap_or_else(|e| {
