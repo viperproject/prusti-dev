@@ -44,6 +44,6 @@ impl IntoSnapshot for vir_mid::Type {
         &self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
     ) -> SpannedEncodingResult<Self::Target> {
-        ContextIndependentSnapshot::default().type_to_snapshot(lowerer, self)
+        ContextIndependentSnapshot.type_to_snapshot(lowerer, self)
     }
 }

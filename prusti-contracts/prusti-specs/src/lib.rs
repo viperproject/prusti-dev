@@ -1,7 +1,6 @@
 #![deny(unused_must_use)]
-#![feature(drain_filter)]
+#![feature(extract_if)]
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 #![feature(proc_macro_span)]
 #![feature(if_let_guard)]
 #![feature(assert_matches)]
@@ -79,7 +78,9 @@ fn extract_prusti_attributes(
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
                         let mut iter = attr.tokens.into_iter();
-                        let TokenTree::Group(group) = iter.next().unwrap() else { unreachable!() };
+                        let TokenTree::Group(group) = iter.next().unwrap() else {
+                            unreachable!()
+                        };
                         assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
                         group.stream()
                     }
@@ -598,10 +599,14 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 let parsed_predicate =
                     handle_result!(predicate::parse_predicate_in_impl(makro.mac.tokens.clone()));
 
-                let ParsedPredicate::Impl(predicate) = parsed_predicate else { unreachable!() };
+                let ParsedPredicate::Impl(predicate) = parsed_predicate else {
+                    unreachable!()
+                };
 
                 // Patch spec function: Rewrite self with _self: <SpecStruct>
-                let syn::Item::Fn(spec_function) = predicate.spec_function else { unreachable!() };
+                let syn::Item::Fn(spec_function) = predicate.spec_function else {
+                    unreachable!()
+                };
                 generated_spec_items.push(spec_function);
 
                 // Add patched predicate function to new items
@@ -645,7 +650,11 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
         let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
         let item_span = item.span();
+
+        // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+        #[allow(clippy::redundant_clone)]
         let item_ident = item.ident.clone();
+
         let item_name = syn::Ident::new(
             &format!("prusti_trusted_item_{item_ident}_{spec_id}"),
             item_span,
@@ -714,7 +723,11 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
     let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
+
+    // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+    #[allow(clippy::redundant_clone)]
     let item_ident = item.ident.clone();
+
     let item_name = syn::Ident::new(
         &format!("prusti_invariant_item_{item_ident}_{spec_id}"),
         item_span,
@@ -730,11 +743,14 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         #[prusti::type_invariant_spec]
         #[prusti::spec_id = #spec_id_str]
         fn #item_name(self) -> bool {
-            !!((#attr) : bool)
+            !!(#attr)
         }
     };
 
+    // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+    #[allow(clippy::redundant_clone)]
     let generics = item.generics.clone();
+
     let generics_idents = generics
         .params
         .iter()
@@ -873,7 +889,9 @@ fn extract_prusti_attributes_for_types(
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
                         let mut iter = attr.tokens.into_iter();
-                        let TokenTree::Group(group) = iter.next().unwrap() else { unreachable!() };
+                        let TokenTree::Group(group) = iter.next().unwrap() else {
+                            unreachable!()
+                        };
                         group.stream()
                     }
                 };

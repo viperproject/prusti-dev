@@ -86,7 +86,7 @@ lazy_static::lazy_static! {
         settings.set_default("log", "").unwrap();
         settings.set_default("log_style", "auto").unwrap();
         settings.set_default("log_dir", "log").unwrap();
-        settings.set_default("log_tracing", true).unwrap();
+        settings.set_default("log_tracing", false).unwrap();
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
@@ -129,6 +129,7 @@ lazy_static::lazy_static! {
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
+        settings.set_default("num_errors_per_function", 1).unwrap();
         // TODO: remove this option
         settings.set_default("test_free_pcs", false).unwrap();
 
@@ -195,13 +196,13 @@ lazy_static::lazy_static! {
         settings.merge(
             Environment::with_prefix("DEFAULT_PRUSTI").ignore_empty(true)
         ).unwrap();
-        check_keys(&settings, &allowed_keys, "default environment variables");
+        check_keys(&settings, &allowed_keys, "the `DEFAULT_PRUSTI_*` environment variables");
 
         // 2. Override with an optional "Prusti.toml" file in manifest dir
         let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
         let file = PathBuf::from(manifest_dir).join("Prusti.toml");
         settings.merge(File::from(file.as_path()).required(false)).unwrap();
-        check_keys(&settings, &allowed_keys, &format!("{} file", file.to_string_lossy()));
+        check_keys(&settings, &allowed_keys, &format!("the file `{}`", file.to_string_lossy()));
 
         // 3. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
@@ -214,13 +215,13 @@ lazy_static::lazy_static! {
                 .with_list_parse_key("verify_only_basic_block_path")
                 .list_separator(" ")
         ).unwrap();
-        check_keys(&settings, &allowed_keys, "environment variables");
+        check_keys(&settings, &allowed_keys, "the `PRUSTI_*` environment variables");
 
         // 4. Override with command-line arguments -P<arg>=<val>
         settings.merge(
             CommandLine::with_prefix("-P").ignore_invalid(true)
         ).unwrap();
-        check_keys(&settings, &allowed_keys, "command line arguments");
+        check_keys(&settings, &allowed_keys, "the `-P` command line arguments");
 
         settings
     });
@@ -240,7 +241,7 @@ fn check_keys(settings: &Config, allowed_keys: &FxHashSet<String>, source: &str)
     for key in settings.cache.clone().into_table().unwrap().keys() {
         assert!(
             allowed_keys.contains(key),
-            "{source} contains unknown configuration flag: “{key}”",
+            "Found an unknown configuration flag `{key}` in {source}",
         );
     }
 }
@@ -323,14 +324,14 @@ pub fn viper_backend() -> String {
 /// configuration flag to the correct path to Z3.
 pub fn smt_solver_path() -> String {
     read_setting::<Option<String>>("smt_solver_path")
-        .expect("please set the smt_solver_path configuration flag")
+        .expect("Please set the smt_solver_path configuration flag")
 }
 
 /// The path to the SMT solver wrapper. `prusti-rustc` is expected to set this
 /// configuration flag to the correct path.
 pub fn smt_solver_wrapper_path() -> String {
     read_setting::<Option<String>>("smt_solver_wrapper_path")
-        .expect("please set the smt_solver_wrapper_path configuration flag")
+        .expect("Please set the smt_solver_wrapper_path configuration flag")
 }
 
 /// The path to the Boogie executable. `prusti-rustc` is expected to set this
@@ -360,7 +361,7 @@ pub fn viper_home() -> String {
 /// configuration flag to the correct path.
 pub fn java_home() -> String {
     read_setting::<Option<String>>("java_home")
-        .expect("please set the java_home configuration flag")
+        .expect("Please set the java_home configuration flag")
 }
 
 /// When enabled, Prusti will check for an absence of `panic!`s.
@@ -752,7 +753,7 @@ pub fn verification_deadline() -> Option<u64> {
     read_setting::<Option<i64>>("verification_deadline").map(|value| {
         value
             .try_into()
-            .expect("verification_deadline must be a valid u64")
+            .expect("Verification_deadline must be a valid u64")
     })
 }
 
@@ -1026,6 +1027,13 @@ pub fn enable_type_invariants() -> bool {
     read_setting("enable_type_invariants")
 }
 
+/// The maximum number of verification errors to report per function. This is only used by the
+/// Silicon backend. A value of 0 means no limit.
+pub fn num_errors_per_function() -> u32 {
+    read_setting("num_errors_per_function")
+}
+
+// TODO: remove
 pub fn test_free_pcs() -> bool {
     read_setting("test_free_pcs")
 }

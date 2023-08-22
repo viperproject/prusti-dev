@@ -2,25 +2,36 @@
 
 use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
 use prusti_interface::environment::debug_utils::to_text::ToText;
-use prusti_rustc_interface::middle::{ty, ty::SubstsRef};
+use prusti_rustc_interface::middle::{ty, ty::GenericArgsRef};
 use vir_crate::high as vir_high;
 
 pub(super) fn extract_lifetimes_from_substs<'tcx>(
     type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
     lifetimes: &mut Vec<vir_high::ty::LifetimeConst>,
 ) -> SpannedEncodingResult<()> {
     for kind in substs.iter() {
-        if let ty::subst::GenericArgKind::Lifetime(region) = kind.unpack() {
+        if let ty::GenericArgKind::Lifetime(region) = kind.unpack() {
             lifetimes.push(vir_high::ty::LifetimeConst {
                 name: region.to_text(),
             });
         }
     }
     for kind in substs.iter() {
-        if let ty::subst::GenericArgKind::Type(arg_ty) = kind.unpack() {
+        if let ty::GenericArgKind::Type(arg_ty) = kind.unpack() {
             extract_lifetimes_from_type(type_encoder, arg_ty, lifetimes)?;
         }
+    }
+    Ok(())
+}
+
+pub(super) fn extract_lifetimes_from_types<'tcx>(
+    type_encoder: &impl super::MirTypeEncoderInterface<'tcx>,
+    types: impl IntoIterator<Item = ty::Ty<'tcx>>,
+    lifetimes: &mut Vec<vir_high::ty::LifetimeConst>,
+) -> SpannedEncodingResult<()> {
+    for ty in types {
+        extract_lifetimes_from_type(type_encoder, ty, lifetimes)?;
     }
     Ok(())
 }
@@ -40,11 +51,11 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         | ty::TyKind::Str
         | ty::TyKind::Error(_)
         | ty::TyKind::Never => {}
-        ty::TyKind::Adt(_, substs)
-        | ty::TyKind::Closure(_, substs)
-        | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { substs, .. })
-        | ty::TyKind::FnDef(_, substs) => {
-            extract_lifetimes_from_substs(type_encoder, substs, lifetimes)?
+        ty::TyKind::Adt(_, args)
+        | ty::TyKind::Closure(_, args)
+        | ty::TyKind::Alias(_, ty::AliasTy { args, .. })
+        | ty::TyKind::FnDef(_, args) => {
+            extract_lifetimes_from_substs(type_encoder, args, lifetimes)?
         }
         ty::TyKind::Array(ty, _) | ty::TyKind::Slice(ty) => {
             extract_lifetimes_from_type(type_encoder, *ty, lifetimes)?
@@ -78,9 +89,6 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         }
         ty::TyKind::Param(_param_ty) => {
             // FIXME: extract lifetimes from TyKind::Param()
-        }
-        ty::TyKind::Alias(ty::AliasKind::Projection, alias_ty) => {
-            extract_lifetimes_from_substs(type_encoder, alias_ty.substs, lifetimes)?
         }
         ty::TyKind::Bound(_, _)
         | ty::TyKind::Placeholder(_)

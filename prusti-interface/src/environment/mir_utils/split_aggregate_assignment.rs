@@ -1,6 +1,6 @@
 use super::{SliceOrArrayRef, TupleItemsForTy};
 use prusti_rustc_interface::{
-    index::vec::Idx,
+    abi::FieldIdx,
     middle::{mir, ty},
 };
 
@@ -50,10 +50,10 @@ impl<'tcx> SplitAggregateAssignment<'tcx> for mir::Statement<'tcx> {
                 let items_ty = mir.local_decls[local].ty.tuple_items().unwrap();
                 operands
                     .into_iter()
-                    .zip(items_ty.into_iter())
+                    .zip(items_ty)
                     .enumerate()
                     .map(|(i, (rhs, ty))| {
-                        let field = mir::Field::new(i);
+                        let field = FieldIdx::from_usize(i);
                         let lhs = tcx.mk_place_field(local.into(), field, ty);
                         let rhs = mir::Rvalue::Use(rhs);
                         (lhs, rhs)
@@ -63,7 +63,7 @@ impl<'tcx> SplitAggregateAssignment<'tcx> for mir::Statement<'tcx> {
             mir::Rvalue::Use(_) | mir::Rvalue::Ref(_, _, _) => vec![(lhs, rhs)],
             // slice creation is ok
             mir::Rvalue::Cast(
-                mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize),
+                mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize),
                 _,
                 cast_ty,
             ) if cast_ty.is_slice_ref() => vec![(lhs, rhs)],
@@ -74,7 +74,7 @@ impl<'tcx> SplitAggregateAssignment<'tcx> for mir::Statement<'tcx> {
         atomic_assignments
             .into_iter()
             .map(|(lhs, rhs)| {
-                let kind = mir::StatementKind::Assign(box (lhs, rhs));
+                let kind = mir::StatementKind::Assign(Box::new((lhs, rhs)));
                 mir::Statement { source_info, kind }
             })
             .collect()

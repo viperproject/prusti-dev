@@ -17,7 +17,7 @@ use crate::encoder::{
 use prusti_common::config;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::{ty, ty::subst::SubstsRef},
+    middle::{ty, ty::GenericArgsRef},
     span::Span,
 };
 use vir_crate::{
@@ -39,7 +39,7 @@ pub(super) fn inline_closure_high<'tcx>(
     cl_expr: vir_high::Expression,
     args: Vec<vir_high::VariableDecl>,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
     let mir = encoder
         .env()
@@ -73,7 +73,7 @@ pub(super) fn inline_spec_item_high<'tcx>(
     target_return: Option<&vir_high::Expression>,
     targets_are_values: bool,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
     let mir = encoder
         .env()
@@ -120,7 +120,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
     encoded_args: Vec<vir_high::Expression>,
     is_exists: bool,
     parent_def_id: DefId,
-    substs: ty::subst::SubstsRef<'tcx>,
+    substs: ty::GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
     // Quantifiers are encoded as:
     //   forall(

@@ -31,8 +31,10 @@ use log::{debug, trace};
 use prusti_common::vir_high_local;
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     hir::def_id::DefId,
-    middle::{mir, ty, ty::subst::SubstsRef},
+    index::IndexSlice,
+    middle::{mir, ty, ty::GenericArgsRef},
     span::Span,
 };
 use rustc_hash::FxHashMap;
@@ -56,7 +58,7 @@ pub(in super::super) struct ExpressionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> 
     pure_encoding_context: PureEncodingContext,
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 }
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
@@ -71,7 +73,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> Self {
         Self {
             encoder,
@@ -113,7 +115,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         ty: vir_high::Type,
         lhs: &vir_high::Expression,
         aggregate: &mir::AggregateKind<'tcx>,
-        operands: &[mir::Operand<'tcx>],
+        operands: &IndexSlice<FieldIdx, mir::Operand<'tcx>>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
         let mut arguments = Vec::new();
@@ -180,7 +182,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Aggregate(aggregate, operands) => {
                 debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
-                self.apply_assign_aggregate(state, ty, &encoded_lhs, aggregate, operands, span)?
+                self.apply_assign_aggregate(
+                    state,
+                    ty,
+                    &encoded_lhs,
+                    aggregate,
+                    operands.as_slice(),
+                    span,
+                )?
             }
             mir::Rvalue::BinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_operand(left, span)?;
@@ -240,10 +249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 state.substitute_value(&encoded_lhs, expr);
             }
             &mir::Rvalue::Ref(_, kind, place) => {
-                if !matches!(
-                    kind,
-                    mir::BorrowKind::Unique | mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared
-                ) {
+                if !matches!(kind, mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared) {
                     return Err(SpannedEncodingError::unsupported(
                         format!("unsupported kind of reference: {kind:?}"),
                         span,
@@ -278,7 +284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 state.substitute_value(&encoded_lhs, encoded_rhs);
             }
             mir::Rvalue::Cast(
-                mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize),
+                mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize),
                 operand,
                 cast_ty,
             ) => {
@@ -438,7 +444,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
+            let substs = ty::EarlyBinder::bind(*call_substs)
+                .instantiate(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some(target_block) = target {
                 let encoded_lhs = self.encode_place(destination).with_span(span)?;
@@ -527,7 +534,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         args: &[prusti_rustc_interface::middle::mir::Operand<'tcx>],
         encoded_args: &[vir_high::Expression],
         span: Span,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<Option<ExprBackwardInterpreterState>> {
         let lifetimes = self.encoder.get_lifetimes_from_substs(substs)?;
         use vir_high::{expression::BuiltinFunc::*, ty::*};
@@ -797,7 +804,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         args: Vec<vir_high::Expression>,
         span: Span,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         let (function_name, return_type) = self
             .encoder
@@ -890,7 +897,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::Abort | TerminatorKind::Resume { .. } => {
+            TerminatorKind::Terminate | TerminatorKind::Resume { .. } => {
                 assert!(states.is_empty());
                 let pos = self
                     .encoder
@@ -940,8 +947,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 self.apply_switch_int_terminator(switch_ty, discr, targets, states, span)?
             }
 
-            TerminatorKind::DropAndReplace { .. } => unimplemented!(),
-
             TerminatorKind::Call {
                 args,
                 destination,
@@ -973,7 +978,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir_high::Expression::not(encoded_condition)
                 };
 
-                let error_ctxt = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                let error_ctxt = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     ErrorCtxt::BoundsCheckAssert
                 } else {
                     let assert_msg = msg.description().to_string();
@@ -1054,7 +1059,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         match &statement.kind {
             mir::StatementKind::StorageLive(..)
             | mir::StatementKind::StorageDead(..)
-            | mir::StatementKind::FakeRead(..) => {
+            | mir::StatementKind::FakeRead(..)
+            | mir::StatementKind::AscribeUserType(..)
+            | mir::StatementKind::PlaceMention(..) => {
                 // Nothing to do
             }
             mir::StatementKind::Assign(box (lhs, rhs)) => {

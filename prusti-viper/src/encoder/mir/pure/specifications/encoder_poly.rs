@@ -22,7 +22,7 @@ use prusti_common::config;
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    middle::{ty, ty::subst::SubstsRef},
+    middle::{ty, ty::GenericArgsRef},
     span::Span,
 };
 use rustc_hash::FxHashSet;
@@ -37,7 +37,7 @@ pub(super) fn inline_closure<'tcx>(
     cl_expr: vir_crate::polymorphic::Expr,
     args: Vec<vir_crate::polymorphic::LocalVar>,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     let mir = encoder
         .env()
@@ -78,7 +78,7 @@ pub(super) fn inline_spec_item<'tcx>(
     target_return: Option<&vir_crate::polymorphic::Expr>,
     targets_are_values: bool,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     // each non-lifetime parameter should be matched with a subst
     assert_eq!(
@@ -139,7 +139,7 @@ pub(super) fn encode_quantifier<'tcx>(
     encoded_args: Vec<vir_crate::polymorphic::Expr>,
     is_exists: bool,
     parent_def_id: DefId,
-    substs: ty::subst::SubstsRef<'tcx>,
+    substs: ty::GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     // Quantifiers are encoded as:
     //   forall(

@@ -274,7 +274,13 @@ impl VarPurifier {
         }
     }
     fn get_replacement(&self, expr: &ast::Expr) -> ast::Expr {
-        let ast::Expr::Local(ast::Local {variable: var, position: pos}) = expr else { unreachable!() };
+        let ast::Expr::Local(ast::Local {
+            variable: var,
+            position: pos,
+        }) = expr
+        else {
+            unreachable!()
+        };
         let replacement = self
             .replacements
             .get(var)

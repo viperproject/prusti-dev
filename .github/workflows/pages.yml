@@ -1,0 +1,82 @@
+name: Build GitHub pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 'master'
+  pull_request:
+    branches: 'master'
+
+env:
+  RUST_BACKTRACE: 1
+  # Currently broken. See issue #1287
+  # RUSTDOCFLAGS: "--generate-link-to-definition -Zunstable-options"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          path: "repo"
+
+      - name: Check for broken links
+        uses: lycheeverse/lychee-action@v1.5.1
+        with:
+          fail: true
+
+      - name: Prepare output directory
+        run: |
+          mkdir -p output
+          cp -r repo/docs/static/* output/
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: "latest"
+
+      - name: Build dummy crate to get dependencies
+        run: |
+          cd repo/docs/dummy/
+          cargo build --target-dir ./target
+
+      - name: Build user guide
+        run: |
+          cd repo/docs/user-guide
+          mdbook build -d ../../../output/user-guide
+
+      - name: Build dev guide
+        run: |
+          cd repo/docs/dev-guide
+          mdbook build -d ../../../output/dev-guide
+
+      - name: Doctest user guide
+        run: |
+          cd repo/docs/user-guide
+          mdbook test -L ../dummy/target/debug/deps
+
+      - name: Doctest dev guide
+        run: |
+          cd repo/docs/dev-guide
+          mdbook test -L ../dummy/target/debug/deps
+
+      - name: Set up the environment
+        run: |
+          cd repo
+          python x.py setup
+
+      - name: Generate documentation
+        run: |
+          cd repo
+          python x.py doc --all --no-deps
+          cp -r ./target/doc ../output/doc
+
+      # Only deploy on push to master
+      - name: Publish to GitHub pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          force_orphan: true

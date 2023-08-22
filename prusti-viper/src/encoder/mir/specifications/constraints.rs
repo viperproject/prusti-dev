@@ -8,7 +8,7 @@ use prusti_interface::{
 use prusti_rustc_interface::{
     errors::MultiSpan,
     hir::def_id::DefId,
-    middle::{ty, ty::subst::SubstsRef},
+    middle::{ty, ty::GenericArgsRef},
     span::Span,
 };
 
@@ -110,7 +110,7 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
 #[derive(Debug)]
 struct ConstraintSolvingContext<'tcx> {
     proc_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
     caller_proc_def_id: Option<DefId>,
 }
 
@@ -170,7 +170,7 @@ mod trait_bounds {
                     env.query.resolve_assoc_types(predicate, param_env_lookup);
 
                 env.query
-                    .evaluate_predicate(normalized_predicate, param_env_lookup)
+                    .evaluate_predicate(normalized_predicate.as_predicate(), param_env_lookup)
             })
     }
 
@@ -186,7 +186,7 @@ mod trait_bounds {
             .find_trait_method_substs(context.proc_def_id, context.substs);
         let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
             trace!("Applying trait substs {:?}", trait_substs);
-            ty::EarlyBinder(param_env).subst(env.tcx(), trait_substs)
+            ty::EarlyBinder::bind(param_env).instantiate(env.tcx(), trait_substs)
         } else {
             param_env
         };
@@ -200,7 +200,7 @@ mod trait_bounds {
             param_env
         } else {
             trace!("Applying call substs {:?}", context.substs);
-            ty::EarlyBinder(param_env).subst(env.tcx(), context.substs)
+            ty::EarlyBinder::bind(param_env).instantiate(env.tcx(), context.substs)
         }
     }
 

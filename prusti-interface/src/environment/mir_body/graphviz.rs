@@ -176,8 +176,8 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
         TerminatorKind::Resume => {
             graph.add_exit_edge(bb.to_text(), "resume".to_text());
         }
-        TerminatorKind::Abort => {
-            graph.add_exit_edge(bb.to_text(), "abort".to_text());
+        TerminatorKind::Terminate => {
+            graph.add_exit_edge(bb.to_text(), "terminate".to_text());
         }
         TerminatorKind::Return => {
             graph.add_exit_edge(bb.to_text(), "return".to_text());
@@ -185,28 +185,23 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
         TerminatorKind::Unreachable => {
             graph.add_exit_edge(bb.to_text(), "unreachable".to_text());
         }
-        TerminatorKind::DropAndReplace { target, unwind, .. }
-        | TerminatorKind::Drop { target, unwind, .. } => {
+        TerminatorKind::Drop { target, unwind, .. } => {
             graph.add_regular_edge(bb.to_text(), target.to_text());
-            if let Some(target) = unwind {
+            if let mir::UnwindAction::Cleanup(target) = unwind {
                 graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
-        TerminatorKind::Call {
-            target, cleanup, ..
-        } => {
+        TerminatorKind::Call { target, unwind, .. } => {
             if let Some(target) = target {
                 graph.add_regular_edge(bb.to_text(), target.to_text());
             }
-            if let Some(target) = cleanup {
+            if let mir::UnwindAction::Cleanup(target) = unwind {
                 graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
-        TerminatorKind::Assert {
-            target, cleanup, ..
-        } => {
+        TerminatorKind::Assert { target, unwind, .. } => {
             graph.add_regular_edge(bb.to_text(), target.to_text());
-            if let Some(target) = cleanup {
+            if let mir::UnwindAction::Cleanup(target) = unwind {
                 graph.add_unwind_edge(bb.to_text(), target.to_text());
             }
         }
@@ -228,7 +223,7 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
             unwind,
         } => {
             graph.add_regular_edge(bb.to_text(), real_target.to_text());
-            if let Some(imaginary_target) = unwind {
+            if let mir::UnwindAction::Cleanup(imaginary_target) = unwind {
                 graph.add_imaginary_edge(bb.to_text(), imaginary_target.to_text());
             }
         }

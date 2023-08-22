@@ -192,11 +192,11 @@ mod tests {
 
         #[test]
         fn generated_struct() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
+            let inp_impl: syn::ItemImpl = parse_quote!(
                 impl<'a, const CONST: i32, T> MyStruct<'a, CONST, T> {}
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+            let rewritten = rewrite_extern_spec_internal(&inp_impl).unwrap();
 
             let struct_ident = &rewritten.generated_struct.ident;
             let expected: syn::ItemStruct = parse_quote! {
@@ -212,7 +212,7 @@ mod tests {
 
         #[test]
         fn impl_no_generics() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
+            let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyStruct {
                     fn foo(&self);
                     fn bar(&mut self);
@@ -220,7 +220,7 @@ mod tests {
                 }
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+            let rewritten = rewrite_extern_spec_internal(&inp_impl).unwrap();
 
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected: syn::ItemImpl = parse_quote! {
@@ -251,13 +251,13 @@ mod tests {
 
         #[test]
         fn impl_generics() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
+            let inp_impl: syn::ItemImpl = parse_quote!(
                 impl<I, O> MyStruct<I, O, i32> {
                     fn foo(&self, arg1: I, arg2: i32) -> O;
                 }
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+            let rewritten = rewrite_extern_spec_internal(&inp_impl).unwrap();
 
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected: syn::ItemImpl = parse_quote! {
@@ -276,13 +276,13 @@ mod tests {
 
         #[test]
         fn impl_forwarded_generics() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
+            let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyStruct {
                     fn foo<T: Copy>(&self) -> bool;
                 }
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+            let rewritten = rewrite_extern_spec_internal(&inp_impl).unwrap();
 
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected: syn::ItemImpl = parse_quote! {
@@ -305,13 +305,13 @@ mod tests {
 
         #[test]
         fn associated_types() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
+            let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyTrait for MyStruct {
                     fn foo(&mut self) -> Self::Result;
                 }
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+            let rewritten = rewrite_extern_spec_internal(&inp_impl).unwrap();
 
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected_impl: syn::ItemImpl = parse_quote! {
@@ -330,13 +330,13 @@ mod tests {
 
         #[test]
         fn generic_trait() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
+            let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyTrait<Foo> for MyStruct {
                     fn foo(&mut self, arg1: Foo);
                 }
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+            let rewritten = rewrite_extern_spec_internal(&inp_impl).unwrap();
 
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected_impl: syn::ItemImpl = parse_quote! {
@@ -355,13 +355,13 @@ mod tests {
 
         #[test]
         fn generic_blanket_impl() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
+            let inp_impl: syn::ItemImpl = parse_quote!(
                 impl<I> MyTrait<I> for MyStruct {
                     fn foo(&mut self, arg1: I);
                 }
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+            let rewritten = rewrite_extern_spec_internal(&inp_impl).unwrap();
 
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected_impl: syn::ItemImpl = parse_quote! {

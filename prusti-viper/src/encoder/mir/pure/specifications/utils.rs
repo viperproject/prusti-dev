@@ -7,7 +7,7 @@
 use prusti_interface::environment::EnvQuery;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::ty::{subst::SubstsRef, Ty, TyKind},
+    middle::ty::{GenericArgsRef, Ty, TyKind},
     span::Span,
 };
 
@@ -15,11 +15,11 @@ pub(super) fn extract_closure_from_ty<'tcx>(
     env_query: EnvQuery<'tcx>,
     ty: Ty<'tcx>,
 ) -> (
-    DefId,           // closure definition
-    SubstsRef<'tcx>, // closure substitutions
-    Span,            // definition span
-    Vec<Ty<'tcx>>,   // input types
-    Vec<Ty<'tcx>>,   // upvar types
+    DefId,                // closure definition
+    GenericArgsRef<'tcx>, // closure substitutions
+    Span,                 // definition span
+    Vec<Ty<'tcx>>,        // input types
+    Vec<Ty<'tcx>>,        // upvar types
 ) {
     match ty.kind() {
         TyKind::Closure(def_id, substs) => {
@@ -30,7 +30,7 @@ pub(super) fn extract_closure_from_ty<'tcx>(
                 substs,
                 env_query.get_def_span(def_id),
                 sig.inputs()[0].tuple_fields().to_vec(),
-                cl_substs.upvar_tys().collect(),
+                cl_substs.upvar_tys().iter().collect(),
             )
         }
         _ => unreachable!("expected closure type"),

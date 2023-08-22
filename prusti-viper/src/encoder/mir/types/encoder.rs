@@ -37,7 +37,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     fn encode_substs(
         &self,
-        substs: prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
+        substs: prusti_rustc_interface::middle::ty::GenericArgsRef<'tcx>,
     ) -> Vec<vir::Type> {
         encode_substs(self.encoder, substs)
     }
@@ -235,10 +235,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::TypeVar(self.encoder.encode_param(param_ty.name, param_ty.index))
             }
 
-            ty::TyKind::Alias(ty::AliasKind::Projection, ty::AliasTy { def_id, substs, .. }) => {
+            ty::TyKind::Alias(ty::AliasKind::Projection, ty::AliasTy { def_id, args, .. }) => {
                 vir::Type::projection(
                     self.encoder.encode_item_name(*def_id),
-                    self.encode_substs(substs),
+                    self.encode_substs(args),
                     lifetimes,
                 )
             }
@@ -272,7 +272,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::GeneratorWitnessMIR(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(_)
-            | ty::TyKind::Alias(ty::AliasKind::Projection, _)
             | ty::TyKind::Param(_)
             | ty::TyKind::Bound(..)
             | ty::TyKind::Placeholder(_)
@@ -283,7 +282,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::FnDef(did, _)
             | ty::TyKind::Closure(did, _)
             | ty::TyKind::Generator(did, _, _)
-            | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { def_id: did, .. }) => {
+            | ty::TyKind::Alias(_, ty::AliasTy { def_id: did, .. }) => {
                 self.encoder.env().query.get_def_span(did).into()
             }
         }
@@ -412,10 +411,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )
             }
             ty::TyKind::Tuple(elems) => {
-                let lifetimes = self.encoder.get_lifetimes_from_substs(elems.as_substs())?;
-                let const_parameters = self
-                    .encoder
-                    .get_const_parameters_from_substs(elems.as_substs())?;
+                let lifetimes = self.encoder.get_lifetimes_from_types(*elems)?;
+                let const_parameters = self.encoder.get_const_parameters_from_types(*elems)?;
                 let arguments = elems
                     .into_iter()
                     .map(|ty| self.encoder.encode_type_high(ty))
@@ -446,7 +443,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         upper_bound: None,
                     }),
                     "prusti_contracts::Ghost" => {
-                        if let ty::subst::GenericArgKind::Type(ty) = substs[0].unpack() {
+                        if let ty::GenericArgKind::Type(ty) = substs[0].unpack() {
                             Self::new(self.encoder, ty).encode_type_def_high()?
                         } else {
                             unreachable!("no type parameter given for Ghost<T>")
@@ -477,6 +474,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let cl_substs = internal_substs.as_closure();
                 let arguments = cl_substs
                     .upvar_tys()
+                    .iter()
                     .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
                     .collect();
                 let name = encode_closure_name(self.encoder, *def_id);
@@ -654,12 +652,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
 fn encode_substs<'v, 'tcx: 'v>(
     encoder: &Encoder<'v, 'tcx>,
-    substs: prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
+    substs: prusti_rustc_interface::middle::ty::GenericArgsRef<'tcx>,
 ) -> Vec<vir::Type> {
     substs
         .iter()
         .filter_map(|kind| {
-            if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+            if let ty::GenericArgKind::Type(ty) = kind.unpack() {
                 encoder.encode_type_high(ty).ok()
             } else {
                 None
@@ -699,7 +697,7 @@ fn encode_trusted_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) ->
 fn encode_variant<'v, 'tcx: 'v>(
     encoder: &Encoder<'v, 'tcx>,
     name: String,
-    substs: ty::subst::SubstsRef<'tcx>,
+    substs: ty::GenericArgsRef<'tcx>,
     variant: &ty::VariantDef,
 ) -> SpannedEncodingResult<vir::type_decl::Struct> {
     let tcx = encoder.env().tcx();
@@ -727,7 +725,7 @@ fn encode_variant<'v, 'tcx: 'v>(
 pub(super) fn encode_adt_def<'v, 'tcx>(
     encoder: &Encoder<'v, 'tcx>,
     adt_def: ty::AdtDef<'tcx>,
-    substs: ty::subst::SubstsRef<'tcx>,
+    substs: ty::GenericArgsRef<'tcx>,
     variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
 ) -> SpannedEncodingResult<vir::TypeDecl> {
     let lifetimes = encoder.get_lifetimes_from_substs(substs)?;

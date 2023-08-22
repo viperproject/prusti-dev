@@ -106,10 +106,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
         let stmt = &self.mir[location.block].statements[location.statement_index];
         if let mir::StatementKind::Assign(box (ref target, _)) = stmt.kind {
             if let Some(local) = target.as_local() {
-                let location_set = self
-                    .reaching_defs
-                    .entry(local)
-                    .or_insert_with(FxHashSet::default);
+                let location_set = self.reaching_defs.entry(local).or_default();
                 location_set.clear();
                 location_set.insert(DefLocation::Assignment(location));
             }
@@ -128,32 +125,27 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
             mir::TerminatorKind::Call {
                 ref destination,
                 target,
-                cleanup,
+                unwind,
                 ..
             } => {
                 if let Some(bb) = target {
                     let mut dest_state = self.clone();
                     if let Some(local) = destination.as_local() {
-                        let location_set = dest_state
-                            .reaching_defs
-                            .entry(local)
-                            .or_insert_with(FxHashSet::default);
+                        let location_set = dest_state.reaching_defs.entry(local).or_default();
                         location_set.clear();
                         location_set.insert(DefLocation::Assignment(location));
                     }
                     res_vec.push((bb, dest_state));
                 }
 
-                if let Some(bb) = cleanup {
+                if let mir::UnwindAction::Cleanup(bb) = unwind {
                     let mut cleanup_state = self.clone();
                     // error state -> be conservative & add destination as possible reaching def
                     // while keeping all others
                     if target.is_some() {
                         if let Some(local) = destination.as_local() {
-                            let location_set = cleanup_state
-                                .reaching_defs
-                                .entry(local)
-                                .or_insert_with(FxHashSet::default);
+                            let location_set =
+                                cleanup_state.reaching_defs.entry(local).or_default();
                             location_set.insert(DefLocation::Assignment(location));
                         }
                     }
@@ -182,10 +174,7 @@ impl<'mir, 'tcx: 'mir> AbstractState for ReachingDefsState<'mir, 'tcx> {
 
     fn join(&mut self, other: &Self) {
         for (local, other_locations) in other.reaching_defs.iter() {
-            let location_set = self
-                .reaching_defs
-                .entry(*local)
-                .or_insert_with(FxHashSet::default);
+            let location_set = self.reaching_defs.entry(*local).or_default();
             location_set.extend(other_locations);
         }
     }
