@@ -4,13 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-pub mod place;
-pub(crate) mod repacker;
-pub mod display;
-mod mutable;
-mod root_place;
-pub mod ty;
+mod r#impl;
 
-pub use mutable::*;
-pub use place::*;
-pub use repacker::*;
+pub use r#impl::*;

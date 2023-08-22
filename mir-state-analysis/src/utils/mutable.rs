@@ -90,7 +90,7 @@ impl<'tcx> Place<'tcx> {
             Some((place_base, elem)) => {
                 match elem {
                     ProjectionElem::Deref => {
-                        let base_ty = place_base.ty(repacker.body(), repacker.tcx).ty;
+                        let base_ty = place_base.ty(repacker).ty;
 
                         // Check the kind of deref to decide
                         match base_ty.kind() {
