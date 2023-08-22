@@ -23,7 +23,9 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 mod runtime_checks;
+mod expression_with_attributes;
 
+use expression_with_attributes::ExpressionWithAttributes;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use rewriter::AstRewriter;
@@ -88,7 +90,8 @@ fn extract_prusti_attributes(
                     | SpecAttributeKind::Terminates
                     | SpecAttributeKind::Trusted
                     | SpecAttributeKind::Predicate
-                    | SpecAttributeKind::Verified => {
+                    | SpecAttributeKind::Verified
+                    | SpecAttributeKind::InsertRuntimeCheck => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
                     }
@@ -160,12 +163,24 @@ fn generate_spec_and_assertions(
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
 
+    // are we sure that these are in the same order as they are defined
+    // in the file? Otherwise our logic for the runtime checks does not work
+    let mut runtime_check_next = false;
+
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
-            SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
-            SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
-            SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
-            SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
+            SpecAttributeKind::Requires => {
+                generate_for_requires(attr_tokens, item, runtime_check_next)
+            }
+            SpecAttributeKind::Ensures => {
+                generate_for_ensures(attr_tokens, item, runtime_check_next)
+            }
+            SpecAttributeKind::AfterExpiry => {
+                generate_for_after_expiry(attr_tokens, item, runtime_check_next)
+            }
+            SpecAttributeKind::AssertOnExpiry => {
+                generate_for_assert_on_expiry(attr_tokens, item, runtime_check_next)
+            }
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
             SpecAttributeKind::Verified => generate_for_verified(attr_tokens, item),
             SpecAttributeKind::Terminates => generate_for_terminates(attr_tokens, item),
@@ -175,10 +190,18 @@ fn generate_spec_and_assertions(
             // `check_incompatible_attrs`; so we'll never reach here.
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
-            SpecAttributeKind::RefineSpec => type_cond_specs::generate(attr_tokens, item),
+            SpecAttributeKind::RefineSpec => {
+                type_cond_specs::generate(attr_tokens, item, runtime_check_next)
+            }
             SpecAttributeKind::Model => unreachable!(),
             SpecAttributeKind::PrintCounterexample => unreachable!(),
+            SpecAttributeKind::InsertRuntimeCheck => {
+                // generate runtime check functions for the one following this one
+                runtime_check_next = true;
+                continue;
+            }
         };
+        runtime_check_next = false;
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
         generated_attributes.extend(new_attributes);
@@ -188,37 +211,47 @@ fn generate_spec_and_assertions(
 }
 
 /// Generate spec items and attributes to typecheck the and later retrieve "requires" annotations.
-fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_requires(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+    runtime_check: bool,
+) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
-    let check_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let check_id_str = check_id.to_string();
     let spec_item = rewriter.process_assertion(
         rewriter::SpecItemType::Precondition,
         spec_id,
         attr.clone(),
         item,
     )?;
-    let check_item =
-        rewriter.create_pre_check(rewriter::SpecItemType::Precondition, check_id, attr, item)?;
-    Ok((
-        vec![spec_item, check_item],
-        vec![
-            parse_quote_spanned! {item.span()=>
-                #[prusti::pre_spec_id_ref = #spec_id_str]
-            },
-            parse_quote_spanned! {item.span()=>
-                #[prusti::pre_check_id_ref = #check_id_str]
-            },
-        ],
-    ))
+    let mut items = vec![spec_item];
+    let mut attrs = vec![parse_quote_spanned! {item.span() =>
+        #[prusti::pre_spec_id_ref = #spec_id_str]
+    }];
+
+    if runtime_check {
+        let check_id = rewriter.generate_spec_id();
+        let check_id_str = check_id.to_string();
+        let check_item = rewriter.create_pre_check(
+            rewriter::SpecItemType::Precondition,
+            check_id,
+            attr,
+            item,
+        )?;
+        items.push(check_item);
+        attrs.push(parse_quote_spanned! {item.span() =>
+            #[prusti::pre_check_id_ref = #check_id_str]
+        });
+    }
+    Ok((items, attrs))
 }
 
 /// Generate spec items and attributes to typecheck the and later retrieve "ensures" annotations.
 fn generate_for_ensures(
     attr: TokenStream,
     item: &untyped::AnyFnItem,
+    runtime_check: bool,
 ) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
@@ -230,62 +263,69 @@ fn generate_for_ensures(
         attr.clone(),
         item,
     )?;
-    // if is_trusted {
-    // For now we always check postconditions.. later we might exclude some
-    let check_id = rewriter.generate_spec_id();
-    let check_id_str = check_id.to_string();
-    // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
-    let check_item =
-        rewriter.create_post_check(rewriter::SpecItemType::Postcondition, check_id, attr, item)?;
-    Ok((
-        vec![spec_item, check_item],
-        vec![
-            parse_quote_spanned! {item.span()=>
-                #[prusti::post_spec_id_ref = #spec_id_str]
-            },
-            parse_quote_spanned! {item.span()=>
-                #[prusti::post_check_id_ref = #check_id_str]
-            },
-        ],
-    ))
+    let mut items = vec![spec_item];
+    let mut attrs = vec![parse_quote_spanned! {item.span()=>
+        #[prusti::post_spec_id_ref = #spec_id_str]
+    }];
+    if runtime_check {
+        // For now we always check postconditions.. later we might exclude some
+        let check_id = rewriter.generate_spec_id();
+        let check_id_str = check_id.to_string();
+        // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
+        let check_item = rewriter.create_post_check(
+            rewriter::SpecItemType::Postcondition,
+            check_id,
+            attr,
+            item,
+        )?;
+        items.push(check_item);
+        attrs.push(parse_quote_spanned! {item.span()=>
+            #[prusti::post_check_id_ref = #check_id_str]
+        });
+    }
+    Ok((items, attrs))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
-fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_after_expiry(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+    runtime_check: bool,
+) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let check_id = rewriter.generate_spec_id();
-    let check_id_str = check_id.to_string();
-    let (spec_item, check) = rewriter.process_pledge(spec_id, Some(check_id), attr, item)?;
+    let spec_item = rewriter.process_pledge(spec_id, attr.clone(), item)?;
     let mut res_items = vec![spec_item];
     let mut res_attrs: Vec<syn::Attribute> = vec![parse_quote_spanned! { item.span() =>
         #[prusti::pledge_spec_id_ref = #spec_id_str]
     }];
-    if let Some(check_items) = check {
-        let mut check_item_vec = check_items.to_item_vec();
-        res_items.append(&mut check_item_vec);
+    if runtime_check {
+        let check_id = rewriter.generate_spec_id();
+        let check_id_str = check_id.to_string();
+        let check_item = rewriter.create_pledge_check(check_id, attr, item)?;
+        res_items.push(check_item);
         res_attrs.push(parse_quote_spanned! {item.span() =>
             #[prusti::assert_pledge_check_ref = #check_id_str]
-        })
+        });
     }
     Ok((res_items, res_attrs))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
-fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_assert_on_expiry(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+    runtime_check: bool,
+) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id_lhs = rewriter.generate_spec_id();
     let spec_id_lhs_str = spec_id_lhs.to_string();
     let spec_id_rhs = rewriter.generate_spec_id();
     let spec_id_rhs_str = spec_id_rhs.to_string();
-    // TODO: conditional on runtime checks being enabled
-    // this is ugly though..
-    let check_id = rewriter.generate_spec_id();
-    let check_id_str = check_id.to_string();
 
-    let (spec_item_lhs, spec_item_rhs, check_items_opt) =
-        rewriter.process_assert_pledge(spec_id_lhs, spec_id_rhs, Some(check_id), attr, item)?;
+    let (spec_item_lhs, spec_item_rhs) =
+        rewriter.process_assert_pledge(spec_id_lhs, spec_id_rhs, attr.clone(), item)?;
 
     let mut res_items = vec![spec_item_lhs, spec_item_rhs];
     let mut res_attrs: Vec<syn::Attribute> = vec![
@@ -296,9 +336,14 @@ fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -
             #[prusti::assert_pledge_spec_id_ref_rhs = #spec_id_rhs_str]
         },
     ];
-    if let Some(check_items) = check_items_opt {
-        let mut check_item_vec = check_items.to_item_vec();
-        res_items.append(&mut check_item_vec);
+
+    if runtime_check {
+        // same check_id for both lhs and rhs
+        let check_id = rewriter.generate_spec_id();
+        let check_id_str = check_id.to_string();
+        let (lhs_check, rhs_check) = rewriter.create_assert_pledge_check(check_id, attr, item)?;
+        res_items.push(lhs_check);
+        res_items.push(rhs_check);
         res_attrs.push(parse_quote_spanned! {item.span()=>
             #[prusti::assert_pledge_check_ref = #check_id_str]
         });
@@ -474,25 +519,18 @@ pub fn body_variant(tokens: TokenStream) -> TokenStream {
 
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let spec = generate_expression_closure(&AstRewriter::process_loop_invariant, tokens.clone());
-    let check =
-        generate_runtime_expression_closure(&AstRewriter::runtime_check_loop_invariant, tokens);
-    quote! {#spec #check}
+    quote! {#spec}
 }
 
 pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
     let spec = generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens.clone());
-    let check =
-        generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assertion, tokens);
-    let res = quote! {#spec #check};
-    println!("result: {}", res);
+    let res = quote! {#spec};
     res
 }
 
 pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
     let spec = generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens.clone());
-    let check =
-        generate_runtime_expression_closure(&AstRewriter::runtime_check_prusti_assumption, tokens);
-    quote! {#spec #check}
+    quote! {#spec}
 }
 
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
@@ -505,34 +543,34 @@ fn generate_expression_closure(
     fun: &dyn Fn(&mut AstRewriter, SpecificationId, TokenStream) -> syn::Result<TokenStream>,
     tokens: TokenStream,
 ) -> TokenStream {
+    let mut expr_with_attrs: ExpressionWithAttributes = handle_result!(syn::parse(tokens.into()));
+    let runtime_attr = expr_with_attrs.remove_runtime_checks_attr();
+    let tokens = expr_with_attrs.tokens();
+    let prusti_tokens = handle_result!(parse_prusti(tokens));
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
-    let closure = handle_result!(fun(&mut rewriter, spec_id, tokens));
+    let closure = handle_result!(fun(&mut rewriter, spec_id, prusti_tokens.clone()));
     let callsite_span = Span::call_site();
-    quote_spanned! {callsite_span=>
-        #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
-        #[prusti::specs_version = #SPECS_VERSION]
-        if false {
-            #closure
+    let check_id = rewriter.generate_spec_id();
+    if runtime_attr.is_some() {
+        let check_closure =
+            handle_result!(rewriter.runtime_check_prusti_expression(check_id, prusti_tokens));
+        quote_spanned! {callsite_span=>
+            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+            #[prusti::specs_version = #SPECS_VERSION]
+            if false {
+                #closure
+            } else if true {
+                #check_closure
+            }
         }
-    }
-}
-
-/// Generates the TokenStream encoding an expression using prusti syntax
-/// Used for body invariants, assertions, and assumptions
-fn generate_runtime_expression_closure(
-    fun: &dyn Fn(&mut AstRewriter, SpecificationId, TokenStream) -> syn::Result<TokenStream>,
-    tokens: TokenStream,
-) -> TokenStream {
-    let mut rewriter = rewriter::AstRewriter::new();
-    let spec_id = rewriter.generate_spec_id();
-
-    let closure = handle_result!(fun(&mut rewriter, spec_id, tokens));
-    let callsite_span = Span::call_site();
-    // always must follow a normal expression closure!
-    quote_spanned! {callsite_span=>
-        else if true {
-            #closure
+    } else {
+        quote_spanned! {callsite_span=>
+            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+            #[prusti::specs_version = #SPECS_VERSION]
+            if false {
+                #closure
+            }
         }
     }
 }
@@ -958,6 +996,7 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::Invariant => unreachable!("invariant on type"),
                     SpecAttributeKind::Predicate => unreachable!("predicate on type"),
                     SpecAttributeKind::Terminates => unreachable!("terminates on type"),
+                    SpecAttributeKind::InsertRuntimeCheck => unreachable!("runtimecheck on type"),
                     SpecAttributeKind::Trusted | SpecAttributeKind::Model => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
@@ -1003,6 +1042,7 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::Invariant => unreachable!(),
             SpecAttributeKind::RefineSpec => unreachable!(),
             SpecAttributeKind::Terminates => unreachable!(),
+            SpecAttributeKind::InsertRuntimeCheck => unreachable!(),
             SpecAttributeKind::Trusted => generate_for_trusted_for_types(attr_tokens, item),
             SpecAttributeKind::Model => generate_for_model(attr_tokens, item),
             SpecAttributeKind::PrintCounterexample => {

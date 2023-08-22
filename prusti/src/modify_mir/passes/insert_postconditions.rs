@@ -104,7 +104,6 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
             },
         );
 
-        println!("chain starting at: {:?}", chain_start);
         // make the original caller_block point to the first clone block
         // after separate_terminator_from_block this is a goto so we don't break
         // anything

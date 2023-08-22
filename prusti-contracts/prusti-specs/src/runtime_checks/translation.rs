@@ -33,21 +33,6 @@ pub struct RuntimeFunctions {
     pub check_before_expiry: Option<syn::Item>,
 }
 
-impl RuntimeFunctions {
-    /// consumes self, and returns vector of items
-    pub fn to_item_vec(&self) -> Vec<syn::Item> {
-        let RuntimeFunctions {
-            check_fn,
-            check_before_expiry,
-        } = self;
-        let mut res = vec![check_fn.clone()];
-        if let Some(check_before_expiry) = check_before_expiry {
-            res.push(check_before_expiry.clone());
-        }
-        res
-    }
-}
-
 /// Generates a bunch of functions that can be used to check specifications
 /// at runtime.
 pub fn translate_runtime_checks(

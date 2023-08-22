@@ -70,6 +70,10 @@ pub use prusti_contracts_proc_macros::body_variant;
 /// runtime checks
 pub use prusti_contracts_proc_macros::quantifier_runtime_bounds;
 
+/// A macro to annotate contracts that should be checked
+/// at runtime
+pub use prusti_contracts_proc_macros::insert_runtime_check;
+
 #[cfg(not(feature = "prusti"))]
 mod private {
     use core::marker::PhantomData;

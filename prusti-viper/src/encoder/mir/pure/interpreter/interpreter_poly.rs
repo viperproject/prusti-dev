@@ -430,7 +430,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         match full_func_proc_name {
                             "prusti_contracts::old" => {
                                 assert_eq!(args.len(), 1);
-                                println!("encoded arg of old: {:?}", encoded_args[0]);
 
                                 // Return an error for unsupported old(..) types
 

@@ -12,7 +12,7 @@ use prusti_rustc_interface::{
     driver::Compilation,
     hir::def::DefKind,
     index::IndexVec,
-    interface::{interface::Compiler, Config, Queries},
+    interface::{interface::Compiler, Config, Queries, DEFAULT_QUERY_PROVIDERS},
     middle::{
         mir::{self, BorrowCheckResult, MirPass, START_BLOCK},
         query::{ExternProviders, Providers},
@@ -68,16 +68,13 @@ fn mir_promoted<'tcx>(
 ) {
     let original_mir_promoted =
         prusti_rustc_interface::interface::DEFAULT_QUERY_PROVIDERS.mir_promoted;
-    let (body_steal, promoted_steal) = original_mir_promoted(tcx, def_id);
-    // is there still a reason to steal it if we don't modify it?
-    let body = body_steal.steal();
-
+    let result = original_mir_promoted(tcx, def_id);
     // SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
     unsafe {
-        mir_storage::store_promoted_mir_body(tcx, def_id, body.clone());
+        mir_storage::store_promoted_mir_body(tcx, def_id, result.0.borrow().clone());
     }
-    (tcx.alloc_steal_mir(body), promoted_steal)
+    result
 }
 
 // a copy of the rust compilers implementation of this query +
@@ -87,14 +84,14 @@ fn mir_promoted<'tcx>(
 pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<mir::Body<'_>> {
     // run verification here, otherwise we can't rely on results in
     // drops elaborated
-    if !config::no_verify() {
-        if !globals::verified() {
-            println!("Starting Verification");
-            let (def_spec, env) = get_specs(tcx, None);
-            let env = verify(env, def_spec.clone());
-            globals::set_verified();
-            globals::store_spec_env(def_spec, env);
-        }
+    if config::no_verify() {
+        return (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
+    }
+    if !globals::verified() {
+        let (def_spec, env) = get_specs(tcx, None);
+        let env = verify(env, def_spec.clone());
+        globals::set_verified();
+        globals::store_spec_env(def_spec, env);
     }
 
     // original compiler code

@@ -136,6 +136,13 @@ pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> Tok
     tokens
 }
 
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn insert_runtime_check(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
 // ----------------------
 // --- PRUSTI ENABLED ---
 
@@ -283,6 +290,12 @@ pub fn body_variant(tokens: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn insert_runtime_check(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(SpecAttributeKind::InsertRuntimeCheck, attr.into(), tokens.into()).into()
 }
 // Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`
 // version of your new macro above!
