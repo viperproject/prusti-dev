@@ -143,7 +143,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
         others.push(to);
         let mut ops = Vec::new();
         for (from, to, kind) in expanded {
-            let others = others.drain_filter(|other| !to.is_prefix(*other));
+            let others = others.extract_if(|other| !to.is_prefix(*other));
             self.extend(others.map(|p| (p, perm)));
             if kind.is_box() && perm.is_shallow_exclusive() {
                 ops.push(RepackOp::DerefShallowInit(from, to));
@@ -183,13 +183,13 @@ impl<'tcx> CapabilityProjections<'tcx> {
             for (to, _, kind) in &collapsed {
                 if kind.is_shared_ref() {
                     let mut is_prefixed = false;
-                    exclusive_at.drain_filter(|old| {
+                    exclusive_at.extract_if(|old| {
                         let cmp = to.either_prefix(*old);
                         if matches!(cmp, Some(false)) {
                             is_prefixed = true;
                         }
                         cmp.unwrap_or_default()
-                    });
+                    }).for_each(drop);
                     if !is_prefixed {
                         exclusive_at.push(*to);
                     }
@@ -199,7 +199,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
         let mut ops = Vec::new();
         for (to, from, _) in collapsed {
             let removed_perms: Vec<_> =
-                old_caps.drain_filter(|old, _| to.is_prefix(*old)).collect();
+                old_caps.extract_if(|old, _| to.is_prefix(*old)).collect();
             let perm = removed_perms
                 .iter()
                 .fold(CapabilityKind::Exclusive, |acc, (_, p)| {
