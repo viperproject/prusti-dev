@@ -60,7 +60,7 @@ impl Places {
         F: 'a + FnMut(&vir_typed::Expression) -> bool,
     {
         self.places
-            .drain_filter(move |_, place| pred(place))
+            .extract_if(move |_, place| pred(place))
             .map(|(_, place)| place)
     }
 }

@@ -347,9 +347,12 @@ impl ApplyOnState for vir::Stmt {
                         if this_label == target_label {
                             if let vir::Expr::LabelledOld(repl_labelled) = replacement {
                                 return vir::Expr::LabelledOld(vir::LabelledOld {
-                                    base: box this_base
-                                        .clone()
-                                        .replace_place(target_base, repl_labelled.base.as_ref()),
+                                    base: Box::new(
+                                        this_base.clone().replace_place(
+                                            target_base,
+                                            repl_labelled.base.as_ref(),
+                                        ),
+                                    ),
                                     label: repl_labelled.label.clone(),
                                     position: repl_labelled.position,
                                 });

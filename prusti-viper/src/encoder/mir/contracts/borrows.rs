@@ -9,8 +9,8 @@ use crate::{
     utils::type_visitor::{self, TypeVisitor},
 };
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     hir::{self as hir, Mutability},
-    index::vec::Idx,
     middle::{
         mir,
         ty::{self, Ty, TyCtxt, TyKind},
@@ -44,7 +44,7 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
             None => "static".to_string(),
-            Some(ty::BoundRegionKind::BrAnon(id, _)) => format!("#{id}"),
+            Some(ty::BoundRegionKind::BrAnon(_)) => "anon".to_string(),
             Some(ty::BoundRegionKind::BrNamed(_, name)) => name.to_string(),
             _ => unimplemented!(),
         };
@@ -158,7 +158,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         adt: ty::AdtDef<'tcx>,
         idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: &ty::VariantDef,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: ty::GenericArgsRef<'tcx>,
     ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         self.current_path = Some(self.tcx.mk_place_downcast(old_path, adt, idx));
@@ -172,11 +172,11 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         &mut self,
         index: usize,
         field: &ty::FieldDef,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: ty::GenericArgsRef<'tcx>,
     ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         let ty = field.ty(self.tcx(), substs);
-        let field_id = mir::Field::new(index);
+        let field_id = FieldIdx::from_usize(index);
         let new_path = self.tcx.mk_place_field(old_path, field_id, ty);
         self.current_path = Some(new_path);
         // self.current_path = Some(old_path.clone().field(field_id, ty));
@@ -214,7 +214,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
     fn visit_tuple(&mut self, types: &'tcx ty::List<ty::Ty<'tcx>>) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         for (i, ty) in types.into_iter().enumerate() {
-            let field = mir::Field::new(i);
+            let field = FieldIdx::from_usize(i);
             self.current_path = Some(self.tcx().mk_place_field(old_path, field, ty));
             self.visit_ty(ty)?;
         }

@@ -10,7 +10,7 @@ fn string_to_jobject<'a>(env: &JNIEnv<'a>, string: &str) -> JNIResult<JObject<'a
     Ok(JObject::from(env.new_string(string.to_owned())?))
 }
 
-fn jobject_to_string<'a>(env: &JNIEnv<'a>, obj: JObject) -> JNIResult<String> {
+fn jobject_to_string(env: &JNIEnv<'_>, obj: JObject) -> JNIResult<String> {
     Ok(String::from(env.get_string(JString::from(obj))?))
 }
 

@@ -4,7 +4,7 @@ When specifying trait methods or generic functions, there is often a special cas
 
 For example, one could use this to specify a function like `core::mem::size_of` by defining a trait for types whose size we'd like to specify:
 
-```rust
+```rust,noplaypen,ignore
 #[pure]
 #[refine_spec(where T: KnownSize, [
     ensures(result == T::size()),
@@ -21,7 +21,7 @@ pub trait KnownSize {
 
 There are some marker traits which simply modify the behavior of methods in their super-traits. For instance, consider the `PartialEq<T>` and `Eq` traits. In order to consider this additional behavior for verification, we can refine the contract of `PartialEq::eq` when the type is known to be marked `Eq`:
 
-```rust
+```rust,noplaypen,ignore
 pub trait PartialEq<Rhs: ?Sized = Self> {
     #[refine_spec(where Self: Eq, [
         ensures(self == self), // reflexive

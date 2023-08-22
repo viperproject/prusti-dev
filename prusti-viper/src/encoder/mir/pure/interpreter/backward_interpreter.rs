@@ -56,8 +56,7 @@ where
         .collect();
 
     // Interpret all the blocks in `pending_blocks`
-    while !pending_blocks.is_empty() {
-        let curr_bb = pending_blocks.pop().unwrap();
+    while let Some(curr_bb) = pending_blocks.pop() {
         let bb_data = &basic_blocks[curr_bb];
 
         // Apply the terminator
@@ -126,8 +125,7 @@ pub fn run_backward_interpretation_point_to_point<
     let mut pending_blocks: Vec<mir::BasicBlock> = vec![final_bbi];
 
     // Interpret all the blocks in `pending_blocks`
-    while !pending_blocks.is_empty() {
-        let curr_bb = pending_blocks.pop().unwrap();
+    while let Some(curr_bb) = pending_blocks.pop() {
         let bb_data = &basic_blocks[curr_bb];
         trace!("curr_bb: {:?}", curr_bb);
 

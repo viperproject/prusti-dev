@@ -3,6 +3,7 @@ use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         contracts::{ContractsEncoderInterface, ProcedureContractMirDef},
+        errors::ErrorInterface,
         generics::MirGenericsEncoderInterface,
         pure::{
             interpreter::{
@@ -19,7 +20,7 @@ use log::debug;
 use prusti_common::vir_high_local;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::{mir, ty, ty::subst::SubstsRef},
+    middle::{mir, ty, ty::GenericArgsRef},
     span::Span,
 };
 use vir_crate::{
@@ -31,7 +32,7 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: DefId,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::FunctionDecl> {
     let pure_encoder = PureEncoder::new(
         encoder,
@@ -85,7 +86,7 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     pure_encoding_context: PureEncodingContext,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
     let mir = encoder
         .env()
@@ -124,7 +125,7 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: DefId,
     parent_def_id: DefId,
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
 ) -> SpannedEncodingResult<FunctionCallInfoHigh> {
     let encoder = PureEncoder::new(
         encoder,
@@ -149,7 +150,7 @@ pub(super) struct PureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     pure_encoding_context: PureEncodingContext,
     parent_def_id: DefId,
     /// Type substitutions applied to the MIR (if any) and the signature.
-    substs: SubstsRef<'tcx>,
+    substs: GenericArgsRef<'tcx>,
     /// Span of the function declaration.
     span: Span,
     /// Signature of the function to be encoded.
@@ -169,7 +170,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         proc_def_id: DefId,
         pure_encoding_context: PureEncodingContext,
         parent_def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> Self {
         // should hold for extern specs as well (otherwise there would have
         // been an error reported earlier)
@@ -234,6 +235,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_function_name(&self) -> String {
+        // FIXME: This should use encode_pure_item_name to support mutual recursion, but that
+        // change makes some tests fail.
         self.encoder.encode_item_name(self.proc_def_id)
     }
 
@@ -341,11 +344,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder.error_manager().set_error(
-                encoded_assertion.position().into(),
+            let original_position = encoded_assertion.position();
+            conjuncts.push(self.encoder.set_surrounding_error_context_for_expression(
+                encoded_assertion,
+                original_position,
                 ErrorCtxt::PureFunctionDefinition,
-            );
-            conjuncts.push(encoded_assertion);
+            ));
         }
         Ok(conjuncts.into_iter().conjoin())
     }
@@ -369,11 +373,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder.error_manager().set_error(
-                encoded_assertion.position().into(),
+            let original_position = encoded_assertion.position();
+            conjuncts.push(self.encoder.set_surrounding_error_context_for_expression(
+                encoded_assertion,
+                original_position,
                 ErrorCtxt::PureFunctionDefinition,
-            );
-            conjuncts.push(encoded_assertion);
+            ));
         }
         let post = conjuncts.into_iter().conjoin();
 

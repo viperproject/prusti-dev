@@ -110,16 +110,6 @@ impl<'a, 'tcx> TyDecoder for DefSpecsDecoder<'a, 'tcx> {
         self.tcx
     }
 
-    #[inline]
-    fn peek_byte(&self) -> u8 {
-        self.opaque.data[self.opaque.position()]
-    }
-
-    #[inline]
-    fn position(&self) -> usize {
-        self.opaque.position()
-    }
-
     fn cached_ty_for_shorthand<F>(&mut self, shorthand: usize, or_insert_with: F) -> Ty<'tcx>
     where
         F: FnOnce(&mut Self) -> Ty<'tcx>,
@@ -137,7 +127,7 @@ impl<'a, 'tcx> TyDecoder for DefSpecsDecoder<'a, 'tcx> {
     where
         F: FnOnce(&mut Self) -> R,
     {
-        let new_opaque = opaque::MemDecoder::new(self.opaque.data, pos);
+        let new_opaque = opaque::MemDecoder::new(self.opaque.data(), pos);
         let old_opaque = std::mem::replace(&mut self.opaque, new_opaque);
         let r = f(self);
         self.opaque = old_opaque;

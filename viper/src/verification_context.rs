@@ -90,13 +90,9 @@ impl<'a> VerificationContext<'a> {
         }
 
         verifier_args.extend(extra_args);
-        verifier_args.push("--ignoreFile".to_string());
-        verifier_args.push("dummy.vpr".to_string());
 
         debug!("Verifier arguments: '{}'", verifier_args.to_vec().join(" "));
 
-        Verifier::new(&self.env, backend, report_path, smt_manager)
-            .parse_command_line(&verifier_args)
-            .start()
+        Verifier::new(&self.env, backend, report_path, smt_manager).initialize(&verifier_args)
     }
 }

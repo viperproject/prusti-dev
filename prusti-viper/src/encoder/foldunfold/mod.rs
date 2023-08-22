@@ -16,7 +16,7 @@ use crate::encoder::high::types::HighTypeEncoderInterface;
 use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz, Stopwatch};
 use prusti_rustc_interface::middle::mir;
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{self, fmt, ops::Deref};
+use std::{self, fmt, fmt::Write, ops::Deref};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{
@@ -608,7 +608,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 .collect();
 
             let mut perms = acc_permissions;
-            perms.extend(pred_permissions.into_iter());
+            perms.extend(pred_permissions);
             trace!(
                 "required permissions: {{\n{}\n}}",
                 perms
@@ -865,8 +865,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 "acc_perms = {}",
                 acc_perms
                     .iter()
-                    .map(|(a, p, id)| format!("({a}, {p}, {id}), "))
-                    .collect::<String>()
+                    .fold(String::new(), |mut output, (a, p, id)| {
+                        let _ = write!(output, "({a}, {p}, {id}), ");
+                        output
+                    })
             );
             for (place, perm_amount, _) in acc_perms {
                 trace!("acc place: {} {}", place, perm_amount);
@@ -882,7 +884,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 }
                 if perm_amount == vir::PermAmount::Write {
                     let access = vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
-                        base: box place.clone(),
+                        base: Box::new(place.clone()),
                         permission: vir::PermAmount::Remaining,
                         position: vir::Position::default(),
                     });
@@ -899,7 +901,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 let new_place = place.replace_place(source, target);
                 trace!("    new place: {}", new_place);
                 let lhs_read_access = vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
-                    base: box new_place,
+                    base: Box::new(new_place),
                     permission: vir::PermAmount::Read,
                     position: vir::Position::default(),
                 });
@@ -931,7 +933,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                     let access =
                         vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
                             predicate_type: predicate_type.clone(),
-                            argument: box place.clone(),
+                            argument: Box::new(place.clone()),
                             permission: vir::PermAmount::Remaining,
                             position: place.pos(),
                         });
@@ -950,7 +952,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                 let lhs_read_access =
                     vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
                         predicate_type,
-                        argument: box new_place,
+                        argument: Box::new(new_place),
                         permission: vir::PermAmount::Read,
                         position: vir::Position::default(),
                     });

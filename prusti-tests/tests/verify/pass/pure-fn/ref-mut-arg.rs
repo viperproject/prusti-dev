@@ -1,6 +1,5 @@
 #![feature(nll)]
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 #![feature(never_type)]
 #![allow(unconditional_recursion)]
 

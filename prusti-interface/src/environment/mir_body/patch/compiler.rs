@@ -12,7 +12,7 @@
 
 use log::debug;
 use prusti_rustc_interface::{
-    index::vec::{Idx, IndexVec},
+    index::{Idx, IndexVec},
     middle::{mir::*, ty::Ty},
     span::Span,
 };
@@ -26,7 +26,11 @@ pub struct MirPatch<'tcx> {
     pub new_blocks: Vec<BasicBlockData<'tcx>>,
     pub new_statements: Vec<(Location, StatementKind<'tcx>)>,
     pub new_locals: Vec<LocalDecl<'tcx>>,
-    pub resume_block: BasicBlock,
+    pub resume_block: Option<BasicBlock>,
+    // Only for unreachable in cleanup path.
+    pub unreachable_cleanup_block: Option<BasicBlock>,
+    pub terminate_block: Option<BasicBlock>,
+    pub body_span: Span,
     pub next_local: usize,
 }
 
@@ -38,51 +42,87 @@ impl<'tcx> MirPatch<'tcx> {
             new_statements: vec![],
             new_locals: vec![],
             next_local: body.local_decls.len(),
-            resume_block: START_BLOCK,
+            resume_block: None,
+            unreachable_cleanup_block: None,
+            terminate_block: None,
+            body_span: body.span,
         };
 
-        // make sure the MIR we create has a resume block. It is
-        // completely legal to convert jumps to the resume block
-        // to jumps to None, but we occasionally have to add
-        // instructions just before that.
-
-        let mut resume_block = None;
-        let mut resume_stmt_block = None;
         for (bb, block) in body.basic_blocks.iter_enumerated() {
-            if let TerminatorKind::Resume = block.terminator().kind {
-                if !block.statements.is_empty() {
-                    assert!(resume_stmt_block.is_none());
-                    resume_stmt_block = Some(bb);
-                } else {
-                    resume_block = Some(bb);
-                }
-                break;
+            // Check if we already have a resume block
+            if let TerminatorKind::Resume = block.terminator().kind && block.statements.is_empty() {
+                result.resume_block = Some(bb);
+                continue;
+            }
+
+            // Check if we already have an unreachable block
+            if let TerminatorKind::Unreachable = block.terminator().kind
+                && block.statements.is_empty()
+                && block.is_cleanup
+            {
+                result.unreachable_cleanup_block = Some(bb);
+                continue;
+            }
+
+            // Check if we already have a terminate block
+            if let TerminatorKind::Terminate = block.terminator().kind && block.statements.is_empty() {
+                result.terminate_block = Some(bb);
+                continue;
             }
         }
-        let resume_block = resume_block.unwrap_or_else(|| {
-            result.new_block(BasicBlockData {
-                statements: vec![],
-                terminator: Some(Terminator {
-                    source_info: SourceInfo::outermost(body.span),
-                    kind: TerminatorKind::Resume,
-                }),
-                is_cleanup: true,
-            })
-        });
-        result.resume_block = resume_block;
-        if let Some(resume_stmt_block) = resume_stmt_block {
-            result.patch_terminator(
-                resume_stmt_block,
-                TerminatorKind::Goto {
-                    target: resume_block,
-                },
-            );
-        }
+
         result
     }
 
-    pub fn resume_block(&self) -> BasicBlock {
-        self.resume_block
+    pub fn resume_block(&mut self) -> BasicBlock {
+        if let Some(bb) = self.resume_block {
+            return bb;
+        }
+
+        let bb = self.new_block(BasicBlockData {
+            statements: vec![],
+            terminator: Some(Terminator {
+                source_info: SourceInfo::outermost(self.body_span),
+                kind: TerminatorKind::Resume,
+            }),
+            is_cleanup: true,
+        });
+        self.resume_block = Some(bb);
+        bb
+    }
+
+    pub fn unreachable_cleanup_block(&mut self) -> BasicBlock {
+        if let Some(bb) = self.unreachable_cleanup_block {
+            return bb;
+        }
+
+        let bb = self.new_block(BasicBlockData {
+            statements: vec![],
+            terminator: Some(Terminator {
+                source_info: SourceInfo::outermost(self.body_span),
+                kind: TerminatorKind::Unreachable,
+            }),
+            is_cleanup: true,
+        });
+        self.unreachable_cleanup_block = Some(bb);
+        bb
+    }
+
+    pub fn terminate_block(&mut self) -> BasicBlock {
+        if let Some(bb) = self.terminate_block {
+            return bb;
+        }
+
+        let bb = self.new_block(BasicBlockData {
+            statements: vec![],
+            terminator: Some(Terminator {
+                source_info: SourceInfo::outermost(self.body_span),
+                kind: TerminatorKind::Terminate,
+            }),
+            is_cleanup: true,
+        });
+        self.terminate_block = Some(bb);
+        bb
     }
 
     pub fn is_patched(&self, bb: BasicBlock) -> bool {
@@ -100,6 +140,20 @@ impl<'tcx> MirPatch<'tcx> {
         }
     }
 
+    pub fn new_internal_with_info(
+        &mut self,
+        ty: Ty<'tcx>,
+        span: Span,
+        local_info: LocalInfo<'tcx>,
+    ) -> Local {
+        let index = self.next_local;
+        self.next_local += 1;
+        let mut new_decl = LocalDecl::new(ty, span).internal();
+        **new_decl.local_info.as_mut().assert_crate_local() = local_info;
+        self.new_locals.push(new_decl);
+        Local::new(index)
+    }
+
     pub fn new_temp(&mut self, ty: Ty<'tcx>, span: Span) -> Local {
         let index = self.next_local;
         self.next_local += 1;
@@ -114,7 +168,6 @@ impl<'tcx> MirPatch<'tcx> {
         Local::new(index)
     }
 
-    #[tracing::instrument(level = "debug", skip(self))]
     pub fn new_block(&mut self, data: BasicBlockData<'tcx>) -> BasicBlock {
         let block = BasicBlock::new(self.patch_map.len());
         debug!("MirPatch: new_block: {:?}: {:?}", block, data);
@@ -123,14 +176,14 @@ impl<'tcx> MirPatch<'tcx> {
         block
     }
 
-    #[tracing::instrument(level = "debug", skip(self))]
     pub fn patch_terminator(&mut self, block: BasicBlock, new: TerminatorKind<'tcx>) {
         assert!(self.patch_map[block].is_none());
+        debug!("MirPatch: patch_terminator({:?}, {:?})", block, new);
         self.patch_map[block] = Some(new);
     }
 
-    #[tracing::instrument(level = "debug", skip(self))]
     pub fn add_statement(&mut self, loc: Location, stmt: StatementKind<'tcx>) {
+        debug!("MirPatch: add_statement({:?}, {:?})", loc, stmt);
         self.new_statements.push((loc, stmt));
     }
 
@@ -138,7 +191,6 @@ impl<'tcx> MirPatch<'tcx> {
         self.add_statement(loc, StatementKind::Assign(Box::new((place, rv))));
     }
 
-    #[tracing::instrument(level = "debug", skip_all)]
     pub fn apply(self, body: &mut Body<'tcx>) {
         debug!(
             "MirPatch: {:?} new temps, starting from index {}: {:?}",
@@ -151,12 +203,17 @@ impl<'tcx> MirPatch<'tcx> {
             self.new_blocks.len(),
             body.basic_blocks.len()
         );
-        body.basic_blocks_mut().extend(self.new_blocks);
+        let bbs = if self.patch_map.is_empty() && self.new_blocks.is_empty() {
+            body.basic_blocks.as_mut_preserves_cfg()
+        } else {
+            body.basic_blocks.as_mut()
+        };
+        bbs.extend(self.new_blocks);
         body.local_decls.extend(self.new_locals);
         for (src, patch) in self.patch_map.into_iter_enumerated() {
             if let Some(patch) = patch {
                 debug!("MirPatch: patching block {:?}", src);
-                body[src].terminator_mut().kind = patch;
+                bbs[src].terminator_mut().kind = patch;
             }
         }
 

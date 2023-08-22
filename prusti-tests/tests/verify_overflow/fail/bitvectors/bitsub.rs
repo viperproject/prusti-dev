@@ -12,7 +12,7 @@ fn bitsub_1() {
 fn bitsub_2() {
     let a = 1u8;
     let b = a | 2;
-    let c = b - 4;
+    let c = b - 4;  //~ ERROR: this arithmetic operation will overflow
     assert!(c == 8);    //~ ERROR: the asserted expression might not hold
 }
 

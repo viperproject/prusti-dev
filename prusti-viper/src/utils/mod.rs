@@ -35,6 +35,8 @@ pub fn ty_to_string(typ: &ty::TyKind) -> String {
         &ty::TyKind::Tuple(_) => "tuple",
         &ty::TyKind::Alias(ty::AliasKind::Projection, _) => "projection",
         &ty::TyKind::Alias(ty::AliasKind::Opaque, _) => "opaque type",
+        &ty::TyKind::Alias(ty::AliasKind::Inherent, _) => "inherent alias type",
+        &ty::TyKind::Alias(ty::AliasKind::Weak, _) => "weak alias type",
         &ty::TyKind::Param(_) => "type parameter",
         &ty::TyKind::Bound(_, _) => "bound type variable",
         &ty::TyKind::Placeholder(_) => "placeholder type",

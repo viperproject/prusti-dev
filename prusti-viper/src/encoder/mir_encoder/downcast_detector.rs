@@ -23,21 +23,20 @@ struct DownCastCollector<'tcx> {
 impl<'tcx> Visitor<'tcx> for DownCastCollector<'tcx> {
     fn visit_projection_elem(
         &mut self,
-        local: mir::Local,
-        proj_base: &[mir::PlaceElem<'tcx>],
+        place_ref: mir::PlaceRef<'tcx>,
         elem: mir::PlaceElem<'tcx>,
         context: mir::visit::PlaceContext,
         location: mir::Location,
     ) {
-        self.super_projection_elem(local, proj_base, elem, context, location);
+        self.super_projection_elem(place_ref, elem, context, location);
 
         if let mir::PlaceElem::Downcast(_, variant) = elem {
             self.downcasts.insert(
                 (
                     // FIXME: Store `PlaceRef`, once `visit_projection_elem` will provide that.
                     MirPlace {
-                        local,
-                        projection: proj_base.to_owned(),
+                        local: place_ref.local,
+                        projection: place_ref.projection.to_owned(),
                     },
                     variant,
                 )

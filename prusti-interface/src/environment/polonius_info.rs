@@ -29,7 +29,7 @@ use log::{debug, trace};
 use prusti_common::config;
 use prusti_rustc_interface::{
     borrowck::consumers::RustcFacts,
-    index::vec::Idx,
+    index::Idx,
     middle::{mir, ty},
     polonius_engine::{Algorithm, AllFacts, Output},
     span::{def_id::DefId, Span},
@@ -314,9 +314,9 @@ pub fn graphviz<'tcx>(
         let from_block = from.location.block;
         let to = interner.get_point(to_index);
         let to_block = to.location.block;
-        let from_points = blocks.entry(from_block).or_insert_with(FxHashSet::default);
+        let from_points: &mut FxHashSet<_> = blocks.entry(from_block).or_default();
         from_points.insert(from_index);
-        let to_points = blocks.entry(to_block).or_insert_with(FxHashSet::default);
+        let to_points: &mut FxHashSet<_> = blocks.entry(to_block).or_default();
         to_points.insert(to_index);
         if from_block != to_block {
             block_edges.insert((from_block, to_block));
@@ -441,7 +441,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
     let mut outlives_at_point = FxHashMap::default();
     for &(region1, region2, point) in all_facts.subset_base.iter() {
         if !universal_region.contains(&region1) && !universal_region.contains(&region2) {
-            let subset_base = outlives_at_point.entry(point).or_insert_with(Vec::new);
+            let subset_base: &mut Vec<_> = outlives_at_point.entry(point).or_default();
             subset_base.push((region1, region2));
         }
     }
@@ -587,7 +587,7 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
 
                 // slice creation involves an unsize pointer cast like &[i32; 3] -> &[i32]
                 &mir::Rvalue::Cast(
-                    mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize),
+                    mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize),
                     ref operand,
                     ref cast_ty,
                 ) if cast_ty.is_slice_ref() => {
@@ -1174,7 +1174,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             return Ok(None);
         };
         let (dest, source) = assignment.as_assign().unwrap();
-        let dest = dest;
         let source = source.clone();
         let location = self.loan_position[loan];
         Ok(Some(LoanPlaces {
@@ -2195,32 +2194,25 @@ impl AdditionalFacts {
         let mut zombie_requires_map =
             prusti_rustc_interface::data_structures::fx::FxHashMap::default();
         for (region, loan, point) in &zombie_requires.elements {
-            zombie_requires_map
-                .entry(*point)
-                .or_insert_with(BTreeMap::default)
-                .entry(*region)
-                .or_insert_with(BTreeSet::new)
-                .insert(*loan);
+            let loans_map: &mut BTreeMap<_, _> = zombie_requires_map.entry(*point).or_default();
+            let loans: &mut BTreeSet<_> = loans_map.entry(*region).or_default();
+            loans.insert(*loan);
         }
 
         let zombie_borrow_live_at = zombie_borrow_live_at.complete();
         let mut zombie_borrow_live_at_map =
             prusti_rustc_interface::data_structures::fx::FxHashMap::default();
         for (loan, point) in &zombie_borrow_live_at.elements {
-            zombie_borrow_live_at_map
-                .entry(*point)
-                .or_insert_with(Vec::new)
-                .push(*loan);
+            let loans: &mut Vec<_> = zombie_borrow_live_at_map.entry(*point).or_default();
+            loans.push(*loan);
         }
 
         let borrow_become_zombie_at = borrow_become_zombie_at.complete();
         let mut borrow_become_zombie_at_map =
             prusti_rustc_interface::data_structures::fx::FxHashMap::default();
         for (loan, point) in &borrow_become_zombie_at.elements {
-            borrow_become_zombie_at_map
-                .entry(*point)
-                .or_insert_with(Vec::new)
-                .push(*loan);
+            let loans: &mut Vec<_> = borrow_become_zombie_at_map.entry(*point).or_default();
+            loans.push(*loan);
         }
 
         (

@@ -22,7 +22,7 @@ The snapshot-based encoding of a Rust type, say `T`, consists of four components
 
 Consider the Rust struct declared below.
    
-```rust
+```rust,noplaypen
 struct SomeStruct {
   a: i32,
   b: i32,
@@ -104,8 +104,12 @@ Nested Rust structures are encoded as in the previous example - the main differe
 
 For instance, assume we extend the previous example with another structure that re-uses `SomeStruct`:
 
-```rust
-// assuming SomeStruct as before
+```rust,noplaypen
+# struct SomeStruct {
+#   a: i32,
+#   b: i32,
+# }
+# 
 struct BiggerStruct {
   foo: i32,
   bar: SomeStruct,
@@ -142,8 +146,12 @@ While the snapshot-based encoding of enumerations is mostly analogous to the enc
 
 For example, consider the enumeration below, which defines a custom Option type.
 
-```rust
-// assuming SomeStruct as before
+```rust,noplaypen
+# struct SomeStruct {
+#   a: i32,
+#   b: i32,
+# }
+# 
 enum MyOption {
   _Some(SomeStruct),
   _None,
@@ -226,7 +234,7 @@ If a type does not meet these criteria, it either invokes a user-supplied custom
 
 Whenever one invokes a [pure function](pure.md) with equal arguments, the function should yield the same return value, i.e., a function `f` with one argument should satisfy the following specification:
 
-```
+```rust,noplaypen,ignore
 x == y  ==> f(x) == f(y)
 ```
 
@@ -234,7 +242,12 @@ For non-recursive types, the snapshot function `snap$type(ref)` recursively unfo
 
 For example, the following piece of Rust code verifies while internally using snapshots to discharge equality checks:
 
-```rust
+```rust,noplaypen
+# // The next line is only used to enable mdBook doctests for this file to work
+# extern crate prusti_contracts;
+# 
+# use prusti_contracts::*;
+# 
 // as before, but derives Eq
 #[derive(PartialEq, Eq)]
 struct SomeStruct {
@@ -245,7 +258,7 @@ struct SomeStruct {
 #[pure]
 #[requires(x == y)]
 #[ensures(result == y.a)]
-fn foo(x: SomeStruct, y: SomeStruct) -> i32 {
+fn foo(x: SomeStruct) -> i32 {
   x.a
 }
 
@@ -283,7 +296,7 @@ At the moment, only types implementing the [`Copy`](https://doc.rust-lang.org/co
 As an example, assume both the struct `BiggerStruct` and the struct `SomeStruct` from previous examples derive the traits `Copy` and `Eq`.
 Moreover, consider the following pure function `get` mapping every instance of `BiggerStruct` to its wrapped instance of `SomeStruct`:
 
-```rust
+```rust,noplaypen,ignore
 #[pure]
 fn get(x: BiggerStruct) -> SomeStruct {
   x.bar

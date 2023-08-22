@@ -316,7 +316,7 @@ impl CfgMethod {
         let mut result = FxHashMap::default();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
-                let entry = result.entry(successor.block_index).or_insert_with(Vec::new);
+                let entry: &mut Vec<_> = result.entry(successor.block_index).or_default();
                 entry.push(index);
             }
         }

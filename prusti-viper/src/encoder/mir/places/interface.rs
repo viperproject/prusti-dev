@@ -324,7 +324,11 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         right: vir_high::Expression,
         ty: &vir_high::Type,
     ) -> EncodingResult<vir_high::Expression> {
-        if !op.is_checkable() || !prusti_common::config::check_overflows() {
+        if !matches!(
+            op,
+            mir::BinOp::Add | mir::BinOp::Sub | mir::BinOp::Mul | mir::BinOp::Shl | mir::BinOp::Shr
+        ) || !prusti_common::config::check_overflows()
+        {
             Ok(false.into())
         } else {
             let result = self.encode_binary_op_high(op, left, right.clone(), ty)?;

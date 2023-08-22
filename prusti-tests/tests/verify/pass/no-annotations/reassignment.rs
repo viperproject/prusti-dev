@@ -1,7 +1,6 @@
 //! Example of reassignment
 
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 struct InfiniteList {
     val: i32,

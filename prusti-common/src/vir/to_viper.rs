@@ -93,7 +93,10 @@ impl<'v> ToViper<'v, viper::Position<'v>> for Position {
         line = %self.line(), column = %self.column(), id = %self.id()
     ))]
     fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Position<'v> {
-        ast.identifier_position(self.line(), self.column(), self.id().to_string())
+        // The line and column of a vir::Position refer to the source Rust program.
+        // Line and columns in Viper positions have a different semantics, because Silicon
+        // deduplicates error messages based on them.
+        ast.identifier_position(self.id() as i32, 0, self.id().to_string())
     }
 }
 
@@ -313,7 +316,9 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             }
             Stmt::ApplyMagicWand(ref wand, ref pos) => {
-                let Expr::MagicWand(_, _, Some(borrow), _) = wand else { unreachable!() };
+                let Expr::MagicWand(_, _, Some(borrow), _) = wand else {
+                    unreachable!()
+                };
                 let borrow: usize = borrow_id(*borrow);
                 let borrow: Expr = borrow.into();
                 let inhale = ast.inhale(
@@ -323,8 +328,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     ),
                     pos.to_viper(context, ast),
                 );
-                let position =
-                    ast.identifier_position(pos.line(), pos.column(), pos.id().to_string());
+                let position = pos.to_viper(context, ast);
                 let apply = ast.apply(wand.to_viper(context, ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
@@ -616,7 +620,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ContainerOpKind::SeqLen => ast.seq_length(left.to_viper(context, ast)),
             },
             Expr::Seq(ty, elems, _pos) => {
-                let Type::Seq(box elem_ty) = ty else { unreachable!() };
+                let Type::Seq(box elem_ty) = ty else {
+                    unreachable!()
+                };
                 let viper_elem_ty = elem_ty.to_viper(context, ast);
                 if elems.is_empty() {
                     ast.empty_seq(viper_elem_ty)
@@ -629,7 +635,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
             }
             Expr::Map(ty, elems, _pos) => {
-                let Type::Map(box key_ty, box val_ty) = ty else { unreachable!() };
+                let Type::Map(box key_ty, box val_ty) = ty else {
+                    unreachable!()
+                };
                 let viper_key_ty = key_ty.to_viper(context, ast);
                 let viper_val_ty = val_ty.to_viper(context, ast);
                 if elems.is_empty() {

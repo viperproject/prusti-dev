@@ -72,7 +72,7 @@ fn simple_assert_false() {
   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: `foo` (bin \"foo\") generated 1 warning
-error: could not compile `foo` due to previous error; 1 warning emitted
+error: could not compile `foo` (bin \"foo\") due to previous error; 1 warning emitted
 ",
         )
         .run();

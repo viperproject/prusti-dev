@@ -2050,7 +2050,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 }
                 _ => unimplemented!("{type_decl:?}"),
             }
-            if has_body {}
+
             let method = builder.build();
             self.declare_method(method)?;
         }

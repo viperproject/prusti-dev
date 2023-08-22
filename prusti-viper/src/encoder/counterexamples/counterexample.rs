@@ -125,8 +125,8 @@ impl Entry {
             (Entry::Float(x), _) => Entry::Float(x.clone()),
             (Entry::Bool(x), _) => Entry::Bool(*x),
             (Entry::Char(x), _) => Entry::Char(*x),
-            (Entry::Ref(entry), _) => Entry::Ref(box entry.merge(other)),
-            (Entry::Box(entry), _) => Entry::Box(box entry.merge(other)),
+            (Entry::Ref(entry), _) => Entry::Ref(Box::new(entry.merge(other))),
+            (Entry::Box(entry), _) => Entry::Box(Box::new(entry.merge(other))),
             (
                 Entry::Struct {
                     name: name1,

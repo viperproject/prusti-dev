@@ -10,7 +10,7 @@ use super::super::{
 };
 use crate::legacy::ast::*;
 use std::{
-    fmt,
+    fmt::{self, Write},
     hash::{Hash, Hasher},
     mem::discriminant,
     ops::Deref,
@@ -287,7 +287,7 @@ impl Stmt {
         pos: Position,
     ) -> Self {
         Stmt::PackageMagicWand(
-            Expr::MagicWand(box lhs, box rhs, None, pos),
+            Expr::MagicWand(Box::new(lhs), Box::new(rhs), None, pos),
             stmts,
             label,
             vars,
@@ -876,8 +876,8 @@ pub trait StmtWalker {
 }
 
 pub fn stmts_to_str(stmts: &[Stmt]) -> String {
-    stmts
-        .iter()
-        .map(|stmt| format!("{stmt}\n"))
-        .collect::<String>()
+    stmts.iter().fold(String::new(), |mut output, stmt| {
+        let _ = writeln!(output, "{stmt}");
+        output
+    })
 }

@@ -70,7 +70,10 @@ predicate Tuple_X_Y(self: Ref) {
 
 Structures are encoded similarly to tuples, except that fields names correspond to the names defined in the Rust type.
 
-```rust
+```rust,noplaypen
+# type X = ();
+# type Y = ();
+# 
 // for a Rust type, assuming types X and Y are defined
 struct SomeStruct {
   a: X,
@@ -91,7 +94,9 @@ predicate SomeStruct(self:Ref) {
 
 Enumerations (ADTs) have values corresponding to one of their variants. Each variant can hold different types of data, so the Viper encoding contains implications of the form "if the variant of the value is X, the value contains the following fields". The variant index is encoded as the `discriminant` field.
 
-```rust
+```rust,noplaypen
+# type X = ();
+# 
 // for a Rust type, assuming type X is defined
 enum SomeEnum {
   Foo,

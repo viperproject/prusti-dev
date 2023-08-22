@@ -194,6 +194,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let guest_viper_home = Path::new("/opt/rustwide/viper-home");
     let guest_z3_home = Path::new("/opt/rustwide/z3-home");
     // Map JAVA at exactly the same location on the guest so that symlinks work.
+
+    // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+    #[allow(clippy::redundant_clone)]
     let guest_java_home = host_java_home.clone();
 
     info!("Using host's Java home {:?}", host_java_home);

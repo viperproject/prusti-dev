@@ -1,5 +1,5 @@
 use prusti_rustc_interface::{
-    index::{bit_set::BitSet, vec::Idx},
+    index::{bit_set::BitSet, Idx},
     middle::mir,
 };
 use std::collections::BTreeMap;

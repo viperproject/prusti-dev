@@ -97,7 +97,11 @@ fn rewrite_internal_struct(
     if !args2.empty_or_trailing() {
         args2.push_punct(<syn::Token![,]>::default());
     }
+
+    // clippy false positive (https://github.com/rust-lang/rust-clippy/issues/10577)
+    #[allow(clippy::redundant_clone)]
     let typ = item_struct.ident.clone();
+
     let spec_item = match item_struct.fields {
         Fields::Named(_) => {
             let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>

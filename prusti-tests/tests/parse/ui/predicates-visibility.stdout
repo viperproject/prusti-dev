@@ -8,7 +8,6 @@
 
 
 
-#![feature(type_ascription)]
 #![feature(stmt_expr_attributes)]
 #![feature(register_tool)]
 #![register_tool(prusti)]
@@ -26,17 +25,21 @@ mod foo {
     #[prusti::spec_id = "$(NUM_UUID)"]
     fn prusti_pred_item_pred1_$(NUM_UUID)(a: bool)
         -> bool {
-        (({
-                        ::prusti_contracts::forall((),
-                            #[prusti::spec_only] |b: bool| -> bool { ((a == b): bool) })
-                    }): bool)
+        let prusti_result: bool =
+            {
+                ::prusti_contracts::forall((),
+                    #[prusti::spec_only] |b: bool| -> bool { a == b })
+            };
+        prusti_result
     }
     #[allow(unused_must_use, unused_variables, dead_code)]
     #[prusti::pred_spec_id_ref = "$(NUM_UUID)"]
     #[prusti::specs_version = $(SPECS_VERSION)]
     pub fn pred1(a: bool) -> bool {
-        ::core::panicking::panic_fmt(format_args!("not implemented: {0}",
-                format_args!("predicate")))
+        {
+            ::core::panicking::panic_fmt(format_args!("not implemented: {0}",
+                    format_args!("predicate")));
+        }
     }
 }
 #[allow(unused_must_use, unused_parens, unused_variables, dead_code,
@@ -44,7 +47,8 @@ non_snake_case)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 fn prusti_pre_item_test_pub_pred_$(NUM_UUID)() -> bool {
-    !!((foo::pred1(true)): bool)
+    let prusti_result: bool = foo::pred1(true);
+    prusti_result
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::specs_version = $(SPECS_VERSION)]

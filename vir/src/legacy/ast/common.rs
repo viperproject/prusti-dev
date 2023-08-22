@@ -111,21 +111,20 @@ impl fmt::Display for PermAmount {
 
 impl PartialOrd for PermAmount {
     fn partial_cmp(&self, other: &PermAmount) -> Option<Ordering> {
-        match (self, other) {
-            (PermAmount::Read, PermAmount::Write) => Some(Ordering::Less),
-            (PermAmount::Read, PermAmount::Read) | (PermAmount::Write, PermAmount::Write) => {
-                Some(Ordering::Equal)
-            }
-            (PermAmount::Write, PermAmount::Read) => Some(Ordering::Greater),
-            _ => None,
-        }
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
-        self.partial_cmp(other)
-            .unwrap_or_else(|| panic!("Undefined comparison between {self:?} and {other:?}"))
+        match (self, other) {
+            (PermAmount::Read, PermAmount::Write) => Ordering::Less,
+            (PermAmount::Read, PermAmount::Read) | (PermAmount::Write, PermAmount::Write) => {
+                Ordering::Equal
+            }
+            (PermAmount::Write, PermAmount::Read) => Ordering::Greater,
+            _ => panic!("Undefined comparison between {:?} and {:?}", self, other),
+        }
     }
 }
 

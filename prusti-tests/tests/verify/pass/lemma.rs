@@ -20,10 +20,23 @@ fn add_3(x: i64) -> i64 {
 #[ensures((x % 2 == 0) == (add_3(x) % 2 == 0))]
 fn lemma(x: i64) -> bool {
     if x > 0 {
-        lemma(x - 1)
+        lemma(x - 1);
+        if x % 2 == 0 {
+            prusti_assert!((x - 1) % 2 == 1);
+            prusti_assert!((add_3(x) % 2 == 0));
+        } else {
+            prusti_assert!(x % 2 == 1);
+            prusti_assert!((x - 1) % 2 == 0);
+            prusti_assert!((add_3(x) % 2 == 1));
+        }
+        prusti_assert!((x % 2 == 0) == (add_3(x) % 2 == 0));
     } else {
-        true // FIXME: for some reason pure functions returning nothing (an empty tuple) cause a panic
+        prusti_assert!(x == 0);
+        prusti_assert!(x % 2 == 0);
+        prusti_assert!(add_3(x) % 2 == 0);
+        prusti_assert!((x % 2 == 0) == (add_3(x) % 2 == 0));
     }
+    true // FIXME: for some reason pure functions returning nothing (an empty tuple) cause a panic
 }
 
 #[requires(x >= 0)]

@@ -8,7 +8,7 @@ use vir_low::expression::visitors::ExpressionFolder;
 pub(crate) fn inline_caller_for(program: &mut vir_low::Program) {
     let caller_for_functions = program
         .functions
-        .drain_filter(|function| function.kind == vir_low::FunctionKind::CallerFor)
+        .extract_if(|function| function.kind == vir_low::FunctionKind::CallerFor)
         .map(|function| (function.name.clone(), function))
         .collect();
     for procedure in &mut program.procedures {

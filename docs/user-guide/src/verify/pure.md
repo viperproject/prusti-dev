@@ -4,7 +4,7 @@ Pure functions are functions which are deterministic and side-effect free. In Pr
 
 At the moment, it is up to the user to ensure that functions annotated with `#[pure]` always terminate. Non-terminating pure functions would allow to infer `false`.
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[pure]

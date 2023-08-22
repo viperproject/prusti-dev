@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::middle::ty::Ty;
-use prusti_rustc_interface::index::vec::{Idx, IndexVec};
+use prusti_rustc_interface::index::{Idx, IndexVec};
 use std::{iter};
 
 /// A local variable used as an abstraction over both real Rust MIR local

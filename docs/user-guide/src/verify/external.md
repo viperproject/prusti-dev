@@ -4,7 +4,7 @@ Since the Rust standard library and external libraries do not specify contracts 
 
 The standard library type `std::option::Option` could be specified as follows:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
 #[extern_spec]
@@ -26,21 +26,12 @@ impl<T> std::option::Option<T> {
 
 Any function in an external specification is implicitly [trusted](trusted.md) (as if marked with `#[trusted]`). It is possible to specify multiple `#[extern_spec]` implementations for the same type, but it is an error to externally specify the same function multiple times.
 
-Module functions can be specified using a nested `mod` syntax:
+The `extern_spec` attribute accepts an optional argument to provide the module path to the function being specified. For example, to specify `std::mem::swap`, the argument is `std::mem`:
 
-```rust
+```rust,noplaypen,ignore
 use prusti_contracts::*;
 
-#[extern_spec]
-mod std {
-    mod mem {
-        use prusti_contracts::*;
-
-        #[ensures(*a == old(*b) && *b == old(*a))]
-        pub fn swap(a: &mut i32, b: &mut i32);
-        // pub fn swap<T: std::cmp::PartialEq + Copy>(a: &mut T, b: &mut T);
-    }
-}
+#[extern_spec(std::mem)]
+#[ensures(*a === old(snap(b)) && *b === old(snap(a)))]
+fn swap<T>(a: &mut T, b: &mut T);
 ```
-
-There are currently issues with external specifications combined with generics, so the function `swap` above is specified for `i32` arguments only.

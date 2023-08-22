@@ -1,5 +1,4 @@
 use prusti_rustc_interface::{
-    metadata::creader::CStore,
     serialize::{Decodable, Encodable},
     span::DUMMY_SP,
 };
@@ -48,7 +47,6 @@ impl CrossCrateSpecs {
 
     #[tracing::instrument(level = "debug", skip_all)]
     fn import_specs(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
-        let cstore = CStore::from_tcx(env.tcx());
         // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
         // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
         // Otherwise the crate doesn't show up in `tcx.crates()`.  Is there some better way
@@ -58,8 +56,8 @@ impl CrossCrateSpecs {
             if let Some(extern_crate) = env.tcx().extern_crate(crate_num.as_def_id()) {
                 if extern_crate.is_direct() {
                     let crate_name = env.tcx().crate_name(*crate_num);
-                    let cs = cstore.crate_source_untracked(*crate_num);
-                    let mut source = cs.paths().next().unwrap().clone();
+                    let crate_source = env.tcx().used_crate_source(*crate_num);
+                    let mut source = crate_source.paths().next().unwrap().clone();
                     source.set_extension("specs");
                     if source.is_file() {
                         if let Err(e) =
@@ -84,18 +82,15 @@ impl CrossCrateSpecs {
     fn write_into_file(
         env: &Environment,
         def_spec: &DefSpecificationMap,
-        path: &path::PathBuf,
+        path: &path::Path,
     ) -> io::Result<usize> {
-        use std::io::Write;
-        let mut encoder = DefSpecsEncoder::new(env.tcx());
+        // Probably not needed; dir should already exist?
+        fs::create_dir_all(path.parent().unwrap())?;
+        let mut encoder = DefSpecsEncoder::new(env.tcx(), path)?;
         def_spec.proc_specs.encode(&mut encoder);
         def_spec.type_specs.encode(&mut encoder);
         CrossCrateBodies::from(&env.body).encode(&mut encoder);
-
-        // Probably not needed; dir should already exist?
-        fs::create_dir_all(path.parent().unwrap())?;
-        let mut file = fs::File::create(path)?;
-        file.write(&encoder.into_inner())
+        encoder.finish()
     }
 
     #[tracing::instrument(level = "debug", skip(env, def_spec))]

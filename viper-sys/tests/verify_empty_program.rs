@@ -48,9 +48,8 @@ fn verify_empty_program() {
 
     env.with_local_frame(32, || {
         let reporter = viper::silver::reporter::NoopReporter_object::with(&env).singleton()?;
-        let debug_info = scala::collection::immutable::Nil_object::with(&env).singleton()?;
-        let silicon = viper::silicon::Silicon::with(&env).new(reporter, debug_info)?;
-        let verifier = viper::silver::verifier::Verifier::with(&env);
+        let silicon = viper::silicon::SiliconFrontendAPI::with(&env).new(reporter)?;
+        let frontend = viper::silver::frontend::ViperFrontendAPI::with(&env);
 
         let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(&env);
         let silicon_args_array = array_buffer_wrapper.new(4)?;
@@ -59,15 +58,9 @@ fn verify_empty_program() {
 
         array_buffer_wrapper.call_append(silicon_args_array, *env.new_string(&z3_path)?)?;
 
-        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("--ignoreFile")?)?;
-
-        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("dummy.vpr")?)?;
-
         let silicon_args_seq = array_buffer_wrapper.call_toSeq(silicon_args_array)?;
 
-        verifier.call_parseCommandLine(silicon, silicon_args_seq)?;
-
-        verifier.call_start(silicon)?;
+        frontend.call_initialize(silicon, silicon_args_seq)?;
 
         let program = viper::silver::ast::Program::with(&env).new(
             scala::collection::immutable::Nil_object::with(&env).singleton()?,
@@ -81,13 +74,13 @@ fn verify_empty_program() {
             viper::silver::ast::NoTrafos_object::with(&env).singleton()?,
         )?;
 
-        let verification_result = verifier.call_verify(silicon, program)?;
+        let verification_result = frontend.call_verify(silicon, program)?;
 
         let system_out = get_system_out(&env)?;
 
         java::io::PrintStream::with(&env).call_println(system_out, verification_result)?;
 
-        verifier.call_stop(silicon)?;
+        frontend.call_stop(silicon)?;
 
         Ok(JObject::null())
     })

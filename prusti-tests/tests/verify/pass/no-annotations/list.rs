@@ -1,13 +1,12 @@
 //! Example of linked list
 
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 enum List {
     Nil,
     Const {
         val: i32,
-        next: Box<List>
+        next: Box<List>,
     },
 }
 
@@ -49,14 +48,14 @@ fn empty_list(val: i32) -> List {
 fn singleton_list(val: i32) -> List {
     List::Const {
         val,
-        next: box List::Nil
+        next: Box::new(List::Nil),
     }
 }
 
 fn prepend(val: i32, list: List) -> List {
     List::Const {
         val,
-        next: box list
+        next: Box::new(list),
     }
 }
 
@@ -64,11 +63,11 @@ fn append(new_val: i32, list: List) -> List {
     match list {
         List::Nil => List::Const {
             val: new_val,
-            next: box List::Nil
+            next: Box::new(List::Nil),
         },
         List::Const { val, box next } => List::Const {
             val: val,
-            next: box append(new_val, next)
+            next: Box::new(append(new_val, next)),
         },
     }
 }

@@ -7,6 +7,7 @@
 //! This module defines the interface provided to a verifier.
 
 use prusti_rustc_interface::middle::ty::{self, TyCtxt};
+use rustc_middle::ty::GenericArgsRef;
 
 pub mod body;
 pub mod borrowck;
@@ -45,7 +46,6 @@ use self::{
     collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
 };
 use crate::data::ProcedureDefId;
-use rustc_middle::ty::SubstsRef;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'tcx> {
@@ -139,19 +139,22 @@ impl<'tcx> Environment<'tcx> {
         &self,
         caller_def_id: ProcedureDefId,
         called_def_id: ProcedureDefId,
-        call_substs: SubstsRef<'tcx>,
+        call_substs: GenericArgsRef<'tcx>,
     ) -> bool {
         if called_def_id == caller_def_id {
             true
         } else {
             let param_env = self.tcx().param_env(caller_def_id);
-            if let Some(instance) = self
+            if let Some(_instance) = self
                 .tcx()
                 .resolve_instance(param_env.and((called_def_id, call_substs)))
                 .unwrap()
             {
-                self.tcx()
-                    .mir_callgraph_reachable((instance, caller_def_id.expect_local()))
+                // FIXME: This call panics due to stolen MIR. Therefore, we
+                // unsoundly assume that the callee is not reachable.
+                // self.tcx()
+                //     .mir_callgraph_reachable((instance, caller_def_id.expect_local()))
+                false
             } else {
                 true
             }

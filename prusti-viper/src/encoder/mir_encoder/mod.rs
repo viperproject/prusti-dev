@@ -19,7 +19,7 @@ use prusti_common::config;
 use prusti_rustc_interface::target::abi;
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::middle::{mir, ty};
-use prusti_rustc_interface::index::vec::IndexVec;
+use prusti_rustc_interface::index::IndexVec;
 use prusti_rustc_interface::span::{Span, DUMMY_SP};
 use log::{trace, debug};
 use prusti_interface::environment::mir_utils::MirPlace;
@@ -142,7 +142,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         } else {
                             encoded_base
                         };
-                        let field = &variant_def.fields[field.index()];
+                        let field = &variant_def.fields[*field];
                         let field_ty = *proj_field_ty;
                         if utils::is_reference(field_ty) {
                             error_unsupported!("access to reference-typed fields is not supported");
@@ -245,7 +245,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     ty::TyKind::Array(elem_ty, _) => {
                         (
                             PlaceEncoding::ArrayAccess {
-                                base: box encoded_base,
+                                base: Box::new(encoded_base),
                                 index,
                                 encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_array_ty: base_ty,
@@ -257,7 +257,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     ty::TyKind::Slice(elem_ty) => {
                         (
                             PlaceEncoding::SliceAccess {
-                                base: box encoded_base,
+                                base: Box::new(encoded_base),
                                 index,
                                 encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_slice_ty: base_ty,
@@ -500,11 +500,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
             mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
             mir::BinOp::Le => vir::Expr::le_cmp(left, right),
-            mir::BinOp::Add => vir::Expr::add(left, right),
-            mir::BinOp::Sub => vir::Expr::sub(left, right),
+            mir::BinOp::AddUnchecked | mir::BinOp::Add => vir::Expr::add(left, right),
+            mir::BinOp::SubUnchecked | mir::BinOp::Sub => vir::Expr::sub(left, right),
             mir::BinOp::Rem => vir::Expr::rem(left, right),
             mir::BinOp::Div => vir::Expr::div(left, right),
-            mir::BinOp::Mul => vir::Expr::mul(left, right),
+            mir::BinOp::MulUnchecked | mir::BinOp::Mul => vir::Expr::mul(left, right),
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
@@ -526,11 +526,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd => vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, left, right),
             mir::BinOp::BitOr => vir::Expr::bin_op(vir::BinaryOpKind::BitOr, left, right),
             mir::BinOp::BitXor => vir::Expr::bin_op(vir::BinaryOpKind::BitXor, left, right),
-            mir::BinOp::Shl => vir::Expr::bin_op(vir::BinaryOpKind::Shl, left, right),
+            mir::BinOp::ShlUnchecked | mir::BinOp::Shl => vir::Expr::bin_op(vir::BinaryOpKind::Shl, left, right),
             // https://doc.rust-lang.org/reference/expressions/operator-expr.html#arithmetic-and-logical-binary-operators
             // Arithmetic right shift on signed integer types, logical right shift on unsigned integer types.
-            mir::BinOp::Shr if is_signed => vir::Expr::bin_op(vir::BinaryOpKind::AShr, left, right),
-            mir::BinOp::Shr => vir::Expr::bin_op(vir::BinaryOpKind::LShr, left, right),
+            mir::BinOp::ShrUnchecked | mir::BinOp::Shr if is_signed => vir::Expr::bin_op(vir::BinaryOpKind::AShr, left, right),
+            mir::BinOp::ShrUnchecked | mir::BinOp::Shr => vir::Expr::bin_op(vir::BinaryOpKind::LShr, left, right),
             mir::BinOp::Offset => {
                 error_unsupported!("operation '{:?}' is not supported", op);
             }
@@ -552,7 +552,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir::Expr> {
-        if !op.is_checkable() || !config::check_overflows() {
+        if !matches!(op, mir::BinOp::Add | mir::BinOp::Sub | mir::BinOp::Mul | mir::BinOp::Shl | mir::BinOp::Shr) || !config::check_overflows() {
             Ok(false.into())
         } else {
             let result = self.encode_bin_op_expr(op, left, right.clone(), ty)?;
