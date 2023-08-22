@@ -7,9 +7,10 @@
 use prusti_rustc_interface::{
     hir,
     middle::{
-        mir::{Field, Mutability, ProjectionElem},
+        mir::{Mutability, ProjectionElem},
         ty::{CapturedPlace, TyKind, UpvarCapture},
     },
+    target::abi::FieldIdx,
 };
 
 use super::{root_place::RootPlace, Place, PlaceRepacker};
@@ -213,7 +214,7 @@ impl<'tcx> Place<'tcx> {
         self,
         upvars: &[Upvar<'tcx>],
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> Option<Field> {
+    ) -> Option<FieldIdx> {
         let mut place_ref = *self;
         let mut by_ref = false;
 

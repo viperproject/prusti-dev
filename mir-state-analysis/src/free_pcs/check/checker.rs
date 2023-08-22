@@ -137,7 +137,7 @@ impl<'tcx> RepackOp<'tcx> {
                 assert!(place.is_prefix_exact(guide), "{self:?}");
                 let curr_state = state[place.local].get_allocated_mut();
                 let mut removed = curr_state
-                    .drain_filter(|p, _| place.related_to(*p))
+                    .extract_if(|p, _| place.related_to(*p))
                     .collect::<FxHashMap<_, _>>();
 
                 let (p, mut others, _) = place.expand_one_level(guide, rp);

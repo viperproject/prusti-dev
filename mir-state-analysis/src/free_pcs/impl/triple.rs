@@ -58,6 +58,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 self.ensures_unalloc(local);
             }
             &Retag(_, box place) => self.requires_exclusive(place),
+            &PlaceMention(box place) => self.requires_write(place),
             AscribeUserType(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
         };
     }
@@ -69,7 +70,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             Goto { .. }
             | SwitchInt { .. }
             | Resume
-            | Abort
+            | Terminate
             | Unreachable
             | Assert { .. }
             | GeneratorDrop
@@ -90,10 +91,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             &Drop { place, .. } => {
                 self.requires_write(place);
                 self.ensures_write(place);
-            }
-            &DropAndReplace { place, .. } => {
-                self.requires_write(place);
-                self.ensures_exclusive(place);
             }
             &Call { destination, .. } => {
                 self.requires_write(destination);
@@ -131,10 +128,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 BorrowKind::Shallow => {
                     self.requires_read(place);
                     // self.ensures_blocked_read(place);
-                }
-                BorrowKind::Unique => {
-                    self.requires_exclusive(place);
-                    // self.ensures_blocked_exclusive(place);
                 }
                 BorrowKind::Mut { .. } => {
                     self.requires_exclusive(place);

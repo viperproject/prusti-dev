@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::{
     dataflow::{Analysis, AnalysisDomain, CallReturnPlaces},
-    index::vec::Idx,
+    index::Idx,
     middle::{
         mir::{
             visit::Visitor, BasicBlock, Body, Local, Location, Statement, Terminator, RETURN_PLACE,
@@ -65,7 +65,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
 
 impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
     fn apply_statement_effect(
-        &self,
+        &mut self,
         state: &mut Self::Domain,
         statement: &Statement<'tcx>,
         location: Location,
@@ -75,7 +75,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
     }
 
     fn apply_terminator_effect(
-        &self,
+        &mut self,
         state: &mut Self::Domain,
         terminator: &Terminator<'tcx>,
         location: Location,
@@ -85,7 +85,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
     }
 
     fn apply_call_return_effect(
-        &self,
+        &mut self,
         _state: &mut Self::Domain,
         _block: BasicBlock,
         _return_places: CallReturnPlaces<'_, 'tcx>,
