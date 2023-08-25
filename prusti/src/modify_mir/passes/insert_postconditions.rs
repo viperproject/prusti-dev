@@ -48,11 +48,11 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
         target: Option<mir::BasicBlock>,
         result_operand: mir::Place<'tcx>,
         args: Vec<mir::Operand<'tcx>>,
-        substs: ty::subst::SubstsRef<'tcx>,
+        generics: ty::GenericArgsRef<'tcx>,
         original_terminator: mir::Terminator<'tcx>,
     ) -> (mir::BasicBlock, Option<mir::BasicBlock>) {
         // find the type of that local
-        let check_sig = self.tcx.fn_sig(check_id).subst(self.tcx, substs);
+        let check_sig = self.tcx.fn_sig(check_id).instantiate(self.tcx, generics);
         let param_env = self.tcx.param_env(self.def_id);
         let check_sig = self
             .tcx
@@ -80,7 +80,7 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
         // chain these with the final call having the original target,
         // change the target of the call to the first block of our chain.
         let (check_block, _) = self
-            .create_call_block(check_id, new_args, substs, None, Some(drop_start))
+            .create_call_block(check_id, new_args, generics, None, Some(drop_start))
             .unwrap();
 
         // the terminator that calls the original function, but in this case jumps to
@@ -135,7 +135,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PostconditionInserter<'tcx, 'a> {
             ..
         } = &terminator.kind
         {
-            if let Some((call_id, substs)) = func.const_fn_def() {
+            if let Some((call_id, generics)) = func.const_fn_def() {
                 let mut caller_block = location.block;
                 let mut current_target = *target;
                 let mut call_fn_terminator = terminator.clone();
@@ -146,7 +146,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PostconditionInserter<'tcx, 'a> {
                         current_target,
                         *destination,
                         args.clone(),
-                        substs,
+                        generics,
                         terminator.clone(),
                     );
                     replace_target(&mut call_fn_terminator, current_target.unwrap());

@@ -1,5 +1,8 @@
-use prusti_rustc_interface::{middle::mir, span::def_id::DefId};
-use rustc_hash::FxHashMap;
+use prusti_rustc_interface::{
+    middle::mir,
+    span::def_id::{CrateNum, DefId},
+};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::cell::RefCell;
 
 use crate::{
@@ -11,7 +14,7 @@ use crate::{
 thread_local! {
     pub static SPECS: RefCell<Option<DefSpecificationMap>> = RefCell::new(None);
     pub static ENV: RefCell<Option<Environment<'static>>> = RefCell::new(None);
-    pub static VERIFIED: RefCell<bool> = RefCell::new(false);
+    pub static VERIFIED: RefCell<FxHashSet<CrateNum>> = RefCell::new(Default::default());
     pub static POLONIUS: RefCell<FxHashMap<DefId, PoloniusInfo<'static, 'static>>> = RefCell::default();
     pub static REACHABILITY_CHECKS: RefCell<FxHashMap<DefId, FxHashMap<mir::BasicBlock, bool>>> =
         Default::default();
@@ -94,12 +97,12 @@ pub fn get_env<'tcx>() -> Environment<'tcx> {
     env
 }
 
-pub fn verified() -> bool {
-    VERIFIED.with(|verified| *verified.borrow())
+pub fn verified(krate_id: CrateNum) -> bool {
+    VERIFIED.with(|verified| verified.borrow().contains(&krate_id))
 }
 
-pub fn set_verified() {
-    VERIFIED.with(|verified| *verified.borrow_mut() = true);
+pub fn set_verified(krate_id: CrateNum) {
+    VERIFIED.with(|verified| verified.borrow_mut().insert(krate_id));
 }
 
 pub fn store_polonius_info(def_id: DefId, polonius_info: PoloniusInfo<'_, '_>) {

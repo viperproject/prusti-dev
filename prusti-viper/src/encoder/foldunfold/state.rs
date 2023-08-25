@@ -172,7 +172,7 @@ impl State {
     where
         F: Fn(vir::Expr) -> vir::Expr,
     {
-        for coll in vec![&mut self.acc, &mut self.pred] {
+        for coll in [&mut self.acc, &mut self.pred] {
             let new_values = coll
                 .clone()
                 .into_iter()

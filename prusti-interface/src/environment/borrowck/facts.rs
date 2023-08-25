@@ -51,19 +51,18 @@ pub enum PointType {
 
 impl std::cmp::PartialOrd for PointType {
     fn partial_cmp(&self, other: &PointType) -> Option<std::cmp::Ordering> {
-        let res = match (self, other) {
-            (PointType::Start, PointType::Start) => std::cmp::Ordering::Equal,
-            (PointType::Start, PointType::Mid) => std::cmp::Ordering::Less,
-            (PointType::Mid, PointType::Start) => std::cmp::Ordering::Greater,
-            (PointType::Mid, PointType::Mid) => std::cmp::Ordering::Equal,
-        };
-        Some(res)
+        Some(self.cmp(other))
     }
 }
 
 impl std::cmp::Ord for PointType {
     fn cmp(&self, other: &PointType) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
+        match (self, other) {
+            (PointType::Start, PointType::Start) => std::cmp::Ordering::Equal,
+            (PointType::Start, PointType::Mid) => std::cmp::Ordering::Less,
+            (PointType::Mid, PointType::Start) => std::cmp::Ordering::Greater,
+            (PointType::Mid, PointType::Mid) => std::cmp::Ordering::Equal,
+        }
     }
 }
 

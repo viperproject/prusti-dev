@@ -38,8 +38,16 @@ pub fn is_mutable_arg(
 //     }
 // }
 
-pub fn fn_return_ty(tcx: TyCtxt<'_>, def_id: DefId) -> ty::Ty<'_> {
-    let fn_sig = tcx.fn_sig(def_id).subst_identity();
+pub fn fn_return_ty<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    def_id: DefId,
+    generics_opt: Option<ty::GenericArgsRef<'tcx>>,
+) -> ty::Ty<'tcx> {
+    let fn_sig = if let Some(generics) = generics_opt {
+        tcx.fn_sig(def_id).instantiate(tcx, generics)
+    } else {
+        tcx.fn_sig(def_id).instantiate_identity()
+    };
     fn_sig.output().skip_binder()
 }
 
@@ -56,7 +64,7 @@ pub fn dummy_region(tcx: TyCtxt<'_>) -> ty::Region<'_> {
 }
 
 pub fn unit_const(tcx: TyCtxt<'_>) -> mir::Operand<'_> {
-    let unit_ty = tcx.mk_unit();
+    let unit_ty = ty::Ty::new_unit(tcx);
     let constant_kind = mir::ConstantKind::zero_sized(unit_ty);
     let constant = mir::Constant {
         span: DUMMY_SP,
@@ -74,7 +82,7 @@ pub fn rvalue_reference_to_local<'tcx>(
     let dummy_region = dummy_region(tcx);
     let borrow_kind = if mutable {
         mir::BorrowKind::Mut {
-            allow_two_phase_borrow: false,
+            kind: mir::MutBorrowKind::Default,
         }
     } else {
         mir::BorrowKind::Shared
@@ -89,7 +97,8 @@ pub fn rvalue_reference_to_local<'tcx>(
 pub fn create_reference_type<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
     let mutability = mir::Mutability::Not;
     let region = dummy_region(tcx);
-    tcx.mk_ref(
+    ty::Ty::new_ref(
+        tcx,
         region,
         ty::TypeAndMut {
             ty,
@@ -296,15 +305,4 @@ pub fn get_successors(body: &Body<'_>, location: mir::Location) -> Vec<mir::Loca
             })
             .collect()
     }
-}
-
-// are these the same types that we would get using local_decls and the locals
-// for each argument / the return local?
-pub fn fn_def_signature(tcx: TyCtxt<'_>, def_id: DefId) -> ty::FnSig {
-    // use identity substs for a function definitions, but never for calls!
-    let ident_substs = ty::subst::InternalSubsts::identity_for_item(tcx, def_id);
-    let binder_fn_sig = tcx.fn_sig(def_id);
-    let poly_fn_sig = binder_fn_sig.subst(tcx, ident_substs);
-    let param_env = tcx.param_env(def_id);
-    tcx.normalize_erasing_late_bound_regions(param_env, poly_fn_sig)
 }

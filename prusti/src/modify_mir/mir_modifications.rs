@@ -27,7 +27,7 @@ pub trait MirModifier<'tcx> {
         fn_id: DefId,
         caller_block: BasicBlock,
         args: Vec<Operand<'tcx>>,
-        substs: ty::subst::SubstsRef<'tcx>,
+        generics: ty::GenericArgsRef<'tcx>,
         terminator: Terminator<'tcx>,
         dest_place: Place<'tcx>,
     ) -> BasicBlock {
@@ -35,7 +35,7 @@ pub trait MirModifier<'tcx> {
         let new_block_data = BasicBlockData::new(Some(terminator));
         let new_block = self.patcher().new_block(new_block_data);
 
-        let func_ty = self.tcx().mk_ty_from_kind(TyKind::FnDef(fn_id, substs));
+        let func_ty = self.tcx().mk_ty_from_kind(TyKind::FnDef(fn_id, generics));
         let func = Operand::Constant(Box::new(Constant {
             span: DUMMY_SP,
             user_ty: None,
@@ -47,9 +47,9 @@ pub trait MirModifier<'tcx> {
             args: args.clone(),
             destination: dest_place,
             target: Some(new_block),
-            from_hir_call: false,
             // is terminating on unwind sometimes not actually what we want?
             unwind: mir::UnwindAction::Continue,
+            call_source: mir::CallSource::Normal,
             fn_span: DUMMY_SP,
         };
         self.patcher()
@@ -170,8 +170,7 @@ pub trait MirModifier<'tcx> {
                 mir::StatementKind::Assign(Box::new((mir::Place::from(ref_arg), rvalue)));
 
             // create the substitution since clone is generic:
-            let generic_ty = ty::subst::GenericArg::from(arg_ty);
-            let substs = self.tcx().mk_substs(&[generic_ty]);
+            let generics = self.tcx().mk_args(&[ty::GenericArg::from(arg_ty)]);
             // create the function operand:
             let clone_args = vec![Operand::Move(mir::Place::from(ref_arg))];
             // create a new basicblock:
@@ -179,7 +178,7 @@ pub trait MirModifier<'tcx> {
             let (new_block, _) = self.create_call_block(
                 clone_defid,
                 clone_args,
-                substs,
+                generics,
                 Some(dest.into()),
                 Some(target),
             )?;
@@ -205,8 +204,7 @@ pub trait MirModifier<'tcx> {
                 "dereferenced type: {:?}, needs drop? {:?}",
                 deref_ty, to_drop
             );
-            let generic_ty = ty::subst::GenericArg::from(deref_ty);
-            let substs = self.tcx().mk_substs(&[generic_ty]);
+            let generics = self.tcx().mk_args(&[ty::GenericArg::from(deref_ty)]);
             let clone_args = vec![Operand::Move(arg)];
             // add an additional simple block afterwards, that dereferences
             // the the cloned value into the original receiver of old:
@@ -232,7 +230,7 @@ pub trait MirModifier<'tcx> {
             let (new_block, _) = self.create_call_block(
                 clone_defid,
                 clone_args,
-                substs,
+                generics,
                 Some(clone_dest.into()),
                 Some(second_block),
             )?;
@@ -268,7 +266,7 @@ pub trait MirModifier<'tcx> {
         let (check_after_block, _) = self.create_call_block(
             pledge.check,
             check_args,
-            pledge.substs,
+            pledge.generics,
             None,
             Some(drop_block),
         )?;
@@ -282,7 +280,7 @@ pub trait MirModifier<'tcx> {
             let (new_block, _) = self.create_call_block(
                 check_before_expiry,
                 before_check_args,
-                pledge.substs,
+                pledge.generics,
                 None,
                 Some(check_after_block),
             )?;
@@ -382,14 +380,14 @@ pub trait MirModifier<'tcx> {
         &self,
         call_id: DefId,
         args: Vec<mir::Operand<'tcx>>,
-        substs: ty::subst::SubstsRef<'tcx>,
+        generics: ty::GenericArgsRef<'tcx>,
         destination: Option<mir::Place<'tcx>>,
         target: Option<mir::BasicBlock>,
     ) -> Result<(mir::BasicBlock, mir::Place<'tcx>), ()> {
         // construct the function call
         let func_ty = self
             .tcx()
-            .mk_ty_from_kind(ty::TyKind::FnDef(call_id, substs));
+            .mk_ty_from_kind(ty::TyKind::FnDef(call_id, generics));
         let func = mir::Operand::Constant(Box::new(mir::Constant {
             span: DUMMY_SP,
             user_ty: None,
@@ -398,7 +396,7 @@ pub trait MirModifier<'tcx> {
         // either use passed destination or create a new one
         let destination = destination.unwrap_or_else(|| {
             // find return type
-            let ret_ty = fn_return_ty(self.tcx(), call_id);
+            let ret_ty = fn_return_ty(self.tcx(), call_id, Some(generics));
             mir::Place::from(self.patcher().new_temp(ret_ty, DUMMY_SP))
         });
 
@@ -409,7 +407,7 @@ pub trait MirModifier<'tcx> {
             destination,
             target,
             unwind: mir::UnwindAction::Continue,
-            from_hir_call: false,
+            call_source: mir::CallSource::Normal,
             fn_span: self.tcx().def_span(call_id),
         };
         let terminator = mir::Terminator {

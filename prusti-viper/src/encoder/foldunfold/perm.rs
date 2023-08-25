@@ -191,10 +191,8 @@ where
     fn group_by_label(&mut self) -> FxHashMap<Option<String>, Vec<Perm>> {
         let mut res_perms = FxHashMap::default();
         for perm in self {
-            res_perms
-                .entry(perm.get_label().cloned())
-                .or_insert_with(Vec::new)
-                .push(perm.clone());
+            let perms: &mut Vec<_> = res_perms.entry(perm.get_label().cloned()).or_default();
+            perms.push(perm.clone());
         }
         res_perms
     }

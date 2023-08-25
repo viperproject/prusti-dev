@@ -43,11 +43,11 @@ impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
             .expect("Bug: Body must start with a Goto block at this stage");
         let patch = MirPatch::new(body);
         self.patch_opt = Some(patch.into());
-        let substs = ty::subst::InternalSubsts::identity_for_item(self.tcx, self.body_info.def_id);
+        let generics = ty::GenericArgs::identity_for_item(self.tcx, self.body_info.def_id);
         let args = args_from_body(body);
         for check_id in self.body_info.specs.get_pre_checks(&self.body_info.def_id) {
             (current_target, _) = self
-                .create_call_block(check_id, args.clone(), substs, None, Some(current_target))
+                .create_call_block(check_id, args.clone(), generics, None, Some(current_target))
                 .unwrap();
         }
         // make the starting block (which should already be a dummy)
@@ -83,7 +83,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PreconditionInserter<'tcx, 'a> {
             func, target, args, ..
         } = &terminator.kind
         {
-            if let Some((call_id, substs)) = func.const_fn_def() {
+            if let Some((call_id, generics)) = func.const_fn_def() {
                 let mut caller_block = location.block;
                 let _current_target = target;
                 if call_id.is_local() {
@@ -91,14 +91,14 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PreconditionInserter<'tcx, 'a> {
                     return;
                 }
                 for check_id in self.body_info.specs.get_pre_checks(&call_id) {
-                    let return_ty = fn_return_ty(self.tcx, check_id);
+                    let return_ty = fn_return_ty(self.tcx, check_id, Some(generics));
                     assert!(return_ty.is_unit());
                     let res = self.patcher().new_temp(return_ty, DUMMY_SP);
                     caller_block = self.prepend_call(
                         check_id,
                         caller_block,
                         args.clone(),
-                        substs,
+                        generics,
                         terminator.clone(),
                         res.into(),
                     );

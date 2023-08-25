@@ -10,7 +10,7 @@ use super::super::{
 };
 use crate::legacy::ast::*;
 use std::{
-    fmt,
+    fmt::{self, Write},
     hash::{Hash, Hasher},
     mem::discriminant,
     ops::Deref,
@@ -876,8 +876,8 @@ pub trait StmtWalker {
 }
 
 pub fn stmts_to_str(stmts: &[Stmt]) -> String {
-    stmts
-        .iter()
-        .map(|stmt| format!("{stmt}\n"))
-        .collect::<String>()
+    stmts.iter().fold(String::new(), |mut output, stmt| {
+        let _ = writeln!(output, "{stmt}");
+        output
+    })
 }

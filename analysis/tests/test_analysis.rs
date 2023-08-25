@@ -13,7 +13,7 @@ fn run_tests(mode: &str, path: &str, custom_args: Vec<String>) {
     let mut flags = Vec::new();
     flags.push("--edition 2018".to_owned());
     flags.push(format!("--sysroot {}", find_sysroot()));
-    flags.extend(custom_args.into_iter());
+    flags.extend(custom_args);
     config.target_rustcflags = Some(flags.join(" "));
     config.mode = mode.parse().expect("Invalid mode");
     config.rustc_path = find_compiled_executable("analysis-driver");

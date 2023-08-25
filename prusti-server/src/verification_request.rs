@@ -61,6 +61,7 @@ impl ViperBackendConfig {
                 }
 
                 verifier_args.extend(vec![
+                    "--disableTerminationPlugin".to_string(),
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
                     "--proverConfigArgs".to_string(),

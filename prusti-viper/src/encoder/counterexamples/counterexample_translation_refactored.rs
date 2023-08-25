@@ -36,6 +36,7 @@ pub fn backtranslate(
         let label_markers = translator.get_label_markers(true);
         let mut file = std::fs::File::create(path).unwrap();
         serde_json::to_writer_pretty(&mut file, &label_markers).unwrap();
+        file.sync_all().unwrap();
     }
 
     let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers);
@@ -196,7 +197,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             .map(|fn_proc_id| {
                 self.tcx
                     .fn_sig(fn_proc_id)
-                    .subst_identity()
+                    .instantiate_identity()
                     .skip_binder()
                     .output()
             });
@@ -635,7 +636,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         &self,
         variant: &ty::VariantDef,
         model_entry: Option<&ModelEntry>,
-        subst: ty::subst::SubstsRef<'tcx>,
+        subst: ty::GenericArgsRef<'tcx>,
         model: bool, //if false, ignore models
     ) -> Vec<(String, Entry)> {
         match model_entry {
@@ -725,7 +726,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     .get(&sil_to_model_fn_name)
                 {
                     let sil_model = sil_to_model_fn.get_function_value(&sil_ref_fn_param);
-                    let model_typ = self.tcx.type_of(model_id).subst_identity();
+                    let model_typ = self.tcx.type_of(model_id).instantiate_identity();
                     let entry =
                         self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), false);
                     return entry;

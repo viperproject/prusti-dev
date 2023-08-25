@@ -19,9 +19,9 @@ use prusti_rustc_interface::{
         ty::{self, TyCtxt, TypeVisitableExt},
     },
     mir_transform::{self, inline},
-    session::Session,
-    span::def_id::LocalDefId,
+    span::def_id::{LocalDefId, LOCAL_CRATE},
     trait_selection::traits,
+    session::{EarlyErrorHandler, Session},
 };
 
 #[derive(Default)]
@@ -87,10 +87,12 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
     if config::no_verify() {
         return (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
     }
-    if !globals::verified() {
+    let def_id = def.to_def_id();
+    if !globals::verified(def_id.krate) {
         let (def_spec, env) = get_specs(tcx, None);
+        println!("Starting Verification");
         let env = verify(env, def_spec.clone());
-        globals::set_verified();
+        globals::set_verified(def_id.krate);
         globals::store_spec_env(def_spec, env);
     }
 
@@ -118,7 +120,6 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
     // Inserted Modifications
     // ################################################
     let local_decls = body.local_decls.clone();
-    let def_id = def.to_def_id();
     if config::remove_dead_code() {
         mir_modify::dead_code_elimination(tcx, &mut body, def_id);
     }
@@ -221,9 +222,22 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     #[tracing::instrument(level = "debug", skip_all)]
     fn after_analysis<'tcx>(
         &mut self,
+        _error_handler: &EarlyErrorHandler,
         compiler: &Compiler,
-        _queries: &'tcx Queries<'tcx>,
+        queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
+        compiler.session().abort_if_errors();
+        queries.global_ctxt().unwrap().enter(|tcx| {
+            if !globals::verified(LOCAL_CRATE) {
+                let (def_spec, env) = get_specs(tcx, Some(compiler));
+                if !config::no_verify() {
+                    let env = verify(env, def_spec.clone());
+
+                    globals::set_verified(LOCAL_CRATE);
+                    globals::store_spec_env(def_spec, env);
+                }
+            }
+        });
         compiler.session().abort_if_errors();
         if config::full_compilation() {
             // verification moved into mir_drops_elaborated query!

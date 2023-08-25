@@ -170,14 +170,14 @@ impl StmtWalker for VarDependencyCollector {
             let entry = self
                 .dependencies
                 .entry(dependent.clone())
-                .or_insert_with(FxHashSet::default);
+                .or_default();
             entry.extend(dependencies.iter().cloned());
         }
         for dependency in dependencies {
             let entry = self
                 .dependents
                 .entry(dependency)
-                .or_insert_with(FxHashSet::default);
+                .or_default();
             entry.extend(dependents.iter().cloned());
         }
         match kind {

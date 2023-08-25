@@ -83,7 +83,7 @@ pub struct PledgeToProcess<'tcx> {
     pub destination: mir::Place<'tcx>,
     // the args the function was called with
     pub args: Vec<mir::Operand<'tcx>>,
-    pub substs: ty::subst::SubstsRef<'tcx>,
+    pub generics: ty::GenericArgsRef<'tcx>,
     // a local that is set when a function with a pledge is called
     // and then checked before a runtime check at an expiration location
     // is performed.
@@ -114,6 +114,17 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
 
     pub fn run(&mut self, body: &mut mir::Body<'tcx>) {
         println!("Inserting pledges into function {:?}", self.def_id);
+        self.body_copy = Some(body.clone());
+        self.patch_opt = Some(MirPatch::new(body).into());
+        // find all calls to functions with pledges, and create local variables
+        // to store: old_values, before_expiry_place,
+        self.visit_body(body);
+        // If there are no pledges, we can stop here.
+        if self.pledges_to_process.len() == 0 {
+            return;
+        }
+        // only try to get polonius info after we know that there are indeed
+        // pledges
         let procedure = Procedure::new(&self.body_info.env, self.def_id);
         let polonius_info = if let Some(info) = globals::get_polonius_info(self.def_id) {
             info
@@ -131,15 +142,6 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                 return;
             }
         };
-        self.body_copy = Some(body.clone());
-        self.patch_opt = Some(MirPatch::new(body).into());
-        // find all calls to functions with pledges, and create local variables
-        // to store: old_values, before_expiry_place,
-        self.visit_body(body);
-        // If there are no pledges, we can stop here.
-        if self.pledges_to_process.len() == 0 {
-            return;
-        }
         // apply the patch generated during visitation
         // this should only create new locals!
         let patcher_ref = self.patch_opt.take().unwrap();
@@ -363,7 +365,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
         } = &terminator.kind
         {
             // is a visit of the underlying things even necesary?
-            if let Some((call_id, substs)) = func.const_fn_def() {
+            if let Some((call_id, generics)) = func.const_fn_def() {
                 for check_kind in self.body_info.specs.get_runtime_checks(&call_id) {
                     if let CheckKind::Pledge {
                         check,
@@ -373,7 +375,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                         if self.first_pass {
                             // TODO: pack that into a function, use correct param_env
                             let name = self.tcx.def_path_debug_str(call_id);
-                            let check_sig = self.tcx.fn_sig(check).subst(self.tcx, substs);
+                            let check_sig = self.tcx.fn_sig(check).instantiate(self.tcx, generics);
                             let check_sig = self.tcx.normalize_erasing_late_bound_regions(
                                 ty::ParamEnv::reveal_all(),
                                 check_sig,
@@ -410,7 +412,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                                 before_expiry_ty,
                                 destination: *destination,
                                 args: args.clone(),
-                                substs,
+                                generics,
                                 guard_place: local_guard,
                                 location,
                                 drop_blocks: Vec::new(),
