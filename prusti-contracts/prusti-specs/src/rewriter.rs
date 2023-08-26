@@ -358,7 +358,7 @@ impl AstRewriter {
                     true
                 };
                 if !(#expr_translated) {
-                    panic!(#failure_message);
+                    ::core::panic!(#failure_message);
                 }
             }
         })

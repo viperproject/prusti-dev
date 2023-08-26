@@ -187,7 +187,7 @@ impl CheckTranslator {
                 println!("check function {} is performed", #item_name_str);
                 if !(#expr_to_check) {
                     #forget_statements
-                    panic!(#failure_message)
+                    ::core::panic!(#failure_message)
                 };
                 // now forget about all the values since they are still owned
                 // by the calling function
@@ -282,7 +282,7 @@ impl CheckTranslator {
                     let name: TokenStream = arg.name.parse().unwrap();
                     if !arg.is_ref {
                         stmts.push(parse_quote! {
-                            std::mem::forget(#name);
+                            ::core::mem::forget(#name);
                         })
                     }
                 }

@@ -168,20 +168,19 @@ fn generate_spec_and_assertions(
     // are we sure that these are in the same order as they are defined
     // in the file? Otherwise our logic for the runtime checks does not work
     let mut runtime_check_next = false;
+    let runtime_check_always =
+        std::env::var("PRUSTI_RUNTIME_CHECK_ALL_CONTRACTS").map_or(false, |s| s == "true");
 
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
+        let runtime_check = runtime_check_next || runtime_check_always;
         let rewriting_result = match attr_kind {
-            SpecAttributeKind::Requires => {
-                generate_for_requires(attr_tokens, item, runtime_check_next)
-            }
-            SpecAttributeKind::Ensures => {
-                generate_for_ensures(attr_tokens, item, runtime_check_next)
-            }
+            SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item, runtime_check),
+            SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item, runtime_check),
             SpecAttributeKind::AfterExpiry => {
-                generate_for_after_expiry(attr_tokens, item, runtime_check_next)
+                generate_for_after_expiry(attr_tokens, item, runtime_check)
             }
             SpecAttributeKind::AssertOnExpiry => {
-                generate_for_assert_on_expiry(attr_tokens, item, runtime_check_next)
+                generate_for_assert_on_expiry(attr_tokens, item, runtime_check)
             }
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
             SpecAttributeKind::Verified => generate_for_verified(attr_tokens, item),

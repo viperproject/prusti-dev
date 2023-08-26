@@ -10,7 +10,7 @@ use prusti_rustc_interface::{
     borrowck::consumers,
     data_structures::steal::Steal,
     driver::Compilation,
-    hir::def::DefKind,
+    hir::{self, def::DefKind},
     index::IndexVec,
     interface::{interface::Compiler, Config, Queries, DEFAULT_QUERY_PROVIDERS},
     middle::{
@@ -19,10 +19,11 @@ use prusti_rustc_interface::{
         ty::{self, TyCtxt, TypeVisitableExt},
     },
     mir_transform::{self, inline},
-    span::def_id::{LocalDefId, LOCAL_CRATE},
-    trait_selection::traits,
     session::{EarlyErrorHandler, Session},
+    span::def_id::{DefId, LocalDefId, LOCAL_CRATE},
+    trait_selection::traits,
 };
+use rustc_hash::FxHashSet;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
@@ -84,16 +85,23 @@ fn mir_promoted<'tcx>(
 pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<mir::Body<'_>> {
     // run verification here, otherwise we can't rely on results in
     // drops elaborated
-    if config::no_verify() {
-        return (DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked)(tcx, def);
-    }
+    // make sure mir was constructed
     let def_id = def.to_def_id();
+    let default_query = DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked;
+    if config::no_verify() || !is_non_const_function(tcx, def_id) {
+        return default_query(tcx, def);
+    }
     if !globals::verified(def_id.krate) {
-        let (def_spec, env) = get_specs(tcx, None);
-        println!("Starting Verification");
-        let env = verify(env, def_spec.clone());
         globals::set_verified(def_id.krate);
-        globals::store_spec_env(def_spec, env);
+        // make sure mir_promoted was created. Usually this is the case
+        // but in some testcases it wasn't
+        if let Ok((def_spec, env)) = get_specs(tcx, None) {
+            let env = verify(env, def_spec.clone());
+            globals::store_spec_env(def_spec, env);
+        } else {
+            // dont continue verification
+            return default_query(tcx, def);
+        }
     }
 
     // original compiler code
@@ -229,7 +237,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         compiler.session().abort_if_errors();
         queries.global_ctxt().unwrap().enter(|tcx| {
             if !globals::verified(LOCAL_CRATE) {
-                let (def_spec, env) = get_specs(tcx, Some(compiler));
+                // already stops if we had an error
+                let (def_spec, env) = get_specs(tcx, Some(compiler)).unwrap();
                 if !config::no_verify() {
                     let env = verify(env, def_spec.clone());
 
@@ -248,25 +257,23 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     }
 }
 
+fn is_non_const_function(tcx: TyCtxt<'_>, def_id: DefId) -> bool {
+    matches!(tcx.def_kind(def_id), DefKind::Fn | DefKind::AssocFn)
+        && !tcx.is_const_fn(def_id)
+}
+
 pub fn get_specs<'tcx>(
     tcx: TyCtxt<'tcx>,
     compiler_opt: Option<&Compiler>,
-) -> (DefSpecificationMap, Environment<'tcx>) {
+) -> Result<(DefSpecificationMap, Environment<'tcx>), ()> {
     let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
 
-    // when get_specs is first called from an overriden query
-    // (as is the case for runtime checks), we don't have
-    // access to the compiler, so for now we just skip the
-    // checking then
+    let spec_checker = specs::checker::SpecChecker::new();
+    spec_checker.check(&env);
     if let Some(compiler) = compiler_opt {
-        let spec_checker = specs::checker::SpecChecker::new();
-        spec_checker.check(&env);
         compiler.session().abort_if_errors();
     } else if env.diagnostic.has_errors() {
-        // TODO: still give some sensible error?
-        // Does it make a difference if we show the errors
-        // once get_specs returns in callbacks?
-        panic!("Spec checking caused errors. No good error message because runtime checks are enabled. This is a TODO");
+        return Err(());
     }
     let hir = env.query.hir();
     let mut spec_collector = specs::SpecCollector::new(&mut env);
@@ -279,5 +286,5 @@ pub fn get_specs<'tcx>(
         }
     }
     CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
-    (def_spec, env)
+    Ok((def_spec, env))
 }
