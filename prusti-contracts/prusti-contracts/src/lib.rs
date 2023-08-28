@@ -333,6 +333,18 @@ mod private {
             panic!()
         }
     }
+
+    // A function used for getting more precise error
+    // messages for failing runtime checks
+    fn check_expr(x: bool, message: &mut &str) -> bool {
+        if !x {
+            // extend the error message with more precise
+            // information about the violation
+            false
+        } else {
+            true
+        }
+    }
 }
 
 /// This function is used to evaluate an expression in the context just

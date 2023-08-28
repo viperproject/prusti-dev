@@ -8,7 +8,7 @@ use crate::{
     specifications::{common::SpecificationId, untyped},
 };
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use rustc_hash::{FxHashMap, FxHashSet};
 use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut, Expr, FnArg};
 
@@ -179,12 +179,24 @@ impl CheckTranslator {
             }
         };
 
+        let debug_print_stmt: TokenStream = if let Ok(value) = std::env::var("PRUSTI_DEBUG_RUNTIME_CHECKS") {
+            if value == "true" {
+                quote_spanned! {item.span() =>
+                    println!("check function {} is performed", #item_name_str);
+                }
+            } else {
+                TokenStream::new()
+            }
+        } else {
+            TokenStream::new()
+        };
+
         let mut check_item: syn::ItemFn = parse_quote_spanned! {item.span() =>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
             #id_attr
             fn #item_name() {
-                println!("check function {} is performed", #item_name_str);
+                #debug_print_stmt
                 if !(#expr_to_check) {
                     #forget_statements
                     ::core::panic!(#failure_message)

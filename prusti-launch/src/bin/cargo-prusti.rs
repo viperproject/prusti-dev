@@ -58,6 +58,9 @@ where
             "PRUSTI_NO_VERIFY_DEPS",
             config::no_verify_deps().to_string(),
         )
+        // flags that influence ast rewriting
+        .env("PRUSTI_DEBUG_RUNTIME_CHECKS", config::debug_runtime_checks().to_string())
+        .env("PRUSTI_RUNTIME_CHECK_ALL_CONTRACTS", config::debug_runtime_checks().to_string())
         // Category A* flags:
         .env("DEFAULT_PRUSTI_QUIET", "true")
         .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")

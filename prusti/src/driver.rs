@@ -189,6 +189,15 @@ fn main() {
             ));
         }
 
+        // these flags influence the behavior of the ast rewriter, where we can't use config
+        // (or can we?)
+        if config::debug_runtime_checks() {
+            std::env::set_var("PRUSTI_DEBUG_RUNTIME_CHECKS", "true");
+        }
+        if config::runtime_check_all_contracts() {
+            std::env::set_var("PRUSTI_RUNTIME_CHECK_ALL_CONTRACTS", "true");
+        }
+
         let mut callbacks = PrustiCompilerCalls;
 
         driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
