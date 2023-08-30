@@ -10,7 +10,7 @@ use prusti_rustc_interface::{
     borrowck::consumers,
     data_structures::steal::Steal,
     driver::Compilation,
-    hir::{self, def::DefKind},
+    hir::def::DefKind,
     index::IndexVec,
     interface::{interface::Compiler, Config, Queries, DEFAULT_QUERY_PROVIDERS},
     middle::{
@@ -23,7 +23,6 @@ use prusti_rustc_interface::{
     span::def_id::{DefId, LocalDefId, LOCAL_CRATE},
     trait_selection::traits,
 };
-use rustc_hash::FxHashSet;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;

@@ -119,7 +119,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for DeadCodeElimination<'tcx> {
     fn visit_terminator(
         &mut self,
         terminator: &mut mir::Terminator<'tcx>,
-        location: mir::Location,
+        _location: mir::Location,
     ) {
         let new_term_opt = match &mut terminator.kind {
             mir::TerminatorKind::SwitchInt { discr, targets } => {

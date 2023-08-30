@@ -53,67 +53,65 @@ impl BoundExtractor {
         let name_set: FxHashSet<String> = args.iter().map(|el| el.0.clone()).collect();
         args.into_iter()
             .map(|(name, ty)| {
-                let range_expr = match ty.to_token_stream().to_string().as_str() {
-                    "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32"
-                    | "u64" | "u128" | "usize" => {
-                        let bounds = Self::extract_bounds(closure.clone(), &name, &name_set);
-                        let mut upper_bound_opt = None;
-                        let mut lower_bound_opt = None;
+                let range_expr = if is_primitive_number(&ty) {
+                    let bounds = Self::extract_bounds(closure.clone(), &name, &name_set);
+                    let mut upper_bound_opt = None;
+                    let mut lower_bound_opt = None;
 
-                        // if there are multiple variables, potentially with dependencies
-                        // the loops need to be in a specific order
-                        assert!(bounds.len() <= 2);
-                        let mut include_upper = true; // if we have the MAX upper limit,
-                        for Boundary {
-                            kind,
-                            bound,
-                            included,
-                            ..
-                        } in bounds.iter()
-                        {
-                            println!("Trying to define boundaries");
-                            // include it
-                            match *kind {
-                                BoundaryKind::Upper => {
-                                    // first idea was to add one here if inclusive, but
-                                    // this can lead to overflows! Need to use ..=x syntax
-                                    assert!(upper_bound_opt.is_none());
-                                    println!("found upper bound, end included: {}", *included);
-                                    upper_bound_opt = Some(bound.clone());
-                                    include_upper = *included;
-                                }
-                                BoundaryKind::Lower => {
-                                    lower_bound_opt = if *included {
-                                        // lower bound works the other way around
-                                        Some(bound.clone())
-                                    } else {
-                                        Some(parse_quote! {
-                                            #bound + 1
-                                        })
-                                    }
-                                }
+                    // if there are multiple variables, potentially with dependencies
+                    // the loops need to be in a specific order
+                    assert!(bounds.len() <= 2);
+                    let mut include_upper = true; // if we have the MAX upper limit,
+                    for Boundary {
+                        kind,
+                        bound,
+                        included,
+                        ..
+                    } in bounds.iter()
+                    {
+                        println!("Trying to define boundaries");
+                        // include it
+                        match *kind {
+                            BoundaryKind::Upper => {
+                                // first idea was to add one here if inclusive, but
+                                // this can lead to overflows! Need to use ..=x syntax
+                                assert!(upper_bound_opt.is_none());
+                                println!("found upper bound, end included: {}", *included);
+                                upper_bound_opt = Some(bound.clone());
+                                include_upper = *included;
                             }
-                        }
-                        let upper_bound =
-                            upper_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
-                                #ty::MAX
-                            });
-                        let lower_bound =
-                            lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
-                                #ty::MIN
-                            });
-
-                        if include_upper {
-                            parse_quote_spanned! {closure.span() =>
-                                (#lower_bound)..=(#upper_bound)
-                            }
-                        } else {
-                            parse_quote_spanned! {closure.span() =>
-                                (#lower_bound)..(#upper_bound)
+                            BoundaryKind::Lower => {
+                                lower_bound_opt = if *included {
+                                    // lower bound works the other way around
+                                    Some(bound.clone())
+                                } else {
+                                    Some(parse_quote! {
+                                        #bound + 1
+                                    })
+                                }
                             }
                         }
                     }
-                    _ => panic!("runtime checks only supported for primitive types"),
+                    let upper_bound =
+                        upper_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                            #ty::MAX
+                        });
+                    let lower_bound =
+                        lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                            #ty::MIN
+                        });
+
+                    if include_upper {
+                        parse_quote_spanned! {closure.span() =>
+                            (#lower_bound)..=(#upper_bound)
+                        }
+                    } else {
+                        parse_quote_spanned! {closure.span() =>
+                            (#lower_bound)..(#upper_bound)
+                        }
+                    }
+                } else {
+                    todo!()
                 };
                 ((name, ty), range_expr)
             })
@@ -384,4 +382,21 @@ pub fn get_attribute_contents(name: String, attrs: &Vec<syn::Attribute>) -> Opti
         }
     }
     None
+}
+
+pub fn is_primitive_number(ty: &syn::Type) -> bool {
+    matches!(
+        ty.to_token_stream().to_string().as_str(),
+        "i8" | "i16"
+            | "i32"
+            | "i64"
+            | "i128"
+            | "isize"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "u128"
+            | "usize"
+    )
 }

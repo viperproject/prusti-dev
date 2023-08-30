@@ -17,22 +17,18 @@ use prusti_common::{
     Stopwatch,
 };
 use prusti_interface::{
-    data::{VerificationResult, VerificationTask, ProcedureDefId},
+    data::{VerificationResult, VerificationTask},
     environment::Environment,
     specs::typed,
     PrustiError,
 };
-use prusti_rustc_interface::{
-    span::DUMMY_SP,
-    middle::mir,
-};
+use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::{
     process_verification_request, spawn_server_thread, tokio::runtime::Builder, PrustiClient,
     VerificationRequest, ViperBackendConfig,
 };
 use viper::{self, PersistentCache, Viper};
 use vir_crate::common::check_mode::CheckMode;
-use rustc_hash::FxHashMap;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.

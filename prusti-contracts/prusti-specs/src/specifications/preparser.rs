@@ -277,9 +277,10 @@ impl PrustiTokenStream {
                 todo!()
             }
             Some(PrustiToken::Quantifier(span, kind)) => {
-                let mut stream = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
+                let (mut stream, content_span) = self.pop_group_spanned(Delimiter::Parenthesis).ok_or_else(|| {
                     error(span, "expected parenthesized expression after quantifier")
                 })?;
+                let full_span = join_spans(span, content_span);
                 // attrs_opt is potentially None even if everything is good
                 let attrs_opt = stream.pop_quantifier_bound_attr();
                 let args = stream
@@ -317,7 +318,7 @@ impl PrustiTokenStream {
                 };
                 let args = args.parse()?;
                 let body = stream.parse()?;
-                kind.translate(span, triggers, attr_parsed, args, body)
+                kind.translate(full_span, triggers, attr_parsed, args, body)
             }
 
             Some(PrustiToken::SpecEnt(span, _)) | Some(PrustiToken::CallDesc(span, _)) => {
@@ -405,6 +406,13 @@ impl PrustiTokenStream {
     fn pop_group(&mut self, delimiter: Delimiter) -> Option<Self> {
         match self.tokens.pop_front() {
             Some(PrustiToken::Group(_, del, box stream)) if del == delimiter => Some(stream),
+            _ => None,
+        }
+    }
+
+    fn pop_group_spanned(&mut self, delimiter: Delimiter) -> Option<(Self, Span)> {
+        match self.tokens.pop_front() {
+            Some(PrustiToken::Group(span, del, box stream)) if del == delimiter => Some((stream, span)),
             _ => None,
         }
     }
@@ -760,7 +768,6 @@ impl Quantifier {
         args: TokenStream,
         body: TokenStream,
     ) -> TokenStream {
-        let full_span = join_spans(span, body.span());
         let trigger_sets = triggers
             .into_iter()
             .map(|set| {
@@ -768,19 +775,19 @@ impl Quantifier {
                     quote_spanned! { trigger.span() =>
                     #[prusti::spec_only] | #args | ( #trigger ), }
                 }));
-                quote_spanned! { full_span => ( #triggers ) }
+                quote_spanned! { span => ( #triggers ) }
             })
             .collect::<Vec<_>>();
-        let body = quote_spanned! { body.span() => #body };
+        let body = quote_spanned! { body.span() => { #body } };
         let attr = attr.map(|attr| quote_spanned! {attr.span() => #[prusti::#attr]});
         match self {
-            Self::Forall => quote_spanned! { full_span => ::prusti_contracts::forall(
+            Self::Forall => quote_spanned! { span => ::prusti_contracts::forall(
                 ( #( #trigger_sets, )* ),
-                #[prusti::spec_only] #attr | #args | -> bool { #body }
+                #[prusti::spec_only] #attr | #args | -> bool #body
             ) },
-            Self::Exists => quote_spanned! { full_span => ::prusti_contracts::exists(
+            Self::Exists => quote_spanned! { span => ::prusti_contracts::exists(
                 ( #( #trigger_sets, )* ),
-                #[prusti::spec_only] #attr | #args | -> bool { #body }
+                #[prusti::spec_only] #attr | #args | -> bool #body
             ) },
         }
     }

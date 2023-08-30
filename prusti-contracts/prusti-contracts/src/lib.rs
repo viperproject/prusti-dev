@@ -1,4 +1,4 @@
-//#![no_std]
+#![no_std]
 
 /// A macro for writing a precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
@@ -127,10 +127,17 @@ mod private {
     pub struct Ghost<T> {
         _phantom: PhantomData<T>,
     }
+
+    pub fn check_expr(expr: bool, added_info: &str, buffer: &mut [u8], buffer_len: &mut usize) -> bool {
+        true
+    }
 }
 
 #[cfg(feature = "prusti")]
 pub mod core_spec;
+
+#[cfg(feature = "prusti")]
+pub mod runtime_check_internals;
 
 #[cfg(feature = "prusti")]
 mod private {
@@ -331,18 +338,6 @@ mod private {
     impl<T> DerefMut for Ghost<T> {
         fn deref_mut(&mut self) -> &mut T {
             panic!()
-        }
-    }
-
-    // A function used for getting more precise error
-    // messages for failing runtime checks
-    fn check_expr(x: bool, message: &mut &str) -> bool {
-        if !x {
-            // extend the error message with more precise
-            // information about the violation
-            false
-        } else {
-            true
         }
     }
 }

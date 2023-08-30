@@ -29,13 +29,14 @@ use expression_with_attributes::ExpressionWithAttributes;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use rewriter::AstRewriter;
+use runtime_checks::check_type::CheckItemType;
 use std::convert::TryInto;
 use syn::{spanned::Spanned, visit::Visit};
 
 use crate::{
     common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
     predicate::{is_predicate_macro, ParsedPredicate},
-    specifications::preparser::{parse_prusti, parse_type_cond_spec, NestedSpec},
+    specifications::preparser::{parse_prusti, parse_type_cond_spec, NestedSpec}, runtime_checks::translation,
 };
 pub use extern_spec_rewriter::ExternSpecKind;
 use parse_closure_macro::ClosureWithSpec;
@@ -235,7 +236,6 @@ fn generate_for_requires(
         let check_id = rewriter.generate_spec_id();
         let check_id_str = check_id.to_string();
         let check_item = rewriter.create_pre_check(
-            rewriter::SpecItemType::Precondition,
             check_id,
             attr,
             item,
@@ -274,7 +274,6 @@ fn generate_for_ensures(
         let check_id_str = check_id.to_string();
         // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
         let check_item = rewriter.create_post_check(
-            rewriter::SpecItemType::Postcondition,
             check_id,
             attr,
             item,
@@ -515,27 +514,35 @@ fn generate_for_trusted_for_types(attr: TokenStream, item: &syn::DeriveInput) ->
 }
 
 pub fn body_variant(tokens: TokenStream) -> TokenStream {
-    generate_expression_closure(&AstRewriter::process_loop_variant, tokens)
+    generate_expression_closure(
+        &AstRewriter::process_loop_variant,
+        tokens,
+        CheckItemType::Unchecked,
+    )
 }
 
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
-    let spec = generate_expression_closure(&AstRewriter::process_loop_invariant, tokens.clone());
-    quote! {#spec}
+    generate_expression_closure(
+        &AstRewriter::process_loop_invariant,
+        tokens.clone(),
+        CheckItemType::BodyInvariant,
+    )
 }
 
 pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
-    let spec = generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens.clone());
-    let res = quote! {#spec};
-    res
+    generate_expression_closure(
+        &AstRewriter::process_prusti_assertion,
+        tokens.clone(),
+        CheckItemType::Assert,
+    )
 }
 
 pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
-    let spec = generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens.clone());
-    quote! {#spec}
+    generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens.clone(), CheckItemType::Assume)
 }
 
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
-    generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens)
+    generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens, CheckItemType::Unchecked)
 }
 
 /// Generates the TokenStream encoding an expression using prusti syntax
@@ -543,6 +550,7 @@ pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
 fn generate_expression_closure(
     fun: &dyn Fn(&mut AstRewriter, SpecificationId, TokenStream) -> syn::Result<TokenStream>,
     tokens: TokenStream,
+    check_type: CheckItemType,
 ) -> TokenStream {
     let mut expr_with_attrs: ExpressionWithAttributes = handle_result!(syn::parse(tokens.into()));
     let runtime_attr = expr_with_attrs.remove_runtime_checks_attr();
@@ -555,7 +563,7 @@ fn generate_expression_closure(
     let check_id = rewriter.generate_spec_id();
     if runtime_attr.is_some() {
         let check_closure =
-            handle_result!(rewriter.runtime_check_prusti_expression(check_id, prusti_tokens));
+            handle_result!(translation::translate_expression_runtime(prusti_tokens, check_id, check_type));
         quote_spanned! {callsite_span=>
             #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
             #[prusti::specs_version = #SPECS_VERSION]
