@@ -9,7 +9,7 @@ use crate::{
     smt_manager::SmtManager, verification_backend::VerificationBackend,
 };
 use backend_common::{SiliconCounterexample, VerificationError, VerificationResult};
-use jni::{errors::Result, objects::JObject, JNIEnv};
+use jni::{objects::JObject, JNIEnv};
 use log::{debug, error, info};
 use prusti_utils::run_timed;
 use std::path::PathBuf;
