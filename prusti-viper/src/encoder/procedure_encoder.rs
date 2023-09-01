@@ -76,7 +76,11 @@ use prusti_rustc_interface::{
     target::abi::{FieldIdx, Integer},
 };
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{collections::BTreeMap, convert::TryInto, fmt::Debug};
+use std::{
+    collections::BTreeMap,
+    convert::TryInto,
+    fmt::{Debug, Write},
+};
 use vir_crate::polymorphic::{
     self as vir, borrows::Borrow, collect_assigned_vars, compute_identifier, CfgBlockIndex,
     ExprIterator, Float, Successor, Type,
