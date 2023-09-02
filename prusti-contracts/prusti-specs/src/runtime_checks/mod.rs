@@ -4,3 +4,4 @@ mod boundary_extraction;
 mod associated_function_info;
 mod visitor;
 mod quantifiers;
+mod error_messages;

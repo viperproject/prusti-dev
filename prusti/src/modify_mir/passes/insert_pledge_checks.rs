@@ -38,7 +38,7 @@ pub struct PledgeInserter<'tcx, 'a> {
     first_pass: bool,
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 enum ExpirationLocation {
     Location(mir::Location),
     Edge(mir::BasicBlock, mir::BasicBlock),
@@ -61,6 +61,11 @@ impl ExpirationLocation {
 }
 // we need to order them such that inserting checks will not offset other
 // modifications
+impl PartialOrd for ExpirationLocation {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 impl Ord for ExpirationLocation {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.block().cmp(&other.block()) {
@@ -113,14 +118,13 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
     }
 
     pub fn run(&mut self, body: &mut mir::Body<'tcx>) {
-        println!("Inserting pledges into function {:?}", self.def_id);
         self.body_copy = Some(body.clone());
         self.patch_opt = Some(MirPatch::new(body).into());
         // find all calls to functions with pledges, and create local variables
         // to store: old_values, before_expiry_place,
         self.visit_body(body);
         // If there are no pledges, we can stop here.
-        if self.pledges_to_process.len() == 0 {
+        if self.pledges_to_process.is_empty() {
             return;
         }
         // only try to get polonius info after we know that there are indeed
@@ -172,7 +176,7 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                 for loan in loans_dying.iter() {
                     // check if any of the loans are associated with one of
                     // our pledges:
-                    if let Some(place) = pledge_loans.get(&loan) {
+                    if let Some(place) = pledge_loans.get(loan) {
                         // a pledge is associated with this loan and dies here!!
                         modification_list.push((ExpirationLocation::Location(location), *place));
                         let pledge = self.pledges_to_process.get(place).unwrap();
@@ -211,7 +215,7 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
         // once we know which locals need to be dropped
         for (modification_location, place) in modification_list.iter() {
             // remove pledge temporarily so we can modify it
-            let mut pledge = self.pledges_to_process.remove(&place).unwrap();
+            let mut pledge = self.pledges_to_process.remove(place).unwrap();
             let (location, is_edge) = match modification_location {
                 ExpirationLocation::Location(loc) => (*loc, false),
                 ExpirationLocation::Edge(_, bb2) => {

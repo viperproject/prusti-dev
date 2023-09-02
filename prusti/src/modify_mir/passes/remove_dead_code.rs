@@ -21,7 +21,7 @@ pub struct DeadCodeElimination<'tcx> {
     removable_assertions: FxHashSet<mir::BasicBlock>,
 }
 
-impl<'tcx, 'a> DeadCodeElimination<'tcx> {
+impl<'tcx> DeadCodeElimination<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId) -> Self {
         // collect all the blocks that were inserted but didnt generate
         // a verification error:
@@ -111,7 +111,7 @@ impl<'tcx, 'a> DeadCodeElimination<'tcx> {
     }
 }
 
-impl<'tcx, 'a> MutVisitor<'tcx> for DeadCodeElimination<'tcx> {
+impl<'tcx> MutVisitor<'tcx> for DeadCodeElimination<'tcx> {
     fn tcx(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
@@ -138,7 +138,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for DeadCodeElimination<'tcx> {
                     targets_vec.pop().map(|tup| tup.1)
                 };
                 if let Some(otherwise) = otherwise_opt {
-                    if targets_vec.len() == 0 {
+                    if targets_vec.is_empty() {
                         Some(mir::TerminatorKind::Goto { target: otherwise })
                     } else {
                         let switch_targets =

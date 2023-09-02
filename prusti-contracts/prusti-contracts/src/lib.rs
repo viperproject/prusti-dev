@@ -1,4 +1,5 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
+// #![no_std]
 
 /// A macro for writing a precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
@@ -126,10 +127,6 @@ mod private {
     #[derive(PartialEq, Eq, Copy, Clone)]
     pub struct Ghost<T> {
         _phantom: PhantomData<T>,
-    }
-
-    pub fn check_expr(expr: bool, added_info: &str, buffer: &mut [u8], buffer_len: &mut usize) -> bool {
-        true
     }
 }
 

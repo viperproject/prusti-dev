@@ -4,11 +4,12 @@ use crate::{
     runtime_checks::{
         associated_function_info::{create_argument, Argument, AssociatedFunctionInfo},
         check_type::CheckItemType,
+        error_messages,
         visitor::CheckVisitor,
     },
     specifications::{common::SpecificationId, untyped},
 };
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote_spanned;
 use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut};
 
@@ -24,6 +25,7 @@ pub fn translate_runtime_checks(
     // the function this contract is attached to
     item: &untyped::AnyFnItem,
 ) -> syn::Result<syn::Item> {
+    let span = tokens.span();
     // get signature information about the associated function
     let function_info = AssociatedFunctionInfo::new(item)?;
     let mut visitor = CheckVisitor::new(function_info, check_type);
@@ -32,6 +34,8 @@ pub fn translate_runtime_checks(
     // make the expression checkable at runtime:
     let mut expr: syn::Expr = syn::parse2(tokens.clone())?;
     visitor.visit_expr_mut(&mut expr);
+    // get updated function info, telling us if arguments were used in
+    // old.
     let function_info = visitor.function_info;
 
     let item_name = syn::Ident::new(
@@ -41,29 +45,21 @@ pub fn translate_runtime_checks(
             item.sig().ident,
             check_id
         ),
-        item.span(),
+        span,
     );
     let check_id_str = check_id.to_string();
     let item_name_str = item_name.to_string();
 
-    // Does pledge rhs need result? Probably not, at that point
-    // it should have expired
-    let result_arg_opt = if check_type.needs_result() {
-        Some(AstRewriter::generate_result_arg(item))
-    } else {
-        None
-    };
-    let forget_statements = generate_forget_statements(item, check_type);
-    let contract_string = tokens
-        .span()
-        .source_text()
-        .unwrap_or_else(|| tokens.to_string());
+    let forget_statements = generate_forget_statements(item, check_type, span);
+    let contract_string = span.source_text().unwrap_or_else(|| tokens.to_string());
     let failure_message = format!(
         "Prusti Runtime Checks: Contract {} was violated at runtime",
         check_type.wrap_contract(&contract_string)
     );
-    let failure_message_len = failure_message.len();
 
+    let failure_message_ident = error_messages::failure_message_ident(span);
+    let failure_message_definition = error_messages::define_failure_message(span, &failure_message);
+    let failure_message_construction = error_messages::construct_failure_message_opt(span);
     let id_attr: syn::Attribute = if check_type == CheckItemType::PledgeLhs {
         parse_quote_spanned! {item.span() =>
             #[prusti::check_before_expiry_id = #check_id_str]
@@ -73,34 +69,35 @@ pub fn translate_runtime_checks(
             #[prusti::check_id = #check_id_str]
         }
     };
-
-    // we create a buffer for the final panic message, that can be extended
-    // with more precise error information such as which part of the expression
-    // failed, or which indeces of a quantifier caused a failure
-    let buffer_length = failure_message.len() * 5;
-
-    let debug_print_stmt: Option<TokenStream> = std::env::var("PRUSTI_DEBUG_RUNTIME_CHECKS")
-        .map_or(None, |value| {
-            (value == "true").then(|| {
-                quote_spanned! {item.span() =>
-                    println!("check function {} is performed", #item_name_str);
-                }
+    // only insert print statements if this flag is set (requires std!)
+    let debug_print_stmt: Option<TokenStream> = if std::env::var("PRUSTI_DEBUG_RUNTIME_CHECKS")
+        .unwrap_or_default()
+        == "true"
+    {
+        if cfg!(feature = "std") {
+            Some(quote_spanned! {span =>
+                println!("check function {} is performed", #item_name_str);
             })
-        });
+        } else {
+            // warn user that debug information will not be emitted in no_std
+            span.unwrap().warning("enabling PRUSTI_DEBUG_RUNTIME_CHECKS only has an effect if feature \"std\" is enabled too").emit();
+            None
+        }
+    } else {
+        None
+    };
+
     let mut check_item: syn::ItemFn = parse_quote_spanned! {item.span() =>
-        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
+        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, forgetting_copy_types)]
         #[prusti::spec_only]
         #id_attr
         fn #item_name() {
             #debug_print_stmt
-            let mut prusti_rtc_info_buffer = [0u8; #buffer_length];
-            let mut prusti_rtc_info_len = #failure_message_len;
-            prusti_rtc_info_buffer[..prusti_rtc_info_len].copy_from_slice(#failure_message.as_bytes());
-
+            #failure_message_definition
             if !(#expr) {
-                let prusti_failure_message: &str = ::core::str::from_utf8(&prusti_rtc_info_buffer[..prusti_rtc_info_len]).unwrap();
+                #failure_message_construction
                 #forget_statements
-                ::core::panic!("{}", prusti_failure_message)
+                ::core::panic!("{}", #failure_message_ident)
             };
             // now forget about all the values since they are still owned
             // by the calling function
@@ -112,10 +109,11 @@ pub fn translate_runtime_checks(
         check_item.sig.inputs = item.sig().inputs.clone();
     }
     if check_type.needs_result() {
-        check_item.sig.inputs.push(result_arg_opt.unwrap());
+        let result_arg = AstRewriter::generate_result_arg(item);
+        check_item.sig.inputs.push(result_arg);
     }
     if check_type.gets_old_args() {
-        let old_arg = construct_old_fnarg(&function_info, item, false);
+        let old_arg = construct_old_fnarg(&function_info, span, false);
         // put it inside a reference:
         check_item.sig.inputs.push(old_arg);
     }
@@ -150,13 +148,14 @@ pub fn translate_expression_runtime(
         "Prusti Runtime Checks: Contract {} was violated at runtime",
         check_type.wrap_contract(&expr_str)
     );
-    let mut expr: syn::Expr = syn::parse2(tokens).unwrap();
+    let mut expr: syn::Expr = syn::parse2(tokens)?;
     // TODO: properly pass check types
-    let mut check_visitor = CheckVisitor::new(function_info, CheckItemType::Assert);
+    let mut check_visitor = CheckVisitor::new(function_info, check_type);
     check_visitor.visit_expr_mut(&mut expr);
 
-    let failure_message_len = failure_message.len();
-    let buffer_length = failure_message_len * 5;
+    let failure_message_ident = error_messages::failure_message_ident(span);
+    let failure_message_definition = error_messages::define_failure_message(span, &failure_message);
+    let failure_message_construction = error_messages::construct_failure_message_opt(span);
     Ok(quote_spanned! {span =>
         {
             #[prusti::check_only]
@@ -166,12 +165,10 @@ pub fn translate_expression_runtime(
             || -> bool {
                 true
             };
-            let mut prusti_rtc_info_buffer = [0u8; #buffer_length];
-            let mut prusti_rtc_info_len = #failure_message_len;
-            prusti_rtc_info_buffer[..prusti_rtc_info_len].copy_from_slice(#failure_message.as_bytes());
+            #failure_message_definition
             if !(#expr) {
-                let prusti_failure_message: &str = ::core::str::from_utf8(&prusti_rtc_info_buffer[..prusti_rtc_info_len]).unwrap();
-                ::core::panic!("{}", prusti_failure_message);
+                #failure_message_construction
+                ::core::panic!("{}", #failure_message_ident);
             }
         }
     })
@@ -180,6 +177,7 @@ pub fn translate_expression_runtime(
 pub fn generate_forget_statements(
     item: &untyped::AnyFnItem,
     check_type: CheckItemType,
+    span: Span,
 ) -> syn::Block {
     // go through all inputs, if they are not references add a forget
     // statement
@@ -189,8 +187,8 @@ pub fn generate_forget_statements(
             if let Ok(arg) = create_argument(&fn_arg, 0) {
                 let name: TokenStream = arg.name.parse().unwrap();
                 if !arg.is_ref {
-                    stmts.push(parse_quote! {
-                        ::core::mem::forget(#name);
+                    stmts.push(parse_quote_spanned! { span =>
+                        let _ = ::core::mem::forget(#name);
                     })
                 }
             }
@@ -199,8 +197,8 @@ pub fn generate_forget_statements(
 
     // result might be double freed too if moved into a check function
     if check_type.needs_result() {
-        stmts.push(parse_quote! {
-            std::mem::forget(result);
+        stmts.push(parse_quote_spanned! { span =>
+            let _ = ::core::mem::forget(result);
         })
     }
     syn::Block {
@@ -210,18 +208,18 @@ pub fn generate_forget_statements(
 }
 
 // at the moment deref is false in all use cases. Remove
-fn construct_old_fnarg<T: Spanned>(
+fn construct_old_fnarg(
     function_info: &AssociatedFunctionInfo,
-    item: &T,
+    span: Span,
     deref: bool,
 ) -> syn::FnArg {
-    let old_values_type: syn::Type = old_values_type(item, function_info);
+    let old_values_type: syn::Type = old_values_type(span, function_info);
     if deref {
-        parse_quote_spanned! {item.span() =>
+        parse_quote_spanned! {span =>
             old_values: &#old_values_type
         }
     } else {
-        parse_quote_spanned! {item.span() =>
+        parse_quote_spanned! {span =>
             old_values: #old_values_type
         }
     }
@@ -231,8 +229,8 @@ fn construct_old_fnarg<T: Spanned>(
 /// can be used to generate the type of the old_values tuple
 /// important here is that it only contains the values that actually occurr
 /// in old-expressions and not just all arguments
-fn old_values_type<T: Spanned>(item: &T, function_info: &AssociatedFunctionInfo) -> syn::Type {
-    let mut old_values_type: syn::Type = parse_quote_spanned! {item.span() => ()};
+fn old_values_type(span: Span, function_info: &AssociatedFunctionInfo) -> syn::Type {
+    let mut old_values_type: syn::Type = parse_quote_spanned! {span => ()};
     let mut arguments = function_info.inputs.values().collect::<Vec<&Argument>>();
     // order the elements of the map by index
     arguments.sort_by(|a, b| a.index.partial_cmp(&b.index).unwrap());
@@ -243,7 +241,8 @@ fn old_values_type<T: Spanned>(item: &T, function_info: &AssociatedFunctionInfo)
                 elems.push(arg.ty.clone());
             } else {
                 // if argument is never used in old, we use a unit type
-                // in the tuple
+                // in the tuple (this is then also used in the mir processing
+                // to determine that an argument doesn't need to be cloned)
                 let unit_type: syn::Type = parse_quote_spanned! {arg.span => ()};
                 elems.push(unit_type);
             }

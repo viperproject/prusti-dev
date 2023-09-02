@@ -13,7 +13,7 @@ pub(crate) fn insert_runtime_checks<'tcx>(
     tcx: TyCtxt<'tcx>,
     local_decls: &IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
 ) {
-    let mir_info = MirInfo::collect_mir_info(tcx, body.clone(), def_id, &local_decls);
+    let mir_info = MirInfo::collect_mir_info(tcx, body.clone(), def_id, local_decls);
     let attrs = tcx.get_attrs_unchecked(def_id);
     let is_spec_fn = utils::has_spec_only_attr(attrs);
     let def_kind = tcx.def_kind(def_id);
@@ -21,7 +21,7 @@ pub(crate) fn insert_runtime_checks<'tcx>(
 
     // MAKE MODIFICATIONS:
     // replace old arguments
-    let mut old_arg_replacer = passes::CloneOldArgs::new(tcx, &mir_info, def_id, &local_decls);
+    let mut old_arg_replacer = passes::CloneOldArgs::new(tcx, &mir_info, def_id, local_decls);
     // first we just create locals for old clones and replace them where arguments
     // should be evaluated in an old state
     old_arg_replacer.create_variables(body);
@@ -29,7 +29,7 @@ pub(crate) fn insert_runtime_checks<'tcx>(
     // we dont insert pledge checks for specification functions
     if !is_spec_fn && !is_anon_const {
         // insert pledge checks:
-        let mut pledge_inserter = passes::PledgeInserter::new(tcx, &mir_info, def_id, &local_decls);
+        let mut pledge_inserter = passes::PledgeInserter::new(tcx, &mir_info, def_id, local_decls);
         pledge_inserter.run(body);
     }
 
@@ -37,11 +37,11 @@ pub(crate) fn insert_runtime_checks<'tcx>(
     prepend_dummy_block(body);
     // insert preconditions
     let mut precondition_inserter =
-        passes::PreconditionInserter::new(tcx, &mir_info, def_id, &local_decls);
+        passes::PreconditionInserter::new(tcx, &mir_info, def_id, local_decls);
     precondition_inserter.run(body);
     // insert postconditions
     let mut postcondition_inserter =
-        passes::PostconditionInserter::new(tcx, &mir_info, def_id, &local_decls);
+        passes::PostconditionInserter::new(tcx, &mir_info, def_id, local_decls);
     postcondition_inserter.run(body);
     old_arg_replacer.clone_and_drop_variables(body);
 

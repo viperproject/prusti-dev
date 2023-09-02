@@ -41,6 +41,7 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
         patch_ref.into_inner().apply(body);
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn surround_call_with_store_and_check(
         &self,
         check_id: DefId,

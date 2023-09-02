@@ -1,7 +1,7 @@
 use crate::runtime_checks::{
     associated_function_info::AssociatedFunctionInfo,
-    boundary_extraction,
     check_type::CheckItemType,
+    error_messages,
     quantifiers::{translate_quantifier_expression, QuantifierKind},
 };
 use proc_macro2::TokenStream;
@@ -10,9 +10,9 @@ use syn::{parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut, Expr};
 
 pub(crate) struct CheckVisitor {
     pub function_info: AssociatedFunctionInfo,
+    pub check_type: CheckItemType,
     pub within_old: bool,
     pub within_before_expiry: bool,
-    pub check_type: CheckItemType,
     /// Whether the current expression is part of the outermost
     /// expression. If yes, and we encounter a conjunction or
     /// forall quantifier, we can extend the reported error with
@@ -25,9 +25,9 @@ impl CheckVisitor {
     pub(crate) fn new(function_info: AssociatedFunctionInfo, check_type: CheckItemType) -> Self {
         Self {
             function_info,
+            check_type,
             within_old: false,
             within_before_expiry: false,
-            check_type,
             is_outer: true,
             contains_conjunction: false,
         }
@@ -71,7 +71,7 @@ impl VisitMut for CheckVisitor {
                 self.is_outer = false;
                 let path_expr = (*call.func).clone();
                 // move this function, has nothing to do with boundary extraction
-                let name = if let Some(name) = boundary_extraction::expression_name(&path_expr) {
+                let name = if let Some(name) = expression_name(&path_expr) {
                     name
                 } else {
                     // still visit recursively
@@ -82,7 +82,7 @@ impl VisitMut for CheckVisitor {
                     ":: prusti_contracts :: old" | "prusti_contracts :: old" | "old" => {
                         // for this function we can savely try to get
                         // more precise errors about the contents
-                        self.is_outer = true;
+                        self.is_outer = was_outer;
                         // for prusti_assert etc we can not resolve old here
                         if self.check_type.is_inlined() {
                             syn::visit_mut::visit_expr_call_mut(self, call);
@@ -111,7 +111,13 @@ impl VisitMut for CheckVisitor {
                         if let syn::Expr::Closure(mut expr_closure) = quant_closure_expr {
                             // since this is a conjunction, we can get
                             // more information about subexpressions failing
-                            self.is_outer = was_outer;
+                            // (however, if we are in no_std, we cannot report
+                            // errors recursively because of limited buffer size)
+                            self.is_outer = if cfg!(feature = "std") {
+                                was_outer
+                            } else {
+                                false
+                            };
                             self.visit_expr_mut(&mut expr_closure.body);
                             // we are throwing away any triggers
                             // extract all the relevant information, construct a
@@ -120,24 +126,30 @@ impl VisitMut for CheckVisitor {
                                 &expr_closure,
                                 QuantifierKind::Forall,
                                 was_outer,
-                            );
+                            ).unwrap_or_else(|err| syn::parse2(err.to_compile_error()).unwrap());
                             *expr = check_expr;
                         }                    }
                     ":: prusti_contracts :: exists" => {
                         // here we don't want every failing iteration
                         // to give us additional info
                         syn::visit_mut::visit_expr_call_mut(self, call);
-                        // extend self.surround_quantifiers correctly!
                         let closure_expression: syn::Expr = call.args.last().unwrap().clone();
                         if let syn::Expr::Closure(expr_closure) = closure_expression {
                             let check_expr = translate_quantifier_expression(
                                 &expr_closure,
                                 QuantifierKind::Exists,
                                 false,
-                            );
-                            *expr = check_expr
+                            ).unwrap_or_else(|err| syn::parse2(err.to_compile_error()).unwrap());
+                            *expr = check_expr;
                         }
                     },
+                    // some cases where we want to warn users that these features
+                    // will not be checked correctly: (not complete yet)
+                    ":: prusti_contracts :: snapshot_equality" | "prusti_contracts :: snapshot_equality" | "snapshot_equality"
+                        | ":: prusti_contracts :: snap" | "prusti_contracts :: snap" | "snap" => {
+                        let message = format!("Runtime checks: Use of unsupported feature {}", expr.to_token_stream());
+                        expr.span().unwrap().warning(message).emit();
+                    }
                     _ => syn::visit_mut::visit_expr_mut(self, expr),
                 }
             },
@@ -160,15 +172,11 @@ impl VisitMut for CheckVisitor {
 
                     // the expression will be split up even further
                     if !left_contains_conjunction {
-                        let new_left = parse_quote_spanned!{left.span() =>
-                            ::prusti_contracts::runtime_check_internals::check_expr(#left, #left_error_str, &mut prusti_rtc_info_buffer, &mut prusti_rtc_info_len)
-                        };
+                        let new_left = error_messages::call_check_expr(left.clone(), left_error_str);
                         *left = new_left;
                     }
                     if !right_contains_conjunction {
-                        let new_right = parse_quote_spanned! {right.span() =>
-                            ::prusti_contracts::runtime_check_internals::check_expr(#right, #right_error_str, &mut prusti_rtc_info_buffer, &mut prusti_rtc_info_len)
-                        };
+                        let new_right = error_messages::call_check_expr(right.clone(), right_error_str);
                         *right = new_right;
                     }
                     // signal to parent that it doesnt need to wrap this expression
@@ -186,4 +194,12 @@ impl VisitMut for CheckVisitor {
         }
         self.is_outer = was_outer;
     }
+}
+
+// if expression is a identifier, get the name:
+pub fn expression_name(expr: &syn::Expr) -> Option<String> {
+    if let syn::Expr::Path(syn::ExprPath { path, .. }) = expr {
+        return Some(path.to_token_stream().to_string());
+    }
+    None
 }

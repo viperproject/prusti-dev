@@ -22,6 +22,7 @@ use prusti_rustc_interface::{
     session::{EarlyErrorHandler, Session},
     span::def_id::{DefId, LocalDefId, LOCAL_CRATE},
     trait_selection::traits,
+    mir_build,
 };
 
 #[derive(Default)]
@@ -158,10 +159,9 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
 
     mir_transform::run_analysis_to_runtime_passes(tcx, &mut body);
 
-    // Only available once rust is updated!
     // Now that drop elaboration has been performed, we can check for
     // unconditional drop recursion.
-    // mir_build::lints::check_drop_recursion(tcx, &body);
+    mir_build::lints::check_drop_recursion(tcx, &body);
 
     tcx.alloc_steal_mir(body)
 }

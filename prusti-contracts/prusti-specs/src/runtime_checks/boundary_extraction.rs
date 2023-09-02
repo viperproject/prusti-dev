@@ -1,121 +1,166 @@
+use crate::runtime_checks::visitor::expression_name;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use rustc_hash::FxHashSet;
 use syn::{self, parse_quote, parse_quote_spanned, spanned::Spanned, visit::Visit, BinOp};
 
-pub struct BoundExtractor {
+pub(crate) struct BoundExtractor {
     // the set of bound variables within that expression
     pub name_set: FxHashSet<String>,
 }
 
 impl BoundExtractor {
-    pub fn manual_bounds(
+    /// Try to find manually annotated boundaries with the #[runtime_quantifier_bounds]
+    /// attribute. Returns None if there is no such attribute, Some(error)
+    /// if there is one, but the contained ranges are false, and the tokens
+    /// of the ranges otherwise.
+    pub(crate) fn manual_bounds(
         expr: syn::ExprClosure,
         bound_vars: Vec<(String, syn::Type)>,
-    ) -> Option<Vec<((String, syn::Type), syn::ExprRange)>> {
+    ) -> Option<syn::Result<Vec<((String, syn::Type), syn::ExprRange)>>> {
         let manual_bounds = get_attribute_contents(
             "prusti :: runtime_quantifier_bounds".to_string(),
             &expr.attrs,
         )?;
         let bounds_expr: syn::Expr = simplify_expression(&syn::parse2(manual_bounds).ok()?);
-        println!("bounds expression: {:?}", bounds_expr);
         // there is either one or multiple
         let bounds_vec = match bounds_expr {
-            syn::Expr::Tuple(expr_tuple) => expr_tuple
-                .elems
-                .iter()
-                .cloned()
-                .map(|range| {
-                    // remove surrounding braces or things like that
-                    let range = simplify_expression(&range);
+            syn::Expr::Tuple(expr_tuple) => {
+                let mut ranges: Vec<syn::ExprRange> = Vec::new();
+                for range in expr_tuple.elems.iter() {
+                    let range = simplify_expression(range);
                     if let syn::Expr::Range(expr_range) = range {
-                        expr_range
+                        ranges.push(expr_range);
                     } else {
-                        panic!("Bounds should only contain ranges");
+                        return Some(Err(syn::Error::new(
+                            range.span(),
+                            "Runtime checks: quantifier boundaries must be provided as ranges",
+                        )));
                     }
-                })
-                .collect(),
+                }
+                ranges
+            }
             syn::Expr::Range(range_expr) => vec![range_expr],
-            _ => return None,
+            _ => {
+                return Some(Err(syn::Error::new(
+                    bounds_expr.span(),
+                    "Runtime checks: quantifier boundaries must be provided as ranges",
+                )));
+            }
         };
+        if bounds_vec.len() != bound_vars.len() {
+            return Some(Err(syn::Error::new(
+                        expr.span(),
+                        "Runtime checks: the provided number of ranges does not match the number of closure arguments.")));
+        }
         assert!(bounds_vec.len() == bound_vars.len());
-        Some(bound_vars.into_iter().zip(bounds_vec.into_iter()).collect())
+        Some(Ok(bound_vars
+            .into_iter()
+            .zip(bounds_vec)
+            .collect()))
     }
 
     // if this function is called, the ranges are mandatory!
-    pub fn derive_ranges(
+    pub(crate) fn derive_ranges(
         closure: syn::Expr,
         args: Vec<(String, syn::Type)>,
-    ) -> Vec<((String, syn::Type), syn::ExprRange)> {
+    ) -> syn::Result<Vec<((String, syn::Type), syn::ExprRange)>> {
         if args.len() > 1 {
-            panic!("multiple args without manually defined boundaries are not allowed");
+            return Err(syn::Error::new(
+                closure.span(),
+                "multiple args without manually defined boundaries are not allowed",
+            ));
         }
         let name_set: FxHashSet<String> = args.iter().map(|el| el.0.clone()).collect();
-        args.into_iter()
-            .map(|(name, ty)| {
-                let range_expr = if is_primitive_number(&ty) {
-                    let bounds = Self::extract_bounds(closure.clone(), &name, &name_set);
-                    let mut upper_bound_opt = None;
-                    let mut lower_bound_opt = None;
+        let mut boundaries: Vec<((String, syn::Type), syn::ExprRange)> = Vec::new();
+        for (name, ty) in args.iter() {
+            let range_expr: syn::ExprRange = if is_primitive_number(ty) {
+                let bounds = Self::extract_bounds(closure.clone(), name, &name_set);
+                let mut upper_bound_opt = None;
+                let mut lower_bound_opt = None;
 
-                    // if there are multiple variables, potentially with dependencies
-                    // the loops need to be in a specific order
-                    assert!(bounds.len() <= 2);
-                    let mut include_upper = true; // if we have the MAX upper limit,
-                    for Boundary {
-                        kind,
-                        bound,
-                        included,
-                        ..
-                    } in bounds.iter()
-                    {
-                        println!("Trying to define boundaries");
-                        // include it
-                        match *kind {
-                            BoundaryKind::Upper => {
-                                // first idea was to add one here if inclusive, but
-                                // this can lead to overflows! Need to use ..=x syntax
-                                assert!(upper_bound_opt.is_none());
-                                println!("found upper bound, end included: {}", *included);
-                                upper_bound_opt = Some(bound.clone());
-                                include_upper = *included;
+                // if there are multiple variables, potentially with dependencies
+                // the loops need to be in a specific order
+                assert!(bounds.len() <= 2);
+                let mut include_upper = true; // if we have the MAX upper limit,
+                for Boundary {
+                    kind,
+                    bound,
+                    included,
+                    ..
+                } in bounds.iter()
+                {
+                    // include it
+                    match *kind {
+                        BoundaryKind::Upper => {
+                            // first idea was to add one here if inclusive, but
+                            // this can lead to overflows! Need to use ..=x syntax
+                            if upper_bound_opt.is_some() {
+                                return Err(syn::Error::new(
+                                    closure.span(),
+                                    format!(
+                                        "Runtime checks: multiple upper bounds defined for {}",
+                                        name
+                                    ),
+                                ));
                             }
-                            BoundaryKind::Lower => {
-                                lower_bound_opt = if *included {
-                                    // lower bound works the other way around
-                                    Some(bound.clone())
-                                } else {
-                                    Some(parse_quote! {
-                                        #bound + 1
-                                    })
-                                }
+                            upper_bound_opt = Some(bound.clone());
+                            include_upper = *included;
+                        }
+                        BoundaryKind::Lower => {
+                            if lower_bound_opt.is_some() {
+                                return Err(syn::Error::new(
+                                    closure.span(),
+                                    format!(
+                                        "Runtime checks: multiple lower bounds defined for {}",
+                                        name
+                                    ),
+                                ));
+                            };
+                            lower_bound_opt = if *included {
+                                // lower bound works the other way around
+                                Some(bound.clone())
+                            } else {
+                                Some(parse_quote! {
+                                    #bound + 1
+                                })
                             }
                         }
                     }
-                    let upper_bound =
-                        upper_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
-                            #ty::MAX
-                        });
-                    let lower_bound =
-                        lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
-                            #ty::MIN
-                        });
+                }
+                // TODO: proper rules for when we actually want to use
+                // min values (e.g. unsigned types), and max values
+                // (e.g. u8/i8 is still efficient)
+                let upper_bound =
+                    upper_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                        #ty::MAX
+                    });
+                let lower_bound =
+                    lower_bound_opt.unwrap_or(parse_quote_spanned! {closure.span() =>
+                        #ty::MIN
+                    });
 
-                    if include_upper {
-                        parse_quote_spanned! {closure.span() =>
-                            (#lower_bound)..=(#upper_bound)
-                        }
-                    } else {
-                        parse_quote_spanned! {closure.span() =>
-                            (#lower_bound)..(#upper_bound)
-                        }
+                if include_upper {
+                    parse_quote_spanned! {closure.span() =>
+                        (#lower_bound)..=(#upper_bound)
                     }
                 } else {
-                    todo!()
-                };
-                ((name, ty), range_expr)
-            })
-            .collect()
+                    parse_quote_spanned! {closure.span() =>
+                        (#lower_bound)..(#upper_bound)
+                    }
+                }
+            } else {
+                return Err(syn::Error::new(
+                    closure.span(),
+                    format!(
+                        "Runtime checks: quantifier over type {} is not supported",
+                        ty.to_token_stream()
+                    ),
+                ));
+            };
+            boundaries.push(((name.clone(), ty.clone()), range_expr));
+        }
+        Ok(boundaries)
     }
 
     pub fn extract_bounds(
@@ -314,14 +359,6 @@ pub fn simplify_expression(expr: &syn::Expr) -> syn::Expr {
         _ => {}
     }
     expr.clone()
-}
-
-// if expression is a identifier, get the name:
-pub fn expression_name(expr: &syn::Expr) -> Option<String> {
-    if let syn::Expr::Path(syn::ExprPath { path, .. }) = expr {
-        return Some(path.to_token_stream().to_string());
-    }
-    None
 }
 
 #[derive(Clone)]

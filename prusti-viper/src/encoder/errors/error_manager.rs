@@ -399,7 +399,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message, def_id, bb, ignore)) => {
                 if *ignore {
                     globals::set_assertion_violated(*def_id, *bb);
-                    PrustiError::ignore_verification(format!("failing assertion used for mir optimization, bug if seen by a user"), error_span)
+                    PrustiError::ignore_verification("failing assertion used for mir optimization, bug if seen by a user", error_span)
                 } else {
                     PrustiError::verification(format!("assertion might fail with \"{message}\""), error_span)
                         .set_failing_assertion(opt_cause_span)
