@@ -157,7 +157,7 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
             }
         }
         ty::Closure(_, substs) => {
-            for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
+            for (index, subst_ty) in substs.as_closure().upvar_tys().iter().enumerate() {
                 if Some(index) != without_field {
                     let field = FieldIdx::from_usize(index);
                     let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
@@ -166,7 +166,7 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
             }
         }
         ty::Generator(_, substs, _) => {
-            for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
+            for (index, subst_ty) in substs.as_generator().upvar_tys().iter().enumerate() {
                 if Some(index) != without_field {
                     let field = FieldIdx::from_usize(index);
                     let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);

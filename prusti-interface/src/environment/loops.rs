@@ -273,7 +273,7 @@ impl ProcedureLoops {
 
         let mut loop_bodies = FxHashMap::default();
         for &(source, target) in back_edges.iter() {
-            let body = loop_bodies.entry(target).or_insert_with(FxHashSet::default);
+            let body = loop_bodies.entry(target).or_default();
             collect_loop_body(target, source, real_edges, body);
         }
 
@@ -281,9 +281,7 @@ impl ProcedureLoops {
             FxHashMap::default();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             for &block in loop_body.iter() {
-                let heads_set = enclosing_loop_heads_set
-                    .entry(block)
-                    .or_insert_with(FxHashSet::default);
+                let heads_set = enclosing_loop_heads_set.entry(block).or_default();
                 heads_set.insert(loop_head);
             }
         }

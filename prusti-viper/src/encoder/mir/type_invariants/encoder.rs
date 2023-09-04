@@ -90,7 +90,7 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
 
         ty::TyKind::Closure(_def_id, substs) => {
             let cl_substs = substs.as_closure();
-            for (field_num, field_ty) in cl_substs.upvar_tys().enumerate() {
+            for (field_num, field_ty) in cl_substs.upvar_tys().iter().enumerate() {
                 let field_name = format!("closure_{field_num}");
                 conjuncts.push(encoder.encode_invariant_func_app(
                     field_ty,

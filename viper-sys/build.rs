@@ -26,6 +26,7 @@ fn main() {
             let fname = deps_dir.path().join("asm.jar");
             let mut dest = File::create(fname.clone()).unwrap();
             copy(&mut response.into_reader(), &mut dest).unwrap();
+            dest.sync_all().unwrap();
             fname.to_str().unwrap().to_string()
         }
     };
@@ -129,28 +130,19 @@ fn main() {
                 method!("apply"),
             ]),
             // Silicon
-            java_class!("viper.silicon.Silicon", vec![
-                constructor!("(Lviper/silver/reporter/Reporter;Lscala/collection/immutable/Seq;)V"),
-            ]),
-            java_class!("viper.silicon.SiliconFrontend", vec![
-                constructor!("(Lviper/silver/reporter/Reporter;Lch/qos/logback/classic/Logger;)V"),
+            java_class!("viper.silicon.SiliconFrontendAPI", vec![
+                constructor!("(Lviper/silver/reporter/Reporter;)V"),
             ]),
             // Carbon
-            java_class!("viper.carbon.CarbonVerifier", vec![
-                constructor!("(Lviper/silver/reporter/Reporter;Lscala/collection/immutable/Seq;)V"),
-            ]),
-            java_class!("viper.carbon.CarbonFrontend", vec![
-                constructor!("(Lviper/silver/reporter/Reporter;Lch/qos/logback/classic/Logger;)V"),
+            java_class!("viper.carbon.CarbonFrontendAPI", vec![
+                constructor!("(Lviper/silver/reporter/Reporter;)V"),
             ]),
             // Silver
-            java_class!("viper.silver.frontend.SilFrontend", vec![
-                method!("setVerifier"),
-                method!("verification"),
-                method!("getVerificationResult"),
-                method!("setState"),
+            java_class!("viper.silver.frontend.ViperFrontendAPI", vec![
+                method!("initialize"),
+                method!("verify"),
+                method!("stop"),
                 method!("verifier"),
-                trait_field!("_verifier"),
-                trait_field!("_program"),
             ]),
             java_class!("viper.silver.reporter.CSVReporter", vec![
                 constructor!("(Ljava/lang/String;Ljava/lang/String;)V"),
@@ -161,10 +153,6 @@ fn main() {
             java_class!("viper.silver.verifier.Verifier", vec![
                 method!("name"),
                 method!("buildVersion"),
-                method!("parseCommandLine"),
-                method!("start"),
-                method!("stop"),
-                method!("verify"),
             ]),
             java_class!("viper.silver.frontend.DefaultStates", vec![
                 method!("ConsistencyCheck"),
