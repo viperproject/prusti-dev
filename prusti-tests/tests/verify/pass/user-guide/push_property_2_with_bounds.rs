@@ -18,11 +18,6 @@ struct Node {
     next: Link,
 }
 
-#[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
-fn replace<T>(dest: &mut T, src: T) -> T;
-
 //// ANCHOR: bounds
 impl List {
     #[pure]

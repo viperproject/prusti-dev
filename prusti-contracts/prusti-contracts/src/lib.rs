@@ -1,4 +1,11 @@
 #![no_std]
+#![feature(auto_traits)]
+#![feature(negative_impls)]
+#![feature(try_trait_v2)]
+#![feature(cfg_version)]
+
+// this is present even when compiling outside prusti to enable (negatively) implementing traits used for better specs
+pub mod core_spec;
 
 /// A macro for writing a precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
@@ -120,9 +127,6 @@ mod private {
         _phantom: PhantomData<T>,
     }
 }
-
-#[cfg(feature = "prusti")]
-pub mod core_spec;
 
 #[cfg(feature = "prusti")]
 mod private {

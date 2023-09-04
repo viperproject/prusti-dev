@@ -49,3 +49,4 @@ are as follows:
 11. [Final Code](final.md): Final code for the verified linked list
 12. [Loop Invariants](loop_invariants.md): Verifying code containing loops by writing loop invariants
 13. [Counterexamples](counterexamples.md): Getting counterexamples for failing assertions
+14. [`prusti-std` and External Specifications](extern_specs.md): Specifications for the Rust standard library, specifying external methods

@@ -18,10 +18,10 @@ cargo add prusti-contracts
 For older versions of Rust, you can manually add the dependency in your Cargo.toml file:
 ```toml
 [dependencies]
-prusti-contracts = "0.1.6"
+prusti-contracts = "0.1"
 ```
 
-To use prusti-contracts in a Rust code file, just add the following line:
+To use `prusti-contracts` in a Rust code file, just add the following line:
 ```rust,ignore
 use prusti_contracts::*;
 ```
@@ -37,9 +37,9 @@ check_overflows = false
 
 <!-- TODO: link capabilities/limitations chapter (strings) -->
 
-## Standard library annotations
+## Standard library specifications
 
-Annotations for functions and types in the Rust standard library will be available in the [`prusti-std` crate](https://crates.io/crates/prusti-std) after [this PR](https://github.com/viperproject/prusti-dev/pull/1249) is merged.
+Specifications for functions and types in the Rust standard library are provided in the [`prusti-std` crate](https://crates.io/crates/prusti-std).
 
 Adding this crate works the same as for the `prusti-contracts` crate:
 ```sh
@@ -48,6 +48,11 @@ cargo add prusti-std
 or:
 ```toml
 [dependencies]
-prusti-std = "0.1.6"
+prusti-std = "0.1"
 ```
-You do not need to import anything to use the annotations in this crate in a file.
+
+To make the specifications available when using `cargo prusti`, the following line also needs to be added to the crate:
+
+```rust,ignore
+use prusti_std;
+```

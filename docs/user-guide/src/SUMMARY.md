@@ -17,6 +17,7 @@
   - [Final Code](tour/final.md)
   - [Loop Invariants](tour/loop_invariants.md)
   - [Counterexamples](tour/counterexamples.md)
+  - [`prusti-std` and External Specifications](tour/extern_specs.md)
 - [Verification Features](verify/summary.md)
   - [Absence of panics](verify/panic.md)
   - [Overflow checks](verify/overflow.md)

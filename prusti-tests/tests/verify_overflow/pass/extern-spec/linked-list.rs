@@ -3,24 +3,6 @@
 use prusti_contracts::*;
 
 use std::collections::LinkedList;
-use std::option::Option;
-
-#[extern_spec]
-impl<T> std::option::Option<T> {
-    #[pure]
-    #[ensures(matches!(*self, Some(_)) == result)]
-    pub fn is_some(&self) -> bool;
-
-    #[pure]
-    #[ensures(self.is_some() == !result)]
-    pub fn is_none(&self) -> bool;
-
-    #[requires(self.is_some())]
-    pub fn unwrap(self) -> T;
-
-    #[requires(self.is_some())]
-    pub fn expect(self, msg: &str) -> T;
-}
 
 /// Ghost method for LinkedList used to access an index in the LinkedList
 #[trusted]
@@ -37,7 +19,9 @@ fn get<T: Copy, A: std::alloc::Allocator + Clone>(list: &LinkedList<T, A>, index
 
 #[extern_spec]
 impl<T> LinkedList<T, std::alloc::Global>
-    where T: Copy + PartialEq {
+where
+    T: Copy + PartialEq,
+{
     #[ensures(result.is_empty())]
     pub fn new() -> LinkedList<T, std::alloc::Global>;
 
