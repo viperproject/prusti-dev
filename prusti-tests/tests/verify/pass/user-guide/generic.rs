@@ -20,32 +20,6 @@ struct Node<T> {
 }
 
 //// ANCHOR_END: generic_types
-#[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
-fn replace<T>(dest: &mut T, src: T) -> T;
-
-// Specs for std::option::Option<T>::unwrap(self) (and others) can be found here (work in progress):
-// https://github.com/viperproject/prusti-dev/pull/1249/files#diff-bccda07f8a48357687e26408251041072c7470c188092fb58439de39974bdab5R47-R49
-
-#[extern_spec]
-impl<T> std::option::Option<T> {
-    #[requires(self.is_some())]
-    #[ensures(old(self) === Some(result))]
-    pub fn unwrap(self) -> T;
-    
-    #[pure]
-    #[ensures(result == matches!(self, None))]
-    pub const fn is_none(&self) -> bool;
-
-    #[pure]
-    #[ensures(result == matches!(self, Some(_)))]
-    pub const fn is_some(&self) -> bool;
-
-    #[ensures(result === old(snap(self)))]
-    #[ensures(self.is_none())]
-    pub fn take(&mut self) -> Option<T>;
-}
 
 //// ANCHOR: generic_types
 //// ANCHOR: lookup_reference
@@ -142,8 +116,8 @@ impl<T> List<T> {
     }
 }
 //// ANCHOR_END: lookup_reference
-
 //// ANCHOR_END: generic_types
+
 #[pure]
 #[requires(index < link_len(link))]
 //// ANCHOR: lookup_reference
@@ -171,13 +145,11 @@ fn link_len<T>(link: &Link<T>) -> usize {
     }
 }
 
-//// ANCHOR: generic_types
 //// ANCHOR: lookup_reference
 #[cfg(prusti)]
 mod prusti_tests {
     use super::*;
 
-    //// ANCHOR_END: generic_types
     fn _test_list(){
         // ...
         //// ANCHOR_END: lookup_reference
@@ -208,5 +180,4 @@ mod prusti_tests {
         //// ANCHOR: lookup_reference
     }
 }
-//// ANCHOR_END: generic_types
 //// ANCHOR_END: lookup_reference

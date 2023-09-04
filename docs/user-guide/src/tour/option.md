@@ -10,12 +10,6 @@ Just like in the "Learning Rust With Entirely Too Many Linked Lists" tutorial, w
 type Link = Option<Box<Node>>;
 ```
 
-In order to use the `Option::take` function, we also have to implement the `extern_spec` for it. As you can see, it is quite similar to the `extern_spec` for `mem::replace`, since `take` does the same as `replace(&mut self, None)`:
-
-```rust,noplaypen
-{{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:option_take_extern_spec}}
-```
-
 Changing the `Link` type requires some adjustments of the code and specifications. With the new type alias for `Link`, we cannot have an `impl Link` block anymore, so our `lookup` and `len` functions on `Link` are now normal, free-standing functions:
 
 ```rust,noplaypen
@@ -31,6 +25,9 @@ Due to current limitations of Prusti, we cannot replace our `link_len` and `link
 ```
 
 Since Prusti doesn't fully support closures yet, we also cannot do the rewrite to use the `Option::map` function:
+
+<!-- TODO: link capabilities/limitations chapter (closures) -->
+
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/option.rs:try_pop_rewrite}}
 ```

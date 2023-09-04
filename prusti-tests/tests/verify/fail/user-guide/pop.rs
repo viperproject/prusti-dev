@@ -29,7 +29,7 @@ impl List {
     pub fn len(&self) -> usize {
         self.head.len()
     }
-    
+
     //// ANCHOR: is_empty
     #[pure]
     fn is_empty(&self) -> bool {
@@ -50,7 +50,7 @@ impl List {
         self.head.lookup(index)
     }
 
-    #[ensures(self.len() == old(self.len()) + 1)] //~ ERROR postcondition might not hold
+    #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
     #[ensures(forall(|i: usize| (i < old(self.len())) ==>
                  old(self.lookup(i)) == self.lookup(i + 1)))]
@@ -73,13 +73,13 @@ impl List {
             },
         }
     }
-    
+
     //// ANCHOR_END: initial
     //// ANCHOR: pop_precondition
     #[requires(!self.is_empty())]
     //// ANCHOR: initial
     pub fn pop(&mut self) -> i32 {
-        self.try_pop().unwrap()
+        self.try_pop().unwrap() //~ ERROR precondition might not hold
     }
     //// ANCHOR: is_empty
 }
@@ -99,10 +99,10 @@ impl Link {
                     node.next.lookup(index - 1)
                 }
             },
-            Link::Empty => unreachable!(),  
+            Link::Empty => unreachable!(),
         }
     }
-    
+
     #[pure]
     fn len(&self) -> usize {
         match self {

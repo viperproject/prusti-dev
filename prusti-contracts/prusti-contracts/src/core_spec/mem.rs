@@ -12,6 +12,10 @@ mod mem {
 
     #[ensures(*x === old(snap(y)) && *y === old(snap(x)))]
     fn swap<T>(x: &mut T, y: &mut T);
+
+    #[ensures(snap(dest) === src)]
+    #[ensures(result === old(snap(dest)))]
+    fn replace<T>(dest: &mut T, src: T) -> T;
 }
 
 pub trait KnownSize {

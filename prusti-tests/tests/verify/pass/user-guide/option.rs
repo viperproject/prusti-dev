@@ -17,39 +17,6 @@ struct Node {
     next: Link,
 }
 
-//// ANCHOR: option_take_extern_spec
-#[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
-fn replace<T>(dest: &mut T, src: T) -> T;
-
-//// ANCHOR_END: option_take_extern_spec
-// Specs for std::option::Option<T>::unwrap(self) (and others) can be found here (work in progress):
-// https://github.com/viperproject/prusti-dev/pull/1249/files#diff-bccda07f8a48357687e26408251041072c7470c188092fb58439de39974bdab5R47-R49
-
-//// ANCHOR: option_take_extern_spec
-#[extern_spec]
-impl<T> std::option::Option<T> {
-    //// ANCHOR_END: option_take_extern_spec
-    #[requires(self.is_some())]
-    #[ensures(old(self) === Some(result))]
-    pub fn unwrap(self) -> T;
-    
-    #[pure]
-    #[ensures(result == matches!(self, None))]
-    pub const fn is_none(&self) -> bool;
-
-    #[pure]
-    #[ensures(result == matches!(self, Some(_)))]
-    pub const fn is_some(&self) -> bool;
-
-    //// ANCHOR: option_take_extern_spec
-    #[ensures(result === old(snap(self)))]
-    #[ensures(self.is_none())]
-    pub fn take(&mut self) -> Option<T>;
-}
-//// ANCHOR_END: option_take_extern_spec
-
 //// ANCHOR: try_pop_rewrite
 //// ANCHOR: rewrite_link_impl
 impl List {
@@ -121,7 +88,7 @@ impl List {
         }
     }
     
-    // // This will likely work in the future, but doesn't currently (even if you provide an `extern_spec` for `Option::map`):
+    // // This will likely work in the future, but doesn't currently:
     // // Currently you get this error:
     // //     [Prusti: unsupported feature] unsupported creation of unique borrows (implicitly created in closure bindings)
     // pub fn try_pop(&mut self) -> Option<i32> {

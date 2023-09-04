@@ -18,13 +18,6 @@ struct Node {
     next: Link,
 }
 
-//// ANCHOR: extern_spec
-#[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
-fn replace<T>(dest: &mut T, src: T) -> T;
-//// ANCHOR_END: extern_spec
-
 //// ANCHOR: property_1
 impl List {
     #[ensures(self.len() == old(self.len()) + 1)] // 1. Property
