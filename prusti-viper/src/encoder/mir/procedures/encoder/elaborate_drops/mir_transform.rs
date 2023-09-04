@@ -606,7 +606,8 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
             if let TerminatorKind::Call {
                 destination,
                 target: Some(_),
-                unwind: UnwindAction::Continue | UnwindAction::Unreachable | UnwindAction::Terminate(..),
+                unwind:
+                    UnwindAction::Continue | UnwindAction::Unreachable | UnwindAction::Terminate(..),
                 ..
             } = data.terminator().kind
             {
