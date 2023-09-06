@@ -24,7 +24,8 @@ fn main() {
     {
         if let Ok(timestamp) = commit_timestamp.trim().parse() {
             let commit_naive_datetime = NaiveDateTime::from_timestamp_opt(timestamp, 0).unwrap();
-            let commit_time = DateTime::<Utc>::from_utc(commit_naive_datetime, Utc);
+            let commit_time =
+                DateTime::<Utc>::from_naive_utc_and_offset(commit_naive_datetime, Utc);
             println!(
                 "cargo:rustc-env=COMMIT_TIME={}",
                 commit_time.format("%F %T %Z")

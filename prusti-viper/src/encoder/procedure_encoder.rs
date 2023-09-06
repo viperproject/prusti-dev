@@ -2433,7 +2433,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (stmts, MirSuccessor::Kill)
             }
 
-            TerminatorKind::Terminate => {
+            TerminatorKind::UnwindTerminate(..) => {
                 let pos = self.register_error(term.source_info.span, ErrorCtxt::AbortTerminator);
                 stmts.push(vir::Stmt::Assert( vir::Assert {
                     expr: false.into(),
@@ -2779,7 +2779,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (stmts, MirSuccessor::Goto(target))
             }
 
-            TerminatorKind::Resume
+            TerminatorKind::UnwindResume
             | TerminatorKind::Yield { .. }
             | TerminatorKind::GeneratorDrop
             | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),

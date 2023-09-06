@@ -590,7 +590,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         {
             let all_perms = stmt.get_required_permissions(pctxt.predicates());
             let pred_permissions: Vec<_> =
-                all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
+                all_perms.iter().filter(|p| p.is_pred()).cloned().collect();
 
             let acc_permissions: Vec<_> = all_perms
                 .into_iter()
