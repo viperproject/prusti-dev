@@ -54,10 +54,7 @@ impl BoundExtractor {
                         "Runtime checks: the provided number of ranges does not match the number of closure arguments.")));
         }
         assert!(bounds_vec.len() == bound_vars.len());
-        Some(Ok(bound_vars
-            .into_iter()
-            .zip(bounds_vec)
-            .collect()))
+        Some(Ok(bound_vars.into_iter().zip(bounds_vec).collect()))
     }
 
     // if this function is called, the ranges are mandatory!

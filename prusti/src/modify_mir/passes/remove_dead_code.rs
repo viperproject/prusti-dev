@@ -63,11 +63,7 @@ impl<'tcx> DeadCodeElimination<'tcx> {
             } = terminator.kind
             {
                 // Assertions associated with checked operations
-                if matches!(
-                    kind,
-                    AssertKind::Overflow(..)
-                        | AssertKind::OverflowNeg(_)
-                ) {
+                if matches!(kind, AssertKind::Overflow(..) | AssertKind::OverflowNeg(_)) {
                     // this place should be of the form `_x.1` (the check field
                     // of the result of a checked operation)
                     let place = cond.place().unwrap();

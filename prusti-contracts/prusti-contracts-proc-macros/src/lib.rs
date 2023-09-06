@@ -136,7 +136,6 @@ pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> Tok
     tokens
 }
 
-
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
 pub fn insert_runtime_check(attr: TokenStream, tokens: TokenStream) -> TokenStream {
@@ -295,7 +294,12 @@ pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> Tok
 #[cfg(feature = "prusti")]
 #[proc_macro_attribute]
 pub fn insert_runtime_check(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    rewrite_prusti_attributes(SpecAttributeKind::InsertRuntimeCheck, attr.into(), tokens.into()).into()
+    rewrite_prusti_attributes(
+        SpecAttributeKind::InsertRuntimeCheck,
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
 }
 // Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`
 // version of your new macro above!

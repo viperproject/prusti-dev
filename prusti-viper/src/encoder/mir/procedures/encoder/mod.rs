@@ -24,15 +24,18 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
-use prusti_interface::{environment::{
-    debug_utils::to_text::ToText,
-    mir_analyses::{
-        allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
-        initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
+use prusti_interface::{
+    environment::{
+        debug_utils::to_text::ToText,
+        mir_analyses::{
+            allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
+            initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
+        },
+        mir_body::borrowck::{facts::RichLocation, lifetimes::Lifetimes},
+        Procedure,
     },
-    mir_body::borrowck::{facts::RichLocation, lifetimes::Lifetimes},
-    Procedure,
-}, globals};
+    globals,
+};
 use prusti_rustc_interface::{
     abi::FieldIdx,
     data_structures::graph::WithStartNode,
@@ -1838,15 +1841,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let ignore = config::remove_dead_code()
             && (!self.check_panics
                 || (!config::check_overflows()
-                    && matches!(msg, mir::AssertKind::Overflow(..) | mir::AssertKind::OverflowNeg(..))));
+                    && matches!(
+                        msg,
+                        mir::AssertKind::Overflow(..) | mir::AssertKind::OverflowNeg(..)
+                    )));
 
         let (assert_msg, error_ctxt) = if let mir::AssertKind::BoundsCheck { .. } = msg {
             let mut s = String::new();
             msg.fmt_assert_args(&mut s).unwrap();
-            (s, ErrorCtxt::BoundsCheckAssert(self.def_id, location.block, ignore))
+            (
+                s,
+                ErrorCtxt::BoundsCheckAssert(self.def_id, location.block, ignore),
+            )
         } else {
             let assert_msg = msg.description().to_string();
-            (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg, self.def_id, location.block, ignore))
+            (
+                assert_msg.clone(),
+                ErrorCtxt::AssertTerminator(assert_msg, self.def_id, location.block, ignore),
+            )
         };
 
         let target_label = self.encode_basic_block_label(target);

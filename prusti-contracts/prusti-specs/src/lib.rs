@@ -37,7 +37,8 @@ use syn::{spanned::Spanned, visit::Visit};
 use crate::{
     common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
     predicate::{is_predicate_macro, ParsedPredicate},
-    specifications::preparser::{parse_prusti, parse_type_cond_spec, NestedSpec}, runtime_checks::translation,
+    runtime_checks::translation,
+    specifications::preparser::{parse_prusti, parse_type_cond_spec, NestedSpec},
 };
 pub use extern_spec_rewriter::ExternSpecKind;
 use parse_closure_macro::ClosureWithSpec;
@@ -236,11 +237,7 @@ fn generate_for_requires(
     if runtime_check {
         let check_id = rewriter.generate_spec_id();
         let check_id_str = check_id.to_string();
-        let check_item = rewriter.create_pre_check(
-            check_id,
-            attr,
-            item,
-        )?;
+        let check_item = rewriter.create_pre_check(check_id, attr, item)?;
         items.push(check_item);
         attrs.push(parse_quote_spanned! {item.span() =>
             #[prusti::pre_check_id_ref = #check_id_str]
@@ -274,11 +271,7 @@ fn generate_for_ensures(
         let check_id = rewriter.generate_spec_id();
         let check_id_str = check_id.to_string();
         // let store_old_item = rewriter.create_store_check_ensures(check_id, attr, item)?;
-        let check_item = rewriter.create_post_check(
-            check_id,
-            attr,
-            item,
-        )?;
+        let check_item = rewriter.create_post_check(check_id, attr, item)?;
         items.push(check_item);
         attrs.push(parse_quote_spanned! {item.span()=>
             #[prusti::post_check_id_ref = #check_id_str]
@@ -539,11 +532,19 @@ pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
 }
 
 pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
-    generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens.clone(), CheckItemType::Assume)
+    generate_expression_closure(
+        &AstRewriter::process_prusti_assumption,
+        tokens.clone(),
+        CheckItemType::Assume,
+    )
 }
 
 pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
-    generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens, CheckItemType::Unchecked)
+    generate_expression_closure(
+        &AstRewriter::process_prusti_refutation,
+        tokens,
+        CheckItemType::Unchecked,
+    )
 }
 
 /// Generates the TokenStream encoding an expression using prusti syntax
@@ -563,8 +564,11 @@ fn generate_expression_closure(
     let callsite_span = Span::call_site();
     let check_id = rewriter.generate_spec_id();
     if runtime_attr.is_some() {
-        let check_closure =
-            handle_result!(translation::translate_expression_runtime(prusti_tokens, check_id, check_type));
+        let check_closure = handle_result!(translation::translate_expression_runtime(
+            prusti_tokens,
+            check_id,
+            check_type
+        ));
         quote_spanned! {callsite_span=>
             #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
             #[prusti::specs_version = #SPECS_VERSION]

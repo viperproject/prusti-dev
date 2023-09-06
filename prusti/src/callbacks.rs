@@ -18,11 +18,11 @@ use prusti_rustc_interface::{
         query::{ExternProviders, Providers},
         ty::{self, TyCtxt, TypeVisitableExt},
     },
+    mir_build,
     mir_transform::{self, inline},
     session::{EarlyErrorHandler, Session},
     span::def_id::{DefId, LocalDefId, LOCAL_CRATE},
     trait_selection::traits,
-    mir_build,
 };
 
 #[derive(Default)]
@@ -257,8 +257,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 }
 
 fn is_non_const_function(tcx: TyCtxt<'_>, def_id: DefId) -> bool {
-    matches!(tcx.def_kind(def_id), DefKind::Fn | DefKind::AssocFn)
-        && !tcx.is_const_fn(def_id)
+    matches!(tcx.def_kind(def_id), DefKind::Fn | DefKind::AssocFn) && !tcx.is_const_fn(def_id)
 }
 
 pub fn get_specs<'tcx>(

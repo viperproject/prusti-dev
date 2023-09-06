@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{quote_spanned, quote};
+use quote::{quote, quote_spanned};
 use syn::{parse_quote_spanned, spanned::Spanned};
 
 const FAILURE_MESSAGE_STR: &str = "_prusti_rtc_failure_message";
@@ -19,7 +19,7 @@ pub(crate) fn buffer_len_ident(span: Span) -> syn::Ident {
 }
 
 pub(crate) fn define_failure_message(span: Span, message: &String) -> TokenStream {
-    if cfg!(feature="std") {
+    if cfg!(feature = "std") {
         let ident = failure_message_ident(span);
         quote_spanned! {span =>
             let mut #ident = #message.to_string();
@@ -41,7 +41,7 @@ pub(crate) fn define_failure_message(span: Span, message: &String) -> TokenStrea
 /// in case std is not available)
 pub(crate) fn construct_failure_message_opt(span: Span) -> Option<TokenStream> {
     let ident = failure_message_ident(span);
-    if !cfg!(feature="std") {
+    if !cfg!(feature = "std") {
         Some(quote_spanned!(span =>
             let #ident: &str = ::core::str::from_utf8(&_prusti_rtc_info_buffer[.._prusti_rtc_info_len]).unwrap();
         ))
@@ -52,7 +52,7 @@ pub(crate) fn construct_failure_message_opt(span: Span) -> Option<TokenStream> {
 
 pub(crate) fn call_check_expr(expr: syn::Expr, message: String) -> syn::Expr {
     let span = expr.span();
-    if cfg!(feature="std") {
+    if cfg!(feature = "std") {
         let failure_message_ident = failure_message_ident(span);
         parse_quote_spanned! {span=>
             ::prusti_contracts::runtime_check_internals::check_expr(#expr, #message, &mut #failure_message_ident)
@@ -68,11 +68,17 @@ pub(crate) fn call_check_expr(expr: syn::Expr, message: String) -> syn::Expr {
 
 pub(crate) fn extend_error_indexed(expr: &syn::Expr, name_token: &TokenStream) -> syn::Block {
     let span = expr.span();
-    let expr_string = expr.span().source_text().unwrap_or_else(|| quote!(expr).to_string());
-    let error_string = format!("\n\t> expression {} was violated for index {}=", expr_string, name_token);
-    if cfg!(feature="std") {
+    let expr_string = expr
+        .span()
+        .source_text()
+        .unwrap_or_else(|| quote!(expr).to_string());
+    let error_string = format!(
+        "\n\t> expression {} was violated for index {}=",
+        expr_string, name_token
+    );
+    if cfg!(feature = "std") {
         let failure_message_ident = failure_message_ident(span);
-        parse_quote_spanned!{span=>
+        parse_quote_spanned! {span=>
             {
                 #failure_message_ident.push_str(#error_string);
                 #failure_message_ident.push_str(format!("{}", #name_token).as_str());

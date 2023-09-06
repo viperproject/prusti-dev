@@ -277,9 +277,11 @@ impl PrustiTokenStream {
                 todo!()
             }
             Some(PrustiToken::Quantifier(span, kind)) => {
-                let (mut stream, content_span) = self.pop_group_spanned(Delimiter::Parenthesis).ok_or_else(|| {
-                    error(span, "expected parenthesized expression after quantifier")
-                })?;
+                let (mut stream, content_span) = self
+                    .pop_group_spanned(Delimiter::Parenthesis)
+                    .ok_or_else(|| {
+                        error(span, "expected parenthesized expression after quantifier")
+                    })?;
                 let full_span = join_spans(span, content_span);
                 // attrs_opt is potentially None even if everything is good
                 let attrs_opt = stream.pop_quantifier_bound_attr();
@@ -412,7 +414,9 @@ impl PrustiTokenStream {
 
     fn pop_group_spanned(&mut self, delimiter: Delimiter) -> Option<(Self, Span)> {
         match self.tokens.pop_front() {
-            Some(PrustiToken::Group(span, del, box stream)) if del == delimiter => Some((stream, span)),
+            Some(PrustiToken::Group(span, del, box stream)) if del == delimiter => {
+                Some((stream, span))
+            }
             _ => None,
         }
     }

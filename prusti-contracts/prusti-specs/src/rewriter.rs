@@ -1,9 +1,6 @@
 use crate::{
     common::HasSignature,
-    runtime_checks::{
-        check_type::CheckItemType,
-        translation::{translate_runtime_checks},
-    },
+    runtime_checks::{check_type::CheckItemType, translation::translate_runtime_checks},
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
