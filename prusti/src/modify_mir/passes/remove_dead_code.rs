@@ -22,7 +22,7 @@ pub struct DeadCodeElimination<'tcx> {
 }
 
 impl<'tcx> DeadCodeElimination<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId) -> Self {
+    pub fn run(tcx: TyCtxt<'tcx>, def_id: DefId, body: &mut mir::Body<'tcx>) {
         // collect all the blocks that were inserted but didnt generate
         // a verification error:
         let reachability_map = globals::get_reachability_map(def_id).unwrap_or_default();
@@ -36,19 +36,16 @@ impl<'tcx> DeadCodeElimination<'tcx> {
             .iter()
             .filter_map(|(bb, verified)| verified.then_some(*bb))
             .collect();
-        Self {
+        let mut modifier = Self {
             tcx,
             unreachable_blocks,
             removable_assertions,
-        }
-    }
-
-    pub fn run(&mut self, body: &mut mir::Body<'tcx>) {
-        self.remove_assertions(body);
-        if self.unreachable_blocks.is_empty() {
+        };
+        modifier.remove_assertions(body);
+        if modifier.unreachable_blocks.is_empty() {
             return;
         }
-        self.visit_body(body);
+        modifier.visit_body(body);
     }
 
     fn remove_assertions(&self, body: &mut mir::Body<'tcx>) {

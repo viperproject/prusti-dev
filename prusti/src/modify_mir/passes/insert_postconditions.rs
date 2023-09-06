@@ -18,26 +18,23 @@ pub struct PostconditionInserter<'tcx, 'a> {
 }
 
 impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
-    pub fn new(
+    pub fn run(
         tcx: TyCtxt<'tcx>,
         body_info: &'a MirInfo<'tcx>,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
-    ) -> Self {
-        Self {
+        body: &mut mir::Body<'tcx>,
+    ) {
+        let mut inserter = Self {
             tcx,
             body_info,
-            patch_opt: None,
+            patch_opt: Some(MirPatch::new(body).into()),
             def_id,
             local_decls,
-        }
-    }
-
-    pub fn run(&mut self, body: &mut mir::Body<'tcx>) {
-        let patch = MirPatch::new(body);
-        self.patch_opt = Some(patch.into());
-        self.visit_body(body);
-        let patch_ref = self.patch_opt.take().unwrap();
+        };
+        inserter.visit_body(body);
+        // apply the patch
+        let patch_ref = inserter.patch_opt.take().unwrap();
         patch_ref.into_inner().apply(body);
     }
 

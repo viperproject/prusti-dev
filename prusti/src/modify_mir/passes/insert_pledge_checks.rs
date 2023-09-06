@@ -27,7 +27,6 @@ pub struct PledgeInserter<'tcx, 'a> {
     body_info: &'a MirInfo<'tcx>,
     patch_opt: Option<RefCell<MirPatch<'tcx>>>,
     pledges_to_process: FxHashMap<mir::Place<'tcx>, PledgeToProcess<'tcx>>,
-    body_copy: Option<mir::Body<'tcx>>,
     def_id: DefId,
     local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
     /// For simplicity we use the same visitor twice, once to find all the
@@ -99,27 +98,26 @@ pub struct PledgeToProcess<'tcx> {
 }
 
 impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
-    pub fn new(
+    pub fn run(
         tcx: TyCtxt<'tcx>,
         body_info: &'a MirInfo<'tcx>,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
-    ) -> Self {
-        Self {
+        body: &mut mir::Body<'tcx>,
+    ) {
+        let mut inserter = Self {
             tcx,
             body_info,
-            patch_opt: None,
+            patch_opt: Some(MirPatch::new(body).into()),
             pledges_to_process: Default::default(),
-            body_copy: None,
             def_id,
             local_decls,
             first_pass: true,
-        }
+        };
+        inserter.modify(body);
     }
 
-    pub fn run(&mut self, body: &mut mir::Body<'tcx>) {
-        self.body_copy = Some(body.clone());
-        self.patch_opt = Some(MirPatch::new(body).into());
+    fn modify(&mut self, body: &mut mir::Body<'tcx>) {
         // find all calls to functions with pledges, and create local variables
         // to store: old_values, before_expiry_place,
         self.visit_body(body);
@@ -473,45 +471,6 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                 }
             }
         }
-        // mir::TerminatorKind::SwitchInt { targets, .. } => {
-        //     // find switchInts with a check_only target.
-        //     let switch_iter = targets.iter();
-        //     if switch_iter.len() == 1 {
-        //         // let (value, target) = switch_iter.next().unwrap();
-        //         let otherwise = targets.otherwise();
-        //         // check if target is a check_block:
-        //         if let Some(kind) = self.body_info.check_blocks.get(&otherwise) {
-        //             match kind {
-        //                 CheckBlockKind::PledgeExpires(local) => {
-        //                     // this check_block should terminate with a goto always!
-        //                     if let mir::TerminatorKind::Goto { ref target } =
-        //                         self.body_copy.as_ref().unwrap()[otherwise]
-        //                             .terminator
-        //                             .clone()
-        //                             .unwrap()
-        //                             .kind
-        //                     {
-        //                         let pledge = self.pledges_to_process.get(local).expect(
-        //                             "pledge expiration without an actual pledge,\
-        //                                     seems like our assumption that calls of pledges are\
-        //                                     always encountered before the expiration is wrong",
-        //                         );
-        //                         let start_block =
-        //                             self.create_pledge_call_chain(pledge, *target).unwrap();
-        //
-        //                         let new_terminator = mir::TerminatorKind::Goto {
-        //                             target: start_block,
-        //                         };
-        //                         // skip this check block and instead call checks-chain
-        //                         self.patcher().patch_terminator(otherwise, new_terminator);
-        //                     }
-        //                 }
-        //                 // nothing to do..
-        //                 CheckBlockKind::RuntimeAssertion => (),
-        //             }
-        //         }
-        //     }
-        // }
     }
 }
 

@@ -115,7 +115,7 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
     let is_fn_like = tcx.def_kind(def).is_fn_like();
     if is_fn_like {
         // Do not compute the mir call graph without said call graph actually being used.
-        if inline::Inline.is_enabled(&tcx.sess) {
+        if inline::Inline.is_enabled(tcx.sess) {
             tcx.ensure_with_value()
                 .mir_inliner_callees(ty::InstanceDef::Item(def.to_def_id()));
         }

@@ -4,6 +4,7 @@ use quote::ToTokens;
 use rustc_hash::FxHashSet;
 use syn::{self, parse_quote, parse_quote_spanned, spanned::Spanned, visit::Visit, BinOp};
 
+type LoopBoundaries = ((String, syn::Type), syn::ExprRange);
 pub(crate) struct BoundExtractor {
     // the set of bound variables within that expression
     pub name_set: FxHashSet<String>,
@@ -17,7 +18,7 @@ impl BoundExtractor {
     pub(crate) fn manual_bounds(
         expr: syn::ExprClosure,
         bound_vars: Vec<(String, syn::Type)>,
-    ) -> Option<syn::Result<Vec<((String, syn::Type), syn::ExprRange)>>> {
+    ) -> Option<syn::Result<Vec<LoopBoundaries>>> {
         let manual_bounds = get_attribute_contents(
             "prusti :: runtime_quantifier_bounds".to_string(),
             &expr.attrs,
@@ -61,7 +62,7 @@ impl BoundExtractor {
     pub(crate) fn derive_ranges(
         closure: syn::Expr,
         args: Vec<(String, syn::Type)>,
-    ) -> syn::Result<Vec<((String, syn::Type), syn::ExprRange)>> {
+    ) -> syn::Result<Vec<LoopBoundaries>> {
         if args.len() > 1 {
             return Err(syn::Error::new(
                 closure.span(),

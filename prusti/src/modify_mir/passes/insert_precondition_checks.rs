@@ -24,21 +24,24 @@ pub struct PreconditionInserter<'tcx, 'a> {
 }
 
 impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
-    pub fn new(
+    pub fn run(
         tcx: TyCtxt<'tcx>,
         body_info: &'a MirInfo<'tcx>,
         def_id: DefId,
         local_decls: &'a IndexVec<mir::Local, mir::LocalDecl<'tcx>>,
-    ) -> Self {
-        Self {
+        body: &mut mir::Body<'tcx>,
+    ) {
+        let mut inserter = Self {
             tcx,
             body_info,
             patch_opt: None,
             def_id,
             local_decls,
-        }
+        };
+        inserter.modify(body);
     }
-    pub fn run(&mut self, body: &mut mir::Body<'tcx>) {
+
+    fn modify(&mut self, body: &mut mir::Body<'tcx>) {
         let mut current_target = get_block_target(body, mir::START_BLOCK)
             .expect("Bug: Body must start with a Goto block at this stage");
         let patch = MirPatch::new(body);

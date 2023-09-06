@@ -29,20 +29,16 @@ pub(crate) fn insert_runtime_checks<'tcx>(
     // we dont insert pledge checks for specification functions
     if !is_spec_fn && !is_anon_const {
         // insert pledge checks:
-        let mut pledge_inserter = passes::PledgeInserter::new(tcx, &mir_info, def_id, local_decls);
-        pledge_inserter.run(body);
+        passes::PledgeInserter::run(tcx, &mir_info, def_id, local_decls, body);
     }
 
     // insert a dummy goto block at the beginning of the body
     prepend_dummy_block(body);
     // insert preconditions
-    let mut precondition_inserter =
-        passes::PreconditionInserter::new(tcx, &mir_info, def_id, local_decls);
-    precondition_inserter.run(body);
+    passes::PreconditionInserter::run(tcx, &mir_info, def_id, local_decls, body);
     // insert postconditions
-    let mut postcondition_inserter =
-        passes::PostconditionInserter::new(tcx, &mir_info, def_id, local_decls);
-    postcondition_inserter.run(body);
+    passes::PostconditionInserter::run(tcx, &mir_info, def_id, local_decls, body);
+
     old_arg_replacer.clone_and_drop_variables(body);
 
     // put specs and env back into globals
@@ -55,6 +51,5 @@ pub fn dead_code_elimination<'tcx>(tcx: TyCtxt<'tcx>, body: &mut mir::Body<'tcx>
     if utils::has_spec_only_attr(attrs) {
         return;
     }
-    let mut remove_dead_blocks = passes::DeadCodeElimination::new(tcx, def_id);
-    remove_dead_blocks.run(body);
+    passes::DeadCodeElimination::run(tcx, def_id, body);
 }
