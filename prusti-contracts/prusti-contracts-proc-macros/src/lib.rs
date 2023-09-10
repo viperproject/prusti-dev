@@ -138,7 +138,7 @@ pub fn quantifier_runtime_bounds(_attr: TokenStream, tokens: TokenStream) -> Tok
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
-pub fn insert_runtime_check(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn insert_runtime_check(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
