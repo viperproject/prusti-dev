@@ -218,8 +218,8 @@ pub fn replace_outgoing_edges(
                 update_if_equals(bb, from, to);
             }
         }
-        TerminatorKind::Resume
-        | TerminatorKind::Terminate
+        TerminatorKind::UnwindResume
+        | TerminatorKind::UnwindTerminate(_)
         | TerminatorKind::Return
         | TerminatorKind::Unreachable
         | TerminatorKind::GeneratorDrop => {}

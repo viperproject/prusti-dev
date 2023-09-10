@@ -1063,13 +1063,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         for component in identical_lifetimes {
             let existing_component_lifetims: BTreeSet<String> = component
                 .iter()
-                .cloned()
                 .filter(|lft| existing_lifetimes.contains(&lft[..]))
+                .cloned()
                 .collect();
             let non_existing_component_lifetimes: BTreeSet<String> = component
                 .iter()
-                .cloned()
                 .filter(|lft| !existing_lifetimes.contains(&lft[..]))
+                .cloned()
                 .collect();
             for lifetime in non_existing_component_lifetimes {
                 let identical_existing_lifetime = existing_component_lifetims.iter().next();

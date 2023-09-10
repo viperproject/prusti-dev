@@ -1198,7 +1198,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     switch_ty,
                 )?
             }
-            TerminatorKind::Resume => SuccessorBuilder::exit_resume_panic(),
+            TerminatorKind::UnwindResume => SuccessorBuilder::exit_resume_panic(),
             // TerminatorKind::Abort => {
             //     graph.add_exit_edge(bb, "abort");
             // }
