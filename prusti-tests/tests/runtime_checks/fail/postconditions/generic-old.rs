@@ -1,6 +1,8 @@
 //@run: 101
 use prusti_contracts::*;
 
+// Tests that generics are properly handled, and that if there are multiple
+// postconditions, they are properly chained and both executed.
 fn main() {
     let mut x = GenericStruct { x: 40};
     let mut y = GenericStruct { x: 32};

@@ -37,15 +37,21 @@ impl<'tcx, 'a> CloneOldArgs<'tcx, 'a> {
         }
     }
 
-    // Creates locals for the clones of arguments, and replaces them in
-    // the correct places such that old behaves correctly
-    pub fn create_variables(&mut self, body: &mut mir::Body<'tcx>) {
+    /// Creates locals for the clones of arguments, and replaces them in
+    /// the correct places such that old behaves correctly. This function
+    /// relies on the locations in `stmts_to_substitue_rhs` to be accurate, so it
+    /// needs to be executed before any of the modifications that alter block indeces
+    /// happen. It does not modify any block indeces itself.
+    pub fn create_and_replace_variables(&mut self, body: &mut mir::Body<'tcx>) {
         let mut patcher = MirPatch::new(body);
+        // create the temporary variables
         for arg in &self.body_info.args_to_be_cloned {
             let ty = self.local_decls.get(*arg).unwrap().ty;
             let new_var = patcher.new_temp(ty, DUMMY_SP);
             self.stored_arguments.insert(*arg, new_var);
         }
+        // replace the function arguments with the new temporary variables
+        // according to information we collected earlier
         let mut replacer = ArgumentReplacer::new(self.tcx, &self.stored_arguments);
         for (block, bb_data) in body.basic_blocks_mut().iter_enumerated_mut() {
             for (statement_index, stmt) in bb_data.statements.iter_mut().enumerate() {
@@ -61,12 +67,16 @@ impl<'tcx, 'a> CloneOldArgs<'tcx, 'a> {
         patcher.apply(body);
     }
 
+    /// For variables that need to be cloned at the beginning of a function
+    /// (opposed to in front of a function call as for postconditions for example)
+    /// this function inserts a chain of clone calls at the beginning of the function
+    /// and makes sure these values are dropped again before the function returns.
     pub fn clone_and_drop_variables(&mut self, body: &mut mir::Body<'tcx>) {
         let patch = MirPatch::new(body);
         self.patch_opt = Some(patch.into());
         let mut drop_on_return = Vec::new();
         // clone the arguments:
-        let mut current_target = get_block_target(body, mir::START_BLOCK)
+        let mut current_target = get_goto_block_target(body, mir::START_BLOCK)
             .expect("Bug: Body must start with a Goto block at this stage");
         for local in self.body_info.args_to_be_cloned.iter() {
             let place: mir::Place = (*local).into();
@@ -90,7 +100,7 @@ impl<'tcx, 'a> CloneOldArgs<'tcx, 'a> {
         let patch_ref = self.patch_opt.take().unwrap();
         patch_ref.into_inner().apply(body);
 
-        // create drop chain:
+        // insert jumps to drop chain wherever function returns:
         let mut visitor = DropBeforeReturnVisitor {
             drop_chain_start,
             drop_chain_end,
@@ -135,10 +145,11 @@ impl<'tcx> MutVisitor<'tcx> for DropBeforeReturnVisitor<'tcx> {
     ) {
         MutVisitor::super_terminator(self, terminator, location);
         if location.block == self.drop_chain_end {
-            // The end of the drop chain should not be modified,
-            // otherwise we introduce a cycle
+            // The end of the drop chain also contains a return, so we need
+            // to skip this one
             return;
         }
+        // Replace return terminator with a goto to our drop chain
         if matches!(terminator.kind, mir::TerminatorKind::Return) {
             terminator.kind = mir::TerminatorKind::Goto {
                 target: self.drop_chain_start,

@@ -376,6 +376,16 @@ pub trait MirModifier<'tcx> {
         (current_target, last_block)
     }
 
+    /// Create a call block to the function with the given def_id.
+    ///
+    /// * `call_id`: DefId of the called function
+    /// * `args`: arguments passed to the function
+    /// * `generics`: generic arguments passed to the function
+    /// * `destination`: where the functions result should be stored. If None, a new
+    /// local will be created
+    /// * `target`: the basic block where function should jump to after returning
+    ///
+    /// returns (id of new basic block, destination)
     fn create_call_block(
         &self,
         call_id: DefId,
@@ -396,7 +406,7 @@ pub trait MirModifier<'tcx> {
         // either use passed destination or create a new one
         let destination = destination.unwrap_or_else(|| {
             // find return type
-            let ret_ty = fn_return_ty(self.tcx(), call_id, Some(generics));
+            let ret_ty = fn_signature(self.tcx(), call_id, Some(generics)).output();
             mir::Place::from(self.patcher().new_temp(ret_ty, DUMMY_SP))
         });
 
@@ -420,6 +430,7 @@ pub trait MirModifier<'tcx> {
         Ok((new_block_id, destination))
     }
 
+    /// Create a statement that assigns a boolean to a given destination
     fn set_bool_stmt(
         &self,
         destination: mir::Place<'tcx>,

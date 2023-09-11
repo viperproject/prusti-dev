@@ -38,6 +38,14 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
         patch_ref.into_inner().apply(body);
     }
 
+    /// Given a call, surround it with the following:
+    /// 1. cloning of all the old values that are required (before)
+    /// 2. performing the check function (after)
+    /// 3. dropping all the cloned values (after)
+    ///
+    /// this function returns:
+    /// * `result.0` the basic block where the original call is moved to
+    /// * `result.1` the basic block that calls the check function
     #[allow(clippy::too_many_arguments)]
     fn surround_call_with_store_and_check(
         &self,
@@ -50,17 +58,14 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
         original_terminator: mir::Terminator<'tcx>,
     ) -> (mir::BasicBlock, Option<mir::BasicBlock>) {
         // find the type of that local
-        let check_sig = self.tcx.fn_sig(check_id).instantiate(self.tcx, generics);
-        let param_env = self.tcx.param_env(self.def_id);
-        let check_sig = self
-            .tcx
-            .normalize_erasing_late_bound_regions(param_env, check_sig);
-
+        let check_sig = fn_signature(self.tcx, check_id, Some(generics));
+        // old_ty is always the last input of postconditions
         let old_ty = *check_sig.inputs().last().unwrap();
         assert!(matches!(old_ty.kind(), ty::Tuple(_)));
 
         let old_dest_place = mir::Place::from(self.patcher().new_temp(old_ty, DUMMY_SP));
 
+        // create a drop-block, where we can later insert the drop chain.
         let drop_block_data = mir::BasicBlockData::new(Some(mir::Terminator {
             source_info: dummy_source_info(),
             kind: mir::TerminatorKind::Goto {
@@ -68,13 +73,14 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
             },
         }));
         let drop_start = self.patcher().new_block(drop_block_data);
+
         // construct arguments: first the arguments the function is called with, then the result of
         // that call, then the old values:
         let mut new_args = args.clone();
         new_args.push(mir::Operand::Move(result_operand));
         new_args.push(mir::Operand::Move(old_dest_place));
 
-        // we store the target, create a new block per check function
+        // We store the target, create a new block per check function
         // chain these with the final call having the original target,
         // change the target of the call to the first block of our chain.
         let (check_block, _) = self
@@ -86,15 +92,16 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
         // for now we just construct it, this does not modify the terminator
         // in the CFG yet
         let mut call_terminator = original_terminator;
-        replace_target(&mut call_terminator, check_block);
+        replace_call_target(&mut call_terminator, check_block);
 
+        // create a chain of clone calls, that jumps to the original function
+        // call afterwards
         let (chain_start, new_caller, locals_to_drop) =
             self.prepend_old_cloning(call_terminator, old_dest_place, old_ty, args, true);
 
-        // TODO: create testcases for calls that have no target.
-        // Make sure they behave correctly in case of panic
+        // create the drop chain and append it to the block we created earlier
+        // for this purpose
         let (drop_chain_start, _) = self.create_drop_chain(locals_to_drop, target);
-        // make drop_start point to this chain:
         self.patcher().patch_terminator(
             drop_start,
             mir::TerminatorKind::Goto {
@@ -103,8 +110,6 @@ impl<'tcx, 'a> PostconditionInserter<'tcx, 'a> {
         );
 
         // make the original caller_block point to the first clone block
-        // after separate_terminator_from_block this is a goto so we don't break
-        // anything
         self.patcher().patch_terminator(
             caller_block,
             mir::TerminatorKind::Goto {
@@ -136,7 +141,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PostconditionInserter<'tcx, 'a> {
             if let Some((call_id, generics)) = func.const_fn_def() {
                 let mut caller_block = location.block;
                 let mut current_target = *target;
-                let mut call_fn_terminator = terminator.clone();
+                // get all the checks that need to be performed
                 for check_id in self.body_info.specs.get_post_checks(&call_id) {
                     (caller_block, current_target) = self.surround_call_with_store_and_check(
                         check_id,
@@ -147,7 +152,6 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PostconditionInserter<'tcx, 'a> {
                         generics,
                         terminator.clone(),
                     );
-                    replace_target(&mut call_fn_terminator, current_target.unwrap());
                 }
             }
         }

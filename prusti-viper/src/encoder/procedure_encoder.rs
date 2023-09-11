@@ -2777,6 +2777,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 if config::remove_dead_code() {
                     globals::add_encoded_assertion(self.proc_def_id, location.block);
                 }
+                // whether the error generated here should be ignored, i.e. not reported
+                // to the user (because it was only inserted for optimization)
                 let ignore = config::remove_dead_code()
                     && (!self.check_panics
                         || (!config::check_overflows()

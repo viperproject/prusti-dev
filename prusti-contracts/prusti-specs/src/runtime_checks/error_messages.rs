@@ -2,6 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{parse_quote_spanned, spanned::Spanned};
 
+// the variable names used in the AST to construct and emit meaningful errors
 const FAILURE_MESSAGE_STR: &str = "_prusti_rtc_failure_message";
 const BUFFER_IDENT: &str = "_prusti_rtc_info_buffer";
 const BUFFER_LEN_IDENT: &str = "_prusti_rtc_info_len";
@@ -18,6 +19,8 @@ pub(crate) fn buffer_len_ident(span: Span) -> syn::Ident {
     syn::Ident::new(BUFFER_LEN_IDENT, span)
 }
 
+/// Define the error message (or the corresponding fixed sized buffer) so
+/// it can be extended with information at runtime
 pub(crate) fn define_failure_message(span: Span, message: &String) -> TokenStream {
     if cfg!(feature = "std") {
         let ident = failure_message_ident(span);
@@ -37,8 +40,8 @@ pub(crate) fn define_failure_message(span: Span, message: &String) -> TokenStrea
     }
 }
 
-/// Create a str from the buffer of the error message (only required
-/// in case std is not available)
+/// Create a str from the buffer of the error message just before it's emitted
+/// (only required in case std is not available)
 pub(crate) fn construct_failure_message_opt(span: Span) -> Option<TokenStream> {
     let ident = failure_message_ident(span);
     if !cfg!(feature = "std") {
@@ -50,6 +53,8 @@ pub(crate) fn construct_failure_message_opt(span: Span) -> Option<TokenStream> {
     }
 }
 
+/// Creates a call to the check() function, that extends the error with additional
+/// information in case that the boolean passed to it evaluates to false
 pub(crate) fn call_check_expr(expr: syn::Expr, message: String) -> syn::Expr {
     let span = expr.span();
     if cfg!(feature = "std") {
@@ -66,6 +71,8 @@ pub(crate) fn call_check_expr(expr: syn::Expr, message: String) -> syn::Expr {
     }
 }
 
+/// If a quantifier fails at a specific index, extend the error message with that
+/// information
 pub(crate) fn extend_error_indexed(expr: &syn::Expr, name_token: &TokenStream) -> syn::Block {
     let span = expr.span();
     let expr_string = expr

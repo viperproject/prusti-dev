@@ -1,7 +1,10 @@
+#[cfg(not(feature = "std"))]
 use core::fmt::Write;
 
+#[cfg(not(feature = "std"))]
 struct SimpleFormatter<'a>(&'a mut [u8], usize);
 
+#[cfg(not(feature = "std"))]
 impl<'a> core::fmt::Write for SimpleFormatter<'a> {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         let dest_len = self.0.len();
@@ -18,6 +21,7 @@ impl<'a> core::fmt::Write for SimpleFormatter<'a> {
     }
 }
 
+#[cfg(not(feature = "std"))]
 pub fn num_to_str<T: core::fmt::Display>(n: T, buffer: &mut [u8]) -> &str {
     let mut formatter = SimpleFormatter(buffer, 0);
     write!(&mut formatter, "{}", n).expect("Failed to write number to buffer");
@@ -27,8 +31,8 @@ pub fn num_to_str<T: core::fmt::Display>(n: T, buffer: &mut [u8]) -> &str {
 
 // An internal function used for getting more precise error messages for runtime
 // checks.
-// Buffer manipulations because we cannot use std and don't wanna introduce
-// new dependencies.
+// Buffer manipulations because we cannot use std and need to operate on a buffer
+// that is allocated before this function is called.
 #[cfg(not(feature = "std"))]
 pub fn check_expr(expr: bool, added_info: &str, buffer: &mut [u8], buffer_len: &mut usize) -> bool {
     if !expr {
@@ -42,6 +46,8 @@ pub fn check_expr(expr: bool, added_info: &str, buffer: &mut [u8], buffer_len: &
     }
 }
 
+// If ctd is available, the check function can be a lot simpler, and doesn't
+// need to operate on a passed buffer.
 #[cfg(feature = "std")]
 pub fn check_expr(expr: bool, added_info: &str, message: &mut std::string::String) -> bool {
     if !expr {

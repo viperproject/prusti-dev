@@ -1,5 +1,5 @@
 #[derive(Clone, Copy, PartialEq)]
-pub enum CheckItemType {
+pub(crate) enum CheckItemType {
     PledgeLhs,
     PledgeRhs { has_lhs: bool },
     Requires,
@@ -11,6 +11,8 @@ pub enum CheckItemType {
 }
 
 impl CheckItemType {
+    /// Whether the signature of the check function generated from this contract
+    /// will contain old_values
     pub(crate) fn gets_old_args(&self) -> bool {
         matches!(
             self,
@@ -18,7 +20,7 @@ impl CheckItemType {
         )
     }
 
-    // probably pledge_rhs shouldn't actually need it..
+    /// Whether the result of the function needs to be part of the check functions signature.
     pub(crate) fn needs_result(&self) -> bool {
         matches!(
             self,
@@ -26,6 +28,8 @@ impl CheckItemType {
         )
     }
 
+    /// Whether the original arguments to the function are also passed to
+    /// the check function. Maybe pledges shouldn't be here.
     pub(crate) fn gets_item_args(&self) -> bool {
         // maybe pledge_rhs should not get items either
         matches!(
@@ -34,10 +38,14 @@ impl CheckItemType {
         )
     }
 
+    /// Whether this kind of contract only occurrs within code, not as an annotation
+    /// of functions
     pub(crate) fn is_inlined(&self) -> bool {
         matches!(self, Self::Assert | Self::Assume | Self::BodyInvariant)
     }
 
+    /// A helper function for pretty printing contracts, allowing us a prettier
+    /// output for runtime errors
     pub(crate) fn wrap_contract(&self, s: &String) -> String {
         match self {
             Self::PledgeLhs => format!("#[assert_on_expiry({}, ..)]", s),
@@ -56,8 +64,14 @@ impl CheckItemType {
             Self::Unchecked => unreachable!(),
         }
     }
+
+    pub(crate) fn can_be_checked(&self) -> bool {
+        !matches!(self, Self::Unchecked)
+    }
 }
 
+/// Opposed to previous debugging output, this one is used for generating the
+/// check function names.
 impl std::fmt::Display for CheckItemType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

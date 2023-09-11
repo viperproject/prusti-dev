@@ -1,7 +1,4 @@
-use crate::runtime_checks::{
-    boundary_extraction::{is_primitive_number, BoundExtractor},
-    error_messages,
-};
+use crate::runtime_checks::{boundary_extraction, error_messages, utils};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use rustc_hash::FxHashSet;
@@ -11,6 +8,7 @@ pub(crate) enum QuantifierKind {
     Exists,
 }
 
+/// Given a quantifier, try to translate it to a runtime checkable expression
 pub(crate) fn translate_quantifier_expression(
     closure: &syn::ExprClosure,
     kind: QuantifierKind,
@@ -32,8 +30,8 @@ pub(crate) fn translate_quantifier_expression(
                 name_set.insert(name_str.clone());
                 (name_str, ty.clone())
             } else {
-                // maybe we can throw a more sensible error and make the
-                // check function a dummy check function
+                // not throwing a proper compile error because as of now, this will already cause
+                // an error in the preparser
                 panic!("quantifiers without type annotations can not be checked at runtime");
             }
         })
@@ -41,24 +39,23 @@ pub(crate) fn translate_quantifier_expression(
 
     // look for the runtime_quantifier_bounds attribute, or try to derive
     // boundaries from expressions of the form `boundary ==> expr`
-    let manual_bounds_opt = BoundExtractor::manual_bounds(closure.clone(), bound_vars.clone());
+    let manual_bounds_opt = boundary_extraction::manual_bounds(closure.clone(), bound_vars.clone());
     let bounds = if let Some(manual_bounds) = manual_bounds_opt {
         manual_bounds?
     } else {
-        BoundExtractor::derive_ranges(*closure.body.clone(), bound_vars)?
+        boundary_extraction::derive_ranges(*closure.body.clone(), bound_vars)?
     };
 
     let mut expr = *closure.body.clone();
 
     for ((name, ty), range_expr) in bounds.iter().rev() {
         let name_token: TokenStream = name.parse().unwrap();
-        let info_statements = if is_primitive_number(ty) && is_outer {
+        let info_statements = if utils::is_primitive_number(ty) && is_outer {
             Some(error_messages::extend_error_indexed(&expr, &name_token))
         } else {
             None
         };
 
-        // maybe never turn them into strings in the first place..
         expr = match kind {
             QuantifierKind::Forall => {
                 let res = quote! {

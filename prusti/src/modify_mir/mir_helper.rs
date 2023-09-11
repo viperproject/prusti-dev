@@ -10,7 +10,7 @@ use rustc_hash::FxHashMap;
 
 // A set of functions that are often used during mir modifications
 
-/// Check whether this variable is mutable, or a mutable reference
+/// Check whether this local is an argument and mutable, or a mutable reference
 pub fn is_mutable_arg(
     body: &Body<'_>,
     local: mir::Local,
@@ -28,27 +28,18 @@ pub fn is_mutable_arg(
     }
 }
 
-// pub fn make_immutable<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-//     match *ty.kind() {
-//         ty::Ref(region, inner_ty, mir::Mutability::Mut) => {
-//             let new_inner_ty = make_immutable(tcx, inner_ty);
-//             tcx.mk_imm_ref(region, new_inner_ty)
-//         }
-//         _ => ty,
-//     }
-// }
-
-pub fn fn_return_ty<'tcx>(
+pub fn fn_signature<'tcx>(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     generics_opt: Option<ty::GenericArgsRef<'tcx>>,
-) -> ty::Ty<'tcx> {
-    let fn_sig = if let Some(generics) = generics_opt {
+) -> ty::FnSig<'tcx> {
+    let fn_sig_binder = if let Some(generics) = generics_opt {
         tcx.fn_sig(def_id).instantiate(tcx, generics)
     } else {
         tcx.fn_sig(def_id).instantiate_identity()
     };
-    fn_sig.output().skip_binder()
+    let param_env = tcx.param_env(def_id);
+    tcx.normalize_erasing_late_bound_regions(param_env, fn_sig_binder)
 }
 
 pub fn dummy_source_info() -> mir::SourceInfo {
@@ -74,6 +65,7 @@ pub fn unit_const(tcx: TyCtxt<'_>) -> mir::Operand<'_> {
     mir::Operand::Constant(Box::new(constant))
 }
 
+/// Creates an Rvalue containing a references to a local variable
 pub fn rvalue_reference_to_local<'tcx>(
     tcx: TyCtxt<'tcx>,
     place: mir::Place<'tcx>,
@@ -107,6 +99,7 @@ pub fn create_reference_type<'tcx>(tcx: TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::T
     )
 }
 
+/// Find the def_id of clone
 pub fn get_clone_defid(tcx: TyCtxt<'_>) -> Option<DefId> {
     let trait_defid = tcx.lang_items().clone_trait()?;
     tcx.associated_items(trait_defid)
@@ -119,6 +112,7 @@ pub fn get_clone_defid(tcx: TyCtxt<'_>) -> Option<DefId> {
         .map(|x| x.def_id)
 }
 
+/// Given a function body, determine the set of arguments
 pub fn args_from_body<'tcx>(body: &Body<'tcx>) -> Vec<mir::Operand<'tcx>> {
     let mut args = Vec::new();
     let caller_nr_args = body.arg_count;
@@ -135,6 +129,7 @@ pub fn args_from_body<'tcx>(body: &Body<'tcx>) -> Vec<mir::Operand<'tcx>> {
     args
 }
 
+/// Given a body, put a Goto block at the start.
 pub fn prepend_dummy_block(body: &mut Body) -> mir::BasicBlock {
     let mut patch = MirPatch::new(body);
     let terminator_kind = mir::TerminatorKind::Goto {
@@ -166,6 +161,11 @@ pub fn replace_outgoing_edges(
     from: mir::BasicBlock,
     to: mir::BasicBlock,
 ) {
+    fn update_if_equals<T: PartialEq>(dest: &mut T, from: T, to: T) {
+        if *dest == from {
+            *dest = to;
+        }
+    }
     match &mut data.terminator_mut().kind {
         TerminatorKind::Goto { target } => update_if_equals(target, from, to),
         TerminatorKind::SwitchInt { targets, .. } => {
@@ -226,15 +226,9 @@ pub fn replace_outgoing_edges(
     }
 }
 
-fn update_if_equals<T: PartialEq>(dest: &mut T, from: T, to: T) {
-    if *dest == from {
-        *dest = to;
-    }
-}
-
 /// Given a call terminator, change it's target (the target is the basic
 /// block the execution will return to, once the function is finished)
-pub fn replace_target(terminator: &mut mir::Terminator, new_target: mir::BasicBlock) {
+pub fn replace_call_target(terminator: &mut mir::Terminator, new_target: mir::BasicBlock) {
     if let mir::TerminatorKind::Call { target, .. } = &mut terminator.kind {
         *target = Some(new_target);
     }
@@ -273,7 +267,7 @@ impl<'tcx, 'a> MutVisitor<'tcx> for ArgumentReplacer<'a, 'tcx> {
 }
 
 // If this block is a goto block, and if it is returns its current target
-pub fn get_block_target(body: &Body<'_>, block: mir::BasicBlock) -> Option<mir::BasicBlock> {
+pub fn get_goto_block_target(body: &Body<'_>, block: mir::BasicBlock) -> Option<mir::BasicBlock> {
     let terminator: &Option<mir::Terminator> = &body.basic_blocks.get(block)?.terminator;
     if let Some(mir::Terminator {
         kind: mir::TerminatorKind::Goto { target },
@@ -286,6 +280,7 @@ pub fn get_block_target(body: &Body<'_>, block: mir::BasicBlock) -> Option<mir::
     }
 }
 
+/// Get successor(s) of a mir Location
 pub fn get_successors(body: &Body<'_>, location: mir::Location) -> Vec<mir::Location> {
     let statements_len = body[location.block].statements.len();
     if location.statement_index < statements_len {

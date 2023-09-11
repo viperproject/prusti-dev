@@ -5,19 +5,20 @@ use crate::{
         associated_function_info::{create_argument, Argument, AssociatedFunctionInfo},
         check_type::CheckItemType,
         error_messages,
-        visitor::CheckVisitor,
+        quantifiers::{translate_quantifier_expression, QuantifierKind},
+        utils,
     },
     specifications::{common::SpecificationId, untyped},
 };
 use proc_macro2::{Span, TokenStream};
-use quote::quote_spanned;
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut};
 
 // generates the check function that can be performed to check whether
 // a contract was valid at runtime.
 // Note: various modifications on the mir level are needed such that these
 // checks are executed correctly.
-pub fn translate_runtime_checks(
+pub(crate) fn translate_runtime_checks(
     check_type: CheckItemType,
     check_id: SpecificationId,
     // the expression of the actual contract
@@ -113,7 +114,7 @@ pub fn translate_runtime_checks(
         check_item.sig.inputs.push(result_arg);
     }
     if check_type.gets_old_args() {
-        let old_arg = construct_old_fnarg(&function_info, span, false);
+        let old_arg = construct_old_fnarg(&function_info, span);
         // put it inside a reference:
         check_item.sig.inputs.push(old_arg);
     }
@@ -133,7 +134,7 @@ pub fn translate_runtime_checks(
     Ok(syn::Item::Fn(check_item))
 }
 
-pub fn translate_expression_runtime(
+pub(crate) fn translate_expression_runtime(
     tokens: TokenStream,
     check_id: SpecificationId,
     check_type: CheckItemType,
@@ -149,7 +150,6 @@ pub fn translate_expression_runtime(
         check_type.wrap_contract(&expr_str)
     );
     let mut expr: syn::Expr = syn::parse2(tokens)?;
-    // TODO: properly pass check types
     let mut check_visitor = CheckVisitor::new(function_info, check_type);
     check_visitor.visit_expr_mut(&mut expr);
 
@@ -174,7 +174,7 @@ pub fn translate_expression_runtime(
     })
 }
 
-pub fn generate_forget_statements(
+pub(crate) fn generate_forget_statements(
     item: &untyped::AnyFnItem,
     check_type: CheckItemType,
     span: Span,
@@ -207,28 +207,20 @@ pub fn generate_forget_statements(
     }
 }
 
-// at the moment deref is false in all use cases. Remove
-fn construct_old_fnarg(
-    function_info: &AssociatedFunctionInfo,
-    span: Span,
-    deref: bool,
-) -> syn::FnArg {
+fn construct_old_fnarg(function_info: &AssociatedFunctionInfo, span: Span) -> syn::FnArg {
     let old_values_type: syn::Type = old_values_type(span, function_info);
-    if deref {
-        parse_quote_spanned! {span =>
-            old_values: &#old_values_type
-        }
-    } else {
-        parse_quote_spanned! {span =>
-            old_values: #old_values_type
-        }
+    parse_quote_spanned! {span =>
+        old_values: #old_values_type
     }
 }
 
 /// After the visitor was run on an expression, this function
-/// can be used to generate the type of the old_values tuple
-/// important here is that it only contains the values that actually occurr
-/// in old-expressions and not just all arguments
+/// can be used to generate the type of the old_values tuple.
+/// This type is a tuple, with the same number of fields as the original
+/// function has arguments, but if the old value of an argument is never used,
+/// this index in the tuple is simply a unit type. On the MIR level we can look
+/// at this type, and figure out which arguments need to be cloned depending on
+/// if the result type contains the argument type at the corresponding index.
 fn old_values_type(span: Span, function_info: &AssociatedFunctionInfo) -> syn::Type {
     let mut old_values_type: syn::Type = parse_quote_spanned! {span => ()};
     let mut arguments = function_info.inputs.values().collect::<Vec<&Argument>>();
@@ -256,4 +248,203 @@ fn old_values_type(span: Span, function_info: &AssociatedFunctionInfo) -> syn::T
         unreachable!();
     }
     old_values_type
+}
+
+pub(crate) struct CheckVisitor {
+    pub function_info: AssociatedFunctionInfo,
+    pub check_type: CheckItemType,
+    pub within_old: bool,
+    pub within_before_expiry: bool,
+    /// Whether the current expression is part of the outermost
+    /// expression. If yes, and we encounter a conjunction or
+    /// forall quantifier, we can extend the reported error with
+    /// more precise information
+    is_outer: bool,
+    contains_conjunction: bool,
+}
+
+impl CheckVisitor {
+    pub(crate) fn new(function_info: AssociatedFunctionInfo, check_type: CheckItemType) -> Self {
+        Self {
+            function_info,
+            check_type,
+            within_old: false,
+            within_before_expiry: false,
+            is_outer: true,
+            contains_conjunction: false,
+        }
+    }
+}
+
+impl VisitMut for CheckVisitor {
+    fn visit_expr_mut(&mut self, expr: &mut syn::Expr) {
+        let was_outer = self.is_outer;
+        match expr {
+            syn::Expr::Path(expr_path) => {
+                // collect arguments that occurr within old expression
+                // these are the ones we wanna clone
+                if let Some(ident) = expr_path.path.get_ident() {
+                    let name = ident.to_token_stream().to_string();
+                    if let Some(arg) = self.function_info.get_mut_arg(&name) {
+                        // argument used within an old expression?
+                        if self.check_type.gets_old_args()
+                            && (self.within_old || (!arg.is_ref && arg.is_mutable))
+                        {
+                            // if it was not already marked to be stored
+                            // needs to be checked for indeces to be correct
+                            arg.used_in_old = true;
+                            // replace the identifier with the correct field access
+                            let index_token: TokenStream = arg.index.to_string().parse().unwrap();
+                            let new_path: syn::Expr =
+                                parse_quote_spanned! { expr.span() => (old_values.#index_token)};
+                            *expr = new_path;
+                        }
+                    } else if self.within_before_expiry && name == *"result" {
+                        let new_path: syn::Expr = parse_quote_spanned! { expr.span() =>
+                            result_before_expiry.0
+                        };
+                        *expr = new_path;
+                    }
+                }
+            }
+            syn::Expr::Call(call) => {
+                self.is_outer = false;
+                let path_expr = (*call.func).clone();
+                let name = if let Some(name) = utils::expression_name(&path_expr) {
+                    name
+                } else {
+                    // still visit recursively
+                    syn::visit_mut::visit_expr_mut(self, expr);
+                    return;
+                };
+                match name.as_str() {
+                    ":: prusti_contracts :: old" | "prusti_contracts :: old" | "old" => {
+                        // for this function we can savely try to get
+                        // more precise errors about the contents
+                        self.is_outer = was_outer;
+                        // for prusti_assert etc we can not resolve old here
+                        if self.check_type.is_inlined() {
+                            syn::visit_mut::visit_expr_call_mut(self, call);
+                            // just leave it as it is. resolve it on mir level
+                        } else {
+                            let sub_expr = call.args.pop();
+                            // remove old-call and replace with content expression
+                            *expr = sub_expr.unwrap().value().clone();
+                            self.within_old = true;
+                            self.visit_expr_mut(expr);
+                            // will cause all variables below to be replaced by old_value.some_field
+                            self.within_old = false;
+                        }
+                    }
+                    ":: prusti_contracts :: before_expiry"
+                    | "prusti_contracts :: before_expiry"
+                    | "before_expiry" => {
+                        let sub_expr = call.args.pop();
+                        *expr = sub_expr.unwrap().value().clone();
+                        // will cause all variables below to be replaced by old_value.some_field
+                        self.within_before_expiry = true;
+                        self.visit_expr_mut(expr);
+                        self.within_before_expiry = false;
+                    }
+                    ":: prusti_contracts :: forall" => {
+                        // arguments are triggers and then the closure:
+                        let quant_closure_expr: syn::Expr = call.args.last().unwrap().clone();
+                        if let syn::Expr::Closure(mut expr_closure) = quant_closure_expr {
+                            // since this is a conjunction, we can get more information about subexpressions failing
+                            // (however, if we are in no_std, we cannot report errors recursively because of limited buffer size)
+                            self.is_outer = if cfg!(feature = "std") {
+                                was_outer
+                            } else {
+                                false
+                            };
+                            self.visit_expr_mut(&mut expr_closure.body);
+                            let check_expr = translate_quantifier_expression(
+                                &expr_closure,
+                                QuantifierKind::Forall,
+                                was_outer,
+                            )
+                            .unwrap_or_else(|err| syn::parse2(err.to_compile_error()).unwrap());
+                            *expr = check_expr;
+                        }
+                    }
+                    ":: prusti_contracts :: exists" => {
+                        syn::visit_mut::visit_expr_call_mut(self, call);
+                        let closure_expression: syn::Expr = call.args.last().unwrap().clone();
+                        if let syn::Expr::Closure(expr_closure) = closure_expression {
+                            let check_expr = translate_quantifier_expression(
+                                &expr_closure,
+                                QuantifierKind::Exists,
+                                false,
+                            )
+                            .unwrap_or_else(|err| syn::parse2(err.to_compile_error()).unwrap());
+                            *expr = check_expr;
+                        }
+                    }
+                    // some cases where we want to warn users that these features
+                    // will not be checked correctly: (not complete yet)
+                    ":: prusti_contracts :: snapshot_equality"
+                    | "prusti_contracts :: snapshot_equality"
+                    | "snapshot_equality"
+                    | ":: prusti_contracts :: snap"
+                    | "prusti_contracts :: snap"
+                    | "snap" => {
+                        let message = format!(
+                            "Runtime checks: Use of unsupported feature {}",
+                            expr.to_token_stream()
+                        );
+                        expr.span().unwrap().warning(message).emit();
+                    }
+                    _ => syn::visit_mut::visit_expr_mut(self, expr),
+                }
+            }
+            // If we have a conjunction on the outer level of the expression, we can
+            // produce a more precise error.
+            syn::Expr::Binary(syn::ExprBinary {
+                left: box left,
+                op: syn::BinOp::And(_),
+                right: box right,
+                ..
+            }) if was_outer => {
+                // Figure out if the sub-expressions contain even more conjunctions.
+                // If yes, visiting the children of our current node will already
+                // procude more precise errors than we can here.
+                self.contains_conjunction = false;
+                syn::visit_mut::visit_expr_mut(self, left);
+                let left_contains_conjunction = self.contains_conjunction;
+                self.contains_conjunction = false;
+                syn::visit_mut::visit_expr_mut(self, right);
+                let right_contains_conjunction = self.contains_conjunction;
+
+                if !left_contains_conjunction {
+                    let left_str = left
+                        .span()
+                        .source_text()
+                        .unwrap_or_else(|| quote!(left).to_string());
+                    let left_error_str = format!("\n\t> expression {} was violated.", left_str);
+                    let new_left = error_messages::call_check_expr(left.clone(), left_error_str);
+                    *left = new_left;
+                }
+                if !right_contains_conjunction {
+                    let right_str = right
+                        .span()
+                        .source_text()
+                        .unwrap_or_else(|| quote!(right).to_string());
+                    let right_error_str = format!("\n\t> expression {} was violated.", right_str);
+                    let new_right = error_messages::call_check_expr(right.clone(), right_error_str);
+                    *right = new_right;
+                }
+                // signal to parent that it doesnt need to wrap this expression
+                // into a separate check function, since it will be further split up
+                self.contains_conjunction = true;
+            }
+            syn::Expr::Block(_) | syn::Expr::Paren(_) => {
+                syn::visit_mut::visit_expr_mut(self, expr);
+            }
+            _ => {
+                self.is_outer = false;
+                syn::visit_mut::visit_expr_mut(self, expr);
+            }
+        }
+        self.is_outer = was_outer;
+    }
 }

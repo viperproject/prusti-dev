@@ -1,7 +1,8 @@
 use crate::{common::HasSignature, specifications::untyped};
 use proc_macro2::Span;
 use rustc_hash::FxHashMap;
-use syn::{parse_quote, spanned::Spanned};
+use syn::{parse_quote_spanned, spanned::Spanned};
+
 /// Information about the function that a specification is attached to
 pub(crate) struct AssociatedFunctionInfo {
     /// the arguments of the associated function
@@ -9,7 +10,7 @@ pub(crate) struct AssociatedFunctionInfo {
 }
 
 impl AssociatedFunctionInfo {
-    /// used for assertions etc., where there is no associated
+    /// Used for assertions etc., where there is no associated
     /// function
     pub(crate) fn empty() -> Self {
         Self {
@@ -92,13 +93,13 @@ pub(crate) fn create_argument(arg: &syn::FnArg, index: usize) -> syn::Result<Arg
             let is_ref = reference.is_some();
             let is_mutable = mutability.is_some();
             let ty: syn::Type = if is_ref {
-                parse_quote! {&Self}
+                parse_quote_spanned! {span => &Self}
             } else {
-                parse_quote! {Self}
+                parse_quote_spanned! {span => Self}
             };
             let arg = Argument {
                 name: "self".to_string(),
-                ty, // newer versions have this field! could be useful..
+                ty,
                 used_in_old: false,
                 index,
                 is_ref,

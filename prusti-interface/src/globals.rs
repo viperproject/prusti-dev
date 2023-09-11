@@ -23,6 +23,9 @@ thread_local! {
     pub static VERIFIED_ASSERTIONS: RefCell<FxHashMap<DefId, FxHashMap<mir::BasicBlock, bool>>> = Default::default();
 }
 
+/// If we encoded assertions in the hope of being able to eliminate them, we
+/// store their locations here, so we can later eliminate them in case they
+/// don't generate an error
 pub fn add_encoded_assertion(def_id: DefId, bb: mir::BasicBlock) {
     VERIFIED_ASSERTIONS.with(|cell| {
         let mut map = cell.borrow_mut();
@@ -34,6 +37,7 @@ pub fn add_encoded_assertion(def_id: DefId, bb: mir::BasicBlock) {
     })
 }
 
+/// Mark an assertion as violated, meaning we can not eliminate it.
 pub fn set_assertion_violated(def_id: DefId, bb: mir::BasicBlock) {
     VERIFIED_ASSERTIONS.with(|cell| {
         let mut map = cell.borrow_mut();
@@ -43,6 +47,7 @@ pub fn set_assertion_violated(def_id: DefId, bb: mir::BasicBlock) {
     })
 }
 
+/// For each function returns a map telling us which assertions can be eliminated
 pub fn get_assertion_map(def_id: DefId) -> Option<FxHashMap<mir::BasicBlock, bool>> {
     VERIFIED_ASSERTIONS.with(|cell| {
         let map = cell.borrow();
@@ -50,7 +55,7 @@ pub fn get_assertion_map(def_id: DefId) -> Option<FxHashMap<mir::BasicBlock, boo
     })
 }
 
-// add the location when inserting refute(false) into encoding.
+// Add the location when inserting refute(false) into encoding.
 // Assume it's reachable, if we catch an error for it later we know it's not!
 pub fn add_reachability_check(def_id: DefId, bb: mir::BasicBlock) {
     REACHABILITY_CHECKS.with(|cell| {
@@ -77,6 +82,7 @@ pub fn get_reachability_map(def_id: DefId) -> Option<FxHashMap<mir::BasicBlock, 
     })
 }
 
+/// Store specifications and environment.
 pub fn store_spec_env<'tcx>(def_spec: DefSpecificationMap, env: Environment<'tcx>) {
     let static_env: Environment<'static> = unsafe { std::mem::transmute(env) };
     SPECS.with(|specs| {
@@ -97,10 +103,12 @@ pub fn get_env<'tcx>() -> Environment<'tcx> {
     env
 }
 
+/// Whether verification has already been executed for a specific crate
 pub fn verified(krate_id: CrateNum) -> bool {
     VERIFIED.with(|verified| verified.borrow().contains(&krate_id))
 }
 
+/// Mark a crate as verified
 pub fn set_verified(krate_id: CrateNum) {
     VERIFIED.with(|verified| verified.borrow_mut().insert(krate_id));
 }

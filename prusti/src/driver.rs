@@ -8,13 +8,12 @@
 #![feature(proc_macro_internals)]
 #![feature(decl_macro)]
 #![feature(box_patterns)]
-#![deny(unused_must_use)]
 #![feature(let_chains)]
+#![deny(unused_must_use)]
 
 mod arg_value;
 mod callbacks;
 mod verifier;
-
 mod modify_mir;
 
 use arg_value::arg_value;
@@ -190,7 +189,6 @@ fn main() {
         }
 
         // these flags influence the behavior of the ast rewriter, where we can't use config
-        // (or can we?)
         if config::debug_runtime_checks() {
             std::env::set_var("PRUSTI_DEBUG_RUNTIME_CHECKS", "true");
         }

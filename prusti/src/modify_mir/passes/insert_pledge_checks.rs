@@ -1,8 +1,7 @@
-use crate::modify_mir::mir_helper::{
-    dummy_source_info, get_block_target, get_successors, replace_target,
-};
-
 use super::super::{mir_info_collector::MirInfo, mir_modifications::MirModifier};
+use crate::modify_mir::mir_helper::{
+    dummy_source_info, fn_signature, get_goto_block_target, get_successors, replace_call_target,
+};
 use prusti_interface::{
     environment::{borrowck::facts::Loan, polonius_info::PoloniusInfo, Procedure},
     globals,
@@ -58,8 +57,8 @@ impl ExpirationLocation {
         }
     }
 }
-// we need to order them such that inserting checks will not offset other
-// modifications
+// we need to order them by descending block and statement index such that inserting
+// checks will not offset the modifications that will be inserted later
 impl PartialOrd for ExpirationLocation {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -125,31 +124,20 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
         if self.pledges_to_process.is_empty() {
             return;
         }
-        // only try to get polonius info after we know that there are indeed
-        // pledges
-        let procedure = Procedure::new(&self.body_info.env, self.def_id);
-        let polonius_info = if let Some(info) = globals::get_polonius_info(self.def_id) {
-            info
-        } else {
-            // for trusted methods this might not have been constructed before
-            if let Ok(info) =
-                PoloniusInfo::new(&self.body_info.env, &procedure, &FxHashMap::default())
-            {
-                info
-            } else {
-                // sometimes it seems to not be available for trusted methods.
-                // Example: runtime_checks tests, shape.rs
-                // I guess we don't just want to fail there, instead just don't
-                // insert pledges.
-                return;
-            }
-        };
         // apply the patch generated during visitation
         // this should only create new locals!
         let patcher_ref = self.patch_opt.take().unwrap();
         patcher_ref.into_inner().apply(body);
 
-        // assumption: only one pledge associated with a loan.
+        let procedure = Procedure::new(&self.body_info.env, self.def_id);
+        let polonius_info = if let Some(info) = globals::get_polonius_info(self.def_id) {
+            info
+        } else {
+            // for trusted methods this might not have been constructed before
+            PoloniusInfo::new(&self.body_info.env, &procedure, &FxHashMap::default()).unwrap()
+        };
+
+        // collect the loans that belong to some call with a pledge attached
         let pledge_loans: FxHashMap<Loan, mir::Place<'tcx>> = self
             .pledges_to_process
             .iter()
@@ -184,6 +172,8 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                         );
                     }
                 }
+                // For switchInts, also look at the expirations of loans on edges, since
+                // in that case they can not be found when simply looking at the location
                 if statement_index == nr_statements
                     && matches!(
                         body[bb].terminator.as_ref().unwrap().kind,
@@ -217,7 +207,8 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
             let (location, is_edge) = match modification_location {
                 ExpirationLocation::Location(loc) => (*loc, false),
                 ExpirationLocation::Edge(_, bb2) => {
-                    // in this case we need to insert before the location
+                    // in case of an edge, we will insert the check at index 0
+                    // of the block the edge points to
                     (
                         mir::Location {
                             block: *bb2,
@@ -227,14 +218,9 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                     )
                 }
             };
-            let either = body.stmt_at(location);
-            if either.is_left() || is_edge {
-                println!(
-                    "Inserting a pledge check at arbitrary position. Pledge: {:?}, location: {:?}",
-                    pledge, location
-                );
-                // it's just a statement: split the block
-                // these modifications are not possible with MirPatch!
+            let either_stmt_or_terminator = body.stmt_at(location);
+            if either_stmt_or_terminator.is_left() || is_edge {
+                // it's just a statement: split the block.
                 let bb_data = &mut body.basic_blocks_mut()[location.block];
                 let nr_stmts = bb_data.statements.len();
                 let start_index = if !is_edge {
@@ -244,30 +230,34 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                 };
                 // in the case of edges this will drain all statements
                 let after = bb_data.statements.drain(start_index..nr_stmts);
-                // create a new block:
+                // create a new block with the original block's terminator and all
+                // the statements following our location:
                 let term = bb_data.terminator.clone();
                 let mut new_bb_data = mir::BasicBlockData::new(term);
                 new_bb_data.statements = after.collect();
                 self.patch_opt = Some(MirPatch::new(body).into());
                 let new_block = self.patcher().new_block(new_bb_data);
 
-                // create the checks:
+                // create the check call chain that continues executing new_block once
+                // the checks are done:
                 let (start_block, drop_insertion_block) =
                     self.create_pledge_call_chain(&pledge, new_block).unwrap();
+                // store the drop insertion block so we can later insert the required
+                // drops
                 pledge.drop_blocks.push(drop_insertion_block);
 
                 let new_terminator = mir::TerminatorKind::Goto {
                     target: start_block,
                 };
-                // skip this check block and instead call checks-chain
+                // override the original terminator to point to our check-chain
                 self.patcher()
                     .patch_terminator(location.block, new_terminator);
                 let patcher_ref = self.patch_opt.take().unwrap();
                 patcher_ref.into_inner().apply(body);
             } else {
-                let term = either.right().unwrap();
+                // In this case, we want to insert our check after a terminator
+                let term = either_stmt_or_terminator.right().unwrap();
                 self.patch_opt = Some(MirPatch::new(body).into());
-                println!("inserting pledge expiration for terminator: {:?}", term);
                 match term.kind {
                     mir::TerminatorKind::Call {
                         target: Some(target),
@@ -281,11 +271,13 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                         pledge.drop_blocks.push(drop_insertion_block);
 
                         let mut new_call_term = term.clone();
-                        replace_target(&mut new_call_term, start_block);
+                        // After the call is finished, jump to our check-chain
+                        replace_call_target(&mut new_call_term, start_block);
                         self.patcher()
                             .patch_terminator(location.block, new_call_term.kind);
                     }
                     _ => {
+                        // Can pledges expire at other kinds of terminators?
                         println!("Encountered a pledge expiring at terminator: {:#?}, expiring at location: {:?}", term, location);
                         todo!()
                     }
@@ -303,13 +295,17 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
         self.visit_body(body);
         let patcher_ref = self.patch_opt.take().unwrap();
         patcher_ref.into_inner().apply(body);
+
         // finally, drop the old values at each expiration check:
+        // We do this here, because cloning all the values when we traverse the MIR
+        // the first time, would offset locations. Only after cloning do we actually
+        // know which values will need to be dropped.
         self.patch_opt = Some(MirPatch::new(body).into());
         for pledge in self.pledges_to_process.values() {
             for drop_block in pledge.drop_blocks.iter() {
                 // get the target of the current drop block (always a goto,
                 // exactly because we need to be able to append to it)
-                if let Some(target) = get_block_target(body, *drop_block) {
+                if let Some(target) = get_goto_block_target(body, *drop_block) {
                     let (chain_start, _) = self.create_drop_chain(
                         pledge.locals_to_drop.as_ref().unwrap().clone(),
                         Some(target),
@@ -317,6 +313,7 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                     let new_terminator = mir::TerminatorKind::Goto {
                         target: chain_start,
                     };
+                    // make the drop block, which we created earlier point the the drop chain
                     self.patcher().patch_terminator(*drop_block, new_terminator);
                 } else {
                     unreachable!();
@@ -328,6 +325,9 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
         patcher_ref.into_inner().apply(body);
     }
 
+    /// This generates a BasicBlock that does the following:
+    /// If a pledge has been created, set it's corresponding guard to true,
+    /// such that subsequent checks at expiration locations will be performed
     pub fn set_guard_true_block(
         &self,
         destination: mir::Place<'tcx>,
@@ -366,7 +366,6 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
             ..
         } = &terminator.kind
         {
-            // is a visit of the underlying things even necesary?
             if let Some((call_id, generics)) = func.const_fn_def() {
                 for check_kind in self.body_info.specs.get_runtime_checks(&call_id) {
                     if let CheckKind::Pledge {
@@ -375,13 +374,8 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                     } = check_kind
                     {
                         if self.first_pass {
-                            // TODO: pack that into a function, use correct param_env
                             let name = self.tcx.def_path_debug_str(call_id);
-                            let check_sig = self.tcx.fn_sig(check).instantiate(self.tcx, generics);
-                            let check_sig = self.tcx.normalize_erasing_late_bound_regions(
-                                ty::ParamEnv::reveal_all(),
-                                check_sig,
-                            );
+                            let check_sig = fn_signature(self.tcx, check, Some(generics));
                             let inputs = check_sig.inputs();
                             // look at the check function signature to determine
                             // which values need cloning.

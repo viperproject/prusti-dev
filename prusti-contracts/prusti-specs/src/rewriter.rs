@@ -3,7 +3,7 @@ use crate::{
     runtime_checks::{check_type::CheckItemType, translation::translate_runtime_checks},
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
-        preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
+        preparser::parse_prusti,
         untyped,
     },
 };
@@ -147,61 +147,6 @@ impl AstRewriter {
         self.generate_spec_item_fn(spec_type, spec_id, parse_prusti(tokens)?, item)
     }
 
-    pub fn create_pre_check(
-        &mut self,
-        check_id: SpecificationId,
-        tokens: TokenStream,
-        item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
-        translate_runtime_checks(
-            CheckItemType::Requires,
-            check_id,
-            parse_prusti(tokens)?,
-            item,
-        )
-    }
-
-    pub fn create_post_check(
-        &mut self,
-        check_id: SpecificationId,
-        tokens: TokenStream,
-        item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
-        translate_runtime_checks(
-            CheckItemType::Ensures,
-            check_id,
-            parse_prusti(tokens)?,
-            item,
-        )
-    }
-
-    /// Parse a pledge with lhs into a Rust expression
-    pub fn process_pledge(
-        &mut self,
-        spec_id: SpecificationId,
-        tokens: TokenStream,
-        item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
-        let parsed = parse_prusti_pledge(tokens)?;
-        let spec_item =
-            self.generate_spec_item_fn(SpecItemType::Pledge, spec_id, parsed.clone(), item)?;
-        syn::Result::Ok(spec_item)
-    }
-
-    pub fn create_pledge_check(
-        &mut self,
-        check_id: SpecificationId,
-        tokens: TokenStream,
-        item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
-        translate_runtime_checks(
-            CheckItemType::PledgeRhs { has_lhs: false },
-            check_id,
-            parse_prusti(tokens)?,
-            item,
-        )
-    }
-
     pub fn process_pure_refinement(
         &mut self,
         spec_id: SpecificationId,
@@ -231,10 +176,9 @@ impl AstRewriter {
         &mut self,
         spec_id_lhs: SpecificationId,
         spec_id_rhs: SpecificationId,
-        tokens: TokenStream,
+        (lhs, rhs): (TokenStream, TokenStream),
         item: &untyped::AnyFnItem,
     ) -> syn::Result<(syn::Item, syn::Item)> {
-        let (lhs, rhs) = parse_prusti_assert_pledge(tokens)?;
         let lhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs, item)?;
         let rhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs, item)?;
         syn::Result::Ok((lhs_item, rhs_item))
@@ -243,11 +187,9 @@ impl AstRewriter {
     pub fn create_assert_pledge_check(
         &mut self,
         check_id: SpecificationId,
-        tokens: TokenStream,
+        (lhs, rhs): (TokenStream, TokenStream),
         item: &untyped::AnyFnItem,
     ) -> syn::Result<(syn::Item, syn::Item)> {
-        // todo: move parsing out of this function..
-        let (lhs, rhs) = parse_prusti_assert_pledge(tokens)?;
         let lhs_check = translate_runtime_checks(CheckItemType::PledgeLhs, check_id, lhs, item)?;
         let rhs_check = translate_runtime_checks(
             CheckItemType::PledgeRhs { has_lhs: true },

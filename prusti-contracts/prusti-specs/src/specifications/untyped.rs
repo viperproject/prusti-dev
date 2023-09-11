@@ -9,7 +9,7 @@ pub use super::{
 };
 
 /// An abstraction over all kinds of function items.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AnyFnItem {
     Fn(syn::ItemFn),
     TraitMethod(syn::TraitItemMethod),

@@ -11,7 +11,6 @@ use std::cell::{RefCell, RefMut};
 
 /// This pass inserts precondition checks at the beginning of the
 /// body, and also in front of each function that is called
-/// (in case they have them)
 pub struct PreconditionInserter<'tcx, 'a> {
     tcx: TyCtxt<'tcx>,
     body_info: &'a MirInfo<'tcx>,
@@ -34,7 +33,7 @@ impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
         let mut inserter = Self {
             tcx,
             body_info,
-            patch_opt: None,
+            patch_opt: Some(MirPatch::new(body).into()),
             def_id,
             local_decls,
         };
@@ -42,18 +41,17 @@ impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
     }
 
     fn modify(&mut self, body: &mut mir::Body<'tcx>) {
-        let mut current_target = get_block_target(body, mir::START_BLOCK)
+        let mut current_target = get_goto_block_target(body, mir::START_BLOCK)
             .expect("Bug: Body must start with a Goto block at this stage");
-        let patch = MirPatch::new(body);
-        self.patch_opt = Some(patch.into());
         let generics = ty::GenericArgs::identity_for_item(self.tcx, self.body_info.def_id);
+        // 1. check the preconditions of the current body
         let args = args_from_body(body);
         for check_id in self.body_info.specs.get_pre_checks(&self.body_info.def_id) {
             (current_target, _) = self
                 .create_call_block(check_id, args.clone(), generics, None, Some(current_target))
                 .unwrap();
         }
-        // make the starting block (which should already be a dummy)
+        // make the starting block (which is already be a dummy goto block)
         // point to the first precondition check
         self.patcher().patch_terminator(
             mir::START_BLOCK,
@@ -66,6 +64,7 @@ impl<'tcx, 'a> PreconditionInserter<'tcx, 'a> {
         patch_ref.into_inner().apply(body);
         // new patch for other modifications:
         self.patch_opt = Some(RefCell::new(MirPatch::new(body)));
+        // Visit the body for calls where we also check their preconditions
         self.visit_body(body);
         let patch_ref = self.patch_opt.take().unwrap();
         patch_ref.into_inner().apply(body);
@@ -90,11 +89,13 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PreconditionInserter<'tcx, 'a> {
                 let mut caller_block = location.block;
                 let _current_target = target;
                 if call_id.is_local() {
-                    // If the call is local, we modify its body anyways
+                    // If the call is local, we can be sure that when the mir of
+                    // this function is processed, the precondition check will be inserted
+                    // anyways. No reason to check it twice.
                     return;
                 }
                 for check_id in self.body_info.specs.get_pre_checks(&call_id) {
-                    let return_ty = fn_return_ty(self.tcx, check_id, Some(generics));
+                    let return_ty = fn_signature(self.tcx, check_id, Some(generics)).output();
                     assert!(return_ty.is_unit());
                     let res = self.patcher().new_temp(return_ty, DUMMY_SP);
                     caller_block = self.prepend_call(

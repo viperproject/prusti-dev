@@ -248,7 +248,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         });
         compiler.session().abort_if_errors();
         if config::full_compilation() {
-            // verification moved into mir_drops_elaborated query!
             Compilation::Continue
         } else {
             Compilation::Stop
