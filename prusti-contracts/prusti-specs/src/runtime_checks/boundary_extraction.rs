@@ -233,7 +233,7 @@ impl BoundExtractor {
                     BinOp::Lt(_) | BinOp::Le(_) | BinOp::Gt(_) | BinOp::Ge(_) => {
                         // one of the two operators have to include "name" if this is
                         // is a boundary:
-                        let variables = self.find_identifiers(&expr);
+                        let variables = self.find_identifiers(expr);
                         if variables.contains(name) {
                             // might be a bound for our current variable
                             // transform it such that left is exactly x,

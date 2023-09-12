@@ -2,7 +2,11 @@
 
 use crate::{
     common::{HasMacro, HasSignature},
-    rewriter, SpecificationId, SPECS_VERSION,
+    expression_with_attributes::AttributeConsumer,
+    rewriter,
+    runtime_checks::translation::translate_predicate,
+    specifications::preparser::parse_prusti,
+    SpecificationId, SPECS_VERSION,
 };
 use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};
@@ -14,12 +18,14 @@ pub struct PredicateWithBody<T: ToTokens> {
     /// The body of the function is replaced (`unimplemented!()`)
     pub patched_function: T,
     pub spec_function: syn::Item,
+    pub check_function: Option<syn::Item>,
 }
 
 impl<T: ToTokens> ToTokens for PredicateWithBody<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.spec_function.to_tokens(tokens);
         self.patched_function.to_tokens(tokens);
+        self.check_function.to_tokens(tokens);
     }
 }
 
@@ -81,6 +87,12 @@ fn parse_predicate_internal(
     in_spec_refinement: bool,
 ) -> syn::Result<ParsedPredicate> {
     let span = tokens.span();
+    let mut attr_consumer: AttributeConsumer = syn::parse(tokens.into())?;
+    let runtime_checkable = attr_consumer
+        .get_attribute("insert_runtime_check")
+        .is_some();
+    // attr_consumer.check_no_remaining_attrs()?;
+    let tokens = attr_consumer.tokens();
     let input: PredicateFnInput = syn::parse2(tokens).map_err(|e| {
         syn::Error::new(
             e.span(),
@@ -100,36 +112,58 @@ fn parse_predicate_internal(
     if input.body.is_some() {
         let mut rewriter = rewriter::AstRewriter::new();
         let spec_id = rewriter.generate_spec_id();
+        let check_id_opt = runtime_checkable.then_some(rewriter.generate_spec_id());
 
         if in_spec_refinement {
             let patched_function: syn::ImplItemMethod =
-                patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function = generate_spec_function(
-                input.body.unwrap(),
-                return_type,
-                spec_id,
-                &patched_function,
-            )?;
+                patch_predicate_macro_body(&input, span, spec_id, check_id_opt);
+            let body = input.body.unwrap();
+            let spec_function =
+                generate_spec_function(body.clone(), return_type, spec_id, &patched_function)?;
+            let check_function = if runtime_checkable {
+                Some(translate_predicate(
+                    check_id_opt.unwrap(),
+                    parse_prusti(body)?,
+                    &patched_function,
+                )?)
+            } else {
+                None
+            };
 
             Ok(ParsedPredicate::Impl(PredicateWithBody {
                 spec_function,
                 patched_function,
+                check_function,
             }))
         } else {
-            let patched_function: syn::ItemFn = patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function = generate_spec_function(
-                input.body.unwrap(),
-                return_type,
-                spec_id,
-                &patched_function,
-            )?;
+            let patched_function: syn::ItemFn =
+                patch_predicate_macro_body(&input, span, spec_id, check_id_opt);
+            let body = input.body.unwrap();
+            let spec_function =
+                generate_spec_function(body.clone(), return_type, spec_id, &patched_function)?;
+            let check_function = if runtime_checkable {
+                Some(translate_predicate(
+                    check_id_opt.unwrap(),
+                    parse_prusti(body)?,
+                    &patched_function,
+                )?)
+            } else {
+                None
+            };
 
             Ok(ParsedPredicate::FreeStanding(PredicateWithBody {
                 spec_function,
                 patched_function,
+                check_function,
             }))
         }
     } else {
+        if runtime_checkable {
+            return Err(syn::Error::new(
+                span,
+                "Abstract predicates can not be runtime checked",
+            ));
+        }
         let signature = input.fn_sig;
         let patched_function = parse_quote_spanned!(span=>
             #[prusti::abstract_predicate]
@@ -147,14 +181,20 @@ fn patch_predicate_macro_body<R: Parse>(
     predicate: &PredicateFnInput,
     input_span: Span,
     spec_id: SpecificationId,
+    check_id_opt: Option<SpecificationId>,
 ) -> R {
     let visibility = &predicate.visibility;
     let signature = &predicate.fn_sig;
     let spec_id_str = spec_id.to_string();
+    let check_ref_attr = check_id_opt.map(|id| {
+        let check_id_str = id.to_string();
+        quote_spanned!(input_span => #[prusti::pred_check_id_ref = #check_id_str])
+    });
 
     parse_quote_spanned!(input_span=>
         #[allow(unused_must_use, unused_variables, dead_code)]
         #[prusti::pred_spec_id_ref = #spec_id_str]
+        #check_ref_attr
         #[prusti::specs_version = #SPECS_VERSION]
         #visibility #signature {
             unimplemented!("predicate")

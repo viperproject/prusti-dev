@@ -26,7 +26,7 @@ mod print_counterexample;
 mod runtime_checks;
 mod expression_with_attributes;
 
-use expression_with_attributes::ExpressionWithAttributes;
+use expression_with_attributes::AttributeConsumer;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use rewriter::AstRewriter;
@@ -597,8 +597,8 @@ fn generate_expression_closure(
     tokens: TokenStream,
     check_type: CheckItemType,
 ) -> TokenStream {
-    let mut expr_with_attrs: ExpressionWithAttributes = handle_result!(syn::parse(tokens.into()));
-    let runtime_attr = expr_with_attrs.remove_runtime_checks_attr();
+    let mut expr_with_attrs: AttributeConsumer = handle_result!(syn::parse(tokens.into()));
+    let runtime_attr = expr_with_attrs.get_attribute("insert_runtime_check");
     let tokens = expr_with_attrs.tokens();
     let prusti_tokens = handle_result!(parse_prusti(tokens));
     let mut rewriter = rewriter::AstRewriter::new();

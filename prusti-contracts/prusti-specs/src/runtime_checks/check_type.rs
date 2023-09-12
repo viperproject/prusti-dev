@@ -7,6 +7,7 @@ pub(crate) enum CheckItemType {
     Assert,
     Assume,
     BodyInvariant,
+    Predicate,
     Unchecked,
 }
 
@@ -34,7 +35,7 @@ impl CheckItemType {
         // maybe pledge_rhs should not get items either
         matches!(
             self,
-            Self::PledgeRhs { .. } | Self::Requires | Self::Ensures
+            Self::PledgeRhs { .. } | Self::Requires | Self::Ensures | Self::Predicate
         )
     }
 
@@ -61,6 +62,7 @@ impl CheckItemType {
             Self::Assert => format!("prusti_assert!({})", s),
             Self::Assume => format!("prusti_assume!({})", s),
             Self::BodyInvariant => format!("body_invariant!({})", s),
+            Self::Predicate => format!("predicate!{{ {} }}", s),
             Self::Unchecked => unreachable!(),
         }
     }
@@ -82,6 +84,7 @@ impl std::fmt::Display for CheckItemType {
             Self::Assert => write!(f, "assert"),
             Self::Assume => write!(f, "assume"),
             Self::BodyInvariant => write!(f, "body_invariant"),
+            Self::Predicate => write!(f, "predicate"),
             Self::Unchecked => unreachable!(),
         }
     }

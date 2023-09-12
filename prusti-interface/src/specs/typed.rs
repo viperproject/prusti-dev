@@ -36,6 +36,7 @@ pub enum CheckKind {
         check: DefId,
         check_before_expiry: Option<DefId>,
     },
+    Predicate(DefId),
 }
 
 impl DefSpecificationMap {
@@ -113,6 +114,23 @@ impl DefSpecificationMap {
         } else {
             Vec::new()
         }
+    }
+
+    pub fn get_predicate_check(&self, def_id: &DefId) -> Option<DefId> {
+        let mut check: Vec<DefId> = self
+            .checks
+            .get(def_id)?
+            .iter()
+            .filter_map(|el| {
+                if let CheckKind::Predicate(def_id) = el {
+                    Some(*def_id)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert!(check.len() <= 1);
+        check.pop()
     }
 
     pub(crate) fn defid_for_export(

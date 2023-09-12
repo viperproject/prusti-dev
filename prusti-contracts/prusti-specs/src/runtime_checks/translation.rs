@@ -30,7 +30,6 @@ pub(crate) fn translate_runtime_checks(
     // get signature information about the associated function
     let function_info = AssociatedFunctionInfo::new(item)?;
     let mut visitor = CheckVisitor::new(function_info, check_type);
-    // let check_translator = CheckTranslator::new(item, expr, lhs, check_type.clone());
 
     // make the expression checkable at runtime:
     let mut expr: syn::Expr = syn::parse2(tokens.clone())?;
@@ -91,6 +90,7 @@ pub(crate) fn translate_runtime_checks(
     let mut check_item: syn::ItemFn = parse_quote_spanned! {item.span() =>
         #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, forgetting_copy_types)]
         #[prusti::spec_only]
+        #[prusti::check_only]
         #id_attr
         fn #item_name() {
             #debug_print_stmt
@@ -174,8 +174,52 @@ pub(crate) fn translate_expression_runtime(
     })
 }
 
-pub(crate) fn generate_forget_statements(
-    item: &untyped::AnyFnItem,
+pub(crate) fn translate_predicate<T: HasSignature + Spanned>(
+    check_id: SpecificationId,
+    body: TokenStream,
+    item: &T,
+) -> syn::Result<syn::Item> {
+    let check_type = CheckItemType::Predicate;
+    let span = body.span();
+    // get signature information about the associated function
+    let function_info = AssociatedFunctionInfo::empty();
+    let mut visitor = CheckVisitor::new(function_info, check_type);
+
+    // make the expression checkable at runtime:
+    let mut expr: syn::Expr = syn::parse2(body.clone())?;
+    visitor.visit_expr_mut(&mut expr);
+
+    let item_name = syn::Ident::new(
+        &format!(
+            "prusti_{}_check_item_{}_{}",
+            check_type,
+            item.sig().ident,
+            check_id
+        ),
+        span,
+    );
+    let check_id_str = check_id.to_string();
+    let forget_statements = generate_forget_statements(item, check_type, span);
+
+    let mut check_item: syn::ItemFn = parse_quote_spanned! {item.span() =>
+        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, forgetting_copy_types)]
+        #[prusti::spec_only]
+        #[prusti::check_only]
+        #[prusti::check_id = #check_id_str]
+        fn #item_name() {
+            let prusti_predicate_result = #expr;
+            #forget_statements
+            prusti_predicate_result
+        }
+    };
+    check_item.sig.generics = item.sig().generics.clone();
+    check_item.sig.inputs = item.sig().inputs.clone();
+    check_item.sig.output = item.sig().output.clone();
+    Ok(syn::Item::Fn(check_item))
+}
+
+pub(crate) fn generate_forget_statements<T: HasSignature + Spanned>(
+    item: &T,
     check_type: CheckItemType,
     span: Span,
 ) -> syn::Block {

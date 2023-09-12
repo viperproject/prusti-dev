@@ -28,25 +28,30 @@ pub struct MirInfo<'tcx> {
     /// statements in which we should replace the occurrence of a function
     /// argument with their clone
     pub stmts_to_substitute_rhs: FxHashSet<mir::Location>,
+    /// the basic blocks that are marked with #[check_only] or dominated by a
+    /// block that is
+    pub check_blocks: FxHashSet<mir::BasicBlock>,
 }
 
 impl<'tcx> MirInfo<'tcx> {
     /// Given a body, collect information about it.
-    pub fn collect_mir_info<'a>(
+    pub fn collect_mir_info(
         tcx: TyCtxt<'tcx>,
         body: mir::Body<'tcx>,
         def_id: DefId,
     ) -> MirInfo<'tcx> {
         let specs = globals::get_defspec();
         let env = globals::get_env();
+        let check_blocks = collect_check_blocks(tcx, &body);
         let (args_to_be_cloned, stmts_to_substitute_rhs) =
-            determine_modifications_old_resolution(tcx, body);
+            determine_modifications_old_resolution(tcx, body, &check_blocks);
         MirInfo {
             def_id,
             specs,
             env,
             args_to_be_cloned,
             stmts_to_substitute_rhs,
+            check_blocks,
         }
     }
     // when MirInfo is no longer required, put specs and env back into global statics
@@ -62,10 +67,9 @@ impl<'tcx> MirInfo<'tcx> {
 fn determine_modifications_old_resolution<'tcx>(
     tcx: TyCtxt<'tcx>,
     body: mir::Body<'tcx>,
+    check_blocks: &FxHashSet<mir::BasicBlock>,
 ) -> (FxHashSet<mir::Local>, FxHashSet<mir::Location>) {
-    // TODO cedihegi: if check blocks are really not needed elsewhere, move their computation into
     // find_old_spans..
-    let check_blocks = collect_check_blocks(tcx, &body);
     let (old_spans, old_args) = find_old_spans_and_args(tcx, &body, check_blocks);
 
     let mut args_to_clone = FxHashSet::<mir::Local>::default();
@@ -217,10 +221,7 @@ impl<'tcx> Visitor<'tcx> for DependencyCollector<'tcx> {
     }
 }
 
-fn rvalue_dependencies<'tcx>(
-    rvalue: &mir::Rvalue<'tcx>,
-    location: mir::Location,
-) -> Vec<mir::Local> {
+fn rvalue_dependencies(rvalue: &mir::Rvalue<'_>, location: mir::Location) -> Vec<mir::Local> {
     struct RvalueVisitor {
         pub dependencies: Vec<mir::Local>,
     }
@@ -244,17 +245,17 @@ fn rvalue_dependencies<'tcx>(
 fn find_old_spans_and_args<'tcx>(
     tcx: TyCtxt<'tcx>,
     body: &mir::Body<'tcx>,
-    check_blocks: FxHashSet<mir::BasicBlock>,
+    check_blocks: &FxHashSet<mir::BasicBlock>,
 ) -> (Vec<Span>, FxHashSet<mir::Local>) {
-    struct OldSpanFinder<'tcx> {
+    struct OldSpanFinder<'tcx, 'a> {
         tcx: TyCtxt<'tcx>,
         old_spans: Vec<Span>,
         old_args: FxHashSet<mir::Local>,
-        check_blocks: FxHashSet<mir::BasicBlock>,
+        check_blocks: &'a FxHashSet<mir::BasicBlock>,
     }
     // spans of old calls need to be resolved first, so we can determine
     // whether locals are defined inside them later.
-    impl<'tcx> Visitor<'tcx> for OldSpanFinder<'tcx> {
+    impl<'tcx, 'a> Visitor<'tcx> for OldSpanFinder<'tcx, 'a> {
         fn visit_terminator(
             &mut self,
             terminator: &mir::Terminator<'tcx>,
@@ -304,7 +305,7 @@ pub fn collect_check_blocks<'tcx>(
     let env_query = EnvQuery::new(tcx);
     let mut marked_check_blocks = FxHashSet::default();
     for (bb, bb_data) in body.basic_blocks.iter_enumerated() {
-        if is_check_block(env_query, &bb_data) {
+        if is_check_block(env_query, bb_data) {
             marked_check_blocks.insert(bb);
         }
     }

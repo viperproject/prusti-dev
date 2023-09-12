@@ -1,4 +1,4 @@
-use crate::{common::HasSignature, specifications::untyped};
+use crate::common::HasSignature;
 use proc_macro2::Span;
 use rustc_hash::FxHashMap;
 use syn::{parse_quote_spanned, spanned::Spanned};
@@ -18,7 +18,7 @@ impl AssociatedFunctionInfo {
         }
     }
 
-    pub(crate) fn new(item: &untyped::AnyFnItem) -> syn::Result<Self> {
+    pub(crate) fn new<T: HasSignature + Spanned>(item: &T) -> syn::Result<Self> {
         let inputs: FxHashMap<String, Argument> = item
             .sig()
             .inputs

@@ -170,7 +170,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             check_before_expiry,
                         }
                     }
-                    // Todo: Pledges, Assume?
+                    SpecIdRef::Predicate(id) => {
+                        let fn_id = self.check_functions.get(id).unwrap();
+                        typed::CheckKind::Predicate(fn_id.to_def_id())
+                    }
                     _ => unreachable!(),
                 };
                 function_checks.push(kind);
@@ -524,6 +527,9 @@ fn get_procedure_check_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Vec<SpecI
                 rhs: parse_spec_id(x.to_string(), def_id),
             });
         });
+    read_prusti_attr("pred_check_id_ref", attrs)
+        .iter()
+        .for_each(|x| res.push(SpecIdRef::Predicate(parse_spec_id(x.to_string(), def_id))));
     res
 }
 

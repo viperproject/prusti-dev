@@ -8,12 +8,12 @@ use syn::parse::{Parse, ParseStream};
 // prusti_assert!() or similar.
 // In particular, we want to allow:
 // `prusti_assert!(#[insert_runtime_check] expr);
-pub(crate) struct ExpressionWithAttributes {
+pub(crate) struct AttributeConsumer {
     pub attributes: Vec<syn::Attribute>,
     pub rest: TokenStream,
 }
 
-impl Parse for ExpressionWithAttributes {
+impl Parse for AttributeConsumer {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let attributes = input.call(syn::Attribute::parse_outer)?;
         let rest: TokenStream = input.parse().unwrap();
@@ -22,11 +22,11 @@ impl Parse for ExpressionWithAttributes {
 }
 
 // maybe we can make this more generic so it can be used in other places..
-impl ExpressionWithAttributes {
-    pub fn remove_runtime_checks_attr(&mut self) -> Option<syn::Attribute> {
+impl AttributeConsumer {
+    pub fn get_attribute(&mut self, name: &str) -> Option<syn::Attribute> {
         if let Some(pos) = self.attributes.iter().position(|attr| {
             if let Some(ident) = attr.path.get_ident() {
-                if &ident.to_string() == "insert_runtime_check" {
+                if *ident == name {
                     return true;
                 }
             }
@@ -38,9 +38,22 @@ impl ExpressionWithAttributes {
         }
     }
 
+    // /// A function that can be used to check that all attributes have been
+    // /// consumed. Returns an error with the span of the first remaining attribute
+    // pub fn check_no_remaining_attrs(&self) -> syn::Result<()> {
+    //     if let Some(attr) = self.attributes.first() {
+    //         Err(syn::Error::new(
+    //             attr.span(),
+    //             "This attribute could not be processed and probably doesn't belong here",
+    //         ))
+    //     } else {
+    //         Ok(())
+    //     }
+    // }
+
     pub fn tokens(self) -> TokenStream {
         let Self { attributes, rest } = self;
-        let mut attrs: TokenStream = attributes.into_iter().map(|attr| attr.tokens).collect();
+        let mut attrs: TokenStream = attributes.into_iter().map(|attr| quote!(#attr)).collect();
         attrs.extend(quote!(#rest));
         attrs
     }
