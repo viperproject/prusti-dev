@@ -134,6 +134,11 @@ pub(crate) fn translate_runtime_checks(
     Ok(syn::Item::Fn(check_item))
 }
 
+/// Translate a single expression, as contained in specifications such as
+/// prusti_assert. Contrary to the other translations, this does not generate
+/// a function, but simply a block of code that will be put into user code.
+/// To mark this block as part of a runtime check, it starts with a closure that
+/// has some attributes.
 pub(crate) fn translate_expression_runtime(
     tokens: TokenStream,
     check_id: SpecificationId,
@@ -174,6 +179,9 @@ pub(crate) fn translate_expression_runtime(
     })
 }
 
+/// Translates a predicate to an executable function.
+/// This is yet another separate function, because the function we generate here differs
+/// from other check functions since we don't actually check any conditions within a predicate.
 pub(crate) fn translate_predicate<T: HasSignature + Spanned>(
     check_id: SpecificationId,
     body: TokenStream,
@@ -218,6 +226,10 @@ pub(crate) fn translate_predicate<T: HasSignature + Spanned>(
     Ok(syn::Item::Fn(check_item))
 }
 
+/// Since spec and check functions have the same signatures as the function they
+/// are attached to, actually executing causes them to take ownership of values
+/// and freeing them in some cases. Inserting these forget statements avoids
+/// values being freed within check functions.
 pub(crate) fn generate_forget_statements<T: HasSignature + Spanned>(
     item: &T,
     check_type: CheckItemType,
@@ -294,16 +306,23 @@ fn old_values_type(span: Span, function_info: &AssociatedFunctionInfo) -> syn::T
     old_values_type
 }
 
+/// The visitor that goes through the AST, finds expressions that need to be
+/// modified to make them executable, and performs these optimizations
 pub(crate) struct CheckVisitor {
+    /// Information about the function this specification is attached to
     pub function_info: AssociatedFunctionInfo,
+    /// The type of specification
     pub check_type: CheckItemType,
-    pub within_old: bool,
-    pub within_before_expiry: bool,
+    /// Used while traversing: set if we are in a child of an old-call
+    within_old: bool,
+    /// Just like `within_old`, for `before_expiry`
+    within_before_expiry: bool,
     /// Whether the current expression is part of the outermost
-    /// expression. If yes, and we encounter a conjunction or
+    /// conjunction. If yes, and we encounter a conjunction or
     /// forall quantifier, we can extend the reported error with
     /// more precise information
     is_outer: bool,
+    /// Used to signal to a parent that an expression contains a conjunction
     contains_conjunction: bool,
 }
 
@@ -366,32 +385,34 @@ impl VisitMut for CheckVisitor {
                         // for this function we can savely try to get
                         // more precise errors about the contents
                         self.is_outer = was_outer;
-                        // for prusti_assert etc we can not resolve old here
                         if self.check_type.is_inlined() {
-                            syn::visit_mut::visit_expr_call_mut(self, call);
+                            // for prusti_assert etc we can not resolve old here
                             // just leave it as it is. resolve it on mir level
+                            syn::visit_mut::visit_expr_call_mut(self, call);
                         } else {
-                            let sub_expr = call.args.pop();
                             // remove old-call and replace with content expression
+                            let sub_expr = call.args.pop();
                             *expr = sub_expr.unwrap().value().clone();
+                            // Signal to children that all occurrences of function arguments should
+                            // be replaced with `old_values.index`
                             self.within_old = true;
                             self.visit_expr_mut(expr);
-                            // will cause all variables below to be replaced by old_value.some_field
                             self.within_old = false;
                         }
                     }
                     ":: prusti_contracts :: before_expiry"
                     | "prusti_contracts :: before_expiry"
                     | "before_expiry" => {
+                        // Same thing as for old, except that this can not occurr in
+                        // inlined specs
                         let sub_expr = call.args.pop();
                         *expr = sub_expr.unwrap().value().clone();
-                        // will cause all variables below to be replaced by old_value.some_field
                         self.within_before_expiry = true;
                         self.visit_expr_mut(expr);
                         self.within_before_expiry = false;
                     }
                     ":: prusti_contracts :: forall" => {
-                        // arguments are triggers and then the closure:
+                        // Get the closure argument of the quantifier. Disregard triggers.
                         let quant_closure_expr: syn::Expr = call.args.last().unwrap().clone();
                         if let syn::Expr::Closure(mut expr_closure) = quant_closure_expr {
                             // since this is a conjunction, we can get more information about subexpressions failing
@@ -424,7 +445,7 @@ impl VisitMut for CheckVisitor {
                             *expr = check_expr;
                         }
                     }
-                    // some cases where we want to warn users that these features
+                    // some cases where we want to warn users that certain prusti features
                     // will not be checked correctly: (not complete yet)
                     ":: prusti_contracts :: snapshot_equality"
                     | "prusti_contracts :: snapshot_equality"
@@ -451,7 +472,7 @@ impl VisitMut for CheckVisitor {
             }) if was_outer => {
                 // Figure out if the sub-expressions contain even more conjunctions.
                 // If yes, visiting the children of our current node will already
-                // procude more precise errors than we can here.
+                // produce more precise errors than we can here.
                 self.contains_conjunction = false;
                 syn::visit_mut::visit_expr_mut(self, left);
                 let left_contains_conjunction = self.contains_conjunction;
@@ -477,10 +498,11 @@ impl VisitMut for CheckVisitor {
                     let new_right = error_messages::call_check_expr(right.clone(), right_error_str);
                     *right = new_right;
                 }
-                // signal to parent that it doesnt need to wrap this expression
-                // into a separate check function, since it will be further split up
+                // signal to parent that it doesnt need to report a precise error for this
+                // expression, since we already produce a more precise error here
                 self.contains_conjunction = true;
             }
+            // Make sure simple brackets don't stop us from producing precise errors
             syn::Expr::Block(_) | syn::Expr::Paren(_) => {
                 syn::visit_mut::visit_expr_mut(self, expr);
             }

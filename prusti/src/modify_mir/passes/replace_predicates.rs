@@ -24,11 +24,9 @@ impl<'tcx, 'a> PredicateReplacer<'tcx, 'a> {
         def_id: DefId,
         body: &mut mir::Body<'tcx>,
     ) {
-        println!("replacing predicates in function: {:?}", def_id);
         // 1. figure out if this itself is a check function:
         let env_query = EnvQuery::new(tcx);
         let is_check_fn = utils::has_check_only_attr(env_query.get_attributes(def_id));
-        println!("is check function: {}", is_check_fn);
         let mut replacer = Self {
             tcx,
             env_query,
@@ -60,12 +58,10 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PredicateReplacer<'tcx, 'a> {
             if let Some((call_id, generics)) = func.const_fn_def() {
                 // check if the called function is a predicate, and also if it has
                 let attrs = self.env_query.get_attributes(call_id);
-                println!("handling call to {:?}", call_id);
                 if !utils::has_prusti_attr(attrs, "pred_spec_id_ref") {
                     // not a predicate, nothing to be done
                     return;
                 }
-                println!("Call {:?} is being replaced", call_id);
                 if let Some(check_id) = self.body_info.specs.get_predicate_check(&call_id) {
                     let func_ty = self
                         .tcx

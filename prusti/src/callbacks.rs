@@ -78,16 +78,18 @@ fn mir_promoted<'tcx>(
     result
 }
 
-// a copy of the rust compilers implementation of this query +
-// + verification on its first call
-// + dead code elimination if enabled
-// + insertion of runtime checks if enabled
+/// a copy of the rust compilers implementation of this query +
+/// + verification on its first call
+/// + dead code elimination if enabled
+/// + insertion of runtime checks if enabled
 pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<mir::Body<'_>> {
     // run verification here, otherwise we can't rely on results in
     // drops elaborated
-    // make sure mir was constructed
     let def_id = def.to_def_id();
     let default_query = DEFAULT_QUERY_PROVIDERS.mir_drops_elaborated_and_const_checked;
+    // For constant items, mir_drops_elaborated is constructed before mir_promoted
+    // is constructed for other items. If we go into verification at this point this
+    // will lead to problems.
     if config::no_verify() || !is_non_const_function(tcx, def_id) {
         return default_query(tcx, def);
     }
@@ -95,7 +97,7 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
         globals::set_verified(def_id.krate);
         // make sure mir_promoted was created. Usually this is the case
         // but in some testcases it wasn't
-        if let Ok((def_spec, env)) = get_specs(tcx, None) {
+        if let Ok((def_spec, env)) = obtain_specs(tcx, None) {
             let env = verify(env, def_spec.clone());
             globals::store_spec_env(def_spec, env);
         } else {
@@ -104,7 +106,8 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
         }
     }
 
-    // original compiler code
+    // original compiler code: make sure it's up to date from time to time
+    // source: https://github.com/rust-lang/rust/blob/master/compiler/rustc_mir_transform/src/lib.rs
     if tcx.sess.opts.unstable_opts.drop_tracking_mir
         && let DefKind::Generator = tcx.def_kind(def)
     {
@@ -235,9 +238,11 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         queries.global_ctxt().unwrap().enter(|tcx| {
+            // because of runtime checks, verification might already have happened in
+            // drops elaborated query. This avoids verifying multiple times.
             if !globals::verified(LOCAL_CRATE) {
                 // already stops if we had an error
-                let (def_spec, env) = get_specs(tcx, Some(compiler)).unwrap();
+                let (def_spec, env) = obtain_specs(tcx, Some(compiler)).unwrap();
                 if !config::no_verify() {
                     let env = verify(env, def_spec.clone());
 
@@ -255,11 +260,12 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     }
 }
 
+/// Check if a def_id belongs to a constant function
 fn is_non_const_function(tcx: TyCtxt<'_>, def_id: DefId) -> bool {
     matches!(tcx.def_kind(def_id), DefKind::Fn | DefKind::AssocFn) && !tcx.is_const_fn(def_id)
 }
 
-pub fn get_specs<'tcx>(
+pub fn obtain_specs<'tcx>(
     tcx: TyCtxt<'tcx>,
     compiler_opt: Option<&Compiler>,
 ) -> Result<(DefSpecificationMap, Environment<'tcx>), ()> {
