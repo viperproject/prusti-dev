@@ -177,11 +177,11 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     let (resolved_gens, current_gens) = (
                         self.env_query
                             .identity_substs(resolved_def_id)
-                            .non_erasable_generics()
+                            .non_erasable_generics(self.env_query.tcx(), resolved_def_id)
                             .count(),
                         self.env_query
                             .identity_substs(current_def_id)
-                            .non_erasable_generics()
+                            .non_erasable_generics(self.env_query.tcx(), current_def_id)
                             .count(),
                     );
                     if resolved_gens != current_gens {
