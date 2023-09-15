@@ -4,11 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::errors::MultiSpan;
-use log::{debug, error};
-use crate::encoder::errors::SpannedEncodingError;
-use crate::encoder::errors::EncodingErrorKind;
+use crate::encoder::errors::{EncodingErrorKind, SpannedEncodingError};
 use backtrace::Backtrace;
+use log::{debug, error};
+use prusti_rustc_interface::errors::MultiSpan;
 
 /// An error in the encoding with *optional* information regarding the source code span.
 #[derive(Clone, Debug)]

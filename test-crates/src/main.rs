@@ -4,6 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use clap::Parser;
+use log::{error, info, warn, LevelFilter};
+use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, Workspace, WorkspaceBuilder};
+use serde::Deserialize;
 use std::{
     env,
     error::Error,
@@ -11,10 +15,6 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use log::{error, info, warn, LevelFilter};
-use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, Workspace, WorkspaceBuilder};
-use serde::Deserialize;
-use clap::Parser;
 
 /// How a crate should be tested. All tests use `check_panics=false`, `check_overflows=false` and
 /// `skip_unsupported_features=true`.
@@ -145,17 +145,21 @@ struct Args {
     shard_index: usize,
 }
 
-fn attempt_fetch(krate: &Crate, workspace: &Workspace, num_retries: u8) -> Result<(), failure::Error> {
+fn attempt_fetch(
+    krate: &Crate,
+    workspace: &Workspace,
+    num_retries: u8,
+) -> Result<(), failure::Error> {
     let mut i = 0;
     while i < num_retries + 1 {
         if let Err(err) = krate.fetch(workspace) {
             warn!("Error fetching crate {}: {}", krate, err);
             if i == num_retries {
                 // Last attempt failed, return the error
-                return Err(err)
+                return Err(err);
             }
         } else {
-            return Ok(())
+            return Ok(());
         }
         i += 1;
     }
@@ -231,7 +235,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             .collect::<Result<Vec<CrateRecord>, _>>()?
             .into_iter()
             .filter(|record| record.name.contains(&args.filter_crate_name))
-            .map(|record| (Crate::crates_io(&record.name, &record.version), record.test_kind))
+            .map(|record| {
+                (
+                    Crate::crates_io(&record.name, &record.version),
+                    record.test_kind,
+                )
+            })
             .collect();
     info!("There are {} crates in total.", crates_list.len());
 
@@ -242,8 +251,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     // List of crates on which Prusti succeed.
     let mut successful_crates = vec![];
 
-    let shard_crates_list: Vec<&(Crate, TestKind)> = crates_list.iter().skip(args.shard_index)
-        .step_by(args.num_shards).collect();
+    let shard_crates_list: Vec<&(Crate, TestKind)> = crates_list
+        .iter()
+        .skip(args.shard_index)
+        .step_by(args.num_shards)
+        .collect();
     info!(
         "Iterate over the {} crates of the shard {}/{}...",
         shard_crates_list.len(),
@@ -251,7 +263,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.num_shards,
     );
     for (index, (krate, test_kind)) in shard_crates_list.iter().enumerate() {
-        info!("Crate {}/{}: {}, test kind: {:?}", index, shard_crates_list.len(), krate, test_kind);
+        info!(
+            "Crate {}/{}: {}, test kind: {:?}",
+            index,
+            shard_crates_list.len(),
+            krate,
+            test_kind
+        );
 
         if let TestKind::Skip = test_kind {
             info!("Skip crate");
@@ -303,11 +321,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     guest_prusti_home,
                     cmd::MountKind::ReadOnly,
                 )
-                .mount(
-                    host_viper_home,
-                    guest_viper_home,
-                    cmd::MountKind::ReadOnly,
-                )
+                .mount(host_viper_home, guest_viper_home, cmd::MountKind::ReadOnly)
                 .mount(host_z3_home, guest_z3_home, cmd::MountKind::ReadOnly)
                 .mount(&host_java_home, &guest_java_home, cmd::MountKind::ReadOnly);
             for java_policy_path in &host_java_policies {
@@ -320,7 +334,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let verification_status = build_dir.build(&toolchain, krate, sandbox).run(|build| {
                 logging::capture(&storage, || {
-                    let mut command = build.cmd(&cargo_prusti)
+                    let mut command = build
+                        .cmd(&cargo_prusti)
                         .env("RUST_BACKTRACE", "1")
                         .env("PRUSTI_ASSERT_TIMEOUT", "60000")
                         .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
@@ -331,13 +346,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true");
                     match test_kind {
                         TestKind::NoErrorsWithUnreachableUnsupportedCode => {
-                            command = command.env("PRUSTI_ALLOW_UNREACHABLE_UNSUPPORTED_CODE", "true");
+                            command =
+                                command.env("PRUSTI_ALLOW_UNREACHABLE_UNSUPPORTED_CODE", "true");
                         }
-                        TestKind::NoErrors => {},
+                        TestKind::NoErrors => {}
                         TestKind::NoCrash => {
                             // Report internal errors as warnings
                             command = command.env("PRUSTI_INTERNAL_ERRORS_AS_WARNINGS", "true");
-                        },
+                        }
                         TestKind::Skip => {
                             unreachable!();
                         }
@@ -386,7 +402,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // Panic
-    assert!(failed_crates.is_empty(), "Failed to verify {} crates", failed_crates.len());
+    assert!(
+        failed_crates.is_empty(),
+        "Failed to verify {} crates",
+        failed_crates.len()
+    );
 
     Ok(())
 }
