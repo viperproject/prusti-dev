@@ -27,7 +27,7 @@ pub struct PersistentCache {
     data: FxHashMap<u64, VerificationResult>,
 }
 
-const RESULT_CACHE_VERSION: u64 = 3;
+const RESULT_CACHE_VERSION: u64 = 4;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct ResultCache {
