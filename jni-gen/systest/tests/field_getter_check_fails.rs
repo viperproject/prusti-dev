@@ -1,11 +1,11 @@
 use jni::objects::JObject;
-use systest::get_jvm;
-use systest::print_exception;
-use systest::wrappers::*;
+use systest::{get_jvm, print_exception, wrappers::*};
 
 #[test]
 #[cfg(debug_assertions)]
-#[should_panic(expected = "Java binding type failure. Expected object of class java/lang/Error, but got java/lang/Integer instead")]
+#[should_panic(
+    expected = "Java binding type failure. Expected object of class java/lang/Error, but got java/lang/Integer instead"
+)]
 fn field_getter_should_fail_on_wrong_receiver() {
     let jvm = get_jvm().expect("failed go get jvm reference");
 
@@ -18,7 +18,8 @@ fn field_getter_should_fail_on_wrong_receiver() {
         let integer_object = java::lang::Integer::with(&env).new(1337)?;
         let _result = error_wrapper.get_detailMessage(integer_object);
         Ok(JObject::null())
-    }).unwrap_or_else(|e| {
+    })
+    .unwrap_or_else(|e| {
         print_exception(&env);
         panic!("{} source: {:?}", e, std::error::Error::source(&e));
     });

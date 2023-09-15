@@ -5,18 +5,25 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
-/// Module that allows querying the initialisation information.
-use vir_crate::polymorphic as vir;
-use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
-use prusti_interface::environment::mir_sets::PlaceSet;
-use prusti_interface::utils::expand_one_level;
-use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::middle::{mir, ty::{self, TyCtxt}};
+use prusti_interface::{
+    environment::{
+        mir_analyses::initialization::compute_definitely_initialized, mir_sets::PlaceSet,
+    },
+    utils::expand_one_level,
+};
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{
+        mir,
+        ty::{self, TyCtxt},
+    },
+};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
+/// Module that allows querying the initialisation information.
+use vir_crate::polymorphic as vir;
 
 use crate::encoder::errors::EncodingResult;
-
 
 pub struct InitInfo {
     //mir_acc_before_block: FxHashMap<mir::BasicBlock, FxHashSet<mir::Place<'tcx>>>,
@@ -30,7 +37,7 @@ pub struct InitInfo {
 fn explode<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    place_set: PlaceSet<'tcx>
+    place_set: PlaceSet<'tcx>,
 ) -> FxHashSet<mir::Place<'tcx>> {
     let mut result = FxHashSet::default();
     for guide_place in place_set.into_iter() {

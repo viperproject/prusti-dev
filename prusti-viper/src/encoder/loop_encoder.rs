@@ -4,14 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_interface::environment::mir_analyses::initialization::{
-    compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
-};
-use prusti_interface::environment::mir_sets::PlaceSet;
-use prusti_interface::environment::{BasicBlockIndex, LoopAnalysisError, PermissionForest, ProcedureLoops, Procedure};
-use prusti_interface::utils;
-use prusti_rustc_interface::middle::{mir, ty};
 use log::debug;
+use prusti_interface::{
+    environment::{
+        mir_analyses::initialization::{
+            compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
+        },
+        mir_sets::PlaceSet,
+        BasicBlockIndex, LoopAnalysisError, PermissionForest, Procedure, ProcedureLoops,
+    },
+    utils,
+};
+use prusti_rustc_interface::middle::{mir, ty};
 
 pub enum LoopEncoderError {
     LoopInvariantInBranch(BasicBlockIndex),
@@ -24,10 +28,7 @@ pub struct LoopEncoder<'p, 'tcx: 'p> {
 }
 
 impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
-    pub fn new(
-        procedure: &'p Procedure<'tcx>,
-        tcx: ty::TyCtxt<'tcx>,
-    ) -> Self {
+    pub fn new(procedure: &'p Procedure<'tcx>, tcx: ty::TyCtxt<'tcx>) -> Self {
         LoopEncoder {
             procedure,
             tcx,
@@ -72,7 +73,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
     pub fn compute_loop_invariant(
         &self,
         bb: BasicBlockIndex,
-        bb_inv: BasicBlockIndex
+        bb_inv: BasicBlockIndex,
     ) -> Result<PermissionForest<'p, 'tcx>, LoopAnalysisError> {
         assert!(self.is_loop_head(bb));
 
@@ -116,8 +117,14 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
         }
 
         // Construct the permission forest.
-        let forest =
-            PermissionForest::new(self.procedure.get_mir(), self.tcx, &write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
+        let forest = PermissionForest::new(
+            self.procedure.get_mir(),
+            self.tcx,
+            &write_leaves,
+            &mut_borrow_leaves,
+            &read_leaves,
+            &all_places,
+        );
 
         Ok(forest)
     }
@@ -134,7 +141,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
     #[tracing::instrument(level = "debug", skip(self))]
     pub fn get_loop_invariant_block(
         &self,
-        loop_head: BasicBlockIndex
+        loop_head: BasicBlockIndex,
     ) -> Result<BasicBlockIndex, LoopEncoderError> {
         let loop_info = self.loops();
         debug_assert!(loop_info.is_loop_head(loop_head));
@@ -142,13 +149,13 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
 
         let loop_body: Vec<BasicBlockIndex> = loop_info
             .get_loop_body(loop_head)
-            .iter().copied()
+            .iter()
+            .copied()
             .filter(|&bb| !self.procedure.is_spec_block(bb))
             .collect();
 
-        let opt_before_invariant_block: Option<BasicBlockIndex> = loop_body
-            .iter().copied()
-            .find(|&bb| {
+        let opt_before_invariant_block: Option<BasicBlockIndex> =
+            loop_body.iter().copied().find(|&bb| {
                 // Find the user-defined invariant
                 loop_info.get_loop_depth(bb) == loop_depth
                     && self.mir()[bb].terminator().successors().any(|succ_bb| {
@@ -172,10 +179,12 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
             // HEURISTIC: place the invariant after the first boolean exit block in a
             // non-conditional branch. If there is none, place the invariant at the loop head.
             let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
-            let before_invariant_block = loop_exit_blocks.iter().copied()
+            let before_invariant_block = loop_exit_blocks
+                .iter()
+                .copied()
                 .find(|&bb| {
                     self.procedure.successors(bb).len() == 2
-                    && !loop_info.is_conditional_branch(loop_head, bb)
+                        && !loop_info.is_conditional_branch(loop_head, bb)
                 })
                 .unwrap_or(loop_head);
             Ok(before_invariant_block)
