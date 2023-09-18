@@ -192,9 +192,10 @@ fn main() {
         if config::debug_runtime_checks() {
             std::env::set_var("PRUSTI_DEBUG_RUNTIME_CHECKS", "true");
         }
-        if config::runtime_check_all_contracts() {
-            std::env::set_var("PRUSTI_RUNTIME_CHECK_ALL_CONTRACTS", "true");
-        }
+        std::env::set_var(
+            "PRUSTI_INSERT_RUNTIME_CHECKS",
+            config::insert_runtime_checks(),
+        );
 
         let mut callbacks = PrustiCompilerCalls;
 

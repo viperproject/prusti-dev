@@ -12,6 +12,7 @@ use crate::{
 
 // data that is persistent across queries will be stored here.
 thread_local! {
+    pub static CHECK_ERROR: RefCell<bool> = RefCell::new(false);
     pub static SPECS: RefCell<Option<DefSpecificationMap>> = RefCell::new(None);
     pub static ENV: RefCell<Option<Environment<'static>>> = RefCell::new(None);
     pub static VERIFIED: RefCell<FxHashSet<CrateNum>> = RefCell::new(Default::default());
@@ -21,6 +22,14 @@ thread_local! {
     // for each encoded assertion, after verification stores true if this assertion
     // will never panic, or false if it possibly panics (after verification)
     pub static VERIFIED_ASSERTIONS: RefCell<FxHashMap<DefId, FxHashMap<mir::BasicBlock, bool>>> = Default::default();
+}
+
+pub fn set_check_error() {
+    CHECK_ERROR.with(|cell| *cell.borrow_mut() = true)
+}
+
+pub fn get_check_error() -> bool {
+    CHECK_ERROR.with(|cell| *cell.borrow())
 }
 
 /// If we encoded assertions in the hope of being able to eliminate them, we

@@ -64,8 +64,8 @@ where
             config::debug_runtime_checks().to_string(),
         )
         .env(
-            "PRUSTI_RUNTIME_CHECK_ALL_CONTRACTS",
-            config::debug_runtime_checks().to_string(),
+            "PRUSTI_INSERT_RUNTIME_CHECKS",
+            config::insert_runtime_checks(),
         )
         // Category A* flags:
         .env("DEFAULT_PRUSTI_QUIET", "true")

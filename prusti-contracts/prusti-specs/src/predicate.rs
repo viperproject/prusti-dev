@@ -1,8 +1,8 @@
 //! Predicate parsing
 
 use crate::{
-    common::{HasMacro, HasSignature},
-    expression_with_attributes::AttributeConsumer,
+    attribute_consumer::AttributeConsumer,
+    common::{HasMacro, HasSignature, RuntimeCheckMode},
     rewriter,
     runtime_checks::translation::translate_predicate,
     specifications::preparser::parse_prusti,
@@ -18,14 +18,12 @@ pub struct PredicateWithBody<T: ToTokens> {
     /// The body of the function is replaced (`unimplemented!()`)
     pub patched_function: T,
     pub spec_function: syn::Item,
-    pub check_function: Option<syn::Item>,
 }
 
 impl<T: ToTokens> ToTokens for PredicateWithBody<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.spec_function.to_tokens(tokens);
         self.patched_function.to_tokens(tokens);
-        self.check_function.to_tokens(tokens);
     }
 }
 
@@ -88,9 +86,10 @@ fn parse_predicate_internal(
 ) -> syn::Result<ParsedPredicate> {
     let span = tokens.span();
     let mut attr_consumer: AttributeConsumer = syn::parse(tokens.into())?;
-    let runtime_checkable = attr_consumer
+    let has_runtime_attr = attr_consumer
         .get_attribute("insert_runtime_check")
         .is_some();
+    let runtime_checkable = RuntimeCheckMode::determine().decide_insertion(has_runtime_attr);
     // attr_consumer.check_no_remaining_attrs()?;
     let tokens = attr_consumer.tokens();
     let input: PredicateFnInput = syn::parse2(tokens).map_err(|e| {
@@ -112,49 +111,34 @@ fn parse_predicate_internal(
     if input.body.is_some() {
         let mut rewriter = rewriter::AstRewriter::new();
         let spec_id = rewriter.generate_spec_id();
-        let check_id_opt = runtime_checkable.then_some(rewriter.generate_spec_id());
 
         if in_spec_refinement {
             let patched_function: syn::ImplItemMethod =
-                patch_predicate_macro_body(&input, span, spec_id, check_id_opt);
-            let body = input.body.unwrap();
-            let spec_function =
-                generate_spec_function(body.clone(), return_type, spec_id, &patched_function)?;
-            let check_function = if runtime_checkable {
-                Some(translate_predicate(
-                    check_id_opt.unwrap(),
-                    parse_prusti(body)?,
-                    &patched_function,
-                )?)
-            } else {
-                None
-            };
+                patch_predicate_macro_body(&input, span, spec_id, runtime_checkable)?;
+            let spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                &patched_function,
+            )?;
 
             Ok(ParsedPredicate::Impl(PredicateWithBody {
                 spec_function,
                 patched_function,
-                check_function,
             }))
         } else {
             let patched_function: syn::ItemFn =
-                patch_predicate_macro_body(&input, span, spec_id, check_id_opt);
-            let body = input.body.unwrap();
-            let spec_function =
-                generate_spec_function(body.clone(), return_type, spec_id, &patched_function)?;
-            let check_function = if runtime_checkable {
-                Some(translate_predicate(
-                    check_id_opt.unwrap(),
-                    parse_prusti(body)?,
-                    &patched_function,
-                )?)
-            } else {
-                None
-            };
+                patch_predicate_macro_body(&input, span, spec_id, runtime_checkable)?;
+            let spec_function = generate_spec_function(
+                input.body.unwrap(),
+                return_type,
+                spec_id,
+                &patched_function,
+            )?;
 
             Ok(ParsedPredicate::FreeStanding(PredicateWithBody {
                 spec_function,
                 patched_function,
-                check_function,
             }))
         }
     } else {
@@ -177,29 +161,38 @@ fn parse_predicate_internal(
     }
 }
 
+/// Either sets the predicates body to unimplemented, or (in case it should
+/// be runtime checkable) with the translated runtime check
 fn patch_predicate_macro_body<R: Parse>(
     predicate: &PredicateFnInput,
     input_span: Span,
     spec_id: SpecificationId,
-    check_id_opt: Option<SpecificationId>,
-) -> R {
+    runtime_checkable: bool,
+) -> syn::Result<R> {
     let visibility = &predicate.visibility;
     let signature = &predicate.fn_sig;
     let spec_id_str = spec_id.to_string();
-    let check_ref_attr = check_id_opt.map(|id| {
-        let check_id_str = id.to_string();
-        quote_spanned!(input_span => #[prusti::pred_check_id_ref = #check_id_str])
-    });
+    let body = if runtime_checkable {
+        translate_predicate(
+            parse_prusti(predicate.body.clone().unwrap())?,
+            predicate,
+            input_span,
+        )?
+    } else {
+        quote_spanned! {input_span => unimplemented!("predicate")}
+    };
+    let check_attr =
+        runtime_checkable.then_some(quote_spanned! {input_span => #[prusti::check_only]});
 
-    parse_quote_spanned!(input_span=>
-        #[allow(unused_must_use, unused_variables, dead_code)]
+    Ok(parse_quote_spanned!(input_span=>
+        #[allow(unused_must_use, unused_variables, dead_code, forgetting_copy_types)]
         #[prusti::pred_spec_id_ref = #spec_id_str]
-        #check_ref_attr
         #[prusti::specs_version = #SPECS_VERSION]
+        #check_attr
         #visibility #signature {
-            unimplemented!("predicate")
+            #body
         }
-    )
+    ))
 }
 
 fn generate_spec_function<T: HasSignature + Spanned>(
@@ -245,5 +238,15 @@ impl syn::parse::Parse for PredicateFnInput {
             fn_sig,
             body,
         })
+    }
+}
+
+impl HasSignature for PredicateFnInput {
+    fn sig(&self) -> &syn::Signature {
+        &self.fn_sig
+    }
+
+    fn sig_mut(&mut self) -> &mut syn::Signature {
+        &mut self.fn_sig
     }
 }

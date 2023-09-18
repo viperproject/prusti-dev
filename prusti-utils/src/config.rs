@@ -146,9 +146,8 @@ lazy_static::lazy_static! {
         settings.set_default("cargo_path", "cargo").unwrap();
         settings.set_default("cargo_command", "check").unwrap();
 
-        settings.set_default("insert_runtime_checks", "false").unwrap();
+        settings.set_default("insert_runtime_checks", "never").unwrap();
         settings.set_default("debug_runtime_checks", "false").unwrap();
-        settings.set_default("runtime_check_all_contracts", "false").unwrap();
         settings.set_default("remove_dead_code", "false").unwrap();
 
         // Flags for testing.
@@ -1036,24 +1035,23 @@ pub fn num_errors_per_function() -> u32 {
     read_setting("num_errors_per_function")
 }
 
-/// When enabled, insert runtime checks into generated executables
+/// Whether checks for contracts should be inserted into the generated
+/// executables
+/// Options:
+/// * `never`: don't check any contracts, even if annotated
+/// * `selective`: check the contracts annotated with #[insert_runtime_check] attribute
+/// * `all`: check all contracts. Note: if any contract contains unsupported features
+///     this will fail.
 /// for methods marked with #[insert_runtime_check]
-pub fn insert_runtime_checks() -> bool {
+pub fn insert_runtime_checks() -> String {
     read_setting("insert_runtime_checks")
 }
 
 /// When enabled, runtime check will print messages to stdout
 /// when they are executed. Used to check that they are
-/// properly inserted / performed
+/// properly inserted / performed, for example for tests
 pub fn debug_runtime_checks() -> bool {
     read_setting("debug_runtime_checks")
-}
-
-/// When enabled, instead of having to mark every method with
-/// #[insert_runtime_check] for it to be checked at runtime,
-/// simply try to check all contracts at runtime
-pub fn runtime_check_all_contracts() -> bool {
-    read_setting("runtime_check_all_contracts")
 }
 
 /// Try to use verification to identify unused blocks and eliminate them

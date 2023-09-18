@@ -179,16 +179,13 @@ pub(crate) fn translate_expression_runtime(
     })
 }
 
-/// Translates a predicate to an executable function.
-/// This is yet another separate function, because the function we generate here differs
-/// from other check functions since we don't actually check any conditions within a predicate.
-pub(crate) fn translate_predicate<T: HasSignature + Spanned>(
-    check_id: SpecificationId,
+/// Generates an executable body for a predicate.
+pub(crate) fn translate_predicate<T: HasSignature>(
     body: TokenStream,
     item: &T,
-) -> syn::Result<syn::Item> {
+    span: Span,
+) -> syn::Result<TokenStream> {
     let check_type = CheckItemType::Predicate;
-    let span = body.span();
     // get signature information about the associated function
     let function_info = AssociatedFunctionInfo::empty();
     let mut visitor = CheckVisitor::new(function_info, check_type);
@@ -197,46 +194,45 @@ pub(crate) fn translate_predicate<T: HasSignature + Spanned>(
     let mut expr: syn::Expr = syn::parse2(body.clone())?;
     visitor.visit_expr_mut(&mut expr);
 
-    let item_name = syn::Ident::new(
-        &format!(
-            "prusti_{}_check_item_{}_{}",
-            check_type,
-            item.sig().ident,
-            check_id
-        ),
-        span,
-    );
-    let check_id_str = check_id.to_string();
+    let fn_ident = &item.sig().ident.to_string();
+    let debug_print_stmt: Option<TokenStream> = if std::env::var("PRUSTI_DEBUG_RUNTIME_CHECKS")
+        .unwrap_or_default()
+        == "true"
+    {
+        if cfg!(feature = "std") {
+            Some(quote_spanned! {span =>
+                println!("predicate {} is executed", #fn_ident);
+            })
+        } else {
+            // warn user that debug information will not be emitted in no_std
+            span.unwrap().warning("enabling PRUSTI_DEBUG_RUNTIME_CHECKS only has an effect if feature \"std\" is enabled too").emit();
+            None
+        }
+    } else {
+        None
+    };
     let forget_statements = generate_forget_statements(item, check_type, span);
 
-    let mut check_item: syn::ItemFn = parse_quote_spanned! {item.span() =>
-        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, forgetting_copy_types)]
-        #[prusti::spec_only]
-        #[prusti::check_only]
-        #[prusti::check_id = #check_id_str]
-        fn #item_name() {
-            let prusti_predicate_result = #expr;
-            #forget_statements
-            prusti_predicate_result
-        }
-    };
-    check_item.sig.generics = item.sig().generics.clone();
-    check_item.sig.inputs = item.sig().inputs.clone();
-    check_item.sig.output = item.sig().output.clone();
-    Ok(syn::Item::Fn(check_item))
+    Ok(quote_spanned! {span =>
+        #debug_print_stmt
+        let prusti_predicate_result = #expr;
+        #forget_statements
+        prusti_predicate_result
+    })
 }
 
 /// Since spec and check functions have the same signatures as the function they
 /// are attached to, actually executing causes them to take ownership of values
 /// and freeing them in some cases. Inserting these forget statements avoids
 /// values being freed within check functions.
-pub(crate) fn generate_forget_statements<T: HasSignature + Spanned>(
+pub(crate) fn generate_forget_statements<T: HasSignature>(
     item: &T,
     check_type: CheckItemType,
     span: Span,
 ) -> syn::Block {
     // go through all inputs, if they are not references add a forget
-    // statement
+    // statement (might not be needed for all of them, but if they're on
+    // the stack, this will not do anything)
     let mut stmts: Vec<syn::Stmt> = Vec::new();
     if check_type.gets_item_args() {
         for fn_arg in item.sig().inputs.clone() {
@@ -454,7 +450,7 @@ impl VisitMut for CheckVisitor {
                     | "prusti_contracts :: snap"
                     | "snap" => {
                         let message = format!(
-                            "Runtime checks: Use of unsupported feature {}",
+                            "Feature {} is not supported for runtime checks, behavior at runtime might be arbitrary",
                             expr.to_token_stream()
                         );
                         expr.span().unwrap().warning(message).emit();

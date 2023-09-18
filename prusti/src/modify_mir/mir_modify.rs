@@ -38,8 +38,6 @@ pub(crate) fn insert_runtime_checks<'tcx>(
     passes::PreconditionInserter::run(tcx, &mir_info, def_id, local_decls, body);
     // insert postconditions
     passes::PostconditionInserter::run(tcx, &mir_info, def_id, local_decls, body);
-    // replace predicates with their check functions:
-    passes::PredicateReplacer::run(tcx, &mir_info, def_id, body);
 
     // insert cloning of arguments if they are used within old, and drop them again
     old_arg_replacer.clone_and_drop_variables(body);

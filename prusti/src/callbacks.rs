@@ -90,7 +90,7 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
     // For constant items, mir_drops_elaborated is constructed before mir_promoted
     // is constructed for other items. If we go into verification at this point this
     // will lead to problems.
-    if config::no_verify() || !is_non_const_function(tcx, def_id) {
+    if config::no_verify() || !is_non_const_function(tcx, def_id) || globals::get_check_error() {
         return default_query(tcx, def);
     }
     if !globals::verified(def_id.krate) {
@@ -101,7 +101,12 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
             let env = verify(env, def_spec.clone());
             globals::store_spec_env(def_spec, env);
         } else {
-            // dont continue verification
+            // dont continue verification or modifications because specifications were bad
+            // but can we trigger a proper error here?
+            // Because I (cedihegi) don't think we can, we set a global variable
+            // to skip all modifications and verification, until we run into the
+            // next callback, where the error will be triggered
+            globals::set_check_error();
             return default_query(tcx, def);
         }
     }
@@ -134,7 +139,10 @@ pub(crate) fn mir_drops_elaborated(tcx: TyCtxt<'_>, def: LocalDefId) -> &Steal<m
     if config::remove_dead_code() {
         mir_modify::dead_code_elimination(tcx, &mut body, def_id);
     }
-    if config::insert_runtime_checks() {
+    if matches!(
+        config::insert_runtime_checks().as_str(),
+        "all" | "selective"
+    ) {
         mir_modify::insert_runtime_checks(&mut body, def_id, tcx, &local_decls);
     }
     // ################################################

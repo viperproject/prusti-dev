@@ -46,6 +46,7 @@ impl TestKind {
         let prusti_path: PathBuf = find_prusti_rustc_path();
         let mut prusti_cmd = CommandBuilder {
             out_dir_flag: Some("--out-dir".into()),
+            args: vec!["--error-format=json".into()],
             ..CommandBuilder::cmd(prusti_path)
         };
 
@@ -54,9 +55,10 @@ impl TestKind {
                 prusti_cmd
                     .envs
                     .push(("PRUSTI_FULL_COMPILATION".into(), Some("true".into())));
-                prusti_cmd
-                    .envs
-                    .push(("PRUSTI_INSERT_RUNTIME_CHECKS".into(), Some("true".into())));
+                prusti_cmd.envs.push((
+                    "PRUSTI_INSERT_RUNTIME_CHECKS".into(),
+                    Some("selective".into()),
+                ));
                 prusti_cmd
                     .envs
                     .push(("PRUSTI_DEBUG_RUNTIME_CHECKS".into(), Some("true".into())));

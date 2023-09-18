@@ -24,9 +24,9 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 mod runtime_checks;
-mod expression_with_attributes;
+mod attribute_consumer;
 
-use expression_with_attributes::AttributeConsumer;
+use attribute_consumer::AttributeConsumer;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use rewriter::AstRewriter;
@@ -171,19 +171,16 @@ fn generate_spec_and_assertions(
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
 
-    // Attributes following a #[insert_runtime_check] attribute will be runtime
-    // checked. If this attribute precedes an annotation that cannot be checked
-    // at runtime we emit a warning.
-    let mut runtime_check_next = false;
-    // This environment variable causes all checkable contracts to be checked at runtime.
-    let runtime_check_always =
-        std::env::var("PRUSTI_RUNTIME_CHECK_ALL_CONTRACTS").map_or(false, |s| s == "true");
+    let mut check_annotation_for_next = false;
+    let check_mode = common::RuntimeCheckMode::determine();
 
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
-        if runtime_check_next {
+        let runtime_check = check_mode.decide_insertion(check_annotation_for_next);
+        if check_annotation_for_next {
+            // warn users if #[insert_runtime_check] attribute is in front
+            // of an unsupported contract
             warn_uncheckable_runtimecheck(&attr_kind, &attr_tokens);
         }
-        let runtime_check = runtime_check_next || runtime_check_always;
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item, runtime_check),
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item, runtime_check),
@@ -203,17 +200,17 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
             SpecAttributeKind::RefineSpec => {
-                type_cond_specs::generate(attr_tokens, item, runtime_check_next)
+                type_cond_specs::generate(attr_tokens, item, runtime_check)
             }
             SpecAttributeKind::Model => unreachable!(),
             SpecAttributeKind::PrintCounterexample => unreachable!(),
             SpecAttributeKind::InsertRuntimeCheck => {
                 // generate runtime check functions for the one following this one
-                runtime_check_next = true;
+                check_annotation_for_next = true;
                 continue;
             }
         };
-        runtime_check_next = false;
+        check_annotation_for_next = false;
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
         generated_attributes.extend(new_attributes);
@@ -609,16 +606,16 @@ fn generate_expression_closure(
     let checkable = check_type.can_be_checked();
     // emit a warning if #[insert_runtime_check] precedes an item that is not
     // checked at runtime.
+    let insert_runtime_check =
+        common::RuntimeCheckMode::determine().decide_insertion(runtime_attr.is_some());
     if !checkable && runtime_attr.is_some() {
         prusti_tokens
             .span()
             .unwrap()
-            .warning("The attribute #[insert_runtime_check] can not be applied here.")
+            .warning("This contract will not be checked at runtime.")
             .emit();
     }
-    let runtime_check_always =
-        std::env::var("PRUSTI_RUNTIME_CHECK_ALL_CONTRACTS").map_or(false, |s| s == "true");
-    if check_type.can_be_checked() && (runtime_check_always || runtime_attr.is_some()) {
+    if check_type.can_be_checked() && insert_runtime_check {
         let check_closure = handle_result!(translate_expression_runtime(
             prusti_tokens,
             check_id,
