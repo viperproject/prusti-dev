@@ -40,12 +40,21 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     facts2: &'mir BorrowckFacts2<'tcx>,
     tcx: TyCtxt<'tcx>,
 ) {
+    // let name = tcx.opt_item_name(mir.source.def_id());
+    // println!("Running for {}", name.as_ref().map(|n| n.as_str()).unwrap_or("unnamed"));
+    println!("Running for {:?}", mir.source.def_id());
+    // if tcx.item_name(mir.source.def_id()).as_str() == "main" {
+    //     return;
+    // }
     let fpcs = coupling_graph::engine::CoupligGraph::new(tcx, mir, facts, facts2);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("coupling_graph")
         .iterate_to_fixpoint();
-    // free_pcs::FreePcsAnalysis::new(analysis.into_results_cursor(mir))
+    let c = analysis.into_results_cursor(mir);
+    if cfg!(debug_assertions) {
+        coupling_graph::engine::draw_dots(c);
+    }
 }
 
 pub fn test_coupling_graph<'tcx>(mir: &Body<'tcx>, facts: &BorrowckFacts, facts2: &BorrowckFacts2<'tcx>, tcx: TyCtxt<'tcx>) {

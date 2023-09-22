@@ -59,7 +59,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 self.ensures_unalloc(local);
             }
             &Retag(_, box place) => self.requires_exclusive(place),
-            &PlaceMention(box place) => self.requires_write(place),
             AscribeUserType(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
         };
     }
