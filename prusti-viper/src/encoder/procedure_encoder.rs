@@ -2488,7 +2488,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 let ty = literal.ty();
-                let func_const_val = literal.try_to_value(self.encoder.env().tcx());
+                let func_const_val = literal.try_to_scalar_int();
                 if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
                     let called_def_id = *called_def_id;
                     debug!("Encode function call {:?} with substs {:?}", called_def_id, call_substs);

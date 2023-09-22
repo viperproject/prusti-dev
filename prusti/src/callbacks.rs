@@ -20,7 +20,7 @@ use prusti_rustc_interface::{
     },
     mir_build,
     mir_transform::{self, inline},
-    session::{EarlyErrorHandler, Session},
+    session::Session,
     span::def_id::{DefId, LocalDefId, LOCAL_CRATE},
     trait_selection::traits,
 };
@@ -240,7 +240,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     #[tracing::instrument(level = "debug", skip_all)]
     fn after_analysis<'tcx>(
         &mut self,
-        _error_handler: &EarlyErrorHandler,
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
