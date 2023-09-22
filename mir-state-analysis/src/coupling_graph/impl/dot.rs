@@ -19,6 +19,9 @@ use crate::utils::Place;
 use super::cg::{NodeId, Edge, Graph};
 
 impl<'a, 'tcx> Graph<'a, 'tcx> {
+    fn get_id(&self) -> &str {
+        self.id.as_deref().unwrap_or("unnamed")
+    }
     fn get_corresponding_places(&self, n: NodeId) -> Vec<Perms<Place<'tcx>>> {
         let node = self.get_node(n);
         let mut contained_by: Vec<Perms<Place>> = Vec::new();
@@ -40,10 +43,23 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
         }
         contained_by
     }
-    fn is_empty_node(&self, n: NodeId) -> bool {
+    pub(crate) fn is_empty_node(&self, n: NodeId) -> bool {
         self.get_corresponding_places(n).is_empty()
     }
-    fn is_borrow_only(&self, n: NodeId) -> Option<BorrowKind> {
+    fn non_empty_edges(&self, n: NodeId, start: NodeId, reasons: FxHashSet<ConstraintCategory<'tcx>>) -> Vec<Edge<'tcx>> {
+        if !(self.skip_empty_nodes && self.is_empty_node(n)) {
+            return vec![Edge::new(start, n, reasons)];
+        }
+        let mut edges = Vec::new();
+        let node = self.get_node(n);
+        for (&b, edge) in &node.blocks {
+            let mut reasons = reasons.clone();
+            reasons.extend(edge);
+            edges.extend(self.non_empty_edges(b, start, reasons));
+        }
+        edges
+    }
+    pub(crate) fn is_borrow_only(&self, n: NodeId) -> Option<BorrowKind> {
         let node = self.get_node(n);
         let input_facts = self.facts.input_facts.borrow();
         for &(_, r) in &input_facts.as_ref().unwrap().use_of_var_derefs_origin {
@@ -79,10 +95,10 @@ enum Perms<T> {
 }
 
 impl<'a, 'b, 'tcx> dot::Labeller<'a, NodeId, Edge<'tcx>> for Graph<'b, 'tcx> {
-    fn graph_id(&'a self) -> dot::Id<'a> { dot::Id::new("example1").unwrap() }
+    fn graph_id(&'a self) -> dot::Id<'a> { dot::Id::new(self.get_id()).unwrap() }
 
     fn node_id(&'a self, n: &NodeId) -> dot::Id<'a> {
-        dot::Id::new(format!("N_{n:?}")).unwrap()
+        dot::Id::new(format!("N_{n:?}_{}", self.get_id())).unwrap()
     }
 
     fn edge_end_arrow(&'a self, e: &Edge) -> dot::Arrow {
@@ -92,8 +108,15 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, NodeId, Edge<'tcx>> for Graph<'b, 'tcx> {
             dot::Arrow::default()
         }
     }
+    fn edge_style(&'a self, e: &Edge<'tcx>) -> dot::Style {
+        if self.is_borrow_only(e.from).is_some() {
+            dot::Style::Dashed
+        } else {
+            dot::Style::Solid
+        }
+    }
     fn edge_label(&'a self, e: &Edge<'tcx>) -> dot::LabelText<'a> {
-        let label = match e.reason {
+        let mut label = e.reasons.iter().map(|r| match r {
             ConstraintCategory::Return(_) => "return",
             ConstraintCategory::Yield => "yield",
             ConstraintCategory::UseAsConst => "const",
@@ -112,8 +135,9 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, NodeId, Edge<'tcx>> for Graph<'b, 'tcx> {
             ConstraintCategory::Boring => "boring",
             ConstraintCategory::BoringNoLocation => "boring_nl",
             ConstraintCategory::Internal => "internal",
-        };
-        dot::LabelText::LabelStr(Cow::Borrowed(label))
+        }).map(|s| format!("{s}, ")).collect::<String>();
+        label = label[..label.len() - 2].to_string();
+        dot::LabelText::LabelStr(Cow::Owned(label))
     }
     fn node_shape(&'a self, n: &NodeId) -> Option<dot::LabelText<'a>> {
         self.is_borrow_only(*n).map(|kind| match kind {
@@ -175,11 +199,8 @@ impl<'a, 'b, 'tcx> dot::GraphWalk<'a, NodeId, Edge<'tcx>> for Graph<'b, 'tcx> {
                 if self.skip_empty_nodes && self.is_empty_node(c) {
                     continue;
                 }
-                for (&b, &edge) in &n.blocks {
-                    if self.skip_empty_nodes && self.is_empty_node(b) {
-                        continue;
-                    }
-                    edges.push(edge);
+                for (&b, edge) in &n.blocks {
+                    edges.extend(self.non_empty_edges(b, c, edge.clone()));
                 }
             }
         }

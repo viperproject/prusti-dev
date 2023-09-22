@@ -8,7 +8,7 @@ use std::cell::RefCell;
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
-    data_structures::fx::{FxIndexMap},
+    data_structures::fx::{FxIndexMap, FxHashSet},
     borrowck::{
         borrow_set::{BorrowData, TwoPhaseActivation},
         consumers::{Borrows, BorrowIndex, RichLocation, calculate_borrows_out_of_scope_at_location},
@@ -31,17 +31,60 @@ use crate::{
 
 use super::cg::{Cg, Regions};
 
+pub(crate) fn draw_dots<'tcx, 'a>(mut c: ResultsCursor<'_, 'tcx, CoupligGraph<'a, 'tcx>>) {
+    let mut graph = Vec::new();
+    let body = c.body();
+    for (block, data) in body.basic_blocks.iter_enumerated() {
+        if data.is_cleanup {
+            continue;
+        }
+        c.seek_to_block_start(block);
+        let mut g = c.get().regions.graph.clone();
+        g.id = Some(format!("pre_{block:?}"));
+        dot::render(&g, &mut graph).unwrap();
+        for statement_index in 0..body.terminator_loc(block).statement_index+1 {
+            c.seek_after_primary_effect(Location { block, statement_index });
+            let mut g = c.get().regions.graph.clone();
+            g.id = Some(format!("{block:?}_{statement_index}"));
+            dot::render(&g, &mut graph).unwrap();
+        }
+    }
+    let combined = std::str::from_utf8(graph.as_slice()).unwrap().to_string();
+
+    let regex = regex::Regex::new(r"digraph (([^ ])+) \{").unwrap();
+    let combined = regex.replace_all(&combined, "subgraph cluster_$1 {\n    label = \"$1\"");
+
+    // let mut paths: Vec<_> = std::fs::read_dir("log/coupling/individual").unwrap().into_iter().map(|p| p.unwrap().path()).collect();
+    // paths.sort_by(|a, b| {
+    //     let a = a.file_stem().unwrap().to_string_lossy();
+    //     let mut a = a.split("_");
+    //     let a0 = a.next().unwrap().strip_prefix("bb").unwrap().parse::<u32>().unwrap();
+    //     let a1 = a.next().unwrap().parse::<u32>().unwrap();
+    //     let b = b.file_stem().unwrap().to_string_lossy();
+    //     let mut b = b.split("_");
+    //     let b0 = b.next().unwrap().strip_prefix("bb").unwrap().parse::<u32>().unwrap();
+    //     let b1 = b.next().unwrap().parse::<u32>().unwrap();
+    //     (a0, a1).cmp(&(b0, b1))
+    // });
+    // let combined = paths.into_iter().fold(String::new(), |acc, p| {
+    //     let data = std::fs::read_to_string(p).expect("Unable to read file");
+    //     acc + &regex.replace_all(&data, "subgraph cluster_$1 {\n    label = \"$1\"")
+    // });
+    std::fs::write("log/coupling/all.dot", format!("digraph root {{\n{combined}}}")).expect("Unable to write file");
+}
+
 pub(crate) struct CoupligGraph<'a, 'tcx> {
     pub(crate) repacker: PlaceRepacker<'a, 'tcx>,
     pub(crate) facts: &'a BorrowckFacts,
     pub(crate) facts2: &'a BorrowckFacts2<'tcx>,
     pub(crate) flow_borrows: RefCell<ResultsCursor<'a, 'tcx, Borrows<'a, 'tcx>>>,
     pub(crate) out_of_scope: FxIndexMap<Location, Vec<BorrowIndex>>,
+    pub(crate) printed_dot: FxHashSet<String>,
 }
 impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
     pub(crate) fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>, facts: &'a BorrowckFacts, facts2: &'a BorrowckFacts2<'tcx>) -> Self {
-        std::fs::remove_dir_all("log/coupling").ok();
-        std::fs::create_dir_all("log/coupling").unwrap();
+        // std::fs::remove_dir_all("log/coupling").ok();
+        // std::fs::create_dir_all("log/coupling/individual").unwrap();
 
         let repacker = PlaceRepacker::new(body, tcx);
         let regioncx = &*facts2.region_inference_context;
@@ -52,56 +95,60 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
             .pass_name("borrowck")
             .iterate_to_fixpoint()
             .into_results_cursor(body);
-        CoupligGraph { repacker, facts, facts2, flow_borrows: RefCell::new(flow_borrows), out_of_scope }
+        let printed_dot = FxHashSet::default();
+        CoupligGraph { repacker, facts, facts2, flow_borrows: RefCell::new(flow_borrows), out_of_scope, printed_dot }
     }
 
     fn handle_diff(&self, state: &mut Regions<'_, 'tcx>, delta: BorrowDelta, location: Location) {
-        let input_facts = self.facts.input_facts.borrow();
-        let input_facts = input_facts.as_ref().unwrap();
-        let location_table = self.facts.location_table.borrow();
-        let location_table = location_table.as_ref().unwrap();
-        for idx in delta.set.iter() {
-            let loan_issued_at = &input_facts.loan_issued_at;
-            let (r, _, l) = loan_issued_at.iter().find(|(_, b, _)| idx == *b).copied().unwrap();
-            let l = location_table.to_location(l);
-            let RichLocation::Mid(l) = l else { unreachable!() };
-            assert_eq!(l, location);
-            let locals = input_facts.use_of_var_derefs_origin.iter().filter(|(_, ro)| r == *ro).map(|(l, _)| (*l, r)).collect::<Vec<_>>();
-            state.borrows.insert(idx, (vec![r], locals));
-        }
-        state.subset.extend(input_facts.subset_base.iter().filter(
-            |(_, _, l)| rich_to_loc(location_table.to_location(*l)) == location
-        ).map(|(r1, r2, _)| (*r1, *r2)));
-        // TODO: do a proper fixpoint here
-        for _ in 0..10 {
-            for &(r1, r2) in &state.subset {
-                let locals = input_facts.use_of_var_derefs_origin.iter().filter(|(_, ro)| r2 == *ro).map(|(l, _)| (*l, r2)).collect::<Vec<_>>();
-                let mut did_push = false;
-                for (_, s) in state.borrows.iter_mut() {
-                    if s.0.contains(&r1) {
-                        did_push = true;
-                        if !s.0.contains(&r2) {
-                            s.0.push(r2);
-                            s.1.extend(locals.iter().copied());
-                        }
-                    }
-                }
-                // assert!(did_push, "r1: {:?}, r2: {:?}, location: {:?}, state: {:?}", r1, r2, location, state);
-            }
-        }
-        for r in delta.cleared.iter() {
-            let removed = state.borrows.remove(&r).unwrap();
-            // for (_, s) in state.borrows.iter_mut() {
-            //     s.0.retain(|r| !removed.0.contains(r));
-            //     s.1.retain(|l| !removed.1.contains(l));
-            // }
-        }
+        // let input_facts = self.facts.input_facts.borrow();
+        // let input_facts = input_facts.as_ref().unwrap();
+        // let location_table = self.facts.location_table.borrow();
+        // let location_table = location_table.as_ref().unwrap();
+        // for idx in delta.set.iter() {
+        //     let loan_issued_at = &input_facts.loan_issued_at;
+        //     let (r, _, l) = loan_issued_at.iter().find(|(_, b, _)| idx == *b).copied().unwrap();
+        //     let l = location_table.to_location(l);
+        //     let RichLocation::Mid(l) = l else { unreachable!() };
+        //     assert_eq!(l, location);
+        //     let locals = input_facts.use_of_var_derefs_origin.iter().filter(|(_, ro)| r == *ro).map(|(l, _)| (*l, r)).collect::<Vec<_>>();
+        //     state.borrows.insert(idx, (vec![r], locals));
+        // }
+        // state.subset.extend(input_facts.subset_base.iter().filter(
+        //     |(_, _, l)| rich_to_loc(location_table.to_location(*l)) == location
+        // ).map(|(r1, r2, _)| (*r1, *r2)));
+        // // TODO: do a proper fixpoint here
+        // for _ in 0..10 {
+        //     for &(r1, r2) in &state.subset {
+        //         let locals = input_facts.use_of_var_derefs_origin.iter().filter(|(_, ro)| r2 == *ro).map(|(l, _)| (*l, r2)).collect::<Vec<_>>();
+        //         let mut did_push = false;
+        //         for (_, s) in state.borrows.iter_mut() {
+        //             if s.0.contains(&r1) {
+        //                 did_push = true;
+        //                 if !s.0.contains(&r2) {
+        //                     s.0.push(r2);
+        //                     s.1.extend(locals.iter().copied());
+        //                 }
+        //             }
+        //         }
+        //         // assert!(did_push, "r1: {:?}, r2: {:?}, location: {:?}, state: {:?}", r1, r2, location, state);
+        //     }
+        // }
+        // for r in delta.cleared.iter() {
+        //     // TODO: why does unwrap fail?
+        //     let removed = state.borrows.remove(&r);//.unwrap();
+        //     // for (_, s) in state.borrows.iter_mut() {
+        //     //     s.0.retain(|r| !removed.0.contains(r));
+        //     //     s.1.retain(|l| !removed.1.contains(l));
+        //     // }
+        // }
         // print!(" {:?}", state.borrows);
         self.handle_graph(state, delta, location);
     }
 
     fn handle_graph(&self, state: &mut Regions<'_, 'tcx>, delta: BorrowDelta, location: Location) {
         let l = format!("{:?}", location).replace('[', "_").replace(']', "");
+        state.graph.id = Some(l.clone());
+        // println!("location: {:?}", l);
 
         let input_facts = self.facts.input_facts.borrow();
         let input_facts = input_facts.as_ref().unwrap();
@@ -116,19 +163,19 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
                 let (r, _, l) = input_facts.loan_issued_at.iter().find(
                     |(_, b, _)| bi == b
                 ).copied().unwrap();
-                println!("UGHBJS region: {r:?} location: {l:?}");
+                // println!("UGHBJS region: {r:?} location: {l:?}");
                 state.graph.kill(r);
                 let l = rich_to_loc(location_table.to_location(l));
                 let borrow_data = self.facts2.borrow_set.location_map.get(&l).unwrap();
                 let local = borrow_data.assigned_place.local;
                 for region in input_facts.use_of_var_derefs_origin.iter().filter(|(l, _)| *l == local).map(|(_, r)| *r) {
-                    println!("IHUBJ local: {local:?} region: {region:?}");
+                    // println!("IHUBJ local: {local:?} region: {region:?}");
                     state.graph.remove(region, true);
                 }
             }
         }
 
-        // let mut f = std::fs::File::create(format!("log/coupling/{l}_a.dot")).unwrap();
+        // let mut f = std::fs::File::create(format!("log/coupling/individual/{l}_a.dot")).unwrap();
         // dot::render(&state.graph, &mut f).unwrap();
 
         for killed in delta.cleared.iter() {
@@ -138,16 +185,18 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
             let (r, _, l) = input_facts.loan_issued_at.iter().find(
                 |(_, b, _)| killed == *b
             ).copied().unwrap();
+            // println!("killed: {r:?} {killed:?} {l:?}");
             state.graph.remove(r, false);
             let l = rich_to_loc(location_table.to_location(l));
             let borrow_data = self.facts2.borrow_set.location_map.get(&l).unwrap();
             let local = borrow_data.borrowed_place.local;
             for region in input_facts.use_of_var_derefs_origin.iter().filter(|(l, _)| *l == local).map(|(_, r)| *r) {
+                // println!("killed region: {region:?}");
                 state.graph.remove(region, true);
             }
         }
 
-        // let mut f = std::fs::File::create(format!("log/coupling/{l}_b.dot")).unwrap();
+        // let mut f = std::fs::File::create(format!("log/coupling/individual/{l}_b.dot")).unwrap();
         // dot::render(&state.graph, &mut f).unwrap();
 
         // let new_subsets: Vec<_> = input_facts.subset_base.iter().filter(
@@ -166,8 +215,8 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
         }
 
         if !self.repacker.body().basic_blocks[location.block].is_cleanup {
-            let mut f = std::fs::File::create(format!("log/coupling/{l}_c.dot")).unwrap();
-            dot::render(&state.graph, &mut f).unwrap();
+            // let mut f = std::fs::File::create(format!("log/coupling/individual/{l}_v{}.dot", state.graph.version)).unwrap();
+            // dot::render(&state.graph, &mut f).unwrap();
         }
     }
 }
@@ -181,20 +230,20 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CoupligGraph<'a, 'tcx> {
     }
 
     fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
-        // println!("body: {body:?}");
-        println!("\ninput_facts: {:?}", self.facts.input_facts);
-        println!("output_facts: {:#?}\n", self.facts.output_facts);
-        println!("location_map: {:#?}\n", self.facts2.borrow_set.location_map);
-        println!("activation_map: {:#?}\n", self.facts2.borrow_set.activation_map);
-        println!("local_map: {:#?}\n", self.facts2.borrow_set.local_map);
-        // println!("region_inference_context: {:#?}\n", self.facts2.region_inference_context);
-        // println!("locals_state_at_exit: {:#?}\n", self.facts2.borrow_set.locals_state_at_exit);
-        let lt = self.facts.location_table.borrow();
-        let lt = lt.as_ref().unwrap();
-        for pt in lt.all_points() {
-            println!("{pt:?} -> {:?} ({:?})", lt.to_location(pt), ""); //, self.facts.output_facts.origins_live_at(pt));
-        }
-        println!("out_of_scope: {:?}", self.out_of_scope);
+        // // println!("body: {body:?}");
+        // println!("\ninput_facts: {:?}", self.facts.input_facts);
+        // println!("output_facts: {:#?}\n", self.facts.output_facts);
+        // println!("location_map: {:#?}\n", self.facts2.borrow_set.location_map);
+        // println!("activation_map: {:#?}\n", self.facts2.borrow_set.activation_map);
+        // println!("local_map: {:#?}\n", self.facts2.borrow_set.local_map);
+        // println!("region_inference_context: {:#?}\n", self.facts2.region_inference_context.outlives_constraints().collect::<Vec<_>>());
+        // // println!("locals_state_at_exit: {:#?}\n", self.facts2.borrow_set.locals_state_at_exit);
+        // let lt = self.facts.location_table.borrow();
+        // let lt = lt.as_ref().unwrap();
+        // for pt in lt.all_points() {
+        //     println!("{pt:?} -> {:?} ({:?})", lt.to_location(pt), ""); //, self.facts.output_facts.origins_live_at(pt));
+        // }
+        // println!("out_of_scope: {:?}", self.out_of_scope);
     }
 }
 
@@ -206,7 +255,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         location: Location,
     ) {
         if location.statement_index == 0 {
-            println!("\nblock: {:?}", location.block);
+            // println!("\nblock: {:?}", location.block);
             self.flow_borrows.borrow_mut().seek_to_block_start(location.block);
             state.live = self.flow_borrows.borrow().get().clone();
         }
@@ -217,7 +266,6 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         if delta.set.is_empty() {
             match statement.kind {
                 StatementKind::Assign(box (assigned_place, Rvalue::Ref(region, kind, borrowed_place))) => {
-
                     state.regions.graph.new_shared_borrow(BorrowData {
                         reserve_location: location,
                         activation_location: TwoPhaseActivation::NotTwoPhase,
@@ -226,6 +274,15 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
                         borrowed_place,
                         assigned_place,
                     })
+                }
+                // If a local was only moved out of and not reborrowed, it's region is never killed officially
+                StatementKind::StorageDead(local) => {
+                    let input_facts = self.facts.input_facts.borrow();
+                    let input_facts = input_facts.as_ref().unwrap();
+                    for region in input_facts.use_of_var_derefs_origin.iter().filter(|(l, _)| *l == local).map(|(_, r)| *r) {
+                        // println!("killed region manually: {region:?}");
+                        state.regions.graph.remove(region, true);
+                    }
                 }
                 _ => (),
             }
@@ -242,34 +299,37 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         location: Location,
     ) {
         if location.statement_index == 0 {
-            println!("\nblock: {:?}", location.block);
+            // println!("\nblock: {:?}", location.block);
             self.flow_borrows.borrow_mut().seek_to_block_start(location.block);
             state.live = self.flow_borrows.borrow().get().clone();
         }
         self.flow_borrows.borrow_mut().seek_after_primary_effect(location);
         let other = self.flow_borrows.borrow().get().clone();
-        if let TerminatorKind::Call { func, args, destination, target, fn_span, .. } = &terminator.kind {
-            if let Operand::Constant(c) = func {
-                println!("user_ty: {:?}", c.user_ty);
-                println!("call: {:?}", c.literal);
-                if let ConstantKind::Val(cv, ty) = c.literal {
-                    println!("val: {:?}", cv);
-                    println!("ty: {:?}", ty);
-                }
-                println!("\n\n\ncall: {:?}", func);
-            }
-            for arg in args {
-                match arg {
-                    Operand::Copy(a) => println!("copy ({arg:?}): {:?}", a),
-                    Operand::Move(b) => println!("move ({arg:?}): {:?}", b),
-                    Operand::Constant(c) => println!("const ({arg:?}): {:?}", c.literal),
-                }
-            }
-        }
+        // if let TerminatorKind::Call { func, args, destination, target, fn_span, .. } = &terminator.kind {
+        //     if let Operand::Constant(c) = func {
+        //         println!("user_ty: {:?}", c.user_ty);
+        //         println!("call: {:?}", c.literal);
+        //         if let ConstantKind::Val(cv, ty) = c.literal {
+        //             println!("val: {:?}", cv);
+        //             println!("ty: {:?}", ty);
+        //         }
+        //         println!("\n\n\ncall: {:?}", func);
+        //     }
+        //     for arg in args {
+        //         match arg {
+        //             Operand::Copy(a) => println!("copy ({arg:?}): {:?}", a),
+        //             Operand::Move(b) => println!("move ({arg:?}): {:?}", b),
+        //             Operand::Constant(c) => println!("const ({arg:?}): {:?}", c.literal),
+        //         }
+        //     }
+        // }
         // print!("{terminator:?} ({other:?}):");
         let delta = calculate_diff(&other, &state.live);
         self.handle_diff(&mut state.regions, delta, location);
         state.live = other;
+        if let TerminatorKind::Return = &terminator.kind {
+            state.regions.graph.merge_for_return();
+        }
         // println!();
     }
 
