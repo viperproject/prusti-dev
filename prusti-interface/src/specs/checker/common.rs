@@ -1,4 +1,8 @@
-use crate::{environment::Environment, utils::has_spec_only_attr, PrustiError};
+use crate::{
+    environment::Environment,
+    utils::{has_check_only_attr, has_spec_only_attr},
+    PrustiError,
+};
 use prusti_rustc_interface::{
     hir::{
         self as hir,
@@ -72,6 +76,29 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
         intravisit::walk_expr(self, ex);
     }
 
+    fn visit_block(&mut self, block: &'tcx hir::Block<'tcx>) {
+        // runtime checks can introduce blocks that call predicates. This will make
+        // sure they are skipped. They are marked with #[spec_only] too, so if they
+        // can be skipped in general, this function could be adjusted.
+        if let Some(hir::Stmt {
+            kind:
+                hir::StmtKind::Semi(hir::Expr {
+                    kind: hir::ExprKind::Closure(hir::Closure { def_id, .. }),
+                    ..
+                }),
+            ..
+        }) = block.stmts.get(0)
+        {
+            // check if this def_id has a check_only attribute:
+            let tcx = self.wrapped.tcx();
+            let attrs = tcx.hir().attrs(tcx.local_def_id_to_hir_id(*def_id));
+            if has_check_only_attr(attrs) {
+                return;
+            }
+        }
+        intravisit::walk_block(self, block)
+    }
+
     fn visit_fn(
         &mut self,
         fk: intravisit::FnKind<'tcx>,
@@ -83,7 +110,7 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
         // Stop checking inside `prusti::spec_only` functions
         let tcx = self.wrapped.tcx();
         let attrs = tcx.hir().attrs(tcx.local_def_id_to_hir_id(local_id));
-        if has_spec_only_attr(attrs) {
+        if has_spec_only_attr(attrs) || has_check_only_attr(attrs) {
             return;
         }
 

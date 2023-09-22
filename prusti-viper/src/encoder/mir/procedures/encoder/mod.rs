@@ -24,14 +24,17 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
-use prusti_interface::environment::{
-    debug_utils::to_text::ToText,
-    mir_analyses::{
-        allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
-        initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
+use prusti_interface::{
+    environment::{
+        debug_utils::to_text::ToText,
+        mir_analyses::{
+            allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
+            initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
+        },
+        mir_body::borrowck::{facts::RichLocation, lifetimes::Lifetimes},
+        Procedure,
     },
-    mir_body::borrowck::{facts::RichLocation, lifetimes::Lifetimes},
-    Procedure,
+    globals,
 };
 use prusti_rustc_interface::{
     abi::FieldIdx,
@@ -1261,6 +1264,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 msg,
                 *target,
                 *unwind,
+                location,
             )?,
             // TerminatorKind::Yield { .. } => {
             //     graph.add_exit_edge(bb, "yield");
@@ -1818,6 +1822,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         msg: &mir::AssertMessage<'tcx>,
         target: mir::BasicBlock,
         unwind: mir::UnwindAction,
+        location: mir::Location,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
         let condition = self
             .encoder
@@ -1830,18 +1835,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir_high::Expression::not(condition)
         };
 
+        if config::remove_dead_code() {
+            globals::add_encoded_assertion(self.def_id, location.block);
+        }
+        let ignore = config::remove_dead_code()
+            && (!self.check_panics
+                || (!config::check_overflows()
+                    && matches!(
+                        msg,
+                        mir::AssertKind::Overflow(..) | mir::AssertKind::OverflowNeg(..)
+                    )));
+
         let (assert_msg, error_ctxt) = if let mir::AssertKind::BoundsCheck { .. } = msg {
             let mut s = String::new();
             msg.fmt_assert_args(&mut s).unwrap();
-            (s, ErrorCtxt::BoundsCheckAssert)
+            (
+                s,
+                ErrorCtxt::BoundsCheckAssert(self.def_id, location.block, ignore),
+            )
         } else {
             let assert_msg = msg.description().to_string();
-            (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))
+            (
+                assert_msg.clone(),
+                ErrorCtxt::AssertTerminator(assert_msg, self.def_id, location.block, ignore),
+            )
         };
 
         let target_label = self.encode_basic_block_label(target);
         block_builder.add_comment(format!("Rust assertion: {assert_msg}"));
-        if self.check_panics {
+        if self.check_panics || config::remove_dead_code() {
             block_builder.add_statement(self.encoder.set_statement_error_ctxt(
                 vir_high::Statement::assert_no_pos(guard.clone()),
                 span,

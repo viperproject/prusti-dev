@@ -5,7 +5,11 @@ use crate::{
 use proc_macro2::TokenStream;
 use syn::{parse_quote_spanned, spanned::Spanned};
 
-pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+pub fn generate(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+    runtime_check: bool,
+) -> GeneratedResult {
     let tokens_span = attr.span();
 
     // Parse type-conditional spec refinements information
@@ -16,8 +20,9 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 
     for nested_spec in type_cond_spec.specs {
         let (mut generated_items, generated_attrs) = match nested_spec {
-            NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item)?,
-            NestedSpec::Requires(tokens) => generate_for_requires(tokens, item)?,
+            NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item, runtime_check)?,
+            // is_trusted argument above is true because spec-refinements are always trusted
+            NestedSpec::Requires(tokens) => generate_for_requires(tokens, item, runtime_check)?,
             NestedSpec::Pure => generate_for_pure_refinements(item)?,
         };
 

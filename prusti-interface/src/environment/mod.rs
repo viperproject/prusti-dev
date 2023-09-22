@@ -36,8 +36,9 @@ pub use self::{
     loops_utils::*,
     name::EnvName,
     procedure::{
-        get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
-        is_loop_variant_block, is_marked_specification_block, BasicBlockIndex, Procedure,
+        blocks_dominated_by, get_loop_invariant, is_check_closure, is_ghost_begin_marker,
+        is_ghost_end_marker, is_loop_invariant_block, is_loop_variant_block, is_marked_check_block,
+        is_marked_specification_block, BasicBlockIndex, Procedure,
     },
     query::EnvQuery,
 };

@@ -552,7 +552,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir::Expr> {
-        if !matches!(op, mir::BinOp::Add | mir::BinOp::Sub | mir::BinOp::Mul | mir::BinOp::Shl | mir::BinOp::Shr) || !config::check_overflows() {
+        if !matches!(op, mir::BinOp::Add | mir::BinOp::Sub | mir::BinOp::Mul | mir::BinOp::Shl | mir::BinOp::Shr)
+            || (!config::check_overflows() && !config::remove_dead_code()) {
             Ok(false.into())
         } else {
             let result = self.encode_bin_op_expr(op, left, right.clone(), ty)?;

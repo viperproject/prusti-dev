@@ -7,11 +7,14 @@
 #![feature(rustc_private)]
 #![feature(proc_macro_internals)]
 #![feature(decl_macro)]
+#![feature(box_patterns)]
+#![feature(let_chains)]
 #![deny(unused_must_use)]
 
 mod arg_value;
 mod callbacks;
 mod verifier;
+mod modify_mir;
 
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
@@ -184,6 +187,15 @@ fn main() {
                     .expect("failed to configure nll-facts-dir")
             ));
         }
+
+        // these flags influence the behavior of the ast rewriter, where we can't use config
+        if config::debug_runtime_checks() {
+            std::env::set_var("PRUSTI_DEBUG_RUNTIME_CHECKS", "true");
+        }
+        std::env::set_var(
+            "PRUSTI_INSERT_RUNTIME_CHECKS",
+            config::insert_runtime_checks(),
+        );
 
         let mut callbacks = PrustiCompilerCalls;
 

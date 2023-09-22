@@ -709,3 +709,33 @@ mod tests {
         }
     }
 }
+
+pub enum RuntimeCheckMode {
+    All,
+    Selective,
+    Never,
+}
+
+impl RuntimeCheckMode {
+    pub fn determine() -> Self {
+        match std::env::var("PRUSTI_INSERT_RUNTIME_CHECKS")
+            .unwrap_or("never".to_string())
+            .as_str()
+        {
+            "all" => Self::All,
+            "selective" => Self::Selective,
+            "never" => Self::Never,
+            _ => Self::Never,
+        }
+    }
+
+    /// Depending on whether a contract has a #[insert_runtime_check] attribute
+    /// decide whether a check should actually be inserted
+    pub fn decide_insertion(&self, has_attr: bool) -> bool {
+        match (self, has_attr) {
+            (Self::All, _) => true,
+            (Self::Selective, b) => b,
+            (Self::Never, _) => false,
+        }
+    }
+}

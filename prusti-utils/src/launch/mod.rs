@@ -328,7 +328,7 @@ fn classify_line(line: &str) -> Option<u32> {
     let cname = line.next()?;
     // We want to allow having crates which enable the `prusti` feature, thus anything that
     // depends on them need not add `prusti-contracts` as a direct dependency.
-    if cname != "prusti-contracts" || feats != "[]" {
+    if cname != "prusti-contracts" && !feats.contains("prusti") {
         return None;
     }
     depth.parse().ok()

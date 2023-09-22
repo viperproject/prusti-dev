@@ -20,6 +20,23 @@ pub struct DefSpecificationMap {
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
+    /// for every annotated method, maps to a list of check functions to check
+    /// its contracts
+    pub checks: FxHashMap<DefId, Vec<CheckKind>>,
+}
+
+#[derive(Debug, Clone)]
+pub enum CheckKind {
+    Pre(DefId),
+    Post {
+        check: DefId,
+    }, // actual check and old_store function
+    Assume(DefId),
+    Pledge {
+        check: DefId,
+        check_before_expiry: Option<DefId>,
+    },
+    Predicate(DefId),
 }
 
 impl DefSpecificationMap {
@@ -57,6 +74,63 @@ impl DefSpecificationMap {
 
     pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
         self.ghost_end.get(def_id)
+    }
+
+    pub fn get_runtime_checks(&self, def_id: &DefId) -> Vec<CheckKind> {
+        self.checks.get(def_id).cloned().unwrap_or(Vec::new())
+    }
+    pub fn get_pre_checks(&self, def_id: &DefId) -> Vec<DefId> {
+        let checks_opt = self.checks.get(def_id);
+        if let Some(checks) = checks_opt {
+            checks
+                .iter()
+                .filter_map(|el| {
+                    if let CheckKind::Pre(id) = el {
+                        Some(id)
+                    } else {
+                        None
+                    }
+                })
+                .cloned()
+                .collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn get_post_checks(&self, def_id: &DefId) -> Vec<DefId> {
+        let checks_opt = self.checks.get(def_id);
+        if let Some(checks) = checks_opt {
+            checks
+                .iter()
+                .filter_map(|el| {
+                    if let CheckKind::Post { check } = el {
+                        Some(*check)
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn get_predicate_check(&self, def_id: &DefId) -> Option<DefId> {
+        let mut check: Vec<DefId> = self
+            .checks
+            .get(def_id)?
+            .iter()
+            .filter_map(|el| {
+                if let CheckKind::Predicate(def_id) = el {
+                    Some(*def_id)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert!(check.len() <= 1);
+        check.pop()
     }
 
     pub(crate) fn defid_for_export(

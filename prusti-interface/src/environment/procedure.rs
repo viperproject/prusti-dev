@@ -33,6 +33,7 @@ pub struct Procedure<'tcx> {
     loop_info: loops::ProcedureLoops,
     reachable_basic_blocks: FxHashSet<BasicBlock>,
     nonspec_basic_blocks: FxHashSet<BasicBlock>,
+    switch_int_targets: FxHashSet<BasicBlock>,
 }
 
 impl<'tcx> Procedure<'tcx> {
@@ -47,6 +48,7 @@ impl<'tcx> Procedure<'tcx> {
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(env.query, &mir, &real_edges);
         let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
+        let switch_int_targets = build_switch_int_targets(&mir);
 
         Self {
             tcx: env.tcx(),
@@ -57,6 +59,7 @@ impl<'tcx> Procedure<'tcx> {
             loop_info,
             reachable_basic_blocks,
             nonspec_basic_blocks,
+            switch_int_targets,
         }
     }
 
@@ -197,6 +200,10 @@ impl<'tcx> Procedure<'tcx> {
     pub fn successors(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
         self.real_edges.successors(bbi)
     }
+
+    pub fn is_non_spec_switch_int_target(&self, bbi: BasicBlockIndex) -> bool {
+        !self.is_spec_block(bbi) && self.switch_int_targets.contains(&bbi)
+    }
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
@@ -227,6 +234,10 @@ fn is_spec_closure(env_query: EnvQuery, def_id: def_id::DefId) -> bool {
     crate::utils::has_spec_only_attr(env_query.get_attributes(def_id))
 }
 
+pub fn is_check_closure(env_query: EnvQuery, def_id: def_id::DefId) -> bool {
+    crate::utils::has_check_only_attr(env_query.get_attributes(def_id))
+}
+
 pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockData) -> bool {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (
@@ -235,6 +246,21 @@ pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockDa
         )) = &stmt.kind
         {
             if is_spec_closure(env_query, *def_id) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+pub fn is_marked_check_block(env_query: EnvQuery, bb_data: &BasicBlockData) -> bool {
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (
+            _,
+            Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
+        )) = &stmt.kind
+        {
+            if is_check_closure(env_query, *def_id) {
                 return true;
             }
         }
@@ -333,7 +359,7 @@ fn blocks_definitely_leading_to(
     blocks
 }
 
-fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> FxHashSet<BasicBlock> {
+pub fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> FxHashSet<BasicBlock> {
     let dominators = mir.basic_blocks.dominators();
     let mut blocks = FxHashSet::default();
     for bb in mir.basic_blocks.indices() {
@@ -424,4 +450,19 @@ fn build_nonspec_basic_blocks(
     }
 
     get_nonspec_basic_blocks(env_query, bb_graph, mir)
+}
+
+/// Returns the set of basic blocks that are a target of a switchInt terminator
+fn build_switch_int_targets(body: &Body) -> FxHashSet<BasicBlock> {
+    let mut switch_targets: FxHashSet<BasicBlock> = Default::default();
+    for (_bb, bb_data) in body.basic_blocks.iter_enumerated() {
+        if let Some(mir::Terminator {
+            kind: mir::TerminatorKind::SwitchInt { targets, .. },
+            ..
+        }) = &bb_data.terminator
+        {
+            switch_targets.extend(targets.all_targets());
+        }
+    }
+    switch_targets
 }

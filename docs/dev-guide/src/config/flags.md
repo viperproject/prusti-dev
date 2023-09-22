@@ -14,6 +14,7 @@
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` | A |
 | [`CHECK_TIMEOUT`](#check_timeout) | `Option<u32>` | `None` | A |
 | [`COUNTEREXAMPLE`](#counterexample) | `bool` | `false` | A |
+| [`DEBUG_RUNTIME_CHECKS`](#debug_runtime_checks) | `bool` | `false` | A |
 | [`DELETE_BASIC_BLOCKS`](#delete_basic_blocks) | `Vec<String>` | `vec![]` | A |
 | [`DISABLE_NAME_MANGLING`](#disable_name_mangling) | `bool` | `false` | A |
 | [`DUMP_BORROWCK_INFO`](#dump_borrowck_info) | `bool` | `false` | A |
@@ -34,6 +35,7 @@
 | [`FULL_COMPILATION`](#full_compilation) | `bool` | `false` | A* |
 | [`HIDE_UUIDS`](#hide_uuids) | `bool` | `false` | A |
 | [`IGNORE_REGIONS`](#ignore_regions) | `bool` | `false` | A |
+| [`INSERT_RUNTIME_CHECKS`](#insert_runtime_checks) | `string` | `"none"` | A |
 | [`INTERNAL_ERRORS_AS_WARNINGS`](#internal_errors_as_warnings) | `bool` | `false` | A |
 | [`INTERN_NAMES`](#intern_names) | `bool` | `true` | A |
 | [`JAVA_HOME`](#java_home) | `Option<String>` | `None` | A |
@@ -56,6 +58,7 @@
 | [`PRINT_HASH`](#print_hash) | `bool` | `false` | A |
 | [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) | `bool` | `false` | A |
 | [`QUIET`](#quiet) | `bool` | `false` | A* |
+| [`REMOVE_DEAD_CODE`](#remove_dead_code) | `bool` | `false` | A |
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` | A |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` | A |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` | A |
@@ -80,6 +83,7 @@
 | [`VIPER_BACKEND`](#viper_backend) | `String` | `"Silicon"` | A |
 | [`VIPER_HOME`](#viper_home) | `Option<String>` | `None` | A |
 | [`WRITE_SMT_STATISTICS`](#write_smt_statistics) | `bool` | `false` | A |
+
 
 ## `ALLOW_UNREACHABLE_UNSUPPORTED_CODE`
 
@@ -141,6 +145,10 @@ For more information see [here]( https://github.com/viperproject/silicon/blob/4c
 ## `COUNTEREXAMPLE`
 
 When enabled, Prusti will try to find and print a counterexample for any failed assertion or specification.
+
+## `DEBUG_RUNTIME_CHECKS`
+
+When enabled, functions generated for runtime checking will emit a message when they are executed.
 
 ## `DELETE_BASIC_BLOCKS`
 
@@ -232,6 +240,15 @@ When enabled, UUIDs of expressions and specifications printed with [`PRINT_TYPEC
 ## `IGNORE_REGIONS`
 
 When enabled, debug files dumped by `rustc` will not contain lifetime regions.
+
+## `INSERT_RUNTIME_CHECKS`
+
+Whether or not to enable runtime checks. Accepts one of the following values:
+
+- `"none"`: default option, no runtime checks will be inserted.
+- `"selective"`: only contracts marked with `#[insert_runtime_check]` will be checked.
+- `"all"`: all supported contracts will be runtime checked.
+
 
 ## `INTERNAL_ERRORS_AS_WARNINGS`
 
@@ -357,6 +374,10 @@ When enabled, prints the type-checked specifications.
 When enabled, user messages are not printed. Otherwise, messages output into `stderr`.
 
 > **Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_QUIET=true`.
+
+## `REMOVE_DEAD_CODE`
+
+When enabled, Prusti will perform some optimizations on the generated executable by removing unreachable code and unneeded assertions and their corresponding checked operations.
 
 ## `SERVER_ADDRESS`
 

@@ -327,7 +327,8 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         if !matches!(
             op,
             mir::BinOp::Add | mir::BinOp::Sub | mir::BinOp::Mul | mir::BinOp::Shl | mir::BinOp::Shr
-        ) || !prusti_common::config::check_overflows()
+        ) || (!prusti_common::config::check_overflows()
+            && !prusti_common::config::remove_dead_code())
         {
             Ok(false.into())
         } else {

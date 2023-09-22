@@ -1,4 +1,5 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
+// #![no_std]
 
 /// A macro for writing a precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
@@ -66,6 +67,14 @@ pub use prusti_contracts_proc_macros::terminates;
 /// A macro to annotate body variant of a loop to prove termination
 pub use prusti_contracts_proc_macros::body_variant;
 
+/// A macro to explicitly annotate a quantifier with ranges for their
+/// runtime checks
+pub use prusti_contracts_proc_macros::quantifier_runtime_bounds;
+
+/// A macro to annotate contracts that should be checked
+/// at runtime
+pub use prusti_contracts_proc_macros::insert_runtime_check;
+
 #[cfg(not(feature = "prusti"))]
 mod private {
     use core::marker::PhantomData;
@@ -123,6 +132,9 @@ mod private {
 
 #[cfg(feature = "prusti")]
 pub mod core_spec;
+
+#[cfg(feature = "prusti")]
+pub mod runtime_check_internals;
 
 #[cfg(feature = "prusti")]
 mod private {

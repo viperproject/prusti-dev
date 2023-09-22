@@ -1,8 +1,9 @@
 use crate::{
     common::HasSignature,
+    runtime_checks::{check_type::CheckItemType, translation::translate_runtime_checks},
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
-        preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
+        preparser::parse_prusti,
         untyped,
     },
 };
@@ -65,7 +66,7 @@ impl AstRewriter {
         None
     }
 
-    fn generate_result_arg<T: HasSignature + Spanned>(&self, item: &T) -> syn::FnArg {
+    pub(crate) fn generate_result_arg<T: HasSignature + Spanned>(item: &T) -> syn::FnArg {
         let item_span = item.span();
         let output_ty = match &item.sig().output {
             syn::ReturnType::Default => parse_quote_spanned!(item_span=> ()),
@@ -127,7 +128,7 @@ impl AstRewriter {
         spec_item.sig.inputs = item.sig().inputs.clone();
         match spec_type {
             SpecItemType::Postcondition | SpecItemType::Pledge => {
-                let fn_arg = self.generate_result_arg(item);
+                let fn_arg = Self::generate_result_arg(item);
                 spec_item.sig.inputs.push(fn_arg);
             }
             _ => (),
@@ -144,21 +145,6 @@ impl AstRewriter {
         item: &T,
     ) -> syn::Result<syn::Item> {
         self.generate_spec_item_fn(spec_type, spec_id, parse_prusti(tokens)?, item)
-    }
-
-    /// Parse a pledge with lhs into a Rust expression
-    pub fn process_pledge(
-        &mut self,
-        spec_id: SpecificationId,
-        tokens: TokenStream,
-        item: &untyped::AnyFnItem,
-    ) -> syn::Result<syn::Item> {
-        self.generate_spec_item_fn(
-            SpecItemType::Pledge,
-            spec_id,
-            parse_prusti_pledge(tokens)?,
-            item,
-        )
     }
 
     pub fn process_pure_refinement(
@@ -190,13 +176,28 @@ impl AstRewriter {
         &mut self,
         spec_id_lhs: SpecificationId,
         spec_id_rhs: SpecificationId,
-        tokens: TokenStream,
+        (lhs, rhs): (TokenStream, TokenStream),
         item: &untyped::AnyFnItem,
     ) -> syn::Result<(syn::Item, syn::Item)> {
-        let (lhs, rhs) = parse_prusti_assert_pledge(tokens)?;
         let lhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs, item)?;
         let rhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs, item)?;
-        Ok((lhs_item, rhs_item))
+        syn::Result::Ok((lhs_item, rhs_item))
+    }
+
+    pub fn create_assert_pledge_check(
+        &mut self,
+        check_id: SpecificationId,
+        (lhs, rhs): (TokenStream, TokenStream),
+        item: &untyped::AnyFnItem,
+    ) -> syn::Result<(syn::Item, syn::Item)> {
+        let lhs_check = translate_runtime_checks(CheckItemType::PledgeLhs, check_id, lhs, item)?;
+        let rhs_check = translate_runtime_checks(
+            CheckItemType::PledgeRhs { has_lhs: true },
+            check_id,
+            rhs,
+            item,
+        )?;
+        syn::Result::Ok((lhs_check, rhs_check))
     }
 
     /// Parse a loop invariant into a Rust expression
@@ -259,9 +260,8 @@ impl AstRewriter {
         &mut self,
         kind: TokenStream,
         spec_id: SpecificationId,
-        tokens: TokenStream,
+        expr: TokenStream,
     ) -> syn::Result<TokenStream> {
-        let expr = parse_prusti(tokens)?;
         let spec_id_str = spec_id.to_string();
         Ok(quote_spanned! {expr.span()=>
             {

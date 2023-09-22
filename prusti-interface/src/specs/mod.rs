@@ -75,9 +75,14 @@ pub struct SpecCollector<'a, 'tcx> {
 
     /// Map from specification IDs to their typed expressions.
     spec_functions: FxHashMap<SpecificationId, LocalDefId>,
+    /// the functions who's specifications have associated checks.
+    check_functions: FxHashMap<SpecificationId, LocalDefId>,
+    check_before_expiry_functions: FxHashMap<SpecificationId, LocalDefId>,
 
     /// Map from functions/loops/types to their specifications.
     procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
+    /// The procedures that contain runtime checks.
+    procedure_checks: FxHashMap<LocalDefId, Vec<SpecIdRef>>,
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
     type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
@@ -94,7 +99,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             extern_resolver: ExternSpecResolver::new(env),
             env,
             spec_functions: FxHashMap::default(),
+            check_functions: FxHashMap::default(),
             procedure_specs: FxHashMap::default(),
+            procedure_checks: FxHashMap::default(),
+            check_before_expiry_functions: FxHashMap::default(),
             loop_specs: vec![],
             loop_variants: vec![],
             type_specs: FxHashMap::default(),
@@ -116,6 +124,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
+
+        self.determine_checks(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
@@ -123,10 +133,55 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
+
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
         self.ensure_local_mirs_fetched(&def_spec);
+
         def_spec
+    }
+
+    fn determine_checks(&self, def_spec: &mut typed::DefSpecificationMap) {
+        // local_id: defId of the annotated function
+        // checks: uuids + kind of the check
+        for (local_id, checks) in self.procedure_checks.iter() {
+            let mut function_checks = Vec::new();
+            for check in checks {
+                let kind = match check {
+                    SpecIdRef::Precondition(id) => {
+                        let fn_id = self.check_functions.get(id).unwrap();
+                        typed::CheckKind::Pre(fn_id.to_def_id())
+                    }
+                    SpecIdRef::Postcondition(id) => {
+                        let fn_id = self.check_functions.get(id).unwrap();
+                        typed::CheckKind::Post {
+                            check: fn_id.to_def_id(),
+                        }
+                    }
+                    SpecIdRef::Pledge { rhs, .. } => {
+                        // can we treat both assert_on_expiry and after_expiry treat the same?
+                        let check = self.check_functions.get(rhs).unwrap().to_def_id();
+                        let check_before_expiry = self
+                            .check_before_expiry_functions
+                            .get(rhs)
+                            .map(|id| id.to_def_id());
+                        typed::CheckKind::Pledge {
+                            check,
+                            check_before_expiry,
+                        }
+                    }
+                    SpecIdRef::Predicate(id) => {
+                        let fn_id = self.check_functions.get(id).unwrap();
+                        typed::CheckKind::Predicate(fn_id.to_def_id())
+                    }
+                    _ => unreachable!(),
+                };
+                function_checks.push(kind);
+            }
+            def_spec
+                .checks
+                .insert(local_id.to_def_id(), function_checks);
+        }
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -211,6 +266,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             let spec = def_spec.proc_specs.remove(spec_id).unwrap();
             def_spec.proc_specs.insert(target_def_id, spec);
+
+            // also deal with checks for extern specs:
+            if let Some(check) = def_spec.checks.remove(spec_id) {
+                def_spec.checks.insert(target_def_id, check);
+            }
         }
     }
 
@@ -441,6 +501,38 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     }
 }
 
+fn get_procedure_check_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Vec<SpecIdRef> {
+    let mut res = Vec::new();
+    read_prusti_attrs("pre_check_id_ref", attrs)
+        .iter()
+        .for_each(|x| {
+            res.push(SpecIdRef::Precondition(parse_spec_id(
+                x.to_string(),
+                def_id,
+            )))
+        });
+    read_prusti_attrs("post_check_id_ref", attrs)
+        .iter()
+        .for_each(|x| {
+            res.push(SpecIdRef::Postcondition(parse_spec_id(
+                x.to_string(),
+                def_id,
+            )))
+        });
+    read_prusti_attrs("assert_pledge_check_ref", attrs)
+        .iter()
+        .for_each(|x| {
+            res.push(SpecIdRef::Pledge {
+                lhs: None,
+                rhs: parse_spec_id(x.to_string(), def_id),
+            });
+        });
+    read_prusti_attr("pred_check_id_ref", attrs)
+        .iter()
+        .for_each(|x| res.push(SpecIdRef::Predicate(parse_spec_id(x.to_string(), def_id))));
+    res
+}
+
 impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
@@ -461,6 +553,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
             self.procedure_specs.insert(local_id, procedure_spec_ref);
         }
+        let check_id = get_procedure_check_ids(def_id, attrs);
+        self.procedure_checks.insert(local_id, check_id);
     }
 
     fn visit_fn(
@@ -550,6 +644,15 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "ghost_end") {
                 self.ghost_end.push(local_id);
             }
+        } else if let Some(raw_check_id) = read_prusti_attr("check_id", attrs) {
+            // check_id work just like spec_ids
+            let check_id = parse_spec_id(raw_check_id, def_id);
+            self.check_functions.insert(check_id, local_id);
+        } else if let Some(raw_before_expiry_check_id) =
+            read_prusti_attr("check_before_expiry_id", attrs)
+        {
+            let id = parse_spec_id(raw_before_expiry_check_id, def_id);
+            self.check_before_expiry_functions.insert(id, local_id);
         } else {
             // Don't collect specs "for" spec items
 
@@ -565,6 +668,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
             }
+            let check_ids = get_procedure_check_ids(def_id, attrs);
+            self.procedure_checks.insert(local_id, check_ids);
 
             // Collect model type flag
             if has_to_model_fn_attr(attrs) {

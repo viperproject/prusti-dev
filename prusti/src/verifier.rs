@@ -10,9 +10,10 @@ use prusti_interface::{
 use prusti_viper::verifier::Verifier;
 
 #[tracing::instrument(name = "prusti::verify", level = "debug", skip(env))]
-pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
+pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) -> Environment<'_> {
     if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
+        env
     } else {
         debug!("Prepare verification task...");
         // TODO: can we replace `get_annotated_procedures` with information
@@ -81,5 +82,6 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                 );
             }
         };
+        env
     }
 }

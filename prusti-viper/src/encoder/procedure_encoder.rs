@@ -29,6 +29,7 @@ use prusti_common::{
     vir::{ToGraphViz, fixes::fix_ghost_vars},
     vir_local, vir_expr, vir_stmt
 };
+use prusti_interface::globals;
 use vir_crate::{
     polymorphic::{
         self as vir,
@@ -591,6 +592,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 |writer| method_with_fold_unfold.to_graphviz(writer),
             );
         }
+        // store polonius info for runtime checks:
+        globals::store_polonius_info(self.proc_def_id, self.polonius_info.take().unwrap());
 
         Ok(method_with_fold_unfold)
     }
@@ -1259,6 +1262,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
+        if config::remove_dead_code() && self.procedure.is_non_spec_switch_int_target(bbi) {
+            self.encode_reachability_refute(bbi, curr_block)?;
+        }
         self.encode_execution_flag(bbi, curr_block)?;
         let opt_successor = self.encode_block_statements(bbi, curr_block)?;
         let mir_successor: MirSuccessor = if let Some(successor) = opt_successor {
@@ -1324,6 +1330,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 source: true.into(),
                 kind: vir::AssignKind::Copy,
             }),
+        );
+        Ok(())
+    }
+
+    /// Insert a refute fals to deterimine rechability
+    fn encode_reachability_refute(&mut self, bbi: BasicBlockIndex, cfg_block: CfgBlockIndex) -> SpannedEncodingResult<()> {
+        let pos = self.register_error(self.mir_encoder.get_span_of_basic_block(bbi), ErrorCtxt::InsertedReachabilityRefutation(self.proc_def_id, bbi));
+        globals::add_reachability_check(self.proc_def_id, bbi);
+        let false_const = vir::Expr::Const(vir::ConstExpr {
+            value: vir::Const::Bool(false),
+            position: pos
+        });
+        self.cfg_method.add_stmt(
+            cfg_block,
+            vir::Stmt::Refute(vir::Refute {
+                expr: false_const,
+                position: pos
+            })
         );
         Ok(())
     }
@@ -2750,18 +2774,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::Expr::not(cond_var.into())
                 };
 
+                if config::remove_dead_code() {
+                    globals::add_encoded_assertion(self.proc_def_id, location.block);
+                }
+                // whether the error generated here should be ignored, i.e. not reported
+                // to the user (because it was only inserted for optimization)
+                let ignore = config::remove_dead_code()
+                    && (!self.check_panics
+                        || (!config::check_overflows()
+                            && matches!(msg, box mir::AssertKind::Overflow(..) | box mir::AssertKind::OverflowNeg(..))));
                 // Check or assume the assertion
                 let (assert_msg, error_ctxt) = if let box mir::AssertKind::BoundsCheck { .. } = msg {
                     let mut s = String::new();
                     msg.fmt_assert_args(&mut s).unwrap();
-                    (s, ErrorCtxt::BoundsCheckAssert)
+                    (s, ErrorCtxt::BoundsCheckAssert(self.proc_def_id, location.block, ignore))
                 } else {
                     let assert_msg = msg.description().to_string();
-                    (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))
+                    (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg, self.proc_def_id, location.block, ignore))
                 };
 
                 stmts.push(vir::Stmt::comment(format!("Rust assertion: {assert_msg}")));
-                if self.check_panics {
+                if self.check_panics || config::remove_dead_code() {
                     stmts.push(vir::Stmt::Assert( vir::Assert {
                         expr: viper_guard,
                         position: self.register_error(

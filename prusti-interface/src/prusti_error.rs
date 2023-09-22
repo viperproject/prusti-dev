@@ -28,6 +28,12 @@ pub struct PrustiError {
     /// currently verify functions multiple times. Once this is fixed, this
     /// field should be removed.
     is_disabled: bool,
+    /// ignore these errors because we introduced them ourselves by
+    /// modifying mir (inserting assertions for reachability)
+    /// Different to `is_disabled` because errors with is_disabled still cause
+    /// a verification failure. Also separated because apparently is_disabled
+    /// is temporary
+    ignore: bool,
     message: String,
     span: Box<MultiSpan>,
     help: Option<String>,
@@ -60,6 +66,7 @@ impl PrustiError {
         PrustiError {
             kind: PrustiErrorKind::Error,
             is_disabled: false,
+            ignore: false,
             message,
             span: Box::new(span),
             help: None,
@@ -83,6 +90,19 @@ impl PrustiError {
             span,
         );
         error.is_disabled = true;
+        error
+    }
+
+    pub fn ignore_verification<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
+        let mut error = PrustiError::new(
+            format!(
+                "[Prusti: expected error. Bug if a user sees this!] {}",
+                message.to_string()
+            ),
+            span,
+        );
+        error.ignore = true;
         error
     }
 
@@ -158,6 +178,13 @@ impl PrustiError {
     // function only once.
     pub fn is_disabled(&self) -> bool {
         self.is_disabled
+    }
+
+    // Errors that should be ignored and not reported to the user.
+    // Used for errors that originate from assertions that we
+    // automatically insert into MIR to analyse reachability
+    pub fn is_ignored(&self) -> bool {
+        self.ignore
     }
 
     #[must_use]
