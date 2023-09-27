@@ -17,7 +17,7 @@ use prusti_rustc_interface::{
         query::{ExternProviders, Providers},
         ty::TyCtxt,
     },
-    session::{EarlyErrorHandler, Session},
+    session::Session,
 };
 
 #[derive(Default)]
@@ -135,7 +135,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     #[tracing::instrument(level = "debug", skip_all)]
     fn after_analysis<'tcx>(
         &mut self,
-        _error_handler: &EarlyErrorHandler,
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {

@@ -4,16 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
 use std::fmt::Display;
 
 use prusti_rustc_interface::middle::ty;
 use vir_crate::polymorphic as vir;
 
-use crate::encoder::{
-    errors::{EncodingError, EncodingResult},
-};
-
+use crate::encoder::errors::{EncodingError, EncodingResult};
 
 /// Result of encoding a place
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -57,11 +53,12 @@ pub enum ExprOrArrayBase {
 impl<'tcx> PlaceEncoding<'tcx> {
     pub fn try_into_expr(self) -> EncodingResult<vir::Expr> {
         match self.into_array_base() {
-           ExprOrArrayBase::Expr(e) => Ok(e),
-           ExprOrArrayBase::ArrayBase(b)
-           | ExprOrArrayBase::SliceBase(b) => Err(EncodingError::internal(
-               format!("PlaceEncoding::try_into_expr called on sequence expr '{b:?}'")
-           )),
+            ExprOrArrayBase::Expr(e) => Ok(e),
+            ExprOrArrayBase::ArrayBase(b) | ExprOrArrayBase::SliceBase(b) => {
+                Err(EncodingError::internal(format!(
+                    "PlaceEncoding::try_into_expr called on sequence expr '{b:?}'"
+                )))
+            }
         }
     }
 
@@ -70,52 +67,59 @@ impl<'tcx> PlaceEncoding<'tcx> {
     pub fn into_array_base(self) -> ExprOrArrayBase {
         match self {
             PlaceEncoding::Expr(e) => ExprOrArrayBase::Expr(e),
-            PlaceEncoding::FieldAccess { base, field } => {
-                match base.into_array_base() {
-                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::Expr(e.field(field)),
-                    base@ExprOrArrayBase::ArrayBase(_) => base,
-                    base@ExprOrArrayBase::SliceBase(_) => base,
+            PlaceEncoding::FieldAccess { base, field } => match base.into_array_base() {
+                ExprOrArrayBase::Expr(e) => ExprOrArrayBase::Expr(e.field(field)),
+                base @ ExprOrArrayBase::ArrayBase(_) => base,
+                base @ ExprOrArrayBase::SliceBase(_) => base,
+            },
+            PlaceEncoding::Variant { base, field } => match base.into_array_base() {
+                ExprOrArrayBase::Expr(e) => {
+                    ExprOrArrayBase::Expr(vir::Expr::Variant(vir::Variant {
+                        base: Box::new(e),
+                        variant_index: field,
+                        position: vir::Position::default(),
+                    }))
                 }
-            }
-            PlaceEncoding::Variant { base, field } => {
-                match base.into_array_base() {
-                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::Expr(
-                        vir::Expr::Variant( vir::Variant {base: Box::new(e), variant_index: field, position: vir::Position::default()} )
-                    ),
-                    base@ExprOrArrayBase::ArrayBase(_) => base,
-                    base@ExprOrArrayBase::SliceBase(_) => base,
-                }
-            }
+                base @ ExprOrArrayBase::ArrayBase(_) => base,
+                base @ ExprOrArrayBase::SliceBase(_) => base,
+            },
             PlaceEncoding::ArrayAccess { base, .. } => {
                 // need to check base's into_expr_or_array_base, maybe we're not the outermost
                 // array
                 match base.into_array_base() {
                     ExprOrArrayBase::Expr(e) => ExprOrArrayBase::ArrayBase(e),
-                    base@ExprOrArrayBase::ArrayBase(_) => base,
-                    base@ExprOrArrayBase::SliceBase(_) => base,
+                    base @ ExprOrArrayBase::ArrayBase(_) => base,
+                    base @ ExprOrArrayBase::SliceBase(_) => base,
                 }
             }
-            PlaceEncoding::SliceAccess { base, .. } => {
-                match base.into_array_base() {
-                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::SliceBase(e),
-                    base@ExprOrArrayBase::ArrayBase(_) => base,
-                    base@ExprOrArrayBase::SliceBase(_) => base,
-                }
-            }
+            PlaceEncoding::SliceAccess { base, .. } => match base.into_array_base() {
+                ExprOrArrayBase::Expr(e) => ExprOrArrayBase::SliceBase(e),
+                base @ ExprOrArrayBase::ArrayBase(_) => base,
+                base @ ExprOrArrayBase::SliceBase(_) => base,
+            },
         }
     }
 
     pub fn field(self, field: vir::Field) -> Self {
-        PlaceEncoding::FieldAccess { base: Box::new(self), field }
+        PlaceEncoding::FieldAccess {
+            base: Box::new(self),
+            field,
+        }
     }
 
     pub fn get_type(&self) -> &vir::Type {
         match self {
             PlaceEncoding::Expr(ref e) => e.get_type(),
             PlaceEncoding::FieldAccess { ref field, .. } => &field.typ,
-            PlaceEncoding::ArrayAccess { ref encoded_elem_ty, .. } => encoded_elem_ty,
+            PlaceEncoding::ArrayAccess {
+                ref encoded_elem_ty,
+                ..
+            } => encoded_elem_ty,
             PlaceEncoding::Variant { ref field, .. } => &field.typ,
-            PlaceEncoding::SliceAccess { ref encoded_elem_ty, .. } => encoded_elem_ty,
+            PlaceEncoding::SliceAccess {
+                ref encoded_elem_ty,
+                ..
+            } => encoded_elem_ty,
         }
     }
 
@@ -124,7 +128,10 @@ impl<'tcx> PlaceEncoding<'tcx> {
         let field_name = format!("enum_{index}");
         let field = vir::Field::new(field_name, self.get_type().clone().variant(index));
 
-        PlaceEncoding::Variant { base: Box::new(self), field }
+        PlaceEncoding::Variant {
+            base: Box::new(self),
+            field,
+        }
     }
 }
 
