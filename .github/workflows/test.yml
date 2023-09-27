@@ -110,6 +110,29 @@ jobs:
       - name: Run quick tests
         run: python x.py test --all quick
 
+  top-crates:
+    runs-on: ubuntu-latest
+    env:
+      PRUSTI_CACHE_PATH: ${{ github.workspace }}/prusti_cache.bin
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '15'
+          distribution: 'zulu'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+      - name: Build with cargo
+        run: python x.py build --all
+      - name: Run quick tests
+        run: python x.py test --package mir-state-analysis --test top_crates -- top_crates --exact --nocapture
+
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
   purification-tests:
