@@ -6,7 +6,6 @@
 
 use prusti_rustc_interface::middle::ty;
 
-
 pub mod to_string;
 pub mod type_visitor;
 
@@ -42,7 +41,8 @@ pub fn ty_to_string(typ: &ty::TyKind) -> String {
         &ty::TyKind::Placeholder(_) => "placeholder type",
         &ty::TyKind::Infer(_) => "inference type",
         &ty::TyKind::Error(_) => "error type",
-    }).to_string()
+    })
+    .to_string()
 }
 
 pub fn is_reference(base_ty: ty::Ty) -> bool {

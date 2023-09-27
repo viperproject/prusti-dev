@@ -4,16 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::errors::MultiSpan;
-use crate::encoder::errors::{SpannedEncodingError, EncodingError};
+use crate::encoder::errors::{EncodingError, SpannedEncodingError};
 use log::trace;
+use prusti_rustc_interface::errors::MultiSpan;
 
 /// Helper trait to convert a `Result<T, EncodingError>` to a
 /// `Result<T, SpannedEncodingError>`.
 pub trait WithSpan<T> {
     fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError>;
     // FIXME: Make the method names consistent.
-    fn set_span_with<S: Into<MultiSpan>>(self, span_callback: impl Fn() -> S) -> Result<T, SpannedEncodingError>;
+    fn set_span_with<S: Into<MultiSpan>>(
+        self,
+        span_callback: impl Fn() -> S,
+    ) -> Result<T, SpannedEncodingError>;
     fn with_default_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError>;
 }
 
@@ -24,7 +27,10 @@ impl<T> WithSpan<T> for Result<T, EncodingError> {
             err.with_span(span)
         })
     }
-    fn set_span_with<S: Into<MultiSpan>>(self, span_callback: impl Fn() -> S) -> Result<T, SpannedEncodingError> {
+    fn set_span_with<S: Into<MultiSpan>>(
+        self,
+        span_callback: impl Fn() -> S,
+    ) -> Result<T, SpannedEncodingError> {
         self.map_err(|err| {
             trace!("Converting a EncodingError to SpannedEncodingError in a Result");
             let span = span_callback();
@@ -46,7 +52,10 @@ impl<T> WithSpan<T> for Result<T, SpannedEncodingError> {
             err.with_span(span)
         })
     }
-    fn set_span_with<S: Into<MultiSpan>>(self, span_callback: impl Fn() -> S) -> Result<T, SpannedEncodingError> {
+    fn set_span_with<S: Into<MultiSpan>>(
+        self,
+        span_callback: impl Fn() -> S,
+    ) -> Result<T, SpannedEncodingError> {
         self.map_err(|err| {
             trace!("Converting a EncodingError to SpannedEncodingError in a Result");
             let span = span_callback();

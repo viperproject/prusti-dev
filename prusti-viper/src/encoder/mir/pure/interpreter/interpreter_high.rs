@@ -897,7 +897,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::Terminate | TerminatorKind::Resume { .. } => {
+            TerminatorKind::UnwindTerminate(..) | TerminatorKind::UnwindResume { .. } => {
                 assert!(states.is_empty());
                 let pos = self
                     .encoder

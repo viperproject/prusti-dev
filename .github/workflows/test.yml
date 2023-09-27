@@ -49,7 +49,7 @@ jobs:
           shared-key: "shared"
       - name: Check and report Clippy errors
         run: |
-          python ./x.py clippy -- -D warnings
+          python ./x.py clippy-all
 
   # Detect missing dependencies in workspace packages
   # See: https://stackoverflow.com/a/74293494/2491528
@@ -262,6 +262,13 @@ jobs:
         run: |
           cd prusti-contracts/prusti-contracts-test/
           cargo +stable build
+      - name: "Windows debugging: show open file handles for any running process"
+        if: matrix.os == 'windows-latest' && failure()
+        shell: cmd
+        run: |
+          C:\msys64\usr\bin\wget.exe https://download.sysinternals.com/files/Handle.zip
+          7z x Handle.zip
+          handle.exe -u -nobanner -accepteula
 
   release-build:
     needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]

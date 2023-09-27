@@ -167,17 +167,11 @@ impl StmtWalker for VarDependencyCollector {
         let dependencies = collect_variables(source);
         let dependents = collect_variables(target);
         for dependent in &dependents {
-            let entry = self
-                .dependencies
-                .entry(dependent.clone())
-                .or_default();
+            let entry = self.dependencies.entry(dependent.clone()).or_default();
             entry.extend(dependencies.iter().cloned());
         }
         for dependency in dependencies {
-            let entry = self
-                .dependents
-                .entry(dependency)
-                .or_default();
+            let entry = self.dependents.entry(dependency).or_default();
             entry.extend(dependents.iter().cloned());
         }
         match kind {

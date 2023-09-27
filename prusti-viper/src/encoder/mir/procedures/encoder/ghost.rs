@@ -51,12 +51,12 @@ impl<'a, 'p, 'v, 'tcx> GhostChecker<'a, 'p, 'v, 'tcx> {
         let ty = &self.p.mir.local_decls[*local].ty;
         let ty_str = format!("{ty:?}");
 
-        let ghost_tys = ["Ghost", "Int", "Seq", "Map"];
-
-        for ghost in ghost_tys {
-            if ty_str.starts_with(&format!("prusti_contracts::{ghost}")) {
-                return true;
-            }
+        match &ty_str {
+            _ if ty_str.starts_with("Adt(prusti_contracts::Ghost,") => return true,
+            _ if ty_str.starts_with("Adt(prusti_contracts::Int,") => return true,
+            _ if ty_str.starts_with("Adt(prusti_contracts::Seq,") => return true,
+            _ if ty_str.starts_with("Adt(prusti_contracts::Map,") => return true,
+            _ => {}
         }
 
         // unit types get generated all over, and carry no information, thus okay to leak outside the ghost block
