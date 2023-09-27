@@ -7,7 +7,7 @@
 use prusti_rustc_interface::{
     data_structures::fx::FxHashSet,
     dataflow::storage,
-    index::bit_set::BitSet,
+    index::{Idx, bit_set::BitSet},
     middle::{
         mir::{
             tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
@@ -65,6 +65,13 @@ impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
 
     pub fn always_live_locals(self) -> BitSet<Local> {
         storage::always_storage_live_locals(self.mir)
+    }
+    pub fn always_live_locals_non_args(self) -> BitSet<Local> {
+        let mut all = self.always_live_locals();
+        for arg in 0..self.mir.arg_count+1 { // Includes `RETURN_PLACE`
+            all.remove(Local::new(arg));
+        }
+        all
     }
 
     pub fn body(self) -> &'a Body<'tcx> {
