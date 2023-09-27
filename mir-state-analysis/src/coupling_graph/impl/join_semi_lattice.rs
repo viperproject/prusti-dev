@@ -25,10 +25,6 @@ impl JoinSemiLattice for Cg<'_, '_> {
         // }
         // self.done += 1;
         let actually_changed = self.regions.graph.join(&other.regions.graph);
-        if actually_changed {
-            self.regions.version += 1;
-            assert!(self.regions.version < 40);
-        }
         return actually_changed;
         let mut changed = self.live.union(&other.live);
         for (idx, data) in other.regions.borrows.iter() {
