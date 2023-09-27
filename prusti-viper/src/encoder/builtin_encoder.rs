@@ -4,12 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::{vir_local, vir_expr};
-use vir_crate::polymorphic::{self as vir};
-use vir_crate::common::identifier::WithIdentifier;
-use super::errors::EncodingResult;
-use super::high::builtin_functions::HighBuiltinFunctionEncoderInterface;
-use super::versioning;
+use super::{
+    errors::EncodingResult, high::builtin_functions::HighBuiltinFunctionEncoderInterface,
+    versioning,
+};
+use prusti_common::{vir_expr, vir_local};
+use vir_crate::{
+    common::identifier::WithIdentifier,
+    polymorphic::{self as vir},
+};
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 
@@ -63,16 +66,14 @@ pub struct BuiltinEncoder<'p, 'v: 'p, 'tcx: 'v> {
 
 impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
     pub fn new(encoder: &'p super::Encoder<'v, 'tcx>) -> Self {
-        Self {
-            encoder
-        }
+        Self { encoder }
     }
 
     pub fn encode_builtin_method_name(&self, method: BuiltinMethodKind) -> String {
         match method {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
-            BuiltinMethodKind::HavocBV(variant)  => format!("builtin$havoc_{variant}"),
+            BuiltinMethodKind::HavocBV(variant) => format!("builtin$havoc_{variant}"),
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
@@ -80,7 +81,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_builtin_method_def(&self, method: BuiltinMethodKind) -> EncodingResult<vir::BodylessMethod> {
+    pub fn encode_builtin_method_def(
+        &self,
+        method: BuiltinMethodKind,
+    ) -> EncodingResult<vir::BodylessMethod> {
         let method_name = self.encode_builtin_method_name(method);
         let return_type = match method {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
@@ -96,14 +100,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         Ok(vir::BodylessMethod {
             name: method_name,
             formal_args: vec![],
-            formal_returns: vec![vir_local!{ ret: {return_type} }],
+            formal_returns: vec![vir_local! { ret: {return_type} }],
             pres: vec![],
             posts: vec![],
         })
     }
 
     pub fn encode_builtin_function_def(&self, function: BuiltinFunctionKind) -> vir::Function {
-        let (fn_name, type_arguments) = self.encoder.encode_builtin_function_name_with_type_args(&function);
+        let (fn_name, type_arguments) = self
+            .encoder
+            .encode_builtin_function_name_with_type_args(&function);
         match function {
             BuiltinFunctionKind::Unreachable(typ) => vir::Function {
                 name: fn_name,
@@ -124,9 +130,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                 posts: vec![],
                 body: None,
             },
-            BuiltinFunctionKind::ArrayLookupPure { array_pred_type, array_len, return_ty, .. } => {
+            BuiltinFunctionKind::ArrayLookupPure {
+                array_pred_type,
+                array_len,
+                return_ty,
+                ..
+            } => {
                 let self_var = vir::LocalVar::new("self", array_pred_type.clone());
-                let idx_var = vir_local!{ idx: Int };
+                let idx_var = vir_local! { idx: Int };
 
                 vir::Function {
                     name: fn_name,
@@ -146,29 +157,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                             vir::PermAmount::Read,
                         ),
                         // 0 <= idx < {len}
-                        vir_expr!{ [vir::Expr::from(0u32)] <= [vir::Expr::local(idx_var.clone())] },
-                        vir_expr!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
+                        vir_expr! { [vir::Expr::from(0u32)] <= [vir::Expr::local(idx_var.clone())] },
+                        vir_expr!([vir::Expr::local(idx_var)] < [vir::Expr::from(array_len)]),
                     ],
                     posts: vec![],
                     body: None,
                 }
-            },
-            BuiltinFunctionKind::SliceLookupPure { slice_pred_type, elem_pred_type, return_ty} => {
-                let (slice_len, slice_len_type_arguments) = self.encoder.encode_builtin_function_name_with_type_args(
-                    &BuiltinFunctionKind::SliceLen { slice_pred_type: slice_pred_type.clone(), elem_pred_type }
-                );
+            }
+            BuiltinFunctionKind::SliceLookupPure {
+                slice_pred_type,
+                elem_pred_type,
+                return_ty,
+            } => {
+                let (slice_len, slice_len_type_arguments) = self
+                    .encoder
+                    .encode_builtin_function_name_with_type_args(&BuiltinFunctionKind::SliceLen {
+                        slice_pred_type: slice_pred_type.clone(),
+                        elem_pred_type,
+                    });
                 let self_var = vir::LocalVar::new("self", slice_pred_type.clone());
-                let idx_var = vir_local!{ idx: Int };
+                let idx_var = vir_local! { idx: Int };
 
                 let slice_len_call = vir::Expr::func_app(
                     slice_len,
                     slice_len_type_arguments,
-                    vec![
-                        vir::Expr::local(self_var.clone()),
-                    ],
-                    vec![
-                        self_var.clone(),
-                    ],
+                    vec![vir::Expr::local(self_var.clone())],
+                    vec![self_var.clone()],
                     vir::Type::Int,
                     vir::Position::default(),
                 );
@@ -176,10 +190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                 vir::Function {
                     name: fn_name,
                     type_arguments,
-                    formal_args: vec![
-                        self_var.clone(),
-                        idx_var.clone(),
-                    ],
+                    formal_args: vec![self_var.clone(), idx_var.clone()],
                     return_type: return_ty,
                     pres: vec![
                         // acc(self, read$())
@@ -189,38 +200,36 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                             vir::PermAmount::Read,
                         ),
                         // 0 <= idx < Slice${ty}$len(self)
-                        vir_expr!{ [vir::Expr::from(0u32)] <= [vir::Expr::local(idx_var.clone())] },
-                        vir_expr!{ [vir::Expr::local(idx_var)] < [slice_len_call] },
+                        vir_expr! { [vir::Expr::from(0u32)] <= [vir::Expr::local(idx_var.clone())] },
+                        vir_expr! { [vir::Expr::local(idx_var)] < [slice_len_call] },
                     ],
                     posts: vec![],
                     body: None,
                 }
-            },
-            BuiltinFunctionKind::SliceLen { slice_pred_type, .. } => {
+            }
+            BuiltinFunctionKind::SliceLen {
+                slice_pred_type, ..
+            } => {
                 let self_var = vir::LocalVar::new("self", slice_pred_type.clone());
 
                 vir::Function {
                     name: fn_name,
                     type_arguments,
-                    formal_args: vec![
-                        self_var.clone(),
-                    ],
+                    formal_args: vec![self_var.clone()],
                     return_type: vir::Type::Int,
-                    pres: vec![
-                        vir::Expr::predicate_access_predicate(
-                            slice_pred_type,
-                            vir::Expr::local(self_var),
-                            vir::PermAmount::Read,
-                        ),
-                    ],
+                    pres: vec![vir::Expr::predicate_access_predicate(
+                        slice_pred_type,
+                        vir::Expr::local(self_var),
+                        vir::PermAmount::Read,
+                    )],
                     posts: vec![
-                        vir_expr!{ [vir::Expr::from(vir_local!{ __result: Int })] >= [vir::Expr::from(0)] },
+                        vir_expr! { [vir::Expr::from(vir_local!{ __result: Int })] >= [vir::Expr::from(0)] },
                         // TODO: We should use a symbolic value for usize::MAX.
-                        vir_expr!{ [vir::Expr::from(vir_local!{ __result: Int })] <= [vir::Expr::from(usize::MAX)] },
+                        vir_expr! { [vir::Expr::from(vir_local!{ __result: Int })] <= [vir::Expr::from(usize::MAX)] },
                     ],
                     body: None,
                 }
-            },
+            }
         }
     }
 
@@ -302,13 +311,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             };
             functions.push(f.clone());
 
-            let forall_arg = vir_local!{ self: {t.clone()} };
+            let forall_arg = vir_local! { self: {t.clone()} };
             let function_app =
                 vir::Expr::domain_func_app(f.clone(), vec![vir::Expr::local(forall_arg.clone())]);
             let body = vir::Expr::forall(
                 vec![forall_arg],
                 vec![vir::Trigger::new(vec![function_app.clone()])],
-                function_app);
+                function_app,
+            );
             let axiom = vir::DomainAxiom {
                 comment: None,
                 name: format!("{}$axiom", f.get_identifier()),

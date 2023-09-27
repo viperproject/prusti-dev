@@ -52,8 +52,8 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
 
         TerminatorKind::SwitchInt { ref targets, .. } => targets.all_targets().to_vec(),
 
-        TerminatorKind::Resume
-        | TerminatorKind::Terminate
+        TerminatorKind::UnwindResume
+        | TerminatorKind::UnwindTerminate(..)
         | TerminatorKind::Return
         | TerminatorKind::GeneratorDrop
         | TerminatorKind::Unreachable => vec![],

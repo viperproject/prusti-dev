@@ -36,6 +36,7 @@ pub fn backtranslate(
         let label_markers = translator.get_label_markers(true);
         let mut file = std::fs::File::create(path).unwrap();
         serde_json::to_writer_pretty(&mut file, &label_markers).unwrap();
+        file.sync_all().unwrap();
     }
 
     let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers);

@@ -173,10 +173,10 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
                 graph.add_regular_edge(bb.to_text(), target.to_text());
             }
         }
-        TerminatorKind::Resume => {
+        TerminatorKind::UnwindResume => {
             graph.add_exit_edge(bb.to_text(), "resume".to_text());
         }
-        TerminatorKind::Terminate => {
+        TerminatorKind::UnwindTerminate(..) => {
             graph.add_exit_edge(bb.to_text(), "terminate".to_text());
         }
         TerminatorKind::Return => {
