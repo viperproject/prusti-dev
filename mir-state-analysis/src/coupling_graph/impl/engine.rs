@@ -13,12 +13,12 @@ use prusti_rustc_interface::{
         borrow_set::{BorrowData, TwoPhaseActivation},
         consumers::{Borrows, BorrowIndex, RichLocation, PlaceConflictBias, places_conflict, calculate_borrows_out_of_scope_at_location},
     },
-    dataflow::{Analysis, AnalysisDomain, CallReturnPlaces, ResultsCursor},
+    dataflow::{Analysis, AnalysisDomain, ResultsCursor},
     index::{bit_set::{BitSet, HybridBitSet}, Idx},
     middle::{
         mir::{
             TerminatorKind, Operand, ConstantKind, StatementKind, Rvalue,
-            visit::Visitor, BasicBlock, Body, Local, Place, Location, Statement, Terminator, RETURN_PLACE,
+            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Place, Location, Statement, Terminator, TerminatorEdges, RETURN_PLACE,
         },
         ty::{RegionVid, TyCtxt},
     },
@@ -368,12 +368,12 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         }
     }
 
-    fn apply_terminator_effect(
+    fn apply_terminator_effect<'mir>(
         &mut self,
         state: &mut Self::Domain,
-        terminator: &Terminator<'tcx>,
+        terminator: &'mir Terminator<'tcx>,
         location: Location,
-    ) {
+    ) -> TerminatorEdges<'mir, 'tcx> {
         let l = format!("{:?}", location).replace('[', "_").replace(']', "");
         // println!("Location: {l}");
         state.regions.graph.id = Some(l.clone());
@@ -434,6 +434,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         if cfg!(debug_assertions) && !self.repacker.body().basic_blocks[location.block].is_cleanup {
             state.regions.output_to_dot(format!("log/coupling/individual/{l}_v{}.dot", state.regions.version));
         }
+        terminator.edges()
     }
 
     fn apply_call_return_effect(
