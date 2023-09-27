@@ -311,6 +311,9 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         state.regions.graph.id = Some(l.clone());
 
         if location.statement_index == 0 {
+            state.regions.version += 1;
+            assert!(state.regions.version < 10);
+
             // println!("\nblock: {:?}", location.block);
             if cfg!(debug_assertions) && !self.repacker.body().basic_blocks[location.block].is_cleanup {
                 state.regions.output_to_dot(format!("log/coupling/individual/{l}_v{}_start.dot", state.regions.version));
@@ -379,6 +382,9 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         state.regions.graph.id = Some(l.clone());
 
         if location.statement_index == 0 {
+            state.regions.version += 1;
+            assert!(state.regions.version < 10);
+
             // println!("\nblock: {:?}", location.block);
             if cfg!(debug_assertions) && !self.repacker.body().basic_blocks[location.block].is_cleanup {
                 state.regions.output_to_dot(format!("log/coupling/individual/{l}_v{}_start.dot", state.regions.version));
