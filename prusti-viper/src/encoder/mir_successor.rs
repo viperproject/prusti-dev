@@ -1,5 +1,5 @@
-use vir_crate::polymorphic::{CfgBlockIndex, Expr, Successor};
 use prusti_interface::environment::BasicBlockIndex;
+use vir_crate::polymorphic::{CfgBlockIndex, Expr, Successor};
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum MirSuccessor {
