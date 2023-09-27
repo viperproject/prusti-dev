@@ -5,11 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
-    dataflow::{Analysis, AnalysisDomain, CallReturnPlaces},
+    dataflow::{Analysis, AnalysisDomain},
     index::Idx,
     middle::{
         mir::{
-            visit::Visitor, BasicBlock, Body, Local, Location, Statement, Terminator, RETURN_PLACE,
+            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Location, Statement,
+            Terminator, TerminatorEdges, RETURN_PLACE,
         },
         ty::TyCtxt,
     },
@@ -74,14 +75,15 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         state.visit_statement(statement, location);
     }
 
-    fn apply_terminator_effect(
+    fn apply_terminator_effect<'mir>(
         &mut self,
         state: &mut Self::Domain,
-        terminator: &Terminator<'tcx>,
+        terminator: &'mir Terminator<'tcx>,
         location: Location,
-    ) {
+    ) -> TerminatorEdges<'mir, 'tcx> {
         state.repackings.clear();
         state.visit_terminator(terminator, location);
+        terminator.edges()
     }
 
     fn apply_call_return_effect(
