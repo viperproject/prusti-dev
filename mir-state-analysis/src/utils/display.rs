@@ -18,6 +18,7 @@ use prusti_rustc_interface::{
 
 use super::{Place, PlaceRepacker};
 
+#[derive(Clone)]
 pub enum PlaceDisplay<'tcx> {
     Temporary(Place<'tcx>),
     User(String),
@@ -29,6 +30,12 @@ impl<'tcx> Debug for PlaceDisplay<'tcx> {
             PlaceDisplay::Temporary(place) => write!(f, "{place:?}"),
             PlaceDisplay::User(s) => write!(f, "{s}"),
         }
+    }
+}
+
+impl<'tcx> PlaceDisplay<'tcx> {
+    pub fn is_user(&self) -> bool {
+        matches!(self, PlaceDisplay::User(_))
     }
 }
 

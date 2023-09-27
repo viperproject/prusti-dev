@@ -15,7 +15,7 @@ use crate::{
     utils::{PlaceOrdering, PlaceRepacker},
 };
 
-use super::cg::{Cg, Graph};
+use super::cg::{Cg, Graph, SharedBorrows};
 
 impl JoinSemiLattice for Cg<'_, '_> {
     fn join(&mut self, other: &Self) -> bool {
@@ -25,6 +25,10 @@ impl JoinSemiLattice for Cg<'_, '_> {
         // }
         // self.done += 1;
         let actually_changed = self.regions.graph.join(&other.regions.graph);
+        if actually_changed {
+            self.regions.version += 1;
+            assert!(self.regions.version < 40);
+        }
         return actually_changed;
         let mut changed = self.live.union(&other.live);
         for (idx, data) in other.regions.borrows.iter() {
@@ -81,11 +85,26 @@ impl JoinSemiLattice for Graph<'_, '_> {
                 //     println!("New edge: {:?} -> {:?} ({:?})", from, to, reasons);
                 // }
             }
+            if node.borrows_from_static {
+                changed = changed || self.set_borrows_from_static(*rep);
+            }
         }
-        if changed {
-            self.version += 1;
-            assert!(self.version < 1000);
+        let old_len = self.static_regions.len();
+        for &r in &other.static_regions {
+            self.make_static(r);
         }
+        changed = changed || self.static_regions.len() != old_len;
         changed
+    }
+}
+
+impl SharedBorrows<'_> {
+    fn join(&mut self, other: &Self) -> bool {
+        println!("Joining shared borrows: {:?} and {:?}", self.location_map, other.location_map);
+        let old_len = self.location_map.len();
+        for (k, v) in other.location_map.iter() {
+            self.insert(*k, v.clone());
+        }
+        self.location_map.len() != old_len
     }
 }

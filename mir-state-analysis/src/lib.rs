@@ -40,13 +40,15 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     facts2: &'mir BorrowckFacts2<'tcx>,
     tcx: TyCtxt<'tcx>,
 ) {
-    // let name = tcx.opt_item_name(mir.source.def_id());
-    // println!("Running for {}", name.as_ref().map(|n| n.as_str()).unwrap_or("unnamed"));
-    println!("Running for {:?}", mir.source.def_id());
-    // if tcx.item_name(mir.source.def_id()).as_str() == "main" {
+    // if tcx.item_name(mir.source.def_id()).as_str().starts_with("main") {
     //     return;
     // }
-    let fpcs = coupling_graph::engine::CoupligGraph::new(tcx, mir, facts, facts2);
+    // if tcx.item_name(mir.source.def_id()).as_str() != "debug" {
+    //     return;
+    // }
+    // println!("Running for {:?} {:?}", mir.source.def_id(), mir.span);
+    let cgx = coupling_graph::CgContext::new(tcx, mir, facts, facts2);
+    let fpcs = coupling_graph::engine::CoupligGraph::new(tcx, mir, facts, facts2, &cgx);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("coupling_graph")
