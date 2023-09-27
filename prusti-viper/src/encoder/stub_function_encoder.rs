@@ -4,17 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::high::generics::HighGenericsEncoderInterface;
-use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
-use crate::encoder::Encoder;
-use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
-use vir_crate::polymorphic as vir;
-use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::middle::ty::GenericArgsRef;
-use prusti_rustc_interface::middle::mir;
+use crate::encoder::{
+    errors::{SpannedEncodingResult, WithSpan},
+    high::generics::HighGenericsEncoderInterface,
+    mir_encoder::{MirEncoder, PlaceEncoder},
+    snapshot::interface::SnapshotEncoderInterface,
+    Encoder,
+};
 use log::debug;
-use crate::encoder::errors::WithSpan;
-use crate::encoder::errors::SpannedEncodingResult;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, ty::GenericArgsRef},
+};
+use vir_crate::polymorphic as vir;
 
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -52,13 +54,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| {
                 let var_name = self.mir_encoder.encode_local_var_name(local);
                 let mir_type = self.mir_encoder.get_local_ty(local);
-                self.encoder.encode_snapshot_type(mir_type)
+                self.encoder
+                    .encode_snapshot_type(mir_type)
                     .map(|var_type| vir::LocalVar::new(var_name, var_type))
             })
             .collect::<Result<_, _>>()
             .with_span(self.mir.span)?;
 
-        let type_arguments = self.encoder.encode_generic_arguments(self.proc_def_id, self.substs).with_span(self.mir.span)?;
+        let type_arguments = self
+            .encoder
+            .encode_generic_arguments(self.proc_def_id, self.substs)
+            .with_span(self.mir.span)?;
 
         let return_type = self.encode_function_return_type()?;
 

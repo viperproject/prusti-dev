@@ -28,7 +28,11 @@ impl NameInterner {
     /// The `readable_names` must not collide with past or future `full_unique_name`s, except for
     /// the `full_unique_name` passed in the same call.
     #[tracing::instrument(level = "debug", skip(self), ret)]
-    pub fn intern<S: AsRef<str> + Debug>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
+    pub fn intern<S: AsRef<str> + Debug>(
+        &mut self,
+        full_unique_name: S,
+        readable_names: &[S],
+    ) -> String {
         let full_unique_name = full_unique_name.as_ref();
 
         debug_assert!(!readable_names.iter().any(|r| r.as_ref() == ""));
@@ -41,7 +45,7 @@ impl NameInterner {
         // Check that readable names passed in the past are not equal to the current full name.
         debug_assert!(
             self.name_to_symbol.contains_key(full_unique_name)
-            || !self.used_symbols.contains(full_unique_name)
+                || !self.used_symbols.contains(full_unique_name)
         );
 
         // Return the symbol, if we already interned the full name
@@ -49,12 +53,14 @@ impl NameInterner {
             return symbol.clone();
         }
 
-        let symbol = readable_names.iter()
+        let symbol = readable_names
+            .iter()
             .find(|r| !self.used_symbols.contains(r.as_ref()))
             .map(|r| r.as_ref())
             .unwrap_or(full_unique_name);
         self.used_symbols.insert(symbol.to_string());
-        self.name_to_symbol.insert(full_unique_name.to_string(), symbol.to_string());
+        self.name_to_symbol
+            .insert(full_unique_name.to_string(), symbol.to_string());
 
         symbol.to_string()
     }
@@ -88,7 +94,10 @@ mod tests {
     #[test]
     fn test_full_name_eq_readable_names() {
         let mut interner = NameInterner::new();
-        assert_eq!(interner.intern("my$first$name", &["my$first$name"]), "my$first$name");
+        assert_eq!(
+            interner.intern("my$first$name", &["my$first$name"]),
+            "my$first$name"
+        );
     }
 
     #[test]
@@ -102,13 +111,31 @@ mod tests {
     #[test]
     fn test_multiple_readable_names() {
         let mut interner = NameInterner::new();
-        assert_eq!(interner.intern("my$first$name", &["name", "first$name"]), "name");
-        assert_eq!(interner.intern("my$first$name", &["name", "first$name"]), "name");
-        assert_eq!(interner.intern("my$second$name", &["name", "second$name"]), "second$name");
+        assert_eq!(
+            interner.intern("my$first$name", &["name", "first$name"]),
+            "name"
+        );
+        assert_eq!(
+            interner.intern("my$first$name", &["name", "first$name"]),
+            "name"
+        );
+        assert_eq!(
+            interner.intern("my$second$name", &["name", "second$name"]),
+            "second$name"
+        );
         assert_eq!(interner.intern("my$second$name", &[]), "second$name");
-        assert_eq!(interner.intern("my$first$name", &["name", "first$name"]), "name");
-        assert_eq!(interner.intern("my$third$name", &["name", "third$name"]), "third$name");
-        assert_eq!(interner.intern("another$second$name", &["name", "second$name"]), "another$second$name");
+        assert_eq!(
+            interner.intern("my$first$name", &["name", "first$name"]),
+            "name"
+        );
+        assert_eq!(
+            interner.intern("my$third$name", &["name", "third$name"]),
+            "third$name"
+        );
+        assert_eq!(
+            interner.intern("another$second$name", &["name", "second$name"]),
+            "another$second$name"
+        );
         assert_eq!(interner.intern("my$second$name", &[]), "second$name");
     }
 

@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::errors::MultiSpan;
 use log::{debug, error};
 use prusti_interface::PrustiError;
+use prusti_rustc_interface::errors::MultiSpan;
 
 use crate::encoder::errors::EncodingErrorKind;
 use backtrace::Backtrace;
@@ -25,15 +25,9 @@ pub type SpannedEncodingResult<T> = Result<T, SpannedEncodingError>;
 impl From<SpannedEncodingError> for PrustiError {
     fn from(other: SpannedEncodingError) -> Self {
         let mut error = match other.error {
-            EncodingErrorKind::Unsupported(msg) => {
-                PrustiError::unsupported(msg, *other.span)
-            }
-            EncodingErrorKind::Incorrect(msg) => {
-                PrustiError::incorrect(msg, *other.span)
-            }
-            EncodingErrorKind::Internal(msg) => {
-                PrustiError::internal(msg, *other.span)
-            }
+            EncodingErrorKind::Unsupported(msg) => PrustiError::unsupported(msg, *other.span),
+            EncodingErrorKind::Incorrect(msg) => PrustiError::incorrect(msg, *other.span),
+            EncodingErrorKind::Internal(msg) => PrustiError::internal(msg, *other.span),
         };
         if let Some(help) = other.help {
             error = error.set_help(help);
@@ -61,10 +55,7 @@ impl SpannedEncodingError {
         if cfg!(debug_assertions) {
             debug!("Constructing unsupported error at:\n{:?}", Backtrace::new());
         }
-        SpannedEncodingError::new(
-            EncodingErrorKind::unsupported(message),
-            span
-        )
+        SpannedEncodingError::new(EncodingErrorKind::unsupported(message), span)
     }
 
     /// An incorrect usage of Prusti (e.g. call an impure function in a contract)
@@ -73,10 +64,7 @@ impl SpannedEncodingError {
         if cfg!(debug_assertions) {
             debug!("Constructing incorrect error at:\n{:?}", Backtrace::new());
         }
-        SpannedEncodingError::new(
-            EncodingErrorKind::incorrect(message),
-            span
-        )
+        SpannedEncodingError::new(EncodingErrorKind::incorrect(message), span)
     }
 
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
@@ -84,10 +72,7 @@ impl SpannedEncodingError {
         if cfg!(debug_assertions) {
             error!("Constructing internal error at:\n{:?}", Backtrace::new());
         }
-        SpannedEncodingError::new(
-            EncodingErrorKind::internal(message),
-            span
-        )
+        SpannedEncodingError::new(EncodingErrorKind::internal(message), span)
     }
 
     pub fn kind(&self) -> &EncodingErrorKind {

@@ -1,18 +1,14 @@
+#[rustfmt::skip]
 #[path = "../gen/mod.rs"]
 pub mod wrappers;
 
-use jni::JNIEnv;
-use jni::JavaVM;
-use jni::InitArgsBuilder;
-use jni::JNIVersion;
-use jni::errors::Result;
+use jni::{errors::Result, InitArgsBuilder, JNIEnv, JNIVersion, JavaVM};
 use std::sync::Once;
 
 pub fn print_exception(env: &JNIEnv) {
     let exception_occurred = env.exception_check().unwrap_or_else(|e| panic!("{e:?}"));
     if exception_occurred {
-        env.exception_describe()
-            .unwrap_or_else(|e| panic!("{e:?}"));
+        env.exception_describe().unwrap_or_else(|e| panic!("{e:?}"));
     }
 }
 
@@ -25,19 +21,19 @@ static mut JVM: Option<JavaVM> = None;
 fn init_jvm() -> Result<()> {
     INIT_JVM.call_once(|| {
         let jvm_args = InitArgsBuilder::new()
-        .version(JNIVersion::V8)
-        .option("-Xcheck:jni")
-        .option("-Xdebug")
-        .option("-XX:+CheckJNICalls")
-        .build()
-        .unwrap_or_else(|e| {
-            panic!("{} source: {:?}", e, std::error::Error::source(&e));
-        });
+            .version(JNIVersion::V8)
+            .option("-Xcheck:jni")
+            .option("-Xdebug")
+            .option("-XX:+CheckJNICalls")
+            .build()
+            .unwrap_or_else(|e| {
+                panic!("{} source: {:?}", e, std::error::Error::source(&e));
+            });
 
         let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
             panic!("{} source: {:?}", e, std::error::Error::source(&e));
         });
-        
+
         unsafe {
             JVM = Some(jvm);
         }
