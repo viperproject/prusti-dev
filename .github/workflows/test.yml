@@ -262,6 +262,13 @@ jobs:
         run: |
           cd prusti-contracts/prusti-contracts-test/
           cargo +stable build
+      - name: "Windows debugging: show open file handles for any running process"
+        if: matrix.os == 'windows-latest' && failure()
+        shell: cmd
+        run: |
+          C:\msys64\usr\bin\wget.exe https://download.sysinternals.com/files/Handle.zip
+          7z x Handle.zip
+          handle.exe -u -nobanner -accepteula
 
   release-build:
     needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]
