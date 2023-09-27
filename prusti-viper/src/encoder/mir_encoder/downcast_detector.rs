@@ -1,12 +1,14 @@
-use prusti_rustc_interface::middle::mir;
-use prusti_rustc_interface::target::abi;
-use prusti_rustc_interface::middle::mir::visit::Visitor;
 use prusti_interface::environment::mir_utils::MirPlace;
-use rustc_hash::{FxHashSet};
+use prusti_rustc_interface::{
+    middle::{mir, mir::visit::Visitor},
+    target::abi,
+};
+use rustc_hash::FxHashSet;
 
-pub fn detect_downcasts<'tcx>(body: &mir::Body<'tcx>, location: mir::Location)
-    -> Vec<(MirPlace<'tcx>, abi::VariantIdx)>
-{
+pub fn detect_downcasts<'tcx>(
+    body: &mir::Body<'tcx>,
+    location: mir::Location,
+) -> Vec<(MirPlace<'tcx>, abi::VariantIdx)> {
     let mut collector = DownCastCollector::default();
     collector.visit_location(body, location);
     let mut downcasts: Vec<_> = collector.downcasts.into_iter().collect();
@@ -17,7 +19,7 @@ pub fn detect_downcasts<'tcx>(body: &mir::Body<'tcx>, location: mir::Location)
 
 #[derive(Default)]
 struct DownCastCollector<'tcx> {
-    pub downcasts: FxHashSet<(MirPlace<'tcx>, abi::VariantIdx)>
+    pub downcasts: FxHashSet<(MirPlace<'tcx>, abi::VariantIdx)>,
 }
 
 impl<'tcx> Visitor<'tcx> for DownCastCollector<'tcx> {
@@ -31,16 +33,14 @@ impl<'tcx> Visitor<'tcx> for DownCastCollector<'tcx> {
         self.super_projection_elem(place_ref, elem, context, location);
 
         if let mir::PlaceElem::Downcast(_, variant) = elem {
-            self.downcasts.insert(
-                (
-                    // FIXME: Store `PlaceRef`, once `visit_projection_elem` will provide that.
-                    MirPlace {
-                        local: place_ref.local,
-                        projection: place_ref.projection.to_owned(),
-                    },
-                    variant,
-                )
-            );
+            self.downcasts.insert((
+                // FIXME: Store `PlaceRef`, once `visit_projection_elem` will provide that.
+                MirPlace {
+                    local: place_ref.local,
+                    projection: place_ref.projection.to_owned(),
+                },
+                variant,
+            ));
         }
     }
 }

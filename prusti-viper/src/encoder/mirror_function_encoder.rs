@@ -4,12 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_hash::{FxHashSet};
 use prusti_rustc_interface::hir::def_id::DefId;
+use rustc_hash::FxHashSet;
 
 use vir_crate::polymorphic::{self as vir};
-
-
 
 const MIRROR_DOMAIN_NAME: &str = "MirrorDomain";
 
@@ -32,7 +30,6 @@ impl MirrorEncoder {
             encoded: FxHashSet::default(),
         }
     }
-
 
     pub fn get_domain(&self) -> Option<&vir::Domain> {
         if self.encoded.is_empty() {
@@ -58,11 +55,7 @@ impl MirrorEncoder {
         self.encode_mirror_axiomatized(def_id, function);
     }
 
-    fn encode_mirror_simple(
-        &mut self,
-        _def_id: DefId,
-        function: &mut vir::Function,
-    ) {
+    fn encode_mirror_simple(&mut self, _def_id: DefId, function: &mut vir::Function) {
         // create mirror function
         let mirror_func = vir::DomainFunc {
             name: format!("mirror_simple${}", function.name),
@@ -75,33 +68,31 @@ impl MirrorEncoder {
 
         // add postcondition to the original function
         // [result == mirror(args), true]
-        function.posts.push(vir::Expr::InhaleExhale( vir::InhaleExhale {
-            inhale_expr: Box::new(vir::Expr::eq_cmp(
-                vir::Expr::local(
-                    vir::LocalVar::new("__result", function.return_type.clone()),
-                ),
-                vir::Expr::domain_func_app(
-                    mirror_func.clone(),
-                    function.formal_args.iter()
-                        .cloned()
-                        .map(vir::Expr::local)
-                        .collect(),
-                ),
-            )),
-            exhale_expr: Box::new(true.into()),
-            position: vir::Position::default(),
-        }));
+        function
+            .posts
+            .push(vir::Expr::InhaleExhale(vir::InhaleExhale {
+                inhale_expr: Box::new(vir::Expr::eq_cmp(
+                    vir::Expr::local(vir::LocalVar::new("__result", function.return_type.clone())),
+                    vir::Expr::domain_func_app(
+                        mirror_func.clone(),
+                        function
+                            .formal_args
+                            .iter()
+                            .cloned()
+                            .map(vir::Expr::local)
+                            .collect(),
+                    ),
+                )),
+                exhale_expr: Box::new(true.into()),
+                position: vir::Position::default(),
+            }));
 
         // add mirror function to mirror domain
         self.domain.functions.push(mirror_func);
     }
 
     // TODO: ...
-    fn encode_mirror_axiomatized(
-        &mut self,
-        _def_id: DefId,
-        _function: &mut vir::Function,
-    ) {}
+    fn encode_mirror_axiomatized(&mut self, _def_id: DefId, _function: &mut vir::Function) {}
 }
 
 // ------------------------------

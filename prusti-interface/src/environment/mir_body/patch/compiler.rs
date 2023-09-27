@@ -50,7 +50,7 @@ impl<'tcx> MirPatch<'tcx> {
 
         for (bb, block) in body.basic_blocks.iter_enumerated() {
             // Check if we already have a resume block
-            if let TerminatorKind::Resume = block.terminator().kind && block.statements.is_empty() {
+            if let TerminatorKind::UnwindResume = block.terminator().kind && block.statements.is_empty() {
                 result.resume_block = Some(bb);
                 continue;
             }
@@ -65,7 +65,7 @@ impl<'tcx> MirPatch<'tcx> {
             }
 
             // Check if we already have a terminate block
-            if let TerminatorKind::Terminate = block.terminator().kind && block.statements.is_empty() {
+            if let TerminatorKind::UnwindTerminate(..) = block.terminator().kind && block.statements.is_empty() {
                 result.terminate_block = Some(bb);
                 continue;
             }
@@ -83,7 +83,7 @@ impl<'tcx> MirPatch<'tcx> {
             statements: vec![],
             terminator: Some(Terminator {
                 source_info: SourceInfo::outermost(self.body_span),
-                kind: TerminatorKind::Resume,
+                kind: TerminatorKind::UnwindResume,
             }),
             is_cleanup: true,
         });
@@ -108,7 +108,7 @@ impl<'tcx> MirPatch<'tcx> {
         bb
     }
 
-    pub fn terminate_block(&mut self) -> BasicBlock {
+    pub fn terminate_block(&mut self, reason: UnwindTerminateReason) -> BasicBlock {
         if let Some(bb) = self.terminate_block {
             return bb;
         }
@@ -117,7 +117,7 @@ impl<'tcx> MirPatch<'tcx> {
             statements: vec![],
             terminator: Some(Terminator {
                 source_info: SourceInfo::outermost(self.body_span),
-                kind: TerminatorKind::Terminate,
+                kind: TerminatorKind::UnwindTerminate(reason),
             }),
             is_cleanup: true,
         });

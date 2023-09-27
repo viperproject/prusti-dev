@@ -82,12 +82,14 @@ pub(super) fn inline_spec_item<'tcx>(
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     // each non-lifetime parameter should be matched with a subst
     assert_eq!(
-        substs.non_erasable_generics().count(),
+        substs
+            .non_erasable_generics(encoder.env().tcx(), def_id)
+            .count(),
         encoder
             .env()
             .query
             .identity_substs(def_id)
-            .non_erasable_generics()
+            .non_erasable_generics(encoder.env().tcx(), def_id)
             .count()
     );
 
