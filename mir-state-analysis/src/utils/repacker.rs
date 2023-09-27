@@ -10,8 +10,7 @@ use prusti_rustc_interface::{
     index::bit_set::BitSet,
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
-            ProjectionElem,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, ProjectionElem,
         },
         ty::{TyCtxt, TyKind},
     },
