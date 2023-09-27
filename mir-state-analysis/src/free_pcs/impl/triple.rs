@@ -69,8 +69,8 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
         match &terminator.kind {
             Goto { .. }
             | SwitchInt { .. }
-            | Resume
-            | Terminate
+            | UnwindResume
+            | UnwindTerminate(_)
             | Unreachable
             | Assert { .. }
             | GeneratorDrop
