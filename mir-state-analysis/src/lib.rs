@@ -15,6 +15,7 @@ use prusti_rustc_interface::{
     middle::{mir::Body, ty::TyCtxt},
 };
 
+#[tracing::instrument(name = "run_free_pcs", level = "debug", skip(tcx))]
 pub fn run_free_pcs<'mir, 'tcx>(
     mir: &'mir Body<'tcx>,
     tcx: TyCtxt<'tcx>,

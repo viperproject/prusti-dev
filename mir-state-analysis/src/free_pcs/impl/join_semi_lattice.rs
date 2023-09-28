@@ -14,6 +14,7 @@ use crate::{
 };
 
 impl JoinSemiLattice for Fpcs<'_, '_> {
+    #[tracing::instrument(name = "Fpcs::join", level = "debug")]
     fn join(&mut self, other: &Self) -> bool {
         assert!(!other.bottom);
         if self.bottom {
@@ -121,9 +122,7 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                 PlaceOrdering::Suffix => {
                     // Downgrade the permission if needed
                     for &(p, k) in &related.from {
-                        if !self.contains_key(&p) {
-                            continue;
-                        }
+                        assert!(self.contains_key(&p));
                         let p = if kind != CapabilityKind::Exclusive {
                             if let Some(to) = p.projects_ptr(repacker) {
                                 changed = true;
