@@ -4,7 +4,10 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit::{self, Visitor},
     },
-    middle::hir::map::Map,
+    middle::{
+        hir::map::Map,
+        ty::GenericArgsRef,
+    },
     span::Span,
 };
 
@@ -12,7 +15,7 @@ use crate::{
     environment::{EnvDiagnostic, EnvName, EnvQuery, Environment},
     PrustiError,
 };
-use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::ty::GenericArgsRef};
+use prusti_rustc_interface::data_structures::fx::FxHashMap;
 use prusti_specs::ExternSpecKind;
 use std::cmp::{Eq, PartialEq};
 
@@ -177,11 +180,11 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     let (resolved_gens, current_gens) = (
                         self.env_query
                             .identity_substs(resolved_def_id)
-                            .non_erasable_generics(self.env_query.tcx(), resolved_def_id)
+                            .non_erasable_generics()
                             .count(),
                         self.env_query
                             .identity_substs(current_def_id)
-                            .non_erasable_generics(self.env_query.tcx(), current_def_id)
+                            .non_erasable_generics()
                             .count(),
                     );
                     if resolved_gens != current_gens {

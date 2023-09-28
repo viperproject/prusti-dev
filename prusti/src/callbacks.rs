@@ -9,15 +9,19 @@ use prusti_rustc_interface::{
     borrowck::consumers,
     data_structures::steal::Steal,
     driver::Compilation,
-    hir::{def::DefKind, def_id::LocalDefId},
     index::IndexVec,
     interface::{interface::Compiler, Config, Queries},
+    hir::{def::DefKind, def_id::LocalDefId},
     middle::{
-        mir::{self, BorrowCheckResult},
-        query::{ExternProviders, Providers},
+        mir,
+        query::{
+            queries::mir_borrowck::ProvidedValue as MirBorrowck,
+            ExternProviders,
+            Providers
+        },
         ty::TyCtxt,
     },
-    session::Session,
+    session::{EarlyErrorHandler, Session},
 };
 
 #[derive(Default)]
@@ -28,7 +32,7 @@ pub struct PrustiCompilerCalls;
 
 #[allow(clippy::needless_lifetimes)]
 #[tracing::instrument(level = "debug", skip(tcx))]
-fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResult<'tcx> {
+fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBorrowck<'tcx> {
     let def_kind = tcx.def_kind(def_id.to_def_id());
     let is_anon_const = matches!(def_kind, DefKind::AnonConst);
     // Anon Const bodies have already been stolen and so will result in a crash
@@ -135,6 +139,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     #[tracing::instrument(level = "debug", skip_all)]
     fn after_analysis<'tcx>(
         &mut self,
+        _handler: &EarlyErrorHandler,
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
@@ -158,6 +163,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
+                /*
                 if config::test_free_pcs() {
                     for proc_id in env.get_annotated_procedures_and_types().0.iter() {
                         let name = env.name.get_unique_item_name(*proc_id);
@@ -167,9 +173,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         let mir = current_procedure.get_mir_rc();
                         test_free_pcs(&mir, tcx);
                     }
-                } else {
+                } else {*/
                     verify(env, def_spec);
-                }
+                //}
             }
         });
 

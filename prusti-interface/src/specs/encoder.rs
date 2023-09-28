@@ -18,17 +18,20 @@ pub struct DefSpecsEncoder<'tcx> {
 }
 
 impl<'tcx> DefSpecsEncoder<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, file: &std::path::Path) -> std::io::Result<Self> {
+    pub fn new(
+        tcx: TyCtxt<'tcx>,
+        path: &std::path::PathBuf,
+    ) -> std::io::Result<Self> {
         Ok(DefSpecsEncoder {
             tcx,
-            opaque: opaque::FileEncoder::new(file)?,
+            opaque: opaque::FileEncoder::new(path)?,
             type_shorthands: Default::default(),
             predicate_shorthands: Default::default(),
             interpret_allocs: Default::default(),
         })
     }
 
-    pub fn finish(self) -> std::io::Result<usize> {
+    pub fn finish(self) -> Result<usize, std::io::Error> {
         self.opaque.finish()
     }
 }
@@ -56,13 +59,7 @@ impl<'tcx> Encoder for DefSpecsEncoder<'tcx> {
         emit_i64(i64);
         emit_i32(i32);
         emit_i16(i16);
-        emit_i8(i8);
 
-        emit_bool(bool);
-        // emit_f64(f64);
-        // emit_f32(f32);
-        emit_char(char);
-        emit_str(&str);
         emit_raw_bytes(&[u8]);
     }
 }

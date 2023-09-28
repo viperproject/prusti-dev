@@ -42,8 +42,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     _ => unreachable!(),
                 }
             }
-            &FakeRead(box (_, place))
-            | &PlaceMention(box place) => self.requires_read(place),
+            &FakeRead(box (_, place)) => self.requires_read(place),
             &SetDiscriminant { box place, .. } => self.requires_exclusive(place),
             &Deinit(box place) => {
                 // TODO: Maybe OK to also allow `Write` here?
@@ -59,7 +58,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 self.ensures_unalloc(local);
             }
             &Retag(_, box place) => self.requires_exclusive(place),
-            AscribeUserType(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
+            AscribeUserType(..) | PlaceMention(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
         };
     }
 
@@ -120,7 +119,8 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             | CheckedBinaryOp(_, _)
             | NullaryOp(_, _)
             | UnaryOp(_, _)
-            | Aggregate(_, _) => {}
+            | Aggregate(_, _)
+            | ShallowInitBox(_, _) => {}
 
             &Ref(_, bk, place) => match bk {
                 BorrowKind::Shared => {
@@ -143,7 +143,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             },
             &Len(place) => self.requires_read(place),
             &Discriminant(place) => self.requires_read(place),
-            ShallowInitBox(op, ty) => todo!("{op:?}, {ty:?}"),
             &CopyForDeref(place) => self.requires_read(place),
         }
     }
@@ -171,8 +170,7 @@ impl ProducesCapability for Rvalue<'_> {
             | Discriminant(_)
             | Aggregate(_, _)
             | CopyForDeref(_) => CapabilityKind::Exclusive,
-            // TODO:
-            ShallowInitBox(_, _) => CapabilityKind::Read,
+            ShallowInitBox(_, _) => CapabilityKind::ShallowExclusive,
         }
     }
 }

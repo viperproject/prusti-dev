@@ -40,14 +40,11 @@ pub unsafe fn store_mir_body<'tcx>(
     });
 }
 
-/// This function should only be called once per `def_id` after the borrow checker has run.
-/// Otherwise, it will panic.
-///
 /// # Safety
 ///
 /// See the module level comment.
 #[allow(clippy::needless_lifetimes)] // We want to be very explicit about lifetimes here.
-pub(super) unsafe fn retrieve_mir_body<'tcx>(
+pub unsafe fn retrieve_mir_body<'tcx>(
     _tcx: TyCtxt<'tcx>,
     def_id: LocalDefId,
 ) -> BodyWithBorrowckFacts<'tcx> {
@@ -76,7 +73,7 @@ pub unsafe fn store_promoted_mir_body<'tcx>(
 }
 
 #[allow(clippy::needless_lifetimes)] // We want to be very explicit about lifetimes here.
-pub(super) unsafe fn retrieve_promoted_mir_body<'tcx>(
+pub unsafe fn retrieve_promoted_mir_body<'tcx>(
     _tcx: TyCtxt<'tcx>,
     def_id: LocalDefId,
 ) -> mir::Body<'tcx> {
