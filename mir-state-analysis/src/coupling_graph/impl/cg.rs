@@ -25,7 +25,7 @@ use crate::{
 
 use super::{engine::CoupligGraph, shared_borrow_set::SharedBorrowSet, CgContext};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Regions<'a, 'tcx> {
     pub borrows: FxHashMap<BorrowIndex, (Vec<RegionVid>, Vec<(Local, RegionVid)>)>,
     pub(crate) subset: Vec<(RegionVid, RegionVid)>,
@@ -50,7 +50,18 @@ pub struct Graph<'a, 'tcx> {
     pub static_regions: FxHashSet<RegionVid>,
 }
 
-#[derive(Clone)]
+impl Debug for Graph<'_, '_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        f.debug_struct("Graph")
+            .field("id", &self.id)
+            .field("nodes", &self.nodes)
+            .field("skip_empty_nodes", &self.skip_empty_nodes)
+            .field("static_regions", &self.static_regions)
+            .finish()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct PathCondition;
 
 impl PartialEq for Graph<'_, '_> {
@@ -141,9 +152,11 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
         result
     }
     // r1 outlives r2, or `r1: r2` (i.e. r1 gets blocked)
+    #[tracing::instrument(name = "Graph::outlives", level = "trace", skip(self), ret)]
     pub fn outlives(&mut self, r1: RegionVid, r2: RegionVid, reason: ConstraintCategory<'tcx>) -> bool {
         self.outlives_many(r1, r2, &FxHashSet::from_iter([reason].into_iter()))
     }
+    #[tracing::instrument(name = "Graph::outlives_many", level = "trace", skip(self), ret)]
     pub fn outlives_many(&mut self, r1: RegionVid, r2: RegionVid, reasons: &FxHashSet<ConstraintCategory<'tcx>>) -> bool {
         // eprintln!("Outlives: {:?} -> {:?} ({:?})", r1, r2, reasons);
         let Some(n2) = self.region_to_node(r2) else {
@@ -181,11 +194,13 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
     //     let n = self.region_to_node(r);
     //     self.get_node_mut(n).contained_by.push(l);
     // }
+    #[tracing::instrument(name = "Graph::kill", level = "trace", skip(self))]
     pub fn kill(&mut self, r: RegionVid) {
         let n = self.region_to_node(r);
         self.kill_node(n.unwrap());
         // self.sanity_check();
     }
+    #[tracing::instrument(name = "Graph::remove", level = "trace", skip(self))]
     pub fn remove(&mut self, r: RegionVid, maybe_already_removed: bool) {
         if self.static_regions.remove(&r) {
             return;
@@ -206,12 +221,14 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
         // self.sanity_check();
     }
     // Used when merging two graphs (and we know from one graph that two regions are equal)
+    #[tracing::instrument(name = "Graph::equate_regions", level = "trace", skip(self), ret)]
     pub fn equate_regions(&mut self, ra: RegionVid, rb: RegionVid) -> bool {
         let mut changed = self.outlives(ra, rb, ConstraintCategory::Internal);
         changed = changed || self.outlives(rb, ra, ConstraintCategory::Internal);
         // self.sanity_check();
         changed
     }
+    #[tracing::instrument(name = "Graph::equate_regions", level = "trace", skip(self), ret)]
     pub fn edge_to_regions(&self, from: NodeId, to: NodeId) -> (RegionVid, RegionVid) {
         let n1 = self.get_node(from);
         let n2 = self.get_node(to);
@@ -219,6 +236,7 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
         let r2 = *n2.regions.iter().next().unwrap();
         (r1, r2)
     }
+    #[tracing::instrument(name = "Graph::equate_regions", level = "trace", skip(self), ret)]
     pub fn set_borrows_from_static(&mut self, r: RegionVid) -> bool {
         if let Some(n) = self.region_to_node(r) {
             self.set_borrows_from_static_node(n)
@@ -232,6 +250,7 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
         node.borrows_from_static = true;
         already_set
     }
+    #[tracing::instrument(name = "Graph::equate_regions", level = "trace", skip(self), ret)]
     pub fn make_static(&mut self, r: RegionVid) -> bool {
         // TODO: instead of using `region_to_node`, do not add a node if already present?
         if let Some(n) = self.region_to_node(r) {
@@ -442,8 +461,7 @@ impl Eq for Cg<'_, '_> {}
 
 impl<'a, 'tcx> Debug for Cg<'a, 'tcx> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        // self.summary.fmt(f)
-        Ok(())
+        f.debug_struct("Cg").field("regions", &self.regions).finish()
     }
 }
 impl<'a, 'tcx> DebugWithContext<CoupligGraph<'a, 'tcx>> for Cg<'a, 'tcx> {
@@ -465,6 +483,7 @@ impl PartialEq for Regions<'_, '_> {
 impl Eq for Regions<'_, '_> {}
 
 impl<'tcx> Regions<'_, 'tcx> {
+    #[tracing::instrument(name = "Regions::merge_for_return", level = "trace")]
     pub fn merge_for_return(&mut self) {
         let outlives: Vec<_> = self.graph.facts2.region_inference_context.outlives_constraints().filter(|c| c.locations.from_location().is_none()).collect();
         let in_facts = self.graph.facts.input_facts.borrow();

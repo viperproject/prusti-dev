@@ -13,7 +13,7 @@ use prusti_rustc_interface::{
 };
 
 // Identical to `rustc_borrowck/src/borrow_set.rs` but for shared borrows
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SharedBorrowSet<'tcx> {
     pub location_map: FxIndexMap<Location, BorrowData<'tcx>>,
     pub local_map: FxIndexMap<Local, FxIndexSet<BorrowIndex>>,

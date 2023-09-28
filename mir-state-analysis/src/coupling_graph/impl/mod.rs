@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt;
+
 use crate::utils::{PlaceRepacker, Place};
 use self::{shared_borrow_set::SharedBorrowSet, region_place::Perms};
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
@@ -25,7 +27,14 @@ pub struct CgContext<'a, 'tcx> {
     pub region_map: FxHashMap<RegionVid, Perms<'tcx>>,
 }
 
+impl fmt::Debug for CgContext<'_, '_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CgContext").field("sbs", &self.sbs).field("region_map", &self.region_map).finish()
+    }
+}
+
 impl<'a, 'tcx> CgContext<'a, 'tcx> {
+    #[tracing::instrument(name = "CgContext::new", level = "debug", skip_all, ret)]
     pub fn new(
         tcx: TyCtxt<'tcx>,
         body: &'a Body<'tcx>,

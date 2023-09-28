@@ -40,6 +40,8 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResu
             || config::test_free_pcs()
         {
             consumers::ConsumerOptions::RegionInferenceContext
+        } else if config::test_coupling_graph() {
+            consumers::ConsumerOptions::PoloniusInputFacts
         } else {
             consumers::ConsumerOptions::PoloniusOutputFacts
         };
@@ -181,6 +183,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                             .body
                             .try_get_local_mir_borrowck_facts2(proc_id.expect_local())
                             .unwrap();
+
+                        let name = env.name.get_unique_item_name(*proc_id);
+                        println!("Calculating CG for: {name} ({:?})", mir.span);
                         test_coupling_graph(&*mir, &*facts, &*facts2, tcx);
                     }
                 } else {

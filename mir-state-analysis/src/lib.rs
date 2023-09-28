@@ -35,6 +35,7 @@ pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, tcx: TyCtxt<'tcx>) {
     free_pcs::check(analysis);
 }
 
+#[tracing::instrument(name = "run_coupling_graph", level = "debug", skip(facts, facts2, tcx))]
 pub fn run_coupling_graph<'mir, 'tcx>(
     mir: &'mir Body<'tcx>,
     facts: &'mir BorrowckFacts,
@@ -47,7 +48,6 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     // if tcx.item_name(mir.source.def_id()).as_str() != "debug" {
     //     return;
     // }
-    println!("Running for {:?} {:?}", mir.source.def_id(), mir.span);
     let cgx = coupling_graph::CgContext::new(tcx, mir, facts, facts2);
     let fpcs = coupling_graph::engine::CoupligGraph::new(tcx, mir, facts, facts2, &cgx);
     let analysis = fpcs
