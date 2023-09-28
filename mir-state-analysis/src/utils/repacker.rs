@@ -355,7 +355,19 @@ impl<'tcx> Place<'tcx> {
     }
 
     pub fn can_deinit(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
-        !self.projects_shared_ref(repacker)
+        let mut projects_shared_ref = false;
+        self.projects_ty(
+            |typ| {
+                projects_shared_ref = projects_shared_ref || typ.ty
+                    .ref_mutability()
+                    .map(|m| m.is_not())
+                    .unwrap_or_default();
+                projects_shared_ref = projects_shared_ref && !typ.ty.is_unsafe_ptr();
+                false
+            },
+            repacker,
+        );
+        !projects_shared_ref
     }
 
     pub fn projects_ty(
