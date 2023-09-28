@@ -87,7 +87,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
     /// For example: find_all_related(x.f.g) = [(Less, x.f.g.h), (Greater, x.f)]
     /// It also checks that the ordering conforms to the expected ordering (the above would
     /// fail in any situation since all orderings need to be the same)
-    #[tracing::instrument(level = "debug", skip(self))]
+    #[tracing::instrument(level = "debug", ret)]
     pub(crate) fn find_all_related(
         &self,
         to: Place<'tcx>,

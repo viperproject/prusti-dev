@@ -65,6 +65,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
+    #[tracing::instrument(name = "apply_statement_effect", level = "debug", skip(self))]
     fn apply_statement_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -75,6 +76,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         state.visit_statement(statement, location);
     }
 
+    #[tracing::instrument(name = "apply_terminator_effect", level = "debug", skip(self))]
     fn apply_terminator_effect<'mir>(
         &mut self,
         state: &mut Self::Domain,
