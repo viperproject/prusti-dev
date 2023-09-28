@@ -102,10 +102,12 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
             let related = self.find_all_related(place, None);
             let final_place = match related.relation {
                 PlaceOrdering::Prefix => {
-                    changed = true;
-
                     let from = related.get_only_from();
-                    let joinable_place = if self[&from] != CapabilityKind::Exclusive {
+                    let perms_eq = self[&from] == kind;
+                    let joinable_place = if self[&from] != CapabilityKind::Exclusive && !perms_eq {
+                        // If I have `Write` or `ShallowExclusive` and the other is different, I need to join
+                        // above any pointers I may be projected through.
+                        // TODO: imo if `projects_ptr` ever returns `Some` we will fail the `assert` below...
                         place
                             .projects_ptr(repacker)
                             .unwrap_or_else(|| from.joinable_to(place))
@@ -114,6 +116,7 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                     };
                     assert!(from.is_prefix(joinable_place));
                     if joinable_place != from {
+                        changed = true;
                         self.expand(from, joinable_place, repacker);
                     }
                     Some(joinable_place)
@@ -127,7 +130,8 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                         if !self.contains_key(&p) {
                             continue;
                         }
-                        let p = if kind != CapabilityKind::Exclusive {
+                        let perms_eq = k == kind;
+                        let p = if kind != CapabilityKind::Exclusive && !perms_eq {
                             if let Some(to) = p.projects_ptr(repacker) {
                                 changed = true;
                                 let related = self.find_all_related(to, None);
@@ -158,6 +162,7 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
             if let Some(place) = final_place {
                 // Downgrade the permission if needed
                 if self[&place] > kind {
+                    changed = true;
                     self.insert(place, kind);
                 }
             }
