@@ -122,7 +122,11 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                 PlaceOrdering::Suffix => {
                     // Downgrade the permission if needed
                     for &(p, k) in &related.from {
-                        assert!(self.contains_key(&p));
+                        // Might not contain key if `p.projects_ptr(repacker)`
+                        // returned `Some` in a previous iteration.
+                        if !self.contains_key(&p) {
+                            continue;
+                        }
                         let p = if kind != CapabilityKind::Exclusive {
                             if let Some(to) = p.projects_ptr(repacker) {
                                 changed = true;
