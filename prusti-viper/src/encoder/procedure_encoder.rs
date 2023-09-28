@@ -1680,7 +1680,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::Rvalue::AddressOf(_, _) => {
                 return Err(SpannedEncodingError::unsupported(
-                    "raw addresses of expressions or casting a reference to a raw pointer are not supported", span
+                    "raw addresses of expressions and casts from references to raw pointers are not supported", span
                 ));
             }
             mir::Rvalue::ThreadLocalRef(_) => {
