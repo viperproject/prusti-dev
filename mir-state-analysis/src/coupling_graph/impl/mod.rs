@@ -6,7 +6,7 @@
 
 use std::fmt;
 
-use crate::utils::{PlaceRepacker, Place};
+use crate::{utils::{PlaceRepacker, Place}, r#loop::LoopAnalysis};
 use self::{shared_borrow_set::SharedBorrowSet, region_place::Perms};
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
@@ -25,6 +25,7 @@ pub struct CgContext<'a, 'tcx> {
     pub rp: PlaceRepacker<'a, 'tcx>,
     pub sbs: SharedBorrowSet<'tcx>,
     pub region_map: FxHashMap<RegionVid, Perms<'tcx>>,
+    pub loops: LoopAnalysis,
 }
 
 impl fmt::Debug for CgContext<'_, '_> {
@@ -50,10 +51,12 @@ impl<'a, 'tcx> CgContext<'a, 'tcx> {
             &sbs,
             rp,
         );
+        let loops = LoopAnalysis::find_loops(body);
         Self {
             rp,
             sbs,
             region_map,
+            loops,
         }
     }
 }

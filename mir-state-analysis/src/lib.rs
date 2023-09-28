@@ -10,6 +10,7 @@
 pub mod free_pcs;
 pub mod utils;
 pub mod coupling_graph;
+pub mod r#loop;
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
