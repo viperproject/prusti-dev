@@ -42,7 +42,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     _ => unreachable!(),
                 }
             }
-            &FakeRead(box (_, place)) => self.requires_read(place),
+            &FakeRead(box (_, place)) | &PlaceMention(box place) => self.requires_read(place),
             &SetDiscriminant { box place, .. } => self.requires_exclusive(place),
             &Deinit(box place) => {
                 // TODO: Maybe OK to also allow `Write` here?
@@ -58,7 +58,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 self.ensures_unalloc(local);
             }
             &Retag(_, box place) => self.requires_exclusive(place),
-            &PlaceMention(box place) => self.requires_write(place),
             AscribeUserType(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
         };
     }
