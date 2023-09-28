@@ -29,7 +29,7 @@ use crate::{
     utils::PlaceRepacker, coupling_graph::cg::{Graph, Node},
 };
 
-use super::{cg::{Cg, Regions}, shared_borrow_set::SharedBorrowSet, CgContext};
+use super::{cg::{Cg, Regions, PathCondition, EdgeInfo}, shared_borrow_set::SharedBorrowSet, CgContext};
 
 pub(crate) fn draw_dots<'tcx, 'a>(mut c: ResultsCursor<'_, 'tcx, CoupligGraph<'a, 'tcx>>) {
     let mut graph = Vec::new();
@@ -172,7 +172,7 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
                 let local = borrow_data.assigned_place.local;
                 for region in input_facts.use_of_var_derefs_origin.iter().filter(|(l, _)| *l == local).map(|(_, r)| *r) {
                     // println!("IHUBJ local: {local:?} region: {region:?}");
-                    state.graph.remove(region, true);
+                    state.graph.remove(region, true, false);
                 }
             }
         }
@@ -188,13 +188,13 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
                 |(_, b, _)| killed == *b
             ).copied().unwrap();
             // println!("killed: {r:?} {killed:?} {l:?}");
-            state.graph.remove(r, false);
+            state.graph.remove(r, false, false);
             let l = rich_to_loc(location_table.to_location(l));
             let borrow_data = self.facts2.borrow_set.location_map.get(&l).unwrap();
             let local = borrow_data.borrowed_place.local;
             for region in input_facts.use_of_var_derefs_origin.iter().filter(|(l, _)| *l == local).map(|(_, r)| *r) {
                 // println!("killed region: {region:?}");
-                state.graph.remove(region, true);
+                state.graph.remove(region, true, false);
             }
         }
 
@@ -215,7 +215,11 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
         for c in constraints {
             if let Some(from) = c.locations.from_location() {
                 if from == location {
-                    state.graph.outlives(c.sup, c.sub, c.category);
+                    let reason = EdgeInfo {
+                        reason: c.category,
+                        creation: location.block,
+                    };
+                    state.graph.outlives(c.sup, c.sub, reason);
                 }
             }
         }
@@ -260,7 +264,9 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
         // Also remove any overwritten borrows locals
         for (&region, _) in state.graph.cgx.region_map.iter().filter(|(_, p)| p.place.local == local) {
             // println!("Killing local: {local:?}: {region:?}");
-            state.graph.remove(region, true);
+
+            // TODO: could set `remove_dangling_children` to false here
+            state.graph.remove(region, true, true);
         }
     }
 }
@@ -433,10 +439,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
             }
             // Kill all the intermediate borrows, i.e. turn `return -> x.0 -> x` into `return -> x`
             for r in self.facts2.borrow_set.location_map.values() {
-                state.regions.graph.remove(r.region, true);
+                state.regions.graph.remove(r.region, true, false);
             }
             for r in self.cgx.sbs.location_map.values() {
-                state.regions.graph.remove(r.region, true);
+                state.regions.graph.remove(r.region, true, false);
             }
             state.regions.merge_for_return();
         }
@@ -444,6 +450,14 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
 
         if cfg!(debug_assertions) && !self.repacker.body().basic_blocks[location.block].is_cleanup {
             state.regions.output_to_dot(format!("log/coupling/individual/{l}_v{}.dot", state.regions.version));
+        }
+        match terminator.edges() {
+            TerminatorEdges::SwitchInt { targets, discr } => {
+                let _ = PathCondition::new(location.block, targets.all_targets().len());
+                // let map = targets.iter().map(|(v, bb)| (bb, Some(v))).chain(std::iter::once((targets.otherwise(), None))).collect();
+                // state.regions.path_condition.push()
+            }
+            _ => ()
         }
         terminator.edges()
     }

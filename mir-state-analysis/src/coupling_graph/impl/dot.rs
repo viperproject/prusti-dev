@@ -16,7 +16,7 @@ use prusti_rustc_interface::{
 
 use crate::utils::Place;
 
-use super::{cg::{NodeId, Edge, Graph, Regions}, region_place::Perms};
+use super::{cg::{NodeId, Edge, Graph, Regions, EdgeInfo}, region_place::Perms};
 
 impl<'a, 'tcx> Graph<'a, 'tcx> {
     fn get_id(&self) -> &str {
@@ -33,20 +33,21 @@ impl<'a, 'tcx> Regions<'a, 'tcx> {
     // }
     fn get_corresponding_places(&self, n: NodeId) -> Option<&Perms<'tcx>> {
         let node = self.graph.get_node(n);
-        assert!(node.regions.len() == 1);
-        self.graph.cgx.region_map.get(node.regions.iter().next().unwrap())
+        // assert!(node.regions.len() == 1);
+        // self.graph.cgx.region_map.get(node.regions.iter().next().unwrap())
+        self.graph.cgx.region_map.get(&node.region)
     }
     pub(crate) fn is_borrow_only(&self, n: NodeId) -> Option<BorrowKind> {
         let node = self.graph.get_node(n);
         let input_facts = self.graph.facts.input_facts.borrow();
         for &(_, r) in &input_facts.as_ref().unwrap().use_of_var_derefs_origin {
-            if node.regions.contains(&r) {
+            if node.region == r {
                 return None;
             }
         }
         let mut is_borrow = None;
         for (_, data) in &self.graph.facts2.borrow_set.location_map {
-            if node.regions.contains(&data.region) {
+            if node.region == data.region {
                 if is_borrow.is_some() {
                     return None;
                 }
@@ -54,7 +55,7 @@ impl<'a, 'tcx> Regions<'a, 'tcx> {
             }
         }
         for (_, data) in &self.graph.cgx.sbs.location_map {
-            if node.regions.contains(&data.region) {
+            if node.region == data.region {
                 if is_borrow.is_some() {
                     return None;
                 }
@@ -63,7 +64,7 @@ impl<'a, 'tcx> Regions<'a, 'tcx> {
         }
         is_borrow
     }
-    fn non_empty_edges(&self, n: NodeId, start: NodeId, reasons: FxHashSet<ConstraintCategory<'tcx>>) -> Vec<Edge<'tcx>> {
+    fn non_empty_edges(&self, n: NodeId, start: NodeId, reasons: FxHashSet<EdgeInfo<'tcx>>) -> Vec<Edge<'tcx>> {
         if !(self.graph.skip_empty_nodes && self.is_empty_node(n)) {
             return vec![Edge::new(start, n, reasons)];
         }
@@ -103,27 +104,30 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, NodeId, Edge<'tcx>> for Regions<'b, 'tcx> {
         if e.to == usize::MAX {
             return dot::LabelText::LabelStr(Cow::Borrowed("static"));
         }
-        let mut label = e.reasons.iter().map(|r| match r {
-            ConstraintCategory::Return(_) => "return",
-            ConstraintCategory::Yield => "yield",
-            ConstraintCategory::UseAsConst => "const",
-            ConstraintCategory::UseAsStatic => "static",
-            ConstraintCategory::TypeAnnotation => "type",
-            ConstraintCategory::Cast => "cast",
-            ConstraintCategory::ClosureBounds => "closure",
-            ConstraintCategory::CallArgument(_) => "arg",
-            ConstraintCategory::CopyBound => "copy",
-            ConstraintCategory::SizedBound => "sized",
-            ConstraintCategory::Assignment => "assign",
-            ConstraintCategory::Usage => "use",
-            ConstraintCategory::OpaqueType => "opaque",
-            ConstraintCategory::ClosureUpvar(_) => "upvar",
-            ConstraintCategory::Predicate(_) => "pred",
-            ConstraintCategory::Boring => "boring",
-            ConstraintCategory::BoringNoLocation => "boring_nl",
-            ConstraintCategory::Internal => "internal",
-        }).map(|s| format!("{s}, ")).collect::<String>();
-        label = label[..label.len() - 2].to_string();
+        let mut label = e.reasons.iter().map(|r| {
+            let reason = match r.reason {
+                ConstraintCategory::Return(_) => "return",
+                ConstraintCategory::Yield => "yield",
+                ConstraintCategory::UseAsConst => "const",
+                ConstraintCategory::UseAsStatic => "static",
+                ConstraintCategory::TypeAnnotation => "type",
+                ConstraintCategory::Cast => "cast",
+                ConstraintCategory::ClosureBounds => "closure",
+                ConstraintCategory::CallArgument(_) => "arg",
+                ConstraintCategory::CopyBound => "copy",
+                ConstraintCategory::SizedBound => "sized",
+                ConstraintCategory::Assignment => "assign",
+                ConstraintCategory::Usage => "use",
+                ConstraintCategory::OpaqueType => "opaque",
+                ConstraintCategory::ClosureUpvar(_) => "upvar",
+                ConstraintCategory::Predicate(_) => "pred",
+                ConstraintCategory::Boring => "boring",
+                ConstraintCategory::BoringNoLocation => "boring_nl",
+                ConstraintCategory::Internal => "internal",
+            };
+            format!("{:?} ({reason})", r.creation)
+        }).map(|s| format!("{s}\n")).collect::<String>();
+        label = label[..label.len() - 1].to_string();
         dot::LabelText::LabelStr(Cow::Owned(label))
     }
     fn node_shape(&'a self, n: &NodeId) -> Option<dot::LabelText<'a>> {
@@ -150,8 +154,8 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, NodeId, Edge<'tcx>> for Regions<'b, 'tcx> {
         // let process_place = |p: Place<'tcx>| p;
         // let contained_by = contained_by.collect::<Vec<_>>();
         let node = self.graph.get_node(*n);
-        assert!(node.regions.len() == 1);
-        let label = format!("{:?}\n{contained_by}", node.regions.iter().next().unwrap());
+        // assert!(node.regions.len() == 1);
+        let label = format!("{:?}\n{contained_by}", node.region);
         dot::LabelText::LabelStr(Cow::Owned(label))
     }
 }

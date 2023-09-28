@@ -15,7 +15,7 @@ use crate::{
     utils::{PlaceOrdering, PlaceRepacker},
 };
 
-use super::cg::{Cg, Graph, SharedBorrows};
+use super::cg::{Cg, Graph, SharedBorrows, PathCondition};
 
 impl JoinSemiLattice for Cg<'_, '_> {
     #[tracing::instrument(name = "Cg::join", level = "debug", skip_all)]
@@ -71,10 +71,8 @@ impl JoinSemiLattice for Graph<'_, '_> {
         // println!("Joining graphs:\n{:?}: {:?}\n{:?}: {:?}", self.id, self.nodes, other.id, other.nodes);
         let mut changed = false;
         for node in other.nodes.iter().flat_map(|n| n) {
-            let rep = node.regions.iter().next().unwrap();
-            for r in node.regions.iter().skip(1) {
-                changed = changed || self.equate_regions(*rep, *r);
-            }
+            // let rep = node.regions.iter().next().unwrap();
+            let rep = node.region;
             for (to, reasons) in node.blocks.iter() {
                 let (from, to) = other.edge_to_regions(node.id, *to);
                 let was_new = self.outlives_many(to, from, reasons);
@@ -84,7 +82,7 @@ impl JoinSemiLattice for Graph<'_, '_> {
                 // }
             }
             if node.borrows_from_static {
-                changed = changed || self.set_borrows_from_static(*rep);
+                changed = changed || self.set_borrows_from_static(rep);
             }
         }
         let old_len = self.static_regions.len();
@@ -104,5 +102,20 @@ impl SharedBorrows<'_> {
             self.insert(*k, v.clone());
         }
         self.location_map.len() != old_len
+    }
+}
+
+impl JoinSemiLattice for PathCondition {
+    fn join(&mut self, other: &Self) -> bool {
+        assert_eq!(self.bb, other.bb);
+        let old_values = self.values;
+        self.values |= other.values;
+        let mut changed = old_values != self.values;
+        for (i, v) in self.other_values.iter_mut().enumerate() {
+            let old_value = *v;
+            *v |= other.other_values[i];
+            changed = changed || old_value != *v;
+        }
+        changed
     }
 }
