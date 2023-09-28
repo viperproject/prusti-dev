@@ -35,7 +35,10 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResu
     // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
     // (anon) const bodies at all, and if so, how to get them?
     if !is_anon_const {
-        let consumer_opts = if is_spec_fn(tcx, def_id.to_def_id()) || config::no_verify() {
+        let consumer_opts = if is_spec_fn(tcx, def_id.to_def_id())
+            || config::no_verify()
+            || config::test_free_pcs()
+        {
             consumers::ConsumerOptions::RegionInferenceContext
         } else {
             consumers::ConsumerOptions::PoloniusOutputFacts
@@ -160,11 +163,11 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             if !config::no_verify() {
                 if config::test_free_pcs() {
                     for proc_id in env.get_annotated_procedures_and_types().0.iter() {
-                        let name = env.name.get_unique_item_name(*proc_id);
-                        println!("Calculating FPCS for: {name}");
-
                         let current_procedure = env.get_procedure(*proc_id);
                         let mir = current_procedure.get_mir_rc();
+
+                        let name = env.name.get_unique_item_name(*proc_id);
+                        println!("Calculating FPCS for: {name} ({:?})", mir.span);
                         test_free_pcs(&mir, tcx);
                     }
                 } else if config::test_coupling_graph() {
