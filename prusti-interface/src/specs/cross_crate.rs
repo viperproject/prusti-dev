@@ -82,10 +82,11 @@ impl CrossCrateSpecs {
     fn write_into_file(
         env: &Environment,
         def_spec: &DefSpecificationMap,
-        path: &path::Path,
+        path: &path::PathBuf,
     ) -> io::Result<usize> {
         // Probably not needed; dir should already exist?
         fs::create_dir_all(path.parent().unwrap())?;
+
         let mut encoder = DefSpecsEncoder::new(env.tcx(), path)?;
         def_spec.proc_specs.encode(&mut encoder);
         def_spec.type_specs.encode(&mut encoder);
