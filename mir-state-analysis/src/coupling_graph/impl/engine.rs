@@ -148,6 +148,7 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
     //     self.handle_graph(state, delta, location);
     // }
 
+    #[tracing::instrument(name = "handle_graph", level = "debug", skip(self))]
     fn handle_graph(&self, state: &mut Regions<'_, 'tcx>, delta: &BorrowDelta, location: Location) {
         // println!("location: {:?}", l);
 
@@ -208,6 +209,7 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
         // }
     }
 
+    #[tracing::instrument(name = "handle_outlives", level = "debug", skip(self))]
     fn handle_outlives(&self, state: &mut Regions<'_, 'tcx>, delta: &BorrowDelta, location: Location) {
         let constraints = self.facts2.region_inference_context.outlives_constraints();
         for c in constraints {
@@ -219,6 +221,7 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
         }
     }
 
+    #[tracing::instrument(name = "kill_shared_borrows_on_place", level = "debug", skip(self))]
     fn kill_shared_borrows_on_place(&self, state: &mut Regions<'_, 'tcx>, place: Place<'tcx>) {
         // let other_borrows_of_local = state
         //     .shared_borrows
@@ -300,6 +303,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CoupligGraph<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
+    #[tracing::instrument(name = "apply_statement_effect", level = "debug", skip(self))]
     fn apply_statement_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -371,6 +375,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
         }
     }
 
+    #[tracing::instrument(name = "apply_statement_effect", level = "debug", skip(self))]
     fn apply_terminator_effect<'mir>(
         &mut self,
         state: &mut Self::Domain,
@@ -453,6 +458,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
     }
 }
 
+#[derive(Debug)]
 struct BorrowDelta {
     set: HybridBitSet<BorrowIndex>,
     cleared: HybridBitSet<BorrowIndex>,

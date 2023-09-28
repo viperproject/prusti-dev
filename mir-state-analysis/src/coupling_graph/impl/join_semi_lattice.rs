@@ -18,6 +18,7 @@ use crate::{
 use super::cg::{Cg, Graph, SharedBorrows};
 
 impl JoinSemiLattice for Cg<'_, '_> {
+    #[tracing::instrument(name = "Cg::join", level = "debug", skip_all)]
     fn join(&mut self, other: &Self) -> bool {
         // if self.done == 20 {
         //     panic!();
@@ -65,6 +66,7 @@ impl JoinSemiLattice for Cg<'_, '_> {
 }
 
 impl JoinSemiLattice for Graph<'_, '_> {
+    #[tracing::instrument(name = "Graph::join", level = "debug", ret)]
     fn join(&mut self, other: &Self) -> bool {
         // println!("Joining graphs:\n{:?}: {:?}\n{:?}: {:?}", self.id, self.nodes, other.id, other.nodes);
         let mut changed = false;
