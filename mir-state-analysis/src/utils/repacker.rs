@@ -10,7 +10,10 @@ use prusti_rustc_interface::{
     dataflow::storage,
     index::bit_set::BitSet,
     middle::{
-        mir::{tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, ProjectionElem},
+        mir::{
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
+            ProjectionElem,
+        },
         ty::{TyCtxt, TyKind},
     },
 };
@@ -45,8 +48,8 @@ impl ProjectionRefKind {
 #[derive(Copy, Clone)]
 // TODO: modified version of fns taken from `prusti-interface/src/utils.rs`; deduplicate
 pub struct PlaceRepacker<'a, 'tcx: 'a> {
-    mir: &'a Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
+    pub(super) mir: &'a Body<'tcx>,
+    pub(super) tcx: TyCtxt<'tcx>,
 }
 
 impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
@@ -68,6 +71,13 @@ impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
 }
 
 impl<'tcx> Place<'tcx> {
+    pub fn to_rust_place(self, repacker: PlaceRepacker<'_, 'tcx>) -> MirPlace<'tcx> {
+        MirPlace {
+            local: self.local,
+            projection: repacker.tcx.mk_place_elems(self.projection),
+        }
+    }
+
     /// Subtract the `to` place from the `self` place. The
     /// subtraction is defined as set minus between `self` place replaced
     /// with a set of places that are unrolled up to the same level as
@@ -147,6 +157,7 @@ impl<'tcx> Place<'tcx> {
         let new_projection = repacker.tcx.mk_place_elems_from_iter(
             self.projection
                 .iter()
+                .copied()
                 .chain([guide_place.projection[index]]),
         );
         let new_current_place = Place::new(self.local, new_projection);
@@ -172,7 +183,7 @@ impl<'tcx> Place<'tcx> {
                         repacker
                             .tcx
                             .mk_place_elem(
-                                *self,
+                                self.to_rust_place(repacker),
                                 ProjectionElem::ConstantIndex {
                                     offset: i,
                                     min_length,
@@ -229,7 +240,7 @@ impl<'tcx> Place<'tcx> {
                     if Some(index) != without_field {
                         let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(
-                            *self,
+                            self.to_rust_place(repacker),
                             field,
                             field_def.ty(repacker.tcx, substs),
                         );
@@ -241,7 +252,10 @@ impl<'tcx> Place<'tcx> {
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = FieldIdx::from_usize(index);
-                        let field_place = repacker.tcx.mk_place_field(*self, field, arg);
+                        let field_place =
+                            repacker
+                                .tcx
+                                .mk_place_field(self.to_rust_place(repacker), field, arg);
                         places.push(field_place.into());
                     }
                 }
@@ -250,7 +264,11 @@ impl<'tcx> Place<'tcx> {
                 for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
                     if Some(index) != without_field {
                         let field = FieldIdx::from_usize(index);
-                        let field_place = repacker.tcx.mk_place_field(*self, field, subst_ty);
+                        let field_place = repacker.tcx.mk_place_field(
+                            self.to_rust_place(repacker),
+                            field,
+                            subst_ty,
+                        );
                         places.push(field_place.into());
                     }
                 }
@@ -259,7 +277,11 @@ impl<'tcx> Place<'tcx> {
                 for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
                     if Some(index) != without_field {
                         let field = FieldIdx::from_usize(index);
-                        let field_place = repacker.tcx.mk_place_field(*self, field, subst_ty);
+                        let field_place = repacker.tcx.mk_place_field(
+                            self.to_rust_place(repacker),
+                            field,
+                            subst_ty,
+                        );
                         places.push(field_place.into());
                     }
                 }
@@ -291,42 +313,6 @@ impl<'tcx> Place<'tcx> {
 // }
 
 impl<'tcx> Place<'tcx> {
-    #[tracing::instrument(level = "debug", skip(repacker), ret, fields(lp = ?self.projection, rp = ?other.projection))]
-    pub fn common_prefix(self, other: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
-        assert_eq!(self.local, other.local);
-
-        let common_prefix = self
-            .compare_projections(other)
-            .take_while(|(eq, _, _)| *eq)
-            .map(|(_, e1, _)| e1);
-        Self::new(
-            self.local,
-            repacker.tcx.mk_place_elems_from_iter(common_prefix),
-        )
-    }
-
-    #[tracing::instrument(level = "info", skip(repacker), ret)]
-    pub fn joinable_to(
-        self,
-        to: Self,
-        not_through_ref: bool,
-        repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> Self {
-        assert!(self.is_prefix(to));
-        let proj = self.projection.iter();
-        let to_proj = to.projection[self.projection.len()..]
-            .iter()
-            .copied()
-            .take_while(|p| {
-                matches!(
-                    p,
-                    ProjectionElem::Field(..) | ProjectionElem::ConstantIndex { .. } // TODO: we may want to allow going through Box derefs here?
-                ) || (!not_through_ref && matches!(p, ProjectionElem::Deref))
-            });
-        let projection = repacker.tcx.mk_place_elems_from_iter(proj.chain(to_proj));
-        Self::new(self.local, projection)
-    }
-
     // pub fn get_root(self, repacker: PlaceRepacker<'_, 'tcx>) -> RootPlace<'tcx> {
     //     if let Some(idx) = self.projection.iter().rev().position(RootPlace::is_indirect) {
     //         let idx = self.projection.len() - idx;
@@ -348,29 +334,6 @@ impl<'tcx> Place<'tcx> {
         }
     }
 
-    // /// Calculates if we dereference through a mutable/immutable reference. For example, if we have\
-    // /// `x: (i32, & &mut i32)` then we would get the following results:
-    // ///
-    // /// * `"x".through_ref_mutability("x.0")` -> `None`
-    // /// * `"x".through_ref_mutability("x.1")` -> `None`
-    // /// * `"x".through_ref_mutability("*x.1")` -> `Some(Mutability::Not)`
-    // /// * `"x".through_ref_mutability("**x.1")` -> `Some(Mutability::Not)`
-    // /// * `"*x.1".through_ref_mutability("**x.1")` -> `Some(Mutability::Mut)`
-    // pub fn between_ref_mutability(self, to: Self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Mutability> {
-    //     assert!(self.is_prefix(to));
-    //     let mut typ = self.ty(repacker.mir, repacker.tcx);
-    //     let mut mutbl = None;
-    //     for &elem in &to.projection[self.projection.len()..] {
-    //         match typ.ty.kind() {
-    //             TyKind::Ref(_, _, Mutability::Not) => return Some(Mutability::Not),
-    //             TyKind::Ref(_, _, Mutability::Mut) => mutbl = Some(Mutability::Mut),
-    //             _ => ()
-    //         };
-    //         typ = typ.projection_ty(repacker.tcx, elem);
-    //     }
-    //     mutbl
-    // }
-
     pub fn projects_shared_ref(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
         self.projects_ty(
             |typ| {
@@ -384,9 +347,17 @@ impl<'tcx> Place<'tcx> {
         .is_some()
     }
 
+    pub fn projects_ptr(self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Place<'tcx>> {
+        self.projects_ty(|typ| typ.ty.is_ref() || typ.ty.is_unsafe_ptr(), repacker)
+    }
+
+    pub fn can_deinit(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
+        !self.projects_shared_ref(repacker)
+    }
+
     pub fn projects_ty(
         self,
-        predicate: impl Fn(PlaceTy<'tcx>) -> bool,
+        mut predicate: impl FnMut(PlaceTy<'tcx>) -> bool,
         repacker: PlaceRepacker<'_, 'tcx>,
     ) -> Option<Place<'tcx>> {
         let mut typ = PlaceTy::from_ty(repacker.mir.local_decls()[self.local].ty);
@@ -395,7 +366,7 @@ impl<'tcx> Place<'tcx> {
                 let projection = repacker.tcx.mk_place_elems(&self.projection[0..idx]);
                 return Some(Self::new(self.local, projection));
             }
-            typ = typ.projection_ty(repacker.tcx, elem);
+            typ = typ.projection_ty(repacker.tcx, *elem);
         }
         None
     }

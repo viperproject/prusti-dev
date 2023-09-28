@@ -13,7 +13,7 @@ use log::trace;
 use prusti_rustc_interface::{
     hir,
     hir::{def_id::DefId, intravisit::Visitor},
-    middle::ty,
+    middle::ty::{self, TyKind},
 };
 
 pub struct CollectPrustiSpecVisitor<'tcx> {
@@ -76,7 +76,7 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
             let ty = self
                 .env_query
                 .tcx()
-                .mk_adt(adt_def, self.env_query.identity_substs(def_id));
+                .mk_ty_from_kind(TyKind::Adt(adt_def, self.env_query.identity_substs(def_id)));
             self.types.push(ty);
         }
     }

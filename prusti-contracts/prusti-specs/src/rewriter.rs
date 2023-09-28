@@ -112,7 +112,7 @@ impl AstRewriter {
         //   of a single identifier; without the double negation, the `Return`
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
-        let (return_type, return_modifier) = match &spec_type {
+        let (return_type, _return_modifier) = match &spec_type {
             SpecItemType::Termination => (
                 quote_spanned! {item_span => Int},
                 quote_spanned! {item_span => Int::new(0) + },

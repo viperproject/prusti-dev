@@ -11,7 +11,7 @@ use crate::{
 use log::{debug, trace};
 use prusti_rustc_interface::{
     data_structures::graph::dominators::Dominators,
-    index::vec::{Idx, IndexVec},
+    index::{Idx, IndexVec},
     middle::{mir, mir::visit::Visitor},
 };
 use rustc_hash::{FxHashMap, FxHashSet};

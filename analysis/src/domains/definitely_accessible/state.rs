@@ -10,6 +10,7 @@ use crate::{
 };
 use log::info;
 use prusti_rustc_interface::{
+    abi::FieldIdx,
     data_structures::fx::{FxHashMap, FxHashSet},
     middle::{mir, ty, ty::TyCtxt},
     span::source_map::SourceMap,
@@ -237,7 +238,7 @@ fn pretty_print_place<'tcx>(
 fn describe_field_from_ty(
     tcx: TyCtxt<'_>,
     ty: ty::Ty<'_>,
-    field: mir::Field,
+    field: FieldIdx,
     variant_index: Option<VariantIdx>,
 ) -> Option<String> {
     if ty.is_box() {

@@ -7,7 +7,6 @@
 #![feature(rustc_private)]
 #![feature(proc_macro_internals)]
 #![feature(decl_macro)]
-#![feature(box_syntax)]
 #![deny(unused_must_use)]
 
 mod arg_value;
@@ -30,7 +29,7 @@ const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/
 lazy_static! {
     static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
         let hook = panic::take_hook();
-        panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
+        panic::set_hook(Box::new(|info| report_prusti_ice(info, BUG_REPORT_URL)));
         hook
     };
 }
@@ -57,7 +56,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         prusti_rustc_interface::driver::DEFAULT_LOCALE_RESOURCES.to_vec(),
         false,
     );
-    let emitter = box prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
+    let emitter = Box::new(prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
         prusti_rustc_interface::errors::ColorConfig::Auto,
         None,
         None,
@@ -68,7 +67,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         false,
         false,
         prusti_rustc_interface::errors::TerminalUrl::Auto,
-    );
+    ));
     let handler = prusti_rustc_interface::errors::Handler::with_emitter(true, None, emitter);
 
     // a .span_bug or .bug call has already printed what it wants to print.
@@ -92,7 +91,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     ];
 
     for note in &xs {
-        handler.note_without_error(note.as_ref());
+        handler.note_without_error(note.to_string());
     }
 
     // If backtraces are enabled, also print the query stack
@@ -105,6 +104,12 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
 /// Initialize Prusti and the Rust compiler loggers.
 fn init_loggers() -> Option<FlushGuard> {
+    // TODO: should we really be creating this? should we configure the output
+    //   type somehow?
+    let handler = prusti_rustc_interface::session::EarlyErrorHandler::new(
+        prusti_rustc_interface::session::config::ErrorOutputType::default(),
+    );
+
     // TODO: The `config::log() != ""` here is very bad; it makes us ignore the `log_tracing` flag
     // It's enabled so that we only create a `trace.json` file if the user has explicitly requested logging
     let guard = if config::log_tracing() && !config::log().is_empty() {
@@ -129,7 +134,7 @@ fn init_loggers() -> Option<FlushGuard> {
         None
     };
 
-    prusti_rustc_interface::driver::init_rustc_env_logger();
+    prusti_rustc_interface::driver::init_rustc_env_logger(&handler);
     guard
 }
 
