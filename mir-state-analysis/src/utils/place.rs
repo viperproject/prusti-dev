@@ -284,16 +284,16 @@ impl Debug for Place<'_> {
                 }
                 ProjectionElem::Subslice {
                     from,
-                    to,
+                    to: 0,
                     from_end: true,
-                } if to == 0 => {
+                } => {
                     write!(fmt, "[{from:?}:]")?;
                 }
                 ProjectionElem::Subslice {
-                    from,
+                    from: 0,
                     to,
                     from_end: true,
-                } if from == 0 => {
+                } => {
                     write!(fmt, "[:-{to:?}]")?;
                 }
                 ProjectionElem::Subslice {
