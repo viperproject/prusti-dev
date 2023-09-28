@@ -348,7 +348,10 @@ impl<'tcx> Place<'tcx> {
 
     #[tracing::instrument(name = "Place::projects_ptr", level = "trace", skip(repacker), ret)]
     pub fn projects_ptr(self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Place<'tcx>> {
-        self.projects_ty(|typ| typ.ty.is_ref() || typ.ty.is_box() || typ.ty.is_unsafe_ptr(), repacker)
+        self.projects_ty(
+            |typ| typ.ty.is_ref() || typ.ty.is_box() || typ.ty.is_unsafe_ptr(),
+            repacker,
+        )
     }
 
     pub fn can_deinit(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
