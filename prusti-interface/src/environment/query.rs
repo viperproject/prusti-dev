@@ -7,10 +7,7 @@ use prusti_rustc_interface::{
     hir::hir_id::HirId,
     middle::{
         hir::map::Map,
-        ty::{
-            self, subst::SubstsRef, Binder, BoundConstness, ImplPolarity, ParamEnv, TraitPredicate,
-            TyCtxt,
-        },
+        ty::{self, Binder, BoundConstness, GenericArgsRef, ImplPolarity, ParamEnv, TraitPredicate, TyCtxt},
     },
     span::{
         def_id::{DefId, LocalDefId},
@@ -148,20 +145,20 @@ impl<'tcx> EnvQuery<'tcx> {
     pub fn is_unsafe_function(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
         self.tcx
             .fn_sig(def_id.into_param())
-            .subst_identity()
+            .skip_binder()
             .unsafety()
             == prusti_rustc_interface::hir::Unsafety::Unsafe
     }
 
     /// Computes the signature of the function with subst applied.
-    pub fn get_fn_sig(
+    /*pub fn get_fn_sig(
         self,
         def_id: impl IntoParam<ProcedureDefId>,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         let sig = if self.tcx.is_closure(def_id) {
-            ty::EarlyBinder(substs.as_closure().sig())
+            ty::EarlyBinder::bind(substs.as_closure().sig())
         } else {
             self.tcx.fn_sig(def_id)
         };
@@ -172,13 +169,13 @@ impl<'tcx> EnvQuery<'tcx> {
     pub fn get_fn_sig_resolved(
         self,
         def_id: impl IntoParam<ProcedureDefId>,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
         caller_def_id: impl IntoParam<ProcedureDefId>,
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         let sig = self.get_fn_sig(def_id, substs);
         self.resolve_assoc_types(sig, caller_def_id.into_param())
-    }
+    }*/
 
     /// Returns true iff `def_id` is a closure.
     pub fn is_closure(self, def_id: impl IntoParam<DefId>) -> bool {
@@ -206,8 +203,9 @@ impl<'tcx> EnvQuery<'tcx> {
     pub fn find_trait_method_substs(
         self,
         impl_method_def_id: impl IntoParam<ProcedureDefId>, // what are we calling?
-        impl_method_substs: SubstsRef<'tcx>,                // what are the substs on the call?
-    ) -> Option<(ProcedureDefId, SubstsRef<'tcx>)> {
+        impl_method_substs: GenericArgsRef<'tcx>,           // what are the substs on the call?
+    ) -> Option<(ProcedureDefId, GenericArgsRef<'tcx>)> {
+        todo!() /*
         let impl_method_def_id = impl_method_def_id.into_param();
         let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
         let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?.skip_binder();
@@ -267,7 +265,7 @@ impl<'tcx> EnvQuery<'tcx> {
         let identity_trait_method = self.identity_substs(trait_method_def_id);
         assert_eq!(trait_method_substs.len(), identity_trait_method.len());
 
-        Some((trait_method_def_id, trait_method_substs))
+        Some((trait_method_def_id, trait_method_substs))*/
     }
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
@@ -276,7 +274,7 @@ impl<'tcx> EnvQuery<'tcx> {
     pub fn find_impl_of_trait_method_call(
         self,
         proc_def_id: impl IntoParam<ProcedureDefId> + Debug,
-        substs: SubstsRef<'tcx>,
+        substs: GenericArgsRef<'tcx>,
     ) -> Option<ProcedureDefId> {
         // TODO(tymap): remove this method?
         let proc_def_id = proc_def_id.into_param();
@@ -284,17 +282,17 @@ impl<'tcx> EnvQuery<'tcx> {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx.def_path_str(trait_id), substs);
             let infcx = self.tcx.infer_ctxt().build();
             let mut sc = SelectionContext::new(&infcx);
-            let trait_ref = self.tcx.mk_trait_ref(trait_id, substs);
+            let trait_ref = ty::TraitRef::new(self.tcx, trait_id, substs);
             let obligation = Obligation::new(
                 self.tcx,
                 ObligationCause::dummy(),
                 // TODO(tymap): don't use reveal_all
                 ParamEnv::reveal_all(),
-                Binder::dummy(TraitPredicate {
+                TraitPredicate {
                     trait_ref,
                     constness: BoundConstness::NotConst,
                     polarity: ImplPolarity::Positive,
-                }),
+                },
             );
             let result = sc.select(&obligation);
             match result {
@@ -328,8 +326,8 @@ impl<'tcx> EnvQuery<'tcx> {
         self,
         caller_def_id: impl IntoParam<ProcedureDefId>, // where are we calling from?
         called_def_id: impl IntoParam<ProcedureDefId>, // what are we calling?
-        call_substs: SubstsRef<'tcx>,
-    ) -> (ProcedureDefId, SubstsRef<'tcx>) {
+        call_substs: GenericArgsRef<'tcx>,
+    ) -> (ProcedureDefId, GenericArgsRef<'tcx>) {
         let called_def_id = called_def_id.into_param();
 
         (|| {
@@ -346,7 +344,7 @@ impl<'tcx> EnvQuery<'tcx> {
                 // if no trait resolution occurred, we can keep the non-erased substs
                 call_substs
             } else {
-                instance.substs
+                instance.args
             };
 
             Some((resolved_def_id, resolved_substs))
@@ -415,7 +413,7 @@ impl<'tcx> EnvQuery<'tcx> {
 
     /// Return the default substitutions for a particular item, i.e. where each
     /// generic maps to itself.
-    pub fn identity_substs(self, def_id: impl IntoParam<ProcedureDefId>) -> SubstsRef<'tcx> {
+    pub fn identity_substs(self, def_id: impl IntoParam<ProcedureDefId>) -> GenericArgsRef<'tcx> {
         ty::List::identity_for_item(self.tcx, def_id.into_param())
     }
 

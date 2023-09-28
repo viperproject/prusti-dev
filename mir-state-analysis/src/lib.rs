@@ -24,7 +24,7 @@ pub fn run_free_pcs<'mir, 'tcx>(
         .into_engine(tcx, mir)
         .pass_name("free_pcs")
         .iterate_to_fixpoint();
-    free_pcs::FreePcsAnalysis(analysis.into_results_cursor(mir))
+    free_pcs::FreePcsAnalysis::new(analysis.into_results_cursor(mir))
 }
 
 pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, tcx: TyCtxt<'tcx>) {

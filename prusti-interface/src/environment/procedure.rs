@@ -22,7 +22,7 @@ use prusti_rustc_interface::{
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
-
+/*
 /// A facade that provides information about the Rust procedure.
 pub struct Procedure<'tcx> {
     tcx: TyCtxt<'tcx>,
@@ -433,3 +433,4 @@ fn build_nonspec_basic_blocks(
 
     get_nonspec_basic_blocks(env_query, bb_graph, mir)
 }
+*/

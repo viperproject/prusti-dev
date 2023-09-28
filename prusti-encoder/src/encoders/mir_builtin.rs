@@ -6,7 +6,6 @@ use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
 };
-use crate::vir;
 
 pub struct MirBuiltinEncoder;
 
@@ -17,14 +16,17 @@ pub enum MirBuiltinEncoderError {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum MirBuiltinEncoderTask<'tcx> {
+    // TODO: which type? input or output? -> best to store both?
     UnOp(mir::UnOp, ty::Ty<'tcx>),
+    BinOp(mir::BinOp, ty::Ty<'tcx>),
+    CheckedBinOp(mir::BinOp, ty::Ty<'tcx>),
 }
 
 #[derive(Clone, Debug)]
 pub struct MirBuiltinEncoderOutputRef<'vir> {
     pub name: &'vir str,
 }
-impl<'vir, 'tcx> task_encoder::OutputRefAny<'vir, 'tcx> for MirBuiltinEncoderOutputRef<'vir> {}
+impl<'vir> task_encoder::OutputRefAny<'vir> for MirBuiltinEncoderOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
 pub struct MirBuiltinEncoderOutput<'vir> {
@@ -37,15 +39,15 @@ thread_local! {
 }
 
 impl TaskEncoder for MirBuiltinEncoder {
-    type TaskDescription<'vir, 'tcx> = MirBuiltinEncoderTask<'tcx> where 'tcx: 'vir;
+    type TaskDescription<'vir> = MirBuiltinEncoderTask<'vir>;
 
-    type OutputRef<'vir, 'tcx> = MirBuiltinEncoderOutputRef<'vir> where 'tcx: 'vir;
-    type OutputFullLocal<'vir, 'tcx> = MirBuiltinEncoderOutput<'vir> where 'tcx: 'vir;
+    type OutputRef<'vir> = MirBuiltinEncoderOutputRef<'vir>;
+    type OutputFullLocal<'vir> = MirBuiltinEncoderOutput<'vir>;
 
     type EncodingError = MirBuiltinEncoderError;
 
-    fn with_cache<'vir, 'tcx, F, R>(f: F) -> R
-        where 'tcx: 'vir, F: FnOnce(&'vir task_encoder::CacheRef<'vir, 'tcx, MirBuiltinEncoder>) -> R,
+    fn with_cache<'vir, F, R>(f: F) -> R
+        where F: FnOnce(&'vir task_encoder::CacheRef<'vir, MirBuiltinEncoder>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -56,23 +58,40 @@ impl TaskEncoder for MirBuiltinEncoder {
         })
     }
 
-    fn task_to_key<'vir, 'tcx>(task: &Self::TaskDescription<'vir, 'tcx>) -> Self::TaskKey<'vir, 'tcx>
-        where 'tcx: 'vir
-    {
+    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         task.clone()
     }
 
-    fn do_encode_full<'vir, 'tcx>(
-        task_key: &Self::TaskKey<'vir, 'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir, 'tcx>,
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir>,
     ) -> Result<(
-        Self::OutputFullLocal<'vir, 'tcx>,
-        Self::OutputFullDependency<'vir, 'tcx>,
+        Self::OutputFullLocal<'vir>,
+        Self::OutputFullDependency<'vir>,
     ), (
         Self::EncodingError,
-        Option<Self::OutputFullDependency<'vir, 'tcx>>,
+        Option<Self::OutputFullDependency<'vir>>,
     )> {
-        crate::with_vcx(|vcx| {
+        // TODO: this function is also useful for the type encoder, extract?
+        fn int_name<'tcx>(ty: ty::Ty<'tcx>) -> &'static str {
+            match ty.kind() {
+                ty::TyKind::Int(ty::IntTy::Isize) => "isize",
+                ty::TyKind::Int(ty::IntTy::I8) => "i8",
+                ty::TyKind::Int(ty::IntTy::I16) => "i16",
+                ty::TyKind::Int(ty::IntTy::I32) => "i32",
+                ty::TyKind::Int(ty::IntTy::I64) => "i64",
+                ty::TyKind::Int(ty::IntTy::I128) => "i128",
+                ty::TyKind::Uint(ty::UintTy::Usize) => "usize",
+                ty::TyKind::Uint(ty::UintTy::U8) => "u8",
+                ty::TyKind::Uint(ty::UintTy::U16) => "u16",
+                ty::TyKind::Uint(ty::UintTy::U32) => "u32",
+                ty::TyKind::Uint(ty::UintTy::U64) => "u64",
+                ty::TyKind::Uint(ty::UintTy::U128) => "u128",
+                _ => unreachable!("non-integer type"),
+            }
+        }
+
+        vir::with_vcx(|vcx| {
             match task_key {
                 MirBuiltinEncoderTask::UnOp(mir::UnOp::Not, ty) => {
                     assert_eq!(*ty.kind(), ty::TyKind::Bool);
@@ -88,48 +107,29 @@ impl TaskEncoder for MirBuiltinEncoder {
                     let ty_s = deps.require_ref::<crate::encoders::TypeEncoder>(
                         *ty,
                     ).unwrap().snapshot;
-
                     Ok((MirBuiltinEncoderOutput {
                         function: vcx.alloc(vir::FunctionData {
                             name,
-                            args: vir::bvec![in &vcx.arena; vcx.alloc(vir::LocalDeclData {
-                                name: "arg",
-                                ty: ty_s,
-                                expr: None,
-                            })],
+                            args: vcx.alloc_slice(&[vcx.mk_local_decl("arg", ty_s)]),
                             ret: ty_s,
-                            pres: vir::bvec![in &vcx.arena],
-                            posts: vir::bvec![in &vcx.arena],
-                            expr: Some(vcx.alloc(vir::ExprData::FuncApp(vcx.alloc(vir::FuncAppData {
-                                target: "s_Bool_cons",
-                                args: vir::bvec![in &vcx.arena; vcx.alloc(vir::ExprData::UnOp(vcx.alloc(vir::UnOpData {
+                            pres: &[],
+                            posts: &[],
+                            expr: Some(vcx.mk_func_app(
+                                "s_Bool_cons",
+                                &[vcx.alloc(vir::ExprData::UnOp(vcx.alloc(vir::UnOpData {
                                     kind: vir::UnOpKind::Not,
-                                    expr: vcx.alloc(vir::ExprData::FuncApp(vcx.alloc(vir::FuncAppData {
-                                        target: "s_Bool_val",
-                                        args: vir::bvec![in &vcx.arena; vcx.mk_local_ex("arg")],
-                                    }))),
-                                })))]
-                            })))),
+                                    expr: vcx.mk_func_app(
+                                        "s_Bool_val",
+                                        &[vcx.mk_local_ex("arg")],
+                                    ),
+                                })))],
+                            )),
                         }),
                     }, ()))
                 }
 
                 MirBuiltinEncoderTask::UnOp(mir::UnOp::Neg, ty) => {
-                    let name = match ty.kind() {
-                        ty::TyKind::Int(ty::IntTy::Isize) => "mir_unop_neg_isize",
-                        ty::TyKind::Int(ty::IntTy::I8) => "mir_unop_neg_i8",
-                        ty::TyKind::Int(ty::IntTy::I16) => "mir_unop_neg_i16",
-                        ty::TyKind::Int(ty::IntTy::I32) => "mir_unop_neg_i32",
-                        ty::TyKind::Int(ty::IntTy::I64) => "mir_unop_neg_i64",
-                        ty::TyKind::Int(ty::IntTy::I128) => "mir_unop_neg_i128",
-                        ty::TyKind::Uint(ty::UintTy::Usize) => "mir_unop_neg_usize",
-                        ty::TyKind::Uint(ty::UintTy::U8) => "mir_unop_neg_u8",
-                        ty::TyKind::Uint(ty::UintTy::U16) => "mir_unop_neg_u16",
-                        ty::TyKind::Uint(ty::UintTy::U32) => "mir_unop_neg_u32",
-                        ty::TyKind::Uint(ty::UintTy::U64) => "mir_unop_neg_u64",
-                        ty::TyKind::Uint(ty::UintTy::U128) => "mir_unop_neg_u128",
-                        _ => unreachable!("MIR negation on non-integer type"),
-                    };
+                    let name = vir::vir_format!(vcx, "mir_unop_neg_{}", int_name(*ty));
                     deps.emit_output_ref::<Self>(task_key.clone(), MirBuiltinEncoderOutputRef {
                         name,
                     });
@@ -140,32 +140,119 @@ impl TaskEncoder for MirBuiltinEncoder {
                     let ty_out = deps.require_ref::<crate::encoders::TypeEncoder>(
                         *ty,
                     ).unwrap();
-                    let ty_s = ty_out.snapshot;
-
                     Ok((MirBuiltinEncoderOutput {
                         function: vcx.alloc(vir::FunctionData {
                             name,
-                            args: vir::bvec![in &vcx.arena; vcx.alloc(vir::LocalDeclData {
-                                name: "arg",
-                                ty: ty_s,
-                                expr: None,
-                            })],
-                            ret: ty_s,
-                            pres: vir::bvec![in &vcx.arena],
-                            posts: vir::bvec![in &vcx.arena],
-                            expr: Some(vcx.alloc(vir::ExprData::FuncApp(vcx.alloc(vir::FuncAppData {
-                                target: crate::vir_format!(vcx, "{}_cons", ty_out.snapshot_name),
-                                args: vir::bvec![in &vcx.arena; vcx.alloc(vir::ExprData::UnOp(vcx.alloc(vir::UnOpData {
+                            args: vcx.alloc_slice(&[vcx.mk_local_decl("arg", ty_out.snapshot)]),
+                            ret: ty_out.snapshot,
+                            pres: &[],
+                            posts: &[],
+                            expr: Some(vcx.mk_func_app(
+                                vir::vir_format!(vcx, "{}_cons", ty_out.snapshot_name),
+                                &[vcx.alloc(vir::ExprData::UnOp(vcx.alloc(vir::UnOpData {
                                     kind: vir::UnOpKind::Neg,
-                                    expr: vcx.alloc(vir::ExprData::FuncApp(vcx.alloc(vir::FuncAppData {
-                                        target: crate::vir_format!(vcx, "{}_val", ty_out.snapshot_name),
-                                        args: vir::bvec![in &vcx.arena; vcx.mk_local_ex("arg")],
-                                    }))),
-                                })))]
-                            })))),
+                                    expr: vcx.mk_func_app(
+                                        vir::vir_format!(vcx, "{}_val", ty_out.snapshot_name),
+                                        &[vcx.mk_local_ex("arg")],
+                                    ),
+                                })))],
+                            )),
                         }),
                     }, ()))
                 }
+
+                // TODO: should these be two different functions? precondition?
+                MirBuiltinEncoderTask::BinOp(mir::BinOp::Add | mir::BinOp::AddUnchecked, ty) => {
+                    let name = vir::vir_format!(vcx, "mir_binop_add_{}", int_name(*ty));
+                    deps.emit_output_ref::<Self>(task_key.clone(), MirBuiltinEncoderOutputRef {
+                        name,
+                    });
+
+                    let ty_out = deps.require_ref::<crate::encoders::TypeEncoder>(
+                        *ty,
+                    ).unwrap();
+                    Ok((MirBuiltinEncoderOutput {
+                        function: vcx.alloc(vir::FunctionData {
+                            name,
+                            args: vcx.alloc_slice(&[
+                                vcx.mk_local_decl("arg1", ty_out.snapshot),
+                                vcx.mk_local_decl("arg2", ty_out.snapshot),
+                            ]),
+                            ret: ty_out.snapshot,
+                            pres: &[],
+                            posts: &[],
+                            expr: Some(vcx.mk_func_app(
+                                vir::vir_format!(vcx, "{}_cons", ty_out.snapshot_name),
+                                &[vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
+                                    kind: vir::BinOpKind::Add,
+                                    lhs: vcx.mk_func_app(
+                                        vir::vir_format!(vcx, "{}_val", ty_out.snapshot_name),
+                                        &[vcx.mk_local_ex("arg1")],
+                                    ),
+                                    rhs: vcx.mk_func_app(
+                                        vir::vir_format!(vcx, "{}_val", ty_out.snapshot_name),
+                                        &[vcx.mk_local_ex("arg2")],
+                                    ),
+                                })))],
+                            )),
+                        }),
+                    }, ()))
+                }
+
+                MirBuiltinEncoderTask::CheckedBinOp(mir::BinOp::Add | mir::BinOp::AddUnchecked, ty) => {
+                    let name = vir::vir_format!(vcx, "mir_checkedbinop_add_{}", int_name(*ty));
+                    deps.emit_output_ref::<Self>(task_key.clone(), MirBuiltinEncoderOutputRef {
+                        name,
+                    });
+
+                    let ty_in = deps.require_ref::<crate::encoders::TypeEncoder>(
+                        *ty,
+                    ).unwrap();
+                    let ty_out = deps.require_ref::<crate::encoders::TypeEncoder>(
+                        vcx.tcx.mk_ty_from_kind(ty::TyKind::Tuple(vcx.tcx.mk_type_list(&[
+                            *ty,
+                            vcx.tcx.mk_ty_from_kind(ty::TyKind::Bool),
+                        ]))),
+                    ).unwrap();
+                    Ok((MirBuiltinEncoderOutput {
+                        function: vcx.alloc(vir::FunctionData {
+                            name,
+                            args: vcx.alloc_slice(&[
+                                vcx.mk_local_decl("arg1", ty_in.snapshot),
+                                vcx.mk_local_decl("arg2", ty_in.snapshot),
+                            ]),
+                            ret: ty_out.snapshot,
+                            pres: &[],
+                            posts: &[],
+                            expr: Some(vcx.mk_func_app(
+                                vir::vir_format!(vcx, "{}_cons", ty_out.snapshot_name),
+                                &[
+                                    vcx.mk_func_app(
+                                        vir::vir_format!(vcx, "{}_cons", ty_in.snapshot_name),
+                                        &[vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
+                                            kind: vir::BinOpKind::Add,
+                                            lhs: vcx.mk_func_app(
+                                                vir::vir_format!(vcx, "{}_val", ty_in.snapshot_name),
+                                                &[vcx.mk_local_ex("arg1")],
+                                            ),
+                                            rhs: vcx.mk_func_app(
+                                                vir::vir_format!(vcx, "{}_val", ty_in.snapshot_name),
+                                                &[vcx.mk_local_ex("arg2")],
+                                            ),
+                                        })))],
+                                    ),
+                                    // TODO: overflow condition!
+                                    vcx.mk_func_app(
+                                        "s_Bool_cons",
+                                        &[&vir::ExprData::Const(&vir::ConstData::Bool(false))],
+                                    ),
+                                ],
+                            )),
+                        }),
+                    }, ()))
+                }
+
+                _ => todo!(),
             }
 
         })

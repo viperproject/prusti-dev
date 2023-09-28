@@ -145,14 +145,9 @@ impl<'tcx> CapabilityProjections<'tcx> {
         for (from, to, kind) in expanded {
             let others = others.extract_if(|other| !to.is_prefix(*other));
             self.extend(others.map(|p| (p, perm)));
-            if kind.is_deref() {
-                let new_perm = if perm.is_shallow_exclusive() && kind.is_box() {
-                    CapabilityKind::Write
-                } else {
-                    perm
-                };
-                ops.push(RepackOp::Deref(from, perm, to, new_perm));
-                perm = new_perm;
+            if kind.is_box() && perm.is_shallow_exclusive() {
+                ops.push(RepackOp::DerefShallowInit(from, to));
+                perm = CapabilityKind::Write;
             } else {
                 ops.push(RepackOp::Expand(from, to, perm));
             }
@@ -188,12 +183,12 @@ impl<'tcx> CapabilityProjections<'tcx> {
             for (to, _, kind) in &collapsed {
                 if kind.is_shared_ref() {
                     let mut is_prefixed = false;
-                    exclusive_at.extract_if(|old| {
+                    exclusive_at.retain(|old| {
                         let cmp = to.either_prefix(*old);
                         if matches!(cmp, Some(false)) {
                             is_prefixed = true;
                         }
-                        cmp.unwrap_or_default()
+                        !cmp.unwrap_or_default()
                     });
                     if !is_prefixed {
                         exclusive_at.push(*to);
@@ -202,7 +197,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
             }
         }
         let mut ops = Vec::new();
-        for (to, from, kind) in collapsed {
+        for (to, from, _) in collapsed {
             let removed_perms: Vec<_> =
                 old_caps.extract_if(|old, _| to.is_prefix(*old)).collect();
             let perm = removed_perms
@@ -216,20 +211,8 @@ impl<'tcx> CapabilityProjections<'tcx> {
                     ops.push(RepackOp::Weaken(from, from_perm, perm));
                 }
             }
-            let op = if kind.is_deref() {
-                let new_perm = if kind.is_shared_ref() && exclusive_at.contains(&to) {
-                    assert_eq!(perm, CapabilityKind::Read);
-                    CapabilityKind::Exclusive
-                } else {
-                    perm
-                };
-                old_caps.insert(to, new_perm);
-                RepackOp::Upref(to, new_perm, from, perm)
-            } else {
-                old_caps.insert(to, perm);
-                RepackOp::Collapse(to, from, perm)
-            };
-            ops.push(op);
+            old_caps.insert(to, perm);
+            ops.push(RepackOp::Collapse(to, from, perm));
         }
         self.insert(to, old_caps[&to]);
         ops

@@ -38,12 +38,9 @@ impl<'tcx> CapabilityConistency<'tcx> for CapabilityProjections<'tcx> {
             for p2 in keys[i + 1..].iter() {
                 assert!(!p1.related_to(*p2), "{p1:?} {p2:?}",);
             }
-            // Cannot pack or unpack through uninitialized pointers.
-            if p1.projection_contains_deref() {
-                assert!(
-                    matches!(self[p1], CapabilityKind::Exclusive | CapabilityKind::Read),
-                    "{self:?}"
-                );
+            // Cannot be inside of uninitialized pointers.
+            if !p1.can_deinit(repacker) {
+                assert!(matches!(self[p1], CapabilityKind::Exclusive), "{self:?}");
             }
         }
         // Can always pack up to the root
