@@ -20,99 +20,24 @@ use crate::{
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
-    utils::{PlaceRepacker, Place},
+    utils::{PlaceRepacker, Place}, coupling_graph::{CgContext, region_place::Perms},
 };
 
-use super::{engine::CoupligGraph, shared_borrow_set::SharedBorrowSet, CgContext, region_place::Perms};
+use super::engine::CoupligGraph;
 
-#[derive(Clone)]
-pub struct Graph<'a, 'tcx> {
-    pub id: Option<String>,
-    pub rp: PlaceRepacker<'a, 'tcx>,
-    pub facts: &'a BorrowckFacts,
-    pub facts2: &'a BorrowckFacts2<'tcx>,
-    pub cgx: &'a CgContext<'a, 'tcx>,
-
-    pub(crate) live: BitSet<BorrowIndex>,
-    pub version: usize,
-    pub skip_empty_nodes: bool,
-
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Graph<'tcx> {
     pub nodes: IndexVec<RegionVid, Node<'tcx>>,
     // Regions equal to 'static
     pub static_regions: FxHashSet<RegionVid>,
 }
 
-impl Debug for Graph<'_, '_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("Graph")
-            .field("id", &self.id)
-            .field("nodes", &self.nodes)
-            .field("skip_empty_nodes", &self.skip_empty_nodes)
-            // .field("static_regions", &self.static_regions)
-            .finish()
-    }
-}
-
-impl PartialEq for Graph<'_, '_> {
-    fn eq(&self, other: &Self) -> bool {
-        self.nodes == other.nodes //&& self.static_regions == other.static_regions
-    }
-}
-impl Eq for Graph<'_, '_> {}
-
-impl<'a, 'tcx: 'a> Graph<'a, 'tcx> {
+impl<'tcx> Graph<'tcx> {
     // TODO: get it from `UniversalRegions` instead
     pub fn static_region() -> RegionVid {
         RegionVid::from_u32(0)
     }
-    pub fn new(rp: PlaceRepacker<'a, 'tcx>, facts: &'a BorrowckFacts, facts2: &'a BorrowckFacts2<'tcx>, cgx: &'a CgContext<'a, 'tcx>) -> Self {
-        let live = BitSet::new_empty(facts2.borrow_set.location_map.len());
-        let mut result = Self {
-            id: None,
-            rp,
-            facts,
-            facts2,
-            cgx,
-            live,
-            version: 0,
-            skip_empty_nodes: false,
-            nodes: IndexVec::from_elem_n(Node::new(), facts2.region_inference_context.var_infos.len()),
-            static_regions: FxHashSet::from_iter([Self::static_region()]),
-        };
-        // let input_facts = facts.input_facts.borrow();
-        // for &(r1, r2) in &input_facts.as_ref().unwrap().known_placeholder_subset {
-        //     result.outlives(r1, r2);
-        // }
 
-        ////// Ignore all global outlives constraints for now to have a nice graph (i.e. result is not in the same node as args)
-        let input_facts = facts.input_facts.borrow();
-        let input_facts = input_facts.as_ref().unwrap();
-        let constraints: Vec<_> = facts2.region_inference_context.outlives_constraints().collect();
-        let constraints_no_loc: Vec<_> = constraints.iter().filter(|c| c.locations.from_location().is_none()).copied().collect();
-
-        // Make one single `'static` node
-        // let n = result.region_to_node(Self::static_region());
-        // let node = result.get_node_mut(n);
-        // let mut to_make_static = vec![Self::static_region()];
-        // while let Some(r) = to_make_static.pop() {
-        //     for c in constraints.iter().filter(|c| c.sub == r) {
-        //         if node.regions.insert(c.sup) {
-        //             to_make_static.push(c.sup);
-        //         }
-        //     }
-        // }
-        // println!("Static node: {node:?}");
-        // let mut to_make_static = vec![Self::static_region()];
-        // while let Some(r) = to_make_static.pop() {
-        //     for &c in constraints_no_loc.iter().filter(|c| c.sub == r) {
-        //         if result.outlives(c) {
-        //             to_make_static.push(c.sup);
-        //         }
-        //     }
-        // }
-
-        result
-    }
     #[tracing::instrument(name = "Graph::outlives", level = "trace", skip(self), ret)]
     pub fn outlives(&mut self, c: OutlivesConstraint<'tcx>) -> bool {
         let edge = EdgeInfo {
@@ -149,15 +74,6 @@ impl<'a, 'tcx: 'a> Graph<'a, 'tcx> {
     #[tracing::instrument(name = "Graph::kill_borrow", level = "debug", skip(self))]
     /// Remove borrow from graph and all nodes that block it and the node it blocks
     pub fn kill_borrow(&mut self, data: &BorrowData<'tcx>) {
-        if cfg!(debug_assertions) {
-            let blocks = &self.nodes[data.region].blocks;
-            assert_eq!(blocks.len(), 1);
-            // A borrow should have places associated with it (i.e. be in the `region_map`)!
-            assert_eq!(
-                self.cgx.region_map[&data.region].place.local,
-                self.cgx.region_map[blocks.keys().next().unwrap()].place.local
-            );
-        }
         self.kill(data.region);
     }
 
@@ -353,13 +269,6 @@ impl<'a, 'tcx: 'a> Graph<'a, 'tcx> {
         }
         (blocks, blocked_by)
     }
-
-    pub(crate) fn get_associated_place(&self, r: RegionVid) -> Option<&Perms<'tcx>> {
-        self.cgx.region_map.get(&r)
-    }
-    pub(crate) fn has_associated_place(&self, r: RegionVid) -> bool {
-        self.cgx.region_map.contains_key(&r)
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -413,86 +322,5 @@ impl<'tcx> Node<'tcx> {
             blocked_by: FxHashMap::default(),
             // contained_by: Vec::new(),
         }
-    }
-}
-
-impl<'a, 'tcx> DebugWithContext<CoupligGraph<'a, 'tcx>> for Graph<'a, 'tcx> {
-    fn fmt_diff_with(
-        &self,
-        old: &Self,
-        _ctxt: &CoupligGraph<'a, 'tcx>,
-        f: &mut Formatter<'_>,
-    ) -> Result {
-        Ok(())
-    }
-}
-
-impl<'tcx> Graph<'_, 'tcx> {
-    #[tracing::instrument(name = "Regions::merge_for_return", level = "trace")]
-    pub fn merge_for_return(&self) {
-        let outlives: Vec<_> = self.facts2.region_inference_context.outlives_constraints().filter(|c| c.locations.from_location().is_none()).collect();
-        let in_facts = self.facts.input_facts.borrow();
-        let universal_region = &in_facts.as_ref().unwrap().universal_region;
-
-        for (r, node) in self.all_nodes() {
-            // Skip unknown empty nodes, we may want to figure out how to deal with them in the future
-            if !self.has_associated_place(r) {
-                continue;
-            }
-
-            if self.borrow_kind(r).is_some() {
-                self.output_to_dot("log/coupling/error.dot");
-                panic!("{node:?}");
-            } else {
-                // let r = *node.regions.iter().next().unwrap();
-                if universal_region.contains(&r) {
-                    continue;
-                }
-
-                let proof = outlives.iter().find(|c| {
-                    universal_region.contains(&c.sub) && c.sup == r
-                    // let r = c.sub.as_u32(); // The thing that lives shorter
-                    // r == 0 || r == 1 // `0` means that it's static, `1` means that it's the function region
-                });
-                // If None then we have something left which doesn't outlive the function region!
-                // if proof.is_none() {
-                //     let in_facts = self.facts.input_facts.borrow();
-                //     let r = &in_facts.as_ref().unwrap().universal_region;
-                //     let outlives: Vec<_> = self.facts2.region_inference_context.outlives_constraints().collect();
-                //     println!("Dumping graph to `log/coupling/error.dot`. Error: {outlives:?} (ur: {r:?})");
-                //     // std::fs::remove_dir_all("log/coupling").ok();
-                //     // std::fs::create_dir_all("log/coupling/individual").unwrap();
-                //     let mut f = std::fs::File::create("log/coupling/error.dot").unwrap();
-                //     dot::render(self, &mut f).unwrap();
-                // }
-                // println!("Found proof: {proof:?}");
-                if proof.is_none() {
-                    self.output_to_dot("log/coupling/error.dot");
-                    panic!("Found a region which does not outlive the function region: {node:?} ({universal_region:?})");
-                }
-            }
-        }
-        for &r in &self.static_regions {
-            if universal_region.contains(&r) {
-                continue;
-            }
-            // It's possible that we get some random unnamed regions in the static set
-            if !self.has_associated_place(r) {
-                continue;
-            }
-            let proof = outlives.iter().find(|c| {
-                universal_region.contains(&c.sub) && c.sup == r
-            });
-            if proof.is_none() {
-                self.output_to_dot("log/coupling/error.dot");
-                panic!("Found a region which does not outlive the function region: {r:?} ({universal_region:?})");
-            }
-        }
-    }
-    pub fn output_to_dot<P: AsRef<std::path::Path>>(&self, path: P) {
-        // TODO:
-        // return;
-        let mut f = std::fs::File::create(path).unwrap();
-        dot::render(self, &mut f).unwrap();
     }
 }

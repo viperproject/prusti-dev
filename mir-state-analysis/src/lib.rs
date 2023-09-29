@@ -50,7 +50,7 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     //     return;
     // }
     let cgx = coupling_graph::CgContext::new(tcx, mir, facts, facts2);
-    let fpcs = coupling_graph::engine::CoupligGraph::new(tcx, mir, facts, facts2, &cgx);
+    let fpcs = coupling_graph::engine::CoupligGraph::new(&cgx);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("coupling_graph")

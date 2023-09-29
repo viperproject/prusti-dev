@@ -5,5 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod r#impl;
+mod context;
 
 pub use r#impl::*;
+pub use context::*;

@@ -14,9 +14,7 @@ use prusti_rustc_interface::{
     middle::{mir::{BorrowKind, ConstraintCategory}, ty::{RegionVid, TyKind}},
 };
 
-use crate::utils::Place;
-
-use super::{cg::{Graph, EdgeInfo}, region_place::Perms};
+use super::{graph::EdgeInfo, triple::Cg};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Edge<'tcx> {
@@ -31,7 +29,7 @@ impl<'tcx> Edge<'tcx> {
     }
 }
 
-impl<'a, 'tcx> Graph<'a, 'tcx> {
+impl<'a, 'tcx> Cg<'a, 'tcx> {
     fn get_id(&self) -> String {
         if let Some(id) = &self.id {
             id.replace('[', "_").replace(']', "")
@@ -40,7 +38,7 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
         }
     }
 }
-impl<'a, 'tcx> Graph<'a, 'tcx> {
+impl<'a, 'tcx> Cg<'a, 'tcx> {
     // pub(crate) fn is_empty_node(&self, n: NodeId) -> bool {
     //     self.get_corresponding_places(n).is_none()
     // }
@@ -51,7 +49,7 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
     /// For regions created by `... = &'r ...`, find the kind of borrow.
     pub(crate) fn borrow_kind(&self, r: RegionVid) -> Option<BorrowKind> {
         // TODO: we could put this into a `FxHashMap<RegionVid, BorrowData>` in `cgx`.
-        self.facts2.borrow_set.location_map.iter()
+        self.cgx.facts2.borrow_set.location_map.iter()
             .chain(&self.cgx.sbs.location_map)
             .find(|(_, data)| data.region == r)
             .map(|(_, data)| data.kind)
@@ -64,7 +62,7 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
         if !self.skip_empty_nodes || self.has_associated_place(r) {
             return vec![Edge::new(start, r, reasons)];
         }
-        for (&b, edge) in &self.nodes[r].blocks {
+        for (&b, edge) in &self.graph.nodes[r].blocks {
             let mut reasons = reasons.clone();
             reasons.extend(edge);
             edges.extend(self.non_empty_edges(b, start, reasons, visited));
@@ -74,7 +72,7 @@ impl<'a, 'tcx> Graph<'a, 'tcx> {
     }
 }
 
-impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Graph<'b, 'tcx> {
+impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
     fn graph_id(&'a self) -> dot::Id<'a> { dot::Id::new(self.get_id()).unwrap() }
 
     fn node_id(&'a self, r: &RegionVid) -> dot::Id<'a> {
@@ -103,7 +101,7 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Graph<'b, 'tcx> 
         dot::LabelText::LabelStr(Cow::Owned(label))
     }
     fn node_shape(&'a self, r: &RegionVid) -> Option<dot::LabelText<'a>> {
-        if self.static_regions.contains(&r) {
+        if self.graph.static_regions.contains(&r) {
             return Some(dot::LabelText::LabelStr(Cow::Borrowed("house")));
         }
         self.borrow_kind(*r).map(|kind| match kind {
@@ -126,16 +124,17 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Graph<'b, 'tcx> 
         } else {
             label += "\n???";
         }
-        if let Some(region_info) = self.facts2.region_inference_context.var_infos.get(*r) {
-            label += &format!("\n{:?}, {:?}", region_info.origin, region_info.universe);
-        }
+        // Not super useful: the `origin` is always NLL.
+        // if let Some(region_info) = self.facts2.region_inference_context.var_infos.get(*r) {
+        //     label += &format!("\n{:?}, {:?}", region_info.origin, region_info.universe);
+        // }
         dot::LabelText::LabelStr(Cow::Owned(label))
     }
 }
 
-impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Graph<'b, 'tcx> {
+impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
     fn nodes(&self) -> dot::Nodes<'a, RegionVid> {
-        let mut nodes: Vec<_> = self.all_nodes()
+        let mut nodes: Vec<_> = self.graph.all_nodes()
             .filter(|(r, _)| !self.skip_empty_nodes || self.has_associated_place(*r))
             .map(|(r, _)| r)
             .collect();
@@ -147,7 +146,7 @@ impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Graph<'b, 'tcx>
 
     fn edges(&'a self) -> dot::Edges<'a, Edge<'tcx>> {
         let mut edges = Vec::new();
-        for (r, n) in self.all_nodes() {
+        for (r, n) in self.graph.all_nodes() {
             if self.skip_empty_nodes && !self.has_associated_place(r) {
                 continue;
             }
