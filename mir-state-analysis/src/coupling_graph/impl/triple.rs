@@ -34,6 +34,7 @@ pub struct Cg<'a, 'tcx> {
     pub(crate) live: BitSet<BorrowIndex>,
     pub version: usize,
     pub skip_empty_nodes: bool,
+    pub top_crates: bool,
 
     pub graph: Graph<'tcx>,
 }
@@ -66,7 +67,7 @@ impl<'a, 'tcx> DebugWithContext<CoupligGraph<'a, 'tcx>> for Cg<'a, 'tcx> {
 }
 
 impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
-    pub fn new(cgx: &'a CgContext<'a, 'tcx>) -> Self {
+    pub fn new(cgx: &'a CgContext<'a, 'tcx>, top_crates: bool) -> Self {
         let graph = Graph {
             nodes: IndexVec::from_elem_n(Node::new(), cgx.facts2.region_inference_context.var_infos.len()),
             static_regions: FxHashSet::from_iter([Graph::static_region()]),
@@ -78,6 +79,7 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
             live,
             version: 0,
             skip_empty_nodes: false,
+            top_crates,
             graph,
         };
         // let input_facts = facts.input_facts.borrow();
@@ -362,10 +364,10 @@ impl<'tcx> Cg<'_, 'tcx> {
         }
     }
     pub fn output_to_dot<P: AsRef<std::path::Path>>(&self, path: P) {
-        // TODO:
-        // return;
-        let mut f = std::fs::File::create(path).unwrap();
-        dot::render(self, &mut f).unwrap();
+        if !self.top_crates {
+            let mut f = std::fs::File::create(path).unwrap();
+            dot::render(self, &mut f).unwrap();
+        }
     }
 }
 
