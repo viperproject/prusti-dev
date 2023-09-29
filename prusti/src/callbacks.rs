@@ -186,7 +186,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 
                         let name = env.name.get_unique_item_name(*proc_id);
                         println!("Calculating CG for: {name} ({:?})", mir.span);
-                        test_coupling_graph(&*mir, &*facts, &*facts2, tcx);
+                        test_coupling_graph(&*mir, &*facts, &*facts2, tcx, config::top_crates());
                     }
                 } else {
                     verify(env, def_spec);

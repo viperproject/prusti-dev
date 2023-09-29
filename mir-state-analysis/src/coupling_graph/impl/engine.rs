@@ -67,10 +67,11 @@ pub(crate) struct CoupligGraph<'a, 'tcx> {
     cgx: &'a CgContext<'a, 'tcx>,
     out_of_scope: FxIndexMap<Location, Vec<BorrowIndex>>,
     flow_borrows: RefCell<ResultsCursor<'a, 'tcx, Borrows<'a, 'tcx>>>,
+    top_crates: bool,
 }
 
 impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
-    pub(crate) fn new(cgx: &'a CgContext<'a, 'tcx>) -> Self {
+    pub(crate) fn new(cgx: &'a CgContext<'a, 'tcx>, top_crates: bool) -> Self {
         if cfg!(debug_assertions) {
             std::fs::remove_dir_all("log/coupling").ok();
             std::fs::create_dir_all("log/coupling/individual").unwrap();
@@ -89,6 +90,7 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
             cgx,
             out_of_scope,
             flow_borrows: RefCell::new(flow_borrows),
+            top_crates
         }
     }
 }
@@ -98,7 +100,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CoupligGraph<'a, 'tcx> {
     const NAME: &'static str = "coupling_graph";
 
     fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-        Cg::new(self.cgx)
+        Cg::new(self.cgx, self.top_crates)
     }
 
     fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
@@ -112,7 +114,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CoupligGraph<'a, 'tcx> {
         //     }
         // }
 
-        if false {
+        if !self.top_crates {
             println!("body: {body:#?}");
             println!("\ninput_facts: {:?}", self.cgx.facts.input_facts);
             println!("output_facts: {:#?}\n", self.cgx.facts.output_facts);

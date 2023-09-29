@@ -133,6 +133,7 @@ lazy_static::lazy_static! {
         // TODO: remove this option
         settings.set_default("test_free_pcs", false).unwrap();
         settings.set_default("test_coupling_graph", false).unwrap();
+        settings.set_default("top_crates", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -1041,4 +1042,8 @@ pub fn test_free_pcs() -> bool {
 
 pub fn test_coupling_graph() -> bool {
     read_setting("test_coupling_graph")
+}
+
+pub fn top_crates() -> bool {
+    read_setting("top_crates")
 }

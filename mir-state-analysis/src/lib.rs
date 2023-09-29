@@ -42,6 +42,7 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     facts: &'mir BorrowckFacts,
     facts2: &'mir BorrowckFacts2<'tcx>,
     tcx: TyCtxt<'tcx>,
+    top_crates: bool,
 ) {
     // if tcx.item_name(mir.source.def_id()).as_str().starts_with("main") {
     //     return;
@@ -50,18 +51,18 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     //     return;
     // }
     let cgx = coupling_graph::CgContext::new(tcx, mir, facts, facts2);
-    let fpcs = coupling_graph::engine::CoupligGraph::new(&cgx);
+    let fpcs = coupling_graph::engine::CoupligGraph::new(&cgx, top_crates);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("coupling_graph")
         .iterate_to_fixpoint();
     let c = analysis.into_results_cursor(mir);
-    if cfg!(debug_assertions) {
+    if cfg!(debug_assertions) && !top_crates {
         coupling_graph::engine::draw_dots(c);
     }
 }
 
-pub fn test_coupling_graph<'tcx>(mir: &Body<'tcx>, facts: &BorrowckFacts, facts2: &BorrowckFacts2<'tcx>, tcx: TyCtxt<'tcx>) {
-    let analysis = run_coupling_graph(mir, facts, facts2, tcx);
+pub fn test_coupling_graph<'tcx>(mir: &Body<'tcx>, facts: &BorrowckFacts, facts2: &BorrowckFacts2<'tcx>, tcx: TyCtxt<'tcx>, top_crates: bool) {
+    let analysis = run_coupling_graph(mir, facts, facts2, tcx, top_crates);
     // free_pcs::check(analysis);
 }
