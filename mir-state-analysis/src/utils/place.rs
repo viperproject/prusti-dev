@@ -227,6 +227,10 @@ impl<'tcx> Place<'tcx> {
             .last_projection()
             .map(|(place, proj)| (place.into(), proj))
     }
+
+    pub fn projects_exactly_one_deref(self) -> bool {
+        self.projection.len() == 1 && matches!(self.projection[0], ProjectionElem::Deref)
+    }
 }
 
 impl Debug for Place<'_> {
