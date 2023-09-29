@@ -145,7 +145,6 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
 
             // println!("killed: {r:?} {killed:?} {l:?}");
             if oos.map(|oos| oos.contains(&bi)).unwrap_or_default() {
-                self.output_to_dot("log/coupling/kill.dot");
                 self.graph.kill_borrow(data);
             } else {
                 self.graph.remove(data.region, location);
@@ -163,8 +162,9 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
 
         if let Some(oos) = oos {
             for &bi in oos {
-                // What is the difference between the two (oos)?
-                assert!(delta.cleared.contains(bi), "Cleared borrow not in out of scope: {:?} vs {:?} (@ {location:?})", delta.cleared, oos);
+                // What is the difference between the two (oos)? It's that `delta.cleared` may kill it earlier than `oos`
+                // imo we want to completely disregard `oos`. (TODO)
+                // assert!(delta.cleared.contains(bi), "Cleared borrow not in out of scope: {:?} vs {:?} (@ {location:?})", delta.cleared, oos);
                 if delta.cleared.contains(bi) {
                     continue;
                 }
@@ -291,6 +291,7 @@ impl<'tcx> Visitor<'tcx> for Cg<'_, 'tcx> {
     fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location:Location) {
         match rvalue {
             Rvalue::Use(Operand::Constant(_)) => {
+                // TODO: this is a hack, find a better way to do things
                 for c in self.cgx.get_constraints_for_loc(Some(location)) {
                     self.graph.outlives_static(c.sub, location);
                 }
@@ -342,7 +343,7 @@ impl<'tcx> Cg<'_, 'tcx> {
                 // println!("Found proof: {proof:?}");
                 if proof.is_none() {
                     self.output_to_dot("log/coupling/error.dot");
-                    panic!("Found a region which does not outlive the function region: {node:?} ({universal_region:?})");
+                    panic!("Found a region which does not outlive the function region: {r:?} {node:?} ({universal_region:?})");
                 }
             }
         }

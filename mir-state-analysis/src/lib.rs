@@ -47,7 +47,7 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     // if tcx.item_name(mir.source.def_id()).as_str().starts_with("main") {
     //     return;
     // }
-    // if tcx.item_name(mir.source.def_id()).as_str() != "debug" {
+    // if !format!("{:?}", mir.source.def_id()).contains("fmt") {
     //     return;
     // }
     let cgx = coupling_graph::CgContext::new(tcx, mir, facts, facts2);
