@@ -358,10 +358,12 @@ impl<'tcx> Place<'tcx> {
         let mut projects_shared_ref = false;
         self.projects_ty(
             |typ| {
-                projects_shared_ref = projects_shared_ref || typ.ty
-                    .ref_mutability()
-                    .map(|m| m.is_not())
-                    .unwrap_or_default();
+                projects_shared_ref = projects_shared_ref
+                    || typ
+                        .ty
+                        .ref_mutability()
+                        .map(|m| m.is_not())
+                        .unwrap_or_default();
                 projects_shared_ref = projects_shared_ref && !typ.ty.is_unsafe_ptr();
                 false
             },
