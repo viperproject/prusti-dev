@@ -47,6 +47,9 @@ impl<'tcx> Graph<'tcx> {
         self.outlives_inner(c.sup, c.sub, edge)
     }
     pub fn outlives_static(&mut self, r: RegionVid, l: Location) {
+        if r == Self::static_region() {
+            return;
+        }
         let edge = EdgeInfo { creation: Some(l.block), reason: ConstraintCategory::Internal };
         self.outlives_inner(r, Self::static_region(), edge);
     }
