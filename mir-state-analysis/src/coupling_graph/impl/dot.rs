@@ -16,125 +16,97 @@ use prusti_rustc_interface::{
 
 use crate::utils::Place;
 
-use super::{cg::{NodeId, Edge, Graph, Regions, EdgeInfo}, region_place::Perms};
+use super::{cg::{Graph, EdgeInfo}, region_place::Perms};
 
-impl<'a, 'tcx> Graph<'a, 'tcx> {
-    fn get_id(&self) -> &str {
-        self.id.as_deref().unwrap_or("unnamed")
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Edge<'tcx> {
+    pub from: RegionVid,
+    pub to: RegionVid,
+    pub reasons: FxHashSet<EdgeInfo<'tcx>>,
+}
+
+impl<'tcx> Edge<'tcx> {
+    pub(crate) fn new(from: RegionVid, to: RegionVid, reasons: FxHashSet<EdgeInfo<'tcx>>) -> Self {
+        Self { from, to, reasons }
     }
 }
-impl<'a, 'tcx> Regions<'a, 'tcx> {
-    pub(crate) fn is_empty_node(&self, n: NodeId) -> bool {
-        self.get_corresponding_places(n).is_none()
+
+impl<'a, 'tcx> Graph<'a, 'tcx> {
+    fn get_id(&self) -> String {
+        if let Some(id) = &self.id {
+            id.replace('[', "_").replace(']', "")
+        } else {
+            "unnamed".to_string()
+        }
     }
-    // fn get_corresponding_places<'s>(&'s self, n: NodeId) -> impl Iterator<Item = &Perms<'tcx>> + 's {
-    //     let node = self.graph.get_node(n);
-    //     node.regions.iter().map(|r| &self.graph.cgx.region_map[r])
+}
+impl<'a, 'tcx> Graph<'a, 'tcx> {
+    // pub(crate) fn is_empty_node(&self, n: NodeId) -> bool {
+    //     self.get_corresponding_places(n).is_none()
     // }
-    fn get_corresponding_places(&self, n: NodeId) -> Option<&Perms<'tcx>> {
-        let node = self.graph.get_node(n);
-        // assert!(node.regions.len() == 1);
-        // self.graph.cgx.region_map.get(node.regions.iter().next().unwrap())
-        self.graph.cgx.region_map.get(&node.region)
+    // fn get_corresponding_places(&self, n: NodeId) -> Option<&Perms<'tcx>> {
+    //     let node = self.get_node(n);
+    //     self.cgx.region_map.get(&node.region)
+    // }
+    /// For regions created by `... = &'r ...`, find the kind of borrow.
+    pub(crate) fn borrow_kind(&self, r: RegionVid) -> Option<BorrowKind> {
+        // TODO: we could put this into a `FxHashMap<RegionVid, BorrowData>` in `cgx`.
+        self.facts2.borrow_set.location_map.iter()
+            .chain(&self.cgx.sbs.location_map)
+            .find(|(_, data)| data.region == r)
+            .map(|(_, data)| data.kind)
     }
-    pub(crate) fn is_borrow_only(&self, n: NodeId) -> Option<BorrowKind> {
-        let node = self.graph.get_node(n);
-        let input_facts = self.graph.facts.input_facts.borrow();
-        for &(_, r) in &input_facts.as_ref().unwrap().use_of_var_derefs_origin {
-            if node.region == r {
-                return None;
-            }
-        }
-        let mut is_borrow = None;
-        for (_, data) in &self.graph.facts2.borrow_set.location_map {
-            if node.region == data.region {
-                if is_borrow.is_some() {
-                    return None;
-                }
-                is_borrow = Some(data.kind);
-            }
-        }
-        for (_, data) in &self.graph.cgx.sbs.location_map {
-            if node.region == data.region {
-                if is_borrow.is_some() {
-                    return None;
-                }
-                is_borrow = Some(data.kind);
-            }
-        }
-        is_borrow
-    }
-    fn non_empty_edges(&self, n: NodeId, start: NodeId, reasons: FxHashSet<EdgeInfo<'tcx>>) -> Vec<Edge<'tcx>> {
-        if !(self.graph.skip_empty_nodes && self.is_empty_node(n)) {
-            return vec![Edge::new(start, n, reasons)];
-        }
+    fn non_empty_edges(&self, r: RegionVid, start: RegionVid, reasons: FxHashSet<EdgeInfo<'tcx>>, visited: &mut FxHashSet<RegionVid>) -> Vec<Edge<'tcx>> {
         let mut edges = Vec::new();
-        let node = self.graph.get_node(n);
-        for (&b, edge) in &node.blocks {
+        if !visited.insert(r) {
+            return edges;
+        }
+        if !self.skip_empty_nodes || self.has_associated_place(r) {
+            return vec![Edge::new(start, r, reasons)];
+        }
+        for (&b, edge) in &self.nodes[r].blocks {
             let mut reasons = reasons.clone();
             reasons.extend(edge);
-            edges.extend(self.non_empty_edges(b, start, reasons));
+            edges.extend(self.non_empty_edges(b, start, reasons, visited));
         }
+        visited.remove(&r);
         edges
     }
 }
 
-impl<'a, 'b, 'tcx> dot::Labeller<'a, NodeId, Edge<'tcx>> for Regions<'b, 'tcx> {
-    fn graph_id(&'a self) -> dot::Id<'a> { dot::Id::new(self.graph.get_id()).unwrap() }
+impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Graph<'b, 'tcx> {
+    fn graph_id(&'a self) -> dot::Id<'a> { dot::Id::new(self.get_id()).unwrap() }
 
-    fn node_id(&'a self, n: &NodeId) -> dot::Id<'a> {
-        dot::Id::new(format!("N_{n:?}_{}", self.graph.get_id())).unwrap()
+    fn node_id(&'a self, r: &RegionVid) -> dot::Id<'a> {
+        let r = format!("{r:?}").replace("'?", "N");
+        let id = format!("{r}_{}", self.get_id());
+        dot::Id::new(id).unwrap()
     }
 
-    fn edge_end_arrow(&'a self, e: &Edge) -> dot::Arrow {
-        if self.is_borrow_only(e.from).is_some() {
-            dot::Arrow::from_arrow(dot::ArrowShape::Dot(dot::Fill::Filled))
-        } else {
-            dot::Arrow::default()
-        }
-    }
+    // fn edge_end_arrow(&'a self, e: &Edge) -> dot::Arrow {
+    //     if self.borrow_kind(e.from).is_some() {
+    //         dot::Arrow::from_arrow(dot::ArrowShape::Dot(dot::Fill::Filled))
+    //     } else {
+    //         dot::Arrow::default()
+    //     }
+    // }
     fn edge_style(&'a self, e: &Edge<'tcx>) -> dot::Style {
-        if self.is_borrow_only(e.from).is_some() {
-            dot::Style::Dashed
+        if self.borrow_kind(e.from).is_some() {
+            dot::Style::Dotted
         } else {
             dot::Style::Solid
         }
     }
     fn edge_label(&'a self, e: &Edge<'tcx>) -> dot::LabelText<'a> {
-        if e.to == usize::MAX {
-            return dot::LabelText::LabelStr(Cow::Borrowed("static"));
-        }
-        let mut label = e.reasons.iter().map(|r| {
-            let reason = match r.reason {
-                ConstraintCategory::Return(_) => "return",
-                ConstraintCategory::Yield => "yield",
-                ConstraintCategory::UseAsConst => "const",
-                ConstraintCategory::UseAsStatic => "static",
-                ConstraintCategory::TypeAnnotation => "type",
-                ConstraintCategory::Cast => "cast",
-                ConstraintCategory::ClosureBounds => "closure",
-                ConstraintCategory::CallArgument(_) => "arg",
-                ConstraintCategory::CopyBound => "copy",
-                ConstraintCategory::SizedBound => "sized",
-                ConstraintCategory::Assignment => "assign",
-                ConstraintCategory::Usage => "use",
-                ConstraintCategory::OpaqueType => "opaque",
-                ConstraintCategory::ClosureUpvar(_) => "upvar",
-                ConstraintCategory::Predicate(_) => "pred",
-                ConstraintCategory::Boring => "boring",
-                ConstraintCategory::BoringNoLocation => "boring_nl",
-                ConstraintCategory::Internal => "internal",
-            };
-            format!("{:?} ({reason})", r.creation)
-        }).map(|s| format!("{s}\n")).collect::<String>();
+        let mut label = e.reasons.iter().map(|s| format!("{s}\n")).collect::<String>();
         label = label[..label.len() - 1].to_string();
         dot::LabelText::LabelStr(Cow::Owned(label))
     }
-    fn node_shape(&'a self, n: &NodeId) -> Option<dot::LabelText<'a>> {
-        if *n == usize::MAX {
+    fn node_shape(&'a self, r: &RegionVid) -> Option<dot::LabelText<'a>> {
+        if self.static_regions.contains(&r) {
             return Some(dot::LabelText::LabelStr(Cow::Borrowed("house")));
         }
-        self.is_borrow_only(*n).map(|kind| match kind {
+        self.borrow_kind(*r).map(|kind| match kind {
             BorrowKind::Shared =>
                 dot::LabelText::LabelStr(Cow::Borrowed("box")),
             BorrowKind::Shallow =>
@@ -143,56 +115,54 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, NodeId, Edge<'tcx>> for Regions<'b, 'tcx> {
                 dot::LabelText::LabelStr(Cow::Borrowed("ellipse")),
         })
     }
-    fn node_label(&'a self, n: &NodeId) -> dot::LabelText<'a> {
-        if *n == usize::MAX {
-            let regions = &self.graph.static_regions;
-            let places: Vec<_> = regions.iter().flat_map(|r| self.graph.cgx.region_map.get(r)).collect();
-            return dot::LabelText::LabelStr(Cow::Owned(format!("'static\n{regions:?}\n{places:?}")));
+    fn node_label(&'a self, r: &RegionVid) -> dot::LabelText<'a> {
+        if *r == RegionVid::MAX {
+            // return dot::LabelText::LabelStr(Cow::Owned());
+            unimplemented!();
         }
-        let contained_by = self.get_corresponding_places(*n);
-        let contained_by = contained_by.map(|c| format!("{c:?}")).unwrap_or_else(|| "???".to_string());
-        // let process_place = |p: Place<'tcx>| p;
-        // let contained_by = contained_by.collect::<Vec<_>>();
-        let node = self.graph.get_node(*n);
-        // assert!(node.regions.len() == 1);
-        let label = format!("{:?}\n{contained_by}", node.region);
+        let mut label = format!("{r:?}");
+        if let Some(place) = self.get_associated_place(*r) {
+            label += &format!("\n{place:?}");
+        } else {
+            label += "\n???";
+        }
+        if let Some(region_info) = self.facts2.region_inference_context.var_infos.get(*r) {
+            label += &format!("\n{:?}, {:?}", region_info.origin, region_info.universe);
+        }
         dot::LabelText::LabelStr(Cow::Owned(label))
     }
 }
 
-impl<'a, 'b, 'tcx> dot::GraphWalk<'a, NodeId, Edge<'tcx>> for Regions<'b, 'tcx> {
-    fn nodes(&self) -> dot::Nodes<'a, NodeId> {
-        let mut nodes: Vec<_> = self.graph.nodes
-            .iter()
-            .enumerate()
-            .filter_map(|(idx, n)| n.as_ref().map(|_| idx))
-            .filter(|&idx| !self.graph.skip_empty_nodes || !self.is_empty_node(idx))
+impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Graph<'b, 'tcx> {
+    fn nodes(&self) -> dot::Nodes<'a, RegionVid> {
+        let mut nodes: Vec<_> = self.all_nodes()
+            .filter(|(r, _)| !self.skip_empty_nodes || self.has_associated_place(*r))
+            .map(|(r, _)| r)
             .collect();
-        if self.graph.static_regions.len() > 1 {
-            nodes.push(usize::MAX);
-        }
+        // if self.static_regions.len() > 1 {
+        //     nodes.push(usize::MAX);
+        // }
         Cow::Owned(nodes)
     }
 
     fn edges(&'a self) -> dot::Edges<'a, Edge<'tcx>> {
         let mut edges = Vec::new();
-        for (c, n) in self.graph.nodes.iter().enumerate() {
-            if let Some(n) = n {
-                if self.graph.skip_empty_nodes && self.is_empty_node(c) {
-                    continue;
-                }
-                if n.borrows_from_static {
-                    edges.push(Edge::new(c, usize::MAX, FxHashSet::default()));
-                }
-                for (&b, edge) in &n.blocks {
-                    edges.extend(self.non_empty_edges(b, c, edge.clone()));
-                }
+        for (r, n) in self.all_nodes() {
+            if self.skip_empty_nodes && !self.has_associated_place(r) {
+                continue;
+            }
+            // if n.borrows_from_static {
+            //     edges.push(Edge::new(c, usize::MAX, FxHashSet::default()));
+            // }
+            let visited = &mut FxHashSet::from_iter([r]);
+            for (&b, edge) in &n.blocks {
+                edges.extend(self.non_empty_edges(b, r, edge.clone(), visited));
             }
         }
         Cow::Owned(edges)
     }
 
-    fn source(&self, e: &Edge<'tcx>) -> NodeId { e.from }
+    fn source(&self, e: &Edge<'tcx>) -> RegionVid { e.from }
 
-    fn target(&self, e: &Edge<'tcx>) -> NodeId { e.to }
+    fn target(&self, e: &Edge<'tcx>) -> RegionVid { e.to }
 }
