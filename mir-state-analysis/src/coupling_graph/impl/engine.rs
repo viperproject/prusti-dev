@@ -8,25 +8,37 @@ use std::cell::RefCell;
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
-    data_structures::fx::{FxIndexMap, FxHashSet},
     borrowck::{
         borrow_set::{BorrowData, TwoPhaseActivation},
-        consumers::{Borrows, BorrowIndex, RichLocation, OutlivesConstraint, PlaceConflictBias, places_conflict, calculate_borrows_out_of_scope_at_location},
+        consumers::{
+            calculate_borrows_out_of_scope_at_location, places_conflict, BorrowIndex, Borrows,
+            OutlivesConstraint, PlaceConflictBias, RichLocation,
+        },
     },
+    data_structures::fx::{FxHashSet, FxIndexMap},
     dataflow::{Analysis, AnalysisDomain, ResultsCursor},
-    index::{bit_set::{BitSet, HybridBitSet}, Idx},
+    index::{
+        bit_set::{BitSet, HybridBitSet},
+        Idx,
+    },
     middle::{
         mir::{
-            TerminatorKind, Operand, ConstantKind, StatementKind, Rvalue,
-            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Place, Location, Statement, Terminator, TerminatorEdges, RETURN_PLACE,
+            visit::Visitor, BasicBlock, Body, CallReturnPlaces, ConstantKind, Local, Location,
+            Operand, Place, Rvalue, Statement, StatementKind, Terminator, TerminatorEdges,
+            TerminatorKind, RETURN_PLACE, START_BLOCK,
         },
         ty::{RegionVid, TyCtxt},
     },
 };
 
 use crate::{
+    coupling_graph::{
+        graph::{Graph, Node},
+        outlives_info::AssignsToPlace,
+        CgContext,
+    },
     free_pcs::{CapabilityKind, CapabilityLocal, Fpcs},
-    utils::PlaceRepacker, coupling_graph::{graph::{Graph, Node}, CgContext},
+    utils::PlaceRepacker,
 };
 
 use super::triple::Cg;
@@ -35,22 +47,32 @@ use super::triple::Cg;
 pub(crate) fn draw_dots<'tcx, 'a>(mut c: ResultsCursor<'_, 'tcx, CoupligGraph<'a, 'tcx>>) {
     let mut graph = Vec::new();
     let body = c.body();
+    c.seek_to_block_start(START_BLOCK);
+    let mut g = c.get().clone();
+    g.id = Some(format!("start"));
+    dot::render(&g, &mut graph).unwrap();
+
     for (block, data) in body.basic_blocks.iter_enumerated() {
         if data.is_cleanup {
             continue;
         }
         c.seek_to_block_start(block);
         let mut g = c.get().clone();
+        g.dot_filter = |k| k.is_local();
         g.id = Some(format!("{block:?}_pre"));
         dot::render(&g, &mut graph).unwrap();
-        for statement_index in 0..body.terminator_loc(block).statement_index+1 {
-            c.seek_after_primary_effect(Location { block, statement_index });
+        for statement_index in 0..body.terminator_loc(block).statement_index + 1 {
+            c.seek_after_primary_effect(Location {
+                block,
+                statement_index,
+            });
             g = c.get().clone();
+            g.dot_filter = |k| k.is_local();
             g.id = Some(format!("{block:?}_{statement_index}"));
             dot::render(&g, &mut graph).unwrap();
         }
         if let TerminatorKind::Return = data.terminator().kind {
-            g.skip_empty_nodes = true;
+            g.dot_filter = |k| !k.is_unknown_local();
             g.id = Some(format!("{block:?}_ret"));
             dot::render(&g, &mut graph).unwrap();
         }
@@ -60,7 +82,11 @@ pub(crate) fn draw_dots<'tcx, 'a>(mut c: ResultsCursor<'_, 'tcx, CoupligGraph<'a
     let regex = regex::Regex::new(r"digraph (([^ ])+) \{").unwrap();
     let combined = regex.replace_all(&combined, "subgraph cluster_$1 {\n    label = \"$1\"");
 
-    std::fs::write("log/coupling/all.dot", format!("digraph root {{\n{combined}}}")).expect("Unable to write file");
+    std::fs::write(
+        "log/coupling/all.dot",
+        format!("digraph root {{\n{combined}}}"),
+    )
+    .expect("Unable to write file");
 }
 
 pub(crate) struct CoupligGraph<'a, 'tcx> {
@@ -79,18 +105,45 @@ impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
 
         let borrow_set = &cgx.facts2.borrow_set;
         let regioncx = &*cgx.facts2.region_inference_context;
-        let out_of_scope = calculate_borrows_out_of_scope_at_location(cgx.rp.body(), regioncx, borrow_set);
+        let out_of_scope =
+            calculate_borrows_out_of_scope_at_location(cgx.rp.body(), regioncx, borrow_set);
         let flow_borrows = Borrows::new(cgx.rp.tcx(), cgx.rp.body(), regioncx, borrow_set)
             .into_engine(cgx.rp.tcx(), cgx.rp.body())
             .pass_name("borrowck")
             .iterate_to_fixpoint()
             .into_results_cursor(cgx.rp.body());
 
+        if !top_crates {
+            println!("body: {:#?}", cgx.rp.body());
+            println!("\ninput_facts: {:?}", cgx.facts.input_facts);
+            println!("output_facts: {:#?}\n", cgx.facts.output_facts);
+            println!("location_map: {:#?}\n", cgx.facts2.borrow_set.location_map);
+            println!(
+                "activation_map: {:#?}\n",
+                cgx.facts2.borrow_set.activation_map
+            );
+            println!("local_map: {:#?}\n", cgx.facts2.borrow_set.local_map);
+            // println!("locals_state_at_exit: {:#?}\n", facts2.borrow_set.locals_state_at_exit);
+            let lt = cgx.facts.location_table.borrow();
+            let lt = lt.as_ref().unwrap();
+            for pt in lt.all_points() {
+                println!("{pt:?} -> {:?} ({:?})", lt.to_location(pt), ""); //, facts.output_facts.origins_live_at(pt));
+            }
+            println!("out_of_scope: {:?}", out_of_scope);
+            println!("cgx: {:#?}\n", cgx);
+            for r in cgx.region_info.map.all_regions() {
+                println!(
+                    "R: {r:?}: {:?}",
+                    cgx.facts2.region_inference_context.var_infos.get(r)
+                );
+            }
+        }
+
         Self {
             cgx,
             out_of_scope,
             flow_borrows: RefCell::new(flow_borrows),
-            top_crates
+            top_crates,
         }
     }
 }
@@ -104,33 +157,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CoupligGraph<'a, 'tcx> {
     }
 
     fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
-        // // Sanity check (already done when creating region to place map)
-        // if cfg!(debug_assertions) {
-        //     let input_facts = self.facts.input_facts.borrow();
-        //     let use_of_var_derefs_origin = &input_facts.as_ref().unwrap().use_of_var_derefs_origin;
-        //     // Each region should only have a single associated local
-        //     for (_, r) in use_of_var_derefs_origin {
-        //         assert!(use_of_var_derefs_origin.iter().filter(|(_, ro)| r == ro).count() <= 1, "{use_of_var_derefs_origin:?}");
-        //     }
-        // }
-
-        if !self.top_crates {
-            println!("body: {body:#?}");
-            println!("\ninput_facts: {:?}", self.cgx.facts.input_facts);
-            println!("output_facts: {:#?}\n", self.cgx.facts.output_facts);
-            println!("location_map: {:#?}\n", self.cgx.facts2.borrow_set.location_map);
-            println!("activation_map: {:#?}\n", self.cgx.facts2.borrow_set.activation_map);
-            println!("local_map: {:#?}\n", self.cgx.facts2.borrow_set.local_map);
-            println!("region_inference_context: {:#?}\n", self.cgx.facts2.region_inference_context.outlives_constraints().collect::<Vec<_>>());
-            // println!("locals_state_at_exit: {:#?}\n", self.facts2.borrow_set.locals_state_at_exit);
-            let lt = self.cgx.facts.location_table.borrow();
-            let lt = lt.as_ref().unwrap();
-            for pt in lt.all_points() {
-                println!("{pt:?} -> {:?} ({:?})", lt.to_location(pt), ""); //, self.facts.output_facts.origins_live_at(pt));
-            }
-            println!("out_of_scope: {:?}", self.out_of_scope);
-            println!("region_map: {:#?}\n", self.cgx.region_map);
-        }
+        state.initialize_start_block()
     }
 }
 
@@ -151,24 +178,36 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
             assert!(state.version < 10);
 
             // println!("\nblock: {:?}", location.block);
-            if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup {
-                state.output_to_dot(format!("log/coupling/individual/{l}_v{}_start.dot", state.version));
+            if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup
+            {
+                state.output_to_dot(
+                    format!("log/coupling/individual/{l}_v{}_start.dot", state.version),
+                    false,
+                );
             }
-            self.flow_borrows.borrow_mut().seek_to_block_start(location.block);
+            self.flow_borrows
+                .borrow_mut()
+                .seek_to_block_start(location.block);
             state.live = self.flow_borrows.borrow().get().clone();
         }
-        self.flow_borrows.borrow_mut().seek_after_primary_effect(location);
+        self.flow_borrows
+            .borrow_mut()
+            .seek_after_primary_effect(location);
         let other = self.flow_borrows.borrow().get().clone();
         let delta = calculate_diff(&other, &state.live);
 
         let oos = self.out_of_scope.get(&location);
         state.handle_kills(&delta, oos, location);
+        state.handle_outlives(location, statement.kind.assigns_to());
         state.visit_statement(statement, location);
-        state.handle_outlives(&delta, location);
+
         state.live = other;
 
         if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup {
-            state.output_to_dot(format!("log/coupling/individual/{l}_v{}.dot", state.version));
+            state.output_to_dot(
+                format!("log/coupling/individual/{l}_v{}.dot", state.version),
+                false,
+            );
         }
     }
 
@@ -188,24 +227,68 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
             assert!(state.version < 10);
 
             // println!("\nblock: {:?}", location.block);
-            if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup {
-                state.output_to_dot(format!("log/coupling/individual/{l}_v{}_start.dot", state.version));
+            if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup
+            {
+                state.output_to_dot(
+                    format!("log/coupling/individual/{l}_v{}_start.dot", state.version),
+                    false,
+                );
             }
-            self.flow_borrows.borrow_mut().seek_to_block_start(location.block);
+            self.flow_borrows
+                .borrow_mut()
+                .seek_to_block_start(location.block);
             state.live = self.flow_borrows.borrow().get().clone();
         }
-        self.flow_borrows.borrow_mut().seek_after_primary_effect(location);
+        self.flow_borrows
+            .borrow_mut()
+            .seek_after_primary_effect(location);
         let other = self.flow_borrows.borrow().get().clone();
 
         let delta = calculate_diff(&other, &state.live);
         let oos = self.out_of_scope.get(&location);
         state.handle_kills(&delta, oos, location);
+        state.handle_outlives(location, terminator.kind.assigns_to());
         state.visit_terminator(terminator, location);
-        state.handle_outlives(&delta, location);
+
+        match &terminator.kind {
+            TerminatorKind::Return => {
+                if cfg!(debug_assertions)
+                    && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup
+                {
+                    let l = format!("{location:?}").replace('[', "_").replace(']', "");
+                    state.output_to_dot(
+                        format!("log/coupling/individual/{l}_v{}_pre.dot", state.version),
+                        false,
+                    );
+                }
+                // Pretend we have a storage dead for all `always_live_locals` other than the args/return
+                for l in self.cgx.rp.always_live_locals_non_args().iter() {
+                    state.kill_shared_borrows_on_place(location, l.into());
+                }
+                // Kill all the intermediate borrows, i.e. turn `return -> x.0 -> x` into `return -> x`
+                for r in self
+                    .cgx
+                    .facts2
+                    .borrow_set
+                    .location_map
+                    .values()
+                    .chain(self.cgx.sbs.location_map.values())
+                {
+                    state.graph.remove(r.region, Some(location));
+                }
+
+                state.merge_for_return(location);
+            }
+            _ => (),
+        };
+
         state.live = other;
 
         if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup {
-            state.output_to_dot(format!("log/coupling/individual/{l}_v{}.dot", state.version));
+            state.output_to_dot(
+                format!("log/coupling/individual/{l}_v{}.dot", state.version),
+                false,
+            );
         }
         terminator.edges()
     }

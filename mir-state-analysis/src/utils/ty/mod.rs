@@ -14,10 +14,9 @@ use prusti_rustc_interface::{
     index::bit_set::BitSet,
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
-            ProjectionElem,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, ProjectionElem,
         },
-        ty::{Ty, TyKind, TyCtxt},
+        ty::{Ty, TyCtxt, TyKind},
     },
 };
 
@@ -44,15 +43,17 @@ pub trait DeepTypeVisitable<'tcx> {
 
 impl<'tcx> DeepTypeVisitable<'tcx> for Ty<'tcx> {
     fn visit_with(&self, visitor: &mut impl DeepTypeVisitor<'tcx>, stack: &mut Stack<'tcx>) {
-        if stack.0.contains(self) { return; }
+        if stack.0.contains(self) {
+            return;
+        }
         stack.0.push(*self);
         match self.kind() {
-            TyKind::Bool |
-            TyKind::Char |
-            TyKind::Int(_) |
-            TyKind::Uint(_) |
-            TyKind::Float(_) |
-            TyKind::Str => (),
+            TyKind::Bool
+            | TyKind::Char
+            | TyKind::Int(_)
+            | TyKind::Uint(_)
+            | TyKind::Float(_)
+            | TyKind::Str => (),
             TyKind::Adt(def_id, substs) => {
                 for field in def_id.all_fields() {
                     let ty = field.ty(visitor.tcx(), substs);

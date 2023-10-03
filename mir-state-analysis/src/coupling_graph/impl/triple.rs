@@ -4,27 +4,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{fmt::{Debug, Formatter, Result, Display}, borrow::Cow};
+use std::{
+    borrow::Cow,
+    fmt::{Debug, Display, Formatter, Result},
+};
 
 use derive_more::{Deref, DerefMut};
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
+    borrowck::{
+        borrow_set::BorrowData,
+        consumers::{BorrowIndex, OutlivesConstraint, RichLocation},
+    },
     data_structures::fx::{FxHashMap, FxHashSet, FxIndexMap, FxIndexSet},
-    index::bit_set::BitSet,
-    dataflow::fmt::DebugWithContext, index::IndexVec, middle::mir::Local,
-    borrowck::{borrow_set::BorrowData, consumers::{BorrowIndex, RichLocation, OutlivesConstraint}},
-    middle::{mir::{BasicBlock, ConstraintCategory, Place as MirPlace, Rvalue, Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE, Location, Operand, visit::Visitor}, ty::{RegionVid, TyKind}},
+    dataflow::fmt::DebugWithContext,
+    index::{bit_set::BitSet, IndexVec},
+    middle::{
+        mir::{
+            visit::Visitor, BasicBlock, ConstraintCategory, Local, Location, Operand,
+            Place as MirPlace, Rvalue, Statement, StatementKind, Terminator, TerminatorKind,
+            RETURN_PLACE,
+        },
+        ty::{RegionVid, TyKind},
+    },
 };
 
 use crate::{
+    coupling_graph::{region_info::map::RegionKind, region_place::PlaceRegion, CgContext},
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
-    utils::{PlaceRepacker, Place}, coupling_graph::{CgContext, region_place::Perms},
+    utils::{Place, PlaceRepacker},
 };
 
-use super::{engine::{CoupligGraph, BorrowDelta}, graph::{Graph, Node}};
-
+use super::{
+    engine::{BorrowDelta, CoupligGraph},
+    graph::{Graph, Node},
+};
 
 #[derive(Clone)]
 pub struct Cg<'a, 'tcx> {
@@ -33,7 +49,7 @@ pub struct Cg<'a, 'tcx> {
 
     pub(crate) live: BitSet<BorrowIndex>,
     pub version: usize,
-    pub skip_empty_nodes: bool,
+    pub dot_filter: fn(&RegionKind<'_>) -> bool,
     pub top_crates: bool,
 
     pub graph: Graph<'tcx>,
@@ -67,78 +83,72 @@ impl<'a, 'tcx> DebugWithContext<CoupligGraph<'a, 'tcx>> for Cg<'a, 'tcx> {
 }
 
 impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
+    pub fn static_region(&self) -> RegionVid {
+        self.cgx.region_info.static_region
+    }
+    pub fn function_region(&self) -> RegionVid {
+        self.cgx.region_info.function_region
+    }
+
     pub fn new(cgx: &'a CgContext<'a, 'tcx>, top_crates: bool) -> Self {
         let graph = Graph {
-            nodes: IndexVec::from_elem_n(Node::new(), cgx.facts2.region_inference_context.var_infos.len()),
-            static_regions: FxHashSet::from_iter([Graph::static_region()]),
+            nodes: IndexVec::from_elem_n(Node::new(), cgx.region_info.map.region_len()),
+            static_regions: FxHashSet::from_iter([cgx.region_info.static_region]),
         };
+
         let live = BitSet::new_empty(cgx.facts2.borrow_set.location_map.len());
-        let mut result = Self {
+        Self {
             id: None,
             cgx,
             live,
             version: 0,
-            skip_empty_nodes: false,
+            dot_filter: |_| true,
             top_crates,
             graph,
-        };
-        // let input_facts = facts.input_facts.borrow();
-        // for &(r1, r2) in &input_facts.as_ref().unwrap().known_placeholder_subset {
-        //     result.outlives(r1, r2);
-        // }
-
-        ////// Ignore all global outlives constraints for now to have a nice graph (i.e. result is not in the same node as args)
-        let input_facts = cgx.facts.input_facts.borrow();
-        let input_facts = input_facts.as_ref().unwrap();
-        let constraints: Vec<_> = cgx.facts2.region_inference_context.outlives_constraints().collect();
-        let constraints_no_loc: Vec<_> = constraints.iter().filter(|c| c.locations.from_location().is_none()).copied().collect();
-
-        // Make one single `'static` node
-        // let n = result.region_to_node(Self::static_region());
-        // let node = result.get_node_mut(n);
-        // let mut to_make_static = vec![Self::static_region()];
-        // while let Some(r) = to_make_static.pop() {
-        //     for c in constraints.iter().filter(|c| c.sub == r) {
-        //         if node.regions.insert(c.sup) {
-        //             to_make_static.push(c.sup);
-        //         }
-        //     }
-        // }
-        // println!("Static node: {node:?}");
-        // let mut to_make_static = vec![Self::static_region()];
-        // while let Some(r) = to_make_static.pop() {
-        //     for &c in constraints_no_loc.iter().filter(|c| c.sub == r) {
-        //         if result.outlives(c) {
-        //             to_make_static.push(c.sup);
-        //         }
-        //     }
-        // }
-
-        result
+        }
     }
-    pub(crate) fn get_associated_place(&self, r: RegionVid) -> Option<&Perms<'tcx>> {
-        self.cgx.region_map.get(&r)
-    }
-    pub(crate) fn has_associated_place(&self, r: RegionVid) -> bool {
-        self.cgx.region_map.contains_key(&r)
+    pub fn initialize_start_block(&mut self) {
+        for c in &self.cgx.outlives_info.local_constraints {
+            self.graph.outlives(*c);
+        }
+        for c in &self.cgx.outlives_info.universal_local_constraints {
+            self.graph.outlives(*c);
+        }
+        for &(sup, sub) in &self.cgx.outlives_info.universal_constraints {
+            self.graph.outlives_placeholder(sup, sub);
+        }
     }
 
+    #[tracing::instrument(name = "get_associated_place", level = "trace", skip(self), ret)]
+    pub(crate) fn get_kind(&self, r: RegionVid) -> &RegionKind<'tcx> {
+        self.cgx.region_info.map.get(r)
+    }
+    #[tracing::instrument(name = "is_unknown_local", level = "trace", skip(self), ret)]
+    pub(crate) fn is_unknown_local(&self, r: RegionVid) -> bool {
+        self.get_kind(r).is_unknown_local()
+    }
 
     #[tracing::instrument(name = "handle_kills", level = "debug", skip(self))]
-    pub fn handle_kills(&mut self, delta: &BorrowDelta, oos: Option<&Vec<BorrowIndex>>, location: Location) {
+    pub fn handle_kills(
+        &mut self,
+        delta: &BorrowDelta,
+        oos: Option<&Vec<BorrowIndex>>,
+        location: Location,
+    ) {
         let input_facts = self.cgx.facts.input_facts.borrow();
         let input_facts = input_facts.as_ref().unwrap();
         let location_table = self.cgx.facts.location_table.borrow();
         let location_table = location_table.as_ref().unwrap();
 
-        // let input_facts = self.facts2.region_inference_context.borrow();
-
         for bi in delta.cleared.iter() {
             let data = &self.cgx.facts2.borrow_set[bi];
             // TODO: remove if the asserts below pass:
-            let (r, _, l) = input_facts.loan_issued_at.iter().find(
-                |(_, b, _)| bi == *b
-            ).copied().unwrap();
+            let (r, _, l) = input_facts
+                .loan_issued_at
+                .iter()
+                .find(|(_, b, _)| bi == *b)
+                .copied()
+                .unwrap();
             let l = rich_to_loc(location_table.to_location(l));
             assert_eq!(r, data.region);
             assert_eq!(l, data.reserve_location);
@@ -147,7 +157,7 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
             if oos.map(|oos| oos.contains(&bi)).unwrap_or_default() {
                 self.graph.kill_borrow(data);
             } else {
-                self.graph.remove(data.region, location);
+                self.graph.remove(data.region, Some(location));
             }
 
             // // TODO: is this necessary?
@@ -171,9 +181,12 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
 
                 let data = &self.cgx.facts2.borrow_set[bi];
                 // TODO: remove if the asserts below pass:
-                let (r, _, l) = input_facts.loan_issued_at.iter().find(
-                    |(_, b, _)| bi == *b
-                ).copied().unwrap();
+                let (r, _, l) = input_facts
+                    .loan_issued_at
+                    .iter()
+                    .find(|(_, b, _)| bi == *b)
+                    .copied()
+                    .unwrap();
                 let l = rich_to_loc(location_table.to_location(l));
                 assert_eq!(r, data.region);
                 assert_eq!(l, data.reserve_location);
@@ -192,20 +205,37 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
     }
 
     #[tracing::instrument(name = "handle_outlives", level = "debug", skip(self))]
-    pub fn handle_outlives(&mut self, delta: &BorrowDelta, location: Location) {
-        for c in self.cgx.get_constraints_for_loc(Some(location)) {
+    pub fn handle_outlives(&mut self, location: Location, assigns_to: Option<MirPlace<'tcx>>) {
+        let local = assigns_to.map(|a| a.local);
+        for &c in self
+            .cgx
+            .outlives_info
+            .pre_constraints(location, local, &self.cgx.region_info)
+        {
+            self.graph.outlives(c);
+        }
+        if let Some(place) = assigns_to {
+            self.kill_shared_borrows_on_place(location, place);
+        }
+        for &c in self
+            .cgx
+            .outlives_info
+            .post_constraints(location, local, &self.cgx.region_info)
+        {
             self.graph.outlives(c);
         }
     }
 
     #[tracing::instrument(name = "kill_shared_borrows_on_place", level = "debug", skip(self))]
-    fn kill_shared_borrows_on_place(&mut self, location: Location, place: MirPlace<'tcx>) {
+    pub fn kill_shared_borrows_on_place(&mut self, location: Location, place: MirPlace<'tcx>) {
         let Some(local) = place.as_local() else {
             // Only remove nodes if assigned to the entire local (this is what rustc allows too)
-            return
+            return;
         };
-        for (&region, _) in self.cgx.region_map.iter().filter(|(_, p)| p.place.local == local) {
-            self.graph.remove(region, location);
+        for region in self.cgx.region_info.map.all_regions() {
+            if self.cgx.region_info.map.for_local(region, local) {
+                self.graph.remove(region, Some(location));
+            }
         }
     }
 }
@@ -216,163 +246,92 @@ impl<'tcx> Visitor<'tcx> for Cg<'_, 'tcx> {
         match *operand {
             Operand::Copy(_) => (),
             Operand::Move(place) => {
-                // TODO: check that this is ok (maybe issue if we move out of ref typed arg)
-                // self.kill_shared_borrows_on_place(location, *place);
+                self.kill_shared_borrows_on_place(location, place);
             }
             Operand::Constant(..) => {
                 // TODO: anything here?
             }
         }
     }
-
-    fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
-        use StatementKind::*;
-        match &statement.kind {
-            Assign(box (place, _)) => {
-                self.kill_shared_borrows_on_place(location, *place);
-            }
-            &StorageDead(local) => {
-                self.kill_shared_borrows_on_place(location, local.into());
-            }
-            _ => (),
-        };
-        self.super_statement(statement, location);
-    }
-
-    fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-        self.super_terminator(terminator, location);
-        use TerminatorKind::*;
-        match &terminator.kind {
-            Goto { .. }
-            | SwitchInt { .. }
-            | UnwindResume
-            | UnwindTerminate(_)
-            | Unreachable
-            | Assert { .. }
-            | GeneratorDrop
-            | FalseEdge { .. }
-            | FalseUnwind { .. } => (),
-            Return => {
-                if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup {
-                    let l = format!("{location:?}").replace('[', "_").replace(']', "");
-                    self.output_to_dot(format!("log/coupling/individual/{l}_v{}_pre.dot", self.version));
-                }
-
-                // Pretend we have a storage dead for all `always_live_locals` other than the args/return
-                for l in self.cgx.rp.always_live_locals_non_args().iter() {
-                    self.kill_shared_borrows_on_place(location, l.into());
-                }
-                // Kill all the intermediate borrows, i.e. turn `return -> x.0 -> x` into `return -> x`
-                for r in self.cgx.facts2.borrow_set.location_map.values().chain(self.cgx.sbs.location_map.values()) {
-                    self.graph.remove(r.region, location);
-                }
-
-                let input_facts = self.cgx.facts.input_facts.borrow();
-                let input_facts = input_facts.as_ref().unwrap();
-                // TODO: use this
-                let known_placeholder_subset = &input_facts.known_placeholder_subset;
-                for c in self.cgx.get_constraints_for_loc(None).filter(|c| !self.cgx.ignore_outlives(*c)) {
-                    self.graph.outlives(c);
-                }
-                self.merge_for_return();
-            }
-            &Drop { place, .. } => {
-                
-            }
-            &Call { destination, .. } => {
-                
-            }
-            &Yield { resume_arg, .. } => {
-                
-            }
-            InlineAsm { .. } => todo!("{terminator:?}"),
-        };
-    }
-    fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location:Location) {
+    fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
         match rvalue {
             Rvalue::Use(Operand::Constant(_)) => {
                 // TODO: this is a hack, find a better way to do things
-                for c in self.cgx.get_constraints_for_loc(Some(location)) {
-                    self.graph.outlives_static(c.sub, location);
+                for c in
+                    self.cgx
+                        .outlives_info
+                        .pre_constraints(location, None, &self.cgx.region_info)
+                {
+                    self.graph
+                        .outlives_static(c.sub, self.static_region(), location);
                 }
             }
             _ => (),
         }
         self.super_rvalue(rvalue, location);
     }
+    fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
+        self.super_statement(statement, location);
+        match &statement.kind {
+            StatementKind::AscribeUserType(box (p, _), _) => {
+                for &c in self
+                    .cgx
+                    .outlives_info
+                    .type_ascription_constraints
+                    .iter()
+                    .filter(|c| {
+                        self.cgx.region_info.map.for_local(c.sup, p.local)
+                            || self.cgx.region_info.map.for_local(c.sub, p.local)
+                    })
+                {
+                    self.graph.outlives(c);
+                }
+            }
+            _ => (),
+        }
+    }
 }
 
 impl<'tcx> Cg<'_, 'tcx> {
     #[tracing::instrument(name = "Regions::merge_for_return", level = "trace")]
-    pub fn merge_for_return(&self) {
-        let outlives: Vec<_> = self.cgx.facts2.region_inference_context.outlives_constraints().filter(|c| c.locations.from_location().is_none()).collect();
-        let in_facts = self.cgx.facts.input_facts.borrow();
-        let universal_region = &in_facts.as_ref().unwrap().universal_region;
-
-        for (r, node) in self.graph.all_nodes() {
-            // Skip unknown empty nodes, we may want to figure out how to deal with them in the future
-            if !self.has_associated_place(r) {
-                continue;
-            }
-
-            if self.borrow_kind(r).is_some() {
-                self.output_to_dot("log/coupling/error.dot");
-                panic!("{node:?}");
-            } else {
-                // let r = *node.regions.iter().next().unwrap();
-                if universal_region.contains(&r) {
-                    continue;
+    pub fn merge_for_return(&mut self, location: Location) {
+        let regions: Vec<_> = self.graph.all_nodes().map(|(r, _)| r).collect();
+        for r in regions {
+            let kind = self.cgx.region_info.map.get(r);
+            match kind {
+                RegionKind::Static
+                | RegionKind::Param(_)
+                | RegionKind::UnknownUniversal
+                | RegionKind::Function => continue,
+                RegionKind::Place { local, .. } => {
+                    if local.index() > self.cgx.rp.body().arg_count {
+                        self.output_to_dot("log/coupling/error.dot", true);
+                        panic!("{r:?} ({location:?}) {:?}", self.graph.nodes[r]);
+                    }
                 }
-
-                let proof = outlives.iter().find(|c| {
-                    universal_region.contains(&c.sub) && c.sup == r
-                    // let r = c.sub.as_u32(); // The thing that lives shorter
-                    // r == 0 || r == 1 // `0` means that it's static, `1` means that it's the function region
-                });
-                // If None then we have something left which doesn't outlive the function region!
-                // if proof.is_none() {
-                //     let in_facts = self.facts.input_facts.borrow();
-                //     let r = &in_facts.as_ref().unwrap().universal_region;
-                //     let outlives: Vec<_> = self.facts2.region_inference_context.outlives_constraints().collect();
-                //     println!("Dumping graph to `log/coupling/error.dot`. Error: {outlives:?} (ur: {r:?})");
-                //     // std::fs::remove_dir_all("log/coupling").ok();
-                //     // std::fs::create_dir_all("log/coupling/individual").unwrap();
-                //     let mut f = std::fs::File::create("log/coupling/error.dot").unwrap();
-                //     dot::render(self, &mut f).unwrap();
-                // }
-                // println!("Found proof: {proof:?}");
-                if proof.is_none() {
-                    self.output_to_dot("log/coupling/error.dot");
-                    panic!("Found a region which does not outlive the function region: {r:?} {node:?} ({universal_region:?})");
+                RegionKind::Borrow(_) => {
+                    // Should not have borrows left
+                    self.output_to_dot("log/coupling/error.dot", true);
+                    panic!("{r:?} {:?}", self.graph.nodes[r]);
                 }
+                // Ignore (and thus delete) early/late bound (mostly fn call) regions
+                RegionKind::EarlyBound(..) => (),
+                RegionKind::LateBound { .. } => (),
+                RegionKind::Placeholder(..) => (),
+                RegionKind::MiscLocal => (),
+                // Skip unknown empty nodes, we may want to figure out how to deal with them in the future
+                RegionKind::UnknownLocal => (),
             }
-        }
-        for &r in &self.graph.static_regions {
-            if universal_region.contains(&r) {
-                continue;
-            }
-            // It's possible that we get some random unnamed regions in the static set
-            if !self.has_associated_place(r) {
-                continue;
-            }
-            let proof = outlives.iter().find(|c| {
-                universal_region.contains(&c.sub) && c.sup == r
-            });
-            if proof.is_none() {
-                self.output_to_dot("log/coupling/error.dot");
-                panic!("Found a region which does not outlive the function region: {r:?} ({universal_region:?})");
-            }
+            self.graph.remove(r, None);
         }
     }
-    pub fn output_to_dot<P: AsRef<std::path::Path>>(&self, path: P) {
-        if !self.top_crates {
+    pub fn output_to_dot<P: AsRef<std::path::Path>>(&self, path: P, error: bool) {
+        if !self.top_crates || error {
             let mut f = std::fs::File::create(path).unwrap();
             dot::render(self, &mut f).unwrap();
         }
     }
 }
-
-
 
 fn rich_to_loc(l: RichLocation) -> Location {
     match l {
@@ -380,4 +339,3 @@ fn rich_to_loc(l: RichLocation) -> Location {
         RichLocation::Mid(l) => l,
     }
 }
-

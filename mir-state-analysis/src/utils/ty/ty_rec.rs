@@ -10,14 +10,13 @@ use prusti_rustc_interface::{
     index::bit_set::BitSet,
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
-            ProjectionElem,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, ProjectionElem,
         },
-        ty::{Ty, TyKind, TyCtxt},
+        ty::{Ty, TyCtxt, TyKind},
     },
 };
 
-use crate::utils::ty::{DeepTypeVisitor, DeepTypeVisitable, Stack};
+use crate::utils::ty::{DeepTypeVisitable, DeepTypeVisitor, Stack};
 
 pub fn is_ty_rec<'tcx>(ty: Ty<'tcx>, tcx: TyCtxt<'tcx>) -> bool {
     struct RecTyWalk<'tcx>(TyCtxt<'tcx>, bool);

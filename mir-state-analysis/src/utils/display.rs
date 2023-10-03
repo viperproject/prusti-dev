@@ -4,7 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{borrow::Cow, collections::VecDeque, fmt::{Debug, Formatter, Result}};
+use std::{
+    borrow::Cow,
+    collections::VecDeque,
+    fmt::{Debug, Formatter, Result},
+};
 
 use prusti_rustc_interface::{
     middle::{
@@ -21,21 +25,21 @@ use super::{Place, PlaceRepacker};
 #[derive(Clone)]
 pub enum PlaceDisplay<'tcx> {
     Temporary(Place<'tcx>),
-    User(String),
+    User(Place<'tcx>, String),
 }
 
 impl<'tcx> Debug for PlaceDisplay<'tcx> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             PlaceDisplay::Temporary(place) => write!(f, "{place:?}"),
-            PlaceDisplay::User(s) => write!(f, "{s}"),
+            PlaceDisplay::User(place, s) => write!(f, "{place:?} <<{s}>>"),
         }
     }
 }
 
 impl<'tcx> PlaceDisplay<'tcx> {
     pub fn is_user(&self) -> bool {
-        matches!(self, PlaceDisplay::User(_))
+        matches!(self, PlaceDisplay::User(..))
     }
 }
 
@@ -68,11 +72,8 @@ impl<'tcx> Place<'tcx> {
                 }
                 _ => None,
             };
-            let Some(local_name) = repacker
-                .mir
-                .var_debug_info
-                .iter()
-                .find_map(get_local_name) else {
+            let Some(local_name) = repacker.mir.var_debug_info.iter().find_map(get_local_name)
+            else {
                 return PlaceDisplay::Temporary(*self);
             };
             Cow::Owned(local_name)
@@ -102,7 +103,11 @@ impl<'tcx> Place<'tcx> {
                             let fields = match def.adt_kind() {
                                 AdtKind::Struct => &def.non_enum_variant().fields,
                                 AdtKind::Enum => {
-                                    let Some(PlaceElem::Downcast(_, variant_idx)) = self.projection.get(index - 1) else { unimplemented!() } ;
+                                    let Some(PlaceElem::Downcast(_, variant_idx)) =
+                                        self.projection.get(index - 1)
+                                    else {
+                                        unimplemented!()
+                                    };
                                     &def.variant(*variant_idx).fields
                                 }
                                 kind => unimplemented!("{kind:?}"),
@@ -158,6 +163,6 @@ impl<'tcx> Place<'tcx> {
         }
 
         let full = parts.make_contiguous().join("");
-        PlaceDisplay::User(full)
+        PlaceDisplay::User(*self, full)
     }
 }

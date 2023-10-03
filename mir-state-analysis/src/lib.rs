@@ -47,7 +47,8 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     // if tcx.item_name(mir.source.def_id()).as_str().starts_with("main") {
     //     return;
     // }
-    // if !format!("{:?}", mir.source.def_id()).contains("fmt") {
+    // if !format!("{:?}", mir.source.def_id()).ends_with("serialize_adjacently_tagged_variant)") {
+    //     println!("{:?}", mir.source.def_id());
     //     return;
     // }
     let cgx = coupling_graph::CgContext::new(tcx, mir, facts, facts2);
@@ -60,9 +61,16 @@ pub fn run_coupling_graph<'mir, 'tcx>(
     if cfg!(debug_assertions) && !top_crates {
         coupling_graph::engine::draw_dots(c);
     }
+    // panic!()
 }
 
-pub fn test_coupling_graph<'tcx>(mir: &Body<'tcx>, facts: &BorrowckFacts, facts2: &BorrowckFacts2<'tcx>, tcx: TyCtxt<'tcx>, top_crates: bool) {
+pub fn test_coupling_graph<'tcx>(
+    mir: &Body<'tcx>,
+    facts: &BorrowckFacts,
+    facts2: &BorrowckFacts2<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    top_crates: bool,
+) {
     let analysis = run_coupling_graph(mir, facts, facts2, tcx, top_crates);
     // free_pcs::check(analysis);
 }
