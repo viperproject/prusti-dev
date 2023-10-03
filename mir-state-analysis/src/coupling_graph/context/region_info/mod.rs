@@ -121,17 +121,18 @@ impl<'tcx> RegionInfo<'tcx> {
             let (universal, other, incr) = if map.is_universal(c.sup) {
                 (c.sup, c.sub, 1)
             } else {
-                (c.sub, c.sup, 3)
+                (c.sub, c.sup, 2)
             };
             let entry = equivalence_map.entry((universal, other)).or_default();
-            *entry += incr;
-            assert!(*entry == 1 || *entry == 3 || *entry == 4);
+            *entry |= incr;
+            // Note: Outlives constraints may be duplicated!!
+            // e.g. in `hashbrown-0.14.1` in `hashbrown::raw::RawTable::<T, A>::clear::{closure#0}` at `src/raw/mod.rs:1021:37: 1021:66 (#0)`
         }
 
         // Set the entries in the map
         map.set(static_region, RegionKind::Static);
         for ((universal, local), sum) in equivalence_map {
-            if sum == 4 {
+            if sum == 3 {
                 map.set_param(universal, local);
             }
         }
