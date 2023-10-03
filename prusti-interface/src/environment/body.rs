@@ -10,7 +10,10 @@ use rustc_hash::FxHashMap;
 use rustc_middle::ty::GenericArgsRef;
 use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc};
 
-use crate::environment::{borrowck::facts::{BorrowckFacts, BorrowckFacts2}, mir_storage};
+use crate::environment::{
+    borrowck::facts::{BorrowckFacts, BorrowckFacts2},
+    mir_storage,
+};
 
 /// Stores any possible MIR body (from the compiler) that
 /// Prusti might want to work with. Cheap to clone
