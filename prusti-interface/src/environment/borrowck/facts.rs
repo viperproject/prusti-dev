@@ -7,7 +7,7 @@
 use prusti_rustc_interface::{
     borrowck::{
         borrow_set::BorrowSet,
-        consumers::{LocationTable, RichLocation, RustcFacts, RegionInferenceContext},
+        consumers::{LocationTable, RegionInferenceContext, RichLocation, RustcFacts},
     },
     middle::mir,
     polonius_engine::FactTypes,
