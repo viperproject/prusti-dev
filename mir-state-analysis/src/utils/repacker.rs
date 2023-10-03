@@ -7,18 +7,18 @@
 use prusti_rustc_interface::{
     data_structures::fx::FxHashSet,
     dataflow::storage,
-    index::{Idx, bit_set::BitSet},
+    index::{bit_set::BitSet, Idx},
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
-            ProjectionElem, PlaceElem,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, PlaceElem,
+            ProjectionElem,
         },
-        ty::{Ty, TyCtxt, TyKind, RegionVid},
+        ty::{RegionVid, Ty, TyCtxt, TyKind},
     },
     target::abi::FieldIdx,
 };
 
-use crate::utils::ty::{DeepTypeVisitor, Stack, DeepTypeVisitable};
+use crate::utils::ty::{DeepTypeVisitable, DeepTypeVisitor, Stack};
 
 use super::Place;
 
@@ -68,7 +68,8 @@ impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
     }
     pub fn always_live_locals_non_args(self) -> BitSet<Local> {
         let mut all = self.always_live_locals();
-        for arg in 0..self.mir.arg_count+1 { // Includes `RETURN_PLACE`
+        for arg in 0..self.mir.arg_count + 1 {
+            // Includes `RETURN_PLACE`
             all.remove(Local::new(arg));
         }
         all
@@ -407,8 +408,35 @@ impl<'tcx> Place<'tcx> {
 
     pub fn mk_deref(self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
         let elems = repacker.tcx.mk_place_elems_from_iter(
-            self.projection.iter().copied().chain(std::iter::once(PlaceElem::Deref))
+            self.projection
+                .iter()
+                .copied()
+                .chain(std::iter::once(PlaceElem::Deref)),
         );
         Self::new(self.local, elems)
+    }
+
+    pub fn deref_to_region(
+        mut self,
+        r: RegionVid,
+        repacker: PlaceRepacker<'_, 'tcx>,
+    ) -> Option<Self> {
+        let mut ty = self.ty(repacker).ty;
+        while let TyKind::Ref(rr, inner_ty, _) = *ty.kind() {
+            ty = inner_ty;
+            self = self.mk_deref(repacker);
+            if rr.is_var() && rr.as_var() == r {
+                return Some(self);
+            }
+        }
+        None
+    }
+
+    pub fn param_kind(self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Local> {
+        if self.local.as_usize() <= repacker.mir.arg_count {
+            Some(self.local)
+        } else {
+            None
+        }
     }
 }

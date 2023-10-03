@@ -5,11 +5,20 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
+    borrowck::{
+        borrow_set::{BorrowData, BorrowSet, LocalsStateAtExit, TwoPhaseActivation},
+        consumers::{BorrowIndex, PlaceExt},
+    },
     data_structures::fx::{FxHashMap, FxHashSet, FxIndexMap, FxIndexSet},
-    index::bit_set::BitSet,
-    dataflow::fmt::DebugWithContext, index::IndexVec, middle::mir::Local,
-    borrowck::{borrow_set::{BorrowData, BorrowSet, TwoPhaseActivation, LocalsStateAtExit}, consumers::{BorrowIndex, PlaceExt}},
-    middle::{mir::{ConstraintCategory, RETURN_PLACE, Location, Place, Rvalue, Body, traversal, visit::Visitor}, ty::{TyCtxt}},
+    dataflow::fmt::DebugWithContext,
+    index::{bit_set::BitSet, IndexVec},
+    middle::{
+        mir::{
+            traversal, visit::Visitor, Body, ConstraintCategory, Local, Location, Place, Rvalue,
+            RETURN_PLACE,
+        },
+        ty::TyCtxt,
+    },
 };
 
 // Identical to `rustc_borrowck/src/borrow_set.rs` but for shared borrows
@@ -20,11 +29,7 @@ pub struct SharedBorrowSet<'tcx> {
 }
 
 impl<'tcx> SharedBorrowSet<'tcx> {
-    pub(crate) fn build(
-        tcx: TyCtxt<'tcx>,
-        body: &Body<'tcx>,
-        borrows: &BorrowSet<'tcx>,
-    ) -> Self {
+    pub(crate) fn build(tcx: TyCtxt<'tcx>, body: &Body<'tcx>, borrows: &BorrowSet<'tcx>) -> Self {
         let mut visitor = GatherBorrows {
             tcx,
             body: &body,
@@ -78,7 +83,10 @@ impl<'a, 'tcx> Visitor<'tcx> for GatherBorrows<'a, 'tcx> {
             let (idx, _) = self.location_map.insert_full(location, borrow);
             let idx = BorrowIndex::from(idx);
 
-            self.local_map.entry(borrowed_place.local).or_default().insert(idx);
+            self.local_map
+                .entry(borrowed_place.local)
+                .or_default()
+                .insert(idx);
         }
 
         self.super_assign(assigned_place, rvalue, location)

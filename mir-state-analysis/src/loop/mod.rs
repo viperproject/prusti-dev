@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::{
     index::{Idx, IndexVec},
-    middle::mir::{BasicBlock, Body, START_BLOCK}
+    middle::mir::{BasicBlock, Body, START_BLOCK},
 };
 
 #[derive(Clone, Debug)]
@@ -45,14 +45,11 @@ impl LoopSet {
         self.data[idx] &= !(1 << (loop_idx % Self::OFFSET));
     }
     fn iter(&self) -> impl DoubleEndedIterator<Item = LoopId> + '_ {
-        self.data
-            .iter()
-            .enumerate()
-            .flat_map(|(idx, &val)| {
-                let to = if val == 0 { 0 } else { Self::OFFSET };
-                (0..to)
-                    .filter(move |&i| val & (1 << i) != 0)
-                    .map(move |i| LoopId::new(idx * Self::OFFSET + i))
+        self.data.iter().enumerate().flat_map(|(idx, &val)| {
+            let to = if val == 0 { 0 } else { Self::OFFSET };
+            (0..to)
+                .filter(move |&i| val & (1 << i) != 0)
+                .map(move |i| LoopId::new(idx * Self::OFFSET + i))
         })
     }
 }
@@ -71,9 +68,11 @@ impl LoopAnalysis {
         };
         let raw_bb_data: *const _ = &analysis.bb_data;
 
-        let mut visited_bbs: IndexVec<BasicBlock, bool> = IndexVec::from_elem_n(false, body.basic_blocks.len());
+        let mut visited_bbs: IndexVec<BasicBlock, bool> =
+            IndexVec::from_elem_n(false, body.basic_blocks.len());
 
-        let mut loop_head_bb_index: IndexVec<BasicBlock, LoopId> = IndexVec::from_elem_n(NO_LOOP, body.basic_blocks.len());
+        let mut loop_head_bb_index: IndexVec<BasicBlock, LoopId> =
+            IndexVec::from_elem_n(NO_LOOP, body.basic_blocks.len());
         for bb in body.basic_blocks.reverse_postorder().iter().copied().rev() {
             let data = &mut analysis.bb_data[bb];
             for succ in body.basic_blocks[bb].terminator().successors() {
@@ -117,11 +116,11 @@ impl LoopAnalysis {
     }
     /// Returns the loop which contains `bb` as well as all other loops of `bb`.
     pub fn outermost_loop(&self, bb: BasicBlock) -> Option<LoopId> {
-        self.loops(bb).next()
+        self.loops(bb).min_by_key(|l| self.loop_nest_depth(*l))
     }
     /// Returns the loop which contains `bb` but no other loops of `bb`.
     pub fn innermost_loop(&self, bb: BasicBlock) -> Option<LoopId> {
-        self.loops(bb).next_back()
+        self.loops(bb).max_by_key(|l| self.loop_nest_depth(*l))
     }
 
     fn consistency_check(&self) {
@@ -131,12 +130,6 @@ impl LoopAnalysis {
             assert_eq!(self[l], START_BLOCK);
         }
         assert!(start_loops.is_empty());
-        // Check that `innermost_loop` and `outermost_loop` are correct (TODO: remove this check)
-        for bb in self.bb_data.indices() {
-            let innermost_depth = self.innermost_loop(bb).map(|l| self.loop_nest_depth(l)).unwrap_or_default();
-            let outermost_depth = self.outermost_loop(bb).map(|l| self.loop_nest_depth(l)).unwrap_or_default();
-            assert!(self.loops(bb).map(|l| self.loop_nest_depth(l)).all(|d| outermost_depth <= d && d <= innermost_depth));
-        }
     }
 }
 

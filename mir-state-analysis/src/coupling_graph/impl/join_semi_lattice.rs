@@ -15,7 +15,7 @@ use crate::{
     utils::{PlaceOrdering, PlaceRepacker},
 };
 
-use super::{triple::Cg, graph::Graph};
+use super::{graph::Graph, triple::Cg};
 
 impl JoinSemiLattice for Cg<'_, '_> {
     #[tracing::instrument(name = "Cg::join", level = "debug", ret)]
