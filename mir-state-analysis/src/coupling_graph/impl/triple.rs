@@ -21,11 +21,12 @@ use prusti_rustc_interface::{
     index::{bit_set::BitSet, IndexVec},
     middle::{
         mir::{
-            visit::Visitor, BasicBlock, ConstraintCategory, Local, Location, Operand,
-            Place as MirPlace, Rvalue, Statement, StatementKind, Terminator, TerminatorKind,
-            RETURN_PLACE,
+            interpret::{ConstValue, GlobalAlloc, Scalar},
+            visit::Visitor,
+            BasicBlock, ConstraintCategory, Local, Location, Operand, Place as MirPlace, Rvalue,
+            Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE, ConstantKind,
         },
-        ty::{RegionVid, TyKind},
+        ty::{GenericArgKind, RegionVid, TyKind, ParamEnv},
     },
 };
 
@@ -34,7 +35,7 @@ use crate::{
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
-    utils::{Place, PlaceRepacker},
+    utils::{r#const::ConstEval, Place, PlaceRepacker},
 };
 
 use super::{
@@ -117,6 +118,10 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
         for &(sup, sub) in &self.cgx.outlives_info.universal_constraints {
             self.graph.outlives_placeholder(sup, sub);
         }
+        for &const_region in self.cgx.region_info.map.const_regions() {
+            self.graph
+                .outlives_static(const_region, self.static_region());
+        }
     }
 
     #[tracing::instrument(name = "get_associated_place", level = "trace", skip(self), ret)]
@@ -155,6 +160,14 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
 
             // println!("killed: {r:?} {killed:?} {l:?}");
             if oos.map(|oos| oos.contains(&bi)).unwrap_or_default() {
+                if self.graph.static_regions.contains(&data.region) {
+                    self.output_to_dot("log/coupling/kill.dot", true);
+                }
+                assert!(
+                    !self.graph.static_regions.contains(&data.region),
+                    "{data:?} {location:?} {:?}",
+                    self.graph.static_regions
+                );
                 self.graph.kill_borrow(data);
             } else {
                 self.graph.remove(data.region, Some(location));
@@ -243,32 +256,13 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
 impl<'tcx> Visitor<'tcx> for Cg<'_, 'tcx> {
     fn visit_operand(&mut self, operand: &Operand<'tcx>, location: Location) {
         self.super_operand(operand, location);
-        match *operand {
+        match operand {
             Operand::Copy(_) => (),
-            Operand::Move(place) => {
+            &Operand::Move(place) => {
                 self.kill_shared_borrows_on_place(location, place);
             }
-            Operand::Constant(..) => {
-                // TODO: anything here?
-            }
+            Operand::Constant(_) => (),
         }
-    }
-    fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
-        match rvalue {
-            Rvalue::Use(Operand::Constant(_)) => {
-                // TODO: this is a hack, find a better way to do things
-                for c in
-                    self.cgx
-                        .outlives_info
-                        .pre_constraints(location, None, &self.cgx.region_info)
-                {
-                    self.graph
-                        .outlives_static(c.sub, self.static_region(), location);
-                }
-            }
-            _ => (),
-        }
-        self.super_rvalue(rvalue, location);
     }
     fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
         self.super_statement(statement, location);
@@ -315,6 +309,7 @@ impl<'tcx> Cg<'_, 'tcx> {
                     panic!("{r:?} {:?}", self.graph.nodes[r]);
                 }
                 // Ignore (and thus delete) early/late bound (mostly fn call) regions
+                RegionKind::ConstRef(..) => (),
                 RegionKind::EarlyBound(..) => (),
                 RegionKind::LateBound { .. } => (),
                 RegionKind::Placeholder(..) => (),
@@ -326,7 +321,8 @@ impl<'tcx> Cg<'_, 'tcx> {
         }
     }
     pub fn output_to_dot<P: AsRef<std::path::Path>>(&self, path: P, error: bool) {
-        if !self.top_crates || error {
+        if cfg!(debug_assertions) && (!self.top_crates || error) {
+            std::fs::create_dir_all("log/coupling/individual").unwrap();
             let mut f = std::fs::File::create(path).unwrap();
             dot::render(self, &mut f).unwrap();
         }

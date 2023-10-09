@@ -104,8 +104,9 @@ fn main() {
 
     // Would `cargo check` not report errors for this crate? That is, are lints disabled
     // (i.e. is this a non-local crate)
-    let are_lints_disabled =
-        arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow").is_some();
+    let cap_lints = arg_value(&original_rustc_args, "--cap-lints", |_| true);
+    let cap_lints_any = cap_lints.is_some();
+    let are_lints_disabled = cap_lints.map(|val| val == "allow").unwrap_or_default();
 
     // Remote dependencies (e.g. from git/crates.io), or any dependencies if `no_verify_deps`,
     // are not verified. However, we still run Prusti on them to export potential specs.
@@ -128,6 +129,12 @@ fn main() {
                 is_codegen = false;
             }
             rustc_args.push(arg);
+        }
+    }
+    if !cap_lints_any {
+        if let Some(new_cap) = config::cap_lints() {
+            rustc_args.push("--cap-lints".to_owned());
+            rustc_args.push(new_cap);
         }
     }
 

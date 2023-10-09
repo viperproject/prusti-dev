@@ -98,7 +98,7 @@ pub(crate) struct CoupligGraph<'a, 'tcx> {
 
 impl<'a, 'tcx> CoupligGraph<'a, 'tcx> {
     pub(crate) fn new(cgx: &'a CgContext<'a, 'tcx>, top_crates: bool) -> Self {
-        if cfg!(debug_assertions) {
+        if cfg!(debug_assertions) && !top_crates {
             std::fs::remove_dir_all("log/coupling").ok();
             std::fs::create_dir_all("log/coupling/individual").unwrap();
         }
@@ -178,13 +178,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
             assert!(state.version < 10);
 
             // println!("\nblock: {:?}", location.block);
-            if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup
-            {
-                state.output_to_dot(
-                    format!("log/coupling/individual/{l}_v{}_start.dot", state.version),
-                    false,
-                );
-            }
+            state.output_to_dot(
+                format!("log/coupling/individual/{l}_v{}_start.dot", state.version),
+                false,
+            );
             self.flow_borrows
                 .borrow_mut()
                 .seek_to_block_start(location.block);
@@ -203,12 +200,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
 
         state.live = other;
 
-        if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup {
-            state.output_to_dot(
-                format!("log/coupling/individual/{l}_v{}.dot", state.version),
-                false,
-            );
-        }
+        state.output_to_dot(
+            format!("log/coupling/individual/{l}_v{}.dot", state.version),
+            false,
+        );
     }
 
     #[tracing::instrument(name = "apply_statement_effect", level = "debug", skip(self))]
@@ -227,13 +222,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
             assert!(state.version < 10);
 
             // println!("\nblock: {:?}", location.block);
-            if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup
-            {
-                state.output_to_dot(
-                    format!("log/coupling/individual/{l}_v{}_start.dot", state.version),
-                    false,
-                );
-            }
+            state.output_to_dot(
+                format!("log/coupling/individual/{l}_v{}_start.dot", state.version),
+                false,
+            );
             self.flow_borrows
                 .borrow_mut()
                 .seek_to_block_start(location.block);
@@ -252,15 +244,11 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
 
         match &terminator.kind {
             TerminatorKind::Return => {
-                if cfg!(debug_assertions)
-                    && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup
-                {
-                    let l = format!("{location:?}").replace('[', "_").replace(']', "");
-                    state.output_to_dot(
-                        format!("log/coupling/individual/{l}_v{}_pre.dot", state.version),
-                        false,
-                    );
-                }
+                let l = format!("{location:?}").replace('[', "_").replace(']', "");
+                state.output_to_dot(
+                    format!("log/coupling/individual/{l}_v{}_pre.dot", state.version),
+                    false,
+                );
                 // Pretend we have a storage dead for all `always_live_locals` other than the args/return
                 for l in self.cgx.rp.always_live_locals_non_args().iter() {
                     state.kill_shared_borrows_on_place(location, l.into());
@@ -284,12 +272,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CoupligGraph<'a, 'tcx> {
 
         state.live = other;
 
-        if cfg!(debug_assertions) && !self.cgx.rp.body().basic_blocks[location.block].is_cleanup {
-            state.output_to_dot(
-                format!("log/coupling/individual/{l}_v{}.dot", state.version),
-                false,
-            );
-        }
+        state.output_to_dot(
+            format!("log/coupling/individual/{l}_v{}.dot", state.version),
+            false,
+        );
         terminator.edges()
     }
 

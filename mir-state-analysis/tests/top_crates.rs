@@ -69,6 +69,7 @@ fn run_on_crate(name: &str, version: &str) {
         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true")
         // .env("PRUSTI_LOG", "debug")
         .env("PRUSTI_NO_VERIFY_DEPS", "true")
+        .env("PRUSTI_CAP_LINTS", "allow")
         .env("PRUSTI_TOP_CRATES", "true")
         .current_dir(&dirname)
         .status()

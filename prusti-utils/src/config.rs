@@ -108,6 +108,7 @@ lazy_static::lazy_static! {
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
+        settings.set_default::<Option<String>>("cap_lints", None).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
         settings.set_default("opt_in_verification", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
@@ -987,6 +988,10 @@ pub fn no_verify() -> bool {
 }
 pub fn set_no_verify(value: bool) {
     write_setting("no_verify", value);
+}
+
+pub fn cap_lints() -> Option<String> {
+    read_setting("cap_lints")
 }
 
 /// When enabled, verification is skipped for dependencies.

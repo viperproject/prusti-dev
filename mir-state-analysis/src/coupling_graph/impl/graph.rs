@@ -51,12 +51,12 @@ impl<'tcx> Graph<'tcx> {
         };
         self.outlives_inner(c.sup, c.sub, edge)
     }
-    pub fn outlives_static(&mut self, r: RegionVid, static_region: RegionVid, l: Location) {
+    pub fn outlives_static(&mut self, r: RegionVid, static_region: RegionVid) {
         if r == static_region {
             return;
         }
         let edge = EdgeInfo {
-            creation: Some(l),
+            creation: None,
             reason: None,
         };
         self.outlives_inner(r, static_region, edge);
