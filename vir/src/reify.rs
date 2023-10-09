@@ -13,13 +13,6 @@ pub trait Reify<'vir, Curr, NextA, NextB> {
         vcx: &'vir VirCtxt<'vir>,
         lctx: Curr,
     ) -> Self::Next;
-
-    /// Returns `Some` only if a `Lazy` was called anywhere.
-    fn reify_deep(
-        &self,
-        vcx: &'vir VirCtxt<'vir>,
-        lctx: Curr,
-    ) -> Option<Self::Next>;
 }
 
 impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr, NextA, NextB>
@@ -27,26 +20,25 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr, NextA, NextB>
 {
     type Next = ExprGen<'vir, NextA, NextB>;
     fn reify(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Self::Next {
-        self.reify_deep(vcx, lctx)
-            .unwrap_or_else(|| unsafe { std::mem::transmute(self) })
-    }
-    fn reify_deep(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Option<Self::Next> {
-        Some(match self {
-            ExprGenData::Field(v, f) => vcx.alloc(ExprGenData::Field(v.reify_deep(vcx, lctx)?, f)),
-            ExprGenData::Old(v) => vcx.alloc(ExprGenData::Old(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::AccField(v) => vcx.alloc(ExprGenData::AccField(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::Unfolding(v) => vcx.alloc(ExprGenData::Unfolding(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::UnOp(v) => vcx.alloc(ExprGenData::UnOp(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::BinOp(v) => vcx.alloc(ExprGenData::BinOp(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::Ternary(v) => vcx.alloc(ExprGenData::Ternary(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::Forall(v) => vcx.alloc(ExprGenData::Forall(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::Let(v) => vcx.alloc(ExprGenData::Let(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::FuncApp(v) => vcx.alloc(ExprGenData::FuncApp(v.reify_deep(vcx, lctx)?)),
-            ExprGenData::PredicateApp(v) => vcx.alloc(ExprGenData::PredicateApp(v.reify_deep(vcx, lctx)?)),
+        match self {
+            ExprGenData::Field(v, f) => vcx.alloc(ExprGenData::Field(v.reify(vcx, lctx), f)),
+            ExprGenData::Old(v) => vcx.alloc(ExprGenData::Old(v.reify(vcx, lctx))),
+            ExprGenData::AccField(v) => vcx.alloc(ExprGenData::AccField(v.reify(vcx, lctx))),
+            ExprGenData::Unfolding(v) => vcx.alloc(ExprGenData::Unfolding(v.reify(vcx, lctx))),
+            ExprGenData::UnOp(v) => vcx.alloc(ExprGenData::UnOp(v.reify(vcx, lctx))),
+            ExprGenData::BinOp(v) => vcx.alloc(ExprGenData::BinOp(v.reify(vcx, lctx))),
+            ExprGenData::Ternary(v) => vcx.alloc(ExprGenData::Ternary(v.reify(vcx, lctx))),
+            ExprGenData::Forall(v) => vcx.alloc(ExprGenData::Forall(v.reify(vcx, lctx))),
+            ExprGenData::Let(v) => vcx.alloc(ExprGenData::Let(v.reify(vcx, lctx))),
+            ExprGenData::FuncApp(v) => vcx.alloc(ExprGenData::FuncApp(v.reify(vcx, lctx))),
+            ExprGenData::PredicateApp(v) => vcx.alloc(ExprGenData::PredicateApp(v.reify(vcx, lctx))),
+
+            ExprGenData::Local(v) => vcx.alloc(ExprGenData::Local(v)),
+            ExprGenData::Const(v) => vcx.alloc(ExprGenData::Const(v)),
+            ExprGenData::Todo(v) => vcx.alloc(ExprGenData::Todo(v)),
 
             ExprGenData::Lazy(_, f) => f(vcx, lctx),
-            _ => return None,
-        })
+        }
     }
 }
 
@@ -59,24 +51,9 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr, NextA, NextB>
 {
     type Next = &'vir [ExprGen<'vir, NextA, NextB>];
     fn reify(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Self::Next {
-        self.reify_deep(vcx, lctx)
-            .unwrap_or_else(|| unsafe { std::mem::transmute(self) })
-    }
-    fn reify_deep(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Option<Self::Next> {
-        let mut any_change = false;
-        let vals = self.iter()
-            .map(|elem| {
-                let elem = elem.reify_deep(vcx, lctx);
-                any_change |= elem.is_some();
-                elem
-            })
-            .collect::<Vec<Option<_>>>();
-        if !any_change {
-            return None;
-        };
-        Some(vcx.alloc_slice(&vals.into_iter()
-            .map(|elem| elem.unwrap_or_else(|| unsafe { std::mem::transmute(elem) }))
-            .collect::<Vec<_>>()))
+        vcx.alloc_slice(&self.iter()
+            .map(|elem| elem.reify(vcx, lctx))
+            .collect::<Vec<_>>())
     }
 }
 
@@ -85,24 +62,9 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr, NextA, NextB>
 {
     type Next = &'vir [&'vir [ExprGen<'vir, NextA, NextB>]];
     fn reify(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Self::Next {
-        self.reify_deep(vcx, lctx)
-            .unwrap_or_else(|| unsafe { std::mem::transmute(self) })
-    }
-    fn reify_deep(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Option<Self::Next> {
-        let mut any_change = false;
-        let vals = self.iter()
-            .map(|elem| {
-                let elem = elem.reify_deep(vcx, lctx);
-                any_change |= elem.is_some();
-                elem
-            })
-            .collect::<Vec<Option<_>>>();
-        if !any_change {
-            return None;
-        };
-        Some(vcx.alloc_slice(&vals.into_iter()
-            .map(|elem| elem.unwrap_or_else(|| unsafe { std::mem::transmute(elem) }))
-            .collect::<Vec<_>>()))
+        vcx.alloc_slice(&self.iter()
+            .map(|elem| elem.reify(vcx, lctx))
+            .collect::<Vec<_>>())
     }
 }
 
@@ -111,27 +73,9 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr, NextA, NextB>
 {
     type Next = &'vir [(ExprGen<'vir, NextA, NextB>, CfgBlockLabel<'vir>)];
     fn reify(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Self::Next {
-        self.reify_deep(vcx, lctx)
-            .unwrap_or_else(|| unsafe { std::mem::transmute(self) })
-    }
-    fn reify_deep(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Option<Self::Next> {
-        let mut any_change = false;
-        let vals = self.iter()
-            .map(|(elem, label)| {
-                let elem = elem.reify_deep(vcx, lctx);
-                any_change |= elem.is_some();
-                (elem, label)
-            })
-            .collect::<Vec<_>>();
-        if !any_change {
-            return None;
-        };
-        Some(vcx.alloc_slice(&vals.into_iter()
-            .map(|(elem, label)| (
-                elem.unwrap_or_else(|| unsafe { std::mem::transmute(elem) }),
-                *label,
-            ))
-            .collect::<Vec<_>>()))
+        vcx.alloc_slice(&self.iter()
+            .map(|(elem, label)| (elem.reify(vcx, lctx), *label))
+            .collect::<Vec<_>>())
     }
 }
 
@@ -140,16 +84,7 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr, NextA, NextB>
 {
     type Next = Option<ExprGen<'vir, NextA, NextB>>;
     fn reify(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Self::Next {
-        self.reify_deep(vcx, lctx)
-            .unwrap_or_else(|| unsafe { std::mem::transmute(self) })
-    }
-    fn reify_deep(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Option<Self::Next> {
-        match self {
-            // there was an expression, does it need reification?
-            Some(elem) => Some(Some(elem.reify_deep(vcx, lctx)?)),
-            // there was nothing inside, there is no reification to perform
-            None => None,
-        }
+        self.map(|elem| elem.reify(vcx, lctx))
     }
 }
 
@@ -158,16 +93,7 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr, NextA, NextB>
 {
     type Next = Option<&'vir [CfgBlockGen<'vir, NextA, NextB>]>;
     fn reify(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Self::Next {
-        self.reify_deep(vcx, lctx)
-            .unwrap_or_else(|| unsafe { std::mem::transmute(*self) })
-    }
-    fn reify_deep(&self, vcx: &'vir VirCtxt<'vir>, lctx: Curr) -> Option<Self::Next> {
-        match self {
-            // there was an expression, does it need reification?
-            Some(elem) => Some(Some(elem.reify_deep(vcx, lctx)?)),
-            // there was nothing inside, there is no reification to perform
-            None => None,
-        }
+        self.map(|elem| elem.reify(vcx, lctx))
     }
 }
 
