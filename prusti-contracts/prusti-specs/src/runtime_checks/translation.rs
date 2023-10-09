@@ -345,9 +345,12 @@ impl VisitMut for CheckVisitor {
                 if let Some(ident) = expr_path.path.get_ident() {
                     let name = ident.to_token_stream().to_string();
                     if let Some(arg) = self.function_info.get_mut_arg(&name) {
-                        // argument used within an old expression?
+                        // Does argument need to be evaluated in its old state?
+                        // Yes if: it occurrs within old and is a mutable ref OR
+                        // its not a reference (this is unfortunately not always determined
+                        // correctly because of type aliases)
                         if self.check_type.gets_old_args()
-                            && (self.within_old || (!arg.is_ref && arg.is_mutable))
+                            && ((self.within_old && arg.is_ref && arg.is_mutable) || !arg.is_ref)
                         {
                             // if it was not already marked to be stored
                             // needs to be checked for indeces to be correct

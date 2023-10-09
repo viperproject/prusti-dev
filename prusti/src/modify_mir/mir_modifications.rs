@@ -146,13 +146,8 @@ pub trait MirModifier<'tcx> {
             arg.ty(self.local_decls(), self.tcx()).ty
         };
         let mutable_ref = matches!(arg_ty.ref_mutability(), Some(mir::Mutability::Mut));
-        println!("arg type: {:?}", arg_ty);
 
         let dest = destination.unwrap_or_else(|| self.patcher().new_temp(arg_ty, DUMMY_SP));
-        println!(
-            "trying to clone arg: {:?} into destination: {:?}",
-            arg, dest
-        );
         if !arg_ty.is_ref() {
             // non-ref arg means we first deref and then clone.
             // destination only needs to be dropped if it's not later passed into
@@ -200,10 +195,6 @@ pub trait MirModifier<'tcx> {
                 .needs_drop(self.tcx(), param_env)
                 .then_some(clone_dest);
 
-            println!(
-                "dereferenced type: {:?}, needs drop? {:?}",
-                deref_ty, to_drop
-            );
             let generics = self.tcx().mk_args(&[ty::GenericArg::from(deref_ty)]);
             let clone_args = vec![Operand::Move(arg)];
             // add an additional simple block afterwards, that dereferences

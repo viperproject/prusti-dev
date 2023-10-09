@@ -65,9 +65,14 @@ pub(crate) fn create_argument(arg: &syn::FnArg, index: usize) -> syn::Result<Arg
     match arg {
         syn::FnArg::Typed(syn::PatType { pat, ty, .. }) => {
             if let syn::Pat::Ident(pat_ident) = *pat.clone() {
-                let is_mutable = pat_ident.mutability.is_some();
+                let mut is_mutable = pat_ident.mutability.is_some();
 
-                let is_ref = matches!(**ty, syn::Type::Reference(_));
+                let is_ref = if let box syn::Type::Reference(ty_ref) = ty {
+                    is_mutable = is_mutable || ty_ref.mutability.is_some();
+                    true
+                } else {
+                    false
+                };
                 let arg = Argument {
                     name: pat_ident.ident.to_string(),
                     ty: *ty.clone(),

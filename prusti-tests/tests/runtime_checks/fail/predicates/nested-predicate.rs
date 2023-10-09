@@ -1,3 +1,4 @@
+//@compile-flags: -Pquiet=true
 use prusti_contracts::*;
 
 // For this predicate to be checkable at runtime, the one it calls would also have to
