@@ -14,14 +14,14 @@ use prusti_rustc_interface::{
     dataflow::{Analysis, ResultsCursor},
     index::IndexVec,
     middle::{
-        mir::{Body, Local, Location, Operand, RETURN_PLACE},
-        ty::{RegionVid, Ty, TyCtxt},
+        mir::{visit::Visitor, Body, Constant, Local, Location, Operand, RETURN_PLACE, Rvalue, ConstantKind},
+        ty::{GenericArg, RegionVid, Ty, TyCtxt},
     },
 };
 
 use crate::{
     coupling_graph::region_info::map::ParamRegion,
-    utils::{Place, PlaceRepacker},
+    utils::{Place, PlaceRepacker, r#const::ConstEval},
 };
 
 use self::map::{RegionInfoMap, RegionKind};
@@ -57,6 +57,9 @@ impl<'tcx> RegionInfo<'tcx> {
         // Init universals
         let (static_region, function_region) =
             Self::initialize_universals(&mut map, rp, input_facts, facts2);
+
+        // Init consts
+        Self::initialize_consts(&mut map, rp);
 
         // Init locals
         Self::initialize_locals(&mut map, rp, input_facts, facts2, sbs);
@@ -140,6 +143,17 @@ impl<'tcx> RegionInfo<'tcx> {
         (static_region, function_region)
     }
 
+    pub fn initialize_consts(map: &mut RegionInfoMap<'tcx>, rp: PlaceRepacker<'_, 'tcx>) {
+        let mut collector = ConstantRegionCollector { map };
+        collector.visit_body(rp.body());
+        for constant in &rp.body().required_consts {
+            for r in constant.ty().walk().flat_map(|ga| ga.as_region()) {
+                assert!(r.is_var(), "{r:?} in {constant:?}");
+                map.set(r.as_var(), RegionKind::ConstRef(true));
+            }
+        }
+    }
+
     pub fn initialize_locals(
         map: &mut RegionInfoMap<'tcx>,
         rp: PlaceRepacker<'_, 'tcx>,
@@ -156,6 +170,24 @@ impl<'tcx> RegionInfo<'tcx> {
             .chain(facts2.borrow_set.location_map.values())
         {
             map.set(data.region, RegionKind::Borrow(data.clone()));
+        }
+    }
+}
+
+struct ConstantRegionCollector<'a, 'tcx> {
+    map: &'a mut RegionInfoMap<'tcx>,
+}
+impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, 'tcx> {
+    fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
+        // We might have a non-var `r` as the function operand (const) to a function call.
+        // This function call may be e.g. `ParseBuffer::<'_>::step` and we want to ignore the `'_`.
+        // So instead of matching on arbitrary constants, we only match on Rvalue creation of them.
+        self.super_rvalue(rvalue, location);
+        if let Rvalue::Use(Operand::Constant(constant)) = rvalue {
+            for r in constant.ty().walk().flat_map(|ga| ga.as_region()) {
+                assert!(r.is_var(), "{r:?} in {constant:?}");
+                self.map.set(r.as_var(), RegionKind::ConstRef(false));
+            }
         }
     }
 }

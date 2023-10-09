@@ -33,6 +33,7 @@ use crate::{
 pub struct RegionInfoMap<'tcx> {
     region_info: IndexVec<RegionVid, RegionKind<'tcx>>,
     universal: usize,
+    constant_regions: Vec<RegionVid>,
 }
 
 #[derive(Debug, Clone)]
@@ -43,6 +44,7 @@ pub enum RegionKind<'tcx> {
     Function,
     UnknownUniversal,
     // Local regions
+    ConstRef(bool),
     Place {
         region: RegionVid,
         local: Local,
@@ -72,6 +74,9 @@ impl<'tcx> RegionKind<'tcx> {
     }
     pub fn is_unknown_universal(&self) -> bool {
         matches!(self, Self::UnknownUniversal)
+    }
+    pub fn is_const_ref(&self) -> bool {
+        matches!(self, Self::ConstRef(..))
     }
     pub fn is_place(&self) -> bool {
         matches!(self, Self::Place { .. })
@@ -143,6 +148,8 @@ impl<'tcx> RegionKind<'tcx> {
             }
             Self::Function => "'fn".to_string(),
             Self::UnknownUniversal => "'unknown".to_string(),
+            Self::ConstRef(true) => "ext_const".to_string(),
+            Self::ConstRef(false) => "const".to_string(),
             Self::Place { region, local } => {
                 let place = Place::from(*local);
                 let exact = place.deref_to_region(*region, cgx.rp);
@@ -213,6 +220,7 @@ impl<'tcx> RegionInfoMap<'tcx> {
         Self {
             region_info,
             universal,
+            constant_regions: Vec::new(),
         }
     }
 
@@ -220,7 +228,8 @@ impl<'tcx> RegionInfoMap<'tcx> {
         match self.get(r) {
             RegionKind::UnknownUniversal => assert!(kind.is_static() || kind.is_function()),
             RegionKind::UnknownLocal => assert!(
-                kind.is_place()
+                kind.is_const_ref()
+                    || kind.is_place()
                     || kind.is_borrow()
                     || kind.is_early_bound()
                     || kind.is_late_bound()
@@ -229,6 +238,9 @@ impl<'tcx> RegionInfoMap<'tcx> {
                 "{kind:?}"
             ),
             other => panic!("{other:?}"),
+        }
+        if kind.is_const_ref() {
+            self.constant_regions.push(r);
         }
         self.region_info[r] = kind;
     }
@@ -298,5 +310,8 @@ impl<'tcx> RegionInfoMap<'tcx> {
     }
     pub fn for_local(&self, r: RegionVid, l: Local) -> bool {
         self.get(r).get_place() == Some(l)
+    }
+    pub fn const_regions(&self) -> &[RegionVid] {
+        &self.constant_regions
     }
 }
