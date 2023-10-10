@@ -492,9 +492,18 @@ impl<'vir, 'enc> EncoderVisitor<'vir, 'enc> {
                     ty::TyKind::Tuple(tys) if tys.len() == 0 => self.vcx.alloc(vir::ExprData::Todo(
                         vir::vir_format!(self.vcx, "s_Tuple0_cons()"),
                     )),
-                    ty::TyKind::Int(ty::IntTy::I32) => self.vcx.alloc(vir::ExprData::Todo(
-                        vir::vir_format!(self.vcx, "s_Int_i32_cons({})", const_val.try_to_scalar_int().unwrap()),
-                    )),
+                    ty::TyKind::Int(int_ty) => {
+                        let scalar_val = const_val.try_to_scalar_int().unwrap();
+                        self.vcx.alloc(vir::ExprData::Todo(
+                            vir::vir_format!(self.vcx, "s_Int_{}_cons({})", int_ty.name_str(), scalar_val.try_to_int(scalar_val.size()).unwrap()),
+                        ))
+                    }
+                    ty::TyKind::Uint(uint_ty) => {
+                        let scalar_val = const_val.try_to_scalar_int().unwrap();
+                        self.vcx.alloc(vir::ExprData::Todo(
+                            vir::vir_format!(self.vcx, "s_Uint_{}_cons({})", uint_ty.name_str(), scalar_val.try_to_uint(scalar_val.size()).unwrap()),
+                        ))
+                    }
                     ty::TyKind::Bool => self.vcx.alloc(vir::ExprData::Todo(
                         vir::vir_format!(self.vcx, "s_Bool_cons({})", const_val.try_to_bool().unwrap()),
                     )),
@@ -637,21 +646,31 @@ impl<'vir, 'enc> mir::visit::Visitor<'vir> for EncoderVisitor<'vir, 'enc> {
                                 rhs: self.encode_operand_snap(r),
                             })))],
                         )),
-                    mir::Rvalue::BinaryOp(mir::BinOp::Lt, box (l, r)) =>
+                    mir::Rvalue::BinaryOp(mir::BinOp::Lt, box (l, r)) => {
+                        let ty_l = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                            l.ty(self.local_decls, self.vcx.tcx),
+                        ).unwrap();
+                        let ty_l = vir::vir_format!(self.vcx, "{}_val", ty_l.snapshot_name); // TODO: get the `_val` function differently
+                        let ty_r = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                            r.ty(self.local_decls, self.vcx.tcx),
+                        ).unwrap();
+                        let ty_r = vir::vir_format!(self.vcx, "{}_val", ty_r.snapshot_name); // TODO: get the `_val` function differently
+
                         Some(self.vcx.mk_func_app(
                             "s_Bool_cons", // TODO: go through type encoder
                             &[self.vcx.alloc(vir::ExprData::BinOp(self.vcx.alloc(vir::BinOpData {
                                 kind: vir::BinOpKind::CmpLt,
-                                lhs: self.vcx.mk_func_app( // TODO: go through type encoder
-                                    "s_Int_i32_val",
+                                lhs: self.vcx.mk_func_app(
+                                    ty_l,
                                     &[self.encode_operand_snap(l)],
                                 ),
-                                rhs: self.vcx.mk_func_app( // TODO: go through type encoder
-                                    "s_Int_i32_val",
+                                rhs: self.vcx.mk_func_app(
+                                    ty_r,
                                     &[self.encode_operand_snap(r)],
                                 ),
                             })))],
-                        )),
+                        ))
+                    }
                     //mir::Rvalue::BinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>) => {}
 
                     //mir::Rvalue::CheckedBinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>) => {}

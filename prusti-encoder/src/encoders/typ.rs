@@ -64,18 +64,8 @@ impl<'vir> TypeEncoderOutputRef<'vir> {
                 //    vcx.alloc(vir::ConstData::Bool(val != 0)),
                 //)));
             }
-            "s_Uint_usize" => "s_Uint_usize_cons",
-            "s_Uint_u8" => "s_Uint_u8_cons",
-            "s_Uint_u16" => "s_Uint_u16_cons",
-            "s_Uint_u32" => "s_Uint_u32_cons",
-            "s_Uint_u64" => "s_Uint_u64_cons",
-            "s_Uint_u128" => "s_Uint_u128_cons",
-            "s_Int_isize" => "s_Int_isize_cons",
-            "s_Int_i8" => "s_Int_i8_cons",
-            "s_Int_i16" => "s_Int_i16_cons",
-            "s_Int_i32" => "s_Int_i32_cons",
-            "s_Int_i64" => "s_Int_i64_cons",
-            "s_Int_i128" => "s_Int_i128_cons",
+            name if name.starts_with("s_Int_") || name.starts_with("s_Uint_") =>
+                vir::with_vcx(|vcx| vir::vir_format!(vcx, "{name}_cons")),
             k => todo!("unsupported type in expr_from_u128 {k:?}"),
         };
         vir::with_vcx(|vcx| vcx.mk_func_app(
@@ -681,15 +671,15 @@ impl TaskEncoder for TypeEncoder {
                     method_reassign: mk_reassign(vcx, "p_Bool", ty_s),
                 }, ()))
             }
-            TyKind::Int(int_kind) => {
-                let (name_s, name_p) = match int_kind {
-                    ty::IntTy::Isize => ("s_Int_isize", "p_Int_isize"),
-                    ty::IntTy::I8 => ("s_Int_i8", "p_Int_i8"),
-                    ty::IntTy::I16 => ("s_Int_i16", "p_Int_i16"),
-                    ty::IntTy::I32 => ("s_Int_i32", "p_Int_i32"),
-                    ty::IntTy::I64 => ("s_Int_i64", "p_Int_i64"),
-                    ty::IntTy::I128 => ("s_Int_i128", "p_Int_i128"),
+            TyKind::Int(_) |
+            TyKind::Uint(_) => {
+                let (sign, name_str) = match task_key.kind() {
+                    TyKind::Int(kind) => ("Int", kind.name_str()),
+                    TyKind::Uint(kind) => ("Uint", kind.name_str()),
+                    _ => unreachable!(),
                 };
+                let name_s = vir::vir_format!(vcx, "s_{sign}_{name_str}");
+                let name_p = vir::vir_format!(vcx, "p_{sign}_{name_str}");
                 let name_cons = vir::vir_format!(vcx, "{name_s}_cons");
                 let name_val = vir::vir_format!(vcx, "{name_s}_val");
                 let name_field = vir::vir_format!(vcx, "f_{name_s}");
@@ -714,48 +704,6 @@ impl TaskEncoder for TypeEncoder {
                         function [name_cons](Int): [ty_s];
                         function [name_val]([ty_s]): Int;
                         axiom_inverse([name_val], [name_cons], Int);
-                    } },
-                    predicate: mk_simple_predicate(vcx, name_p, name_field),
-                    function_unreachable: mk_unreachable(vcx, name_s, ty_s),
-                    function_snap: mk_snap(vcx, name_p, name_s, Some(name_field), ty_s),
-                    //method_refold: mk_refold(vcx, name_p, ty_s),
-                    field_projection_p: &[],
-                    method_assign: mk_assign(vcx, name_p, ty_s),
-                    method_reassign: mk_reassign(vcx, name_p, ty_s),
-                }, ()))
-            }
-            TyKind::Uint(int_kind) => {
-                let (name_s, name_p) = match int_kind {
-                    ty::UintTy::Usize => ("s_Uint_usize", "p_Uint_usize"),
-                    ty::UintTy::U8 => ("s_Uint_u8", "p_Uint_u8"),
-                    ty::UintTy::U16 => ("s_Uint_u16", "p_Uint_u16"),
-                    ty::UintTy::U32 => ("s_Uint_u32", "p_Uint_u32"),
-                    ty::UintTy::U64 => ("s_Uint_u64", "p_Uint_u64"),
-                    ty::UintTy::U128 => ("s_Uint_u128", "p_Uint_u128"),
-                };
-                let name_cons = vir::vir_format!(vcx, "{name_s}_cons");
-                let name_val = vir::vir_format!(vcx, "{name_s}_val");
-                let name_field = vir::vir_format!(vcx, "f_{name_s}");
-                let ty_s = vcx.alloc(vir::TypeData::Domain(name_s));
-                deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
-                    snapshot_name: name_s,
-                    predicate_name: name_p,
-                    snapshot: ty_s,
-                    function_unreachable: vir::vir_format!(vcx, "{name_s}_unreachable"),
-                    function_snap: vir::vir_format!(vcx, "{name_p}_snap"),
-                    //method_refold: vir::vir_format!(vcx, "refold_{name_p}"),
-                    specifics: TypeEncoderOutputRefSub::Primitive,
-                    method_assign: vir::vir_format!(vcx, "assign_{name_p}"),
-                    method_reassign: vir::vir_format!(vcx, "reassign_{name_p}"),
-                });
-                Ok((TypeEncoderOutput {
-                    fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
-                        name: vir::vir_format!(vcx, "f_{name_s}"),
-                        ty: ty_s,
-                    })]),
-                    snapshot: vir::vir_domain! { vcx; domain [name_s] {
-                        function [name_cons](Int): [ty_s];
-                        function [name_val]([ty_s]): Int;
                     } },
                     predicate: mk_simple_predicate(vcx, name_p, name_field),
                     function_unreachable: mk_unreachable(vcx, name_s, ty_s),
