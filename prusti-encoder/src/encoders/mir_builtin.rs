@@ -75,18 +75,8 @@ impl TaskEncoder for MirBuiltinEncoder {
         // TODO: this function is also useful for the type encoder, extract?
         fn int_name<'tcx>(ty: ty::Ty<'tcx>) -> &'static str {
             match ty.kind() {
-                ty::TyKind::Int(ty::IntTy::Isize) => "isize",
-                ty::TyKind::Int(ty::IntTy::I8) => "i8",
-                ty::TyKind::Int(ty::IntTy::I16) => "i16",
-                ty::TyKind::Int(ty::IntTy::I32) => "i32",
-                ty::TyKind::Int(ty::IntTy::I64) => "i64",
-                ty::TyKind::Int(ty::IntTy::I128) => "i128",
-                ty::TyKind::Uint(ty::UintTy::Usize) => "usize",
-                ty::TyKind::Uint(ty::UintTy::U8) => "u8",
-                ty::TyKind::Uint(ty::UintTy::U16) => "u16",
-                ty::TyKind::Uint(ty::UintTy::U32) => "u32",
-                ty::TyKind::Uint(ty::UintTy::U64) => "u64",
-                ty::TyKind::Uint(ty::UintTy::U128) => "u128",
+                ty::TyKind::Int(kind) => kind.name_str(),
+                ty::TyKind::Uint(kind) => kind.name_str(),
                 _ => unreachable!("non-integer type"),
             }
         }
