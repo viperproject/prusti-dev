@@ -185,8 +185,12 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, 'tcx> {
         self.super_rvalue(rvalue, location);
         if let Rvalue::Use(Operand::Constant(constant)) = rvalue {
             for r in constant.ty().walk().flat_map(|ga| ga.as_region()) {
-                assert!(r.is_var(), "{r:?} in {constant:?}");
-                self.map.set(r.as_var(), RegionKind::ConstRef(false));
+                // We may run into non-var regions here, e.g. assigning a const closure to a local where
+                // the closure captures state and thus that has e.g. `BrNamed` regions.
+                if  r.is_var() {
+                    // assert!(r.is_var(), "{r:?} in {constant:?} ({:?} at {location:?})", constant.ty());
+                    self.map.set(r.as_var(), RegionKind::ConstRef(false));
+                }
             }
         }
     }
