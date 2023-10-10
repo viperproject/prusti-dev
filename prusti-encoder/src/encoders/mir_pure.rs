@@ -628,20 +628,31 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                             rhs: self.encode_operand(curr_ver, r),
                         })))],
                     ),
-                    mir::BinOp::Gt => self.vcx.mk_func_app(
-                        "s_Bool_cons", // TODO: go through type encoder
-                        &[self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
-                            kind: vir::BinOpKind::CmpGt,
-                            lhs: self.vcx.mk_func_app(
-                                "s_Int_i32_val",
-                                &[self.encode_operand(curr_ver, l)],
-                            ),
-                            rhs: self.vcx.mk_func_app(
-                                "s_Int_i32_val",
-                                &[self.encode_operand(curr_ver, r)],
-                            ),
-                        })))],
-                    ),
+                    mir::BinOp::Gt => {
+                        let ty_l = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                            l.ty(self.body, self.vcx.tcx),
+                        ).unwrap();
+                        let ty_l = vir::vir_format!(self.vcx, "{}_val", ty_l.snapshot_name); // TODO: get the `_val` function differently
+                        let ty_r = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                            r.ty(self.body, self.vcx.tcx),
+                        ).unwrap();
+                        let ty_r = vir::vir_format!(self.vcx, "{}_val", ty_r.snapshot_name); // TODO: get the `_val` function differently
+
+                        self.vcx.mk_func_app(
+                            "s_Bool_cons", // TODO: go through type encoder
+                            &[self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
+                                kind: vir::BinOpKind::CmpGt,
+                                lhs: self.vcx.mk_func_app(
+                                    ty_l,
+                                    &[self.encode_operand(curr_ver, l)],
+                                ),
+                                rhs: self.vcx.mk_func_app(
+                                    ty_r,
+                                    &[self.encode_operand(curr_ver, r)],
+                                ),
+                            })))],
+                        )
+                    }
                     k => todo!("binop {k:?}"),
                 }
             }
@@ -696,9 +707,18 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                             ty::TyKind::Tuple(tys) if tys.len() == 0 => self.vcx.alloc(ExprRetData::Todo(
                                 vir::vir_format!(self.vcx, "s_Tuple0_cons()"),
                             )),
-                            ty::TyKind::Int(ty::IntTy::I32) => self.vcx.alloc(ExprRetData::Todo(
-                                vir::vir_format!(self.vcx, "s_Int_i32_cons({})", const_val.try_to_scalar_int().unwrap()),
-                            )),
+                            ty::TyKind::Int(int_ty) => {
+                                let scalar_val = const_val.try_to_scalar_int().unwrap();
+                                self.vcx.alloc(ExprRetData::Todo(
+                                    vir::vir_format!(self.vcx, "s_Int_{}_cons({})", int_ty.name_str(), scalar_val.try_to_int(scalar_val.size()).unwrap()),
+                                ))
+                            }
+                            ty::TyKind::Uint(uint_ty) => {
+                                let scalar_val = const_val.try_to_scalar_int().unwrap();
+                                self.vcx.alloc(ExprRetData::Todo(
+                                    vir::vir_format!(self.vcx, "s_Uint_{}_cons({})", uint_ty.name_str(), scalar_val.try_to_uint(scalar_val.size()).unwrap()),
+                                ))
+                            }
                             ty::TyKind::Bool => self.vcx.alloc(ExprRetData::Todo(
                                 vir::vir_format!(self.vcx, "s_Bool_cons({})", const_val.try_to_bool().unwrap()),
                             )),
