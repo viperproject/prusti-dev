@@ -10,7 +10,7 @@ use prusti_rustc_interface::{
         borrow_set::BorrowData,
         consumers::{BorrowIndex, Borrows, OutlivesConstraint, PoloniusInput, RustcFacts},
     },
-    data_structures::fx::FxHashMap,
+    data_structures::fx::{FxHashMap, FxHashSet},
     dataflow::{Analysis, ResultsCursor},
     index::IndexVec,
     middle::{
@@ -30,7 +30,6 @@ pub struct OutlivesInfo<'tcx> {
     pub local_constraints: Vec<OutlivesConstraint<'tcx>>, // but with no location info
     pub type_ascription_constraints: Vec<OutlivesConstraint<'tcx>>,
     pub location_constraints: FxHashMap<Location, Vec<OutlivesConstraint<'tcx>>>,
-
     pub universal_constraints: Vec<(RegionVid, RegionVid)>,
 }
 
@@ -40,7 +39,8 @@ impl<'tcx> OutlivesInfo<'tcx> {
         facts2: &BorrowckFacts2<'tcx>,
         ri: &RegionInfo<'tcx>,
     ) -> Self {
-        let universal_constraints = input_facts.known_placeholder_subset.clone();
+        let mut universal_constraints =
+            FxHashSet::from_iter(input_facts.known_placeholder_subset.iter().copied());
 
         let mut universal_local_constraints = Vec::new();
         let mut local_constraints = Vec::new();
@@ -57,7 +57,8 @@ impl<'tcx> OutlivesInfo<'tcx> {
                 if ri.map.is_universal(constraint.sup) && ri.map.is_universal(constraint.sub) {
                     // Not sure why the `region_inference_context` can rarely contain inter-universal constraints,
                     // but we should already have all of these in `universal_constraints`.
-                    assert!(universal_constraints.contains(&(constraint.sup, constraint.sub)));
+                    // Except for even more rare situations...
+                    universal_constraints.insert((constraint.sup, constraint.sub));
                 } else {
                     universal_local_constraints.push(constraint);
                 }
@@ -72,7 +73,7 @@ impl<'tcx> OutlivesInfo<'tcx> {
             local_constraints,
             type_ascription_constraints,
             location_constraints,
-            universal_constraints,
+            universal_constraints: universal_constraints.into_iter().collect(),
         }
     }
 
