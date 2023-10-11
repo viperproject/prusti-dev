@@ -63,8 +63,8 @@ fn run_on_crate(name: &str, version: &str) {
             .collect::<PathBuf>(),
     );
     println!("Running: {prusti:?}");
-    let exit = std::process::Command::new(prusti)
-        // .env("PRUSTI_TEST_FREE_PCS", "true")
+    let exit = std::process::Command::new(&prusti)
+        .env("PRUSTI_TEST_FREE_PCS", "true")
         .env("PRUSTI_TEST_COUPLING_GRAPH", "true")
         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true")
         // .env("PRUSTI_LOG", "debug")

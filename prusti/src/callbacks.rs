@@ -37,7 +37,7 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResu
     if !is_anon_const {
         let consumer_opts = if is_spec_fn(tcx, def_id.to_def_id())
             || config::no_verify()
-            || config::test_free_pcs()
+            || (config::test_free_pcs() && !config::test_coupling_graph())
         {
             consumers::ConsumerOptions::RegionInferenceContext
         } else if config::test_coupling_graph() {
@@ -172,7 +172,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         println!("Calculating FPCS for: {name} ({:?})", mir.span);
                         test_free_pcs(&mir, tcx);
                     }
-                } else if config::test_coupling_graph() {
+                }
+                if config::test_coupling_graph() {
                     for proc_id in env.get_annotated_procedures_and_types().0.iter() {
                         let mir = env.body.get_impure_fn_body_identity(proc_id.expect_local());
                         let facts = env
@@ -188,7 +189,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         println!("Calculating CG for: {name} ({:?})", mir.span);
                         test_coupling_graph(&*mir, &*facts, &*facts2, tcx, config::top_crates());
                     }
-                } else {
+                }
+                if !config::test_free_pcs() && !config::test_coupling_graph() {
                     verify(env, def_spec);
                 }
             }
