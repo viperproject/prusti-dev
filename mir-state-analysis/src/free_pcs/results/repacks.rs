@@ -43,7 +43,10 @@ pub enum RepackOp<'tcx> {
     /// We guarantee that the current state holds exactly the given capability for the given place.
     /// The second place is the guide, denoting e.g. the enum variant to unpack to. One can use
     /// [`Place::expand_one_level(_.0, _.1, ..)`](Place::expand_one_level) to get the set of all
-    /// places which will be obtained by unpacking.
+    /// places (except as noted in the documentation for that fn) which will be obtained by unpacking.
+    ///
+    /// Until rust-lang/rust#21232 lands, we guarantee that this will only have
+    /// [`CapabilityKind::Exclusive`].
     Expand(Place<'tcx>, Place<'tcx>, CapabilityKind),
     /// Instructs that one should pack up to the given (first) place with the given capability.
     /// The second place is the guide, denoting e.g. the enum variant to pack from. One can use
