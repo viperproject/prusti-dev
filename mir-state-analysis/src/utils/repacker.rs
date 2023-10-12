@@ -160,7 +160,9 @@ impl<'tcx> Place<'tcx> {
 
     /// Expand `self` one level down by following the `guide_place`.
     /// Returns the new `self` and a vector containing other places that
-    /// could have resulted from the expansion.
+    /// could have resulted from the expansion. Note: this vector is always
+    /// incomplete when projecting with `Index` or `Subslice` and also when
+    /// projecting a slice type with `ConstantIndex`!
     #[tracing::instrument(level = "trace", skip(repacker), ret)]
     pub fn expand_one_level(
         self,
@@ -185,14 +187,10 @@ impl<'tcx> Place<'tcx> {
                 min_length,
                 from_end,
             } => {
-                let other_places = (0..min_length)
-                    .filter(|&i| {
-                        if from_end {
-                            i != min_length - offset
-                        } else {
-                            i != offset
-                        }
-                    })
+                let range = if from_end { 1..min_length+1 } else { 0..min_length };
+                assert!(range.contains(&offset));
+                let other_places = range
+                    .filter(|&i| i != offset)
                     .map(|i| {
                         repacker
                             .tcx
