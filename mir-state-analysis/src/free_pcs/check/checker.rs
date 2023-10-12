@@ -121,6 +121,7 @@ impl<'tcx> RepackOp<'tcx> {
                 assert_eq!(old, Some(from), "{self:?}, {curr_state:?}");
             }
             RepackOp::Expand(place, guide, kind) => {
+                assert_eq!(kind, CapabilityKind::Exclusive, "{self:?}");
                 assert!(place.is_prefix_exact(guide), "{self:?}");
                 let curr_state = state[place.local].get_allocated_mut();
                 assert_eq!(
@@ -134,6 +135,7 @@ impl<'tcx> RepackOp<'tcx> {
                 curr_state.extend(others.into_iter().map(|p| (p, kind)));
             }
             RepackOp::Collapse(place, guide, kind) => {
+                assert_ne!(kind, CapabilityKind::ShallowExclusive, "{self:?}");
                 assert!(place.is_prefix_exact(guide), "{self:?}");
                 let curr_state = state[place.local].get_allocated_mut();
                 let mut removed = curr_state
