@@ -99,11 +99,18 @@ impl<'tcx> Place<'tcx> {
             }
             match (left, right) {
                 (Field(..), Field(..)) => None,
-                (ConstantIndex { min_length: l, from_end: lfe, .. }, ConstantIndex { min_length: r, from_end: rfe, .. })
-                    if r == l && lfe == rfe =>
-                {
-                    None
-                }
+                (
+                    ConstantIndex {
+                        min_length: l,
+                        from_end: lfe,
+                        ..
+                    },
+                    ConstantIndex {
+                        min_length: r,
+                        from_end: rfe,
+                        ..
+                    },
+                ) if r == l && lfe == rfe => None,
                 (Downcast(_, _), Downcast(_, _)) | (OpaqueCast(_), OpaqueCast(_)) => {
                     Some(PlaceOrdering::Both)
                 }
