@@ -103,14 +103,9 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
             let final_place = match related.relation {
                 PlaceOrdering::Prefix => {
                     let from = related.get_only_from();
-                    let perms_eq = self[&from] == kind;
-                    let joinable_place = if self[&from] != CapabilityKind::Exclusive && !perms_eq {
-                        // If I have `Write` or `ShallowExclusive` and the other is different, I need to join
-                        // above any pointers I may be projected through.
-                        // TODO: imo if `projects_ptr` ever returns `Some` we will fail the `assert` below...
-                        place
-                            .projects_ptr(repacker)
-                            .unwrap_or_else(|| from.joinable_to(place))
+                    let joinable_place = if self[&from] != CapabilityKind::Exclusive {
+                        // One cannot expand a `Write` or a `ShallowInit` capability
+                        from
                     } else {
                         from.joinable_to(place)
                     };
@@ -130,17 +125,10 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                         if !self.contains_key(&p) {
                             continue;
                         }
-                        let perms_eq = k == kind;
-                        let p = if kind != CapabilityKind::Exclusive && !perms_eq {
-                            if let Some(to) = p.projects_ptr(repacker) {
-                                changed = true;
-                                let related = self.find_all_related(to, None);
-                                assert_eq!(related.relation, PlaceOrdering::Suffix);
-                                self.collapse(related.get_from(), related.to, repacker);
-                                to
-                            } else {
-                                p
-                            }
+                        let p = if kind != CapabilityKind::Exclusive {
+                            changed = true;
+                            self.collapse(related.get_from(), related.to, repacker);
+                            related.to
                         } else {
                             p
                         };
