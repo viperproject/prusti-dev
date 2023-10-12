@@ -172,7 +172,11 @@ impl<'tcx> Place<'tcx> {
                 min_length,
                 from_end,
             } => {
-                let range = if from_end { 1..min_length+1 } else { 0..min_length };
+                let range = if from_end {
+                    1..min_length + 1
+                } else {
+                    0..min_length
+                };
                 assert!(range.contains(&offset));
                 let other_places = range
                     .filter(|&i| i != offset)
