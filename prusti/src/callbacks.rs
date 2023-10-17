@@ -73,7 +73,7 @@ fn mir_promoted<'tcx>(
     // SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
     unsafe {
-        mir_storage::store_promoted_mir_body(tcx, def_id, result.0.borrow().clone());
+        mir_storage::store_promoted_mir_body(tcx, def_id, result.0.borrow().clone(), result.1.borrow().clone());
     }
     result
 }
@@ -163,14 +163,15 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
-                if config::test_free_pcs() {
+                if config::test_free_pcs() && !config::test_coupling_graph() {
                     for proc_id in env.get_annotated_procedures_and_types().0.iter() {
                         let current_procedure = env.get_procedure(*proc_id);
                         let mir = current_procedure.get_mir_rc();
+                        let promoted = current_procedure.get_promoted_rc();
 
                         let name = env.name.get_unique_item_name(*proc_id);
                         println!("Calculating FPCS for: {name} ({:?})", mir.span);
-                        test_free_pcs(&mir, tcx);
+                        test_free_pcs(&mir, &promoted, tcx);
                     }
                 }
                 if config::test_coupling_graph() {
@@ -187,7 +188,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 
                         let name = env.name.get_unique_item_name(*proc_id);
                         println!("Calculating CG for: {name} ({:?})", mir.span);
-                        test_coupling_graph(&*mir, &*facts, &*facts2, tcx, config::top_crates());
+                        test_coupling_graph(&*mir.body(), &*mir.promoted(), &*facts, &*facts2, tcx, config::top_crates());
                     }
                 }
                 if !config::test_free_pcs() && !config::test_coupling_graph() {

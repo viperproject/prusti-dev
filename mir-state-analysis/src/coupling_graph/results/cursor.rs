@@ -12,23 +12,27 @@ use prusti_rustc_interface::{
 use crate::{
     free_pcs::{
         engine::FreePlaceCapabilitySummary, join_semi_lattice::RepackingJoinSemiLattice,
-        CapabilitySummary, RepackOp, CapabilityKind,
+        CapabilitySummary, RepackOp,
     },
-    utils::{PlaceRepacker, Place},
+    utils::PlaceRepacker, coupling_graph::{engine::CouplingGraph, graph::Graph, CgContext},
 };
 
-type Cursor<'mir, 'tcx> = ResultsCursor<'mir, 'tcx, FreePlaceCapabilitySummary<'mir, 'tcx>>;
+use super::coupling::CouplingOp;
 
-pub struct FreePcsAnalysis<'mir, 'tcx> {
-    cursor: Cursor<'mir, 'tcx>,
+type Cursor<'a, 'mir, 'tcx> = ResultsCursor<'mir, 'tcx, CouplingGraph<'a, 'tcx>>;
+
+pub struct CgAnalysis<'a, 'mir, 'tcx> {
+    cursor: Cursor<'a, 'mir, 'tcx>,
+    did_before: bool,
     curr_stmt: Option<Location>,
     end_stmt: Option<Location>,
 }
 
-impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
-    pub(crate) fn new(cursor: Cursor<'mir, 'tcx>) -> Self {
+impl<'a, 'mir, 'tcx> CgAnalysis<'a, 'mir, 'tcx> {
+    pub(crate) fn new(cursor: Cursor<'a, 'mir, 'tcx>) -> Self {
         Self {
             cursor,
+            did_before: false,
             curr_stmt: None,
             end_stmt: None,
         }
@@ -39,7 +43,8 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         let end_stmt = self
             .cursor
             .analysis()
-            .0
+            .cgx
+            .rp
             .body()
             .terminator_loc(block)
             .successor_within_block();
@@ -48,49 +53,60 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
             statement_index: 0,
         });
         self.end_stmt = Some(end_stmt);
+        self.did_before = false;
     }
 
-    fn body(&self) -> &'mir Body<'tcx> {
-        self.cursor.analysis().0.body()
+    fn body(&self) -> &'a Body<'tcx> {
+        self.cursor.analysis().cgx.rp.body()
     }
-    pub(crate) fn repacker(&mut self) -> PlaceRepacker<'mir, 'tcx> {
-        self.cursor.results().analysis.0
+    pub(crate) fn cgx(&mut self) -> &'a CgContext<'a, 'tcx> {
+        self.cursor.results().analysis.cgx
     }
 
-    pub fn set_bound_non_empty(&self) {
-        self.cursor.get().bound.borrow_mut().1 = true;
+    pub fn initial_state(&self) -> &Graph<'tcx> {
+        &self.cursor.get().graph
     }
-    pub fn set_bound(&self, bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind>) {
-        self.cursor.get().bound.borrow_mut().0 = Some(bound);
+    pub fn initial_coupling(&self) -> &Vec<CouplingOp> {
+        &self.cursor.get().couplings
     }
-    pub fn unset_bound(&self) {
-        self.cursor.get().bound.borrow_mut().0 = None;
+    pub fn before_next(&mut self, exp_loc: Location) -> CgLocation<'tcx> {
+        let location = self.curr_stmt.unwrap();
+        assert_eq!(location, exp_loc);
+        assert!(location <= self.end_stmt.unwrap());
+        assert!(!self.did_before);
+        self.did_before = true;
+        self.cursor.seek_before_primary_effect(location);
+        let state = self.cursor.get();
+        CgLocation {
+            location,
+            state: state.graph.clone(),
+            couplings: state.couplings.clone(),
+        }
     }
-    pub fn initial_state(&self) -> &CapabilitySummary<'tcx> {
-        &self.cursor.get().summary
-    }
-    pub fn next(&mut self, exp_loc: Location) -> FreePcsLocation<'tcx> {
+    pub fn next(&mut self, exp_loc: Location) -> CgLocation<'tcx> {
         let location = self.curr_stmt.unwrap();
         assert_eq!(location, exp_loc);
         assert!(location < self.end_stmt.unwrap());
+        assert!(self.did_before);
+        self.did_before = false;
         self.curr_stmt = Some(location.successor_within_block());
 
         self.cursor.seek_after_primary_effect(location);
         let state = self.cursor.get();
-        FreePcsLocation {
+        CgLocation {
             location,
-            state: state.summary.clone(),
-            repacks: state.repackings.clone(),
+            state: state.graph.clone(),
+            couplings: state.couplings.clone(),
         }
     }
-    pub fn terminator(&mut self) -> FreePcsTerminator<'tcx> {
+    pub fn terminator(&mut self) -> CgTerminator<'tcx> {
         let location = self.curr_stmt.unwrap();
         assert!(location == self.end_stmt.unwrap());
+        assert!(!self.did_before);
         self.curr_stmt = None;
         self.end_stmt = None;
 
         // TODO: cleanup
-        let rp: PlaceRepacker = self.repacker();
         let state = self.cursor.get().clone();
         let block = &self.body()[location.block];
         let succs = block
@@ -99,22 +115,22 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
             .map(|succ| {
                 // Get repacks
                 let to = self.cursor.results().entry_set_for_block(succ);
-                FreePcsLocation {
+                CgLocation {
                     location: Location {
                         block: succ,
                         statement_index: 0,
                     },
-                    state: to.summary.clone(),
-                    repacks: state.summary.bridge(&to.summary, rp),
+                    state: to.graph.clone(),
+                    couplings: state.bridge(&to),
                 }
             })
             .collect();
-        FreePcsTerminator { succs }
+        CgTerminator { succs }
     }
 
     /// Recommened interface.
     /// Does *not* require that one calls `analysis_for_bb` first
-    pub fn get_all_for_bb(&mut self, block: BasicBlock) -> FreePcsBasicBlock<'tcx> {
+    pub fn get_all_for_bb(&mut self, block: BasicBlock) -> CgBasicBlock<'tcx> {
         self.analysis_for_bb(block);
         let mut statements = Vec::new();
         while self.curr_stmt.unwrap() != self.end_stmt.unwrap() {
@@ -122,28 +138,28 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
             statements.push(stmt);
         }
         let terminator = self.terminator();
-        FreePcsBasicBlock {
+        CgBasicBlock {
             statements,
             terminator,
         }
     }
 }
 
-pub struct FreePcsBasicBlock<'tcx> {
-    pub statements: Vec<FreePcsLocation<'tcx>>,
-    pub terminator: FreePcsTerminator<'tcx>,
+pub struct CgBasicBlock<'tcx> {
+    pub statements: Vec<CgLocation<'tcx>>,
+    pub terminator: CgTerminator<'tcx>,
 }
 
 #[derive(Debug)]
-pub struct FreePcsLocation<'tcx> {
+pub struct CgLocation<'tcx> {
     pub location: Location,
-    /// Repacks before the statement
-    pub repacks: Vec<RepackOp<'tcx>>,
+    /// Couplings before the statement
+    pub couplings: Vec<CouplingOp>,
     /// State after the statement
-    pub state: CapabilitySummary<'tcx>,
+    pub state: Graph<'tcx>,
 }
 
 #[derive(Debug)]
-pub struct FreePcsTerminator<'tcx> {
-    pub succs: Vec<FreePcsLocation<'tcx>>,
+pub struct CgTerminator<'tcx> {
+    pub succs: Vec<CgLocation<'tcx>>,
 }

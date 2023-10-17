@@ -6,11 +6,11 @@
 
 use prusti_rustc_interface::{
     dataflow::{Analysis, AnalysisDomain},
-    index::Idx,
+    index::{Idx, IndexVec},
     middle::{
         mir::{
             visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Location, Statement,
-            Terminator, TerminatorEdges, RETURN_PLACE,
+            Terminator, TerminatorEdges, RETURN_PLACE, Promoted,
         },
         ty::TyCtxt,
     },
@@ -23,8 +23,8 @@ use crate::{
 
 pub(crate) struct FreePlaceCapabilitySummary<'a, 'tcx>(pub(crate) PlaceRepacker<'a, 'tcx>);
 impl<'a, 'tcx> FreePlaceCapabilitySummary<'a, 'tcx> {
-    pub(crate) fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>) -> Self {
-        let repacker = PlaceRepacker::new(body, tcx);
+    pub(crate) fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>, promoted: &'a IndexVec<Promoted, Body<'tcx>>) -> Self {
+        let repacker = PlaceRepacker::new(body, promoted, tcx);
         FreePlaceCapabilitySummary(repacker)
     }
 }

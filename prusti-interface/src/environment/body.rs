@@ -1,4 +1,5 @@
 use prusti_rustc_interface::{
+    index::IndexVec,
     macros::{TyDecodable, TyEncodable},
     middle::{
         mir,
@@ -18,10 +19,13 @@ use crate::environment::{
 /// Stores any possible MIR body (from the compiler) that
 /// Prusti might want to work with. Cheap to clone
 #[derive(Clone, TyEncodable, TyDecodable)]
-pub struct MirBody<'tcx>(Rc<mir::Body<'tcx>>);
+pub struct MirBody<'tcx>(Rc<mir::Body<'tcx>>, Rc<IndexVec<mir::Promoted, mir::Body<'tcx>>>);
 impl<'tcx> MirBody<'tcx> {
     pub fn body(&self) -> Rc<mir::Body<'tcx>> {
         self.0.clone()
+    }
+    pub fn promoted(&self) -> Rc<IndexVec<mir::Promoted, mir::Body<'tcx>>> {
+        self.1.clone()
     }
 }
 impl<'tcx> std::ops::Deref for MirBody<'tcx> {
@@ -148,7 +152,7 @@ impl<'tcx> EnvBody<'tcx> {
         };
 
         BodyWithBorrowckFacts {
-            body: MirBody(Rc::new(body_with_facts.body)),
+            body: MirBody(Rc::new(body_with_facts.body), Rc::new(body_with_facts.promoted)),
             borrowck_facts: Rc::new(facts),
             borrowck_facts2: Rc::new(facts2),
         }
@@ -159,8 +163,8 @@ impl<'tcx> EnvBody<'tcx> {
     fn load_local_mir(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBody<'tcx> {
         // SAFETY: This is safe because we are feeding in the same `tcx`
         // that was used to store the data.
-        let body = unsafe { mir_storage::retrieve_promoted_mir_body(tcx, def_id) };
-        MirBody(Rc::new(body))
+        let (body, promoted) = unsafe { mir_storage::retrieve_promoted_mir_body(tcx, def_id) };
+        MirBody(Rc::new(body), Rc::new(promoted))
     }
 
     fn get_monomorphised(
@@ -196,7 +200,8 @@ impl<'tcx> EnvBody<'tcx> {
             } else {
                 ty::EarlyBinder::bind(body.0).instantiate(self.tcx, substs)
             };
-            v.insert(MirBody(monomorphised)).clone()
+            // TODO: monomorphise promoted as well
+            v.insert(MirBody(monomorphised, body.1)).clone()
         } else {
             unreachable!()
         }

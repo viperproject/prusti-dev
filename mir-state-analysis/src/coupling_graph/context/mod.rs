@@ -7,7 +7,7 @@
 use std::{cell::RefCell, fmt};
 
 use self::{
-    outlives_info::OutlivesInfo, region_info::RegionInfo, region_place::PlaceRegion,
+    outlives_info::OutlivesInfo, region_info::RegionInfo,
     shared_borrow_set::SharedBorrowSet,
 };
 use crate::{
@@ -21,13 +21,12 @@ use prusti_rustc_interface::{
     dataflow::{Analysis, ResultsCursor},
     index::IndexVec,
     middle::{
-        mir::{Body, Location, RETURN_PLACE},
+        mir::{Body, Location, RETURN_PLACE, Promoted},
         ty::{RegionVid, TyCtxt},
     },
 };
 
 pub(crate) mod shared_borrow_set;
-pub(crate) mod region_place;
 pub(crate) mod region_info;
 pub(crate) mod outlives_info;
 
@@ -59,12 +58,13 @@ impl<'a, 'tcx> CgContext<'a, 'tcx> {
     pub fn new(
         tcx: TyCtxt<'tcx>,
         body: &'a Body<'tcx>,
+        promoted: &'a IndexVec<Promoted, Body<'tcx>>,
         facts: &'a BorrowckFacts,
         facts2: &'a BorrowckFacts2<'tcx>,
     ) -> Self {
         let borrow_set = &facts2.borrow_set;
         let sbs = SharedBorrowSet::build(tcx, body, borrow_set);
-        let rp = PlaceRepacker::new(body, tcx);
+        let rp = PlaceRepacker::new(body, promoted, tcx);
         let input_facts = facts.input_facts.borrow();
         let input_facts = input_facts.as_ref().unwrap();
         let loops = LoopAnalysis::find_loops(body);

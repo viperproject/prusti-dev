@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt::{Debug, Formatter, Result};
+use std::{fmt::{Debug, Formatter, Result}, cell::RefCell};
 
 use derive_more::{Deref, DerefMut};
 use prusti_rustc_interface::{
@@ -15,15 +15,24 @@ use crate::{
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
-    utils::PlaceRepacker,
+    utils::{PlaceRepacker, Place},
 };
 
-#[derive(Clone)]
+use super::CapabilityKind;
+
+pub struct FpcsBound<'tcx>(pub Option<Box<dyn Fn(Place<'tcx>) -> CapabilityKind>>, pub bool);
+impl FpcsBound<'_> {
+    pub fn empty(expect: bool) -> RefCell<Self> {
+        RefCell::new(Self(None, expect))
+    }
+}
+
 pub struct Fpcs<'a, 'tcx> {
     pub(crate) repacker: PlaceRepacker<'a, 'tcx>,
     pub(crate) bottom: bool,
     pub summary: CapabilitySummary<'tcx>,
     pub repackings: Vec<RepackOp<'tcx>>,
+    pub bound: RefCell<FpcsBound<'tcx>>,
 }
 impl<'a, 'tcx> Fpcs<'a, 'tcx> {
     pub(crate) fn new(repacker: PlaceRepacker<'a, 'tcx>) -> Self {
@@ -33,10 +42,23 @@ impl<'a, 'tcx> Fpcs<'a, 'tcx> {
             bottom: true,
             summary,
             repackings: Vec::new(),
+            bound: FpcsBound::empty(false),
         }
+    }
+    #[tracing::instrument(name = "Fpcs::bound", level = "trace", skip(self), ret)]
+    pub(crate) fn bound(&self, place: Place<'tcx>) -> CapabilityKind {
+        let bound = self.bound.borrow();
+        assert_eq!(bound.1, bound.0.is_some());
+        bound.0.as_ref().map(|b| b(place)).unwrap_or(CapabilityKind::Exclusive)
     }
 }
 
+impl Clone for Fpcs<'_, '_> {
+    fn clone(&self) -> Self {
+        let expect_bound = self.bound.borrow().1;
+        Self { repacker: self.repacker, bottom: self.bottom, summary: self.summary.clone(), repackings: self.repackings.clone(), bound: FpcsBound::empty(expect_bound) }
+    }
+}
 impl PartialEq for Fpcs<'_, '_> {
     fn eq(&self, other: &Self) -> bool {
         self.bottom == other.bottom
@@ -46,7 +68,7 @@ impl PartialEq for Fpcs<'_, '_> {
 }
 impl Eq for Fpcs<'_, '_> {}
 
-impl<'a, 'tcx> Debug for Fpcs<'a, 'tcx> {
+impl Debug for Fpcs<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         self.summary.fmt(f)
     }

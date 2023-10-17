@@ -17,17 +17,19 @@ use prusti_rustc_interface::{
     },
 };
 
-use super::{graph::EdgeInfo, triple::Cg};
+use crate::coupling_graph::outlives_info::edge::{EdgeInfo, EdgeKind};
+
+use super::{triple::Cg};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Edge<'tcx> {
     pub from: RegionVid,
     pub to: RegionVid,
-    pub reasons: FxHashSet<EdgeInfo<'tcx>>,
+    pub reasons: FxHashSet<Vec<EdgeInfo<'tcx>>>,
 }
 
 impl<'tcx> Edge<'tcx> {
-    pub(crate) fn new(from: RegionVid, to: RegionVid, reasons: FxHashSet<EdgeInfo<'tcx>>) -> Self {
+    pub(crate) fn new(from: RegionVid, to: RegionVid, reasons: FxHashSet<Vec<EdgeInfo<'tcx>>>) -> Self {
         Self { from, to, reasons }
     }
 }
@@ -35,38 +37,41 @@ impl<'tcx> Edge<'tcx> {
 impl<'a, 'tcx> Cg<'a, 'tcx> {
     fn get_id(&self) -> String {
         if let Some(id) = &self.id {
-            id.replace('[', "_").replace(']', "")
+            let pre = if self.is_pre { "_pre" } else { "" };
+            format!("{id:?}{pre}").replace('[', "_").replace(']', "")
         } else {
-            "unnamed".to_string()
+            "start".to_string()
         }
     }
 }
 impl<'a, 'tcx> Cg<'a, 'tcx> {
     fn non_empty_edges(
         &self,
-        r: RegionVid,
+        sub: RegionVid,
         start: RegionVid,
-        mut reasons: FxHashSet<EdgeInfo<'tcx>>,
+        mut reasons: FxHashSet<Vec<EdgeInfo<'tcx>>>,
         visited: &mut FxHashSet<RegionVid>,
     ) -> Vec<Edge<'tcx>> {
         let mut edges = Vec::new();
-        if !visited.insert(r) {
+        if !visited.insert(sub) {
             return edges;
         }
-        if (self.dot_filter)(self.cgx.region_info.map.get(r)) {
-            // Remove empty reason
-            reasons.remove(&EdgeInfo {
-                creation: None,
-                reason: None,
-            });
-            return vec![Edge::new(start, r, reasons)];
+        let sub_info = self.cgx.region_info.map.get(sub);
+        if (self.dot_node_filter)(sub_info) {
+            // Remove empty reasons
+            // reasons.retain(|reason| reason.iter().any(|r| r.creation.is_some()) || reason.reason.is_some());
+            return vec![Edge::new(start, sub, reasons)];
         }
-        for (&b, edge) in &self.graph.nodes[r].blocks {
+        for (&sup, edge) in &self.graph.nodes[sub].blocks {
+            let sup_info = self.cgx.region_info.map.get(sup);
+            if !(self.dot_edge_filter)(sup_info, sub_info) {
+                continue;
+            }
             let mut reasons = reasons.clone();
-            reasons.extend(edge);
-            edges.extend(self.non_empty_edges(b, start, reasons, visited));
+            reasons.extend(edge.clone());
+            edges.extend(self.non_empty_edges(sup, start, reasons, visited));
         }
-        visited.remove(&r);
+        visited.remove(&sub);
         edges
     }
 }
@@ -83,17 +88,21 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
     }
 
     fn edge_style(&'a self, e: &Edge<'tcx>) -> dot::Style {
-        if self.cgx.region_info.map.get(e.from).is_borrow() {
-            dot::Style::Dotted
-        } else {
+        let is_blocking = e.reasons.iter().all(|e| EdgeKind::many_blocking(EdgeInfo::many_kind(e, self.cgx)));
+        if is_blocking {
             dot::Style::Solid
+        } else {
+            dot::Style::Dotted
         }
     }
     fn edge_label(&'a self, e: &Edge<'tcx>) -> dot::LabelText<'a> {
         let mut label = e
             .reasons
             .iter()
-            .map(|s| format!("{s}\n"))
+            .map(|s| {
+                let line = s.into_iter().map(|s| s.to_string() + ", ").collect::<String>();
+                format!("{}\n", &line[..line.len() - 2]) // `s.len() > 0`
+            })
             .collect::<String>();
         if label.len() > 0 {
             label = label[..label.len() - 1].to_string();
@@ -102,7 +111,7 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
     }
     fn node_color(&'a self, r: &RegionVid) -> Option<dot::LabelText<'a>> {
         let kind = self.get_kind(*r);
-        if kind.is_universal() {
+        if kind.universal() {
             Some(dot::LabelText::LabelStr(Cow::Borrowed("red")))
         } else {
             None
@@ -143,7 +152,7 @@ impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
         let mut nodes: Vec<_> = self
             .graph
             .all_nodes()
-            .filter(|(r, _)| (self.dot_filter)(self.cgx.region_info.map.get(*r)))
+            .filter(|(r, _)| (self.dot_node_filter)(self.cgx.region_info.map.get(*r)))
             .map(|(r, _)| r)
             .collect();
         // if self.static_regions.len() > 1 {
@@ -154,13 +163,18 @@ impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
 
     fn edges(&'a self) -> dot::Edges<'a, Edge<'tcx>> {
         let mut edges = Vec::new();
-        for (r, n) in self.graph.all_nodes() {
-            if !(self.dot_filter)(self.cgx.region_info.map.get(r)) {
+        for (sub, n) in self.graph.all_nodes() {
+            let sub_info = self.cgx.region_info.map.get(sub);
+            if !(self.dot_node_filter)(sub_info) {
                 continue;
             }
-            let visited = &mut FxHashSet::from_iter([r]);
-            for (&b, edge) in &n.blocks {
-                edges.extend(self.non_empty_edges(b, r, edge.clone(), visited));
+            let visited = &mut FxHashSet::from_iter([sub]);
+            for (&sup, edge) in &n.blocks {
+                let sup_info = self.cgx.region_info.map.get(sup);
+                if !(self.dot_edge_filter)(sup_info, sub_info) {
+                    continue;
+                }
+                edges.extend(self.non_empty_edges(sup, sub, edge.clone(), visited));
             }
         }
         Cow::Owned(edges)

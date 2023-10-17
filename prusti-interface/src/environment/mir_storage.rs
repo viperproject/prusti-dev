@@ -7,6 +7,7 @@
 //! `'tcx`.
 
 use prusti_rustc_interface::{
+    index::IndexVec,
     borrowck::consumers::BodyWithBorrowckFacts,
     data_structures::fx::FxHashMap,
     hir::def_id::LocalDefId,
@@ -19,7 +20,7 @@ thread_local! {
         RefCell<FxHashMap<LocalDefId, BodyWithBorrowckFacts<'static>>> =
         RefCell::new(FxHashMap::default());
     pub static SHARED_STATE_WITHOUT_FACTS:
-        RefCell<FxHashMap<LocalDefId, mir::Body<'static>>> =
+        RefCell<FxHashMap<LocalDefId, (mir::Body<'static>, IndexVec<mir::Promoted, mir::Body<'static>>)>> =
         RefCell::new(FxHashMap::default());
 }
 
@@ -66,12 +67,14 @@ pub unsafe fn store_promoted_mir_body<'tcx>(
     _tcx: TyCtxt<'tcx>,
     def_id: LocalDefId,
     body: mir::Body<'tcx>,
+    promoted: IndexVec<mir::Promoted, mir::Body<'tcx>>,
 ) {
     // SAFETY: See the module level comment.
     let body: mir::Body<'static> = unsafe { std::mem::transmute(body) };
+    let promoted: IndexVec<mir::Promoted, mir::Body<'static>> = unsafe { std::mem::transmute(promoted) };
     SHARED_STATE_WITHOUT_FACTS.with(|state| {
         let mut map = state.borrow_mut();
-        assert!(map.insert(def_id, body).is_none());
+        assert!(map.insert(def_id, (body, promoted)).is_none());
     });
 }
 
@@ -79,8 +82,8 @@ pub unsafe fn store_promoted_mir_body<'tcx>(
 pub(super) unsafe fn retrieve_promoted_mir_body<'tcx>(
     _tcx: TyCtxt<'tcx>,
     def_id: LocalDefId,
-) -> mir::Body<'tcx> {
-    let body_without_facts: mir::Body<'static> = SHARED_STATE_WITHOUT_FACTS.with(|state| {
+) -> (mir::Body<'tcx>, IndexVec<mir::Promoted, mir::Body<'tcx>>) {
+    let body_without_facts: (mir::Body<'static>, IndexVec<mir::Promoted, mir::Body<'static>>) = SHARED_STATE_WITHOUT_FACTS.with(|state| {
         let mut map = state.borrow_mut();
         map.remove(&def_id).unwrap()
     });

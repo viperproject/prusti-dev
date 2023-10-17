@@ -11,10 +11,11 @@ use crate::{
 };
 use log::{debug, trace};
 use prusti_rustc_interface::{
+    index::IndexVec,
     data_structures::fx::{FxHashMap, FxHashSet},
     hir::def_id,
     middle::{
-        mir::{self, AggregateKind, BasicBlock, BasicBlockData, Body, Rvalue, StatementKind},
+        mir::{self, AggregateKind, BasicBlock, BasicBlockData, Body, Rvalue, StatementKind, Promoted},
         ty::{Ty, TyCtxt},
     },
     span::Span,
@@ -135,6 +136,10 @@ impl<'tcx> Procedure<'tcx> {
 
     pub fn get_mir_rc(&self) -> std::rc::Rc<Body<'tcx>> {
         self.mir.body()
+    }
+
+    pub fn get_promoted_rc(&self) -> std::rc::Rc<IndexVec<Promoted, Body<'tcx>>> {
+        self.mir.promoted()
     }
 
     /// Get the typing context.
