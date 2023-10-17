@@ -226,6 +226,7 @@ impl<'tcx> ConstantRegionCollector<'_, '_, 'tcx> {
     }
 
     fn set_region(&mut self, r: RegionVid, kind: RegionKind<'tcx>) {
+        assert!(self.promoted_idx == Promote::NotPromoted || kind.promoted(), "{kind:?} {r:?}");
         self.map.set(r, kind);
         if let Some(regions_set) = &mut self.regions_set {
             *regions_set += 1;
@@ -388,7 +389,6 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for ConstantRegionCollector<'_, '_, 'tcx> {
             return ControlFlow::Continue(());
         }
         let kind = self.inner_kind.clone().unwrap();
-        assert!(self.promoted_idx == Promote::NotPromoted || kind.promoted(), "{kind:?} {r:?}");
         self.set_region(r.as_var(), kind);
         ControlFlow::Continue(())
     }
