@@ -64,21 +64,22 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
         // Consistency
         fpcs.summary.consistency_check(rp);
         for (statement_index, stmt) in data.statements.iter().enumerate() {
-            let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(cg_state.mk_capability_upper_bound());
-            fpcs_cursor.set_bound(unsafe { std::mem::transmute(bound) });
             let loc = Location {
                 block,
                 statement_index,
             };
-            let fpcs_after = fpcs_cursor.next(loc);
-            assert_eq!(fpcs_after.location, loc);
-            fpcs_cursor.unset_bound();
-
             let cg_before = cg.before_next(loc);
             // Couplings
             for c in cg_before.couplings {
                 c.update_free(&mut cg_state, false);
             }
+
+            let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(cg_state.mk_capability_upper_bound());
+            fpcs_cursor.set_bound(unsafe { std::mem::transmute(bound) });
+            let fpcs_after = fpcs_cursor.next(loc);
+            assert_eq!(fpcs_after.location, loc);
+            fpcs_cursor.unset_bound();
+
             // Repacks
             for op in fpcs_after.repacks {
                 op.update_free(&mut fpcs.summary, false, rp);
@@ -105,21 +106,22 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
             }
             assert!(cg_state.compare(&cg_after.state), "{loc:?}");
         }
-        let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(cg_state.mk_capability_upper_bound());
-        fpcs_cursor.set_bound(unsafe { std::mem::transmute(bound) });
         let loc = Location {
             block,
             statement_index: data.statements.len(),
         };
-        let fpcs_after = fpcs_cursor.next(loc);
-        assert_eq!(fpcs_after.location, loc);
-        fpcs_cursor.unset_bound();
-
         let cg_before = cg.before_next(loc);
         // Couplings
         for c in cg_before.couplings {
             c.update_free(&mut cg_state, false);
         }
+
+        let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(cg_state.mk_capability_upper_bound());
+        fpcs_cursor.set_bound(unsafe { std::mem::transmute(bound) });
+        let fpcs_after = fpcs_cursor.next(loc);
+        assert_eq!(fpcs_after.location, loc);
+        fpcs_cursor.unset_bound();
+
         // Repacks
         for op in fpcs_after.repacks {
             op.update_free(&mut fpcs.summary, false, rp);
@@ -195,9 +197,9 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
     fn compare(&self, other: &Graph) -> bool {
         for (sub, v) in self.blocks.iter_enumerated() {
             let sub_info = self.cgx.region_info.map.get(sub);
-            if let Some(brrw) = sub_info.get_borrow() {
+            if sub_info.is_borrow() {
                 if !v.is_empty() {
-                    println!("{sub:?} ({brrw:?}) blocks: {v:?}");
+                    println!("{sub:?} ({:?}) blocks: {v:?}", sub_info.get_borrow());
                     return false;
                 }
             } else {

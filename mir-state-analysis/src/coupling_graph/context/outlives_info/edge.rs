@@ -86,7 +86,7 @@ impl<'tcx> EdgeInfo<'tcx> {
                 EdgeKind::FnCallReturn
             }
             _ if sub_info.is_borrow() || sub_info.is_projection_annotation() => {
-                if sub_info.is_borrow() {
+                if let Some(_) = sub_info.get_borrow() {
                     assert!(matches!(stmt.unwrap(), StatementKind::Assign(box (_, Rvalue::Ref(..)))));
                 }
                 // assert_eq!(sup_info.get_place().unwrap(), sub_info.get_borrow_or_projection_local().unwrap());
