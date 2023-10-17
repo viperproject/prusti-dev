@@ -12,9 +12,9 @@ use prusti_rustc_interface::{
 use crate::{
     free_pcs::{
         engine::FreePlaceCapabilitySummary, join_semi_lattice::RepackingJoinSemiLattice,
-        CapabilitySummary, RepackOp,
+        CapabilitySummary, RepackOp, CapabilityKind,
     },
-    utils::PlaceRepacker,
+    utils::{PlaceRepacker, Place},
 };
 
 type Cursor<'mir, 'tcx> = ResultsCursor<'mir, 'tcx, FreePlaceCapabilitySummary<'mir, 'tcx>>;
@@ -57,6 +57,15 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         self.cursor.results().analysis.0
     }
 
+    pub fn set_bound_non_empty(&self) {
+        self.cursor.get().bound.borrow_mut().1 = true;
+    }
+    pub fn set_bound(&self, bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind>) {
+        self.cursor.get().bound.borrow_mut().0 = Some(bound);
+    }
+    pub fn unset_bound(&self) {
+        self.cursor.get().bound.borrow_mut().0 = None;
+    }
     pub fn initial_state(&self) -> &CapabilitySummary<'tcx> {
         &self.cursor.get().summary
     }

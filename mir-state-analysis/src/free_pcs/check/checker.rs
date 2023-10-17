@@ -11,13 +11,14 @@ use prusti_rustc_interface::{
 
 use crate::{
     free_pcs::{
-        CapabilityKind, CapabilityLocal, CapabilitySummary, Fpcs, FreePcsAnalysis, RepackOp,
+        CapabilityKind, CapabilityLocal, CapabilitySummary, Fpcs, FreePcsAnalysis, RepackOp, FpcsBound,
     },
     utils::PlaceRepacker,
 };
 
-use super::consistency::CapabilityConistency;
+use super::consistency::CapabilityConsistency;
 
+#[tracing::instrument(name = "check", level = "debug", skip(cursor))]
 pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
     let rp = cursor.repacker();
     let body = rp.body();
@@ -28,6 +29,7 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
             bottom: false,
             repackings: Vec::new(),
             repacker: rp,
+            bound: FpcsBound::empty(false),
         };
         // Consistency
         fpcs.summary.consistency_check(rp);
@@ -89,8 +91,8 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
 }
 
 impl<'tcx> RepackOp<'tcx> {
-    #[tracing::instrument(level = "debug", skip(rp))]
-    fn update_free(
+    #[tracing::instrument(name = "RepackOp::update_free", level = "debug", skip(rp))]
+    pub(crate) fn update_free(
         self,
         state: &mut CapabilitySummary<'tcx>,
         is_cleanup: bool,

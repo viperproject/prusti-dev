@@ -9,11 +9,12 @@ use crate::{
     utils::{Place, PlaceRepacker},
 };
 
-pub trait CapabilityConistency<'tcx> {
+pub trait CapabilityConsistency<'tcx> {
     fn consistency_check(&self, repacker: PlaceRepacker<'_, 'tcx>);
 }
 
-impl<'tcx, T: CapabilityConistency<'tcx>> CapabilityConistency<'tcx> for Summary<T> {
+impl<'tcx, T: CapabilityConsistency<'tcx>> CapabilityConsistency<'tcx> for Summary<T> {
+    #[tracing::instrument(name = "Summary::consistency_check", level = "trace", skip(self, repacker))]
     fn consistency_check(&self, repacker: PlaceRepacker<'_, 'tcx>) {
         for p in self.iter() {
             p.consistency_check(repacker)
@@ -21,7 +22,7 @@ impl<'tcx, T: CapabilityConistency<'tcx>> CapabilityConistency<'tcx> for Summary
     }
 }
 
-impl<'tcx> CapabilityConistency<'tcx> for CapabilityLocal<'tcx> {
+impl<'tcx> CapabilityConsistency<'tcx> for CapabilityLocal<'tcx> {
     fn consistency_check(&self, repacker: PlaceRepacker<'_, 'tcx>) {
         match self {
             CapabilityLocal::Unallocated => {}
@@ -30,7 +31,7 @@ impl<'tcx> CapabilityConistency<'tcx> for CapabilityLocal<'tcx> {
     }
 }
 
-impl<'tcx> CapabilityConistency<'tcx> for CapabilityProjections<'tcx> {
+impl<'tcx> CapabilityConsistency<'tcx> for CapabilityProjections<'tcx> {
     fn consistency_check(&self, repacker: PlaceRepacker<'_, 'tcx>) {
         // All keys unrelated to each other
         let keys = self.keys().copied().collect::<Vec<_>>();

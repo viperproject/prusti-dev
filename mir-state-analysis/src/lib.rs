@@ -14,16 +14,18 @@ pub mod r#loop;
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
+    index::IndexVec,
     dataflow::Analysis,
-    middle::{mir::Body, ty::TyCtxt},
+    middle::{mir::{Body, START_BLOCK, Promoted}, ty::TyCtxt},
 };
 
 #[tracing::instrument(name = "run_free_pcs", level = "debug", skip(tcx))]
 pub fn run_free_pcs<'mir, 'tcx>(
     mir: &'mir Body<'tcx>,
+    promoted: &'mir IndexVec<Promoted, Body<'tcx>>,
     tcx: TyCtxt<'tcx>,
 ) -> free_pcs::FreePcsAnalysis<'mir, 'tcx> {
-    let fpcs = free_pcs::engine::FreePlaceCapabilitySummary::new(tcx, mir);
+    let fpcs = free_pcs::engine::FreePlaceCapabilitySummary::new(tcx, mir, promoted);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("free_pcs")
@@ -31,46 +33,55 @@ pub fn run_free_pcs<'mir, 'tcx>(
     free_pcs::FreePcsAnalysis::new(analysis.into_results_cursor(mir))
 }
 
-pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, tcx: TyCtxt<'tcx>) {
-    let analysis = run_free_pcs(mir, tcx);
+pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, promoted: &IndexVec<Promoted, Body<'tcx>>, tcx: TyCtxt<'tcx>) {
+    let analysis = run_free_pcs(mir, promoted, tcx);
     free_pcs::check(analysis);
 }
 
-#[tracing::instrument(name = "run_coupling_graph", level = "debug", skip(facts, facts2, tcx))]
+#[tracing::instrument(name = "run_coupling_graph", level = "debug", skip(tcx))]
 pub fn run_coupling_graph<'mir, 'tcx>(
     mir: &'mir Body<'tcx>,
-    facts: &'mir BorrowckFacts,
-    facts2: &'mir BorrowckFacts2<'tcx>,
+    cgx: &'mir coupling_graph::CgContext<'mir, 'tcx>,
     tcx: TyCtxt<'tcx>,
     top_crates: bool,
-) {
+) -> coupling_graph::cursor::CgAnalysis<'mir, 'mir, 'tcx> {
     // if tcx.item_name(mir.source.def_id()).as_str().starts_with("main") {
     //     return;
     // }
-    // if !format!("{:?}", mir.source.def_id()).ends_with("serialize_adjacently_tagged_variant)") {
-    //     println!("{:?}", mir.source.def_id());
-    //     return;
-    // }
-    let cgx = coupling_graph::CgContext::new(tcx, mir, facts, facts2);
-    let fpcs = coupling_graph::engine::CoupligGraph::new(&cgx, top_crates);
+    let fpcs = coupling_graph::engine::CouplingGraph::new(&cgx, top_crates);
     let analysis = fpcs
         .into_engine(tcx, mir)
         .pass_name("coupling_graph")
         .iterate_to_fixpoint();
-    let c = analysis.into_results_cursor(mir);
+    let mut c = analysis.into_results_cursor(mir);
     if cfg!(debug_assertions) && !top_crates {
-        coupling_graph::engine::draw_dots(c);
+        coupling_graph::engine::draw_dots(&mut c);
     }
-    // panic!()
+    c.seek_to_block_start(START_BLOCK);
+    coupling_graph::cursor::CgAnalysis::new(c)
 }
 
 pub fn test_coupling_graph<'tcx>(
     mir: &Body<'tcx>,
+    promoted: &IndexVec<Promoted, Body<'tcx>>,
     facts: &BorrowckFacts,
     facts2: &BorrowckFacts2<'tcx>,
     tcx: TyCtxt<'tcx>,
     top_crates: bool,
 ) {
-    let analysis = run_coupling_graph(mir, facts, facts2, tcx, top_crates);
-    // free_pcs::check(analysis);
+    // println!("{:?}", mir.source.def_id());
+    // if !format!("{:?}", mir.source.def_id())
+    //     .ends_with("parse_delimited)")
+    // {
+    //     return;
+    // }
+
+
+    let fpcs_analysis = run_free_pcs(mir, promoted, tcx);
+    let cgx = coupling_graph::CgContext::new(tcx, mir, promoted, facts, facts2);
+    let cg_analysis = run_coupling_graph(mir, &cgx, tcx, top_crates);
+    coupling_graph::check(cg_analysis, fpcs_analysis);
+
+
+    // panic!()
 }

@@ -32,7 +32,7 @@ impl<'tcx> Debug for PlaceDisplay<'tcx> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             PlaceDisplay::Temporary(place) => write!(f, "{place:?}"),
-            PlaceDisplay::User(place, s) => write!(f, "{place:?} <<{s}>>"),
+            PlaceDisplay::User(place, s) => write!(f, "{place:?} = {s}"),
         }
     }
 }
