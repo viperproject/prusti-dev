@@ -26,7 +26,7 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    coupling_graph::{CgContext, outlives_info::edge::EdgeInfo},
+    coupling_graph::{CgContext, outlives_info::edge::{EdgeInfo, EdgeOrigin}},
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
@@ -40,6 +40,8 @@ pub struct Graph<'tcx> {
     pub nodes: IndexVec<RegionVid, Node<'tcx>>,
     // Regions equal to 'static
     pub static_regions: FxHashSet<RegionVid>,
+    // Two-phase loans waiting to activate
+    pub inactive_loans: FxHashSet<RegionVid>,
 }
 
 impl<'tcx> Graph<'tcx> {
@@ -48,28 +50,53 @@ impl<'tcx> Graph<'tcx> {
         self.outlives_inner(vec![c.into()])
     }
     #[tracing::instrument(name = "Graph::outlives_placeholder", level = "trace", skip(self), ret)]
-    pub fn outlives_placeholder(&mut self, sup: RegionVid, sub: RegionVid) -> Option<(RegionVid, RegionVid)> {
-        let edge = EdgeInfo::no_reason(sup, sub, None);
+    pub fn outlives_placeholder(&mut self, sup: RegionVid, sub: RegionVid, origin: EdgeOrigin) -> Option<(RegionVid, RegionVid)> {
+        let edge = EdgeInfo::no_reason(sup, sub, None, origin);
         self.outlives_inner(vec![edge])
     }
 
     // sup outlives sub, or `sup: sub` (i.e. sup gets blocked)
     #[tracing::instrument(name = "Graph::outlives_inner", level = "trace", skip(self), ret)]
-    pub(crate) fn outlives_inner(
+    fn outlives_inner(
         &mut self,
         edge: Vec<EdgeInfo<'tcx>>,
     ) -> Option<(RegionVid, RegionVid)>  {
+        let (sup, sub) = self.outlives_unwrap_edge(&edge);
+        self.nodes[sup].blocked_by.insert(sub);
+        let blocks = self.nodes[sub].blocks.entry(sup).or_default();
+        if blocks.insert(edge) {
+            Some((sup, sub))
+        } else {
+            None
+        }
+    }
+    fn outlives_unwrap_edge(&mut self, edge: &Vec<EdgeInfo<'tcx>>) -> (RegionVid, RegionVid)  {
         let (sup, sub) = (edge.last().unwrap().sup(), edge.first().unwrap().sub());
         if self.static_regions.contains(&sub) {
             Self::set_static_region(&self.nodes, &mut self.static_regions, sup);
         }
+        (sup, sub)
+    }
+
+    // sup outlives sub, or `sup: sub` (i.e. sup gets blocked)
+    #[tracing::instrument(name = "Graph::outlives_join", level = "trace", skip(self), ret)]
+    pub(super) fn outlives_join(
+        &mut self,
+        edge: Vec<EdgeInfo<'tcx>>,
+    ) -> Option<(RegionVid, RegionVid)>  {
+        let (sup, sub) = self.outlives_unwrap_edge(&edge);
         self.nodes[sup].blocked_by.insert(sub);
-        let old = self.nodes[sub].blocks.entry(sup).or_default();
-        if old.iter().all(|old| EdgeInfo::is_new_edge(&edge, old)) {
-            assert!(old.insert(edge));
-            Some((sup, sub))
-        } else {
+        let blocks = self.nodes[sub].blocks.entry(sup).or_default();
+
+        if blocks.iter().any(|other| EdgeInfo::generalized_by(&edge, other)) {
             None
+        } else {
+            blocks.retain(|other| !EdgeInfo::generalized_by(other, &edge));
+            if blocks.insert(edge) {
+                Some((sup, sub))
+            } else {
+                None
+            }
         }
     }
     fn set_static_region(
@@ -110,6 +137,8 @@ impl<'tcx> Graph<'tcx> {
             for (&sub, sub_reasons) in &blocked_by {
                 // Do not rejoin nodes in a loop to themselves
                 if sub != sup {
+                    // TODO: change this so that we do not need to make opaque
+                    assert!(sup_reasons.len() * sub_reasons.len() < 100);
                     let mut rejoined = None;
                     for sup_reason in &sup_reasons {
                         for sub_reason in sub_reasons {
@@ -141,6 +170,17 @@ impl<'tcx> Graph<'tcx> {
         }
     }
 
+    #[tracing::instrument(name = "Graph::remove_many", level = "trace")]
+    pub fn remove_many(&mut self, rs: &FxHashSet<RegionVid>) -> Vec<(RegionVid, Vec<(RegionVid, RegionVid)>)> {
+        for &r in rs {
+            if self.predecessors(r).iter().all(|pre| rs.contains(pre)) || self.successors(r).iter().all(|suc| rs.contains(suc)) {
+                self.static_regions.remove(&r);
+                self.remove_all_edges(r);
+            }
+        }
+        rs.iter().flat_map(|r| self.remove(*r)).collect()
+    }
+
     pub(crate) fn all_nodes(&self) -> impl Iterator<Item = (RegionVid, &Node<'tcx>)> {
         self.nodes
             .iter_enumerated()
@@ -161,6 +201,29 @@ impl<'tcx> Graph<'tcx> {
         let blocked_by = std::mem::replace(&mut self.nodes[r].blocked_by, FxHashSet::default());
         let blocked_by = blocked_by.into_iter().map(|bb| (bb, self.nodes[bb].blocks.remove(&r).unwrap())).collect();
         (blocks, blocked_by)
+    }
+
+    fn predecessors(&self, r: RegionVid) -> FxHashSet<RegionVid> {
+        let mut predecessors = FxHashSet::default();
+        self.predecessors_helper(r, &mut predecessors);
+        predecessors
+    }
+    fn predecessors_helper(&self, r: RegionVid, visited: &mut FxHashSet<RegionVid>) {
+        let tp: Vec<_> = self.nodes[r].blocked_by.iter().copied().filter(|r| visited.insert(*r)).collect();
+        for r in tp {
+            self.predecessors_helper(r, visited)
+        }
+    }
+    fn successors(&self, r: RegionVid) -> FxHashSet<RegionVid> {
+        let mut successors = FxHashSet::default();
+        self.successors_helper(r, &mut successors);
+        successors
+    }
+    fn successors_helper(&self, r: RegionVid, visited: &mut FxHashSet<RegionVid>) {
+        let tp: Vec<_> = self.nodes[r].blocks.iter().map(|(r, _)| *r).filter(|r| visited.insert(*r)).collect();
+        for r in tp {
+            self.successors_helper(r, visited)
+        }
     }
 }
 

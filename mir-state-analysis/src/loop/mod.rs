@@ -44,6 +44,14 @@ impl LoopSet {
         assert!(idx < self.data.len());
         self.data[idx] &= !(1 << (loop_idx % Self::OFFSET));
     }
+    fn contains(&self, loop_idx: LoopId) -> bool {
+        let loop_idx = loop_idx.index();
+        let idx = loop_idx / Self::OFFSET;
+        if idx >= self.data.len() {
+            return false;
+        }
+        self.data[idx] & (1 << (loop_idx % Self::OFFSET)) != 0
+    }
     fn iter(&self) -> impl DoubleEndedIterator<Item = LoopId> + '_ {
         self.data.iter().enumerate().flat_map(|(idx, &val)| {
             let to = if val == 0 { 0 } else { Self::OFFSET };
@@ -105,6 +113,9 @@ impl LoopAnalysis {
         }
         analysis
     }
+    pub fn in_loop(&self, bb: BasicBlock, l: LoopId) -> bool {
+        self.bb_data[bb].contains(l)
+    }
     pub fn loops(&self, bb: BasicBlock) -> impl DoubleEndedIterator<Item = LoopId> + '_ {
         self.bb_data[bb].iter()
     }
@@ -122,6 +133,10 @@ impl LoopAnalysis {
     pub fn innermost_loop(&self, bb: BasicBlock) -> Option<LoopId> {
         self.loops(bb).max_by_key(|l| self.loop_nest_depth(*l))
     }
+    /// If `bb` is a loop head, return the loop for which it is the head.
+    pub fn loop_head_of(&self, bb: BasicBlock) -> Option<LoopId> {
+        self.loops(bb).find(|l| self[*l] == bb)
+    }
 
     fn consistency_check(&self) {
         // Start block can be in a maximum of one loop, of which it is the head
@@ -130,6 +145,10 @@ impl LoopAnalysis {
             assert_eq!(self[l], START_BLOCK);
         }
         assert!(start_loops.is_empty());
+        // A bb can only be the loop head of a single loop
+        for lh in &self.loop_heads {
+            assert_eq!(self.loop_heads.iter().filter(|other| *other == lh).count(), 1);
+        }
     }
 }
 

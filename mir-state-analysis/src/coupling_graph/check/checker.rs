@@ -9,7 +9,7 @@ use prusti_rustc_interface::{
     index::IndexVec,
     data_structures::fx::{FxHashMap, FxHashSet},
     middle::{
-        mir::{visit::Visitor, Location, ProjectionElem, BorrowKind},
+        mir::{visit::Visitor, Location, ProjectionElem, BorrowKind, Statement},
         ty::RegionVid,
     },
     borrowck::borrow_set::BorrowData,
@@ -27,6 +27,7 @@ use crate::free_pcs::consistency::CapabilityConsistency;
 struct CouplingState<'a, 'tcx> {
     blocks: IndexVec<RegionVid, FxHashSet<RegionVid>>,
     blocked_by: IndexVec<RegionVid, FxHashSet<RegionVid>>,
+    waiting_to_activate: FxHashSet<RegionVid>,
     cgx: &'a CgContext<'a, 'tcx>,
 }
 
@@ -48,6 +49,7 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
         let mut cg_state = CouplingState {
             blocks: IndexVec::from_elem_n(FxHashSet::default(), cgx.region_info.map.region_len()),
             blocked_by: IndexVec::from_elem_n(FxHashSet::default(), cgx.region_info.map.region_len()),
+            waiting_to_activate: FxHashSet::default(),
             cgx,
         };
         cg_state.initialize(&cg.initial_state());
@@ -68,43 +70,7 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
                 block,
                 statement_index,
             };
-            let cg_before = cg.before_next(loc);
-            // Couplings
-            for c in cg_before.couplings {
-                c.update_free(&mut cg_state, false);
-            }
-
-            let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(cg_state.mk_capability_upper_bound());
-            fpcs_cursor.set_bound(unsafe { std::mem::transmute(bound) });
-            let fpcs_after = fpcs_cursor.next(loc);
-            assert_eq!(fpcs_after.location, loc);
-            fpcs_cursor.unset_bound();
-
-            // Repacks
-            for op in fpcs_after.repacks {
-                op.update_free(&mut fpcs.summary, false, rp);
-            }
-            // Couplings bound set
-            let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(cg_state.mk_capability_upper_bound());
-            fpcs.bound.borrow_mut().0 = Some(unsafe { std::mem::transmute(bound) }); // Extend lifetimes (safe since we unset it later)
-            // Consistency
-            fpcs.summary.consistency_check(rp);
-            // Statement
-            assert!(fpcs.repackings.is_empty());
-            fpcs.visit_statement(stmt, loc);
-            assert!(fpcs.repackings.is_empty());
-            // Consistency
-            fpcs.summary.consistency_check(rp);
-            // Couplings bound unset
-            fpcs.bound.borrow_mut().0 = None;
-
-            // Only apply coupling ops after
-            let cg_after = cg.next(loc);
-            // Couplings
-            for c in cg_after.couplings {
-                c.update_free(&mut cg_state, false);
-            }
-            assert!(cg_state.compare(&cg_after.state), "{loc:?}");
+            cg_state.check_location(loc, stmt, &mut fpcs, &mut cg, &mut fpcs_cursor);
         }
         let loc = Location {
             block,
@@ -191,6 +157,50 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
                 self.blocked_by[*sup].insert(sub);
             }
         }
+        self.waiting_to_activate = graph.inactive_loans.clone();
+    }
+
+    #[tracing::instrument(name = "CouplingState::check_location", level = "trace", skip(self, stmt, cg, fpcs, fpcs_cursor))]
+    fn check_location(&mut self, loc: Location, stmt: &Statement<'tcx>, fpcs: &mut Fpcs<'_, 'tcx>, cg: &mut CgAnalysis<'_, '_, 'tcx>, fpcs_cursor: &mut FreePcsAnalysis<'_, 'tcx>) {
+        let rp = self.cgx.rp;
+
+        let cg_before = cg.before_next(loc);
+        // Couplings
+        for c in cg_before.couplings {
+            c.update_free(self, false);
+        }
+
+        let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(self.mk_capability_upper_bound());
+        fpcs_cursor.set_bound(unsafe { std::mem::transmute(bound) });
+        let fpcs_after = fpcs_cursor.next(loc);
+        assert_eq!(fpcs_after.location, loc);
+        fpcs_cursor.unset_bound();
+
+        // Repacks
+        for op in fpcs_after.repacks {
+            op.update_free(&mut fpcs.summary, false, rp);
+        }
+        // Couplings bound set
+        let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> = Box::new(self.mk_capability_upper_bound());
+        fpcs.bound.borrow_mut().0 = Some(unsafe { std::mem::transmute(bound) }); // Extend lifetimes (safe since we unset it later)
+        // Consistency
+        fpcs.summary.consistency_check(rp);
+        // Statement
+        assert!(fpcs.repackings.is_empty());
+        fpcs.visit_statement(stmt, loc);
+        assert!(fpcs.repackings.is_empty());
+        // Consistency
+        fpcs.summary.consistency_check(rp);
+        // Couplings bound unset
+        fpcs.bound.borrow_mut().0 = None;
+
+        // Only apply coupling ops after
+        let cg_after = cg.next(loc);
+        // Couplings
+        for c in cg_after.couplings {
+            c.update_free(self, false);
+        }
+        assert!(self.compare(&cg_after.state), "{loc:?}");
     }
 
     #[tracing::instrument(name = "compare", level = "trace")]
@@ -252,7 +262,7 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
     fn active_borrows(&self) -> impl Iterator<Item = &BorrowData<'tcx>> + '_ {
         self.blocked_by
             .iter_enumerated()
-            .filter(|(_, blockers)| !blockers.is_empty())
+            .filter(|(region, blockers)| !blockers.is_empty() && !self.waiting_to_activate.contains(region))
             .flat_map(move |(region, _)| self.cgx.region_info.map.get(region).get_borrow())
     }
     fn has_real_blockers(&self, region: RegionVid) -> bool {
@@ -310,18 +320,25 @@ impl CouplingOp {
         match self {
             CouplingOp::Add(block) => block.update_free(cg_state, is_cleanup),
             CouplingOp::Remove(remove, new_blocks) => {
-                let blocks = std::mem::replace(&mut cg_state.blocks[*remove], FxHashSet::default());
-                for block in blocks {
-                    cg_state.blocked_by[block].remove(&remove);
-                }
-                let blocked_by = std::mem::replace(&mut cg_state.blocked_by[*remove], FxHashSet::default());
-                for block_by in blocked_by {
-                    cg_state.blocks[block_by].remove(&remove);
-                }
+                Self::remove(cg_state, *remove);
                 for block in new_blocks {
                     block.update_free(cg_state, is_cleanup);
                 }
             }
+            CouplingOp::Activate(region) => {
+                let contained = cg_state.waiting_to_activate.remove(region);
+                assert!(contained);
+            }
+        }
+    }
+    fn remove(cg_state: &mut CouplingState, remove: RegionVid) {
+        let blocks = std::mem::replace(&mut cg_state.blocks[remove], FxHashSet::default());
+        for block in blocks {
+            cg_state.blocked_by[block].remove(&remove);
+        }
+        let blocked_by = std::mem::replace(&mut cg_state.blocked_by[remove], FxHashSet::default());
+        for block_by in blocked_by {
+            cg_state.blocks[block_by].remove(&remove);
         }
     }
 }
@@ -332,8 +349,11 @@ impl Block {
         cg_state: &mut CouplingState,
         is_cleanup: bool,
     ) {
-        let Block { sup, sub } = self;
+        let Block { sup, sub, waiting_to_activate } = self;
         assert!(!cg_state.cgx.region_info.map.get(sub).is_borrow());
+        if waiting_to_activate && cg_state.waiting_to_activate.insert(sup) {
+            assert!(cg_state.blocked_by[sup].is_empty());
+        }
         cg_state.blocks[sub].insert(sup);
         cg_state.blocked_by[sup].insert(sub);
     }
