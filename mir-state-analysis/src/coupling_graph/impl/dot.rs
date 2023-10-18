@@ -12,7 +12,7 @@ use prusti_rustc_interface::{
     dataflow::fmt::DebugWithContext,
     index::{bit_set::BitSet, IndexVec},
     middle::{
-        mir::{BorrowKind, ConstraintCategory, Local},
+        mir::{BorrowKind, ConstraintCategory, Local, BasicBlock},
         ty::{RegionVid, TyKind},
     },
 };
@@ -36,11 +36,11 @@ impl<'tcx> Edge<'tcx> {
 
 impl<'a, 'tcx> Cg<'a, 'tcx> {
     fn get_id(&self) -> String {
-        if let Some(id) = &self.id {
-            let pre = if self.is_pre { "_pre" } else { "" };
-            format!("{id:?}{pre}").replace('[', "_").replace(']', "")
-        } else {
+        if self.location.block == BasicBlock::MAX {
             "start".to_string()
+        } else {
+            let pre = if self.is_pre { "_pre" } else { "" };
+            format!("{:?}{pre}", self.location).replace('[', "_").replace(']', "")
         }
     }
 }
@@ -113,6 +113,8 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
         let kind = self.get_kind(*r);
         if kind.universal() {
             Some(dot::LabelText::LabelStr(Cow::Borrowed("red")))
+        } else if self.graph.inactive_loans.contains(r) {
+            Some(dot::LabelText::LabelStr(Cow::Borrowed("blue")))
         } else {
             None
         }

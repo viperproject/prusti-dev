@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::cell::RefCell;
+use std::cell::{RefCell, Cell};
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
@@ -48,7 +48,8 @@ pub(crate) fn draw_dots<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<
     let mut graph = Vec::new();
     let body = c.body();
     c.seek_to_block_start(START_BLOCK);
-    let g = c.get().clone();
+    let mut g = c.get().clone();
+    g.location.block = BasicBlock::MAX;
     dot::render(&g, &mut graph).unwrap();
 
     for (block, data) in body.basic_blocks.iter_enumerated() {
@@ -59,7 +60,6 @@ pub(crate) fn draw_dots<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<
         let mut g = c.get().clone();
         g.dot_node_filter = |k| k.local();
         g.dot_edge_filter = |sup, sub| !(sup.local() && sub.universal());
-        g.id = Some(Location { block, statement_index: 0 });
         dot::render(&g, &mut graph).unwrap();
         drop(g);
         for statement_index in 0..body.terminator_loc(block).statement_index {
@@ -105,6 +105,7 @@ fn print_after_loc<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<'a, '
 
 pub(crate) struct CouplingGraph<'a, 'tcx> {
     pub(crate) cgx: &'a CgContext<'a, 'tcx>,
+    bb_index: Cell<BasicBlock>,
     out_of_scope: FxIndexMap<Location, Vec<BorrowIndex>>,
     flow_borrows: RefCell<ResultsCursor<'a, 'tcx, Borrows<'a, 'tcx>>>,
     top_crates: bool,
@@ -158,6 +159,7 @@ impl<'a, 'tcx> CouplingGraph<'a, 'tcx> {
 
         Self {
             cgx,
+            bb_index: Cell::new(START_BLOCK),
             out_of_scope,
             flow_borrows: RefCell::new(flow_borrows),
             top_crates,
@@ -170,10 +172,13 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CouplingGraph<'a, 'tcx> {
     const NAME: &'static str = "coupling_graph";
 
     fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-        Cg::new(self.cgx, self.top_crates)
+        let block = self.bb_index.get();
+        self.bb_index.set(block.plus(1));
+        Cg::new(self.cgx, self.top_crates, Location { block, statement_index: 0 })
     }
 
     fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
+        self.bb_index.set(START_BLOCK);
         state.initialize_start_block()
     }
 }
@@ -186,8 +191,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
         statement: &Statement<'tcx>,
         location: Location,
     ) {
-        // println!("Location: {l}");
-        state.id = Some(location);
+        assert_eq!(state.location, location);
         state.reset_ops();
 
         if location.statement_index == 0 {
@@ -195,7 +199,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             // println!("\nblock: {:?}", location.block);
             let l = format!("{location:?}").replace('[', "_").replace(']', "");
             state.output_to_dot(
-                format!("log/coupling/individual/{l}_v{}_start.dot", state.max_version()),
+                format!("log/coupling/individual/{l}_v{}_start.dot", state.sum_version()),
                 false,
             );
             self.flow_borrows
@@ -227,9 +231,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
 
         let l = format!("{location:?}").replace('[', "_").replace(']', "");
         state.output_to_dot(
-            format!("log/coupling/individual/{l}_v{}.dot", state.max_version()),
+            format!("log/coupling/individual/{l}_v{}.dot", state.sum_version()),
             false,
         );
+        state.location.statement_index += 1;
     }
 
 
@@ -241,7 +246,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
         location: Location,
     ) {
         // println!("Location: {l}");
-        state.id = Some(location);
+        assert_eq!(state.location, location);
         state.reset_ops();
 
         if location.statement_index == 0 {
@@ -249,7 +254,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             // println!("\nblock: {:?}", location.block);
             let l = format!("{location:?}").replace('[', "_").replace(']', "");
             state.output_to_dot(
-                format!("log/coupling/individual/{l}_v{}_start.dot", state.max_version()),
+                format!("log/coupling/individual/{l}_v{}_start.dot", state.sum_version()),
                 false,
             );
             self.flow_borrows
@@ -284,7 +289,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             TerminatorKind::Return => {
                 let l = format!("{location:?}").replace('[', "_").replace(']', "");
                 state.output_to_dot(
-                    format!("log/coupling/individual/{l}_v{}_pre.dot", state.max_version()),
+                    format!("log/coupling/individual/{l}_v{}_pre.dot", state.sum_version()),
                     false,
                 );
                 // Pretend we have a storage dead for all `always_live_locals` other than the args/return
@@ -310,9 +315,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
 
         let l = format!("{:?}", location).replace('[', "_").replace(']', "");
         state.output_to_dot(
-            format!("log/coupling/individual/{l}_v{}.dot", state.max_version()),
+            format!("log/coupling/individual/{l}_v{}.dot", state.sum_version()),
             false,
         );
+        state.location.statement_index += 1;
         terminator.edges()
     }
 

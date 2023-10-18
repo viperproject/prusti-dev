@@ -28,6 +28,14 @@ use prusti_rustc_interface::{
 use crate::coupling_graph::CgContext;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum EdgeOrigin {
+    Rustc,
+    RustcUniversal,
+    Static,
+    Opaque,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct EdgeInfo<'tcx> {
     /// The region which outlives (usually means blocked)
     sup: RegionVid,
@@ -35,16 +43,20 @@ pub struct EdgeInfo<'tcx> {
     sub: RegionVid,
     pub creation: Option<Location>,
     pub reason: Option<ConstraintCategory<'tcx>>,
+    pub origin: EdgeOrigin,
 }
 
 impl<'tcx> EdgeInfo<'tcx> {
-    pub fn no_reason(sup: RegionVid, sub: RegionVid, creation: Option<Location>) -> Self {
-        assert_ne!(sup, sub);
+    pub fn no_reason(sup: RegionVid, sub: RegionVid, creation: Option<Location>, origin: EdgeOrigin) -> Self {
+        if !matches!(origin, EdgeOrigin::Opaque) {
+            assert_ne!(sup, sub);
+        }
         Self {
             sup,
             sub,
             creation,
             reason: None,
+            origin,
         }
     }
     pub fn sup(self) -> RegionVid {
@@ -52,6 +64,9 @@ impl<'tcx> EdgeInfo<'tcx> {
     }
     pub fn sub(self) -> RegionVid {
         self.sub
+    }
+    pub fn is_opaque(self) -> bool {
+        matches!(self.origin, EdgeOrigin::Opaque)
     }
     pub fn kind(self, cgx: &CgContext<'_, 'tcx>) -> EdgeKind<'tcx> {
         let (sup_info, sub_info) = (cgx.region_info.map.get(self.sup), cgx.region_info.map.get(self.sub));
@@ -86,9 +101,6 @@ impl<'tcx> EdgeInfo<'tcx> {
                 EdgeKind::FnCallReturn
             }
             _ if sub_info.is_borrow() || sub_info.is_projection_annotation() => {
-                if let Some(_) = sub_info.get_borrow() {
-                    assert!(matches!(stmt.unwrap(), StatementKind::Assign(box (_, Rvalue::Ref(..)))));
-                }
                 // assert_eq!(sup_info.get_place().unwrap(), sub_info.get_borrow_or_projection_local().unwrap());
                 EdgeKind::ContainedIn
             }
@@ -99,27 +111,45 @@ impl<'tcx> EdgeInfo<'tcx> {
         edge.iter().map(|e| e.kind(cgx)).collect()
     }
 
-    /// Is the old edge contained in the new edge?
-    pub fn is_new_edge(new: &Vec<Self>, old: &Vec<Self>) -> bool {
-        assert_ne!(old.len(), 0);
-        if new.len() < old.len() {
-            return true;
-        }
-        // TODO: optimize?
-        let mut looking_for = 0;
-        for (idx, elem) in new.iter().enumerate() {
-            if &old[looking_for] == elem {
-                looking_for += 1;
+    pub fn widen(edge: &Vec<Self>, top: impl Fn(RegionVid, RegionVid) -> Self, needs_widening: impl Fn(Location) -> bool) -> Vec<Self> {
+        let mut new_edge = Vec::new();
+        let widen_edge: &mut Option<(RegionVid, RegionVid)> = &mut None;
+        for &e in edge {
+            if e.creation.map(|loc| needs_widening(loc)).unwrap_or_default() {
+                match widen_edge {
+                    Some((_, sup)) => *sup = e.sup,
+                    None => *widen_edge = Some((e.sub, e.sup)),
+                }
+            } else {
+                if let Some((sub, sup)) = widen_edge.take() {
+                    new_edge.push(top(sup, sub));
+                }
+                new_edge.push(e);
             }
-            let left_to_find = old.len() - looking_for;
-            if left_to_find == 0 {
+        }
+        if let Some((sub, sup)) = widen_edge.take() {
+            new_edge.push(top(sup, sub));
+        }
+        new_edge
+    }
+    pub fn generalized_by(target: &Vec<Self>, by: &Vec<Self>) -> bool {
+        let mut looking_for = 0;
+        for elem in target.iter().copied() {
+            if looking_for == by.len() {
+                return false;
+            } else if by[looking_for].is_opaque() {
+                if looking_for == by.len() - 1 {
+                    return true;
+                } else if by[looking_for + 1] == elem {
+                    looking_for += 2;
+                }
+            } else if by[looking_for] == elem {
+                looking_for += 1;
+            } else {
                 return false;
             }
-            if new.len() - idx - 1 < left_to_find {
-                return true;
-            }
         }
-        unreachable!()
+        looking_for == by.len()
     }
 }
 
@@ -153,7 +183,21 @@ impl Display for EdgeInfo<'_> {
             .creation
             .map(|c| format!("{c:?}"))
             .unwrap_or_else(|| "sig".to_string());
-        write!(f, "{creation} ({reason})")
+        match self.origin {
+            EdgeOrigin::Rustc => write!(f, "{creation} ({reason})"),
+            EdgeOrigin::RustcUniversal => {
+                assert!(self.reason.is_none() && self.creation.is_none());
+                write!(f, "universal")
+            }
+            EdgeOrigin::Static => {
+                assert!(self.reason.is_none() && self.creation.is_none());
+                write!(f, "promoted")
+            }
+            EdgeOrigin::Opaque => {
+                assert!(self.reason.is_none() && self.creation.is_some());
+                write!(f, "{creation} (loop)")
+            }
+        }
     }
 }
 
@@ -164,6 +208,7 @@ impl<'tcx> From<OutlivesConstraint<'tcx>> for EdgeInfo<'tcx> {
             sub: c.sub,
             creation: c.locations.from_location(),
             reason: Some(c.category),
+            origin: EdgeOrigin::Rustc,
         }
     }
 }

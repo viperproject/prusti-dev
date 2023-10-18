@@ -13,7 +13,7 @@ use derive_more::{Deref, DerefMut};
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
     borrowck::{
-        borrow_set::BorrowData,
+        borrow_set::{BorrowData, TwoPhaseActivation},
         consumers::{BorrowIndex, OutlivesConstraint, RichLocation},
     },
     data_structures::fx::{FxHashMap, FxHashSet, FxIndexMap, FxIndexSet},
@@ -31,7 +31,7 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    coupling_graph::{region_info::map::{RegionKind, Promote}, CgContext, coupling::{CouplingOp, Block}},
+    coupling_graph::{region_info::map::{RegionKind, Promote}, CgContext, coupling::{CouplingOp, Block}, outlives_info::edge::EdgeOrigin},
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp, CapabilityKind,
     },
@@ -45,7 +45,7 @@ use super::{
 
 #[derive(Clone)]
 pub struct Cg<'a, 'tcx> {
-    pub id: Option<Location>,
+    pub location: Location,
     pub is_pre: bool,
     pub cgx: &'a CgContext<'a, 'tcx>,
 
@@ -64,7 +64,7 @@ pub struct Cg<'a, 'tcx> {
 impl Debug for Cg<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         f.debug_struct("Graph")
-            .field("id", &self.id)
+            .field("location", &self.location)
             .field("version", &self.version)
             // .field("nodes", &self.graph)
             .finish()
@@ -101,15 +101,16 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
     }
 
     #[tracing::instrument(name = "Cg::new", level = "trace", skip_all)]
-    pub fn new(cgx: &'a CgContext<'a, 'tcx>, top_crates: bool) -> Self {
+    pub fn new(cgx: &'a CgContext<'a, 'tcx>, top_crates: bool, location: Location) -> Self {
         let graph = Graph {
             nodes: IndexVec::from_elem_n(Node::new(), cgx.region_info.map.region_len()),
             static_regions: FxHashSet::from_iter([cgx.region_info.static_region]),
+            inactive_loans: FxHashSet::default(),
         };
 
         let live = BitSet::new_empty(cgx.facts2.borrow_set.location_map.len());
         Self {
-            id: None,
+            location,
             is_pre: true,
             cgx,
             live,
@@ -130,10 +131,10 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
             self.outlives(*c);
         }
         for &(sup, sub) in &self.cgx.outlives_info.universal_constraints {
-            self.outlives_placeholder(sup, sub);
+            self.outlives_placeholder(sup, sub, EdgeOrigin::RustcUniversal);
         }
         for &const_region in self.cgx.region_info.map.const_regions() {
-            self.outlives_static(const_region);
+            self.outlives_static(const_region, EdgeOrigin::Static);
         }
         // Remove all locals without capabilities from the initial graph
         self.kill_shared_borrows_on_place(None, RETURN_PLACE.into());
@@ -141,23 +142,23 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
             self.kill_shared_borrows_on_place(None, local.into());
         }
     }
-    pub fn max_version(&self) -> usize {
-        self.version.values().copied().max().unwrap_or_default()
+    pub fn sum_version(&self) -> usize {
+        self.version.values().copied().sum::<usize>()
     }
 
     pub(crate) fn outlives(&mut self, c: OutlivesConstraint<'tcx>) {
         let new = self.graph.outlives(c);
         self.outlives_op(new)
     }
-    pub(crate) fn outlives_static(&mut self, r: RegionVid) {
+    pub(crate) fn outlives_static(&mut self, r: RegionVid, origin: EdgeOrigin) {
         let static_region = self.static_region();
         if r == static_region {
             return;
         }
-        self.outlives_placeholder(r, static_region)
+        self.outlives_placeholder(r, static_region, origin)
     }
-    pub(crate) fn outlives_placeholder(&mut self, r: RegionVid, placeholder: RegionVid) {
-        let new = self.graph.outlives_placeholder(r, placeholder);
+    pub(crate) fn outlives_placeholder(&mut self, r: RegionVid, placeholder: RegionVid, origin: EdgeOrigin) {
+        let new = self.graph.outlives_placeholder(r, placeholder, origin);
         self.outlives_op(new)
     }
     #[tracing::instrument(name = "Cg::outlives_op", level = "trace", skip(self))]
@@ -174,16 +175,34 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
         if sub_info.is_borrow() || (sub_info.universal() && sup_info.local()) {
             None
         } else {
-            Some(Block { sup, sub, })
+            let waiting_to_activate = self.graph.inactive_loans.contains(&sup);
+            Some(Block { sup, sub, waiting_to_activate, })
         }
     }
-    #[tracing::instrument(name = "Cg::remove", level = "trace", skip(self))]
+    #[tracing::instrument(name = "Cg::remove", level = "debug", skip(self))]
     pub(crate) fn remove(&mut self, r: RegionVid, l: Option<Location>) {
         let remove = self.graph.remove(r);
-        if let Some((removed, rejoins)) = remove {
-            let rejoins = rejoins.into_iter().flat_map(|c| self.outlives_to_block(c)).collect();
-            self.couplings.push(CouplingOp::Remove(removed, rejoins));
+        if let Some(op) = remove {
+            self.remove_op(op);
         }
+    }
+    #[tracing::instrument(name = "Cg::outlives_op", level = "trace", skip(self))]
+    fn remove_op(&mut self, op: (RegionVid, Vec<(RegionVid, RegionVid)>)) {
+        let rejoins = op.1.into_iter().flat_map(|c| self.outlives_to_block(c)).collect();
+        self.couplings.push(CouplingOp::Remove(op.0, rejoins));
+    }
+    #[tracing::instrument(name = "Cg::remove", level = "debug", skip(self), ret)]
+    pub(crate) fn remove_many(&mut self, mut r: FxHashSet<RegionVid>) {
+        let ops = self.graph.remove_many(&r);
+        for op in ops {
+            r.remove(&op.0);
+            self.remove_op(op);
+        }
+        for removed in r {
+            self.couplings.push(CouplingOp::Remove(removed, Vec::new()));
+        }
+        // let rejoins = rejoins.into_iter().flat_map(|c| self.outlives_to_block(c)).collect();
+        // self.couplings.push(CouplingOp::RemoveMany(removed, rejoins));
     }
     #[tracing::instrument(name = "Cg::kill_borrow", level = "trace", skip(self))]
     pub(crate) fn kill_borrow(&mut self, data: &BorrowData<'tcx>) {
@@ -267,6 +286,20 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
                 // }
             }
         }
+
+        if let Some(borrow) = self.cgx.facts2.borrow_set.location_map.get(&location) {
+            if let TwoPhaseActivation::ActivatedAt(_) = borrow.activation_location {
+                self.graph.inactive_loans.insert(borrow.region);
+            }
+        }
+        if let Some(activations) = self.cgx.facts2.borrow_set.activation_map.get(&location) {
+            for activated in activations {
+                let borrow = &self.cgx.facts2.borrow_set[*activated];
+                let contained = self.graph.inactive_loans.remove(&borrow.region);
+                assert!(contained);
+                self.couplings.push(CouplingOp::Activate(borrow.region));
+            }
+        }
     }
 
     #[tracing::instrument(name = "handle_outlives", level = "debug", skip(self))]
@@ -339,9 +372,10 @@ impl<'tcx> Visitor<'tcx> for Cg<'_, 'tcx> {
 }
 
 impl<'tcx> Cg<'_, 'tcx> {
-    #[tracing::instrument(name = "Regions::merge_for_return", level = "trace")]
+    #[tracing::instrument(name = "Cg::merge_for_return", level = "debug")]
     pub fn merge_for_return(&mut self, location: Location) {
         let regions: Vec<_> = self.graph.all_nodes().map(|(r, _)| r).collect();
+        let mut to_remove = FxHashSet::default();
         for r in regions {
             let kind = self.cgx.region_info.map.get(r);
             match kind {
@@ -374,9 +408,11 @@ impl<'tcx> Cg<'_, 'tcx> {
                 // Skip unknown empty nodes, we may want to figure out how to deal with them in the future
                 RegionKind::UnknownLocal => (),
             }
-            self.remove(r, None);
+            to_remove.insert(r);
         }
+        self.remove_many(to_remove);
     }
+    #[tracing::instrument(name = "Cg::output_to_dot", level = "debug", skip_all)]
     pub fn output_to_dot<P: AsRef<std::path::Path>>(&self, path: P, error: bool) {
         if cfg!(debug_assertions) && (!self.top_crates || error) {
             std::fs::create_dir_all("log/coupling/individual").unwrap();

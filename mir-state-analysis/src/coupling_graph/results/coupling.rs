@@ -16,6 +16,7 @@ use crate::{free_pcs::CapabilityKind, utils::Place};
 pub enum CouplingOp {
     Add(Block),
     Remove(RegionVid, Vec<Block>),
+    Activate(RegionVid),
 }
 
 impl CouplingOp {
@@ -24,6 +25,7 @@ impl CouplingOp {
             CouplingOp::Add(block) => Box::new([block.sup, block.sub].into_iter()),
             CouplingOp::Remove(remove, block) =>
                 Box::new([*remove].into_iter().chain(block.iter().flat_map(|b| [b.sup, b.sub].into_iter()))),
+            CouplingOp::Activate(region) => Box::new([*region].into_iter()),
         }
     }
 }
@@ -42,6 +44,7 @@ impl Display for CouplingOp {
                 }
                 write!(f, "}})")
             }
+            CouplingOp::Activate(region) => write!(f, "Activate({region:?})"),
         }
     }
 }
@@ -53,10 +56,11 @@ pub struct Block {
     /// The region that must be outlived (is blocking)
     pub sub: RegionVid,
     // pub kind: CapabilityKind,
+    pub waiting_to_activate: bool,
 }
 impl Display for Block {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        let Block { sup, sub } = self;
-        write!(f, "Block({sup:?}, {sub:?})")
+        let Block { sup, sub, waiting_to_activate } = *self;
+        write!(f, "Block({sup:?}, {sub:?}){}", if waiting_to_activate { "?" } else { "" })
     }
 }
