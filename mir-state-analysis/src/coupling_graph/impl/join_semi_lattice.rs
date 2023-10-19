@@ -15,7 +15,7 @@ use crate::{
     free_pcs::{
         CapabilityKind, CapabilityLocal, CapabilityProjections, CapabilitySummary, Fpcs, RepackOp,
     },
-    utils::{PlaceOrdering, PlaceRepacker}, coupling_graph::{coupling::{CouplingOp, Block}, consistency::CouplingConsistency, outlives_info::edge::{EdgeInfo, EdgeOrigin}},
+    utils::{PlaceOrdering, PlaceRepacker}, coupling_graph::{coupling::{CouplingOp, Block}, consistency::CouplingConsistency, outlives_info::edge::{EdgeInfo, EdgeOrigin, Edge}},
 };
 
 use super::{graph::Graph, triple::Cg};
@@ -28,7 +28,7 @@ impl JoinSemiLattice for Cg<'_, '_> {
         assert!(*version < 20, "{:?} -> {:?}", other.location, self.location);
 
         let loop_head = self.cgx.loops.loop_head_of(self.location.block);
-        let top = |sup, sub| EdgeInfo::no_reason(sup, sub, Some(self.location), EdgeOrigin::Opaque);
+        let top = |sup, sub| EdgeInfo::no_reason(sup, sub, Some(self.location), EdgeOrigin::Opaque).to_edge(self.cgx);
         let needs_widening = |loc: Location| loop_head.map(|l| self.cgx.loops.in_loop(loc.block, l)).unwrap_or_default();
         // Are we looping back into the loop head from within the loop?
         let loop_into = loop_head.map(|l| self.cgx.loops.in_loop(other.location.block, l));
@@ -36,7 +36,7 @@ impl JoinSemiLattice for Cg<'_, '_> {
         for (_, node) in other.graph.all_nodes() {
             for (_, edges) in node.blocks.iter() {
                 for edge in edges {
-                    let edge = EdgeInfo::widen(edge, top, needs_widening);
+                    let edge = Edge::widen(edge, top, needs_widening);
                     let was_new = self.graph.outlives_join(edge);
                     changed = changed || was_new.is_some();
                 }
@@ -50,14 +50,15 @@ impl JoinSemiLattice for Cg<'_, '_> {
 }
 
 impl Cg<'_, '_> {
-    #[tracing::instrument(name = "Cg::bridge", level = "debug", ret)]
+    #[tracing::instrument(name = "Cg::bridge", level = "debug", fields(self.graph = ?self.graph, other.graph = ?self.graph), ret)]
     pub fn bridge(&self, other: &Self) -> Vec<CouplingOp> {
         other.graph.all_nodes().flat_map(|(sub, node)|
-            node.blocks
-                .keys()
-                .filter(move |sup| !self.graph.nodes[sub].blocks.contains_key(*sup))
-                .copied()
-                .flat_map(move |sup| self.outlives_to_block((sup, sub)))
+            node.true_edges()
+                .into_iter()
+                .filter(move |sup| !self.graph.nodes[sub].blocks.contains_key(sup))
+                .map(move |sup|
+                    self.outlives_to_block((sup, sub, true)).unwrap()
+                )
                 .map(|block| CouplingOp::Add(block))
         ).collect()
     }

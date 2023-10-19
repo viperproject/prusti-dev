@@ -31,7 +31,7 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    coupling_graph::{region_info::map::{RegionKind, Promote}, CgContext, coupling::{CouplingOp, Block}, outlives_info::edge::EdgeOrigin},
+    coupling_graph::{region_info::map::{RegionKind, Promote}, CgContext, coupling::{CouplingOp, Block}, outlives_info::edge::{EdgeOrigin, EdgeInfo}},
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp, CapabilityKind,
     },
@@ -147,7 +147,8 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
     }
 
     pub(crate) fn outlives(&mut self, c: OutlivesConstraint<'tcx>) {
-        let new = self.graph.outlives(c);
+        let edge = EdgeInfo::from(c).to_edge(self.cgx);
+        let new = self.graph.outlives(edge);
         self.outlives_op(new)
     }
     pub(crate) fn outlives_static(&mut self, r: RegionVid, origin: EdgeOrigin) {
@@ -158,25 +159,26 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
         self.outlives_placeholder(r, static_region, origin)
     }
     pub(crate) fn outlives_placeholder(&mut self, r: RegionVid, placeholder: RegionVid, origin: EdgeOrigin) {
-        let new = self.graph.outlives_placeholder(r, placeholder, origin);
+        let edge = EdgeInfo::no_reason(r, placeholder, None, origin).to_edge(self.cgx);
+        // let new = self.graph.outlives_placeholder(r, placeholder, origin);
+        let new = self.graph.outlives(edge);
         self.outlives_op(new)
     }
     #[tracing::instrument(name = "Cg::outlives_op", level = "trace", skip(self))]
-    fn outlives_op(&mut self, op: Option<(RegionVid, RegionVid)>) {
+    fn outlives_op(&mut self, op: Option<(RegionVid, RegionVid, bool)>) {
         if let Some(block) = op.and_then(|c| self.outlives_to_block(c)) {
             self.couplings.push(CouplingOp::Add(block));
         }
     }
 
     // TODO: remove
-    pub(crate) fn outlives_to_block(&self, op: (RegionVid, RegionVid)) -> Option<Block> {
-        let (sup, sub) = op;
-        let (sup_info, sub_info) = (self.cgx.region_info.map.get(sup), self.cgx.region_info.map.get(sub));
-        if sub_info.is_borrow() || (sub_info.universal() && sup_info.local()) {
-            None
-        } else {
+    pub(crate) fn outlives_to_block(&self, op: (RegionVid, RegionVid, bool)) -> Option<Block> {
+        let (sup, sub, is_blocking) = op;
+        if is_blocking {
             let waiting_to_activate = self.graph.inactive_loans.contains(&sup);
             Some(Block { sup, sub, waiting_to_activate, })
+        } else {
+            None
         }
     }
     #[tracing::instrument(name = "Cg::remove", level = "debug", skip(self))]
@@ -187,7 +189,7 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
         }
     }
     #[tracing::instrument(name = "Cg::outlives_op", level = "trace", skip(self))]
-    fn remove_op(&mut self, op: (RegionVid, Vec<(RegionVid, RegionVid)>)) {
+    fn remove_op(&mut self, op: (RegionVid, Vec<(RegionVid, RegionVid, bool)>)) {
         let rejoins = op.1.into_iter().flat_map(|c| self.outlives_to_block(c)).collect();
         self.couplings.push(CouplingOp::Remove(op.0, rejoins));
     }

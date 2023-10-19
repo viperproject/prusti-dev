@@ -26,7 +26,7 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    coupling_graph::{CgContext, outlives_info::edge::{EdgeInfo, EdgeOrigin}},
+    coupling_graph::{CgContext, outlives_info::edge::{Edge, EdgeOrigin, EdgeKind}},
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
@@ -46,31 +46,32 @@ pub struct Graph<'tcx> {
 
 impl<'tcx> Graph<'tcx> {
     #[tracing::instrument(name = "Graph::outlives", level = "trace", skip(self), ret)]
-    pub fn outlives(&mut self, c: OutlivesConstraint<'tcx>) -> Option<(RegionVid, RegionVid)> {
-        self.outlives_inner(vec![c.into()])
-    }
-    #[tracing::instrument(name = "Graph::outlives_placeholder", level = "trace", skip(self), ret)]
-    pub fn outlives_placeholder(&mut self, sup: RegionVid, sub: RegionVid, origin: EdgeOrigin) -> Option<(RegionVid, RegionVid)> {
-        let edge = EdgeInfo::no_reason(sup, sub, None, origin);
+    pub fn outlives(&mut self, edge: Edge<'tcx>) -> Option<(RegionVid, RegionVid, bool)> {
         self.outlives_inner(vec![edge])
     }
+    // #[tracing::instrument(name = "Graph::outlives_placeholder", level = "trace", skip(self), ret)]
+    // pub fn outlives_placeholder(&mut self, sup: RegionVid, sub: RegionVid, origin: EdgeOrigin) -> Option<(RegionVid, RegionVid)> {
+    //     let edge = EdgeInfo::no_reason(sup, sub, None, origin);
+    //     self.outlives_inner(vec![edge])
+    // }
 
     // sup outlives sub, or `sup: sub` (i.e. sup gets blocked)
     #[tracing::instrument(name = "Graph::outlives_inner", level = "trace", skip(self), ret)]
     fn outlives_inner(
         &mut self,
-        edge: Vec<EdgeInfo<'tcx>>,
-    ) -> Option<(RegionVid, RegionVid)>  {
+        edge: Vec<Edge<'tcx>>,
+    ) -> Option<(RegionVid, RegionVid, bool)>  {
         let (sup, sub) = self.outlives_unwrap_edge(&edge);
         self.nodes[sup].blocked_by.insert(sub);
         let blocks = self.nodes[sub].blocks.entry(sup).or_default();
+        let is_blocking = edge.iter().any(|edge| edge.kind.is_blocking());
         if blocks.insert(edge) {
-            Some((sup, sub))
+            Some((sup, sub, is_blocking))
         } else {
             None
         }
     }
-    fn outlives_unwrap_edge(&mut self, edge: &Vec<EdgeInfo<'tcx>>) -> (RegionVid, RegionVid)  {
+    fn outlives_unwrap_edge(&mut self, edge: &Vec<Edge<'tcx>>) -> (RegionVid, RegionVid)  {
         let (sup, sub) = (edge.last().unwrap().sup(), edge.first().unwrap().sub());
         if self.static_regions.contains(&sub) {
             Self::set_static_region(&self.nodes, &mut self.static_regions, sup);
@@ -82,16 +83,16 @@ impl<'tcx> Graph<'tcx> {
     #[tracing::instrument(name = "Graph::outlives_join", level = "trace", skip(self), ret)]
     pub(super) fn outlives_join(
         &mut self,
-        edge: Vec<EdgeInfo<'tcx>>,
+        edge: Vec<Edge<'tcx>>,
     ) -> Option<(RegionVid, RegionVid)>  {
         let (sup, sub) = self.outlives_unwrap_edge(&edge);
         self.nodes[sup].blocked_by.insert(sub);
         let blocks = self.nodes[sub].blocks.entry(sup).or_default();
 
-        if blocks.iter().any(|other| EdgeInfo::generalized_by(&edge, other)) {
+        if blocks.iter().any(|other| Edge::generalized_by(&edge, other)) {
             None
         } else {
-            blocks.retain(|other| !EdgeInfo::generalized_by(other, &edge));
+            blocks.retain(|other| !Edge::generalized_by(other, &edge));
             if blocks.insert(edge) {
                 Some((sup, sub))
             } else {
@@ -124,12 +125,12 @@ impl<'tcx> Graph<'tcx> {
         [r].into_iter().chain(blocked_by.iter().flat_map(|(blocked_by, _)| self.kill(*blocked_by))).collect()
     }
 
-    #[tracing::instrument(name = "Graph::remove", level = "trace")]
+    #[tracing::instrument(name = "Graph::remove", level = "trace", ret)]
     /// Remove node from graph and rejoin all blockers and blocked by.
     // Set `remove_dangling_children` when removing regions which are not tracked by the regular borrowck,
     // to remove in e.g. `let y: &'a i32 = &'b *x;` the region `'b` when removing `'a` (if `x: &'c i32`).
     // NOTE: Maybe shouldn't be set, since it seems that the regular borrowck does not kill off `'b` this eagerly (if `x: &'c mut i32`).
-    pub fn remove(&mut self, r: RegionVid) -> Option<(RegionVid, Vec<(RegionVid, RegionVid)>)> {
+    pub fn remove(&mut self, r: RegionVid) -> Option<(RegionVid, Vec<(RegionVid, RegionVid, bool)>)> {
         let (blocks, blocked_by) = self.remove_all_edges(r);
         let changed = !(blocks.is_empty() && blocked_by.is_empty());
         let mut rejoins = Vec::new();
@@ -171,7 +172,7 @@ impl<'tcx> Graph<'tcx> {
     }
 
     #[tracing::instrument(name = "Graph::remove_many", level = "trace")]
-    pub fn remove_many(&mut self, rs: &FxHashSet<RegionVid>) -> Vec<(RegionVid, Vec<(RegionVid, RegionVid)>)> {
+    pub fn remove_many(&mut self, rs: &FxHashSet<RegionVid>) -> Vec<(RegionVid, Vec<(RegionVid, RegionVid, bool)>)> {
         for &r in rs {
             if self.predecessors(r).iter().all(|pre| rs.contains(pre)) || self.successors(r).iter().all(|suc| rs.contains(suc)) {
                 self.static_regions.remove(&r);
@@ -191,8 +192,8 @@ impl<'tcx> Graph<'tcx> {
         &mut self,
         r: RegionVid,
     ) -> (
-        FxHashMap<RegionVid, FxHashSet<Vec<EdgeInfo<'tcx>>>>,
-        FxHashMap<RegionVid, FxHashSet<Vec<EdgeInfo<'tcx>>>>,
+        FxHashMap<RegionVid, FxHashSet<Vec<Edge<'tcx>>>>,
+        FxHashMap<RegionVid, FxHashSet<Vec<Edge<'tcx>>>>,
     ) {
         let blocks = std::mem::replace(&mut self.nodes[r].blocks, FxHashMap::default());
         for block in blocks.keys() {
@@ -229,7 +230,7 @@ impl<'tcx> Graph<'tcx> {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Node<'tcx> {
-    pub blocks: FxHashMap<RegionVid, FxHashSet<Vec<EdgeInfo<'tcx>>>>,
+    pub blocks: FxHashMap<RegionVid, FxHashSet<Vec<Edge<'tcx>>>>,
     pub blocked_by: FxHashSet<RegionVid>,
 }
 
@@ -239,5 +240,10 @@ impl<'tcx> Node<'tcx> {
             blocks: FxHashMap::default(),
             blocked_by: FxHashSet::default(),
         }
+    }
+    pub fn true_edges(&self) -> Vec<RegionVid> {
+        self.blocks.iter().filter(|(_, edges)| edges.iter().any(
+            |edge| Edge::is_blocking(edge)
+        )).map(|(&r, _)| r).collect()
     }
 }
