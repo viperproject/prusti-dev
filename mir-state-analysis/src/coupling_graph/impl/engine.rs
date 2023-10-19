@@ -79,6 +79,11 @@ pub(crate) fn draw_dots<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<
             let mut g = c.get().clone();
             g.dot_node_filter = |k| !k.is_unknown_local();
             dot::render(&g, &mut graph).unwrap();
+            c.seek_after_primary_effect(location);
+            let mut g = c.get().clone();
+            g.location = location.successor_within_block();
+            g.dot_node_filter = |k| !k.is_unknown_local();
+            dot::render(&g, &mut graph).unwrap();
         } else {
             print_after_loc(c, location, &mut graph);
         }
@@ -191,7 +196,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
         statement: &Statement<'tcx>,
         location: Location,
     ) {
-        assert_eq!(state.location, location);
+        state.location = location;
         state.reset_ops();
 
         if location.statement_index == 0 {
@@ -234,7 +239,6 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             format!("log/coupling/individual/{l}_v{}.dot", state.sum_version()),
             false,
         );
-        state.location.statement_index += 1;
     }
 
 
@@ -246,7 +250,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
         location: Location,
     ) {
         // println!("Location: {l}");
-        assert_eq!(state.location, location);
+        state.location = location;
         state.reset_ops();
 
         if location.statement_index == 0 {
@@ -305,7 +309,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
                     .values()
                     .chain(self.cgx.sbs.location_map.values())
                 {
-                    state.graph.remove(r.region);
+                    state.remove(r.region, Some(location));
                 }
 
                 state.merge_for_return(location);
@@ -318,7 +322,6 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             format!("log/coupling/individual/{l}_v{}.dot", state.sum_version()),
             false,
         );
-        state.location.statement_index += 1;
         terminator.edges()
     }
 

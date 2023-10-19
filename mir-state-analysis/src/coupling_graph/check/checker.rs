@@ -144,17 +144,9 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
 impl<'a, 'tcx> CouplingState<'a, 'tcx> {
     fn initialize(&mut self, graph: &Graph<'tcx>) {
         for (sub, v) in graph.nodes.iter_enumerated() {
-            let sub_info = self.cgx.region_info.map.get(sub);
-            if sub_info.is_borrow() {
-                continue;
-            }
-            for sup in v.blocks.keys() {
-                let sup_info = self.cgx.region_info.map.get(*sup);
-                if sub_info.universal() && sup_info.local() {
-                    continue;
-                }
-                self.blocks[sub].insert(*sup);
-                self.blocked_by[*sup].insert(sub);
+            for sup in v.true_edges() {
+                self.blocks[sub].insert(sup);
+                self.blocked_by[sup].insert(sub);
             }
         }
         self.waiting_to_activate = graph.inactive_loans.clone();
@@ -203,24 +195,15 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
         assert!(self.compare(&cg_after.state), "{loc:?}");
     }
 
-    #[tracing::instrument(name = "compare", level = "trace")]
+    #[tracing::instrument(name = "CouplingState::compare", level = "trace")]
     fn compare(&self, other: &Graph) -> bool {
+        // println!("Compare");
         for (sub, v) in self.blocks.iter_enumerated() {
-            let sub_info = self.cgx.region_info.map.get(sub);
-            if sub_info.is_borrow() {
-                if !v.is_empty() {
-                    println!("{sub:?} ({:?}) blocks: {v:?}", sub_info.get_borrow());
-                    return false;
-                }
-            } else {
-                let blocks: FxHashSet<_> = other.nodes[sub].blocks.keys().copied().filter(|sup| {
-                    let sup_info = self.cgx.region_info.map.get(*sup);
-                    !(sub_info.universal() && sup_info.local())
-                }).collect();
-                if v != &blocks {
-                    println!("{sub:?} blocks: {v:?} != {blocks:?}");
-                    return false;
-                }
+            let blocks: FxHashSet<_> = other.nodes[sub].true_edges().into_iter().collect();
+            // println!("Compare {sub:?} blocks: {v:?} == {blocks:?}");
+            if v != &blocks {
+                println!("{sub:?} blocks: {v:?} != {blocks:?}");
+                return false;
             }
         }
         true

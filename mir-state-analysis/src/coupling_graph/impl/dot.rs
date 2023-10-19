@@ -17,7 +17,7 @@ use prusti_rustc_interface::{
     },
 };
 
-use crate::coupling_graph::outlives_info::edge::{EdgeInfo, EdgeKind};
+use crate::coupling_graph::outlives_info::edge::{EdgeInfo, Edge as CgEdge};
 
 use super::{triple::Cg};
 
@@ -25,11 +25,11 @@ use super::{triple::Cg};
 pub struct Edge<'tcx> {
     pub from: RegionVid,
     pub to: RegionVid,
-    pub reasons: FxHashSet<Vec<EdgeInfo<'tcx>>>,
+    pub reasons: FxHashSet<Vec<CgEdge<'tcx>>>,
 }
 
 impl<'tcx> Edge<'tcx> {
-    pub(crate) fn new(from: RegionVid, to: RegionVid, reasons: FxHashSet<Vec<EdgeInfo<'tcx>>>) -> Self {
+    pub(crate) fn new(from: RegionVid, to: RegionVid, reasons: FxHashSet<Vec<CgEdge<'tcx>>>) -> Self {
         Self { from, to, reasons }
     }
 }
@@ -49,7 +49,7 @@ impl<'a, 'tcx> Cg<'a, 'tcx> {
         &self,
         sub: RegionVid,
         start: RegionVid,
-        mut reasons: FxHashSet<Vec<EdgeInfo<'tcx>>>,
+        mut reasons: FxHashSet<Vec<CgEdge<'tcx>>>,
         visited: &mut FxHashSet<RegionVid>,
     ) -> Vec<Edge<'tcx>> {
         let mut edges = Vec::new();
@@ -88,7 +88,7 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
     }
 
     fn edge_style(&'a self, e: &Edge<'tcx>) -> dot::Style {
-        let is_blocking = e.reasons.iter().all(|e| EdgeKind::many_blocking(EdgeInfo::many_kind(e, self.cgx)));
+        let is_blocking = e.reasons.iter().any(|e| CgEdge::is_blocking(e));
         if is_blocking {
             dot::Style::Solid
         } else {
@@ -100,7 +100,7 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
             .reasons
             .iter()
             .map(|s| {
-                let line = s.into_iter().map(|s| s.to_string() + ", ").collect::<String>();
+                let line = s.into_iter().map(|s| format!("{s}, ")).collect::<String>();
                 format!("{}\n", &line[..line.len() - 2]) // `s.len() > 0`
             })
             .collect::<String>();
