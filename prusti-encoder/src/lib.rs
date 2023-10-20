@@ -141,6 +141,20 @@ pub fn test_entrypoint<'tcx>(
 
                 let res = crate::encoders::MirImpureEncoder::encode(def_id.to_def_id());
                 assert!(res.is_ok());
+
+                let kind = crate::encoders::with_def_spec(|def_spec|
+                    def_spec
+                        .get_proc_spec(&def_id.to_def_id())
+                        .map(|e| e.base_spec.kind)
+                );
+
+                if kind.and_then(|kind| kind.is_pure().ok()).unwrap_or_default() {
+                    tracing::debug!("Encoding {def_id:?} as a pure function because it is labeled as pure");
+                    let res = crate::encoders::MirFunctionEncoder::encode(def_id.to_def_id());
+                    assert!(res.is_ok());
+                }
+
+            
                 /*
                 match res {
                     Ok(res) => println!("ok: {:?}", res),
@@ -163,6 +177,11 @@ pub fn test_entrypoint<'tcx>(
 
     header(&mut viper_code, "methods");
     for output in crate::encoders::MirImpureEncoder::all_outputs() {
+        viper_code.push_str(&format!("{:?}\n", output.method));
+    }
+
+    header(&mut viper_code, "functions");
+    for output in crate::encoders::MirFunctionEncoder::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.method));
     }
 
@@ -192,7 +211,6 @@ pub fn test_entrypoint<'tcx>(
         viper_code.push_str(&format!("{:?}\n", output.predicate));
         //viper_code.push_str(&format!("{:?}\n", output.method_refold));
         viper_code.push_str(&format!("{:?}\n", output.method_assign));
-        viper_code.push_str(&format!("{:?}\n", output.method_reassign));
     }
 
     header(&mut viper_code, "utility types");

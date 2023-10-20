@@ -25,7 +25,7 @@ thread_local! {
     static CACHE: task_encoder::CacheStaticRef<SpecEncoder> = RefCell::new(Default::default());
 }
 
-fn with_def_spec<F, R>(f: F) -> R
+pub fn with_def_spec<F, R>(f: F) -> R
 where
     F: FnOnce(&DefSpecificationMap) -> R,
 {

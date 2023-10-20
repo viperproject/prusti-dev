@@ -79,13 +79,14 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 let always_live = self.repacker.always_live_locals();
                 for local in 0..self.repacker.local_count() {
                     let local = Local::from_usize(local);
-                    if always_live.contains(local) {
+                    if local == RETURN_PLACE {
+                        self.requires_exclusive(RETURN_PLACE);
+                    } else if always_live.contains(local) {
                         self.requires_write(local);
                     } else {
                         self.requires_unalloc(local);
                     }
                 }
-                self.requires_exclusive(RETURN_PLACE);
             }
             &Drop { place, replace: false, .. } => {
                 self.requires_write(place);

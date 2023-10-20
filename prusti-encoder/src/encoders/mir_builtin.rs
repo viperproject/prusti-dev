@@ -138,11 +138,11 @@ impl TaskEncoder for MirBuiltinEncoder {
                             pres: &[],
                             posts: &[],
                             expr: Some(vcx.mk_func_app(
-                                vir::vir_format!(vcx, "{}_cons", ty_out.snapshot_name),
+                                ty_out.from_primitive.unwrap(),
                                 &[vcx.alloc(vir::ExprData::UnOp(vcx.alloc(vir::UnOpData {
                                     kind: vir::UnOpKind::Neg,
                                     expr: vcx.mk_func_app(
-                                        vir::vir_format!(vcx, "{}_val", ty_out.snapshot_name),
+                                        ty_out.to_primitive.unwrap(),
                                         &[vcx.mk_local_ex("arg")],
                                     ),
                                 })))],
@@ -172,15 +172,15 @@ impl TaskEncoder for MirBuiltinEncoder {
                             pres: &[],
                             posts: &[],
                             expr: Some(vcx.mk_func_app(
-                                vir::vir_format!(vcx, "{}_cons", ty_out.snapshot_name),
+                                ty_out.from_primitive.unwrap(),
                                 &[vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
                                     kind: vir::BinOpKind::Add,
                                     lhs: vcx.mk_func_app(
-                                        vir::vir_format!(vcx, "{}_val", ty_out.snapshot_name),
+                                        ty_out.to_primitive.unwrap(),
                                         &[vcx.mk_local_ex("arg1")],
                                     ),
                                     rhs: vcx.mk_func_app(
-                                        vir::vir_format!(vcx, "{}_val", ty_out.snapshot_name),
+                                        ty_out.to_primitive.unwrap(),
                                         &[vcx.mk_local_ex("arg2")],
                                     ),
                                 })))],
@@ -218,15 +218,15 @@ impl TaskEncoder for MirBuiltinEncoder {
                                 vir::vir_format!(vcx, "{}_cons", ty_out.snapshot_name),
                                 &[
                                     vcx.mk_func_app(
-                                        vir::vir_format!(vcx, "{}_cons", ty_in.snapshot_name),
+                                        ty_in.from_primitive.unwrap(),
                                         &[vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
                                             kind: vir::BinOpKind::Add,
                                             lhs: vcx.mk_func_app(
-                                                vir::vir_format!(vcx, "{}_val", ty_in.snapshot_name),
+                                                ty_in.to_primitive.unwrap(),
                                                 &[vcx.mk_local_ex("arg1")],
                                             ),
                                             rhs: vcx.mk_func_app(
-                                                vir::vir_format!(vcx, "{}_val", ty_in.snapshot_name),
+                                                ty_in.to_primitive.unwrap(),
                                                 &[vcx.mk_local_ex("arg2")],
                                             ),
                                         })))],

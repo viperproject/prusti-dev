@@ -31,13 +31,14 @@ pub enum TypeEncoderOutputRefSub<'vir> {
 pub struct TypeEncoderOutputRef<'vir> {
     pub snapshot_name: &'vir str,
     pub predicate_name: &'vir str,
+    pub from_primitive: Option<&'vir str>,
+    pub to_primitive: Option<&'vir str>,
     pub snapshot: vir::Type<'vir>,
     pub function_unreachable: &'vir str,
     pub function_snap: &'vir str,
     //pub method_refold: &'vir str,
     pub specifics: TypeEncoderOutputRefSub<'vir>,
     pub method_assign: &'vir str,
-    pub method_reassign: &'vir str,
 }
 impl<'vir> task_encoder::OutputRefAny<'vir> for TypeEncoderOutputRef<'vir> {}
 
@@ -52,28 +53,21 @@ impl<'vir> TypeEncoderOutputRef<'vir> {
     pub fn expr_from_u128(&self, val: u128) -> vir::Expr<'vir> {
         // TODO: not great: store the TyKind as well?
         //   or should this be a different task for TypeEncoder?
-        let cons_name = match self.snapshot_name {
-            "s_Bool" => {
-                return vir::with_vcx(|vcx| vcx.mk_func_app(
-                    "s_Bool_cons",
+        match self.snapshot_name {
+            "s_Bool" => vir::with_vcx(|vcx| vcx.mk_func_app(
+                    self.from_primitive.unwrap(),
                     &[vcx.alloc(vir::ExprData::Const(
                         vcx.alloc(vir::ConstData::Bool(val != 0)),
                     ))],
-                ));
-                //return vir::with_vcx(|vcx| vcx.alloc(vir::ExprData::Const(
-                //    vcx.alloc(vir::ConstData::Bool(val != 0)),
-                //)));
-            }
-            name if name.starts_with("s_Int_") || name.starts_with("s_Uint_") =>
-                vir::with_vcx(|vcx| vir::vir_format!(vcx, "{name}_cons")),
+                )),
+            name if name.starts_with("s_Int_") || name.starts_with("s_Uint_") => vir::with_vcx(|vcx| vcx.mk_func_app(
+                    self.from_primitive.unwrap(),
+                    &[vcx.alloc(vir::ExprData::Const(
+                        vcx.alloc(vir::ConstData::Int(val)),
+                    ))],
+                )),
             k => todo!("unsupported type in expr_from_u128 {k:?}"),
-        };
-        vir::with_vcx(|vcx| vcx.mk_func_app(
-            cons_name,
-            &[vcx.alloc(vir::ExprData::Const(
-                vcx.alloc(vir::ConstData::Int(val)),
-            ))],
-        ))
+        }
     }
 }
 
@@ -88,7 +82,6 @@ pub struct TypeEncoderOutput<'vir> {
     pub field_projection_p: &'vir [vir::Function<'vir>],
     //pub method_refold: vir::Method<'vir>,
     pub method_assign: vir::Method<'vir>,
-    pub method_reassign: vir::Method<'vir>,
 }
 
 use std::cell::RefCell;
@@ -267,41 +260,6 @@ impl TaskEncoder for TypeEncoder {
                 blocks: None,
             })
         }
-        fn mk_reassign<'vir>(
-            vcx: &'vir vir::VirCtxt<'vir>,
-            predicate_name: &'vir str,
-            snapshot_ty: vir::Type<'vir>,
-        ) -> vir::Method<'vir> {
-            vcx.alloc(vir::MethodData {
-                name: vir::vir_format!(vcx, "reassign_{predicate_name}"),
-                args: vcx.alloc_slice(&[
-                    vcx.alloc(vir::LocalDeclData {
-                        name: "_p",
-                        ty: vcx.alloc(vir::TypeData::Ref),
-                    }),
-                    vcx.alloc(vir::LocalDeclData {
-                        name: "_s_new",
-                        ty: snapshot_ty,
-                    }),
-                ]),
-                rets: &[],
-                pres: vcx.alloc_slice(&[
-                    vcx.mk_pred_app(predicate_name, &[vcx.mk_local_ex("_p")]),
-                ]),
-                posts: vcx.alloc_slice(&[
-                    vcx.mk_pred_app(predicate_name, &[vcx.mk_local_ex("_p")]),
-                    vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                        kind: vir::BinOpKind::CmpEq,
-                        lhs: vcx.mk_func_app(
-                            vir::vir_format!(vcx, "{predicate_name}_snap"),
-                            &[vcx.mk_local_ex("_p")],
-                        ),
-                        rhs: vcx.mk_local_ex("_s_new"),
-                    }))),
-                ]),
-                blocks: None,
-            })
-        }
         fn mk_snap<'vir>(
             vcx: &'vir vir::VirCtxt<'vir>,
             predicate_name: &'vir str,
@@ -360,6 +318,8 @@ impl TaskEncoder for TypeEncoder {
             deps.emit_output_ref::<TypeEncoder>(*task_key, TypeEncoderOutputRef {
                 snapshot_name: name_s,
                 predicate_name: name_p,
+                from_primitive: None,
+                to_primitive: None,
                 snapshot: vcx.alloc(vir::TypeData::Domain(name_s)),
                 function_unreachable: vir::vir_format!(vcx, "{name_s}_unreachable"),
                 function_snap: vir::vir_format!(vcx, "{name_p}_snap"),
@@ -370,16 +330,16 @@ impl TaskEncoder for TypeEncoder {
                     field_projection_p: field_projection_p_names,
                 }),
                 method_assign: vir::vir_format!(vcx, "assign_{name_p}"),
-                method_reassign: vir::vir_format!(vcx, "reassign_{name_p}"),
             });
             let ty_s = vcx.alloc(vir::TypeData::Domain(name_s));
 
             let mut funcs: Vec<vir::DomainFunction<'vir>> = vec![];
             let mut axioms: Vec<vir::DomainAxiom<'vir>> = vec![];
 
+            let cons_name = vir::vir_format!(vcx, "{name_s}_cons");
             funcs.push(vcx.alloc(vir::DomainFunctionData {
                 unique: false,
-                name: vir::vir_format!(vcx, "{name_s}_cons"),
+                name: cons_name,
                 args: vcx.alloc_slice(&field_ty_out.iter()
                     .map(|field_ty_out| field_ty_out.snapshot)
                     .collect::<Vec<_>>()),
@@ -486,7 +446,6 @@ impl TaskEncoder for TypeEncoder {
             }
 
             // constructor
-            let cons_name = vir::vir_format!(vcx, "{name_s}_cons");
             {
                 let cons_qvars = vcx.alloc_slice(
                      &field_ty_out.iter()
@@ -612,7 +571,7 @@ impl TaskEncoder for TypeEncoder {
                         expr: Some(vcx.alloc(vir::ExprData::Unfolding(vcx.alloc(vir::UnfoldingData {
                             target: pred_app,
                             expr: vcx.mk_func_app(
-                                vir::vir_format!(vcx, "{name_s}_cons"),
+                                cons_name,
                                 vcx.alloc_slice(&field_ty_out
                                     .iter()
                                     .enumerate()
@@ -634,7 +593,6 @@ impl TaskEncoder for TypeEncoder {
                 //method_refold: mk_refold(vcx, name_p, ty_s),
                 field_projection_p,
                 method_assign: mk_assign(vcx, name_p, ty_s),
-                method_reassign: mk_reassign(vcx, name_p, ty_s),
             })
         }
 
@@ -644,13 +602,14 @@ impl TaskEncoder for TypeEncoder {
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
                     snapshot_name: "s_Bool",
                     predicate_name: "p_Bool",
+                    to_primitive: Some("s_Bool_val"),
+                    from_primitive: Some("s_Bool_cons"),
                     snapshot: ty_s,
                     function_unreachable: "s_Bool_unreachable",
                     function_snap: "p_Bool_snap",
                     //method_refold: "refold_p_Bool",
                     specifics: TypeEncoderOutputRefSub::Primitive,
                     method_assign: "assign_p_Bool",
-                    method_reassign: "reassign_p_Bool",
                 });
                 Ok((TypeEncoderOutput {
                     fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
@@ -668,7 +627,6 @@ impl TaskEncoder for TypeEncoder {
                     //method_refold: mk_refold(vcx, "p_Bool", ty_s),
                     field_projection_p: &[],
                     method_assign: mk_assign(vcx, "p_Bool", ty_s),
-                    method_reassign: mk_reassign(vcx, "p_Bool", ty_s),
                 }, ()))
             }
             TyKind::Int(_) |
@@ -687,13 +645,14 @@ impl TaskEncoder for TypeEncoder {
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
                     snapshot_name: name_s,
                     predicate_name: name_p,
+                    to_primitive: Some(name_val),
+                    from_primitive: Some(name_cons),
                     snapshot: ty_s,
                     function_unreachable: vir::vir_format!(vcx, "{name_s}_unreachable"),
                     function_snap: vir::vir_format!(vcx, "{name_p}_snap"),
                     //method_refold: vir::vir_format!(vcx, "refold_{name_p}"),
                     specifics: TypeEncoderOutputRefSub::Primitive,
                     method_assign: vir::vir_format!(vcx, "assign_{name_p}"),
-                    method_reassign: vir::vir_format!(vcx, "reassign_{name_p}"),
                 });
                 Ok((TypeEncoderOutput {
                     fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
@@ -711,7 +670,6 @@ impl TaskEncoder for TypeEncoder {
                     //method_refold: mk_refold(vcx, name_p, ty_s),
                     field_projection_p: &[],
                     method_assign: mk_assign(vcx, name_p, ty_s),
-                    method_reassign: mk_reassign(vcx, name_p, ty_s),
                 }, ()))
             }
 
@@ -720,13 +678,14 @@ impl TaskEncoder for TypeEncoder {
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
                     snapshot_name: "s_Tuple0",
                     predicate_name: "p_Tuple0",
+                    to_primitive: None,
+                    from_primitive: None,
                     snapshot: ty_s,
                     function_unreachable: "s_Tuple0_unreachable",
                     function_snap: "p_Tuple0_snap",
                     //method_refold: "refold_p_Tuple0",
                     specifics: TypeEncoderOutputRefSub::Primitive,
                     method_assign: vir::vir_format!(vcx, "assign_p_Tuple0"),
-                    method_reassign: vir::vir_format!(vcx, "reassign_p_Tuple0"),
                 });
                 Ok((TypeEncoderOutput {
                     fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
@@ -742,7 +701,6 @@ impl TaskEncoder for TypeEncoder {
                     //method_refold: mk_refold(vcx, "p_Tuple0", ty_s),
                     field_projection_p: &[],
                     method_assign: mk_assign(vcx, "p_Tuple0", ty_s),
-                    method_reassign: mk_reassign(vcx, "p_Tuple0", ty_s),
                 }, ()))
             }
 
@@ -777,7 +735,6 @@ impl TaskEncoder for TypeEncoder {
                     //method_refold: "refold_p_Tuple0",
                     specifics: TypeEncoderOutputRefSub::Primitive,
                     method_assign: vir::vir_format!(vcx, "assign_p_Tuple0"),
-                    method_reassign: vir::vir_format!(vcx, "reassign_p_Tuple0"),
                 });
                 Ok((TypeEncoderOutput {
                     fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
@@ -793,7 +750,6 @@ impl TaskEncoder for TypeEncoder {
                     //method_refold: mk_refold(vcx, "p_Tuple0", ty_s),
                     field_projection_p: &[],
                     method_assign: mk_assign(vcx, "p_Tuple0", ty_s),
-                    method_reassign: mk_reassign(vcx, "p_Tuple0", ty_s),
                 }, ()))
                 */
             }
@@ -804,13 +760,14 @@ impl TaskEncoder for TypeEncoder {
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
                     snapshot_name: param_out.snapshot_param_name,
                     predicate_name: param_out.predicate_param_name,
+                    to_primitive: None,
+                    from_primitive: None,
                     snapshot: ty_s,
                     function_unreachable: "s_Param_unreachable",
                     function_snap: "p_Param_snap",
                     //method_refold: "refold_p_Param",
                     specifics: TypeEncoderOutputRefSub::Primitive,
                     method_assign: vir::vir_format!(vcx, "assign_p_Bool"),
-                    method_reassign: vir::vir_format!(vcx, "reassign_p_Bool"),
                 });
                 Ok((TypeEncoderOutput {
                     fields: &[],
@@ -822,7 +779,6 @@ impl TaskEncoder for TypeEncoder {
                     //method_refold: mk_refold(vcx, "p_Param", ty_s),
                     field_projection_p: &[],
                     method_assign: mk_assign(vcx, "p_Param", ty_s),
-                    method_reassign: mk_reassign(vcx, "p_Param", ty_s),
                 }, ()))
             }
             TyKind::Adt(adt_def, substs) if adt_def.is_struct() => {
@@ -847,13 +803,14 @@ impl TaskEncoder for TypeEncoder {
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
                     snapshot_name: "s_Never",
                     predicate_name: "p_Never",
+                    to_primitive: None,
+                    from_primitive: None,
                     snapshot: ty_s,
                     function_unreachable: "s_Never_unreachable",
                     function_snap: "p_Never_snap",
                     //method_refold: "refold_p_Never",
                     specifics: TypeEncoderOutputRefSub::Primitive,
                     method_assign: vir::vir_format!(vcx, "assign_p_Never"),
-                    method_reassign: vir::vir_format!(vcx, "reassign_p_Never"),
                 });
                 Ok((TypeEncoderOutput {
                     fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
@@ -867,7 +824,6 @@ impl TaskEncoder for TypeEncoder {
                     //method_refold: mk_refold(vcx, "p_Never", ty_s),
                     field_projection_p: &[],
                     method_assign: mk_assign(vcx, "p_Never", ty_s),
-                    method_reassign: mk_reassign(vcx, "p_Never", ty_s),
                 }, ()))
             }
             //_ => Err((TypeEncoderError::UnsupportedType, None)),
