@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use prusti_interface::environment::EnvBody;
 use prusti_rustc_interface::middle::ty;
 
 use crate::data::*;
@@ -23,14 +24,18 @@ pub struct VirCtxt<'tcx> {
     /// The compiler's typing context. This allows convenient access to most
     /// of the compiler's APIs.
     pub tcx: ty::TyCtxt<'tcx>,
+
+    pub body: RefCell<EnvBody<'tcx>>,
+    
 }
 
 impl<'tcx> VirCtxt<'tcx> {
-    pub fn new(tcx: ty::TyCtxt<'tcx>) -> Self {
+    pub fn new(tcx: ty::TyCtxt<'tcx>, body: EnvBody<'tcx>) -> Self {
         Self {
             arena: bumpalo::Bump::new(),
             span_stack: vec![],
             tcx,
+            body: RefCell::new(body),
         }
     }
 

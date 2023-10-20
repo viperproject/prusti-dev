@@ -96,12 +96,10 @@ impl TaskEncoder for MirPureEncoder {
         let def_id = task_key.1; //.parent_def_id;
         let local_def_id = def_id.expect_local();
 
-        println!("encoding {def_id:?}");
+        tracing::debug!("encoding {def_id:?}");
         let expr = vir::with_vcx(move |vcx| {
             //let body = vcx.tcx.mir_promoted(local_def_id).0.borrow();
-            let body = unsafe {
-                prusti_interface::environment::mir_storage::retrieve_mir_body(vcx.tcx, local_def_id)
-            }.body;
+            let body = vcx.body.borrow_mut().get_impure_fn_body_identity(local_def_id);
 
             let expr_inner = Encoder::new(vcx, task_key.0, &body, deps).encode_body();
 
@@ -123,7 +121,7 @@ impl TaskEncoder for MirPureEncoder {
                 }),
             ))
         });
-        println!("finished {def_id:?}");
+        tracing::debug!("finished {def_id:?}");
 
         Ok((MirPureEncoderOutput { expr }, ()))
     }
