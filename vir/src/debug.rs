@@ -50,8 +50,11 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
         self.lhs.fmt(f)?;
         write!(f, ") {} (", match self.kind {
             BinOpKind::CmpEq => "==",
+            BinOpKind::CmpNe => "!=",
             BinOpKind::CmpGt => ">",
+            BinOpKind::CmpGe => ">=",
             BinOpKind::CmpLt => "<",
+            BinOpKind::CmpLe => "<=",
             BinOpKind::And => "&&",
             BinOpKind::Add => "+",
         })?;

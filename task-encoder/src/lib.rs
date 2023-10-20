@@ -273,14 +273,36 @@ pub trait TaskEncoder {
     {
         let task_key = Self::task_to_key(&task);
 
-        // TODO: check for full output first?
+        let in_cache = Self::with_cache(|cache| {
+            let mut cache = cache.borrow_mut();
 
-        // enqueue
-        let task_key_clone = task_key.clone();
-        assert!(Self::with_cache(move |cache| cache.borrow_mut().insert(
-            task_key_clone,
-            TaskEncoderCacheState::Enqueued,
-        ).is_none()));
+            match cache.get(&task_key) {
+                Some(e) => match e {
+                    TaskEncoderCacheState::ErrorEnqueue { error }
+                    | TaskEncoderCacheState::ErrorEncode { error, .. } => Some(Err(error.clone())),
+                    TaskEncoderCacheState::Encoded {
+                        output_ref,
+                        output_local,
+                        output_dep,
+                        ..
+                    } => Some(Ok((
+                        output_ref.clone(),
+                        output_local.clone(),
+                        output_dep.clone(),
+                    ))),
+                    TaskEncoderCacheState::Enqueued | TaskEncoderCacheState::Started { .. } =>
+                        panic!("Encoding already started or enqueued"),
+                },
+                None => {
+                    // enqueue
+                    cache.insert(task_key.clone(), TaskEncoderCacheState::Enqueued);
+                    None
+                }
+            }
+        });
+        if let Some(in_cache) = in_cache {
+            return in_cache;
+        }
 
         let mut deps: TaskEncoderDependencies<'vir> = Default::default();
         let encode_result = Self::do_encode_full(&task_key, &mut deps);

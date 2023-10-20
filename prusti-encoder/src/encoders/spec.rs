@@ -86,19 +86,20 @@ impl TaskEncoder for SpecEncoder {
         Option<Self::OutputFullDependency<'vir>>,
     )> {
         deps.emit_output_ref::<Self>(task_key.clone(), ());
-        vir::with_vcx(|vcx| with_def_spec(|def_spec| {
-            let specs = def_spec.get_proc_spec(&task_key.0);
-            if let Some(specs) = specs {
-                Ok((SpecEncoderOutput {
-                    pres: vcx.alloc_slice(specs.base_spec.pres.expect_inherent()),
-                    posts: vcx.alloc_slice(specs.base_spec.posts.expect_inherent()),
-                }, ()))
-            } else {
-                Ok((SpecEncoderOutput {
-                    pres: &[],
-                    posts: &[],
-                }, ()))
-            }
-        }))
+        vir::with_vcx(|vcx| {
+            with_def_spec(|def_spec| {
+                let specs = def_spec.get_proc_spec(&task_key.0);
+                // TODO: handle specs other than `empty_or_inherent`
+                let pres = specs
+                    .and_then(|specs| specs.base_spec.pres.expect_empty_or_inherent())
+                    .map(|specs| vcx.alloc_slice(specs))
+                    .unwrap_or_default();
+                let posts = specs
+                    .and_then(|specs| specs.base_spec.posts.expect_empty_or_inherent())
+                    .map(|specs| vcx.alloc_slice(specs))
+                    .unwrap_or_default();
+                Ok((SpecEncoderOutput { pres, posts, }, () ))
+            })
+        })
     }
 }
