@@ -61,9 +61,12 @@ impl<'tcx> Fpcs<'_, 'tcx> {
         let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
         let ops = cp.repack(place, self.repacker);
         self.repackings.extend(ops);
-        let kind = (*cp)[&place];
-        let bound = self.bound(place);
-        assert!(kind.minimum(bound).unwrap() >= cap, "{place:?}, have: {kind:?}, bound: {bound:?}, want: {cap:?}");
+        let kind = cp.insert(place, cap).unwrap();
+        let bounded = self.bound(place).minimum(kind).unwrap();
+        assert!(bounded >= cap);
+        if bounded != cap && matches!(cap, CapabilityKind::Write) {
+            self.repackings.push(RepackOp::Weaken(place, kind, cap));
+        }
     }
 
     pub(crate) fn ensures_unalloc(&mut self, local: Local) {
