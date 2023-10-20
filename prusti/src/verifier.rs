@@ -45,6 +45,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
 
         let program = prusti_encoder::test_entrypoint(
             env.tcx(),
+            env.body,
             def_spec,
         );
         //viper::verify(program);

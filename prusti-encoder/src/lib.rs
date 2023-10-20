@@ -9,6 +9,7 @@ extern crate rustc_type_ir;
 
 mod encoders;
 
+use prusti_interface::environment::EnvBody;
 use prusti_rustc_interface::{
     middle::ty,
     hir,
@@ -115,12 +116,13 @@ impl<'vir, 'tcx> TaskEncoder<'vir, 'tcx> for MirTyEncoder<'vir, 'tcx> {
 
 pub fn test_entrypoint<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
+    body: EnvBody<'tcx>,
     def_spec: prusti_interface::specs::typed::DefSpecificationMap,
 ) -> vir::Program<'tcx> {
     use task_encoder::TaskEncoder;
 
     crate::encoders::init_def_spec(def_spec);
-    vir::init_vcx(vir::VirCtxt::new(tcx));
+    vir::init_vcx(vir::VirCtxt::new(tcx, body));
 
     // TODO: this should be a "crate" encoder, which will deps.require all the methods in the crate
 

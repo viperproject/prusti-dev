@@ -328,7 +328,7 @@ impl<'tcx> EnvBody<'tcx> {
 
     pub(crate) fn load_pure_fn_body(&mut self, def_id: LocalDefId) {
         assert!(!self.pure_fns.local.contains_key(&def_id));
-        let body = Self::load_local_mir(self.tcx, def_id);
+        let body = Self::load_local_mir( self.tcx, def_id);
         self.pure_fns.local.insert(def_id, body);
         let bwbf = Self::load_local_mir_with_facts(self.tcx, def_id);
         // Also add to `impure_fns` since we'll also be encoding this as impure
