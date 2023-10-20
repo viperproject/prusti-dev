@@ -619,51 +619,57 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
             // Len
             // Cast
             mir::Rvalue::BinaryOp(op, box (l, r)) => {
-                match op {
-                    mir::BinOp::Eq => self.vcx.mk_func_app(
-                        "s_Bool_cons", // TODO: go through type encoder
-                        &[self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
-                            kind: vir::BinOpKind::CmpEq,
-                            lhs: self.encode_operand(curr_ver, l),
-                            rhs: self.encode_operand(curr_ver, r),
-                        })))],
-                    ),
-                    mir::BinOp::Gt => {
-                        let ty_l = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                            l.ty(self.body, self.vcx.tcx),
-                        ).unwrap();
-                        let ty_l = vir::vir_format!(self.vcx, "{}_val", ty_l.snapshot_name); // TODO: get the `_val` function differently
-                        let ty_r = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                            r.ty(self.body, self.vcx.tcx),
-                        ).unwrap();
-                        let ty_r = vir::vir_format!(self.vcx, "{}_val", ty_r.snapshot_name); // TODO: get the `_val` function differently
+                let ty_l = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                    l.ty(self.body, self.vcx.tcx),
+                ).unwrap();
+                let ty_l = vir::vir_format!(self.vcx, "{}_val", ty_l.snapshot_name); // TODO: get the `_val` function differently
+                let ty_r = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                    r.ty(self.body, self.vcx.tcx),
+                ).unwrap();
+                let ty_r = vir::vir_format!(self.vcx, "{}_val", ty_r.snapshot_name); // TODO: get the `_val` function differently
+                let ty_rvalue = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                    rvalue.ty(self.body, self.vcx.tcx),
+                ).unwrap();
+                let ty_rvalue = vir::vir_format!(self.vcx, "{}_cons", ty_rvalue.snapshot_name); // TODO: get the `_cons` function differently
 
-                        self.vcx.mk_func_app(
-                            "s_Bool_cons", // TODO: go through type encoder
-                            &[self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
-                                kind: vir::BinOpKind::CmpGt,
-                                lhs: self.vcx.mk_func_app(
-                                    ty_l,
-                                    &[self.encode_operand(curr_ver, l)],
-                                ),
-                                rhs: self.vcx.mk_func_app(
-                                    ty_r,
-                                    &[self.encode_operand(curr_ver, r)],
-                                ),
-                            })))],
-                        )
-                    }
-                    k => todo!("binop {k:?}"),
-                }
+                self.vcx.mk_func_app(
+                    ty_rvalue,
+                    &[self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
+                        kind: op.into(),
+                        lhs: self.vcx.mk_func_app(
+                            ty_l,
+                            &[self.encode_operand(curr_ver, l)],
+                        ),
+                        rhs: self.vcx.mk_func_app(
+                            ty_r,
+                            &[self.encode_operand(curr_ver, r)],
+                        ),
+                    })))],
+                )
             }
             // CheckedBinaryOp
             // NullaryOp
-            mir::Rvalue::UnaryOp(mir::UnOp::Not, op) =>
-                // TODO: probably wrong, need to negate a bool snap
-                self.vcx.alloc(ExprRetData::UnOp(self.vcx.alloc(vir::UnOpGenData {
-                    kind: vir::UnOpKind::Not,
-                    expr: self.encode_operand(curr_ver, op),
-                }))),
+            mir::Rvalue::UnaryOp(op, expr) => {
+                let ty_expr = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                    expr.ty(self.body, self.vcx.tcx),
+                ).unwrap();
+                let ty_expr = vir::vir_format!(self.vcx, "{}_val", ty_expr.snapshot_name); // TODO: get the `_val` function differently
+                let ty_rvalue = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                    rvalue.ty(self.body, self.vcx.tcx),
+                ).unwrap();
+                let ty_rvalue = vir::vir_format!(self.vcx, "{}_cons", ty_rvalue.snapshot_name); // TODO: get the `_cons` function differently
+
+                self.vcx.mk_func_app(
+                    ty_rvalue,
+                    &[self.vcx.alloc(ExprRetData::UnOp(self.vcx.alloc(vir::UnOpGenData {
+                        kind: op.into(),
+                        expr: self.vcx.mk_func_app(
+                            ty_expr,
+                            &[self.encode_operand(curr_ver, expr)],
+                        ),
+                    })))],
+                )
+            }
             // Discriminant
             mir::Rvalue::Aggregate(box kind, fields) => match kind {
                 mir::AggregateKind::Tuple if fields.len() == 0 =>
