@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use prusti_rustc_interface::middle::mir;
 use crate::refs::*;
 
 pub struct LocalData<'vir> {
@@ -16,15 +17,64 @@ pub enum UnOpKind {
     Neg,
     Not,
 }
+impl From<mir::UnOp> for UnOpKind {
+    fn from(value: mir::UnOp) -> Self {
+        match value {
+            mir::UnOp::Not => UnOpKind::Not,
+            mir::UnOp::Neg => UnOpKind::Neg,
+        }
+    }
+}
+impl From<&mir::UnOp> for UnOpKind {
+    fn from(value: &mir::UnOp) -> Self {
+        UnOpKind::from(*value)
+    }
+}
 
 #[derive(Clone, Copy, Debug)]
 pub enum BinOpKind {
     CmpEq,
+    CmpNe,
     CmpGt,
     CmpLt,
+    CmpGe,
+    CmpLe,
     And,
     Add,
     // ...
+}
+impl From<mir::BinOp> for BinOpKind {
+    fn from(value: mir::BinOp) -> Self {
+        match value {
+            mir::BinOp::Add => BinOpKind::Add,
+            mir::BinOp::AddUnchecked => todo!(),
+            mir::BinOp::Sub => todo!(),
+            mir::BinOp::SubUnchecked => todo!(),
+            mir::BinOp::Mul => todo!(),
+            mir::BinOp::MulUnchecked => todo!(),
+            mir::BinOp::Div => todo!(),
+            mir::BinOp::Rem => todo!(),
+            mir::BinOp::BitXor => todo!(),
+            mir::BinOp::BitAnd => todo!(),
+            mir::BinOp::BitOr => todo!(),
+            mir::BinOp::Shl => todo!(),
+            mir::BinOp::ShlUnchecked => todo!(),
+            mir::BinOp::Shr => todo!(),
+            mir::BinOp::ShrUnchecked => todo!(),
+            mir::BinOp::Eq => BinOpKind::CmpEq,
+            mir::BinOp::Lt => BinOpKind::CmpLt,
+            mir::BinOp::Le => BinOpKind::CmpLe,
+            mir::BinOp::Ne => BinOpKind::CmpNe,
+            mir::BinOp::Ge => BinOpKind::CmpGe,
+            mir::BinOp::Gt => BinOpKind::CmpGt,
+            mir::BinOp::Offset => todo!(),
+        }
+    }
+}
+impl From<&mir::BinOp> for BinOpKind {
+    fn from(value: &mir::BinOp) -> Self {
+        BinOpKind::from(*value)
+    }
 }
 
 pub enum ConstData {
