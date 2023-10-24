@@ -258,13 +258,7 @@ impl ast::StmtWalker for VarCollector {
         }
         self.is_pure_context = old_pure_context;
     }
-    fn walk_exhale(
-        &mut self,
-        ast::Exhale {
-            expr,
-            ..
-        }: &ast::Exhale,
-    ) {
+    fn walk_exhale(&mut self, ast::Exhale { expr, .. }: &ast::Exhale) {
         // When a field is fully exhaled, the purified encoding should havoc the purified variable.
         // This pass currently does not generate such havoc statement, which is why we mark the
         // variables used in an havoc as non-purifiable.
