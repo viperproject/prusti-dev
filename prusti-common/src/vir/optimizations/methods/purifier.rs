@@ -258,6 +258,13 @@ impl ast::StmtWalker for VarCollector {
         }
         self.is_pure_context = old_pure_context;
     }
+    fn walk_exhale(&mut self, ast::Exhale { expr, .. }: &ast::Exhale) {
+        // When a field is fully exhaled, the purified encoding should havoc the purified variable.
+        // This pass currently does not generate such havoc statement, which is why we mark the
+        // variables used in an exhale as non-purifiable.
+        // See: https://github.com/viperproject/prusti-dev/pull/1464
+        self.walk_expr(expr);
+    }
 }
 
 struct VarPurifier {
