@@ -66,12 +66,15 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         assert!(location < self.end_stmt.unwrap());
         self.curr_stmt = Some(location.successor_within_block());
 
+        self.cursor.seek_before_primary_effect(location);
+        let repacks_middle = self.cursor.get().repackings.clone();
         self.cursor.seek_after_primary_effect(location);
         let state = self.cursor.get();
         FreePcsLocation {
             location,
             state: state.summary.clone(),
             repacks: state.repackings.clone(),
+            repacks_middle,
         }
     }
     pub fn terminator(&mut self) -> FreePcsTerminator<'tcx> {
@@ -97,6 +100,7 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
                     },
                     state: to.summary.clone(),
                     repacks: state.summary.bridge(&to.summary, rp),
+                    repacks_middle: Vec::new(),
                 }
             })
             .collect();
@@ -130,6 +134,8 @@ pub struct FreePcsLocation<'tcx> {
     pub location: Location,
     /// Repacks before the statement
     pub repacks: Vec<RepackOp<'tcx>>,
+    /// Repacks in the middle of the statement
+    pub repacks_middle: Vec<RepackOp<'tcx>>,
     /// State after the statement
     pub state: CapabilitySummary<'tcx>,
 }
