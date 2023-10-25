@@ -55,11 +55,15 @@ impl<'tcx> Fpcs<'_, 'tcx> {
         let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
         let ops = cp.repack(place, self.repacker);
         self.repackings.extend(ops);
-        let kind = cp.insert(place, cap).unwrap();
+        let kind = cp[&place];
+        if cap.is_write() {
+            // Requires write should deinit an exclusive
+            cp.insert(place, cap);
+            if kind != cap {
+                self.repackings.push(RepackOp::Weaken(place, kind, cap));
+            }
+        };
         assert!(kind >= cap);
-        if kind != cap {
-            self.repackings.push(RepackOp::Weaken(place, kind, cap));
-        }
     }
 
     pub(crate) fn ensures_unalloc(&mut self, local: Local) {
