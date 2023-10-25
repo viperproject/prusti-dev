@@ -30,6 +30,7 @@ impl FpcsBound<'_> {
 pub struct Fpcs<'a, 'tcx> {
     pub(crate) repacker: PlaceRepacker<'a, 'tcx>,
     pub(crate) bottom: bool,
+    pub(crate) apply_pre_effect: bool,
     pub summary: CapabilitySummary<'tcx>,
     pub repackings: Vec<RepackOp<'tcx>>,
     pub bound: RefCell<FpcsBound<'tcx>>,
@@ -40,6 +41,7 @@ impl<'a, 'tcx> Fpcs<'a, 'tcx> {
         Self {
             repacker,
             bottom: true,
+            apply_pre_effect: true,
             summary,
             repackings: Vec::new(),
             bound: FpcsBound::empty(false),
@@ -56,7 +58,7 @@ impl<'a, 'tcx> Fpcs<'a, 'tcx> {
 impl Clone for Fpcs<'_, '_> {
     fn clone(&self) -> Self {
         let expect_bound = self.bound.borrow().1;
-        Self { repacker: self.repacker, bottom: self.bottom, summary: self.summary.clone(), repackings: self.repackings.clone(), bound: FpcsBound::empty(expect_bound) }
+        Self { repacker: self.repacker, bottom: self.bottom, apply_pre_effect: self.apply_pre_effect, summary: self.summary.clone(), repackings: self.repackings.clone(), bound: FpcsBound::empty(expect_bound) }
     }
 }
 impl PartialEq for Fpcs<'_, '_> {
