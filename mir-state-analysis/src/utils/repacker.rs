@@ -10,7 +10,7 @@ use prusti_rustc_interface::{
     index::bit_set::BitSet,
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, ProjectionElem,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, ProjectionElem, PlaceRef,
         },
         ty::{TyCtxt, TyKind},
     },
@@ -197,7 +197,7 @@ impl<'tcx> Place<'tcx> {
                 (other_places, ProjectionRefKind::Other)
             }
             ProjectionElem::Deref => {
-                let typ = self.ty(repacker.mir, repacker.tcx);
+                let typ = self.ty(repacker);
                 let kind = match typ.ty.kind() {
                     TyKind::Ref(_, _, mutbl) => ProjectionRefKind::Ref(*mutbl),
                     TyKind::RawPtr(ptr) => ProjectionRefKind::RawPtr(ptr.mutbl),
@@ -224,7 +224,7 @@ impl<'tcx> Place<'tcx> {
         repacker: PlaceRepacker<'_, 'tcx>,
     ) -> Vec<Self> {
         let mut places = Vec::new();
-        let typ = self.ty(repacker.mir, repacker.tcx);
+        let typ = self.ty(repacker);
         if !matches!(typ.ty.kind(), TyKind::Adt(..)) {
             assert!(
                 typ.variant_index.is_none(),
@@ -325,9 +325,13 @@ impl<'tcx> Place<'tcx> {
     //     }
     // }
 
+    pub fn ty(self, repacker: PlaceRepacker<'_, 'tcx>) -> PlaceTy<'tcx> {
+        PlaceRef::ty(&*self, repacker.mir, repacker.tcx)
+    }
+
     /// Should only be called on a `Place` obtained from `RootPlace::get_parent`.
     pub fn get_ref_mutability(self, repacker: PlaceRepacker<'_, 'tcx>) -> Mutability {
-        let typ = self.ty(repacker.mir, repacker.tcx);
+        let typ = self.ty(repacker);
         if let TyKind::Ref(_, _, mutability) = typ.ty.kind() {
             *mutability
         } else {
