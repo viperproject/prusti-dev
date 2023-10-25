@@ -58,6 +58,7 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
         fpcs_cursor.set_bound_non_empty();
         let mut fpcs = Fpcs {
             summary: fpcs_cursor.initial_state().clone(),
+            apply_pre_effect: false,
             bottom: false,
             repackings: Vec::new(),
             repacker: rp,
@@ -89,7 +90,7 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
         fpcs_cursor.unset_bound();
 
         // Repacks
-        for op in fpcs_after.repacks {
+        for op in fpcs_after.repacks_middle {
             op.update_free(&mut fpcs.summary, false, rp);
         }
         // Couplings bound set
@@ -97,8 +98,17 @@ pub(crate) fn check<'tcx>(mut cg: CgAnalysis<'_, '_, 'tcx>, mut fpcs_cursor: Fre
         fpcs.bound.borrow_mut().0 = Some(unsafe { std::mem::transmute(bound) });
         // Consistency
         fpcs.summary.consistency_check(rp);
-        // Statement
+        // Statement pre
         assert!(fpcs.repackings.is_empty());
+        fpcs.apply_pre_effect = true;
+        fpcs.visit_terminator(data.terminator(), loc);
+        // Repacks
+        for op in fpcs_after.repacks {
+            op.update_free(&mut fpcs.summary, false, rp);
+        }
+        // Statement post
+        assert!(fpcs.repackings.is_empty());
+        fpcs.apply_pre_effect = false;
         fpcs.visit_terminator(data.terminator(), loc);
         assert!(fpcs.repackings.is_empty());
         // Consistency
@@ -169,7 +179,7 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
         fpcs_cursor.unset_bound();
 
         // Repacks
-        for op in fpcs_after.repacks {
+        for op in fpcs_after.repacks_middle {
             op.update_free(&mut fpcs.summary, false, rp);
         }
         // Couplings bound set
@@ -177,8 +187,18 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
         fpcs.bound.borrow_mut().0 = Some(unsafe { std::mem::transmute(bound) }); // Extend lifetimes (safe since we unset it later)
         // Consistency
         fpcs.summary.consistency_check(rp);
-        // Statement
+        // Statement pre
         assert!(fpcs.repackings.is_empty());
+        fpcs.apply_pre_effect = true;
+        fpcs.visit_statement(stmt, loc);
+        assert!(fpcs.repackings.is_empty());
+        // Repacks
+        for op in fpcs_after.repacks {
+            op.update_free(&mut fpcs.summary, false, rp);
+        }
+        // Statement post
+        assert!(fpcs.repackings.is_empty());
+        fpcs.apply_pre_effect = false;
         fpcs.visit_statement(stmt, loc);
         assert!(fpcs.repackings.is_empty());
         // Consistency
