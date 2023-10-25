@@ -30,7 +30,10 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
     }
 
     fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
-        self.super_statement(statement, location);
+        if self.apply_pre_effect {
+            self.super_statement(statement, location);
+            return;
+        }
         use StatementKind::*;
         match &statement.kind {
             Assign(box (place, rvalue)) => {
@@ -63,7 +66,10 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
     }
 
     fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-        self.super_terminator(terminator, location);
+        if self.apply_pre_effect {
+            self.super_terminator(terminator, location);
+            return;
+        }
         use TerminatorKind::*;
         match &terminator.kind {
             Goto { .. }

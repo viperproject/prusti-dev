@@ -25,6 +25,7 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
         cursor.analysis_for_bb(block);
         let mut fpcs = Fpcs {
             summary: cursor.initial_state().clone(),
+            apply_pre_effect: true,
             bottom: false,
             repackings: Vec::new(),
             repacker: rp,
@@ -39,13 +40,23 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
             let fpcs_after = cursor.next(loc);
             assert_eq!(fpcs_after.location, loc);
             // Repacks
-            for op in fpcs_after.repacks {
+            for &op in &fpcs_after.repacks_middle {
                 op.update_free(&mut fpcs.summary, false, rp);
             }
             // Consistency
             fpcs.summary.consistency_check(rp);
-            // Statement
+            // Statement pre
             assert!(fpcs.repackings.is_empty());
+            fpcs.apply_pre_effect = true;
+            fpcs.visit_statement(stmt, loc);
+            assert!(fpcs.repackings.is_empty());
+
+            // Repacks
+            for op in fpcs_after.repacks {
+                op.update_free(&mut fpcs.summary, false, rp);
+            }
+            // Statement post
+            fpcs.apply_pre_effect = false;
             fpcs.visit_statement(stmt, loc);
             assert!(fpcs.repackings.is_empty());
             // Consistency
@@ -58,13 +69,23 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
         let fpcs_after = cursor.next(loc);
         assert_eq!(fpcs_after.location, loc);
         // Repacks
-        for op in fpcs_after.repacks {
+        for op in fpcs_after.repacks_middle {
             op.update_free(&mut fpcs.summary, false, rp);
         }
         // Consistency
         fpcs.summary.consistency_check(rp);
-        // Statement
+        // Statement pre
         assert!(fpcs.repackings.is_empty());
+        fpcs.apply_pre_effect = true;
+        fpcs.visit_terminator(data.terminator(), loc);
+        assert!(fpcs.repackings.is_empty());
+
+        // Repacks
+        for op in fpcs_after.repacks {
+            op.update_free(&mut fpcs.summary, false, rp);
+        }
+        // Statement post
+        fpcs.apply_pre_effect = false;
         fpcs.visit_terminator(data.terminator(), loc);
         assert!(fpcs.repackings.is_empty());
         // Consistency
