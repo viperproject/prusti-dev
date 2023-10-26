@@ -1,6 +1,6 @@
 use prusti_interface::environment::{
     is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block, is_loop_variant_block,
-    is_marked_specification_block, EnvQuery, Procedure,
+    is_marked_specification_block, EnvQuery, Procedure, is_marked_check_block,
 };
 use prusti_rustc_interface::{data_structures::graph::WithSuccessors, middle::mir};
 use std::collections::{BTreeMap, BTreeSet};
@@ -38,9 +38,13 @@ impl SpecificationBlocks {
     ) -> Self {
         // Blocks that contain closures marked with `#[spec_only]` attributes.
         let mut marked_specification_blocks = BTreeSet::new();
+        let mut check_blocks = BTreeSet::new();
         for (bb, block) in body.basic_blocks.iter_enumerated() {
             if is_marked_specification_block(env_query, block) {
                 marked_specification_blocks.insert(bb);
+            }
+            if is_marked_check_block(env_query, block) {
+                check_blocks.insert(bb);
             }
         }
 
@@ -118,6 +122,7 @@ impl SpecificationBlocks {
                 for successor in body.basic_blocks.successors(bb) {
                     if specification_blocks.contains(&successor)
                         && !loop_spec_blocks_flat.contains(&successor)
+                        && !check_blocks.contains(&successor) // no entry blocks for check_blocks
                     {
                         specification_entry_blocks.insert(successor);
                     }

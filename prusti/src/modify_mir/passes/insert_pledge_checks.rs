@@ -165,11 +165,6 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                     if let Some(place) = pledge_loans.get(loan) {
                         // a pledge is associated with this loan and dies here!!
                         modification_list.push((ExpirationLocation::Location(location), *place));
-                        let pledge = self.pledges_to_process.get(place).unwrap();
-                        println!(
-                            "Pledge for function {} is associated with loan {:?} and dies at {:?}",
-                            pledge.name, loan, location
-                        );
                     }
                 }
                 // For switchInts, also look at the expirations of loans on edges, since
@@ -278,7 +273,6 @@ impl<'tcx, 'a> PledgeInserter<'tcx, 'a> {
                     }
                     _ => {
                         // Can pledges expire at other kinds of terminators?
-                        println!("Encountered a pledge expiring at terminator: {:#?}, expiring at location: {:?}", term, location);
                         todo!()
                     }
                 }
@@ -392,7 +386,6 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                             let result_ty = destination.ty(self.local_decls(), self.tcx).ty;
                             let result_copy_place =
                                 mir::Place::from(self.patcher().new_temp(result_ty, DUMMY_SP));
-                            println!("Pledge result type: {:?}", result_ty);
 
                             // create a guard local
                             let bool_ty = self.tcx.mk_ty_from_kind(ty::TyKind::Bool);
@@ -421,7 +414,6 @@ impl<'tcx, 'a> MutVisitor<'tcx> for PledgeInserter<'tcx, 'a> {
                             self.pledges_to_process
                                 .insert(*destination, pledge_to_process);
                         } else {
-                            println!("found pledge call, now prepending cloning");
                             let mut pledge = self.pledges_to_process.remove(destination).unwrap();
                             // create the clones of old that will be passed to
                             // the check function. Make the chain end with the

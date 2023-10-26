@@ -75,13 +75,10 @@ pub(crate) fn derive_ranges(
     let boundary_extractor = BoundExtractor { name_set };
     for (name, ty) in args.iter() {
         let range_expr: syn::ExprRange = if utils::is_primitive_number(ty) {
-            let bounds = boundary_extractor.extract_bounds_recursive(&bounds_expr, name);
+            let bounds = boundary_extractor.extract_bounds_recursive(&bounds_expr, name, false);
             let mut upper_bound_opt = None;
             let mut lower_bound_opt = None;
 
-            // if there are multiple variables, potentially with dependencies
-            // the loops need to be in a specific order
-            assert!(bounds.len() <= 2);
             let mut include_upper = true; // if we have the MAX upper limit,
             for Boundary {
                 kind,
@@ -211,7 +208,7 @@ pub fn split_implication_lhs(expr: &syn::Expr) -> Option<syn::Expr> {
     }
 }
 impl BoundExtractor {
-    fn extract_bounds_recursive(&self, expr: &syn::Expr, name: &String) -> Vec<Boundary> {
+    fn extract_bounds_recursive(&self, expr: &syn::Expr, name: &String, exclude_conjunctions: bool) -> Vec<Boundary> {
         let simplified = simplify_expression(expr);
         match simplified {
             syn::Expr::Binary(syn::ExprBinary {
@@ -223,10 +220,15 @@ impl BoundExtractor {
                 match op {
                     // combining results of and:
                     syn::BinOp::And(_) => {
-                        let mut left_bound = self.extract_bounds_recursive(&left, name);
-                        let mut right_bound = self.extract_bounds_recursive(&right, name);
-                        left_bound.append(&mut right_bound);
-                        left_bound
+                        // stop processing conjunctions if we are "below" a NOT operation
+                        if !exclude_conjunctions {
+                            let mut left_bound = self.extract_bounds_recursive(&left, name, exclude_conjunctions);
+                            let mut right_bound = self.extract_bounds_recursive(&right, name, exclude_conjunctions);
+                            left_bound.append(&mut right_bound);
+                            left_bound
+                        } else {
+                            vec![]
+                        }
                     }
                     // generate boundaries from comparisons if one of the sides
                     // is the name we are currently looking for
@@ -258,7 +260,10 @@ impl BoundExtractor {
                 expr: box sub_expr,
                 ..
             }) => {
-                let sub_bounds = self.extract_bounds_recursive(&sub_expr, name);
+                // For a NOT expression, we can not further derive boundaries from conjunctions
+                // becuase e.g. !(x < 5 && x > 10) is trivially true, but we would derive the range
+                // 5..10
+                let sub_bounds = self.extract_bounds_recursive(&sub_expr, name, true);
                 // invert all the boundaries derived of the sub_expression
                 sub_bounds
                     .iter()

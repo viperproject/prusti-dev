@@ -189,6 +189,10 @@ pub(crate) fn translate_predicate<T: HasSignature>(
     // get signature information about the associated function
     let function_info = AssociatedFunctionInfo::empty();
     let mut visitor = CheckVisitor::new(function_info, check_type);
+    // For predicates, we can never extend the error message with additional information
+    // since we don't have access to it.
+    // Therefore we never consider a predicate to be part of the "outermost" conjunction
+    visitor.is_outer = false;
 
     // make the expression checkable at runtime:
     let mut expr: syn::Expr = syn::parse2(body.clone())?;
@@ -350,7 +354,7 @@ impl VisitMut for CheckVisitor {
                         // its not a reference (this is unfortunately not always determined
                         // correctly because of type aliases)
                         if self.check_type.gets_old_args()
-                            && ((self.within_old && arg.is_ref && arg.is_mutable) || !arg.is_ref)
+                            && !arg.is_ref || self.within_old && arg.is_mutable
                         {
                             // if it was not already marked to be stored
                             // needs to be checked for indeces to be correct
@@ -451,7 +455,8 @@ impl VisitMut for CheckVisitor {
                     | "snapshot_equality"
                     | ":: prusti_contracts :: snap"
                     | "prusti_contracts :: snap"
-                    | "snap" => {
+                    | "snap"
+                    | "model" => {
                         let message = format!(
                             "Feature {} is not supported for runtime checks, behavior at runtime might be arbitrary",
                             expr.to_token_stream()
