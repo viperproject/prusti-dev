@@ -105,6 +105,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         let return_type = match &ty {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::Float(vir_mid::ty::Float::F32) => {
+                vir_low::Type::Float(vir_low::ty::Float::F32)
+            }
+            vir_mid::Type::Float(vir_mid::ty::Float::F64) => {
+                vir_low::Type::Float(vir_low::ty::Float::F64)
+            }
             vir_mid::Type::Pointer(_) => self.address_type()?,
             x => unimplemented!("{:?}", x),
         };
@@ -205,6 +211,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         let low_type = match &ty {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::Float(vir_mid::ty::Float::F32) => {
+                vir_low::Type::Float(vir_low::ty::Float::F32)
+            }
+            vir_mid::Type::Float(vir_mid::ty::Float::F64) => {
+                vir_low::Type::Float(vir_low::ty::Float::F64)
+            }
             vir_mid::Type::Pointer(_) => self.address_type()?,
             vir_mid::Type::Reference(_) => self.address_type()?,
             x => unimplemented!("{:?}", x),

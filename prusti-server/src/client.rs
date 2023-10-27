@@ -5,10 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::VerificationRequest;
+use backend_common::VerificationResult;
 use prusti_common::config;
 use reqwest::Client;
 use url::{ParseError, Url};
-use viper::VerificationResult;
 
 pub struct PrustiClient {
     client: Client,

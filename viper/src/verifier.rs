@@ -5,16 +5,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    ast_factory::*,
-    ast_utils::AstUtils,
-    jni_utils::JniUtils,
-    silicon_counterexample::SiliconCounterexample,
-    smt_manager::SmtManager,
-    verification_backend::VerificationBackend,
-    verification_result::{VerificationError, VerificationResult},
+    ast_factory::*, ast_utils::AstUtils, jni_utils::JniUtils, silicon_counterexample,
+    smt_manager::SmtManager, verification_backend::VerificationBackend,
 };
+use backend_common::{SiliconCounterexample, VerificationError, VerificationResult};
 use jni::{objects::JObject, JNIEnv};
 use log::{debug, error, info};
+use prusti_utils::run_timed;
 use std::path::PathBuf;
 use viper_sys::wrappers::{scala, viper::*};
 
@@ -55,6 +52,9 @@ impl<'a> Verifier<'a> {
                     }
                     VerificationBackend::Carbon => {
                         carbon::CarbonFrontendAPI::with(env).new(reporter)
+                    }
+                    VerificationBackend::Lithium => {
+                        unreachable!("Lithium is not a JVM-based backend")
                     }
                 }
             };
@@ -222,7 +222,7 @@ impl<'a> Verifier<'a> {
                                     "viper/silicon/interfaces/SiliconMappedCounterexample",
                                 ) {
                                     // only mapped counterexamples are processed
-                                    Some(SiliconCounterexample::new(
+                                    Some(silicon_counterexample(
                                         self.env,
                                         self.jni,
                                         original_counterexample,

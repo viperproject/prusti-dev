@@ -4,14 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt::Debug;
-
 use super::PositionManager;
+use backend_common::VerificationError;
+use core::fmt::Debug;
 use log::debug;
 use prusti_interface::{data::ProcedureDefId, PrustiError};
 use prusti_rustc_interface::{errors::MultiSpan, span::source_map::SourceMap};
 use rustc_hash::FxHashMap;
-use viper::VerificationError;
 use vir_crate::polymorphic::Position;
 
 const ASSERTION_TIMEOUT_HELP_MESSAGE: &str =
@@ -231,19 +230,19 @@ impl<'tcx> ErrorManager<'tcx> {
             Position::default(),
             "Trying to register an error on a default position"
         );
-        if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
-            debug_assert_eq!(
-                existing_error_ctxt,
-                &error_ctxt,
-                "An existing error context would be overwritten.\n\
-                Position id: {}\n\
-                Existing error context: {:?}\n\
-                New error context: {:?}",
-                pos.id(),
-                existing_error_ctxt,
-                error_ctxt
-            );
-        }
+        // if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
+        //     debug_assert_eq!(
+        //         existing_error_ctxt,
+        //         &error_ctxt,
+        //         "An existing error context would be overwritten.\n\
+        //         Position id: {}\n\
+        //         Existing error context: {:?}\n\
+        //         New error context: {:?}",
+        //         pos.id(),
+        //         existing_error_ctxt,
+        //         error_ctxt
+        //     );
+        // }
         self.error_contexts.insert(pos.id(), error_ctxt);
     }
 

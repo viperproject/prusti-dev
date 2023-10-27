@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{ast_factory::Program, jni_utils::JniUtils, JavaException};
+use crate::{ast_factory::Program, jni_utils::JniUtils};
+use backend_common::JavaException;
 use jni::{objects::JObject, JNIEnv};
 use viper_sys::wrappers::viper::*;
 

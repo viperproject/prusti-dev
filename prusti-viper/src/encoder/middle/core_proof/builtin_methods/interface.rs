@@ -690,8 +690,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     // For some reason, division is not CheckedBinaryOp, but the
                     // regular one. Therefore, we need to put the checks for
                     // overflows into the precondition.
-                    let type_decl = self.encoder.get_type_decl_mid(result_type)?.unwrap_int();
-                    if let Some(lower) = type_decl.lower_bound {
+                    let type_decl = self.encoder.get_type_decl_mid(result_type)?;
+
+                    let lower_bound = if result_type.is_float() {
+                        type_decl.unwrap_float().lower_bound
+                    } else {
+                        type_decl.unwrap_int().lower_bound
+                    };
+
+                    if let Some(lower) = lower_bound {
                         let zero =
                             self.construct_constant_snapshot(result_type, 0.into(), position)?;
                         pres.push(expr! {operand_right != [zero]});

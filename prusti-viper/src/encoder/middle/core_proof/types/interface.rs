@@ -98,6 +98,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let validity = conjuncts.into_iter().conjoin();
                 self.encode_validity_axioms_primitive(&domain_name, vir_low::Type::Int, validity)?;
             }
+            vir_mid::TypeDecl::Float(decl) => {
+                let is_f64 = domain_name.contains("F64");
+                let float_type = || {
+                    if is_f64 {
+                        vir_low::Type::Float(vir_low::ty::Float::F64)
+                    } else {
+                        vir_low::Type::Float(vir_low::ty::Float::F32)
+                    }
+                };
+
+                self.ensure_type_definition(&vir_mid::Type::Bool)?;
+                self.register_constant_constructor(&domain_name, float_type())?;
+
+                let value = vir_low::ast::variable::VariableDecl::new("value", float_type());
+
+                let mut conjuncts = Vec::new();
+                if let Some(lower_bound) = &decl.lower_bound {
+                    conjuncts
+                        .push(expr! { [lower_bound.clone().to_pure_snapshot(self)? ] <= value });
+                }
+                if let Some(upper_bound) = &decl.upper_bound {
+                    conjuncts
+                        .push(expr! { value <= [upper_bound.clone().to_pure_snapshot(self)? ] });
+                }
+                let validity = conjuncts.into_iter().conjoin();
+                self.encode_validity_axioms_primitive(&domain_name, float_type(), validity)?;
+            }
             vir_mid::TypeDecl::Trusted(_) => {
                 // FIXME: ensure type definition for trusted
             }
@@ -198,6 +225,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::TypeDecl::Never => {
                 self.register_struct_constructor(&domain_name, Vec::new())?;
                 self.encode_validity_axioms_struct(&domain_name, Vec::new(), false.into())?;
+            }
+            vir_mid::TypeDecl::Closure(closure) => {
+                // closure has a name and array of arguments, which represent the "saved" parameters of the function
+                // it is not a function, just a struct that remembers the arguments at entry time
+                let mut parameters = Vec::new();
+                for (ix, argument) in closure.arguments.iter().enumerate() {
+                    self.ensure_type_definition(argument)?;
+                    parameters.push(vir_low::VariableDecl::new(
+                        format!("_{}", ix),
+                        argument.to_snapshot(self)?,
+                    ));
+                }
+
+                self.register_struct_constructor(&domain_name, parameters.clone())?;
+                self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
             }
             _ => unimplemented!("type: {:?}", type_decl),
         };
@@ -367,6 +409,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                     var_decls! { constant: Int };
                     Some((expr! { -constant }, constant))
                 }
+                vir_mid::Type::Float(vir_mid::ty::Float::F32) => {
+                    assert_eq!(op, vir_low::UnaryOpKind::Minus);
+                    var_decls! { constant: Float32 };
+                    Some((expr! { -constant }, constant))
+                }
+                vir_mid::Type::Float(vir_mid::ty::Float::F64) => {
+                    assert_eq!(op, vir_low::UnaryOpKind::Minus);
+                    var_decls! { constant: Float64 };
+                    Some((expr! { -constant }, constant))
+                }
                 _ => None,
             };
             if let Some((simplification_result, parameter)) = simplification {
@@ -422,6 +474,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             let constant_type = match argument_type {
                 vir_mid::Type::Bool => Some(ty! { Bool }),
                 vir_mid::Type::Int(_) => Some(ty! {Int}),
+                vir_mid::Type::Float(vir_mid::ty::Float::F32) => Some(ty! {Float32}),
+                vir_mid::Type::Float(vir_mid::ty::Float::F64) => Some(ty! {Float64}),
                 vir_mid::Type::Pointer(_) => Some(ty!(Address)),
                 _ => None,
             };

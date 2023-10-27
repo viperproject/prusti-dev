@@ -147,9 +147,16 @@ pub(super) fn encode_quantifier_high<'tcx>(
         if config::check_overflows() {
             bounds.extend(encoder.encode_type_bounds_high(&encoded_qvar.clone().into(), arg_ty));
         } else if config::encode_unsigned_num_constraint() {
-            if let ty::TyKind::Uint(_) = arg_ty.kind() {
-                let expr =
-                    vir_high::Expression::less_equals(0u32.into(), encoded_qvar.clone().into());
+            if let ty::TyKind::Uint(utype) = arg_ty.kind() {
+                let zero = match utype {
+                    ty::UintTy::U8 => 0u8.into(),
+                    ty::UintTy::U16 => 0u16.into(),
+                    ty::UintTy::U32 => 0u32.into(),
+                    ty::UintTy::U64 => 0u64.into(),
+                    ty::UintTy::U128 => 0u128.into(),
+                    ty::UintTy::Usize => 0usize.into(),
+                };
+                let expr = vir_high::Expression::less_equals(zero, encoded_qvar.clone().into());
                 bounds.push(expr);
             }
         }

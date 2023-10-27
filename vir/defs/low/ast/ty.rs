@@ -17,6 +17,7 @@ pub enum Type {
     Domain(Domain),
 }
 
+#[derive(Copy)]
 pub enum Float {
     F32,
     F64,

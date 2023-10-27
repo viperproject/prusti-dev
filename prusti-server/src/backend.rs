@@ -1,13 +1,15 @@
 use crate::dump_viper_program;
+use backend_common::VerificationResult;
 use prusti_common::{
     config,
     vir::{LoweringContext, ToViper},
     Stopwatch,
 };
-use viper::{VerificationContext, VerificationResult};
+use viper::VerificationContext;
 
 pub enum Backend<'a> {
     Viper(viper::Verifier<'a>, &'a VerificationContext<'a>),
+    Lithium(native_verifier::Verifier),
 }
 
 impl<'a> Backend<'a> {
@@ -35,6 +37,10 @@ impl<'a> Backend<'a> {
                     stopwatch.start_next("viper verification");
                     viper.verify(viper_program)
                 })
+            }
+            Backend::Lithium(lithium) => {
+                let _stopwatch = Stopwatch::start("prusti-server", "vir verification");
+                lithium.verify(program)
             }
         }
     }

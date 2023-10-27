@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::java_exception::JavaException;
+use backend_common::JavaException;
 use jni::{
     errors::{Error, Result as JniResult},
     objects::{JObject, JString},

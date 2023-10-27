@@ -1,3 +1,4 @@
+use backend_common::VerificationResult;
 use std::sync::Once;
 use viper::*;
 

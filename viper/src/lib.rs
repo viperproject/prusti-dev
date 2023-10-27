@@ -14,17 +14,14 @@ mod jni_utils;
 #[macro_use]
 pub mod utils;
 mod cache;
-mod java_exception;
-pub mod silicon_counterexample;
 pub mod smt_manager;
 mod verification_backend;
+pub mod silicon_counterexample;
 mod verification_context;
-mod verification_result;
 mod verifier;
 mod viper;
 
 pub use crate::{
-    ast_factory::*, ast_utils::*, cache::*, java_exception::*, silicon_counterexample::*,
-    verification_backend::*, verification_context::*, verification_result::*, verifier::*,
-    viper::*,
+    ast_factory::*, ast_utils::*, cache::*, silicon_counterexample::*, verification_backend::*,
+    verification_context::*, verifier::*, viper::*,
 };

@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::vir::{program::Program, Position};
+use backend_common::VerificationResult;
 use log::{debug, trace};
 use rustc_hash::{FxHashMap, FxHashSet};
-use viper::VerificationResult;
 
 pub enum NormalizationInfo {
     LegacyProgram { original_position_ids: Vec<u64> },

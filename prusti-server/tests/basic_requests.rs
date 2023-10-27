@@ -1,10 +1,10 @@
+use backend_common::VerificationResult;
 use lazy_static::lazy_static;
 use prusti_common::vir::*;
 use prusti_server::{
     spawn_server_thread, tokio::runtime::Builder, PrustiClient, VerificationRequest,
     ViperBackendConfig,
 };
-use viper::VerificationResult;
 
 lazy_static! {
     // only start the jvm & server once
