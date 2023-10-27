@@ -39,7 +39,7 @@ impl<'a> Backend<'a> {
                 })
             }
             Backend::Lithium(lithium) => {
-                Stopwatch::start("prusti-server", "vir verification");
+                let _stopwatch = Stopwatch::start("prusti-server", "vir verification");
                 lithium.verify(program)
             }
         }
