@@ -6,21 +6,19 @@ Prusti
 [![Test coverage](https://codecov.io/gh/viperproject/prusti-dev/branch/master/graph/badge.svg)](https://codecov.io/gh/viperproject/prusti-dev)
 [![Project chat](https://img.shields.io/badge/Zulip-join_chat-brightgreen.svg)](https://prusti.zulipchat.com/)
 
-[Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust,
-built upon the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
+[Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust that makes it possible to formally prove absence of bugs and correctness of code contracts. Internally, Prusti builds upon the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
 
 By default Prusti verifies absence of integer overflows and panics, proving that statements such as `unreachable!()` and `panic!()` are unreachable.
 Overflow checking can be disabled with a configuration flag, treating all integers as unbounded.
 In Prusti, the functional behaviour of functions and external libraries can be specified by using annotations, among which are preconditions, postconditions, and loop invariants.
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
-
 Useful links
 ------------
 
 * 💻 [VS Code extension](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) to use Prusti from your IDE.
 * 📖 [User guide](https://viperproject.github.io/prusti-dev/user-guide/), containing installation instructions, a guided tutorial and a description of various verification features.
-* 🧰 [Developer guide](https://viperproject.github.io/prusti-dev/dev-guide/), meant for new contributors.
+* 🧰 [Developer guide](https://viperproject.github.io/prusti-dev/dev-guide/), meant for new contributors. If you wonder how to help, give a look at the [good first issues](https://github.com/viperproject/prusti-dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
 * 📚 [List of publications](http://www.pm.inf.ethz.ch/research/prusti.html). To cite the Prusti verifier, please use [this BibTeX entry](http://pm.inf.ethz.ch/publications/getbib.php?action=bibtex&bibname=Own&id=AstrauskasMuellerPoliSummers19b).
 * ⚖️ [License](https://github.com/viperproject/prusti-dev/blob/master/LICENSE) of the source code (Mozilla Public License Version 2.0, with exceptions).
 * 💬 Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
