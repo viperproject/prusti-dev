@@ -180,6 +180,7 @@ lazy_static::lazy_static! {
         allowed_keys.insert("rustc_log_args".to_string());
         allowed_keys.insert("rustc_log_env".to_string());
         allowed_keys.insert("original_smt_solver_path".to_string());
+        allowed_keys.insert("native_verifier".to_string());
 
         // TODO: reduce this to something more sensible:
         static MAX_CONFIG_LEN: usize = 40;
@@ -189,6 +190,17 @@ lazy_static::lazy_static! {
             Long configs are a pain to work with and list out in the guide.",
             allowed_keys.iter().filter(|key| key.len() > MAX_CONFIG_LEN).collect::<Vec<_>>()
         );
+
+        // 0. Apply Lithium overrides if necessary
+        if let Ok(true) = env::var("PRUSTI_NATIVE_VERIFIER").map(|s| s.parse::<bool>().unwrap_or(false)) {
+            settings.set_default("viper_backend", "Lithium").unwrap();
+            settings.set_default("verify_specifications_backend", "Lithium").unwrap();
+            settings.set_default("encode_bitvectors", true).unwrap();
+            settings.set_default("enable_purification_optimization", true).unwrap();
+            settings.set_default("unsafe_core_proof", true).unwrap();
+            settings.set_default("verify_core_proof", false).unwrap();
+            settings.set_default("inline_caller_for", true).unwrap();
+        }
 
         // 1. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
