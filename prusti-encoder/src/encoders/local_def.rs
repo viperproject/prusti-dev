@@ -79,14 +79,10 @@ impl TaskEncoder for MirLocalDefEncoder {
                 ).unwrap();
                 let snapshot = ty.snapshot;
                 let local_ex = vcx.mk_local_ex_local(local);
-                let impure_snap = vcx.mk_func_app(
-                    ty.function_snap,
-                    &[local_ex],
-                );
-                let impure_pred = vcx.alloc(vir::ExprData::PredicateApp(vcx.alloc(vir::PredicateAppData {
-                    target: ty.predicate_name,
-                    args: vcx.alloc_slice(&[local_ex]),
-                })));
+                let impure_snap = ty.ref_to_snap.apply(vcx, [local_ex]);
+                let impure_pred = vcx.alloc(vir::ExprData::PredicateApp(
+                    ty.ref_to_pred.apply(vcx, [local_ex])
+                ));
                 LocalDef {
                     local,
                     snapshot,
