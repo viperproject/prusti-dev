@@ -9,9 +9,7 @@ mod mir_pure_function;
 pub mod pure;
 pub mod local_def;
 
-pub use generic::{
-    GenericEncoder,
-};
+pub use generic::GenericEncoder;
 pub use mir_builtin::{
     MirBuiltinEncoder,
     MirBuiltinEncoderTask,

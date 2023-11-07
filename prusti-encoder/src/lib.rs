@@ -182,7 +182,7 @@ pub fn test_entrypoint<'tcx>(
 
     header(&mut viper_code, "functions");
     for output in crate::encoders::MirFunctionEncoder::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.method));
+        viper_code.push_str(&format!("{:?}\n", output.function));
     }
 
     header(&mut viper_code, "MIR builtins");
@@ -206,7 +206,7 @@ pub fn test_entrypoint<'tcx>(
         for field_projection in output.field_projection_p {
             viper_code.push_str(&format!("{:?}", field_projection));
         }
-        viper_code.push_str(&format!("{:?}\n", output.function_unreachable));
+        viper_code.push_str(&format!("{:?}\n", output.unreachable_to_snap));
         viper_code.push_str(&format!("{:?}\n", output.function_snap));
         viper_code.push_str(&format!("{:?}\n", output.predicate));
         //viper_code.push_str(&format!("{:?}\n", output.method_refold));
