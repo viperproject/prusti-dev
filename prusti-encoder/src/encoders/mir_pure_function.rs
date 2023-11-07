@@ -1,7 +1,7 @@
 use prusti_rustc_interface::{middle::{mir, ty}, span::def_id::DefId};
 
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
-use vir::Reify;
+use vir::{Reify, FunctionIdent, UnknownArity, CallableIdent};
 use std::cell::RefCell;
 
 use crate::encoders::{
@@ -16,13 +16,13 @@ pub enum MirFunctionEncoderError {
 
 #[derive(Clone, Debug)]
 pub struct MirFunctionEncoderOutputRef<'vir> {
-    pub method_name: &'vir str,
+    pub function_ref: FunctionIdent<'vir, UnknownArity<'vir>>,
 }
 impl<'vir> task_encoder::OutputRefAny<'vir> for MirFunctionEncoderOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
 pub struct MirFunctionEncoderOutput<'vir> {
-    pub method: vir::Function<'vir>,
+    pub function: vir::Function<'vir>,
 }
 
 thread_local! {
@@ -69,15 +69,21 @@ impl TaskEncoder for MirFunctionEncoder {
     > {
         vir::with_vcx(|vcx| {
             let def_id = *task_key;
-
-            tracing::debug!("encoding {def_id:?}");
-
-            let method_name = vir::vir_format!(vcx, "f_{}", vcx.tcx.item_name(def_id));
-            deps.emit_output_ref::<Self>(def_id, MirFunctionEncoderOutputRef { method_name });
-
             let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEncoder>(
                 def_id,
             ).unwrap();
+
+            tracing::debug!("encoding {def_id:?}");
+
+            let function_name = vir::vir_format!(vcx, "f_{}", vcx.tcx.item_name(def_id));
+            let args: Vec<_> = (1..=local_defs.arg_count)
+                .map(mir::Local::from)
+                .map(|def_idx| local_defs.locals[def_idx].snapshot)
+                .collect();
+            let args = UnknownArity::new(vcx.alloc_slice(&args));
+            let function_ref = FunctionIdent::new(function_name, args);
+            deps.emit_output_ref::<Self>(def_id, MirFunctionEncoderOutputRef { function_ref });
+
             let spec = deps.require_local::<crate::encoders::pure::spec::MirSpecEncoder>(
                 (def_id, true)
             ).unwrap();
@@ -104,8 +110,8 @@ impl TaskEncoder for MirFunctionEncoder {
 
             Ok((
                 MirFunctionEncoderOutput {
-                    method: vcx.alloc(vir::FunctionData {
-                        name: method_name,
+                    function: vcx.alloc(vir::FunctionData {
+                        name: function_name,
                         args: vcx.alloc_slice(&func_args),
                         ret: local_defs.locals[mir::RETURN_PLACE].snapshot,
                         pres: vcx.alloc_slice(&spec.pres),
