@@ -3,8 +3,8 @@
 use hashlink::LinkedHashMap;
 use std::cell::RefCell;
 
-pub trait OutputRefAny<'vir> {}
-impl<'vir> OutputRefAny<'vir> for () {}
+pub trait OutputRefAny {}
+impl OutputRefAny for () {}
 
 pub enum TaskEncoderCacheState<'vir, E: TaskEncoder + 'vir + ?Sized> {
     // None, // indicated by absence in the cache
@@ -49,11 +49,11 @@ pub enum TaskEncoderCacheState<'vir, E: TaskEncoder + 'vir + ?Sized> {
 
 /// Cache for a task encoder. See `TaskEncoderCacheState` for a description of
 /// the possible values in the encoding process.
-pub type Cache<'vir, E> = LinkedHashMap<
-    <E as TaskEncoder>::TaskKey<'vir>,
+pub type Cache<'tcx, 'vir, E> = LinkedHashMap<
+    <E as TaskEncoder>::TaskKey<'tcx>,
     TaskEncoderCacheState<'vir, E>,
 >;
-pub type CacheRef<'vir, E> = RefCell<Cache<'vir, E>>;
+pub type CacheRef<'tcx, 'vir, E> = RefCell<Cache<'tcx, 'vir, E>>;
 
 pub type CacheStatic<E> = LinkedHashMap<
     <E as TaskEncoder>::TaskKey<'static>,
@@ -111,43 +111,43 @@ impl<E: TaskEncoder + ?Sized> Clone for TaskEncoderError<E> {
 
 #[derive(Default)]
 pub struct TaskEncoderDependencies<'vir> {
-    pub deps_local: Vec<&'vir dyn OutputRefAny<'vir>>,
-    pub deps_dep: Vec<&'vir dyn OutputRefAny<'vir>>,
+    pub deps_local: Vec<&'vir dyn OutputRefAny>,
+    pub deps_dep: Vec<&'vir dyn OutputRefAny>,
 }
 impl<'vir> TaskEncoderDependencies<'vir> {
-    pub fn require_ref<E: TaskEncoder + 'vir>(
+    pub fn require_ref<'tcx: 'vir, E: TaskEncoder + 'vir + 'tcx>(
         &mut self,
-        task: <E as TaskEncoder>::TaskDescription<'vir>,
+        task: <E as TaskEncoder>::TaskDescription<'tcx>,
     ) -> Result<
         <E as TaskEncoder>::OutputRef<'vir>,
         TaskEncoderError<E>,
-    > {
+    > where 'vir: 'tcx {
         E::encode_ref(task)
     }
 
-    pub fn require_local<E: TaskEncoder + 'vir>(
+    pub fn require_local<'tcx: 'vir, E: TaskEncoder + 'vir>(
         &mut self,
-        task: <E as TaskEncoder>::TaskDescription<'vir>,
+        task: <E as TaskEncoder>::TaskDescription<'tcx>,
     ) -> Result<
         <E as TaskEncoder>::OutputFullLocal<'vir>,
         TaskEncoderError<E>,
-    > {
+    > where 'vir: 'tcx {
         E::encode(task).map(|(_output_ref, output_local, _output_dep)| output_local)
     }
 
-    pub fn require_dep<E: TaskEncoder + 'vir>(
+    pub fn require_dep<'tcx: 'vir, E: TaskEncoder + 'vir>(
         &mut self,
-        task: <E as TaskEncoder>::TaskDescription<'vir>,
+        task: <E as TaskEncoder>::TaskDescription<'tcx>,
     ) -> Result<
         <E as TaskEncoder>::OutputFullDependency<'vir>,
         TaskEncoderError<E>,
-    > {
+    > where 'vir: 'tcx {
         E::encode(task).map(|(_output_ref, _output_local, output_dep)| output_dep)
     }
 
-    pub fn emit_output_ref<E: TaskEncoder + 'vir>(
+    pub fn emit_output_ref<'tcx: 'vir, E: TaskEncoder + 'vir>(
         &mut self,
-        task_key: E::TaskKey<'vir>,
+        task_key: E::TaskKey<'tcx>,
         output_ref: E::OutputRef<'vir>,
     ) {
         assert!(E::with_cache(move |cache| matches!(cache.borrow_mut().insert(
@@ -160,18 +160,18 @@ impl<'vir> TaskEncoderDependencies<'vir> {
 pub trait TaskEncoder {
     /// Description of a task to be performed. Should be easily obtained by
     /// clients of this encoder.
-    type TaskDescription<'vir>: std::hash::Hash + Eq + Clone + std::fmt::Debug;
+    type TaskDescription<'tcx>: std::hash::Hash + Eq + Clone + std::fmt::Debug;
 
     /// Cache key for a task to be performed. May differ from `TaskDescription`,
     /// for example if the description should be normalised or some non-trivial
     /// resolution needs to happen. In other words, multiple descriptions may
     /// lead to the same key and hence the same output.
-    type TaskKey<'vir>: std::hash::Hash + Eq + Clone + std::fmt::Debug = Self::TaskDescription<'vir>;
+    type TaskKey<'tcx>: std::hash::Hash + Eq + Clone + std::fmt::Debug = Self::TaskDescription<'tcx>;
 
     /// A reference to an encoded item. Should be non-unit for tasks which can
     /// be "referred" to from other parts of a program, as opposed to tasks
     /// where only the full output matters.
-    type OutputRef<'vir>: Clone + OutputRefAny<'vir> = ()
+    type OutputRef<'vir>: Clone + OutputRefAny = ()
         where Self: 'vir;
 
     /// Fully encoded output for this task. When encoding items which can be
@@ -189,8 +189,8 @@ pub trait TaskEncoder {
 
     /// Enters the given function with a reference to the cache for this
     /// encoder.
-    fn with_cache<'vir, F, R>(f: F) -> R
-        where Self: 'vir, F: FnOnce(&'vir CacheRef<'vir, Self>) -> R;
+    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
+        where Self: 'vir, F: FnOnce(&'vir CacheRef<'tcx, 'vir, Self>) -> R;
 
     //fn get_all_outputs() -> Self::CacheRef<'vir> {
     //  todo!()
@@ -215,7 +215,7 @@ pub trait TaskEncoder {
         ).is_none()));
     }
 
-    fn encode_ref<'vir>(task: Self::TaskDescription<'vir>) -> Result<
+    fn encode_ref<'tcx: 'vir, 'vir: 'tcx>(task: Self::TaskDescription<'tcx>) -> Result<
         Self::OutputRef<'vir>,
         TaskEncoderError<Self>,
     >
@@ -264,7 +264,7 @@ pub trait TaskEncoder {
         panic!("output ref not found after encoding") // TODO: error?
     }
 
-    fn encode<'vir>(task: Self::TaskDescription<'vir>) -> Result<(
+    fn encode<'tcx: 'vir, 'vir: 'tcx>(task: Self::TaskDescription<'tcx>) -> Result<(
         Self::OutputRef<'vir>,
         Self::OutputFullLocal<'vir>,
         Self::OutputFullDependency<'vir>,
@@ -304,7 +304,7 @@ pub trait TaskEncoder {
             return in_cache;
         }
 
-        let mut deps: TaskEncoderDependencies<'vir> = Default::default();
+        let mut deps = TaskEncoderDependencies::default();
         let encode_result = Self::do_encode_full(&task_key, &mut deps);
 
         let output_ref = Self::with_cache(|cache| match cache.borrow().get(&task_key) {
@@ -449,8 +449,8 @@ pub trait TaskEncoder {
     /// Given a task description, create a reference to the output.
     fn task_to_output_ref<'vir>(task: &Self::TaskDescription<'vir>) -> Self::OutputRef<'vir>;
 */
-    fn do_encode_full<'vir>(
-        task_key: &Self::TaskKey<'vir>,
+    fn do_encode_full<'tcx: 'vir, 'vir: 'tcx>(
+        task_key: &Self::TaskKey<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
     ) -> Result<(
         Self::OutputFullLocal<'vir>,
