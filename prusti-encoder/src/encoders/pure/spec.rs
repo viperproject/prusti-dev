@@ -12,6 +12,7 @@ pub struct MirSpecEncoderOutput<'vir> {
     pub pres: Vec<vir::Expr<'vir>>,
     pub posts: Vec<vir::Expr<'vir>>,
     pub pre_args: &'vir [vir::Expr<'vir>],
+    pub post_args: &'vir [vir::Expr<'vir>],
 }
 
 thread_local! {
@@ -28,9 +29,9 @@ impl TaskEncoder for MirSpecEncoder {
 
     type EncodingError = <MirPureEncoder as TaskEncoder>::EncodingError;
 
-    fn with_cache<'vir, F, R>(f: F) -> R
+    fn with_cache<'tcx, 'vir, F, R>(f: F) -> R
     where
-        F: FnOnce(&'vir task_encoder::CacheRef<'vir, MirSpecEncoder>) -> R,
+        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirSpecEncoder>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -45,8 +46,8 @@ impl TaskEncoder for MirSpecEncoder {
         *task
     }
 
-    fn do_encode_full<'vir>(
-        task_key: &Self::TaskKey<'vir>,
+    fn do_encode_full<'tcx: 'vir, 'vir>(
+        task_key: &Self::TaskKey<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
     ) -> Result<
         (
@@ -71,21 +72,23 @@ impl TaskEncoder for MirSpecEncoder {
         ).unwrap();
 
         vir::with_vcx(|vcx| {
-            let pre_args: Vec<_> = (0..=local_defs.arg_count)
-                .map(mir::Local::from)
-                .map(|local| {
-                    if pure {
-                        if local.index() == 0 {
-                            vcx.mk_local_ex(vir::vir_format!(vcx, "result"))
-                        } else {
-                            local_defs.locals[local].local_ex
-                        }
-                    } else {
-                        local_defs.locals[local].impure_snap
-                    }
-                })
-                .collect();
-            let pre_args = vcx.alloc_slice(&pre_args);
+            let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
+            let all_args: Vec<_> = if pure {
+                    local_iter
+                        .map(|local| local_defs.locals[local].local_ex)
+                        .chain([vcx.mk_local_ex(vir::vir_format!(vcx, "result"))])
+                        .collect()
+            } else {
+                local_iter
+                    .map(|local| local_defs.locals[local].impure_snap)
+                    .collect()
+            };
+            let all_args = vcx.alloc_slice(&all_args);
+            let pre_args = if pure {
+                &all_args[..all_args.len() - 1]
+            } else {
+                all_args
+            };
 
             let to_bool = deps.require_ref::<crate::encoders::TypeEncoder>(
                 vcx.tcx.types.bool,
@@ -101,20 +104,18 @@ impl TaskEncoder for MirSpecEncoder {
                         substs: ty::List::identity_for_item(vcx.tcx, *spec_def_id),
                     }
                 ).unwrap().expr;
-                let expr = expr.reify(vcx, (*spec_def_id, &pre_args[1..]));
+                let expr = expr.reify(vcx, (*spec_def_id, pre_args));
                 to_bool.apply(vcx, [expr])
             }).collect::<Vec<vir::Expr<'_>>>();
 
             let post_args = if pure {
-                pre_args
+                all_args
             } else {
-                let post_args: Vec<_> = pre_args.iter().enumerate().map(|(idx, arg)| {
-                    if idx == 0 {
-                        arg
-                    } else {
+                let post_args: Vec<_> = pre_args.iter().map(|arg|
                         vcx.alloc(vir::ExprData::Old(arg))
-                    }
-                }).collect();
+                    )
+                    .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
+                    .collect();
                 vcx.alloc_slice(&post_args)
             };
             let posts = specs.posts.iter().map(|spec_def_id| {
@@ -134,6 +135,7 @@ impl TaskEncoder for MirSpecEncoder {
                 pres,
                 posts,
                 pre_args,
+                post_args,
             };
             Ok((data, ()))
         })

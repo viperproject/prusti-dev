@@ -20,7 +20,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
             for [&'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>]
         {
             type Next = &'vir [&'vir #name<'vir, NextA, NextB>];
-            fn reify(&self, vcx: &'vir crate::VirCtxt<'vir>, lctx: Curr) -> Self::Next {
+            fn reify<'tcx>(&self, vcx: &'vir crate::VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
                 vcx.alloc_slice(&self.iter()
                     .map(|elem| elem.reify(vcx, lctx))
                     .collect::<Vec<_>>())
@@ -62,7 +62,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                     for &'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>
                 {
                     type Next = &'vir #name<'vir, NextA, NextB>;
-                    fn reify(&self, vcx: &'vir crate::VirCtxt<'vir>, lctx: Curr) -> Self::Next {
+                    fn reify<'tcx>(&self, vcx: &'vir crate::VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
                         #(#compute_fields)*
                         vcx.alloc(#name { #(#fields),* })
                     }
@@ -133,7 +133,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                     for &'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>
                 {
                     type Next = &'vir #name<'vir, NextA, NextB>;
-                    fn reify(&self, vcx: &'vir crate::VirCtxt<'vir>, lctx: Curr) -> Self::Next {
+                    fn reify<'tcx>(&self, vcx: &'vir crate::VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
                         match self { #(#variants),* }
                     }
                 }

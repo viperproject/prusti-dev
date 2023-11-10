@@ -1,5 +1,5 @@
 use prusti_rustc_interface::{
-    data_structures::graph::dominators::Dominators,
+    index::IndexVec,
     middle::{mir, ty},
     span::def_id::DefId,
     type_ir::sty::TyKind,
@@ -46,21 +46,21 @@ pub struct MirPureEncoderTask<'tcx> {
 }
 
 impl TaskEncoder for MirPureEncoder {
-    type TaskDescription<'vir> = MirPureEncoderTask<'vir>;
+    type TaskDescription<'tcx> = MirPureEncoderTask<'tcx>;
 
-    type TaskKey<'vir> = (
+    type TaskKey<'tcx> = (
         usize, // encoding depth
         DefId, // ID of the function
         Option<mir::Promoted>, // ID of a constant within the function, or `None` if encoding the function itself
-        ty::GenericArgsRef<'vir>, // ? this should be the "signature", after applying the env/substs
+        ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
     );
 
     type OutputFullLocal<'vir> = MirPureEncoderOutput<'vir>;
 
     type EncodingError = MirPureEncoderError;
 
-    fn with_cache<'vir, F, R>(f: F) -> R
-       where F: FnOnce(&'vir task_encoder::CacheRef<'vir, MirPureEncoder>) -> R,
+    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
+       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirPureEncoder>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -71,7 +71,7 @@ impl TaskEncoder for MirPureEncoder {
         })
     }
 
-    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
+    fn task_to_key<'tcx>(task: &Self::TaskDescription<'tcx>) -> Self::TaskKey<'tcx> {
         (
             // TODO
             task.encoding_depth,
@@ -81,8 +81,8 @@ impl TaskEncoder for MirPureEncoder {
         )
     }
 
-    fn do_encode_full<'vir>(
-        task_key: &Self::TaskKey<'vir>,
+    fn do_encode_full<'tcx: 'vir, 'vir: 'tcx>(
+        task_key: &Self::TaskKey<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
     ) -> Result<(
         Self::OutputFullLocal<'vir>,
@@ -158,25 +158,23 @@ impl<'vir> Update<'vir> {
     }
 }
 
-struct Encoder<'vir, 'enc>
-    where 'vir: 'enc
+struct Encoder<'tcx, 'vir: 'enc, 'enc>
 {
-    vcx: &'vir vir::VirCtxt<'vir>,
+    vcx: &'vir vir::VirCtxt<'tcx>,
     encoding_depth: usize,
-    body: &'enc mir::Body<'vir>,
+    body: &'enc mir::Body<'tcx>,
     deps: &'enc mut TaskEncoderDependencies<'vir>,
-    visited: HashMap<mir::BasicBlock, bool>, // TODO: IndexVec?
-    version_ctr: HashMap<mir::Local, usize>, // TODO: IndexVec?
+    visited: IndexVec<mir::BasicBlock, bool>,
+    version_ctr: IndexVec<mir::Local, usize>,
     phi_ctr: usize,
 }
 
-impl<'vir, 'enc> Encoder<'vir, 'enc>
-    where 'vir: 'enc
+impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
 {
     fn new(
-        vcx: &'vir vir::VirCtxt<'vir>,
+        vcx: &'vir vir::VirCtxt<'tcx>,
         encoding_depth: usize,
-        body: &'enc mir::Body<'vir>,
+        body: &'enc mir::Body<'tcx>,
         deps: &'enc mut TaskEncoderDependencies<'vir>,
     ) -> Self {
         assert!(!body.basic_blocks.is_cfg_cyclic(), "MIR pure encoding does not support loops");
@@ -186,8 +184,8 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
             encoding_depth,
             body,
             deps,
-            visited: Default::default(),
-            version_ctr: (0..body.local_decls.len()).map(|local| (local.into(), 0)).collect(),
+            visited: IndexVec::from_elem_n(false, body.basic_blocks.len()),
+            version_ctr: IndexVec::from_elem_n(0, body.local_decls.len()),
             phi_ctr: 0,
         }
     }
@@ -230,8 +228,8 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
         local: mir::Local,
         expr: ExprRet<'vir>,
     ) {
-        let new_version = self.version_ctr.get(&local).copied().unwrap_or(0usize);
-        self.version_ctr.insert(local, new_version + 1);
+        let new_version = self.version_ctr[local];
+        self.version_ctr[local] += 1;
         update.binds.push(UpdateBind::Local(local, new_version, expr));
         update.versions.insert(local, new_version);
     }
@@ -268,7 +266,7 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
             update.versions.get(local).copied().unwrap_or_else(|| {
                 // TODO: remove (debug)
                 if !curr_ver.contains_key(&local) {
-                    println!("unknown version of local! {}", local.as_usize());
+                    tracing::error!("unknown version of local! {}", local.as_usize());
                     return 0xff
                 }
                 curr_ver[local]
@@ -280,7 +278,7 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
         )
     }
 
-    fn encode_body(&mut self) -> ExprRet<'vir> {
+    fn encode_body(&mut self) -> ExprRet<'vir> where 'vir: 'tcx {
         let end_blocks = self.body.basic_blocks.reverse_postorder()
             .iter()
             .filter(|bb| matches!(
@@ -303,10 +301,10 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
             init.versions.insert(local.into(), 0);
         }
 
-        let update = self.encode_cfg(
+        let (_, update) = self.encode_cfg(
             &init.versions,
             mir::START_BLOCK,
-            *end_block,
+            None,
         );
 
         let res = init.merge(update);
@@ -315,29 +313,27 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
         self.reify_binds(res, self.mk_local_ex(mir::RETURN_PLACE, ret_version))
     }
 
-    fn find_join_point(
-        &self,
-        dominators: &Dominators<mir::BasicBlock>,
-        start: mir::BasicBlock,
-        end: mir::BasicBlock,
-    ) -> mir::BasicBlock {
-        dominators.dominators(end)
-            .take_while(|bb| *bb != start)
-            .last()
-            .unwrap()
-    }
-
     fn encode_cfg(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        start: mir::BasicBlock,
-        end: mir::BasicBlock,
-    ) -> Update<'vir> {
+        curr: mir::BasicBlock,
+        branch_point: Option<mir::BasicBlock>,
+    ) -> (mir::BasicBlock, Update<'vir>) where 'vir: 'tcx {
         let dominators = self.body.basic_blocks.dominators();
+        // We should never actually reach the join point bb: we should catch
+        // this case and stop recursion in the `Goto` branch below. If this
+        // assert fails we we may need to add catches in the other branches.
+        debug_assert!(match (dominators.immediate_dominator(curr), branch_point) {
+            (Some(immediate_dominator), Some(branch_point)) if immediate_dominator == branch_point =>
+                // We could also be immediately dominated by the join point if we
+                // are the next bb right after the `SwitchInt`.
+                self.body.basic_blocks.predecessors()[curr].contains(&branch_point),
+            _ => true,
+        }, "reached join point bb {curr:?} (bp {branch_point:?})");
 
         // walk block statements first
         let mut new_curr_ver = curr_ver.clone();
-        let stmt_update = self.body[start].statements.iter()
+        let stmt_update = self.body[curr].statements.iter()
             .fold(Update::new(), |update, stmt| {
                 let newer = self.encode_stmt(&new_curr_ver, stmt);
                 newer.add_to_map(&mut new_curr_ver);
@@ -345,16 +341,24 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
             });
 
         // then walk terminator
-        let term = self.body[start].terminator.as_ref().unwrap();
+        let term = self.body[curr].terminator.as_ref().unwrap();
         match &term.kind {
-            mir::TerminatorKind::Goto { target } => {
-                if *target == end {
-                    // We are done with the current fragment of the CFG, the
-                    // rest is handled in a parent call.
-                    return stmt_update;
+            &mir::TerminatorKind::Goto { target } => {
+                match (dominators.immediate_dominator(target), branch_point) {
+                    // As soon as we are about to step to a bb where the
+                    // immediate dominator is the last branch point, we stop.
+                    // Walking the rest of the CFG is handled in a parent call.
+                    (Some(immediate_dominator), Some(branch_point))
+                        if immediate_dominator == branch_point =>
+                        // We are done with the current fragment of the CFG, the
+                        // rest is handled in a parent call.
+                        (target, stmt_update),
+                    _ => {
+                        // If you hit this then the join point algorithm
+                        // probably not working correctly.
+                        unreachable!("goto target not a join point {curr:?} -> {target:?} (branch point {branch_point:?})")
+                    }
                 }
-
-                todo!()
             }
 
             mir::TerminatorKind::SwitchInt { discr, targets } => {
@@ -364,19 +368,19 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                     discr.ty(self.body, self.vcx.tcx),
                 ).unwrap();
 
-                // find earliest join point `join`
-                let join = self.find_join_point(dominators, start, end);
-
-                // walk `start` -> `targets[i]` -> `join` for each target
+                // walk `curr` -> `targets[i]` -> `join` for each target. The
+                // join point is identified by reaching a bb where
+                // `dominators.immediate_dominator(bb)` is equal to the bb of
+                // the branch point (so pass `branch_point: Some(curr)`).
                 // TODO: indexvec?
                 let mut updates = targets.all_targets().iter()
-                    .map(|target| self.encode_cfg(&new_curr_ver, *target, join))
+                    .map(|target| self.encode_cfg(&new_curr_ver, *target, Some(curr)))
                     .collect::<Vec<_>>();
 
                 // find locals updated in any of the results, which were also
                 // defined before the branch
                 let mut mod_locals = updates.iter()
-                    .map(|update| update.versions.keys())
+                    .map(|(_, update)| update.versions.keys())
                     .flatten()
                     .filter(|local| new_curr_ver.contains_key(&local))
                     .copied()
@@ -388,12 +392,14 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                 let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
                     mod_locals.len(),
                 ).unwrap();
-                let otherwise_update = updates.pop().unwrap();
+                let (join, otherwise_update) = updates.pop().unwrap();
+                println!("join: {curr:?} -> {join:?}");
+                debug_assert!(updates.iter().all(|(other, _)| join == *other));
                 let phi_expr = targets.iter()
                     .zip(updates.into_iter())
                     .fold(
                         self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, otherwise_update),
-                        |expr, ((cond_val, target), branch_update)| self.vcx.alloc(ExprRetData::Ternary(self.vcx.alloc(vir::TernaryGenData {
+                        |expr, ((cond_val, target), (_, branch_update))| self.vcx.alloc(ExprRetData::Ternary(self.vcx.alloc(vir::TernaryGenData {
                             cond: self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
                                 kind: vir::BinOpKind::CmpEq,
                                 lhs: discr_expr,
@@ -416,18 +422,17 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                 for (elem_idx, local) in mod_locals.iter().enumerate() {
                     let expr = self.mk_phi_acc(tuple_ref.clone(), phi_idx, elem_idx);
                     self.bump_version(&mut phi_update, *local, expr);
-                    // TODO: add to curr_ver here ?
-                    //new_curr_ver.insert(*local, );
+                    new_curr_ver.insert(*local, phi_update.versions[local]);
                 }
 
                 // walk `join` -> `end`
-                let end_update = self.encode_cfg(&new_curr_ver, join, end);
-                stmt_update.merge(phi_update.merge(end_update))
+                let (end, end_update) = self.encode_cfg(&new_curr_ver, join, branch_point);
+                (end, stmt_update.merge(phi_update.merge(end_update)))
             }
 
             mir::TerminatorKind::Return => {
-                assert_eq!(start, end);
-                return stmt_update;
+                assert_eq!(branch_point, None);
+                return (curr, stmt_update);
             }
 
             mir::TerminatorKind::Call {
@@ -553,7 +558,7 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                         let forall = bool_cons.apply(self.vcx, [self.vcx.alloc(ExprRetData::Forall(self.vcx.alloc(vir::ForallGenData {
                             qvars,
                             triggers: &[], // TODO
-                            body,
+                            body: bool_cons.apply(self.vcx, [body]),
                         })))]);
 
                         let mut term_update = Update::new();
@@ -562,11 +567,13 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                         term_update.add_to_map(&mut new_curr_ver);
 
                         // walk rest of CFG
-                        let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), end);
+                        let (end, end_update) = self.encode_cfg(&new_curr_ver, target.unwrap(), branch_point);
 
-                        stmt_update.merge(term_update).merge(end_update)
+                        (end, stmt_update.merge(term_update).merge(end_update))
                     }
-                    None => todo!(),
+                    None => {
+                        todo!("call not supported {func:?}");
+                    }
                 }
             }
 
@@ -577,14 +584,19 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
     fn encode_stmt(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        stmt: &mir::Statement<'vir>,
-    ) -> Update<'vir> {
+        stmt: &mir::Statement<'tcx>,
+    ) -> Update<'vir> where 'vir: 'tcx {
         let mut update = Update::new();
         match &stmt.kind {
-            mir::StatementKind::StorageLive(..)
-            | mir::StatementKind::StorageDead(..)
+            &mir::StatementKind::StorageLive(local) => {
+                let new_version = self.version_ctr[local];
+                self.version_ctr[local] += 1;
+                update.versions.insert(local, new_version);
+            },
+            mir::StatementKind::StorageDead(..)
             | mir::StatementKind::FakeRead(..)
-            | mir::StatementKind::AscribeUserType(..) => {}, // nop
+            | mir::StatementKind::AscribeUserType(..) 
+            | mir::StatementKind::PlaceMention(..) => {}, // nop
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 assert!(dest.projection.is_empty());
                 let expr = self.encode_rvalue(curr_ver, rvalue);
@@ -598,8 +610,8 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
     fn encode_rvalue(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        rvalue: &mir::Rvalue<'vir>,
-    ) -> ExprRet<'vir> {
+        rvalue: &mir::Rvalue<'tcx>,
+    ) -> ExprRet<'vir> where 'vir: 'tcx {
         match rvalue {
             mir::Rvalue::Use(op) => self.encode_operand(curr_ver, op),
             // Repeat
@@ -660,7 +672,21 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
                         .map(|field| self.encode_operand(curr_ver, field))
                         .collect::<Vec<_>>())
                 }
-                _ => todo!(),
+                _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
+            }
+            mir::Rvalue::CheckedBinaryOp(binop, box (l, r)) => {
+                let binop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEncoder>(
+                    crate::encoders::MirBuiltinEncoderTask::CheckedBinOp(
+                        rvalue.ty(self.body, self.vcx.tcx),
+                        *binop,
+                        l.ty(self.body, self.vcx.tcx),
+                        r.ty(self.body, self.vcx.tcx),
+                    ),
+                ).unwrap().function;
+                binop_function.apply(self.vcx, &[
+                    self.encode_operand(curr_ver, l),
+                    self.encode_operand(curr_ver, r),
+                ])
             }
             // ShallowInitBox
             // CopyForDeref
@@ -674,7 +700,7 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
     fn encode_operand(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        operand: &mir::Operand<'vir>,
+        operand: &mir::Operand<'tcx>,
     ) -> ExprRet<'vir> {
         match operand {
             mir::Operand::Copy(place)
@@ -714,11 +740,11 @@ impl<'vir, 'enc> Encoder<'vir, 'enc>
     fn encode_place(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        place: &mir::Place<'vir>,
+        place: &mir::Place<'tcx>,
     ) -> ExprRet<'vir> {
         // TODO: remove (debug)
         if !curr_ver.contains_key(&place.local) {
-            println!("unknown version of local! {}", place.local.as_usize());
+            tracing::error!("unknown version of local! {}", place.local.as_usize());
             return self.vcx.alloc(ExprRetData::Todo(
                 vir::vir_format!(self.vcx, "unknown_version_{}", place.local.as_usize()),
             ));

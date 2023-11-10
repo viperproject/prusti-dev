@@ -105,9 +105,9 @@ impl<'vir> UnknownArity<'vir> {
 // Func arity known at compile time
 
 impl<'vir, const N: usize> FunctionIdent<'vir, KnownArity<'vir, N>> {
-    pub fn apply<Curr: 'vir, Next: 'vir>(
+    pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
-        vcx: &'vir VirCtxt<'vir>,
+        vcx: &'vir VirCtxt<'tcx>,
         args: [ExprGen<'vir, Curr, Next>; N]
     ) -> ExprGen<'vir, Curr, Next>{
         self.1.check(self.name(), &args);
@@ -115,9 +115,9 @@ impl<'vir, const N: usize> FunctionIdent<'vir, KnownArity<'vir, N>> {
     }
 }
 impl<'vir, const N: usize> PredicateIdent<'vir, KnownArity<'vir, N>> {
-    pub fn apply<Curr: 'vir, Next: 'vir>(
+    pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
-        vcx: &'vir VirCtxt<'vir>,
+        vcx: &'vir VirCtxt<'tcx>,
         args: [ExprGen<'vir, Curr, Next>; N]
     ) -> PredicateAppGen<'vir, Curr, Next>{
         self.1.check(self.name(), &args);
@@ -128,9 +128,9 @@ impl<'vir, const N: usize> PredicateIdent<'vir, KnownArity<'vir, N>> {
     }
 }
 impl<'vir, const N: usize> MethodIdent<'vir, KnownArity<'vir, N>> {
-    pub fn apply<Curr: 'vir, Next: 'vir>(
+    pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
-        vcx: &'vir VirCtxt<'vir>,
+        vcx: &'vir VirCtxt<'tcx>,
         args: [ExprGen<'vir, Curr, Next>; N]
     ) -> StmtGenData<'vir, Curr, Next>{
         self.1.check(self.name(), &args);
@@ -145,9 +145,9 @@ impl<'vir, const N: usize> MethodIdent<'vir, KnownArity<'vir, N>> {
 // Func arity checked at runtime
 
 impl<'vir> FunctionIdent<'vir, UnknownArity<'vir>> {
-    pub fn apply<Curr: 'vir, Next: 'vir>(
+    pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
-        vcx: &'vir VirCtxt<'vir>,
+        vcx: &'vir VirCtxt<'tcx>,
         args: &[ExprGen<'vir, Curr, Next>]
     ) -> ExprGen<'vir, Curr, Next>{
         self.1.check(self.name(), args);
@@ -155,9 +155,9 @@ impl<'vir> FunctionIdent<'vir, UnknownArity<'vir>> {
     }
 }
 impl<'vir> PredicateIdent<'vir, UnknownArity<'vir>> {
-    pub fn apply<Curr: 'vir, Next: 'vir>(
+    pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
-        vcx: &'vir VirCtxt<'vir>,
+        vcx: &'vir VirCtxt<'tcx>,
         args: &[ExprGen<'vir, Curr, Next>]
     ) -> PredicateAppGen<'vir, Curr, Next>{
         self.1.check(self.name(), args);
@@ -168,9 +168,9 @@ impl<'vir> PredicateIdent<'vir, UnknownArity<'vir>> {
     }
 }
 impl<'vir> MethodIdent<'vir, UnknownArity<'vir>> {
-    pub fn apply<Curr: 'vir, Next: 'vir>(
+    pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
-        vcx: &'vir VirCtxt<'vir>,
+        vcx: &'vir VirCtxt<'tcx>,
         args: &[ExprGen<'vir, Curr, Next>]
     ) -> StmtGenData<'vir, Curr, Next>{
         self.1.check(self.name(), args);

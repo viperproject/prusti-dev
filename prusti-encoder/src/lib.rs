@@ -9,7 +9,7 @@ extern crate rustc_type_ir;
 
 mod encoders;
 
-use prusti_interface::environment::EnvBody;
+use prusti_interface::{environment::EnvBody, specs::typed::SpecificationItem};
 use prusti_rustc_interface::{
     middle::ty,
     hir,
@@ -127,7 +127,7 @@ pub fn test_entrypoint<'tcx>(
     // TODO: this should be a "crate" encoder, which will deps.require all the methods in the crate
 
     for def_id in tcx.hir_crate_items(()).definitions() {
-        //println!("item: {def_id:?}");
+        tracing::debug!("test_entrypoint item: {def_id:?}");
         let kind = tcx.def_kind(def_id);
         //println!("  kind: {:?}", kind);
         /*if !format!("{def_id:?}").contains("foo") {
@@ -162,7 +162,7 @@ pub fn test_entrypoint<'tcx>(
                 }*/
             }
             unsupported_item_kind => {
-                println!("another item: {unsupported_item_kind:?}");
+                tracing::debug!("unsupported item: {unsupported_item_kind:?}");
             }
         }
     }

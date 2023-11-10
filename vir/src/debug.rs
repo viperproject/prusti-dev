@@ -56,7 +56,10 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
             BinOpKind::CmpLt => "<",
             BinOpKind::CmpLe => "<=",
             BinOpKind::And => "&&",
+            BinOpKind::Or => "||",
             BinOpKind::Add => "+",
+            BinOpKind::Sub => "-",
+            BinOpKind::Mod => "%",
         })?;
         self.rhs.fmt(f)?;
         write!(f, ")")
@@ -327,7 +330,7 @@ impl<'vir, Curr, Next> Debug for TernaryGenData<'vir, Curr, Next> {
 impl<'vir> Debug for TypeData<'vir> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Int => write!(f, "Int"),
+            Self::Int { .. } => write!(f, "Int"),
             Self::Bool => write!(f, "Bool"),
             Self::Domain(name) => write!(f, "{}", name),
             Self::DomainParams(name, params) => {

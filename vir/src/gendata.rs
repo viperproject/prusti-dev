@@ -104,7 +104,7 @@ pub enum ExprGenData<'vir, Curr: 'vir, Next: 'vir> {
     // domain func app
     // inhale/exhale
 
-    Lazy(&'vir str, Box<dyn Fn(&'vir crate::VirCtxt<'vir>, Curr) -> Next + 'vir>),
+    Lazy(&'vir str, Box<dyn for <'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>),
 
     Todo(&'vir str),
 }
