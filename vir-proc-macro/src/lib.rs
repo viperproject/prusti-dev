@@ -16,7 +16,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
     let slice_impl = quote! {
-        impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr, NextA, NextB>
+        impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr>
             for [&'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>]
         {
             type Next = &'vir [&'vir #name<'vir, NextA, NextB>];
@@ -58,7 +58,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
             quote! {
-                impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr, NextA, NextB>
+                impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr>
                     for &'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>
                 {
                     type Next = &'vir #name<'vir, NextA, NextB>;
@@ -129,7 +129,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
             quote! {
-                impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr, NextA, NextB>
+                impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr>
                     for &'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>
                 {
                     type Next = &'vir #name<'vir, NextA, NextB>;
