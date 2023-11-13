@@ -42,6 +42,12 @@ impl<'tcx> CapabilityConistency<'tcx> for CapabilityProjections<'tcx> {
             if !p1.can_deinit(repacker) {
                 assert!(matches!(self[p1], CapabilityKind::Exclusive), "{self:?}");
             }
+            // Cannot have Read or None here
+            assert!(self[p1] >= CapabilityKind::Write);
+            // Can only have `ShallowExclusive` for box typed places
+            if self[p1].is_shallow_exclusive() {
+                assert!(p1.ty(repacker).ty.is_box());
+            }
         }
         // Can always pack up to the root
         let root: Place = self.get_local().into();

@@ -5,12 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     hir,
     middle::{
         mir::{Mutability, ProjectionElem},
         ty::{CapturedPlace, TyKind, UpvarCapture},
     },
+    target::abi::FieldIdx,
 };
 
 use super::{root_place::RootPlace, Place, PlaceRepacker};
@@ -90,7 +90,7 @@ impl<'tcx> Place<'tcx> {
             Some((place_base, elem)) => {
                 match elem {
                     ProjectionElem::Deref => {
-                        let base_ty = place_base.ty(repacker.body(), repacker.tcx).ty;
+                        let base_ty = place_base.ty(repacker).ty;
 
                         // Check the kind of deref to decide
                         match base_ty.kind() {

@@ -7,10 +7,9 @@
 //! Various helper functions for working with `mir::Place`.
 
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     ast::ast,
     data_structures::fx::FxHashSet,
-    middle::{mir, ty::{self, TyCtxt}},
+    middle::{mir, ty::TyCtxt},
 };
 use std::borrow::Borrow;
 
@@ -33,7 +32,6 @@ pub fn is_prefix<'tcx>(place: mir::Place<'tcx>, potential_prefix: mir::Place<'tc
     }
 }
 
-// TODO: copied from `analysis`
 /// Expand `current_place` one level down by following the `guide_place`.
 /// Returns the new `current_place` and a vector containing other places that
 /// could have resulted from the expansion.
@@ -43,96 +41,15 @@ pub fn expand_one_level<'tcx>(
     current_place: mir::Place<'tcx>,
     guide_place: mir::Place<'tcx>,
 ) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
-    let index = current_place.projection.len();
-    let new_projection = tcx.mk_place_elems_from_iter(
-        current_place
-            .projection
-            .iter()
-            .chain([guide_place.projection[index]]),
-    );
-    let new_current_place = mir::Place {
-        local: current_place.local,
-        projection: new_projection,
-    };
-    let other_places = match guide_place.projection[index] {
-        mir::ProjectionElem::Field(projected_field, _field_ty) => {
-            expand_struct_place(current_place, mir, tcx, Some(projected_field.index()))
-        }
-        mir::ProjectionElem::Deref
-        | mir::ProjectionElem::Index(..)
-        | mir::ProjectionElem::ConstantIndex { .. }
-        | mir::ProjectionElem::Subslice { .. }
-        | mir::ProjectionElem::Downcast(..)
-        | mir::ProjectionElem::OpaqueCast(..) => vec![],
-    };
-    (new_current_place, other_places)
+    use mir_state_analysis::utils::{Place, PlaceRepacker};
+    let repacker = PlaceRepacker::new(mir, tcx);
+    let current_place = Place::from(current_place);
+    let res = current_place.expand_one_level(Place::from(guide_place), repacker);
+    (
+        res.0.to_rust_place(repacker),
+        res.1.into_iter().map(|r| r.to_rust_place(repacker)).collect(),
+    )
 }
-
-/// Expands a place `x.f.g` of type struct into a vector of places for
-/// each of the struct's fields `{x.f.g.f, x.f.g.g, x.f.g.h}`. If
-/// `without_field` is not `None`, then omits that field from the final
-/// vector.
-pub fn expand_struct_place<'tcx>(
-    place: mir::Place<'tcx>,
-    mir: &mir::Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    without_field: Option<usize>,
-) -> Vec<mir::Place<'tcx>> {
-    let mut places: Vec<mir::Place<'tcx>> = Vec::new();
-    let typ = place.ty(mir, tcx);
-    if !matches!(typ.ty.kind(), ty::Adt(..)) {
-        assert!(
-            typ.variant_index.is_none(),
-            "We have assumed that only enums can have variant_index set. Got {typ:?}."
-        );
-    }
-    match typ.ty.kind() {
-        ty::Adt(def, substs) => {
-            let variant = typ
-                .variant_index
-                .map(|i| def.variant(i))
-                .unwrap_or_else(|| def.non_enum_variant());
-            for (index, field_def) in variant.fields.iter().enumerate() {
-                if Some(index) != without_field {
-                    let field = FieldIdx::from_usize(index);
-                    let field_place =
-                        tcx.mk_place_field(place, field, field_def.ty(tcx, substs));
-                    places.push(field_place);
-                }
-            }
-        }
-        ty::Tuple(slice) => {
-            for (index, arg) in slice.iter().enumerate() {
-                if Some(index) != without_field {
-                    let field = FieldIdx::from_usize(index);
-                    let field_place = tcx.mk_place_field(place, field, arg);
-                    places.push(field_place);
-                }
-            }
-        }
-        ty::Closure(_, substs) => {
-            for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
-                if Some(index) != without_field {
-                    let field = FieldIdx::from_usize(index);
-                    let field_place = tcx.mk_place_field(place, field, subst_ty);
-                    places.push(field_place);
-                }
-            }
-        }
-        ty::Generator(_, substs, _) => {
-            for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
-                if Some(index) != without_field {
-                    let field = FieldIdx::from_usize(index);
-                    let field_place = tcx.mk_place_field(place, field, subst_ty);
-                    places.push(field_place);
-                }
-            }
-        }
-        ty => unreachable!("ty={:?}", ty),
-    }
-    places
-}
-
 
 /// Pop the last projection from the place and return the new place with the popped element.
 pub fn try_pop_one_level<'tcx>(

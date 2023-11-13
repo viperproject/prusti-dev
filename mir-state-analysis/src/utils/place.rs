@@ -49,34 +49,6 @@ use prusti_rustc_interface::middle::mir::{
 //     }
 // }
 
-fn elem_eq<'tcx>(to_cmp: (PlaceElem<'tcx>, PlaceElem<'tcx>)) -> bool {
-    use ProjectionElem::*;
-    match to_cmp {
-        (Field(left, _), Field(right, _)) => left == right,
-        (
-            ConstantIndex {
-                offset: lo,
-                min_length: lml,
-                from_end: lfe,
-            },
-            ConstantIndex {
-                offset: ro,
-                min_length: rml,
-                from_end: rfe,
-            },
-        ) => {
-            lml == rml
-                && (if lfe == rfe {
-                    lo == ro
-                } else {
-                    (lml - lo) == ro
-                })
-        }
-        (Downcast(_, left), Downcast(_, right)) => left == right,
-        (left, right) => left == right,
-    }
-}
-
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct Place<'tcx>(PlaceRef<'tcx>);
 
@@ -127,11 +99,18 @@ impl<'tcx> Place<'tcx> {
             }
             match (left, right) {
                 (Field(..), Field(..)) => None,
-                (ConstantIndex { min_length: l, .. }, ConstantIndex { min_length: r, .. })
-                    if r == l =>
-                {
-                    None
-                }
+                (
+                    ConstantIndex {
+                        min_length: l,
+                        from_end: lfe,
+                        ..
+                    },
+                    ConstantIndex {
+                        min_length: r,
+                        from_end: rfe,
+                        ..
+                    },
+                ) if r == l && lfe == rfe => None,
                 (Downcast(_, _), Downcast(_, _)) | (OpaqueCast(_), OpaqueCast(_)) => {
                     Some(PlaceOrdering::Both)
                 }
@@ -284,16 +263,16 @@ impl Debug for Place<'_> {
                 }
                 ProjectionElem::Subslice {
                     from,
-                    to,
+                    to: 0,
                     from_end: true,
-                } if to == 0 => {
+                } => {
                     write!(fmt, "[{from:?}:]")?;
                 }
                 ProjectionElem::Subslice {
-                    from,
+                    from: 0,
                     to,
                     from_end: true,
-                } if from == 0 => {
+                } => {
                     write!(fmt, "[:-{to:?}]")?;
                 }
                 ProjectionElem::Subslice {
@@ -317,6 +296,15 @@ impl Debug for Place<'_> {
     }
 }
 
+fn elem_eq<'tcx>(to_cmp: (PlaceElem<'tcx>, PlaceElem<'tcx>)) -> bool {
+    use ProjectionElem::*;
+    match to_cmp {
+        (Field(left, _), Field(right, _)) => left == right,
+        (Downcast(_, left), Downcast(_, right)) => left == right,
+        (left, right) => left == right,
+    }
+}
+
 impl PartialEq for Place<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.local == other.local
@@ -336,29 +324,11 @@ impl Hash for Place<'_> {
                     discriminant(&pe).hash(state);
                     field.hash(state);
                 }
-                ProjectionElem::ConstantIndex {
-                    offset,
-                    min_length,
-                    from_end,
-                } => {
+                ProjectionElem::Downcast(_, variant) => {
                     discriminant(&pe).hash(state);
-                    let offset = if from_end {
-                        min_length - offset
-                    } else {
-                        offset
-                    };
-                    offset.hash(state);
-                    min_length.hash(state);
+                    variant.hash(state);
                 }
-                pe => {
-                    pe.hash(state);
-                }
-            }
-            if let ProjectionElem::Field(field, _) = pe {
-                discriminant(&pe).hash(state);
-                field.hash(state);
-            } else {
-                pe.hash(state);
+                _ => pe.hash(state),
             }
         }
     }

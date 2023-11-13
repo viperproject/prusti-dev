@@ -5,17 +5,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     data_structures::fx::FxHashSet,
     dataflow::storage,
     index::bit_set::BitSet,
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, PlaceRef,
             ProjectionElem,
         },
         ty::{TyCtxt, TyKind},
     },
+    target::abi::FieldIdx,
 };
 
 use super::Place;
@@ -146,7 +146,9 @@ impl<'tcx> Place<'tcx> {
 
     /// Expand `self` one level down by following the `guide_place`.
     /// Returns the new `self` and a vector containing other places that
-    /// could have resulted from the expansion.
+    /// could have resulted from the expansion. Note: this vector is always
+    /// incomplete when projecting with `Index` or `Subslice` and also when
+    /// projecting a slice type with `ConstantIndex`!
     #[tracing::instrument(level = "trace", skip(repacker), ret)]
     pub fn expand_one_level(
         self,
@@ -171,14 +173,14 @@ impl<'tcx> Place<'tcx> {
                 min_length,
                 from_end,
             } => {
-                let other_places = (0..min_length)
-                    .filter(|&i| {
-                        if from_end {
-                            i != min_length - offset
-                        } else {
-                            i != offset
-                        }
-                    })
+                let range = if from_end {
+                    1..min_length + 1
+                } else {
+                    0..min_length
+                };
+                assert!(range.contains(&offset));
+                let other_places = range
+                    .filter(|&i| i != offset)
                     .map(|i| {
                         repacker
                             .tcx
@@ -196,7 +198,7 @@ impl<'tcx> Place<'tcx> {
                 (other_places, ProjectionRefKind::Other)
             }
             ProjectionElem::Deref => {
-                let typ = self.ty(repacker.mir, repacker.tcx);
+                let typ = self.ty(repacker);
                 let kind = match typ.ty.kind() {
                     TyKind::Ref(_, _, mutbl) => ProjectionRefKind::Ref(*mutbl),
                     TyKind::RawPtr(ptr) => ProjectionRefKind::RawPtr(ptr.mutbl),
@@ -223,7 +225,7 @@ impl<'tcx> Place<'tcx> {
         repacker: PlaceRepacker<'_, 'tcx>,
     ) -> Vec<Self> {
         let mut places = Vec::new();
-        let typ = self.ty(repacker.mir, repacker.tcx);
+        let typ = self.ty(repacker);
         if !matches!(typ.ty.kind(), TyKind::Adt(..)) {
             assert!(
                 typ.variant_index.is_none(),
@@ -261,7 +263,7 @@ impl<'tcx> Place<'tcx> {
                 }
             }
             TyKind::Closure(_, substs) => {
-                for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
+                for (index, subst_ty) in substs.as_closure().upvar_tys().iter().enumerate() {
                     if Some(index) != without_field {
                         let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(
@@ -274,7 +276,7 @@ impl<'tcx> Place<'tcx> {
                 }
             }
             TyKind::Generator(_, substs, _) => {
-                for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
+                for (index, subst_ty) in substs.as_generator().upvar_tys().iter().enumerate() {
                     if Some(index) != without_field {
                         let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(
@@ -324,9 +326,13 @@ impl<'tcx> Place<'tcx> {
     //     }
     // }
 
+    pub fn ty(self, repacker: PlaceRepacker<'_, 'tcx>) -> PlaceTy<'tcx> {
+        PlaceRef::ty(&self, repacker.mir, repacker.tcx)
+    }
+
     /// Should only be called on a `Place` obtained from `RootPlace::get_parent`.
     pub fn get_ref_mutability(self, repacker: PlaceRepacker<'_, 'tcx>) -> Mutability {
-        let typ = self.ty(repacker.mir, repacker.tcx);
+        let typ = self.ty(repacker);
         if let TyKind::Ref(_, _, mutability) = typ.ty.kind() {
             *mutability
         } else {
@@ -347,12 +353,30 @@ impl<'tcx> Place<'tcx> {
         .is_some()
     }
 
+    #[tracing::instrument(name = "Place::projects_ptr", level = "trace", skip(repacker), ret)]
     pub fn projects_ptr(self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Place<'tcx>> {
-        self.projects_ty(|typ| typ.ty.is_ref() || typ.ty.is_unsafe_ptr(), repacker)
+        self.projects_ty(
+            |typ| typ.ty.is_ref() || typ.ty.is_box() || typ.ty.is_unsafe_ptr(),
+            repacker,
+        )
     }
 
     pub fn can_deinit(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
-        !self.projects_shared_ref(repacker)
+        let mut projects_shared_ref = false;
+        self.projects_ty(
+            |typ| {
+                projects_shared_ref = projects_shared_ref
+                    || typ
+                        .ty
+                        .ref_mutability()
+                        .map(|m| m.is_not())
+                        .unwrap_or_default();
+                projects_shared_ref = projects_shared_ref && !typ.ty.is_unsafe_ptr();
+                false
+            },
+            repacker,
+        );
+        !projects_shared_ref
     }
 
     pub fn projects_ty(

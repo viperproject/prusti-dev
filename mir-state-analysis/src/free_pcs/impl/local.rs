@@ -42,7 +42,9 @@ impl Default for CapabilityLocal<'_> {
 
 impl<'tcx> CapabilityLocal<'tcx> {
     pub fn get_allocated_mut(&mut self) -> &mut CapabilityProjections<'tcx> {
-        let Self::Allocated(cps) = self else { panic!("Expected allocated local") };
+        let Self::Allocated(cps) = self else {
+            panic!("Expected allocated local")
+        };
         cps
     }
     pub fn new(local: Local, perm: CapabilityKind) -> Self {
@@ -80,12 +82,17 @@ impl<'tcx> CapabilityProjections<'tcx> {
         self.iter().next().unwrap().0.local
     }
 
+    pub(crate) fn update_cap(&mut self, place: Place<'tcx>, cap: CapabilityKind) {
+        let old = self.insert(place, cap);
+        assert!(old.is_some());
+    }
+
     /// Returns all related projections of the given place that are contained in this map.
     /// A `Ordering::Less` means that the given `place` is a prefix of the iterator place.
     /// For example: find_all_related(x.f.g) = [(Less, x.f.g.h), (Greater, x.f)]
     /// It also checks that the ordering conforms to the expected ordering (the above would
     /// fail in any situation since all orderings need to be the same)
-    #[tracing::instrument(level = "debug", skip(self))]
+    #[tracing::instrument(level = "debug", ret)]
     pub(crate) fn find_all_related(
         &self,
         to: Place<'tcx>,
@@ -102,7 +109,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
                 //     Some(cap_no_read)
                 // };
                 if let Some(expected) = expected {
-                    assert_eq!(ord, expected);
+                    assert_eq!(ord, expected, "({self:?}) {from:?} {to:?}");
                 } else {
                     expected = Some(ord);
                 }
@@ -177,19 +184,21 @@ impl<'tcx> CapabilityProjections<'tcx> {
             .map(|&p| (p, self.remove(&p).unwrap()))
             .collect();
         let collapsed = to.collapse(&mut from, repacker);
-        assert!(from.is_empty());
+        assert!(from.is_empty(), "{from:?} ({collapsed:?}) {to:?}");
         let mut exclusive_at = Vec::new();
         if !to.projects_shared_ref(repacker) {
             for (to, _, kind) in &collapsed {
                 if kind.is_shared_ref() {
                     let mut is_prefixed = false;
-                    exclusive_at.retain(|old| {
-                        let cmp = to.either_prefix(*old);
-                        if matches!(cmp, Some(false)) {
-                            is_prefixed = true;
-                        }
-                        !cmp.unwrap_or_default()
-                    });
+                    exclusive_at
+                        .extract_if(|old| {
+                            let cmp = to.either_prefix(*old);
+                            if matches!(cmp, Some(false)) {
+                                is_prefixed = true;
+                            }
+                            cmp.unwrap_or_default()
+                        })
+                        .for_each(drop);
                     if !is_prefixed {
                         exclusive_at.push(*to);
                     }
@@ -198,8 +207,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
         }
         let mut ops = Vec::new();
         for (to, from, _) in collapsed {
-            let removed_perms: Vec<_> =
-                old_caps.extract_if(|old, _| to.is_prefix(*old)).collect();
+            let removed_perms: Vec<_> = old_caps.extract_if(|old, _| to.is_prefix(*old)).collect();
             let perm = removed_perms
                 .iter()
                 .fold(CapabilityKind::Exclusive, |acc, (_, p)| {

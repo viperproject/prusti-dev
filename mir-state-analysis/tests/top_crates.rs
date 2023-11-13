@@ -17,8 +17,8 @@ fn get(url: &str) -> reqwest::Result<reqwest::blocking::Response> {
 
 pub fn top_crates_range(range: std::ops::Range<usize>) {
     std::fs::create_dir_all("tmp").unwrap();
-    let top_crates = top_crates_by_download_count(range.end - 1);
-    for (i, krate) in top_crates.into_iter().enumerate().skip(range.start) {
+    let top_crates = CratesIter::top(range);
+    for (i, krate) in top_crates {
         let version = krate.version.unwrap_or(krate.newest_version);
         println!("Starting: {i} ({})", krate.name);
         run_on_crate(&krate.name, &version);
@@ -92,27 +92,52 @@ struct CratesList {
     crates: Vec<Crate>,
 }
 
-/// Create a list of top ``count`` crates.
-fn top_crates_by_download_count(mut count: usize) -> Vec<Crate> {
-    const PAGE_SIZE: usize = 100;
-    let page_count = count / PAGE_SIZE + 2;
-    let mut sources = Vec::new();
-    for page in 1..page_count {
-        let url = format!(
-            "https://crates.io/api/v1/crates?page={page}&per_page={PAGE_SIZE}&sort=downloads"
-        );
-        let resp = get(&url).expect("Could not fetch top crates");
-        assert!(
-            resp.status().is_success(),
-            "Response status: {}",
-            resp.status()
-        );
-        let page_crates: CratesList = match serde_json::from_reader(resp) {
-            Ok(page_crates) => page_crates,
-            Err(e) => panic!("Invalid JSON {e}"),
-        };
-        sources.extend(page_crates.crates.into_iter().take(count));
-        count -= std::cmp::min(PAGE_SIZE, count);
+const PAGE_SIZE: usize = 100;
+struct CratesIter {
+    curr_idx: usize,
+    curr_page: usize,
+    crates: Vec<Crate>,
+}
+
+impl CratesIter {
+    pub fn new(start: usize) -> Self {
+        Self {
+            curr_idx: start,
+            curr_page: start / PAGE_SIZE + 1,
+            crates: Vec::new(),
+        }
     }
-    sources
+    pub fn top(range: std::ops::Range<usize>) -> impl Iterator<Item = (usize, Crate)> {
+        Self::new(range.start).take(range.len())
+    }
+}
+
+impl Iterator for CratesIter {
+    type Item = (usize, Crate);
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.crates.is_empty() {
+            let url = format!(
+                "https://crates.io/api/v1/crates?page={}&per_page={PAGE_SIZE}&sort=downloads",
+                self.curr_page,
+            );
+            let resp = get(&url).expect("Could not fetch top crates");
+            assert!(
+                resp.status().is_success(),
+                "Response status: {}",
+                resp.status()
+            );
+            let page_crates: CratesList = match serde_json::from_reader(resp) {
+                Ok(page_crates) => page_crates,
+                Err(e) => panic!("Invalid JSON {e}"),
+            };
+            assert_eq!(page_crates.crates.len(), PAGE_SIZE);
+            self.crates = page_crates.crates;
+            self.crates.reverse();
+            self.crates
+                .truncate(self.crates.len() - self.curr_idx % PAGE_SIZE);
+            self.curr_page += 1;
+        }
+        self.curr_idx += 1;
+        Some((self.curr_idx - 1, self.crates.pop().unwrap()))
+    }
 }
