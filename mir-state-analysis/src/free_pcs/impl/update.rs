@@ -10,14 +10,17 @@ use crate::{
     free_pcs::{CapabilityKind, CapabilityLocal, CapabilityProjections, Fpcs, RepackOp},
     utils::{LocalMutationIsAllowed, Place, PlaceOrdering, PlaceRepacker},
 };
+use std::fmt::Debug;
 
 impl<'tcx> Fpcs<'_, 'tcx> {
+    #[tracing::instrument(name = "Fpcs::requires_unalloc", level = "trace")]
     pub(crate) fn requires_unalloc(&mut self, local: Local) {
         assert!(
             self.summary[local].is_unallocated(),
             "local: {local:?}, fpcs: {self:?}\n"
         );
     }
+    #[tracing::instrument(name = "Fpcs::requires_unalloc_or_uninit", level = "trace")]
     pub(crate) fn requires_unalloc_or_uninit(&mut self, local: Local) {
         if !self.summary[local].is_unallocated() {
             self.requires_write(local)
@@ -25,12 +28,14 @@ impl<'tcx> Fpcs<'_, 'tcx> {
             self.repackings.push(RepackOp::IgnoreStorageDead(local))
         }
     }
-    pub(crate) fn requires_read(&mut self, place: impl Into<Place<'tcx>>) {
+    #[tracing::instrument(name = "Fpcs::requires_read", level = "trace")]
+    pub(crate) fn requires_read(&mut self, place: impl Into<Place<'tcx>> + Debug) {
         self.requires(place, CapabilityKind::Exclusive)
     }
     /// May obtain write _or_ exclusive, if one should only have write afterwards,
     /// make sure to also call `ensures_write`!
-    pub(crate) fn requires_write(&mut self, place: impl Into<Place<'tcx>>) {
+    #[tracing::instrument(name = "Fpcs::requires_write", level = "trace")]
+    pub(crate) fn requires_write(&mut self, place: impl Into<Place<'tcx>> + Debug) {
         let place = place.into();
         // Cannot get write on a shared ref
         assert!(place
@@ -38,7 +43,8 @@ impl<'tcx> Fpcs<'_, 'tcx> {
             .is_ok());
         self.requires(place, CapabilityKind::Write)
     }
-    pub(crate) fn requires_exclusive(&mut self, place: impl Into<Place<'tcx>>) {
+    #[tracing::instrument(name = "Fpcs::requires_write", level = "trace")]
+    pub(crate) fn requires_exclusive(&mut self, place: impl Into<Place<'tcx>> + Debug) {
         let place = place.into();
         // Cannot get exclusive on a shared ref
         assert!(!place.projects_shared_ref(self.repacker));
@@ -49,11 +55,15 @@ impl<'tcx> Fpcs<'_, 'tcx> {
         let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
         let ops = cp.repack(place, self.repacker);
         self.repackings.extend(ops);
-        let kind = cp.insert(place, cap).unwrap();
+        let kind = cp[&place];
+        if cap.is_write() {
+            // Requires write should deinit an exclusive
+            cp.insert(place, cap);
+            if kind != cap {
+                self.repackings.push(RepackOp::Weaken(place, kind, cap));
+            }
+        };
         assert!(kind >= cap);
-        if kind != cap {
-            self.repackings.push(RepackOp::Weaken(place, kind, cap));
-        }
     }
 
     pub(crate) fn ensures_unalloc(&mut self, local: Local) {
@@ -66,8 +76,7 @@ impl<'tcx> Fpcs<'_, 'tcx> {
     fn ensures_alloc(&mut self, place: impl Into<Place<'tcx>>, cap: CapabilityKind) {
         let place = place.into();
         let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
-        let old = cp.insert(place, cap);
-        assert!(old.is_some());
+        cp.update_cap(place, cap);
     }
     pub(crate) fn ensures_exclusive(&mut self, place: impl Into<Place<'tcx>>) {
         self.ensures_alloc(place, CapabilityKind::Exclusive)

@@ -139,7 +139,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     #[tracing::instrument(level = "debug", skip_all)]
     fn after_analysis<'tcx>(
         &mut self,
-        _handler: &EarlyErrorHandler,
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {

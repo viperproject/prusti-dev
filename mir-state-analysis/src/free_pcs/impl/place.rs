@@ -56,6 +56,7 @@ impl Debug for CapabilityKind {
 }
 
 impl PartialOrd for CapabilityKind {
+    #[tracing::instrument(name = "CapabilityKind::partial_cmp", level = "trace", ret)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if *self == *other {
             return Some(Ordering::Equal);
@@ -63,9 +64,11 @@ impl PartialOrd for CapabilityKind {
         match (self, other) {
             // W < E, W < e
             (CapabilityKind::Write, CapabilityKind::Exclusive)
+            | (CapabilityKind::ShallowExclusive, CapabilityKind::Exclusive)
             | (CapabilityKind::Write, CapabilityKind::ShallowExclusive) => Some(Ordering::Less),
             // E > W, e > W
             (CapabilityKind::Exclusive, CapabilityKind::Write)
+            | (CapabilityKind::Exclusive, CapabilityKind::ShallowExclusive)
             | (CapabilityKind::ShallowExclusive, CapabilityKind::Write) => Some(Ordering::Greater),
             _ => None,
         }

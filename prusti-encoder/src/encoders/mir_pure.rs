@@ -486,7 +486,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                                     TyKind::Tuple(list) => list,
                                     _ => unreachable!(),
                                 },
-                                cl_args.as_closure().upvar_tys().collect::<Vec<_>>(),
+                                cl_args.as_closure().upvar_tys().iter().collect::<Vec<_>>(),
                                 *cl_def_id,
                             ),
                             _ => panic!("illegal prusti::forall"),
@@ -758,7 +758,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             assert_eq!(place.projection[2], mir::ProjectionElem::Deref);
             assert_eq!(place.projection.len(), 3);
             let upvars = match self.body.local_decls[place.local].ty.peel_refs().kind() {
-                TyKind::Closure(_def_id, args) => args.as_closure().upvar_tys().collect::<Vec<_>>().len(),
+                TyKind::Closure(_def_id, args) => args.as_closure().upvar_tys().iter().collect::<Vec<_>>().len(),
                 _ => unreachable!(),
             };
             let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(

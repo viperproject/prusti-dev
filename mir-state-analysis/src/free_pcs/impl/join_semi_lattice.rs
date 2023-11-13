@@ -14,6 +14,7 @@ use crate::{
 };
 
 impl JoinSemiLattice for Fpcs<'_, '_> {
+    #[tracing::instrument(name = "Fpcs::join", level = "debug")]
     fn join(&mut self, other: &Self) -> bool {
         assert!(!other.bottom);
         if self.bottom {
@@ -101,18 +102,16 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
             let related = self.find_all_related(place, None);
             let final_place = match related.relation {
                 PlaceOrdering::Prefix => {
-                    changed = true;
-
                     let from = related.get_only_from();
                     let joinable_place = if self[&from] != CapabilityKind::Exclusive {
-                        place
-                            .projects_ptr(repacker)
-                            .unwrap_or_else(|| from.joinable_to(place))
+                        // One cannot expand a `Write` or a `ShallowInit` capability
+                        from
                     } else {
                         from.joinable_to(place)
                     };
                     assert!(from.is_prefix(joinable_place));
                     if joinable_place != from {
+                        changed = true;
                         self.expand(from, joinable_place, repacker);
                     }
                     Some(joinable_place)
@@ -121,25 +120,25 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                 PlaceOrdering::Suffix => {
                     // Downgrade the permission if needed
                     for &(p, k) in &related.from {
+                        // Might not contain key if `p.projects_ptr(repacker)`
+                        // returned `Some` in a previous iteration.
                         if !self.contains_key(&p) {
                             continue;
                         }
-                        let p = if kind != CapabilityKind::Exclusive {
-                            if let Some(to) = p.projects_ptr(repacker) {
-                                changed = true;
-                                let related = self.find_all_related(to, None);
-                                assert_eq!(related.relation, PlaceOrdering::Suffix);
-                                self.collapse(related.get_from(), related.to, repacker);
-                                to
-                            } else {
-                                p
-                            }
+                        let collapse_to = if kind != CapabilityKind::Exclusive {
+                            related.to
                         } else {
-                            p
+                            related.to.joinable_to(p)
                         };
+                        if collapse_to != p {
+                            changed = true;
+                            let mut from = related.get_from();
+                            from.retain(|&from| collapse_to.is_prefix(from));
+                            self.collapse(from, collapse_to, repacker);
+                        }
                         if k > kind {
                             changed = true;
-                            self.insert(p, kind);
+                            self.update_cap(collapse_to, kind);
                         }
                     }
                     None
@@ -155,7 +154,8 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
             if let Some(place) = final_place {
                 // Downgrade the permission if needed
                 if self[&place] > kind {
-                    self.insert(place, kind);
+                    changed = true;
+                    self.update_cap(place, kind);
                 }
             }
         }
