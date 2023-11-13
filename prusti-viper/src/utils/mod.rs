@@ -27,9 +27,7 @@ pub fn ty_to_string(typ: &ty::TyKind) -> String {
         &ty::TyKind::FnPtr(_) => "function pointer",
         &ty::TyKind::Dynamic(..) => "trait object",
         &ty::TyKind::Closure(_, _) => "closures",
-        &ty::TyKind::Generator(..)
-        | &ty::TyKind::GeneratorWitness(..)
-        | &ty::TyKind::GeneratorWitnessMIR(..) => "generator",
+        &ty::TyKind::Coroutine(..) | &ty::TyKind::CoroutineWitness(..) => "coroutine",
         &ty::TyKind::Never => "never type",
         &ty::TyKind::Tuple(_) => "tuple",
         &ty::TyKind::Alias(ty::AliasKind::Projection, _) => "projection",

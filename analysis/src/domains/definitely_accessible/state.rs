@@ -10,11 +10,10 @@ use crate::{
 };
 use log::info;
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     data_structures::fx::{FxHashMap, FxHashSet},
     middle::{mir, ty, ty::TyCtxt},
     span::source_map::SourceMap,
-    target::abi::VariantIdx,
+    target::abi::{FieldIdx, VariantIdx},
 };
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::fmt;
@@ -228,6 +227,7 @@ fn pretty_print_place<'tcx>(
                 // It's not possible to move-out or borrow an individual element.
                 unreachable!()
             }
+            mir::ProjectionElem::Subtype(_) => todo!(),
         }
     }
 
@@ -262,7 +262,7 @@ fn describe_field_from_ty(
             ty::TyKind::Array(ty, _) | ty::TyKind::Slice(ty) => {
                 describe_field_from_ty(tcx, ty, field, variant_index)
             }
-            ty::TyKind::Closure(..) | ty::TyKind::Generator(..) => {
+            ty::TyKind::Closure(..) | ty::TyKind::Coroutine(..) => {
                 // Supporting these cases is complex
                 None
             }

@@ -9,7 +9,7 @@ use crate::{
 pub(crate) trait ConstantsEncoderInterface<'tcx> {
     fn encode_constant_high(
         &self,
-        constant: &mir::Constant<'tcx>,
+        constant: &mir::ConstOperand<'tcx>,
     ) -> EncodingResult<vir_high::Expression>;
 
     fn compute_array_len(&self, size: ty::Const<'tcx>) -> EncodingResult<u64>;
@@ -19,12 +19,12 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
     #[tracing::instrument(level = "debug", skip(self), ret)]
     fn encode_constant_high(
         &self,
-        constant: &mir::Constant<'tcx>,
+        constant: &mir::ConstOperand<'tcx>,
     ) -> EncodingResult<vir_high::Expression> {
         let mir_type = constant.ty();
         let _ = self.encode_type_high(mir_type)?; // Trigger encoding of the type.
                                                   // FIXME: encode_snapshot_constant also handled non literal constants
-        let scalar_value = || self.const_eval_intlike(constant.literal);
+        let scalar_value = || self.const_eval_intlike(constant.const_);
 
         let expr = match mir_type.kind() {
             ty::TyKind::Bool => scalar_value()?.to_bool().unwrap().into(),
@@ -74,7 +74,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
     }
 
     fn compute_array_len(&self, size: ty::Const<'tcx>) -> EncodingResult<u64> {
-        self.const_eval_intlike(mir::ConstantKind::Ty(size))
+        self.const_eval_intlike(mir::Const::Ty(size))
             .map(|s| s.to_u64().unwrap())
     }
 }

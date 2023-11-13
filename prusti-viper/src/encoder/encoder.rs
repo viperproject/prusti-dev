@@ -341,10 +341,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Extract scalar value, invoking const evaluation if necessary.
     pub fn const_eval_intlike(
         &self,
-        value: mir::ConstantKind<'tcx>,
+        value: mir::Const<'tcx>,
     ) -> EncodingResult<mir::interpret::Scalar> {
         let opt_scalar_value = match value {
-            mir::ConstantKind::Ty(value) => match value.kind() {
+            mir::Const::Ty(value) => match value.kind() {
                 ty::ConstKind::Value(ref const_value) => const_value.try_to_scalar(),
                 ty::ConstKind::Unevaluated(ct) => {
                     let mir_ct = mir::UnevaluatedConst::new(ct.def, ct.args);
@@ -352,8 +352,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 }
                 _ => error_unsupported!("unsupported const kind: {:?}", value),
             },
-            mir::ConstantKind::Val(val, _) => val.try_to_scalar(),
-            mir::ConstantKind::Unevaluated(ct, _) => self.uneval_eval_intlike(ct),
+            mir::Const::Val(val, _) => val.try_to_scalar(),
+            mir::Const::Unevaluated(ct, _) => self.uneval_eval_intlike(ct),
         };
         opt_scalar_value.ok_or_else(|| {
             EncodingError::unsupported(format!("unsupported constant value: {value:?}"))
@@ -669,7 +669,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_const_expr(
         &self,
         ty: ty::Ty<'tcx>,
-        value: mir::ConstantKind<'tcx>,
+        value: mir::Const<'tcx>,
     ) -> EncodingResult<vir::Expr> {
         let scalar_value = self.const_eval_intlike(value)?;
 

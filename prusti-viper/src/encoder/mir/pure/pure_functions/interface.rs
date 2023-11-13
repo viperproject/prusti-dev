@@ -50,8 +50,8 @@ fn compute_key<'v, 'tcx: 'v>(
         tcx.fn_sig(proc_def_id)
     };
     let param_env = tcx.param_env(caller_def_id);
-    let sig = tcx.subst_and_normalize_erasing_regions(substs, param_env, sig);
-    let substs = tcx.subst_and_normalize_erasing_regions(
+    let sig = tcx.instantiate_and_normalize_erasing_regions(substs, param_env, sig);
+    let substs = tcx.instantiate_and_normalize_erasing_regions(
         substs,
         param_env,
         encoder.env().identity_substs(proc_def_id),

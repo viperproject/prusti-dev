@@ -19,10 +19,7 @@ use prusti_rustc_interface::{
     errors,
     hir::def_id::{DefId, LocalDefId},
     interface::{interface, Config, Queries},
-    middle::{
-        query::{queries::mir_borrowck::ProvidedValue, ExternProviders, Providers},
-        ty,
-    },
+    middle::{query::queries::mir_borrowck::ProvidedValue, ty, util::Providers},
     polonius_engine::{Algorithm, Output},
     session::{self, Attribute, EarlyErrorHandler, Session},
 };
@@ -134,7 +131,7 @@ fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> ProvidedValu
     original_mir_borrowck(tcx, def_id)
 }
 
-fn override_queries(_session: &Session, local: &mut Providers, _external: &mut ExternProviders) {
+fn override_queries(_session: &Session, local: &mut Providers) {
     local.mir_borrowck = mir_borrowck;
 }
 

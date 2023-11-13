@@ -9,12 +9,12 @@ use crate::{
     utils::type_visitor::{self, TypeVisitor},
 };
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     hir::{self as hir, Mutability},
     middle::{
         mir,
         ty::{self, Ty, TyCtxt, TyKind},
     },
+    target::abi::FieldIdx,
 };
 use std::fmt;
 
@@ -44,7 +44,7 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
             None => "static".to_string(),
-            Some(ty::BoundRegionKind::BrAnon(_)) => "anon".to_string(),
+            Some(ty::BoundRegionKind::BrAnon) => "anon".to_string(),
             Some(ty::BoundRegionKind::BrNamed(_, name)) => name.to_string(),
             _ => unimplemented!(),
         };

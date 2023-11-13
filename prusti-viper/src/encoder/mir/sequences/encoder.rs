@@ -12,9 +12,7 @@ pub(super) fn encode_sequence_types<'p, 'v: 'p, 'tcx: 'v>(
     let (elem_ty_rs, sequence_len) = match sequence_ty_rs.kind() {
         ty::TyKind::Array(elem_ty, array_len) => {
             let len = encoder
-                .const_eval_intlike(prusti_rustc_interface::middle::mir::ConstantKind::Ty(
-                    *array_len,
-                ))?
+                .const_eval_intlike(prusti_rustc_interface::middle::mir::Const::Ty(*array_len))?
                 .to_u64()
                 .unwrap()
                 .try_into()

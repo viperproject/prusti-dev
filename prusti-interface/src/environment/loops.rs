@@ -377,10 +377,13 @@ impl ProcedureLoops {
         }
         for &(back_edge_source, loop_head) in back_edges.iter() {
             let blocks = nonconditional_loop_blocks.get_mut(&loop_head).unwrap();
-            *blocks = blocks
-                .intersection(&dominators.dominators(back_edge_source).collect())
-                .copied()
-                .collect();
+            let mut doms: FxHashSet<_> = [back_edge_source].into_iter().collect();
+            let mut curr = back_edge_source;
+            while let Some(dom) = dominators.immediate_dominator(curr) {
+                doms.insert(dom);
+                curr = dom;
+            }
+            *blocks = blocks.intersection(&doms).copied().collect();
         }
         debug!(
             "nonconditional_loop_blocks: {:?}",

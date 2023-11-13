@@ -8,13 +8,13 @@
 //! copied from prusti-interface/utils
 
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     data_structures::fx::FxHashSet,
     infer::infer::TyCtxtInferExt,
     middle::{
         mir,
         ty::{self, TyCtxt},
     },
+    target::abi::FieldIdx,
     trait_selection::infer::InferCtxtExt,
 };
 use std::mem;
@@ -165,8 +165,8 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
                 }
             }
         }
-        ty::Generator(_, substs, _) => {
-            for (index, subst_ty) in substs.as_generator().upvar_tys().iter().enumerate() {
+        ty::Coroutine(_, substs, _) => {
+            for (index, subst_ty) in substs.as_coroutine().upvar_tys().iter().enumerate() {
                 if Some(index) != without_field {
                     let field = FieldIdx::from_usize(index);
                     let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
@@ -209,6 +209,7 @@ pub fn expand_one_level<'tcx>(
         | mir::ProjectionElem::Subslice { .. }
         | mir::ProjectionElem::Downcast(..)
         | mir::ProjectionElem::OpaqueCast(..) => vec![],
+        mir::ProjectionElem::Subtype(_) => todo!(),
     };
     (new_current_place, other_places)
 }
@@ -338,6 +339,7 @@ pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Plac
             | mir::ProjectionElem::OpaqueCast(..) => {
                 // Continue
             }
+            mir::ProjectionElem::Subtype(_) => todo!(),
         }
     }
     borrowed

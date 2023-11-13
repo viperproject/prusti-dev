@@ -31,11 +31,11 @@ use log::{debug, trace};
 use prusti_common::vir_high_local;
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     hir::def_id::DefId,
     index::IndexSlice,
     middle::{mir, ty, ty::GenericArgsRef},
     span::Span,
+    target::abi::FieldIdx,
 };
 use rustc_hash::FxHashMap;
 use vir_crate::{
@@ -145,7 +145,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let rhs = vir_high::Expression::constructor_no_pos(ty_with_variant, arguments);
                 state.substitute_value(lhs, rhs);
             }
-            mir::AggregateKind::Generator(_def_id, _subst, _) => {
+            mir::AggregateKind::Coroutine(_def_id, _subst, _) => {
                 return Err(SpannedEncodingError::unsupported(
                     format!("Unsupported aggregate type: {aggregate:?}"),
                     span,
@@ -319,7 +319,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand(operand, span)?;
                 let len: usize = self
                     .encoder
-                    .const_eval_intlike(mir::ConstantKind::Ty(*times))
+                    .const_eval_intlike(mir::Const::Ty(*times))
                     .with_span(span)?
                     .to_u64()
                     .unwrap()
@@ -951,10 +951,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 args,
                 destination,
                 target,
-                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
+                func: mir::Operand::Constant(box mir::ConstOperand { const_, .. }),
                 ..
             } => {
-                self.apply_call_terminator(args, *destination, target, literal.ty(), states, span)?
+                self.apply_call_terminator(args, *destination, target, const_.ty(), states, span)?
             }
 
             TerminatorKind::Call { .. } => {
@@ -1026,7 +1026,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             TerminatorKind::Yield { .. }
-            | TerminatorKind::GeneratorDrop
+            | TerminatorKind::CoroutineDrop
             | TerminatorKind::InlineAsm { .. } => {
                 return Err(SpannedEncodingError::unsupported(
                     format!(

@@ -172,7 +172,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TyKind::Generator(..) => {
+                    ty::TyKind::Coroutine(..) => {
                         error_unsupported!("generator fields are not supported");
                     }
 
@@ -395,7 +395,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_expr(&self, operand: &mir::Operand<'tcx>) -> EncodingResult<vir::Expr> {
         Ok(match operand {
             mir::Operand::Constant(expr) => {
-                self.encoder.encode_const_expr(expr.ty(), expr.literal)?
+                self.encoder.encode_const_expr(expr.ty(), expr.const_)?
             }
             &mir::Operand::Copy(place) | &mir::Operand::Move(place) => {
                 // let val_place = self.eval_place(&place)?;
@@ -410,7 +410,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     place_ty,
                 )?
             } // FIXME: Check whether the commented out code is necessary.
-              // &mir::Operand::Constant(box mir::Constant {
+              // &mir::Operand::Constant(box mir::ConstOperand {
               //     ty,
               //     literal: mir::Literal::Promoted { .. },
               //     ..
@@ -441,7 +441,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         //         let (_, ty, _) = self.encode_place(place);
         //         ty
         //     }
-        //     &mir::Operand::Constant(box mir::Constant { ty, .. }) => ty,
+        //     &mir::Operand::Constant(box mir::ConstOperand { ty, .. }) => ty,
         // }
         operand.ty(self.mir, self.encoder.env().tcx())
     }
@@ -453,7 +453,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
     ) -> EncodingResult<vir::Type> {
         // match operand {
-        //     &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
+        //     &mir::Operand::Constant(box mir::ConstOperand { ty, .. }) => {
         //         let ty = self.encoder.resolve_typaram(ty);
         //         self.encoder.encode_value_type(ty)
         //     }

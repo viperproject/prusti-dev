@@ -93,9 +93,8 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         ty::TyKind::Bound(_, _)
         | ty::TyKind::Placeholder(_)
         | ty::TyKind::Infer(_)
-        | ty::TyKind::Generator(..)
-        | ty::TyKind::GeneratorWitness(_)
-        | ty::TyKind::GeneratorWitnessMIR(..) => {
+        | ty::TyKind::Coroutine(..)
+        | ty::TyKind::CoroutineWitness(..) => {
             return Err(SpannedEncodingError::unsupported(
                 format!("unsupported type to extract lifetimes: {:?}", ty.kind()),
                 type_encoder.get_type_definition_span(ty),

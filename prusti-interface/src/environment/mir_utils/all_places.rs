@@ -1,6 +1,6 @@
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     middle::{mir, ty},
+    target::abi::FieldIdx,
 };
 
 pub trait AllPlaces<'tcx> {
