@@ -65,13 +65,26 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_before_statement_effect", level = "debug", skip(self))]
-    fn apply_before_statement_effect(&mut self, state: &mut Self::Domain, statement: &Statement<'tcx>, location: Location) {
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_before_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
+    fn apply_before_statement_effect(
+        &mut self,
+        state: &mut Self::Domain,
+        statement: &Statement<'tcx>,
+        location: Location,
+    ) {
         state.repackings.clear();
         state.apply_pre_effect = true;
         state.visit_statement(statement, location);
     }
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_statement_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_statement_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -83,7 +96,11 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         state.visit_statement(statement, location);
     }
 
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_before_terminator_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_before_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_before_terminator_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -94,7 +111,11 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         state.apply_pre_effect = true;
         state.visit_terminator(terminator, location);
     }
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_terminator_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_terminator_effect<'mir>(
         &mut self,
         state: &mut Self::Domain,

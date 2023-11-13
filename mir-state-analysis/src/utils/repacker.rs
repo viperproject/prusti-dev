@@ -10,7 +10,8 @@ use prusti_rustc_interface::{
     index::bit_set::BitSet,
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, ProjectionElem, PlaceRef,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, PlaceRef,
+            ProjectionElem,
         },
         ty::{TyCtxt, TyKind},
     },
@@ -326,7 +327,7 @@ impl<'tcx> Place<'tcx> {
     // }
 
     pub fn ty(self, repacker: PlaceRepacker<'_, 'tcx>) -> PlaceTy<'tcx> {
-        PlaceRef::ty(&*self, repacker.mir, repacker.tcx)
+        PlaceRef::ty(&self, repacker.mir, repacker.tcx)
     }
 
     /// Should only be called on a `Place` obtained from `RootPlace::get_parent`.
