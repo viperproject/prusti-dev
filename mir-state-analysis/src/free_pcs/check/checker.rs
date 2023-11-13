@@ -44,7 +44,7 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
             assert_eq!(fpcs_after.location, loc);
             // Repacks
             for &op in &fpcs_after.repacks_middle {
-                op.update_free(&mut fpcs.summary, false, rp);
+                op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
             }
             // Consistency
             fpcs.summary.consistency_check(rp);
@@ -56,7 +56,7 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
 
             // Repacks
             for op in fpcs_after.repacks {
-                op.update_free(&mut fpcs.summary, false, rp);
+                op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
             }
             // Statement post
             fpcs.apply_pre_effect = false;
@@ -73,7 +73,7 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
         assert_eq!(fpcs_after.location, loc);
         // Repacks
         for op in fpcs_after.repacks_middle {
-            op.update_free(&mut fpcs.summary, false, rp);
+            op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
         }
         // Consistency
         fpcs.summary.consistency_check(rp);
@@ -85,7 +85,7 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
 
         // Repacks
         for op in fpcs_after.repacks {
-            op.update_free(&mut fpcs.summary, false, rp);
+            op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
         }
         // Statement post
         fpcs.apply_pre_effect = false;
@@ -104,6 +104,7 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
                 op.update_free(
                     &mut from.summary,
                     body.basic_blocks[succ.location.block].is_cleanup,
+                    false,
                     rp,
                 );
             }
@@ -118,6 +119,7 @@ impl<'tcx> RepackOp<'tcx> {
         self,
         state: &mut CapabilitySummary<'tcx>,
         is_cleanup: bool,
+        can_downcast: bool,
         rp: PlaceRepacker<'_, 'tcx>,
     ) {
         match self {
@@ -147,6 +149,14 @@ impl<'tcx> RepackOp<'tcx> {
             RepackOp::Expand(place, guide, kind) => {
                 assert_eq!(kind, CapabilityKind::Exclusive, "{self:?}");
                 assert!(place.is_prefix_exact(guide), "{self:?}");
+                assert!(
+                    can_downcast
+                        || !matches!(
+                            guide.projection.last().unwrap(),
+                            ProjectionElem::Downcast(..)
+                        ),
+                    "{self:?}"
+                );
                 let curr_state = state[place.local].get_allocated_mut();
                 assert_eq!(
                     curr_state.remove(&place),
