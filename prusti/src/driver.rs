@@ -40,12 +40,6 @@ fn get_prusti_version_info() -> String {
 
 /// Initialize Prusti and the Rust compiler loggers.
 fn init_loggers() -> Option<FlushGuard> {
-    // TODO: should we really be creating this? should we configure the output
-    //   type somehow?
-    let handler = prusti_rustc_interface::session::EarlyErrorHandler::new(
-        prusti_rustc_interface::session::config::ErrorOutputType::default(),
-    );
-
     // TODO: The `config::log() != ""` here is very bad; it makes us ignore the `log_tracing` flag
     // It's enabled so that we only create a `trace.json` file if the user has explicitly requested logging
     let guard = if config::log_tracing() && !config::log().is_empty() {
@@ -70,7 +64,10 @@ fn init_loggers() -> Option<FlushGuard> {
         None
     };
 
-    prusti_rustc_interface::driver::init_rustc_env_logger(&handler);
+    let error_handler = EarlyErrorHandler::new(session::config::ErrorOutputType::HumanReadable(
+        errors::emitter::HumanReadableErrorType::Default(errors::emitter::ColorConfig::Auto),
+    ));
+    prusti_rustc_interface::driver::init_rustc_env_logger(&error_handler);
     guard
 }
 

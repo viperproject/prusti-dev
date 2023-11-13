@@ -22,6 +22,7 @@ use crate::{
 pub struct Fpcs<'a, 'tcx> {
     pub(crate) repacker: PlaceRepacker<'a, 'tcx>,
     pub(crate) bottom: bool,
+    pub(crate) apply_pre_effect: bool,
     pub summary: CapabilitySummary<'tcx>,
     pub repackings: Vec<RepackOp<'tcx>>,
 }
@@ -31,6 +32,7 @@ impl<'a, 'tcx> Fpcs<'a, 'tcx> {
         Self {
             repacker,
             bottom: true,
+            apply_pre_effect: true,
             summary,
             repackings: Vec::new(),
         }

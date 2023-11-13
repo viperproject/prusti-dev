@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(rustc_private)]
-#![feature(box_patterns, extract_if, hash_extract_if)]
+#![feature(box_patterns, hash_extract_if, extract_if)]
 
 pub mod free_pcs;
 pub mod utils;
@@ -15,6 +15,7 @@ use prusti_rustc_interface::{
     middle::{mir::Body, ty::TyCtxt},
 };
 
+#[tracing::instrument(name = "run_free_pcs", level = "debug", skip(tcx))]
 pub fn run_free_pcs<'mir, 'tcx>(
     mir: &'mir Body<'tcx>,
     tcx: TyCtxt<'tcx>,
