@@ -33,7 +33,7 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
     fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
     fn encode_snapshot_constant(
         &self,
-        expr: &mir::Constant<'tcx>,
+        expr: &mir::ConstOperand<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
     fn encode_snapshot(
         &self,
@@ -146,12 +146,12 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
     /// The result is not necessarily a domain; it could be a primitive type.
     fn encode_snapshot_constant(
         &self,
-        expr: &mir::Constant<'tcx>,
+        expr: &mir::ConstOperand<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         let args = match expr.ty().kind() {
             ty::TyKind::Tuple(substs) if substs.is_empty() => vec![],
             _ => {
-                vec![self.encode_const_expr(expr.ty(), expr.literal)?]
+                vec![self.encode_const_expr(expr.ty(), expr.const_)?]
             }
         };
         self.encode_snapshot(expr.ty(), None, args)

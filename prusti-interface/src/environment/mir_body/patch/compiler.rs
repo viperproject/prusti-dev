@@ -50,7 +50,9 @@ impl<'tcx> MirPatch<'tcx> {
 
         for (bb, block) in body.basic_blocks.iter_enumerated() {
             // Check if we already have a resume block
-            if let TerminatorKind::UnwindResume = block.terminator().kind && block.statements.is_empty() {
+            if let TerminatorKind::UnwindResume = block.terminator().kind
+                && block.statements.is_empty()
+            {
                 result.resume_block = Some(bb);
                 continue;
             }
@@ -65,7 +67,9 @@ impl<'tcx> MirPatch<'tcx> {
             }
 
             // Check if we already have a terminate block
-            if let TerminatorKind::UnwindTerminate(..) = block.terminator().kind && block.statements.is_empty() {
+            if let TerminatorKind::UnwindTerminate(..) = block.terminator().kind
+                && block.statements.is_empty()
+            {
                 result.terminate_block = Some(bb);
                 continue;
             }
@@ -148,7 +152,7 @@ impl<'tcx> MirPatch<'tcx> {
     ) -> Local {
         let index = self.next_local;
         self.next_local += 1;
-        let mut new_decl = LocalDecl::new(ty, span).internal();
+        let mut new_decl = LocalDecl::new(ty, span);
         **new_decl.local_info.as_mut().assert_crate_local() = local_info;
         self.new_locals.push(new_decl);
         Local::new(index)
@@ -164,7 +168,7 @@ impl<'tcx> MirPatch<'tcx> {
     pub fn new_internal(&mut self, ty: Ty<'tcx>, span: Span) -> Local {
         let index = self.next_local;
         self.next_local += 1;
-        self.new_locals.push(LocalDecl::new(ty, span).internal());
+        self.new_locals.push(LocalDecl::new(ty, span));
         Local::new(index)
     }
 

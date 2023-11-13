@@ -55,7 +55,7 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
         TerminatorKind::UnwindResume
         | TerminatorKind::UnwindTerminate(..)
         | TerminatorKind::Return
-        | TerminatorKind::GeneratorDrop
+        | TerminatorKind::CoroutineDrop
         | TerminatorKind::Unreachable => vec![],
 
         TerminatorKind::Drop { ref target, .. } => vec![*target],

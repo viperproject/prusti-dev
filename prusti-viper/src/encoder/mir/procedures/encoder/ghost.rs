@@ -100,10 +100,10 @@ impl<'a, 'p, 'v, 'tcx> Visitor<'tcx> for GhostChecker<'a, 'p, 'v, 'tcx> {
         if self.is_ghost_place(location) {
             match &term.kind {
                 mir::TerminatorKind::Call {
-                    func: mir::Operand::Constant(box mir::Constant { literal, .. }),
+                    func: mir::Operand::Constant(box mir::ConstOperand { const_, .. }),
                     ..
                 } => {
-                    if let ty::TyKind::FnDef(def_id, _call_substs) = literal.ty().kind() {
+                    if let ty::TyKind::FnDef(def_id, _call_substs) = const_.ty().kind() {
                         if !self.p.encoder.is_pure(*def_id, None) {
                             self.violations.push(SpannedEncodingError::incorrect(
                                 "Only pure function calls are allowed in ghost blocks.",

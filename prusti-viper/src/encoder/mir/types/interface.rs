@@ -5,10 +5,10 @@ use crate::encoder::{
     mir::types::interface::ty::GenericArgsRef,
 };
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     errors::MultiSpan,
     middle::{mir, ty},
     span::Span,
+    target::abi::FieldIdx,
 };
 use rustc_hash::FxHashMap;
 use std::cell::RefCell;

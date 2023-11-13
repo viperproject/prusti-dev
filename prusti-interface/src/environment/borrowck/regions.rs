@@ -80,6 +80,7 @@ impl PlaceRegions {
                         not supported"
                         .to_string(),
                 )),
+                mir::ProjectionElem::Subtype(_) => todo!(),
             })
             .collect::<Result<_, _>>()?;
         Ok((place.local, indices))

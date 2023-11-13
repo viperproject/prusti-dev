@@ -34,12 +34,12 @@ use prusti_interface::environment::{
     Procedure,
 };
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     data_structures::graph::WithStartNode,
     hir::def_id::DefId,
     index::IndexSlice,
     middle::{mir, ty, ty::GenericArgsRef},
     span::Span,
+    target::abi::FieldIdx,
 };
 use rustc_hash::FxHashSet;
 use std::collections::{BTreeMap, BTreeSet};
@@ -866,7 +866,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ty
             }
             mir::AggregateKind::Closure(_, _) => unimplemented!(),
-            mir::AggregateKind::Generator(_, _, _) => unimplemented!(),
+            mir::AggregateKind::Coroutine(_, _, _) => unimplemented!(),
         };
         let base_lifetimes = ty.get_lifetimes();
         let lifetime_replacement_map = self
@@ -1225,7 +1225,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 *unwind,
             )?,
             TerminatorKind::Call {
-                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
+                func: mir::Operand::Constant(box mir::ConstOperand { const_, .. }),
                 args,
                 destination,
                 target,
@@ -1237,7 +1237,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     block_builder,
                     location,
                     span,
-                    literal.ty(),
+                    const_.ty(),
                     args,
                     *destination,
                     target,
@@ -1265,7 +1265,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // TerminatorKind::Yield { .. } => {
             //     graph.add_exit_edge(bb, "yield");
             // }
-            // TerminatorKind::GeneratorDrop => {
+            // TerminatorKind::CoroutineDrop => {
             //     graph.add_exit_edge(bb, "generator_drop");
             // }
             TerminatorKind::FalseEdge {
@@ -2087,7 +2087,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.encoder.get_mir_terminator_span(block.terminator());
         match &block.terminator().kind {
             mir::TerminatorKind::Call {
-                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
+                func: mir::Operand::Constant(box mir::ConstOperand { const_, .. }),
                 args,
                 destination: _,
                 target: _,
@@ -2095,7 +2095,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 fn_span: _,
                 call_source: _,
             } => {
-                if let ty::TyKind::FnDef(def_id, _substs) = literal.ty().kind() {
+                if let ty::TyKind::FnDef(def_id, _substs) = const_.ty().kind() {
                     let full_called_function_name =
                         self.encoder.env().name.get_absolute_item_name(*def_id);
                     match full_called_function_name.as_ref() {
