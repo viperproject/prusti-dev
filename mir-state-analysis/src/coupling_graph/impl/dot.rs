@@ -12,14 +12,14 @@ use prusti_rustc_interface::{
     dataflow::fmt::DebugWithContext,
     index::{bit_set::BitSet, IndexVec},
     middle::{
-        mir::{BorrowKind, ConstraintCategory, Local, BasicBlock},
+        mir::{BasicBlock, BorrowKind, ConstraintCategory, Local},
         ty::{RegionVid, TyKind},
     },
 };
 
-use crate::coupling_graph::outlives_info::edge::{EdgeInfo, Edge as CgEdge};
+use crate::coupling_graph::outlives_info::edge::{Edge as CgEdge, EdgeInfo};
 
-use super::{triple::Cg};
+use super::triple::Cg;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Edge<'tcx> {
@@ -29,7 +29,11 @@ pub struct Edge<'tcx> {
 }
 
 impl<'tcx> Edge<'tcx> {
-    pub(crate) fn new(from: RegionVid, to: RegionVid, reasons: FxHashSet<Vec<CgEdge<'tcx>>>) -> Self {
+    pub(crate) fn new(
+        from: RegionVid,
+        to: RegionVid,
+        reasons: FxHashSet<Vec<CgEdge<'tcx>>>,
+    ) -> Self {
         Self { from, to, reasons }
     }
 }
@@ -40,7 +44,9 @@ impl<'a, 'tcx> Cg<'a, 'tcx> {
             "start".to_string()
         } else {
             let pre = if self.is_pre { "_pre" } else { "" };
-            format!("{:?}{pre}", self.location).replace('[', "_").replace(']', "")
+            format!("{:?}{pre}", self.location)
+                .replace('[', "_")
+                .replace(']', "")
         }
     }
 }

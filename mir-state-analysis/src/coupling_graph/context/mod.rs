@@ -7,8 +7,7 @@
 use std::{cell::RefCell, fmt};
 
 use self::{
-    outlives_info::OutlivesInfo, region_info::RegionInfo,
-    shared_borrow_set::SharedBorrowSet,
+    outlives_info::OutlivesInfo, region_info::RegionInfo, shared_borrow_set::SharedBorrowSet,
 };
 use crate::{
     r#loop::LoopAnalysis,
@@ -21,7 +20,7 @@ use prusti_rustc_interface::{
     dataflow::{Analysis, ResultsCursor},
     index::IndexVec,
     middle::{
-        mir::{Body, Location, RETURN_PLACE, Promoted},
+        mir::{Body, Location, Promoted, RETURN_PLACE},
         ty::{RegionVid, TyCtxt},
     },
 };

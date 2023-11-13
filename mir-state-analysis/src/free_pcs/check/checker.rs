@@ -11,7 +11,8 @@ use prusti_rustc_interface::{
 
 use crate::{
     free_pcs::{
-        CapabilityKind, CapabilityLocal, CapabilitySummary, Fpcs, FreePcsAnalysis, RepackOp, FpcsBound,
+        CapabilityKind, CapabilityLocal, CapabilitySummary, Fpcs, FpcsBound, FreePcsAnalysis,
+        RepackOp,
     },
     utils::PlaceRepacker,
 };

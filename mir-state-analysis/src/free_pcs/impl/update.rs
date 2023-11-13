@@ -101,7 +101,12 @@ impl<'tcx> Fpcs<'_, 'tcx> {
 }
 
 impl<'tcx> CapabilityProjections<'tcx> {
-    #[tracing::instrument(name = "CapabilityProjections::repack", level = "trace", skip(repacker), ret)]
+    #[tracing::instrument(
+        name = "CapabilityProjections::repack",
+        level = "trace",
+        skip(repacker),
+        ret
+    )]
     pub(super) fn repack(
         &mut self,
         to: Place<'tcx>,

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{ops::ControlFlow, marker::PhantomData};
+use std::{marker::PhantomData, ops::ControlFlow};
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
@@ -16,18 +16,28 @@ use prusti_rustc_interface::{
     dataflow::{Analysis, ResultsCursor},
     index::Idx,
     middle::{
-        mir::{visit::{Visitor, TyContext, PlaceContext}, Body, Constant, Local, Location, Operand, RETURN_PLACE, Rvalue, ConstantKind, Terminator, TerminatorKind, PlaceRef, PlaceElem, ProjectionElem, AggregateKind, Promoted, Place as MirPlace},
-        ty::{TypeVisitor, TypeSuperVisitable, TypeVisitable, GenericArg, RegionVid, Ty, TyCtxt, TyKind, Region, GenericArgsRef, BoundVariableKind, Const, GenericArgKind},
+        mir::{
+            visit::{PlaceContext, TyContext, Visitor},
+            AggregateKind, Body, Constant, ConstantKind, Local, Location, Operand,
+            Place as MirPlace, PlaceElem, PlaceRef, ProjectionElem, Promoted, Rvalue, Terminator,
+            TerminatorKind, RETURN_PLACE,
+        },
+        ty::{
+            BoundVariableKind, Const, GenericArg, GenericArgKind, GenericArgsRef, Region,
+            RegionVid, Ty, TyCtxt, TyKind, TypeSuperVisitable, TypeVisitable, TypeVisitor,
+        },
     },
-    span::{Span, Symbol, def_id::DefId},
+    span::{def_id::DefId, Span, Symbol},
 };
 
 use crate::{
     coupling_graph::region_info::map::ParamRegion,
-    utils::{Place, PlaceRepacker, r#const::ConstEval},
+    utils::{r#const::ConstEval, Place, PlaceRepacker},
 };
 
-use self::map::{RegionInfoMap, RegionKind, GenericArgRegion, ConstRegionKind, OtherAnnotationKind, Promote};
+use self::map::{
+    ConstRegionKind, GenericArgRegion, OtherAnnotationKind, Promote, RegionInfoMap, RegionKind,
+};
 
 use super::{shared_borrow_set::SharedBorrowSet, CgContext};
 
@@ -153,9 +163,21 @@ impl<'tcx> RegionInfo<'tcx> {
         (static_region, function_region)
     }
 
-    pub fn initialize_consts(map: &mut RegionInfoMap<'tcx>, rp: PlaceRepacker<'_, 'tcx>, facts2: &BorrowckFacts2<'tcx>) {
+    pub fn initialize_consts(
+        map: &mut RegionInfoMap<'tcx>,
+        rp: PlaceRepacker<'_, 'tcx>,
+        facts2: &BorrowckFacts2<'tcx>,
+    ) {
         let mut collector = ConstantRegionCollector {
-            map, inner_kind: None, fn_ptr: false, rp, facts2, return_ty: None, promoted_idx: Promote::NotPromoted, regions_set: None, max_region: None,
+            map,
+            inner_kind: None,
+            fn_ptr: false,
+            rp,
+            facts2,
+            return_ty: None,
+            promoted_idx: Promote::NotPromoted,
+            regions_set: None,
+            max_region: None,
         };
         for (idx, promoted) in rp.promoted().iter_enumerated() {
             collector.promoted_idx = Promote::Promoted(idx);
@@ -215,18 +237,25 @@ impl<'tcx> ConstantRegionCollector<'_, '_, 'tcx> {
         self.inner_kind = old_kind;
         t
     }
-    
+
     fn visit_generics_args(&mut self, did: DefId, generics: GenericArgsRef<'tcx>) {
         for (gen_idx, arg) in generics.iter().enumerate() {
             let inner_kind = self.inner_kind.as_mut().unwrap();
-            inner_kind.set_fn_generic(GenericArgRegion { did, gen_idx, full_ty: arg.as_type() });
+            inner_kind.set_fn_generic(GenericArgRegion {
+                did,
+                gen_idx,
+                full_ty: arg.as_type(),
+            });
             arg.visit_with(self);
             self.inner_kind.as_mut().unwrap().unset_fn_generic();
         }
     }
 
     fn set_region(&mut self, r: RegionVid, kind: RegionKind<'tcx>) {
-        assert!(self.promoted_idx == Promote::NotPromoted || kind.promoted(), "{kind:?} {r:?}");
+        assert!(
+            self.promoted_idx == Promote::NotPromoted || kind.promoted(),
+            "{kind:?} {r:?}"
+        );
         self.map.set(r, kind);
         if let Some(regions_set) = &mut self.regions_set {
             *regions_set += 1;
@@ -248,15 +277,24 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
                     assert!(self.regions_set.is_none() && self.max_region.is_none());
                     self.regions_set = Some(0);
                 }
-                self.with_kind(RegionKind::Place { local, ty, promoted: self.promoted_idx, fn_generic: Vec::new() }, 
-                    |this| ty.visit_with(this)
+                self.with_kind(
+                    RegionKind::Place {
+                        local,
+                        ty,
+                        promoted: self.promoted_idx,
+                        fn_generic: Vec::new(),
+                    },
+                    |this| ty.visit_with(this),
                 );
                 if local == RETURN_PLACE {
                     // TODO: remove this once `https://github.com/rust-lang/rust/pull/116792` lands
                     let return_regions = self.regions_set.take().unwrap();
                     if let Some(new_max) = self.max_region.take() {
-                        for r in (0..return_regions).rev().map(|sub| RegionVid::from_usize(new_max.index() - return_regions - sub)) {
-                            self.map.set(r, RegionKind::UnusedReturnBug(self.promoted_idx));
+                        for r in (0..return_regions).rev().map(|sub| {
+                            RegionVid::from_usize(new_max.index() - return_regions - sub)
+                        }) {
+                            self.map
+                                .set(r, RegionKind::UnusedReturnBug(self.promoted_idx));
                         }
                     }
                 }
@@ -265,13 +303,15 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
                 assert_eq!(ty, self.return_ty.unwrap())
             }
             TyContext::UserTy(_) => {
-                self.with_kind(RegionKind::OtherAnnotation(OtherAnnotationKind::UserTy, ty, Vec::new()), 
-                    |this| ty.visit_with(this)
+                self.with_kind(
+                    RegionKind::OtherAnnotation(OtherAnnotationKind::UserTy, ty, Vec::new()),
+                    |this| ty.visit_with(this),
                 );
             }
-            TyContext::YieldTy(_) =>  {
-                self.with_kind(RegionKind::OtherAnnotation(OtherAnnotationKind::YieldTy, ty, Vec::new()), 
-                    |this| ty.visit_with(this)
+            TyContext::YieldTy(_) => {
+                self.with_kind(
+                    RegionKind::OtherAnnotation(OtherAnnotationKind::YieldTy, ty, Vec::new()),
+                    |this| ty.visit_with(this),
                 );
             }
             TyContext::Location(_location) => {
@@ -282,13 +322,23 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
     }
 
     #[tracing::instrument(name = "ConstantRegionCollector::visit_projection_elem", level = "trace", skip(self), fields(promoted_idx = ?self.promoted_idx, inner_kind = ?self.inner_kind))]
-    fn visit_projection_elem(&mut self, place_ref: PlaceRef<'tcx>, elem: PlaceElem<'tcx>, ctx: PlaceContext, location: Location) {
+    fn visit_projection_elem(
+        &mut self,
+        place_ref: PlaceRef<'tcx>,
+        elem: PlaceElem<'tcx>,
+        ctx: PlaceContext,
+        location: Location,
+    ) {
         // println!("Projection elem ({ctx:?}): {place_ref:?} ({elem:?}) [{location:?}]");
         let place = Place::from(place_ref).mk_place_elem(elem, self.rp);
         if let Some(ty) = place.last_projection_ty() {
-            assert!(matches!(elem, ProjectionElem::Field(..) | ProjectionElem::OpaqueCast(..)));
-            self.with_kind(RegionKind::ProjectionAnnotation(place, ty, Vec::new()), 
-                |this| this.super_projection_elem(place_ref, elem, ctx, location)
+            assert!(matches!(
+                elem,
+                ProjectionElem::Field(..) | ProjectionElem::OpaqueCast(..)
+            ));
+            self.with_kind(
+                RegionKind::ProjectionAnnotation(place, ty, Vec::new()),
+                |this| this.super_projection_elem(place_ref, elem, ctx, location),
             )
         } else {
             self.super_projection_elem(place_ref, elem, ctx, location)
@@ -297,17 +347,23 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
     #[tracing::instrument(name = "ConstantRegionCollector::visit_ty_const", level = "trace", skip(self), fields(promoted_idx = ?self.promoted_idx, inner_kind = ?self.inner_kind))]
     fn visit_ty_const(&mut self, ct: Const<'tcx>, _location: Location) {
         // e.g. from `Rvalue::Repeat`
-        self.with_kind(RegionKind::ConstRef(ConstRegionKind::TyConst, Vec::new()), |this| {
-            ct.visit_with(this);
-        });
+        self.with_kind(
+            RegionKind::ConstRef(ConstRegionKind::TyConst, Vec::new()),
+            |this| {
+                ct.visit_with(this);
+            },
+        );
     }
     #[tracing::instrument(name = "ConstantRegionCollector::visit_constant", level = "trace", skip(self), fields(promoted_idx = ?self.promoted_idx, inner_kind = ?self.inner_kind))]
     fn visit_constant(&mut self, constant: &Constant<'tcx>, _location: Location) {
         // println!("Constant: {:?}", constant.ty());
         assert!(self.inner_kind.is_none());
-        self.with_kind(RegionKind::ConstRef(ConstRegionKind::Const(self.promoted_idx), Vec::new()), |this| {
-            constant.visit_with(this);
-        });
+        self.with_kind(
+            RegionKind::ConstRef(ConstRegionKind::Const(self.promoted_idx), Vec::new()),
+            |this| {
+                constant.visit_with(this);
+            },
+        );
     }
     #[tracing::instrument(name = "ConstantRegionCollector::visit_args", level = "trace", skip(self), fields(promoted_idx = ?self.promoted_idx, inner_kind = ?self.inner_kind))]
     fn visit_args(&mut self, args: &GenericArgsRef<'tcx>, location: Location) {
@@ -321,7 +377,14 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
     #[tracing::instrument(name = "ConstantRegionCollector::visit_operand", level = "trace", skip(self), fields(promoted_idx = ?self.promoted_idx, inner_kind = ?self.inner_kind))]
     fn visit_operand(&mut self, operand: &Operand<'tcx>, location: Location) {
         // Temporarily remove `OtherAnnotationKind::RvalueTy`
-        let from_rvalue = matches!(self.inner_kind, Some(RegionKind::OtherAnnotation(OtherAnnotationKind::RvalueTy(_), _, _)));
+        let from_rvalue = matches!(
+            self.inner_kind,
+            Some(RegionKind::OtherAnnotation(
+                OtherAnnotationKind::RvalueTy(_),
+                _,
+                _
+            ))
+        );
         if from_rvalue {
             let kind = self.inner_kind.take();
             self.super_operand(operand, location);
@@ -333,11 +396,13 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
     #[tracing::instrument(name = "ConstantRegionCollector::visit_assign", level = "trace", skip(self), fields(promoted_idx = ?self.promoted_idx, inner_kind = ?self.inner_kind))]
     fn visit_assign(&mut self, place: &MirPlace<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
         match rvalue {
-            &Rvalue::Aggregate(box AggregateKind::Adt(did, _, generics, _, _), _) |
-            &Rvalue::Aggregate(box AggregateKind::Closure(did, generics), _) |
-            &Rvalue::Aggregate(box AggregateKind::Generator(did, generics, _), _) => {
-                self.with_kind(RegionKind::ConstRef(ConstRegionKind::Aggregate(self.promoted_idx), Vec::new()),
-                    |this| this.visit_generics_args(did, generics));
+            &Rvalue::Aggregate(box AggregateKind::Adt(did, _, generics, _, _), _)
+            | &Rvalue::Aggregate(box AggregateKind::Closure(did, generics), _)
+            | &Rvalue::Aggregate(box AggregateKind::Generator(did, generics, _), _) => {
+                self.with_kind(
+                    RegionKind::ConstRef(ConstRegionKind::Aggregate(self.promoted_idx), Vec::new()),
+                    |this| this.visit_generics_args(did, generics),
+                );
                 self.super_assign(place, rvalue, location); // For the operand
             }
             &Rvalue::Ref(region, kind, borrowed_place) => {
@@ -346,7 +411,10 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
                 if is_non_promoted && location_map.contains_key(&location) {
                     let borrow = location_map.get(&location).unwrap();
                     assert_eq!(borrow.region, region.as_var());
-                    self.set_region(borrow.region, RegionKind::Borrow(borrow.clone(), Promote::NotPromoted))
+                    self.set_region(
+                        borrow.region,
+                        RegionKind::Borrow(borrow.clone(), Promote::NotPromoted),
+                    )
                 } else {
                     let region = region.as_var();
                     let borrow = BorrowData {
@@ -361,12 +429,17 @@ impl<'tcx> Visitor<'tcx> for ConstantRegionCollector<'_, '_, 'tcx> {
                 }
                 self.super_assign(place, rvalue, location)
             }
-            Rvalue::Aggregate(box AggregateKind::Array(ty), _) |
-            Rvalue::Cast(_, _, ty) |
-            Rvalue::NullaryOp(_, ty) |
-            Rvalue::ShallowInitBox(_, ty) => {
-                self.with_kind(RegionKind::OtherAnnotation(OtherAnnotationKind::RvalueTy(self.promoted_idx), *ty, Vec::new()),
-                    |this| this.super_assign(place, rvalue, location)
+            Rvalue::Aggregate(box AggregateKind::Array(ty), _)
+            | Rvalue::Cast(_, _, ty)
+            | Rvalue::NullaryOp(_, ty)
+            | Rvalue::ShallowInitBox(_, ty) => {
+                self.with_kind(
+                    RegionKind::OtherAnnotation(
+                        OtherAnnotationKind::RvalueTy(self.promoted_idx),
+                        *ty,
+                        Vec::new(),
+                    ),
+                    |this| this.super_assign(place, rvalue, location),
                 );
             }
             _ => self.super_assign(place, rvalue, location),
@@ -396,8 +469,7 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for ConstantRegionCollector<'_, '_, 'tcx> {
     fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
         // println!("Ty inner: {ty:?}");
         match ty.kind() {
-            &TyKind::FnDef(did, generics) |
-            &TyKind::Closure(did, generics) => {
+            &TyKind::FnDef(did, generics) | &TyKind::Closure(did, generics) => {
                 self.visit_generics_args(did, generics);
                 ControlFlow::Continue(())
             }

@@ -20,10 +20,12 @@ use prusti_rustc_interface::{
         NllRegionVariableOrigin, RegionVariableOrigin,
     },
     middle::{
-        mir::{Body, BorrowKind, Local, Location, Operand, RETURN_PLACE, PlaceRef, PlaceElem, Promoted},
+        mir::{
+            Body, BorrowKind, Local, Location, Operand, PlaceElem, PlaceRef, Promoted, RETURN_PLACE,
+        },
         ty::{BoundRegionKind, PlaceholderRegion, RegionVid, Ty, TyCtxt, TyKind},
     },
-    span::{Span, Symbol, def_id::DefId},
+    span::{def_id::DefId, Span, Symbol},
 };
 
 use crate::{
@@ -47,17 +49,23 @@ pub struct GenericArgRegion<'tcx> {
 
 impl<'tcx> GenericArgRegion<'tcx> {
     fn to_string(gars: &Vec<Self>, cgx: &CgContext<'_, 'tcx>) -> String {
-        gars.iter().map(|gar| {
-            let tcx = cgx.rp.tcx();
-            let generic = tcx.generics_of(gar.did).param_at(gar.gen_idx, tcx);
-            assert_eq!(generic.kind.is_ty_or_const(), gar.full_ty.is_some());
-            let ty = gar.full_ty.map(|ty| format!(" = {ty}")).unwrap_or_default();
-            if tcx.is_closure(gar.did) {
-                format!(" closure::<{}{ty}>", generic.name.as_str())
-            } else {
-                format!(" {}::<{}{ty}>", tcx.item_name(gar.did).as_str(), generic.name.as_str())
-            }
-        }).collect()
+        gars.iter()
+            .map(|gar| {
+                let tcx = cgx.rp.tcx();
+                let generic = tcx.generics_of(gar.did).param_at(gar.gen_idx, tcx);
+                assert_eq!(generic.kind.is_ty_or_const(), gar.full_ty.is_some());
+                let ty = gar.full_ty.map(|ty| format!(" = {ty}")).unwrap_or_default();
+                if tcx.is_closure(gar.did) {
+                    format!(" closure::<{}{ty}>", generic.name.as_str())
+                } else {
+                    format!(
+                        " {}::<{}{ty}>",
+                        tcx.item_name(gar.did).as_str(),
+                        generic.name.as_str()
+                    )
+                }
+            })
+            .collect()
     }
 }
 
@@ -131,7 +139,6 @@ pub enum RegionKind<'tcx> {
 
     // AggregateGeneric(DefId, usize, Option<Ty<'tcx>>),
     // FnGeneric(DefId, usize, Option<Ty<'tcx>>),
-
     EarlyBound(Symbol),
     LateBound {
         // span: Span,
@@ -193,13 +200,17 @@ impl<'tcx> RegionKind<'tcx> {
     }
 
     pub fn promoted(&self) -> bool {
-        matches!(self,
-            Self::Place { promoted: Promote::Promoted(..), .. }
-            | Self::Borrow(_, Promote::Promoted(..))
-            | Self::UnusedReturnBug(Promote::Promoted(..))
-            | Self::OtherAnnotation(OtherAnnotationKind::RvalueTy(Promote::Promoted(..)), _, _)
-            | Self::ConstRef(ConstRegionKind::Const(Promote::Promoted(..)), _)
-            | Self::ConstRef(ConstRegionKind::Aggregate(Promote::Promoted(..)), _))
+        matches!(
+            self,
+            Self::Place {
+                promoted: Promote::Promoted(..),
+                ..
+            } | Self::Borrow(_, Promote::Promoted(..))
+                | Self::UnusedReturnBug(Promote::Promoted(..))
+                | Self::OtherAnnotation(OtherAnnotationKind::RvalueTy(Promote::Promoted(..)), _, _)
+                | Self::ConstRef(ConstRegionKind::Const(Promote::Promoted(..)), _)
+                | Self::ConstRef(ConstRegionKind::Aggregate(Promote::Promoted(..)), _)
+        )
     }
     pub fn unknown(&self) -> bool {
         matches!(self, Self::UnknownUniversal | Self::UnknownLocal)
@@ -217,30 +228,33 @@ impl<'tcx> RegionKind<'tcx> {
 
     pub fn from_function_depth(&self) -> usize {
         match self {
-            Self::LateBound { ctime: LateBoundRegionConversionTime::FnCall, .. } => 1,
-            Self::ConstRef(_, fn_generic) |
-            Self::Place { fn_generic, .. } |
-            Self::ProjectionAnnotation(_, _, fn_generic) |
-            Self::OtherAnnotation(_, _, fn_generic) => fn_generic.len(),
+            Self::LateBound {
+                ctime: LateBoundRegionConversionTime::FnCall,
+                ..
+            } => 1,
+            Self::ConstRef(_, fn_generic)
+            | Self::Place { fn_generic, .. }
+            | Self::ProjectionAnnotation(_, _, fn_generic)
+            | Self::OtherAnnotation(_, _, fn_generic) => fn_generic.len(),
             _ => 0,
         }
     }
 
     pub fn set_fn_generic(&mut self, generic: GenericArgRegion<'tcx>) {
         match self {
-            Self::ConstRef(_, fn_generic) |
-            Self::Place { fn_generic, .. } |
-            Self::ProjectionAnnotation(_, _, fn_generic) |
-            Self::OtherAnnotation(_, _, fn_generic) => fn_generic.push(generic),
+            Self::ConstRef(_, fn_generic)
+            | Self::Place { fn_generic, .. }
+            | Self::ProjectionAnnotation(_, _, fn_generic)
+            | Self::OtherAnnotation(_, _, fn_generic) => fn_generic.push(generic),
             _ => panic!("{self:?} ({generic:?})"),
         }
     }
     pub fn unset_fn_generic(&mut self) {
         match self {
-            Self::ConstRef(_, fn_generic) |
-            Self::Place { fn_generic, .. } |
-            Self::ProjectionAnnotation(_, _, fn_generic) |
-            Self::OtherAnnotation(_, _, fn_generic) => assert!(fn_generic.pop().is_some()),
+            Self::ConstRef(_, fn_generic)
+            | Self::Place { fn_generic, .. }
+            | Self::ProjectionAnnotation(_, _, fn_generic)
+            | Self::OtherAnnotation(_, _, fn_generic) => assert!(fn_generic.pop().is_some()),
             _ => panic!(),
         }
     }
@@ -248,7 +262,11 @@ impl<'tcx> RegionKind<'tcx> {
     // #[tracing::instrument(name = "RegionKind::get_place", level = "trace", ret)]
     pub fn get_place(&self) -> Option<Local> {
         match self {
-            Self::Place { local, promoted: Promote::NotPromoted, .. } => Some(*local),
+            Self::Place {
+                local,
+                promoted: Promote::NotPromoted,
+                ..
+            } => Some(*local),
             _ => None,
         }
     }
@@ -289,29 +307,41 @@ impl<'tcx> RegionKind<'tcx> {
             Self::ConstRef(kind, fn_generic) => {
                 format!("{kind}{}", GenericArgRegion::to_string(fn_generic, cgx))
             }
-            Self::Place { local, ty, promoted, fn_generic } => {
+            Self::Place {
+                local,
+                ty,
+                promoted,
+                fn_generic,
+            } => {
                 let place = Place::from(*local);
                 // let exact = place.deref_to_region(*region, cgx.rp);
                 // let display = exact.unwrap_or(place).to_string(cgx.rp);
                 // if exact.is_some() {
                 //     format!("{display:?}{promoted}")
                 // } else {
-                    format!("AllIn({:?} = {ty}){promoted}", place.to_string(cgx.rp))
+                format!("AllIn({:?} = {ty}){promoted}", place.to_string(cgx.rp))
                 // }
             }
-            Self::Borrow(b, promoted) => {
-                match b.kind {
-                    BorrowKind::Shared => {
-                        format!("& {:?}{promoted}", Place::from(b.borrowed_place).to_string(cgx.rp))
-                    }
-                    BorrowKind::Mut { .. } => {
-                        format!("&mut {:?}{promoted}", Place::from(b.borrowed_place).to_string(cgx.rp))
-                    }
-                    BorrowKind::Shallow => {
-                        format!("&sh {:?}{promoted}", Place::from(b.borrowed_place).to_string(cgx.rp))
-                    }
+            Self::Borrow(b, promoted) => match b.kind {
+                BorrowKind::Shared => {
+                    format!(
+                        "& {:?}{promoted}",
+                        Place::from(b.borrowed_place).to_string(cgx.rp)
+                    )
                 }
-            }
+                BorrowKind::Mut { .. } => {
+                    format!(
+                        "&mut {:?}{promoted}",
+                        Place::from(b.borrowed_place).to_string(cgx.rp)
+                    )
+                }
+                BorrowKind::Shallow => {
+                    format!(
+                        "&sh {:?}{promoted}",
+                        Place::from(b.borrowed_place).to_string(cgx.rp)
+                    )
+                }
+            },
             Self::EarlyBound(name) => name.as_str().to_string(),
             Self::LateBound { kind, ctime } => {
                 let kind = match kind {
@@ -335,10 +365,15 @@ impl<'tcx> RegionKind<'tcx> {
                 };
                 format!("{kind}@{:?}", p.universe)
             }
-            Self::ProjectionAnnotation(place, ty, fn_generic) =>
-                format!("{:?}: {ty}{}", place.to_string(cgx.rp), GenericArgRegion::to_string(fn_generic, cgx)),
-            &Self::OtherAnnotation(kind, ty, ref fn_generic) =>
-                    format!("{kind} {ty}{}", GenericArgRegion::to_string(fn_generic, cgx)),
+            Self::ProjectionAnnotation(place, ty, fn_generic) => format!(
+                "{:?}: {ty}{}",
+                place.to_string(cgx.rp),
+                GenericArgRegion::to_string(fn_generic, cgx)
+            ),
+            &Self::OtherAnnotation(kind, ty, ref fn_generic) => format!(
+                "{kind} {ty}{}",
+                GenericArgRegion::to_string(fn_generic, cgx)
+            ),
             Self::MiscLocal => "?misc?".to_string(),
             Self::UnusedReturnBug(..) => unreachable!(),
             Self::UnknownLocal => "???".to_string(),
@@ -472,8 +507,8 @@ impl<'tcx> RegionInfoMap<'tcx> {
         (0..self.region_info.len()).map(RegionVid::from)
     }
     pub fn for_local(&self, r: RegionVid, l: Local) -> bool {
-        self.get(r).get_place() == Some(l) ||
-        self.get(r).get_borrow_or_projection_local() == Some(l)
+        self.get(r).get_place() == Some(l)
+            || self.get(r).get_borrow_or_projection_local() == Some(l)
     }
     pub fn const_regions(&self) -> &[RegionVid] {
         &self.constant_regions

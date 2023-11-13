@@ -4,7 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{fmt::{Debug, Formatter, Result}, cell::RefCell};
+use std::{
+    cell::RefCell,
+    fmt::{Debug, Formatter, Result},
+};
 
 use derive_more::{Deref, DerefMut};
 use prusti_rustc_interface::{
@@ -15,12 +18,15 @@ use crate::{
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
-    utils::{PlaceRepacker, Place},
+    utils::{Place, PlaceRepacker},
 };
 
 use super::CapabilityKind;
 
-pub struct FpcsBound<'tcx>(pub Option<Box<dyn Fn(Place<'tcx>) -> CapabilityKind>>, pub bool);
+pub struct FpcsBound<'tcx>(
+    pub Option<Box<dyn Fn(Place<'tcx>) -> CapabilityKind>>,
+    pub bool,
+);
 impl FpcsBound<'_> {
     pub fn empty(expect: bool) -> RefCell<Self> {
         RefCell::new(Self(None, expect))
@@ -51,14 +57,25 @@ impl<'a, 'tcx> Fpcs<'a, 'tcx> {
     pub(crate) fn bound(&self, place: Place<'tcx>) -> CapabilityKind {
         let bound = self.bound.borrow();
         assert_eq!(bound.1, bound.0.is_some());
-        bound.0.as_ref().map(|b| b(place)).unwrap_or(CapabilityKind::Exclusive)
+        bound
+            .0
+            .as_ref()
+            .map(|b| b(place))
+            .unwrap_or(CapabilityKind::Exclusive)
     }
 }
 
 impl Clone for Fpcs<'_, '_> {
     fn clone(&self) -> Self {
         let expect_bound = self.bound.borrow().1;
-        Self { repacker: self.repacker, bottom: self.bottom, apply_pre_effect: self.apply_pre_effect, summary: self.summary.clone(), repackings: self.repackings.clone(), bound: FpcsBound::empty(expect_bound) }
+        Self {
+            repacker: self.repacker,
+            bottom: self.bottom,
+            apply_pre_effect: self.apply_pre_effect,
+            summary: self.summary.clone(),
+            repackings: self.repackings.clone(),
+            bound: FpcsBound::empty(expect_bound),
+        }
     }
 }
 impl PartialEq for Fpcs<'_, '_> {

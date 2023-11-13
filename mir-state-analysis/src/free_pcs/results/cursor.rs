@@ -12,9 +12,9 @@ use prusti_rustc_interface::{
 use crate::{
     free_pcs::{
         engine::FreePlaceCapabilitySummary, join_semi_lattice::RepackingJoinSemiLattice,
-        CapabilitySummary, RepackOp, CapabilityKind,
+        CapabilityKind, CapabilitySummary, RepackOp,
     },
-    utils::{PlaceRepacker, Place},
+    utils::{Place, PlaceRepacker},
 };
 
 type Cursor<'mir, 'tcx> = ResultsCursor<'mir, 'tcx, FreePlaceCapabilitySummary<'mir, 'tcx>>;

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::coupling_graph::{CgContext, graph::Graph, triple::Cg};
+use crate::coupling_graph::{graph::Graph, triple::Cg, CgContext};
 
 pub trait CouplingConsistency<'tcx> {
     fn consistency_check(&self, cgx: &CgContext<'_, 'tcx>) -> Option<String>;

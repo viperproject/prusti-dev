@@ -108,8 +108,7 @@ impl CapabilityKind {
     #[tracing::instrument(name = "CapabilityKind::sum", level = "trace", ret)]
     pub fn sum(self, other: Self) -> Option<Self> {
         match (self, other) {
-            (other, CapabilityKind::None) |
-            (CapabilityKind::None, other) => Some(other),
+            (other, CapabilityKind::None) | (CapabilityKind::None, other) => Some(other),
             (CapabilityKind::Write, CapabilityKind::Read) => Some(CapabilityKind::Exclusive),
             _ => None,
         }

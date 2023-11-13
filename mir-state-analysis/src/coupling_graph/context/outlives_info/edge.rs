@@ -20,7 +20,10 @@ use prusti_rustc_interface::{
     dataflow::fmt::DebugWithContext,
     index::{bit_set::BitSet, IndexVec},
     middle::{
-        mir::{BasicBlock, ConstraintCategory, Local, Location, Operand, RETURN_PLACE, TerminatorKind, StatementKind, Rvalue},
+        mir::{
+            BasicBlock, ConstraintCategory, Local, Location, Operand, Rvalue, StatementKind,
+            TerminatorKind, RETURN_PLACE,
+        },
         ty::{RegionVid, TyKind},
     },
 };
@@ -55,11 +58,19 @@ impl<'tcx> Edge<'tcx> {
         edge.iter().any(|e| e.kind.is_blocking())
     }
 
-    pub fn widen(edge: &Vec<Self>, top: impl Fn(RegionVid, RegionVid) -> Self, needs_widening: impl Fn(Location) -> bool) -> Vec<Self> {
+    pub fn widen(
+        edge: &Vec<Self>,
+        top: impl Fn(RegionVid, RegionVid) -> Self,
+        needs_widening: impl Fn(Location) -> bool,
+    ) -> Vec<Self> {
         let mut new_edge = Vec::new();
         let widen_edge: &mut Option<(RegionVid, RegionVid)> = &mut None;
         for &e in edge {
-            if e.info.creation.map(|loc| needs_widening(loc)).unwrap_or_default() {
+            if e.info
+                .creation
+                .map(|loc| needs_widening(loc))
+                .unwrap_or_default()
+            {
                 match widen_edge {
                     Some((_, sup)) => *sup = e.info.sup,
                     None => *widen_edge = Some((e.info.sub, e.info.sup)),
@@ -158,7 +169,12 @@ pub struct EdgeInfo<'tcx> {
 }
 
 impl<'tcx> EdgeInfo<'tcx> {
-    pub fn no_reason(sup: RegionVid, sub: RegionVid, creation: Option<Location>, origin: EdgeOrigin) -> Self {
+    pub fn no_reason(
+        sup: RegionVid,
+        sub: RegionVid,
+        creation: Option<Location>,
+        origin: EdgeOrigin,
+    ) -> Self {
         if !matches!(origin, EdgeOrigin::Opaque) {
             assert_ne!(sup, sub);
         }
@@ -172,15 +188,31 @@ impl<'tcx> EdgeInfo<'tcx> {
     }
     #[tracing::instrument(name = "EdgeInfo::to_edge", level = "debug", skip_all, ret)]
     pub fn to_edge(self, cgx: &CgContext<'_, 'tcx>) -> Edge<'tcx> {
-        let (sup_info, sub_info) = (cgx.region_info.map.get(self.sup), cgx.region_info.map.get(self.sub));
-        let stmt = self.creation.map(|location| cgx.rp.body().stmt_at(location));
+        let (sup_info, sub_info) = (
+            cgx.region_info.map.get(self.sup),
+            cgx.region_info.map.get(self.sub),
+        );
+        let stmt = self
+            .creation
+            .map(|location| cgx.rp.body().stmt_at(location));
         let term = stmt.and_then(|stmt| stmt.right()).map(|t| &t.kind);
         let stmt = stmt.and_then(|stmt| stmt.left()).map(|s| &s.kind);
         let kind = match (self.reason, self.origin, stmt, term) {
             // (_, EdgeOrigin::Opaque, _, _) => EdgeKind::Opaque,
-            _ if sup_info.local() && sub_info.universal() && !matches!(self.origin, EdgeOrigin::Opaque) => EdgeKind::UniversalToLocal,
-            (Some(ConstraintCategory::BoringNoLocation), _, _, Some(TerminatorKind::Call { .. })) if sup_info.from_function_depth() > 0 && sub_info.from_function_depth() > 0 =>
-                EdgeKind::FnCallImplied,
+            _ if sup_info.local()
+                && sub_info.universal()
+                && !matches!(self.origin, EdgeOrigin::Opaque) =>
+            {
+                EdgeKind::UniversalToLocal
+            }
+            (
+                Some(ConstraintCategory::BoringNoLocation),
+                _,
+                _,
+                Some(TerminatorKind::Call { .. }),
+            ) if sup_info.from_function_depth() > 0 && sub_info.from_function_depth() > 0 => {
+                EdgeKind::FnCallImplied
+            }
             (Some(ConstraintCategory::Predicate(_)), _, _, _) => {
                 assert!(matches!(term.unwrap(), TerminatorKind::Call { .. }));
                 assert!(sup_info.from_function_depth() > 0 && sub_info.from_function_depth() > 0);
@@ -193,8 +225,15 @@ impl<'tcx> EdgeInfo<'tcx> {
                 let placeholders = sup_info.is_placeholder() && sub_info.is_placeholder();
                 let sup_depth = sub_info.from_function_depth();
                 let sub_depth = sup_info.from_function_depth();
-                assert!(static_eq || placeholders || (sup_depth + 1 == sub_depth) || (sup_depth == sub_depth + 1),
-                    "{sup_info:?} ({})\nand\n{sub_info:?} ({})\n({self:?})", sup_info.from_function_depth(), sub_info.from_function_depth());
+                assert!(
+                    static_eq
+                        || placeholders
+                        || (sup_depth + 1 == sub_depth)
+                        || (sup_depth == sub_depth + 1),
+                    "{sup_info:?} ({})\nand\n{sub_info:?} ({})\n({self:?})",
+                    sup_info.from_function_depth(),
+                    sub_info.from_function_depth()
+                );
                 EdgeKind::FnCallArgument
             }
             (Some(ConstraintCategory::Assignment), _, _, Some(TerminatorKind::Call { .. })) => {
@@ -210,7 +249,9 @@ impl<'tcx> EdgeInfo<'tcx> {
                 // assert_eq!(sup_info.get_place().unwrap(), sub_info.get_borrow_or_projection_local().unwrap());
                 EdgeKind::ContainedIn
             }
-            _ if sub_info.get_place().is_some() && sub_info.get_place() == sup_info.get_borrow_or_projection_local() => {
+            _ if sub_info.get_place().is_some()
+                && sub_info.get_place() == sup_info.get_borrow_or_projection_local() =>
+            {
                 // assert_ne!(self.origin, EdgeOrigin::Opaque);
                 // Edge from `_1.1: &mut T` to `AllIn(_1)`
                 EdgeKind::ContainedIn
@@ -258,7 +299,10 @@ pub enum EdgeKind {
 
 impl EdgeKind {
     pub fn is_blocking(self) -> bool {
-        !matches!(self, EdgeKind::ContainedIn | EdgeKind::FnCallImplied | EdgeKind::UniversalToLocal)
+        !matches!(
+            self,
+            EdgeKind::ContainedIn | EdgeKind::FnCallImplied | EdgeKind::UniversalToLocal
+        )
     }
 
     pub fn many_blocking(kinds: Vec<Self>) -> bool {
