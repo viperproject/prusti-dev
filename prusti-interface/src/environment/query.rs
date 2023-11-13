@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
     hir::hir_id::HirId,
     middle::{
         hir::map::Map,
-        ty::{self, Binder, BoundConstness, GenericArgsRef, ImplPolarity, ParamEnv, TraitPredicate, TyCtxt},
+        ty::{self, GenericArgsRef, ImplPolarity, ParamEnv, TraitPredicate, TyCtxt},
     },
     span::{
         def_id::{DefId, LocalDefId},
@@ -145,13 +145,13 @@ impl<'tcx> EnvQuery<'tcx> {
     pub fn is_unsafe_function(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
         self.tcx
             .fn_sig(def_id.into_param())
-            .skip_binder()
+            .instantiate_identity()
             .unsafety()
             == prusti_rustc_interface::hir::Unsafety::Unsafe
     }
 
     /// Computes the signature of the function with subst applied.
-    /*pub fn get_fn_sig(
+    pub fn get_fn_sig(
         self,
         def_id: impl IntoParam<ProcedureDefId>,
         substs: GenericArgsRef<'tcx>,
@@ -162,7 +162,7 @@ impl<'tcx> EnvQuery<'tcx> {
         } else {
             self.tcx.fn_sig(def_id)
         };
-        sig.subst(self.tcx, substs)
+        sig.instantiate(self.tcx, substs)
     }
 
     /// Computes the signature of the function with subst applied and associated types resolved.
@@ -175,7 +175,7 @@ impl<'tcx> EnvQuery<'tcx> {
         let def_id = def_id.into_param();
         let sig = self.get_fn_sig(def_id, substs);
         self.resolve_assoc_types(sig, caller_def_id.into_param())
-    }*/
+    }
 
     /// Returns true iff `def_id` is a closure.
     pub fn is_closure(self, def_id: impl IntoParam<DefId>) -> bool {
@@ -205,7 +205,6 @@ impl<'tcx> EnvQuery<'tcx> {
         impl_method_def_id: impl IntoParam<ProcedureDefId>, // what are we calling?
         impl_method_substs: GenericArgsRef<'tcx>,           // what are the substs on the call?
     ) -> Option<(ProcedureDefId, GenericArgsRef<'tcx>)> {
-        todo!() /*
         let impl_method_def_id = impl_method_def_id.into_param();
         let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
         let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?.skip_binder();
@@ -253,9 +252,9 @@ impl<'tcx> EnvQuery<'tcx> {
         // more precisely. We can do this directly with `impl_method_substs`
         // because they contain the substs for the `impl` block as a prefix.
         let call_trait_substs =
-            ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
+            ty::EarlyBinder::bind(trait_ref.args).instantiate(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
-        let trait_method_substs = self.tcx.mk_substs_from_iter(
+        let trait_method_substs = self.tcx.mk_args_from_iter(
             call_trait_substs
                 .iter()
                 .chain(impl_method_substs.iter().skip(impl_substs.len())),
@@ -265,7 +264,7 @@ impl<'tcx> EnvQuery<'tcx> {
         let identity_trait_method = self.identity_substs(trait_method_def_id);
         assert_eq!(trait_method_substs.len(), identity_trait_method.len());
 
-        Some((trait_method_def_id, trait_method_substs))*/
+        Some((trait_method_def_id, trait_method_substs))
     }
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
@@ -290,7 +289,6 @@ impl<'tcx> EnvQuery<'tcx> {
                 ParamEnv::reveal_all(),
                 TraitPredicate {
                     trait_ref,
-                    constness: BoundConstness::NotConst,
                     polarity: ImplPolarity::Positive,
                 },
             );

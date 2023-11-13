@@ -30,7 +30,10 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
     }
 
     fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
-        self.super_statement(statement, location);
+        if self.apply_pre_effect {
+            self.super_statement(statement, location);
+            return;
+        }
         use StatementKind::*;
         match &statement.kind {
             Assign(box (place, rvalue)) => {
@@ -42,7 +45,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     _ => unreachable!(),
                 }
             }
-            &FakeRead(box (_, place)) => self.requires_read(place),
+            &FakeRead(box (_, place)) | &PlaceMention(box place) => self.requires_read(place),
             &SetDiscriminant { box place, .. } => self.requires_exclusive(place),
             &Deinit(box place) => {
                 // TODO: Maybe OK to also allow `Write` here?
@@ -58,18 +61,21 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 self.ensures_unalloc(local);
             }
             &Retag(_, box place) => self.requires_exclusive(place),
-            AscribeUserType(..) | PlaceMention(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
+            AscribeUserType(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
         };
     }
 
     fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-        self.super_terminator(terminator, location);
+        if self.apply_pre_effect {
+            self.super_terminator(terminator, location);
+            return;
+        }
         use TerminatorKind::*;
         match &terminator.kind {
             Goto { .. }
             | SwitchInt { .. }
-            | Resume
-            | Terminate
+            | UnwindResume
+            | UnwindTerminate(_)
             | Unreachable
             | Assert { .. }
             | GeneratorDrop
@@ -88,13 +94,9 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     }
                 }
             }
-            &Drop { place, replace: false, .. } => {
+            &Drop { place, .. } => {
                 self.requires_write(place);
                 self.ensures_write(place);
-            }
-            &Drop { place, replace: true, .. } => {
-                self.requires_write(place);
-                self.ensures_exclusive(place);
             }
             &Call { destination, .. } => {
                 self.requires_write(destination);

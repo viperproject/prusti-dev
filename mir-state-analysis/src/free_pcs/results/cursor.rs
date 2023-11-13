@@ -66,12 +66,15 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         assert!(location < self.end_stmt.unwrap());
         self.curr_stmt = Some(location.successor_within_block());
 
+        self.cursor.seek_before_primary_effect(location);
+        let repacks_start = self.cursor.get().repackings.clone();
         self.cursor.seek_after_primary_effect(location);
         let state = self.cursor.get();
         FreePcsLocation {
             location,
             state: state.summary.clone(),
-            repacks: state.repackings.clone(),
+            repacks_start,
+            repacks_middle: state.repackings.clone(),
         }
     }
     pub fn terminator(&mut self) -> FreePcsTerminator<'tcx> {
@@ -81,8 +84,8 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         self.end_stmt = None;
 
         // TODO: cleanup
-        let state = self.cursor.get().clone();
         let rp: PlaceRepacker = self.repacker();
+        let state = self.cursor.get().clone();
         let block = &self.body()[location.block];
         let succs = block
             .terminator()
@@ -96,7 +99,8 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
                         statement_index: 0,
                     },
                     state: to.summary.clone(),
-                    repacks: state.summary.bridge(&to.summary, rp),
+                    repacks_start: state.summary.bridge(&to.summary, rp),
+                    repacks_middle: Vec::new(),
                 }
             })
             .collect();
@@ -129,7 +133,9 @@ pub struct FreePcsBasicBlock<'tcx> {
 pub struct FreePcsLocation<'tcx> {
     pub location: Location,
     /// Repacks before the statement
-    pub repacks: Vec<RepackOp<'tcx>>,
+    pub repacks_start: Vec<RepackOp<'tcx>>,
+    /// Repacks in the middle of the statement
+    pub repacks_middle: Vec<RepackOp<'tcx>>,
     /// State after the statement
     pub state: CapabilitySummary<'tcx>,
 }

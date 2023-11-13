@@ -5,11 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
-    dataflow::{Analysis, AnalysisDomain, CallReturnPlaces},
+    dataflow::{Analysis, AnalysisDomain},
     index::Idx,
     middle::{
         mir::{
-            visit::Visitor, BasicBlock, Body, Local, Location, Statement, Terminator, RETURN_PLACE,
+            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Location, Statement,
+            Terminator, TerminatorEdges, RETURN_PLACE,
         },
         ty::TyCtxt,
     },
@@ -64,6 +65,26 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_before_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
+    fn apply_before_statement_effect(
+        &mut self,
+        state: &mut Self::Domain,
+        statement: &Statement<'tcx>,
+        location: Location,
+    ) {
+        state.repackings.clear();
+        state.apply_pre_effect = true;
+        state.visit_statement(statement, location);
+    }
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_statement_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -71,17 +92,40 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         location: Location,
     ) {
         state.repackings.clear();
+        state.apply_pre_effect = false;
         state.visit_statement(statement, location);
     }
 
-    fn apply_terminator_effect(
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_before_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
+    fn apply_before_terminator_effect(
         &mut self,
         state: &mut Self::Domain,
         terminator: &Terminator<'tcx>,
         location: Location,
     ) {
         state.repackings.clear();
+        state.apply_pre_effect = true;
         state.visit_terminator(terminator, location);
+    }
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
+    fn apply_terminator_effect<'mir>(
+        &mut self,
+        state: &mut Self::Domain,
+        terminator: &'mir Terminator<'tcx>,
+        location: Location,
+    ) -> TerminatorEdges<'mir, 'tcx> {
+        state.repackings.clear();
+        state.apply_pre_effect = false;
+        state.visit_terminator(terminator, location);
+        terminator.edges()
     }
 
     fn apply_call_return_effect(
