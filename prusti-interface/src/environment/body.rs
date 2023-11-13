@@ -19,7 +19,10 @@ use crate::environment::{
 /// Stores any possible MIR body (from the compiler) that
 /// Prusti might want to work with. Cheap to clone
 #[derive(Clone, TyEncodable, TyDecodable)]
-pub struct MirBody<'tcx>(Rc<mir::Body<'tcx>>, Rc<IndexVec<mir::Promoted, mir::Body<'tcx>>>);
+pub struct MirBody<'tcx>(
+    Rc<mir::Body<'tcx>>,
+    Rc<IndexVec<mir::Promoted, mir::Body<'tcx>>>,
+);
 impl<'tcx> MirBody<'tcx> {
     pub fn body(&self) -> Rc<mir::Body<'tcx>> {
         self.0.clone()
@@ -152,7 +155,10 @@ impl<'tcx> EnvBody<'tcx> {
         };
 
         BodyWithBorrowckFacts {
-            body: MirBody(Rc::new(body_with_facts.body), Rc::new(body_with_facts.promoted)),
+            body: MirBody(
+                Rc::new(body_with_facts.body),
+                Rc::new(body_with_facts.promoted),
+            ),
             borrowck_facts: Rc::new(facts),
             borrowck_facts2: Rc::new(facts2),
         }

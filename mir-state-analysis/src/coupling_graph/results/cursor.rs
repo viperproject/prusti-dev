@@ -10,11 +10,12 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
+    coupling_graph::{engine::CouplingGraph, graph::Graph, CgContext},
     free_pcs::{
         engine::FreePlaceCapabilitySummary, join_semi_lattice::RepackingJoinSemiLattice,
         CapabilitySummary, RepackOp,
     },
-    utils::PlaceRepacker, coupling_graph::{engine::CouplingGraph, graph::Graph, CgContext},
+    utils::PlaceRepacker,
 };
 
 use super::coupling::CouplingOp;

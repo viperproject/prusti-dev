@@ -6,9 +6,7 @@
 
 use std::fmt::{Display, Formatter, Result};
 
-use prusti_rustc_interface::{
-    middle::{mir::Local, ty::RegionVid}
-};
+use prusti_rustc_interface::middle::{mir::Local, ty::RegionVid};
 
 use crate::{free_pcs::CapabilityKind, utils::Place};
 
@@ -23,8 +21,11 @@ impl CouplingOp {
     pub fn regions(&self) -> Box<dyn Iterator<Item = RegionVid> + '_> {
         match self {
             CouplingOp::Add(block) => Box::new([block.sup, block.sub].into_iter()),
-            CouplingOp::Remove(remove, block) =>
-                Box::new([*remove].into_iter().chain(block.iter().flat_map(|b| [b.sup, b.sub].into_iter()))),
+            CouplingOp::Remove(remove, block) => Box::new(
+                [*remove]
+                    .into_iter()
+                    .chain(block.iter().flat_map(|b| [b.sup, b.sub].into_iter())),
+            ),
             CouplingOp::Activate(region) => Box::new([*region].into_iter()),
         }
     }
@@ -60,7 +61,15 @@ pub struct Block {
 }
 impl Display for Block {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        let Block { sup, sub, waiting_to_activate } = *self;
-        write!(f, "Block({sup:?}, {sub:?}){}", if waiting_to_activate { "?" } else { "" })
+        let Block {
+            sup,
+            sub,
+            waiting_to_activate,
+        } = *self;
+        write!(
+            f,
+            "Block({sup:?}, {sub:?}){}",
+            if waiting_to_activate { "?" } else { "" }
+        )
     }
 }

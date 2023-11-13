@@ -147,7 +147,10 @@ impl LoopAnalysis {
         assert!(start_loops.is_empty());
         // A bb can only be the loop head of a single loop
         for lh in &self.loop_heads {
-            assert_eq!(self.loop_heads.iter().filter(|other| *other == lh).count(), 1);
+            assert_eq!(
+                self.loop_heads.iter().filter(|other| *other == lh).count(),
+                1
+            );
         }
     }
 }

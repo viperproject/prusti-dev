@@ -22,18 +22,25 @@ use prusti_rustc_interface::{
     middle::{
         mir::{
             interpret::{ConstValue, GlobalAlloc, Scalar},
-            visit::Visitor, BorrowKind,
-            BasicBlock, ConstraintCategory, Local, Location, Operand, Place as MirPlace, Rvalue,
-            Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE, ConstantKind,
+            visit::Visitor,
+            BasicBlock, BorrowKind, ConstantKind, ConstraintCategory, Local, Location, Operand,
+            Place as MirPlace, Rvalue, Statement, StatementKind, Terminator, TerminatorKind,
+            RETURN_PLACE,
         },
-        ty::{GenericArgKind, RegionVid, TyKind, ParamEnv},
+        ty::{GenericArgKind, ParamEnv, RegionVid, TyKind},
     },
 };
 
 use crate::{
-    coupling_graph::{region_info::map::{RegionKind, Promote}, CgContext, coupling::{CouplingOp, Block}, outlives_info::edge::{EdgeOrigin, EdgeInfo}},
+    coupling_graph::{
+        coupling::{Block, CouplingOp},
+        outlives_info::edge::{EdgeInfo, EdgeOrigin},
+        region_info::map::{Promote, RegionKind},
+        CgContext,
+    },
     free_pcs::{
-        engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp, CapabilityKind,
+        engine::FreePlaceCapabilitySummary, CapabilityKind, CapabilityLocal, CapabilityProjections,
+        RepackOp,
     },
     utils::{r#const::ConstEval, Place, PlaceRepacker},
 };
@@ -158,7 +165,12 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
         }
         self.outlives_placeholder(r, static_region, origin)
     }
-    pub(crate) fn outlives_placeholder(&mut self, r: RegionVid, placeholder: RegionVid, origin: EdgeOrigin) {
+    pub(crate) fn outlives_placeholder(
+        &mut self,
+        r: RegionVid,
+        placeholder: RegionVid,
+        origin: EdgeOrigin,
+    ) {
         let edge = EdgeInfo::no_reason(r, placeholder, None, origin).to_edge(self.cgx);
         // let new = self.graph.outlives_placeholder(r, placeholder, origin);
         let new = self.graph.outlives(edge);
@@ -176,7 +188,11 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
         let (sup, sub, is_blocking) = op;
         if is_blocking {
             let waiting_to_activate = self.graph.inactive_loans.contains(&sup);
-            Some(Block { sup, sub, waiting_to_activate, })
+            Some(Block {
+                sup,
+                sub,
+                waiting_to_activate,
+            })
         } else {
             None
         }
@@ -190,7 +206,10 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
     }
     #[tracing::instrument(name = "Cg::outlives_op", level = "trace", skip(self))]
     fn remove_op(&mut self, op: (RegionVid, Vec<(RegionVid, RegionVid, bool)>)) {
-        let rejoins = op.1.into_iter().flat_map(|c| self.outlives_to_block(c)).collect();
+        let rejoins =
+            op.1.into_iter()
+                .flat_map(|c| self.outlives_to_block(c))
+                .collect();
         self.couplings.push(CouplingOp::Remove(op.0, rejoins));
     }
     #[tracing::instrument(name = "Cg::remove", level = "debug", skip(self), ret)]
@@ -213,7 +232,7 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
             self.couplings.push(CouplingOp::Remove(removed, Vec::new()));
         }
     }
-    pub (crate) fn reset_ops(&mut self) {
+    pub(crate) fn reset_ops(&mut self) {
         for c in self.couplings.drain(..) {
             self.touched.extend(c.regions());
         }
@@ -327,7 +346,11 @@ impl<'a, 'tcx: 'a> Cg<'a, 'tcx> {
     }
 
     #[tracing::instrument(name = "kill_shared_borrows_on_place", level = "debug", skip(self))]
-    pub fn kill_shared_borrows_on_place(&mut self, location: Option<Location>, place: MirPlace<'tcx>) {
+    pub fn kill_shared_borrows_on_place(
+        &mut self,
+        location: Option<Location>,
+        place: MirPlace<'tcx>,
+    ) {
         let Some(local) = place.as_local() else {
             // Only remove nodes if assigned to the entire local (this is what rustc allows too)
             return;
@@ -385,7 +408,11 @@ impl<'tcx> Cg<'_, 'tcx> {
                 | RegionKind::Param(_)
                 | RegionKind::UnknownUniversal
                 | RegionKind::Function => continue,
-                RegionKind::Place { local, promoted: Promote::NotPromoted, .. } => {
+                RegionKind::Place {
+                    local,
+                    promoted: Promote::NotPromoted,
+                    ..
+                } => {
                     if local.index() > self.cgx.rp.body().arg_count {
                         self.output_to_dot("log/coupling/error.dot", true);
                         panic!("{r:?} ({location:?}) {:?}", self.graph.nodes[r]);
@@ -398,7 +425,10 @@ impl<'tcx> Cg<'_, 'tcx> {
                 }
                 // Ignore (and thus delete) early/late bound (mostly fn call) regions
                 RegionKind::UnusedReturnBug(..) => unreachable!(),
-                RegionKind::Place { promoted: Promote::Promoted(..), .. } => (),
+                RegionKind::Place {
+                    promoted: Promote::Promoted(..),
+                    ..
+                } => (),
                 RegionKind::Borrow(_, Promote::Promoted(..)) => (),
                 RegionKind::ConstRef(..) => (),
                 RegionKind::EarlyBound(..) => (),

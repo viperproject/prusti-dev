@@ -14,7 +14,11 @@ pub trait CapabilityConsistency<'tcx> {
 }
 
 impl<'tcx, T: CapabilityConsistency<'tcx>> CapabilityConsistency<'tcx> for Summary<T> {
-    #[tracing::instrument(name = "Summary::consistency_check", level = "trace", skip(self, repacker))]
+    #[tracing::instrument(
+        name = "Summary::consistency_check",
+        level = "trace",
+        skip(self, repacker)
+    )]
     fn consistency_check(&self, repacker: PlaceRepacker<'_, 'tcx>) {
         for p in self.iter() {
             p.consistency_check(repacker)

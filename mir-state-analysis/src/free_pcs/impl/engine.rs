@@ -9,8 +9,8 @@ use prusti_rustc_interface::{
     index::{Idx, IndexVec},
     middle::{
         mir::{
-            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Location, Statement,
-            Terminator, TerminatorEdges, RETURN_PLACE, Promoted,
+            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Location, Promoted,
+            Statement, Terminator, TerminatorEdges, RETURN_PLACE,
         },
         ty::TyCtxt,
     },
@@ -23,7 +23,11 @@ use crate::{
 
 pub(crate) struct FreePlaceCapabilitySummary<'a, 'tcx>(pub(crate) PlaceRepacker<'a, 'tcx>);
 impl<'a, 'tcx> FreePlaceCapabilitySummary<'a, 'tcx> {
-    pub(crate) fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>, promoted: &'a IndexVec<Promoted, Body<'tcx>>) -> Self {
+    pub(crate) fn new(
+        tcx: TyCtxt<'tcx>,
+        body: &'a Body<'tcx>,
+        promoted: &'a IndexVec<Promoted, Body<'tcx>>,
+    ) -> Self {
         let repacker = PlaceRepacker::new(body, promoted, tcx);
         FreePlaceCapabilitySummary(repacker)
     }
@@ -65,13 +69,26 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_before_statement_effect", level = "debug", skip(self))]
-    fn apply_before_statement_effect(&mut self, state: &mut Self::Domain, statement: &Statement<'tcx>, location: Location) {
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_before_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
+    fn apply_before_statement_effect(
+        &mut self,
+        state: &mut Self::Domain,
+        statement: &Statement<'tcx>,
+        location: Location,
+    ) {
         state.repackings.clear();
         state.apply_pre_effect = true;
         state.visit_statement(statement, location);
     }
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_statement_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_statement_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -83,7 +100,11 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         state.visit_statement(statement, location);
     }
 
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_before_terminator_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_before_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_before_terminator_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -94,7 +115,11 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         state.apply_pre_effect = true;
         state.visit_terminator(terminator, location);
     }
-    #[tracing::instrument(name = "FreePlaceCapabilitySummary::apply_terminator_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "FreePlaceCapabilitySummary::apply_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_terminator_effect<'mir>(
         &mut self,
         state: &mut Self::Domain,

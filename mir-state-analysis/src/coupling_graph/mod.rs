@@ -9,7 +9,7 @@ mod context;
 mod results;
 mod check;
 
+pub use check::*;
 pub use context::*;
 pub use r#impl::*;
 pub use results::*;
-pub use check::*;

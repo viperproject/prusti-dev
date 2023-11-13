@@ -8,7 +8,7 @@
 // I've kept this around as a skeleton for working with `ConstValue` and `ConstAlloc` if we ever need that in the future.
 
 use prusti_rustc_interface::{
-    abi::{HasDataLayout, Size, Variants, TargetDataLayout, TagEncoding, VariantIdx},
+    abi::{HasDataLayout, Size, TagEncoding, TargetDataLayout, VariantIdx, Variants},
     borrowck::{
         borrow_set::BorrowData,
         consumers::{BorrowIndex, OutlivesConstraint, RichLocation},
@@ -28,8 +28,9 @@ use prusti_rustc_interface::{
             RETURN_PLACE,
         },
         ty::{
-            FloatTy, GenericArgKind, Instance, ParamEnv, ParamEnvAnd, RegionVid, ScalarInt, Ty,
-            TyKind, layout::{TyAndLayout, LayoutError, HasTyCtxt, HasParamEnv}, TyCtxt, FieldDef,
+            layout::{HasParamEnv, HasTyCtxt, LayoutError, TyAndLayout},
+            FieldDef, FloatTy, GenericArgKind, Instance, ParamEnv, ParamEnvAnd, RegionVid,
+            ScalarInt, Ty, TyCtxt, TyKind,
         },
     },
 };
@@ -238,7 +239,12 @@ fn eval_range<'tcx>(
             let adt_layout = layout_of(ty, rp).unwrap();
             let index = match adt_layout.variants {
                 Variants::Single { index } => index,
-                Variants::Multiple { tag, ref tag_encoding, tag_field, ref variants } => {
+                Variants::Multiple {
+                    tag,
+                    ref tag_encoding,
+                    tag_field,
+                    ref variants,
+                } => {
                     let discr_type = ty.discriminant_ty(rp.tcx());
                     // TODO: compare with `tag.primitive().to_int_ty(rp.tcx())`
 
@@ -250,16 +256,26 @@ fn eval_range<'tcx>(
                     let discr_bits = discr_bits.kind.to_bits().unwrap();
                     match *tag_encoding {
                         TagEncoding::Direct => {
-                            adt.discriminants(rp.tcx()).find(|(_, var)| var.val == discr_bits).unwrap().0
+                            adt.discriminants(rp.tcx())
+                                .find(|(_, var)| var.val == discr_bits)
+                                .unwrap()
+                                .0
                         }
-                        TagEncoding::Niche { untagged_variant, ref niche_variants, niche_start } => {
+                        TagEncoding::Niche {
+                            untagged_variant,
+                            ref niche_variants,
+                            niche_start,
+                        } => {
                             let variants_start = niche_variants.start().as_u32();
                             let variants_end = niche_variants.end().as_u32();
                             let variant_index_relative = discr_bits - niche_start;
                             if variant_index_relative <= u128::from(variants_end - variants_start) {
                                 // We should now be within the `u32` range.
-                                let variant_index_relative = u32::try_from(variant_index_relative).unwrap();
-                                VariantIdx::from_u32(variants_start.checked_add(variant_index_relative).unwrap())
+                                let variant_index_relative =
+                                    u32::try_from(variant_index_relative).unwrap();
+                                VariantIdx::from_u32(
+                                    variants_start.checked_add(variant_index_relative).unwrap(),
+                                )
                             } else {
                                 untagged_variant
                             }
@@ -269,11 +285,18 @@ fn eval_range<'tcx>(
             };
             let layout = adt_layout.for_variant(cx, index);
             let variant = adt.variant(index);
-            let fields = variant.fields.iter_enumerated().map(|(idx, val)| {
-                let field = layout.field(cx, idx.as_usize());
-                let range = range.subrange(alloc_range(layout.fields.offset(idx.as_usize()), field.size));
-                (val, eval_range(ca, range, val.ty(rp.tcx(), sub), rp))
-            }).collect();
+            let fields = variant
+                .fields
+                .iter_enumerated()
+                .map(|(idx, val)| {
+                    let field = layout.field(cx, idx.as_usize());
+                    let range = range.subrange(alloc_range(
+                        layout.fields.offset(idx.as_usize()),
+                        field.size,
+                    ));
+                    (val, eval_range(ca, range, val.ty(rp.tcx(), sub), rp))
+                })
+                .collect();
             EvaluatedConst {
                 ty,
                 kind: EcKind::Adt(index, fields),
@@ -289,7 +312,7 @@ fn eval_range<'tcx>(
                 ca.inner().provenance()
             );
             let mut range = range;
-            let is_ptr = ty.is_any_ptr();// !ca.inner().provenance().range_empty(range, &rp.tcx());
+            let is_ptr = ty.is_any_ptr(); // !ca.inner().provenance().range_empty(range, &rp.tcx());
             if is_ptr {
                 let ptr_size = rp.tcx().data_layout().pointer_size;
                 if ptr_size != range.size {
@@ -306,7 +329,13 @@ fn eval_range<'tcx>(
                     };
                 }
             }
-            assert_eq!(is_ptr, ty.is_any_ptr(), "({range:?}, {is_ptr}, {ty:?}): {:?} / {:?}", ca.inner().init_mask(), ca.inner().provenance());
+            assert_eq!(
+                is_ptr,
+                ty.is_any_ptr(),
+                "({range:?}, {is_ptr}, {ty:?}): {:?} / {:?}",
+                ca.inner().init_mask(),
+                ca.inner().provenance()
+            );
             match ca.inner().read_scalar(&rp.tcx(), range, is_ptr) {
                 Ok(scalar) => scalar.eval(ty, rp),
                 Err(err) => panic!(
@@ -328,7 +357,10 @@ fn eval_range<'tcx>(
     // for (_, ptr) in provenance.ptrs().iter() {}
 }
 
-fn layout_of<'tcx>(ty: Ty<'tcx>, rp: PlaceRepacker<'_, 'tcx>) -> Result<TyAndLayout<'tcx>, &'tcx LayoutError<'tcx>> {
+fn layout_of<'tcx>(
+    ty: Ty<'tcx>,
+    rp: PlaceRepacker<'_, 'tcx>,
+) -> Result<TyAndLayout<'tcx>, &'tcx LayoutError<'tcx>> {
     let peat = ParamEnvAnd {
         param_env: ParamEnv::reveal_all(),
         value: ty,

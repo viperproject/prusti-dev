@@ -11,11 +11,13 @@ use crate::{
 };
 use log::{debug, trace};
 use prusti_rustc_interface::{
-    index::IndexVec,
     data_structures::fx::{FxHashMap, FxHashSet},
     hir::def_id,
+    index::IndexVec,
     middle::{
-        mir::{self, AggregateKind, BasicBlock, BasicBlockData, Body, Rvalue, StatementKind, Promoted},
+        mir::{
+            self, AggregateKind, BasicBlock, BasicBlockData, Body, Promoted, Rvalue, StatementKind,
+        },
         ty::{Ty, TyCtxt},
     },
     span::Span,

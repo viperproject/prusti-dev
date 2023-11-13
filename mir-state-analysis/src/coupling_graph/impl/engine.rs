@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::cell::{RefCell, Cell};
+use std::cell::{Cell, RefCell};
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
@@ -33,9 +33,10 @@ use prusti_rustc_interface::{
 
 use crate::{
     coupling_graph::{
+        consistency::CouplingConsistency,
         graph::{Graph, Node},
         outlives_info::AssignsToPlace,
-        CgContext, consistency::CouplingConsistency,
+        CgContext,
     },
     free_pcs::{CapabilityKind, CapabilityLocal, Fpcs},
     utils::PlaceRepacker,
@@ -100,7 +101,11 @@ pub(crate) fn draw_dots<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<
     .expect("Unable to write file");
 }
 
-fn print_after_loc<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<'a, 'tcx>>, location: Location, graph: &mut Vec<u8>) {
+fn print_after_loc<'tcx, 'a>(
+    c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<'a, 'tcx>>,
+    location: Location,
+    graph: &mut Vec<u8>,
+) {
     c.seek_after_primary_effect(location);
     let mut g = c.get().clone();
     g.dot_node_filter = |k| k.local();
@@ -150,7 +155,13 @@ impl<'a, 'tcx> CouplingGraph<'a, 'tcx> {
                 println!("{pt:?} -> {:?} ({:?})", lt.to_location(pt), ""); //, facts.output_facts.origins_live_at(pt));
             }
             println!("out_of_scope: {:?}", out_of_scope);
-            println!("outlives_constraints: {:#?}\n", cgx.facts2.region_inference_context.outlives_constraints().collect::<Vec<_>>());
+            println!(
+                "outlives_constraints: {:#?}\n",
+                cgx.facts2
+                    .region_inference_context
+                    .outlives_constraints()
+                    .collect::<Vec<_>>()
+            );
             println!("cgx: {:#?}\n", cgx);
             for r in cgx.region_info.map.all_regions() {
                 println!(
@@ -179,7 +190,14 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CouplingGraph<'a, 'tcx> {
     fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
         let block = self.bb_index.get();
         self.bb_index.set(block.plus(1));
-        Cg::new(self.cgx, self.top_crates, Location { block, statement_index: 0 })
+        Cg::new(
+            self.cgx,
+            self.top_crates,
+            Location {
+                block,
+                statement_index: 0,
+            },
+        )
     }
 
     fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
@@ -189,7 +207,11 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for CouplingGraph<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
-    #[tracing::instrument(name = "CouplingGraph::apply_before_statement_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "CouplingGraph::apply_before_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_before_statement_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -204,7 +226,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             // println!("\nblock: {:?}", location.block);
             let l = format!("{location:?}").replace('[', "_").replace(']', "");
             state.output_to_dot(
-                format!("log/coupling/individual/{l}_v{}_start.dot", state.sum_version()),
+                format!(
+                    "log/coupling/individual/{l}_v{}_start.dot",
+                    state.sum_version()
+                ),
                 false,
             );
             self.flow_borrows
@@ -223,7 +248,11 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
         state.handle_kills(&delta, oos, location);
     }
 
-    #[tracing::instrument(name = "CouplingGraph::apply_statement_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "CouplingGraph::apply_statement_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_statement_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -241,8 +270,11 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
         );
     }
 
-
-    #[tracing::instrument(name = "CouplingGraph::apply_before_terminator_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "CouplingGraph::apply_before_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_before_terminator_effect(
         &mut self,
         state: &mut Self::Domain,
@@ -258,7 +290,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             // println!("\nblock: {:?}", location.block);
             let l = format!("{location:?}").replace('[', "_").replace(']', "");
             state.output_to_dot(
-                format!("log/coupling/individual/{l}_v{}_start.dot", state.sum_version()),
+                format!(
+                    "log/coupling/individual/{l}_v{}_start.dot",
+                    state.sum_version()
+                ),
                 false,
             );
             self.flow_borrows
@@ -278,7 +313,11 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
         state.handle_kills(&delta, oos, location);
     }
 
-    #[tracing::instrument(name = "CouplingGraph::apply_terminator_effect", level = "debug", skip(self))]
+    #[tracing::instrument(
+        name = "CouplingGraph::apply_terminator_effect",
+        level = "debug",
+        skip(self)
+    )]
     fn apply_terminator_effect<'mir>(
         &mut self,
         state: &mut Self::Domain,
@@ -293,7 +332,10 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
             TerminatorKind::Return => {
                 let l = format!("{location:?}").replace('[', "_").replace(']', "");
                 state.output_to_dot(
-                    format!("log/coupling/individual/{l}_v{}_pre.dot", state.sum_version()),
+                    format!(
+                        "log/coupling/individual/{l}_v{}_pre.dot",
+                        state.sum_version()
+                    ),
                     false,
                 );
                 // Pretend we have a storage dead for all `always_live_locals` other than the args/return

@@ -13,7 +13,7 @@ use prusti_rustc_interface::{
             tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, PlaceElem,
             ProjectionElem, Promoted,
         },
-        ty::{RegionVid, Region, Ty, TyCtxt, TyKind},
+        ty::{Region, RegionVid, Ty, TyCtxt, TyKind},
     },
     target::abi::FieldIdx,
 };
@@ -56,7 +56,11 @@ pub struct PlaceRepacker<'a, 'tcx: 'a> {
 }
 
 impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
-    pub fn new(mir: &'a Body<'tcx>, promoted: &'a IndexVec<Promoted, Body<'tcx>>, tcx: TyCtxt<'tcx>) -> Self {
+    pub fn new(
+        mir: &'a Body<'tcx>,
+        promoted: &'a IndexVec<Promoted, Body<'tcx>>,
+        tcx: TyCtxt<'tcx>,
+    ) -> Self {
         Self { mir, promoted, tcx }
     }
 
@@ -365,11 +369,12 @@ impl<'tcx> Place<'tcx> {
         self,
         repacker: PlaceRepacker<'_, 'tcx>,
     ) -> impl Iterator<Item = Option<(Region<'tcx>, Ty<'tcx>, Mutability)>> {
-        self.projection_tys(repacker).filter_map(|(ty, _)| match ty.ty.kind() {
-            &TyKind::Ref(r, ty, m) => Some(Some((r, ty, m))),
-            &TyKind::RawPtr(_) => Some(None),
-            _ => None,
-        })
+        self.projection_tys(repacker)
+            .filter_map(|(ty, _)| match ty.ty.kind() {
+                &TyKind::Ref(r, ty, m) => Some(Some((r, ty, m))),
+                &TyKind::RawPtr(_) => Some(None),
+                _ => None,
+            })
     }
 
     pub fn projects_shared_ref(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
@@ -428,10 +433,13 @@ impl<'tcx> Place<'tcx> {
             }
             None
         })();
-        let new_result = self.projection_tys(repacker).find(|(typ, _)| predicate(*typ)).map(|(_, proj)| {
-            let projection = repacker.tcx.mk_place_elems(proj);
-            Self::new(self.local, projection)
-        });
+        let new_result = self
+            .projection_tys(repacker)
+            .find(|(typ, _)| predicate(*typ))
+            .map(|(_, proj)| {
+                let projection = repacker.tcx.mk_place_elems(proj);
+                Self::new(self.local, projection)
+            });
         assert_eq!(old_result, new_result);
         new_result
     }
@@ -468,12 +476,9 @@ impl<'tcx> Place<'tcx> {
     }
 
     pub fn mk_place_elem(self, elem: PlaceElem<'tcx>, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
-        let elems = repacker.tcx.mk_place_elems_from_iter(
-            self.projection
-                .iter()
-                .copied()
-                .chain([elem]),
-        );
+        let elems = repacker
+            .tcx
+            .mk_place_elems_from_iter(self.projection.iter().copied().chain([elem]));
         Self::new(self.local, elems)
     }
 

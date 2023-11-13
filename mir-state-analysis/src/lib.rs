@@ -14,9 +14,12 @@ pub mod r#loop;
 
 use prusti_interface::environment::borrowck::facts::{BorrowckFacts, BorrowckFacts2};
 use prusti_rustc_interface::{
-    index::IndexVec,
     dataflow::Analysis,
-    middle::{mir::{Body, START_BLOCK, Promoted}, ty::TyCtxt},
+    index::IndexVec,
+    middle::{
+        mir::{Body, Promoted, START_BLOCK},
+        ty::TyCtxt,
+    },
 };
 
 #[tracing::instrument(name = "run_free_pcs", level = "debug", skip(tcx))]
@@ -33,7 +36,11 @@ pub fn run_free_pcs<'mir, 'tcx>(
     free_pcs::FreePcsAnalysis::new(analysis.into_results_cursor(mir))
 }
 
-pub fn test_free_pcs<'tcx>(mir: &Body<'tcx>, promoted: &IndexVec<Promoted, Body<'tcx>>, tcx: TyCtxt<'tcx>) {
+pub fn test_free_pcs<'tcx>(
+    mir: &Body<'tcx>,
+    promoted: &IndexVec<Promoted, Body<'tcx>>,
+    tcx: TyCtxt<'tcx>,
+) {
     let analysis = run_free_pcs(mir, promoted, tcx);
     free_pcs::check(analysis);
 }
@@ -76,12 +83,10 @@ pub fn test_coupling_graph<'tcx>(
     //     return;
     // }
 
-
     let fpcs_analysis = run_free_pcs(mir, promoted, tcx);
     let cgx = coupling_graph::CgContext::new(tcx, mir, promoted, facts, facts2);
     let cg_analysis = run_coupling_graph(mir, &cgx, tcx, top_crates);
     coupling_graph::check(cg_analysis, fpcs_analysis);
-
 
     // panic!()
 }

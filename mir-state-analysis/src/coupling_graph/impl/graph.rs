@@ -26,7 +26,10 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    coupling_graph::{CgContext, outlives_info::edge::{Edge, EdgeOrigin, EdgeKind}},
+    coupling_graph::{
+        outlives_info::edge::{Edge, EdgeKind, EdgeOrigin},
+        CgContext,
+    },
     free_pcs::{
         engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
     },
@@ -57,10 +60,7 @@ impl<'tcx> Graph<'tcx> {
 
     // sup outlives sub, or `sup: sub` (i.e. sup gets blocked)
     #[tracing::instrument(name = "Graph::outlives_inner", level = "trace", skip(self), ret)]
-    fn outlives_inner(
-        &mut self,
-        edge: Vec<Edge<'tcx>>,
-    ) -> Option<(RegionVid, RegionVid, bool)>  {
+    fn outlives_inner(&mut self, edge: Vec<Edge<'tcx>>) -> Option<(RegionVid, RegionVid, bool)> {
         let (sup, sub) = self.outlives_unwrap_edge(&edge);
         self.nodes[sup].blocked_by.insert(sub);
         let blocks = self.nodes[sub].blocks.entry(sup).or_default();
@@ -71,7 +71,7 @@ impl<'tcx> Graph<'tcx> {
             None
         }
     }
-    fn outlives_unwrap_edge(&mut self, edge: &Vec<Edge<'tcx>>) -> (RegionVid, RegionVid)  {
+    fn outlives_unwrap_edge(&mut self, edge: &Vec<Edge<'tcx>>) -> (RegionVid, RegionVid) {
         let (sup, sub) = (edge.last().unwrap().sup(), edge.first().unwrap().sub());
         if self.static_regions.contains(&sub) {
             Self::set_static_region(&self.nodes, &mut self.static_regions, sup);
@@ -84,12 +84,15 @@ impl<'tcx> Graph<'tcx> {
     pub(super) fn outlives_join(
         &mut self,
         edge: Vec<Edge<'tcx>>,
-    ) -> Option<(RegionVid, RegionVid)>  {
+    ) -> Option<(RegionVid, RegionVid)> {
         let (sup, sub) = self.outlives_unwrap_edge(&edge);
         self.nodes[sup].blocked_by.insert(sub);
         let blocks = self.nodes[sub].blocks.entry(sup).or_default();
 
-        if blocks.iter().any(|other| Edge::generalized_by(&edge, other)) {
+        if blocks
+            .iter()
+            .any(|other| Edge::generalized_by(&edge, other))
+        {
             None
         } else {
             blocks.retain(|other| !Edge::generalized_by(other, &edge));
@@ -122,7 +125,13 @@ impl<'tcx> Graph<'tcx> {
     fn kill(&mut self, r: RegionVid) -> Vec<RegionVid> {
         assert!(!self.static_regions.contains(&r));
         let (_, blocked_by) = self.remove_all_edges(r);
-        [r].into_iter().chain(blocked_by.iter().flat_map(|(blocked_by, _)| self.kill(*blocked_by))).collect()
+        [r].into_iter()
+            .chain(
+                blocked_by
+                    .iter()
+                    .flat_map(|(blocked_by, _)| self.kill(*blocked_by)),
+            )
+            .collect()
     }
 
     #[tracing::instrument(name = "Graph::remove", level = "trace", ret)]
@@ -130,7 +139,10 @@ impl<'tcx> Graph<'tcx> {
     // Set `remove_dangling_children` when removing regions which are not tracked by the regular borrowck,
     // to remove in e.g. `let y: &'a i32 = &'b *x;` the region `'b` when removing `'a` (if `x: &'c i32`).
     // NOTE: Maybe shouldn't be set, since it seems that the regular borrowck does not kill off `'b` this eagerly (if `x: &'c mut i32`).
-    pub fn remove(&mut self, r: RegionVid) -> Option<(RegionVid, Vec<(RegionVid, RegionVid, bool)>)> {
+    pub fn remove(
+        &mut self,
+        r: RegionVid,
+    ) -> Option<(RegionVid, Vec<(RegionVid, RegionVid, bool)>)> {
         let (blocks, blocked_by) = self.remove_all_edges(r);
         let changed = !(blocks.is_empty() && blocked_by.is_empty());
         let mut rejoins = Vec::new();
@@ -172,9 +184,14 @@ impl<'tcx> Graph<'tcx> {
     }
 
     #[tracing::instrument(name = "Graph::remove_many", level = "trace")]
-    pub fn remove_many(&mut self, rs: &FxHashSet<RegionVid>) -> Vec<(RegionVid, Vec<(RegionVid, RegionVid, bool)>)> {
+    pub fn remove_many(
+        &mut self,
+        rs: &FxHashSet<RegionVid>,
+    ) -> Vec<(RegionVid, Vec<(RegionVid, RegionVid, bool)>)> {
         for &r in rs {
-            if self.predecessors(r).iter().all(|pre| rs.contains(pre)) || self.successors(r).iter().all(|suc| rs.contains(suc)) {
+            if self.predecessors(r).iter().all(|pre| rs.contains(pre))
+                || self.successors(r).iter().all(|suc| rs.contains(suc))
+            {
                 self.static_regions.remove(&r);
                 self.remove_all_edges(r);
             }
@@ -200,7 +217,10 @@ impl<'tcx> Graph<'tcx> {
             self.nodes[*block].blocked_by.remove(&r);
         }
         let blocked_by = std::mem::replace(&mut self.nodes[r].blocked_by, FxHashSet::default());
-        let blocked_by = blocked_by.into_iter().map(|bb| (bb, self.nodes[bb].blocks.remove(&r).unwrap())).collect();
+        let blocked_by = blocked_by
+            .into_iter()
+            .map(|bb| (bb, self.nodes[bb].blocks.remove(&r).unwrap()))
+            .collect();
         (blocks, blocked_by)
     }
 
@@ -210,7 +230,12 @@ impl<'tcx> Graph<'tcx> {
         predecessors
     }
     fn predecessors_helper(&self, r: RegionVid, visited: &mut FxHashSet<RegionVid>) {
-        let tp: Vec<_> = self.nodes[r].blocked_by.iter().copied().filter(|r| visited.insert(*r)).collect();
+        let tp: Vec<_> = self.nodes[r]
+            .blocked_by
+            .iter()
+            .copied()
+            .filter(|r| visited.insert(*r))
+            .collect();
         for r in tp {
             self.predecessors_helper(r, visited)
         }
@@ -221,7 +246,12 @@ impl<'tcx> Graph<'tcx> {
         successors
     }
     fn successors_helper(&self, r: RegionVid, visited: &mut FxHashSet<RegionVid>) {
-        let tp: Vec<_> = self.nodes[r].blocks.iter().map(|(r, _)| *r).filter(|r| visited.insert(*r)).collect();
+        let tp: Vec<_> = self.nodes[r]
+            .blocks
+            .iter()
+            .map(|(r, _)| *r)
+            .filter(|r| visited.insert(*r))
+            .collect();
         for r in tp {
             self.successors_helper(r, visited)
         }
@@ -242,8 +272,10 @@ impl<'tcx> Node<'tcx> {
         }
     }
     pub fn true_edges(&self) -> Vec<RegionVid> {
-        self.blocks.iter().filter(|(_, edges)| edges.iter().any(
-            |edge| Edge::is_blocking(edge)
-        )).map(|(&r, _)| r).collect()
+        self.blocks
+            .iter()
+            .filter(|(_, edges)| edges.iter().any(|edge| Edge::is_blocking(edge)))
+            .map(|(&r, _)| r)
+            .collect()
     }
 }

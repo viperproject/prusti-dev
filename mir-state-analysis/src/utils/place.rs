@@ -214,8 +214,7 @@ impl<'tcx> Place<'tcx> {
 
     pub fn last_projection_ty(self) -> Option<Ty<'tcx>> {
         self.last_projection().and_then(|(_, proj)| match proj {
-            ProjectionElem::Field(_, ty) |
-            ProjectionElem::OpaqueCast(ty) => Some(ty),
+            ProjectionElem::Field(_, ty) | ProjectionElem::OpaqueCast(ty) => Some(ty),
             _ => None,
         })
     }
