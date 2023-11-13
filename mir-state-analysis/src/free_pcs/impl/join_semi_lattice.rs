@@ -127,16 +127,20 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                         if !self.contains_key(&p) {
                             continue;
                         }
-                        let p = if kind != CapabilityKind::Exclusive {
-                            changed = true;
-                            self.collapse(related.get_from(), related.to, repacker);
+                        let collapse_to = if kind != CapabilityKind::Exclusive {
                             related.to
                         } else {
-                            p
+                            related.to.joinable_to(p)
                         };
+                        if collapse_to != p {
+                            changed = true;
+                            let mut from = related.get_from();
+                            from.retain(|&from| collapse_to.is_prefix(from));
+                            self.collapse(from, collapse_to, repacker);
+                        }
                         if k > kind {
                             changed = true;
-                            self.insert(p, kind);
+                            self.update_cap(collapse_to, kind);
                         }
                     }
                     None
@@ -153,7 +157,7 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilityProjections<'tcx> {
                 // Downgrade the permission if needed
                 if self[&place] > kind {
                     changed = true;
-                    self.insert(place, kind);
+                    self.update_cap(place, kind);
                 }
             }
         }

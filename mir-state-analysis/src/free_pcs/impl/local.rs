@@ -82,6 +82,11 @@ impl<'tcx> CapabilityProjections<'tcx> {
         self.iter().next().unwrap().0.local
     }
 
+    pub(crate) fn update_cap(&mut self, place: Place<'tcx>, cap: CapabilityKind) {
+        let old = self.insert(place, cap);
+        assert!(old.is_some());
+    }
+
     /// Returns all related projections of the given place that are contained in this map.
     /// A `Ordering::Less` means that the given `place` is a prefix of the iterator place.
     /// For example: find_all_related(x.f.g) = [(Less, x.f.g.h), (Greater, x.f)]
@@ -104,7 +109,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
                 //     Some(cap_no_read)
                 // };
                 if let Some(expected) = expected {
-                    assert_eq!(ord, expected);
+                    assert_eq!(ord, expected, "({self:?}) {from:?} {to:?}");
                 } else {
                     expected = Some(ord);
                 }
@@ -179,7 +184,7 @@ impl<'tcx> CapabilityProjections<'tcx> {
             .map(|&p| (p, self.remove(&p).unwrap()))
             .collect();
         let collapsed = to.collapse(&mut from, repacker);
-        assert!(from.is_empty());
+        assert!(from.is_empty(), "{from:?} ({collapsed:?}) {to:?}");
         let mut exclusive_at = Vec::new();
         if !to.projects_shared_ref(repacker) {
             for (to, _, kind) in &collapsed {

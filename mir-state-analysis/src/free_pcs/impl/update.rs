@@ -83,8 +83,7 @@ impl<'tcx> Fpcs<'_, 'tcx> {
     fn ensures_alloc(&mut self, place: impl Into<Place<'tcx>>, cap: CapabilityKind) {
         let place = place.into();
         let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
-        let old = cp.insert(place, cap);
-        assert!(old.is_some());
+        cp.update_cap(place, cap);
     }
     pub(crate) fn ensures_exclusive(&mut self, place: impl Into<Place<'tcx>>) {
         self.ensures_alloc(place, CapabilityKind::Exclusive)
