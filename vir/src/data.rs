@@ -96,6 +96,14 @@ pub enum TypeData<'vir> {
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
 }
+impl<'vir> TypeData<'vir> {
+    pub fn get_domain(&self) -> Option<&'vir str> {
+        match self {
+            TypeData::Domain(name) => Some(name),
+            _ => None,
+        }
+    }
+}
 
 pub struct FieldData<'vir> {
     pub name: &'vir str, // TODO: identifiers

@@ -2,7 +2,7 @@ use prusti_rustc_interface::{
     //middle::{mir, ty},
     span::def_id::DefId,
 };
-use prusti_interface::specs::typed::DefSpecificationMap;
+use prusti_interface::specs::typed::{DefSpecificationMap, ProcedureSpecification};
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
@@ -32,6 +32,17 @@ where
     DEF_SPEC_MAP.with_borrow(|def_spec: &Option<DefSpecificationMap>| {
         let def_spec = def_spec.as_ref().unwrap();
         f(def_spec)
+    })
+}
+
+pub fn with_proc_spec<F, R>(def_id: DefId, f: F) -> Option<R>
+where
+    F: FnOnce(&ProcedureSpecification) -> R,
+{
+    DEF_SPEC_MAP.with_borrow(|def_spec: &Option<DefSpecificationMap>| {
+        let def_spec = def_spec.as_ref().unwrap();
+        // TODO: handle `SpecGraph` better than simply taking the `base_spec`
+        def_spec.get_proc_spec(&def_id).map(|spec| &spec.base_spec).map(f)
     })
 }
 
