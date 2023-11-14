@@ -32,14 +32,14 @@ thread_local! {
 }
 
 impl TaskEncoder for GenericEncoder {
-    type TaskDescription<'vir> = (); // ?
+    type TaskDescription<'tcx> = (); // ?
 
     type OutputRef<'vir> = GenericEncoderOutputRef<'vir>;
     type OutputFullLocal<'vir> = GenericEncoderOutput<'vir>;
 
     type EncodingError = GenericEncoderError;
 
-    fn with_cache<'tcx, 'vir, F, R>(f: F) -> R
+    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
         where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, GenericEncoder>) -> R,
     {
         CACHE.with(|cache| {

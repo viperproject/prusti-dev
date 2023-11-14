@@ -24,7 +24,7 @@ pub use spec::{
     SpecEncoderOutput,
     SpecEncoderTask,
 };
-pub(super) use spec::{init_def_spec, with_def_spec};
+pub(super) use spec::{init_def_spec, with_def_spec, with_proc_spec};
 pub use typ::{
     TypeEncoder,
     TypeEncoderOutputRef,

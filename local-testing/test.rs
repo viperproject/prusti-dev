@@ -1,7 +1,7 @@
 use prusti_contracts::*;
 
 pub struct Empty;
-pub struct Tuple(Empty, (bool, u8, i8), Fields);
+pub struct Tuple<T>(Empty, (bool, T, i8), Fields);
 pub struct Fields {
     pub field_1: u32,
     pub field_2: (),
@@ -17,12 +17,12 @@ pub fn check(b: bool) -> bool { b }
 pub fn check_pure(b: bool) -> bool { b }
 
 pub fn main() {
-    let a = Tuple::test(-127);
-    check(a == 0);
-    check_pure(a == 0);
+    let a = Tuple::test(-127, 11);
+    check(a.field_1 == 0);
+    check_pure(a.field_1 == 0);
 }
 
-impl Tuple {
+impl<T: Copy> Tuple<T> {
     // #[pure]
     // pub fn get_field_1(self) -> i32 {
     //     self.2.field_1
@@ -34,13 +34,32 @@ impl Tuple {
     // #[ensures(result.1 === self)]
     pub fn duplicate(self) -> (Self, Self) { todo!() }
 
+    #[pure]
+    pub fn get_f1_nested(self) -> u32 {
+        self.2.field_1
+    }
+    #[pure]
+    pub fn get_f1(self) -> u32 {
+        self.get_f1_nested()
+    }
+
     // #[ensures(result.0 != result.1.get_field_1())]
     #[requires(x != -128)]
-    #[ensures(result == 0)]
-    pub fn test(x: i8) -> i32 {
-        let t = Tuple(Empty, (true, 11, -x), Fields { field_1: 0, field_2: () });
-        let (t0, t1) = t.duplicate();
+    #[ensures(result.field_1 == 0)]
+    #[ensures(result === result)]
+    #[ensures(forall(|i: u32| i >= result.get_field_1() ==> i >= i))]
+    pub fn test(x: i8, y: T) -> Fields {
+        let t = Tuple(Empty, (true, y, -x), Fields { field_1: 0, field_2: () });
+        let value = t.get_f1();
+        check(value == 0);
         // let f = t0.get_field_1();
-        0
+        Fields { field_1: 0, field_2: () }
+    }
+}
+
+impl Fields {
+    #[pure]
+    pub fn get_field_1(self) -> u32 {
+        self.field_1
     }
 }

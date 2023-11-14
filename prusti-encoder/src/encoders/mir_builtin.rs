@@ -63,7 +63,7 @@ impl TaskEncoder for MirBuiltinEncoder {
         task.clone()
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir: 'tcx>(
+    fn do_encode_full<'tcx: 'vir, 'vir>(
         task_key: &Self::TaskKey<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
     ) -> Result<(
@@ -104,7 +104,7 @@ fn int_name<'tcx>(ty: ty::Ty<'tcx>) -> &'static str {
 }
 
 impl MirBuiltinEncoder {
-    fn handle_un_op<'vir: 'tcx, 'tcx>(
+    fn handle_un_op<'vir, 'tcx>(
         vcx: &'vir vir::VirCtxt<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
         key: <Self as TaskEncoder>::TaskKey<'tcx>,
@@ -164,7 +164,7 @@ impl MirBuiltinEncoder {
         })
     }
 
-    fn handle_bin_op<'vir: 'tcx, 'tcx>(
+    fn handle_bin_op<'vir, 'tcx>(
         vcx: &'vir vir::VirCtxt<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
         key: <Self as TaskEncoder>::TaskKey<'tcx>,
@@ -305,7 +305,7 @@ impl MirBuiltinEncoder {
         })
     }
 
-    fn handle_checked_bin_op<'vir: 'tcx, 'tcx>(
+    fn handle_checked_bin_op<'vir, 'tcx>(
         vcx: &'vir vir::VirCtxt<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
         key: <Self as TaskEncoder>::TaskKey<'tcx>,

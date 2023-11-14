@@ -172,15 +172,9 @@ impl<'tcx> EnvBody<'tcx> {
                 .borrow_mut()
                 .entry((def_id, substs, caller_def_id))
         {
-            let monomorphised = if let Some(caller_def_id) = caller_def_id {
-                let param_env = self.tcx.param_env(caller_def_id);
-                self.tcx
-                    .subst_and_normalize_erasing_regions(substs, param_env, ty::EarlyBinder::bind(body.0))
-            } else {
-                let param_env = self.tcx.param_env(def_id);
-                self.tcx
-                    .subst_and_normalize_erasing_regions(substs, param_env, ty::EarlyBinder::bind(body.0))
-            };
+            let param_env = self.tcx.param_env(caller_def_id.unwrap_or(def_id));
+            let monomorphised = self.tcx
+                    .subst_and_normalize_erasing_regions(substs, param_env, ty::EarlyBinder::bind(body.0));
             v.insert(MirBody(monomorphised)).clone()
         } else {
             unreachable!()
@@ -199,20 +193,12 @@ impl<'tcx> EnvBody<'tcx> {
 
     /// Get the MIR body of a local impure function, monomorphised
     /// with the given type substitutions.
-    ///
-    /// FIXME: This function is called only in pure contexts???
-    pub fn get_impure_fn_body(&self, def_id: LocalDefId, substs: GenericArgsRef<'tcx>) -> MirBody<'tcx> {
+    pub fn get_impure_fn_body(&self, def_id: LocalDefId, substs: GenericArgsRef<'tcx>, caller_def_id: Option<DefId>) -> MirBody<'tcx> {
         if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, None) {
             return body;
         }
         let body = self.get_impure_fn_body_identity(def_id);
-        // let body = self.get_impure_fn_body_identity(def_id);
-        let body = if let Some(body) = self.pure_fns.local.get(&def_id) {
-            body.clone()
-        } else {
-            Self::load_local_mir(self.tcx, def_id)
-        };
-        self.set_monomorphised(def_id.to_def_id(), substs, None, body)
+        self.set_monomorphised(def_id.to_def_id(), substs, caller_def_id, body)
     }
 
     fn get_closure_body_identity(&self, def_id: DefId) -> MirBody<'tcx> {

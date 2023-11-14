@@ -178,7 +178,7 @@ impl TaskEncoder for TypeEncoder {
     }
     */
 
-    fn do_encode_full<'tcx: 'vir, 'vir: 'tcx>(
+    fn do_encode_full<'tcx: 'vir, 'vir>(
         task_key: &Self::TaskKey<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
     ) -> Result<(
@@ -188,8 +188,8 @@ impl TaskEncoder for TypeEncoder {
         Self::EncodingError,
         Option<Self::OutputFullDependency<'vir>>,
     )> {
-        fn mk_unreachable<'vir>(
-            vcx: &'vir vir::VirCtxt,
+        fn mk_unreachable<'vir, 'tcx>(
+            vcx: &'vir vir::VirCtxt<'tcx>,
             unreachable_fn: FunctionIdent<'vir, NullaryArity>,
             snapshot_ty: vir::Type<'vir>,
         ) -> vir::Function<'vir> {
@@ -202,8 +202,8 @@ impl TaskEncoder for TypeEncoder {
                 expr: None,
             })
         }
-        fn mk_simple_predicate<'vir>(
-            vcx: &'vir vir::VirCtxt<'vir>,
+        fn mk_simple_predicate<'vir, 'tcx>(
+            vcx: &'vir vir::VirCtxt<'tcx>,
             predicate_name: &'vir str,
             field_name: &'vir str,
         ) -> vir::Predicate<'vir> {
@@ -262,7 +262,7 @@ impl TaskEncoder for TypeEncoder {
         //   reassign methods, and in the match cases below
         //   also: is mk_assign really worth it? (used in constant method
         //   arguments only)
-        fn mk_assign<'tcx, 'vir>(
+        fn mk_assign<'vir, 'tcx>(
             vcx: &'vir vir::VirCtxt<'tcx>,
             predicate_name: &'vir str,
             assign_fn: MethodIdent<'vir, BinaryArity<'vir>>,
@@ -394,8 +394,8 @@ impl TaskEncoder for TypeEncoder {
             }
         }
 
-        fn mk_snap<'vir>(
-            vcx: &'vir vir::VirCtxt<'vir>,
+        fn mk_snap<'vir, 'tcx>(
+            vcx: &'vir vir::VirCtxt<'tcx>,
             predicate_name: &'vir str,
             snapshot_fn: FunctionIdent<'vir, UnaryArity<'vir>>,
             field_name: Option<&'vir str>,
@@ -762,13 +762,14 @@ impl TaskEncoder for TypeEncoder {
                     .map(|ty| deps.require_ref::<crate::encoders::TypeEncoder>(ty).unwrap())
                     .collect::<Vec<_>>();
                 // TODO: name the tuple according to its types, or make generic?
+                let tmp_ty_name: String = field_ty_out.iter().map(|e| format!("_{}", e.snapshot.get_domain().unwrap())).collect();
 
                 Ok((mk_structlike(
                     vcx,
                     deps,
                     task_key,
-                    vir::vir_format!(vcx, "s_Tuple{}", tys.len()),
-                    vir::vir_format!(vcx, "p_Tuple{}", tys.len()),
+                    vir::vir_format!(vcx, "s_Tuple{}{tmp_ty_name}", tys.len()),
+                    vir::vir_format!(vcx, "p_Tuple{}{tmp_ty_name}", tys.len()),
                     field_ty_out,
                 )?, ()))
 
