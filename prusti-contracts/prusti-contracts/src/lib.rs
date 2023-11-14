@@ -365,6 +365,7 @@ pub fn snap<T>(_x: &T) -> T {
 /// `PartialEq` nor `Copy` implementation. The in-memory representation is
 /// constructed recursively: references are followed, unsafe pointers and cells
 /// are not. Importantly, addresses are not taken into consideration.
+#[prusti::builtin="snapshot_equality"]
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }
