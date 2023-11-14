@@ -1,6 +1,6 @@
 use prusti_rustc_interface::{
     index::IndexVec,
-    middle::mir,
+    middle::{mir, ty},
     span::def_id::DefId
 };
 
@@ -31,13 +31,17 @@ thread_local! {
 }
 
 impl TaskEncoder for MirLocalDefEncoder {
-    type TaskDescription<'vir> = DefId;
+    type TaskDescription<'tcx> = (
+        DefId, // ID of the function
+        ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
+        Option<DefId>, // ID of the caller function, if any
+    );
 
     type OutputFullLocal<'vir> = MirLocalDefEncoderOutput<'vir>;
 
     type EncodingError = MirLocalDefEncoderError;
 
-    fn with_cache<'tcx, 'vir, F, R>(f: F) -> R
+    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
     where
         F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirLocalDefEncoder>) -> R,
     {
@@ -67,9 +71,9 @@ impl TaskEncoder for MirLocalDefEncoder {
             Option<Self::OutputFullDependency<'vir>>,
         ),
     > {
-        let def_id = *task_key;
-        deps.emit_output_ref::<Self>(def_id, ());
-        fn mk_local_def<'vir>(vcx: &'vir vir::VirCtxt<'vir>, name: &'vir str, ty: TypeEncoderOutputRef<'vir>) -> LocalDef<'vir> {
+        let (def_id, substs, caller_def_id) = *task_key;
+        deps.emit_output_ref::<Self>(*task_key, ());
+        fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: TypeEncoderOutputRef<'vir>) -> LocalDef<'vir> {
             let local = vcx.mk_local(name);
             let local_ex = vcx.mk_local_ex_local(local);
             let impure_snap = ty.ref_to_snap.apply(vcx, [local_ex]);
@@ -87,7 +91,7 @@ impl TaskEncoder for MirLocalDefEncoder {
 
         vir::with_vcx(|vcx| {
             let data = if let Some(local_def_id) = def_id.as_local() {
-                let body = vcx.body.borrow_mut().get_impure_fn_body_identity(local_def_id);
+                let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {
                     let local = vir::vir_format!(vcx, "_{}p", arg.index());
                     let ty = deps.require_ref::<crate::encoders::TypeEncoder>(
@@ -100,8 +104,11 @@ impl TaskEncoder for MirLocalDefEncoder {
                     arg_count: body.arg_count,
                 }
             } else {
-                // TODO: is `skip_binder` correct here?
-                let sig = vcx.tcx.fn_sig(def_id).instantiate_identity().skip_binder();
+                let param_env = vcx.tcx.param_env(caller_def_id.unwrap_or(def_id));
+                let sig = vcx.tcx
+                    .subst_and_normalize_erasing_regions(substs, param_env, vcx.tcx.fn_sig(def_id));
+                let sig = sig.skip_binder();
+
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {
                     let local = vir::vir_format!(vcx, "_{}p", arg.index());
                     let ty = if arg.index() == 0 {
