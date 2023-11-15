@@ -769,7 +769,7 @@ impl TaskEncoder for TypeEncoder {
             }
         
 
-            let method_assign = mk_function_assign(vcx, "p_Bool", ty_s);
+            let method_assign = mk_function_assign(vcx, name_p, ty_s);
 
 
             Ok(TypeEncoderOutput {
