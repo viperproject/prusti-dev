@@ -41,6 +41,7 @@ pub enum PureKind {
     Closure,
     Spec,
     Pure,
+    Constant,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -90,7 +91,7 @@ impl TaskEncoder for MirPureEncoder {
             task.encoding_depth,
             task.kind,
             task.parent_def_id,
-            None,
+            task.promoted,
             task.substs,
             task.caller_def_id,
         )
@@ -117,6 +118,9 @@ impl TaskEncoder for MirPureEncoder {
                 PureKind::Closure => vcx.body.borrow_mut().get_closure_body(def_id, substs, caller_def_id),
                 PureKind::Spec => vcx.body.borrow_mut().get_spec_body(def_id, substs, caller_def_id),
                 PureKind::Pure => vcx.body.borrow_mut().get_pure_fn_body(def_id, substs, caller_def_id),
+                PureKind::Constant => {
+                    vcx.body.borrow_mut().get_promoted(def_id, promoted.unwrap())
+                }
             };
 
             let expr_inner = Encoder::new(vcx, task_key.0, def_id, &body, deps).encode_body();
@@ -685,6 +689,30 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             )),
                             unsupported_ty => todo!("unsupported constant literal type: {unsupported_ty:?}"),
                         }
+                    }
+                    e @ mir::ConstantKind::Unevaluated(uneval, b) => {
+                        let expr = self
+                            .deps
+                            .require_local::<MirPureEncoder>(MirPureEncoderTask {
+                                encoding_depth: 0,
+                                parent_def_id: uneval.def,
+                                promoted: Some(uneval.promoted.unwrap()),
+                                param_env: self.vcx.tcx.param_env(uneval.def),
+                                substs: ty::List::identity_for_item(self.vcx.tcx, uneval.def),
+                                kind: PureKind::Constant, // FIXME
+                                caller_def_id: self.def_id
+                            })
+                            .unwrap()
+                            .expr;
+
+                        tracing::warn!("{e:?} became {expr:?}");
+
+                        self.vcx.alloc(vir::ExprGenData::Lazy(
+                            vir::vir_format!(self.vcx, "unevaluated const {:?}", uneval.def),
+                            Box::new(move |vcx, lctx: ExprInput<'_>| {
+                                vir::Reify::reify(&expr, vcx, (lctx.0, &[])) //TODO: no idea why i do this so probably wrong
+                            }),
+                        ))
                     }
                     unsupported_literal => todo!("unsupported constant literal: {unsupported_literal:?}"),
                 }

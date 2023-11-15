@@ -347,7 +347,6 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                         return;
                     }
                     let place_ty = (*place).ty(self.local_decls, self.vcx.tcx);
-                    ;
 
                     let place_ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
                         place_ty.ty,
