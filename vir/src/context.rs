@@ -178,12 +178,12 @@ impl<'tcx> VirCtxt<'tcx> {
     }
 
 
-    pub fn mk_bin_op<Curr, Next>(
-        &'tcx self,
+    pub fn mk_bin_op<'vir, Curr, Next>(
+        &'vir self,
         kind: BinOpKind,
-        lhs: ExprGen<'tcx, Curr, Next>,
-        rhs: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+        lhs: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData::BinOp(self.alloc(BinOpGenData {
             kind,
             lhs,
@@ -191,54 +191,54 @@ impl<'tcx> VirCtxt<'tcx> {
         })))
     }
 
-    pub fn mk_not<Curr, Next>(
-        &'tcx self,
-        expr: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_not<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData::UnOp(self.alloc(UnOpGenData {
             kind: UnOpKind::Not,
             expr,
         })))
     }
 
-    pub fn mk_impl<Curr, Next>(
-        &'tcx self,
-        cond: ExprGen<'tcx, Curr, Next>,
-        rhs: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_impl<'vir, Curr, Next>(
+        &'vir self,
+        cond: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.mk_or(self.mk_not(cond), rhs)
     }
 
-    pub fn mk_and<Curr, Next>(
-        &'tcx self,
-        lhs: ExprGen<'tcx, Curr, Next>,
-        rhs: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_and<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.mk_bin_op(BinOpKind::And, lhs, rhs)
     }
 
-    pub fn mk_or<Curr, Next>(
-        &'tcx self,
-        lhs: ExprGen<'tcx, Curr, Next>,
-        rhs: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_or<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.mk_bin_op(BinOpKind::Or, lhs, rhs)
     }
 
-    pub fn mk_eq<Curr, Next>(
-        &'tcx self,
-        lhs: ExprGen<'tcx, Curr, Next>,
-        rhs: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_eq<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.mk_bin_op(BinOpKind::CmpEq, lhs, rhs)
     }
 
-    pub fn mk_forall<Curr, Next>(
-        &'tcx self,
-        qvars: &'tcx [&'tcx LocalDeclData<'tcx>],
-        triggers: &'tcx [&'tcx [ExprGen<'tcx, Curr, Next>]],
-        body: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_forall<'vir, Curr, Next>(
+        &'vir self,
+        qvars: &'vir [&'vir LocalDeclData<'vir>],
+        triggers: &'vir [&'vir [ExprGen<'vir, Curr, Next>]],
+        body: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData::Forall(self.alloc(ForallGenData {
             qvars,
             triggers,
@@ -246,12 +246,12 @@ impl<'tcx> VirCtxt<'tcx> {
         })))
     }
 
-    pub fn mk_tern<Curr, Next>(
-        &'tcx self,
-        cond: ExprGen<'tcx, Curr, Next>,
-        then: ExprGen<'tcx, Curr, Next>,
-        else_: ExprGen<'tcx, Curr, Next>,
-    ) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_tern<'vir, Curr, Next>(
+        &'vir self,
+        cond: ExprGen<'vir, Curr, Next>,
+        then: ExprGen<'vir, Curr, Next>,
+        else_: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData::Ternary(self.alloc(TernaryGenData {
             cond,
             then,
@@ -259,7 +259,7 @@ impl<'tcx> VirCtxt<'tcx> {
         })))
     }
 
-    pub fn mk_const<Curr, Next>(&'tcx self, cnst: ConstData) -> ExprGen<'tcx, Curr, Next> {
+    pub fn mk_const<'vir, Curr, Next>(&'vir self, cnst: ConstData) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData::Const(self.alloc(cnst)))
     }
 

@@ -45,7 +45,7 @@ pub struct TypeEncoderOutputRefSubStruct<'vir> {
 #[derive(Clone, Debug)]
 pub struct TypeEncoderOutputRefSubEnum<'vir> {
     pub field_discriminant: &'vir str,
-    pub func_discriminant: &'vir str,
+    pub func_discriminant: &'vir str, // FIXME
     pub variants: &'vir [TypeEncoderOutputRef<'vir>],
 }
 
@@ -116,7 +116,13 @@ impl<'vir> TypeEncoderOutputRef<'vir> {
                     vcx.alloc(vir::ExprData::Const(vcx.alloc(vir::ConstData::Int(val))))
                 ])
             }),
-            k => todo!("unsupported type in expr_from_u128: {k:?} ({:?})", self.snapshot),
+            k => 
+            {
+                tracing::error!("unsupported type in expr_from_u128: {k:?} ({:?})", self.snapshot);
+                vir::with_vcx(|vcx| {
+                    vcx.alloc(vir::ExprData::Const(vcx.alloc(vir::ConstData::Int(val))))
+                })
+            }
         }
     }
 }
@@ -539,11 +545,11 @@ impl TaskEncoder for TypeEncoder {
 
 
         
-        fn mk_enum<'vir>(
-            vcx: &'vir vir::VirCtxt<'vir>,
+        fn mk_enum<'tcx, 'vir>(
+            vcx: &'vir vir::VirCtxt<'tcx>,
             deps: &mut TaskEncoderDependencies<'vir>,
-            adt: &ty::AdtDef,
-            task_key: &<TypeEncoder as TaskEncoder>::TaskKey<'vir>,
+            adt: &'tcx ty::AdtDef,
+            task_key: &<TypeEncoder as TaskEncoder>::TaskKey<'tcx>,
         ) -> Result<
             <TypeEncoder as TaskEncoder>::OutputFullLocal<'vir>,
             (
@@ -785,8 +791,8 @@ impl TaskEncoder for TypeEncoder {
             })
         }
         
-        fn mk_enum_variant<'vir>(
-            vcx: &'vir vir::VirCtxt<'vir>,
+        fn mk_enum_variant<'vir, 'tcx>(
+            vcx: &'vir vir::VirCtxt<'tcx>,
             deps: &mut TaskEncoderDependencies<'vir>,
             variant: &ty::VariantDef,
             variant_idx: usize,
@@ -1102,6 +1108,9 @@ impl TaskEncoder for TypeEncoder {
                     vir::vir_format!(vcx, "p_Adt_{did_name}"),
                     field_ty_out,
                 )?, ()))
+            }
+            TyKind::Adt(adt_def, substs) if adt_def.is_enum() => {
+                Ok((mk_enum(vcx, deps, adt_def, task_key)?, ()))
             }
             TyKind::Never => {
                 let ty_s = vcx.alloc(vir::TypeData::Domain("s_Never"));
