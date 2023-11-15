@@ -85,6 +85,24 @@ pub enum ConstData {
     Int(u128), // TODO: what about negative numbers? larger numbers?
 }
 
+impl From<bool> for ConstData {
+    fn from(value: bool) -> Self {
+        ConstData::Bool(value)
+    }
+}
+
+impl From<u128> for ConstData {
+    fn from(value: u128) -> Self {
+        ConstData::Int(value)
+    }
+}
+
+impl From<usize> for ConstData {
+    fn from(value: usize) -> Self {
+        ConstData::Int(value.try_into().unwrap())
+    }
+}
+
 pub enum TypeData<'vir> {
     Int {
         bit_width: u8,

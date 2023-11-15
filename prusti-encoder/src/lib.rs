@@ -207,6 +207,11 @@ pub fn test_entrypoint<'tcx>(
         viper_code.push_str(&format!("{:?}\n", output.unreachable_to_snap));
         viper_code.push_str(&format!("{:?}\n", output.function_snap));
         viper_code.push_str(&format!("{:?}\n", output.predicate));
+
+        for pred in output.other_predicates {
+            viper_code.push_str(&format!("{:?}\n", pred));
+        }
+        
         //viper_code.push_str(&format!("{:?}\n", output.method_refold));
         viper_code.push_str(&format!("{:?}\n", output.method_assign));
     }
