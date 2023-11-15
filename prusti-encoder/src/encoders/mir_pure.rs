@@ -583,6 +583,35 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                         .map(|field| self.encode_operand(curr_ver, field))
                         .collect::<Vec<_>>())
                 }
+                mir::AggregateKind::Adt(def_id, variant_idx, args, _, union_field) => {
+                    assert!(union_field.is_none(), "unions not yet implemented");
+                    let ty = self.vcx.tcx.type_of(def_id).skip_binder();
+
+                    let adt_typ = self
+                        .deps
+                        .require_ref::<crate::encoders::TypeEncoder>(ty)
+                        .unwrap();
+
+                    let cons = match adt_typ.specifics {
+                        crate::encoders::typ::TypeEncoderOutputRefSub::EnumLike(e) => {
+                            let variant = &e.variants[variant_idx.as_usize()].expect_structlike();
+                            variant.field_snaps_to_snap
+                        }
+                        crate::encoders::typ::TypeEncoderOutputRefSub::StructLike(sl) => {
+                            assert_eq!(variant_idx.as_u32(), 0);
+                            sl.field_snaps_to_snap
+                        }
+                        _ => todo!(),
+                    };
+
+
+                    let args = fields
+                        .iter()
+                        .map(|field| self.encode_operand(curr_ver, field))
+                        .collect::<Vec<_>>();
+
+                        cons.apply(self.vcx, self.vcx.alloc_slice(&args))
+                }
                 _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
             }
             mir::Rvalue::CheckedBinaryOp(binop, box (l, r)) => {
@@ -598,6 +627,21 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                     self.encode_operand(curr_ver, l),
                     self.encode_operand(curr_ver, r),
                 ])
+            }
+            mir::Rvalue::Discriminant(place) => {
+                let discriminent_func = self
+                    .deps
+                    .require_ref::<crate::encoders::TypeEncoder>(
+                        place.ty(&self.body.local_decls, self.vcx.tcx).ty,
+                    )
+                    .unwrap()
+                    .expect_enumlike()
+                    .func_discriminant;
+
+                self.vcx.mk_func_app(
+                    discriminent_func,
+                    self.vcx.alloc_slice(&[self.encode_place(curr_ver, place)]),
+                )
             }
             // ShallowInitBox
             // CopyForDeref

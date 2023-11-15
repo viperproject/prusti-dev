@@ -268,7 +268,13 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                 let field_ref = ty_out_struct.field_access[f.as_usize()].projection_p.apply(self.vcx, [base]);
                 (field_ref, field_ty_out)
             }
-            _ => panic!("unsupported projection"),
+            mir::ProjectionElem::Downcast(name, idx) => {
+                let enu = ty_out.expect_enumlike();
+                let ty_out_struct = &enu.variants[idx.as_usize()];
+
+                (base, ty_out_struct.clone())
+            }
+            other => panic!("unsupported projection {other:?}"),
         }
     }
 
@@ -341,14 +347,21 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                         return;
                     }
                     let place_ty = (*place).ty(self.local_decls, self.vcx.tcx);
-                    assert!(place_ty.variant_index.is_none());
+                    ;
 
                     let place_ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
                         place_ty.ty,
                     ).unwrap();
 
+                    let pred_name = match place_ty.variant_index {
+                        None => place_ty_out.ref_to_pred,
+                        Some(idx) => {
+                            place_ty_out.expect_enumlike().variants[idx.as_usize()].ref_to_pred
+                        }
+                    };
+
                     let ref_p = self.encode_place(place);
-                    let predicate = place_ty_out.ref_to_pred.apply(self.vcx, [ref_p]);
+                    let predicate = pred_name.apply(self.vcx, [ref_p]);
                     if matches!(repack_op, mir_state_analysis::free_pcs::RepackOp::Expand(..)) {
                         self.stmt(vir::StmtData::Unfold(predicate));
                     } else {
@@ -669,17 +682,64 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     }
 
                     mir::Rvalue::Aggregate(
-                        box mir::AggregateKind::Adt(..) | box mir::AggregateKind::Tuple,
+                        kind @ (box mir::AggregateKind::Adt(..) | box mir::AggregateKind::Tuple),
                         fields,
                     ) => {
-                        let dest_ty_struct = dest_ty_out.expect_structlike();
 
-                        let cons_name = dest_ty_out.expect_structlike().field_snaps_to_snap;
+                        let sl = match kind {
+                            box mir::AggregateKind::Adt(_,vidx,_, _, _)  => {
+
+                                match &dest_ty_out.specifics {
+                                    crate::encoders::typ::TypeEncoderOutputRefSub::Primitive(_) => todo!(),
+                                    crate::encoders::typ::TypeEncoderOutputRefSub::StructLike(sl) => {
+                                        assert_eq!(vidx.as_u32(), 0);
+                                        sl
+                                    },
+                                    crate::encoders::typ::TypeEncoderOutputRefSub::EnumLike(el) => el.variants[vidx.as_usize()].expect_structlike(),
+                                    crate::encoders::typ::TypeEncoderOutputRefSub::Param => todo!(),
+                                }
+                            }
+                            _ => dest_ty_out.expect_structlike()
+                        };
+                        
+
+                        let cons_name = sl.field_snaps_to_snap;
                         let cons_args: Vec<_> = fields.iter().map(|field| self.encode_operand_snap(field)).collect();
                         let cons = cons_name.apply(self.vcx, &cons_args);
 
                         self.stmt(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, cons]));
                         None
+                    }
+
+
+                    mir::Rvalue::Discriminant(place) => {
+                        let place_ty = self.local_defs.locals[place.local].ty.clone();
+
+
+                        let p = self.encode_place(Place::from(*place));
+
+                        let discr_as_int = match place_ty.specifics {
+                            crate::encoders::typ::TypeEncoderOutputRefSub::EnumLike(x) => {
+                                 self.vcx.alloc(vir::ExprGenData::Field(p, x.field_discriminant))
+                            }
+
+                            _ => {
+                                // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
+                                self.vcx.mk_const(0u128.into())
+                            }
+                        };
+
+
+                       
+                        let discr_as_int = self.vcx.alloc(vir::ExprGenData::Unfolding(
+                            self.vcx.alloc(vir::UnfoldingGenData{
+                                target: place_ty.ref_to_pred.apply(self.vcx, [p]),
+                                expr: discr_as_int})));
+
+
+
+
+                        Some(dest_ty_out.expect_prim().prim_to_snap.apply(self.vcx, [discr_as_int]))
                     }
 
                     //mir::Rvalue::Discriminant(Place<'tcx>) => {}
