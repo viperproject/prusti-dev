@@ -1304,11 +1304,11 @@ fn mk_cons_read_axioms<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>,
             expr: vcx.alloc(vir::ExprData::Forall(vcx.alloc(vir::ForallData {
                 qvars: cons_qvars,
                 triggers: vcx.alloc_slice(&[vcx.alloc_slice(&[
-                    cons_read,
+                    cons_call,
                 ])]),
                 body: vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
                     kind: vir::BinOpKind::CmpEq,
-                    lhs: cons_call,
+                    lhs: cons_read,
                     rhs: cons_args[read_idx],
                 }))),
             }))),
