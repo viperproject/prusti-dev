@@ -111,14 +111,14 @@ impl<'vir> TypeEncoderOutputRef<'vir> {
                     vcx.alloc(vir::ConstData::Bool(val != 0)),
                 ))])
             }),
-            vir::TypeData::Int { signed: false, .. } => vir::with_vcx(|vcx| {
+            vir::TypeData::Int { .. } => vir::with_vcx(|vcx| {
                 self.expect_prim().prim_to_snap.apply(vcx, [
                     vcx.alloc(vir::ExprData::Const(vcx.alloc(vir::ConstData::Int(val))))
                 ])
             }),
             k => 
             {
-                tracing::error!("unsupported type in expr_from_u128: {k:?} ({:?})", self.snapshot);
+                tracing::error!("unsupported type in expr_from_u128: {self:?} | {k:?} | ({:?})", self.snapshot);
                 vir::with_vcx(|vcx| {
                     vcx.alloc(vir::ExprData::Const(vcx.alloc(vir::ConstData::Int(val))))
                 })
