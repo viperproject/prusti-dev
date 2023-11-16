@@ -357,7 +357,9 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         // then walk terminator
         let term = self.body[curr].terminator.as_ref().unwrap();
         match &term.kind {
-            &mir::TerminatorKind::Goto { target } => {
+            &mir::TerminatorKind::Goto { target } 
+            | &mir::TerminatorKind::FalseEdge { real_target: target, ..}
+            => {
                 match (dominators.immediate_dominator(target), branch_point) {
                     // As soon as we are about to step to a bb where the
                     // immediate dominator is the last branch point, we stop.
@@ -690,22 +692,20 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             unsupported_ty => todo!("unsupported constant literal type: {unsupported_ty:?}"),
                         }
                     }
-                    e @ mir::ConstantKind::Unevaluated(uneval, b) => {
+                    mir::ConstantKind::Unevaluated(uneval, _) => {
                         let expr = self
                             .deps
                             .require_local::<MirPureEncoder>(MirPureEncoderTask {
-                                encoding_depth: 0,
+                                encoding_depth: self.encoding_depth + 1,
                                 parent_def_id: uneval.def,
                                 promoted: Some(uneval.promoted.unwrap()),
                                 param_env: self.vcx.tcx.param_env(uneval.def),
                                 substs: ty::List::identity_for_item(self.vcx.tcx, uneval.def),
-                                kind: PureKind::Constant, // FIXME
+                                kind: PureKind::Constant, 
                                 caller_def_id: self.def_id
                             })
                             .unwrap()
                             .expr;
-
-                        tracing::warn!("{e:?} became {expr:?}");
 
                         self.vcx.alloc(vir::ExprGenData::Lazy(
                             vir::vir_format!(self.vcx, "unevaluated const {:?}", uneval.def),

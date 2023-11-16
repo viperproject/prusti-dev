@@ -789,7 +789,8 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
         self.fpcs_repacks(location, |loc| &loc.repacks_middle);
         let terminator = match &terminator.kind {
             mir::TerminatorKind::Goto { target }
-            | mir::TerminatorKind::FalseUnwind { real_target: target, .. } =>
+            | mir::TerminatorKind::FalseUnwind { real_target: target, .. }
+            | mir::TerminatorKind::FalseEdge { real_target: target, .. }  =>
                 self.vcx.alloc(vir::TerminatorStmtData::Goto(
                     self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
                 )),
