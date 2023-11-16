@@ -761,9 +761,10 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     mir::Rvalue::Discriminant(place) => {
                         let place_ty = self.local_defs.locals[place.local].ty.clone();
 
+                        let place_expr = self.encode_place(Place::from(*place));
+
                         let discr_expr = match place_ty.specifics {
                             TypeEncoderOutputRefSub::EnumLike(x) => {
-                                let place_expr = self.encode_place(Place::from(*place));
                                 self.vcx.alloc(vir::ExprGenData::Field(place_expr, x.field_discriminant))
                             }
                             _ => {
@@ -773,7 +774,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         };
                         let discr_expr_unfold = self.vcx.alloc(vir::ExprGenData::Unfolding(
                             self.vcx.alloc(vir::UnfoldingGenData{
-                                target: place_ty.ref_to_pred.apply(self.vcx, [p]),
+                                target: place_ty.ref_to_pred.apply(self.vcx, [place_expr]),
                                 expr: discr_expr
                             }
                         )));
