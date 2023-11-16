@@ -245,6 +245,11 @@ struct EncoderVisitor<'tcx, 'vir, 'enc>
     encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
 }
 
+enum LocOrTerm {
+    Terminator(usize),
+    Location(mir::Location)
+}
+
 impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     fn stmt(&mut self, stmt: vir::StmtData<'vir>) {
         self.current_stmts
@@ -330,13 +335,56 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     }
     */
 
-    fn fpcs_repacks(
+    /// Do the same as [self::fpcs_repacks] but instead of adding the statements to [self.current_stmts] return them instead
+    fn collect_repacks(
         &mut self,
         location: mir::Location,
         repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
+    ) -> Vec<&'vir vir::StmtData<'vir>> {
+        let mut real_stmts = Some(Vec::new());
+        std::mem::swap(&mut self.current_stmts, &mut real_stmts);
+
+        // // FIXME: debug delete
+        // let has_elements = !repacks.is_empty();
+        // if has_elements {
+        //     self.stmt(vir::StmtGenData::Comment(
+        //         self.vcx.alloc_str(&format!("collect_repacks start")),
+        //     ));
+        // }
+
+        self.fpcs_repacks(location, repacks);
+
+        // // FIXME: debug delete
+        // if has_elements {
+        //     self.stmt(vir::StmtGenData::Comment(
+        //         self.vcx.alloc_str(&format!("collect_repacks end")),
+        //     ));
+        // }
+
+        std::mem::swap(&mut self.current_stmts, &mut real_stmts);
+
+        real_stmts.unwrap()
+    }
+
+
+
+   
+
+    fn fpcs_repacks_term(
+        &mut self,
+        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
+        l: LocOrTerm,
     ) {
         let current_fpcs = self.current_fpcs.take().unwrap();
-        for &repack_op in repacks(&current_fpcs.statements[location.statement_index]) {
+
+
+        let re = match l {
+            LocOrTerm::Terminator(idx) =>  repacks(&current_fpcs.terminator.succs[idx]),
+            LocOrTerm::Location(l) =>  repacks(&current_fpcs.statements[l.statement_index])
+        };
+
+
+        for &repack_op in  re {
             match repack_op {
                 RepackOp::Expand(place, _target, capability_kind)
                 | RepackOp::Collapse(place, _target, capability_kind) => {
@@ -384,6 +432,15 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
             }
         }
         self.current_fpcs = Some(current_fpcs);
+    }
+    
+
+    fn fpcs_repacks(
+        &mut self,
+        location: mir::Location,
+        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
+    ) {
+        self.fpcs_repacks_term(repacks, LocOrTerm::Location(location))
     }
 
     fn encode_operand_snap(
@@ -790,10 +847,25 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
         let terminator = match &terminator.kind {
             mir::TerminatorKind::Goto { target }
             | mir::TerminatorKind::FalseUnwind { real_target: target, .. }
-            | mir::TerminatorKind::FalseEdge { real_target: target, .. }  =>
+            | mir::TerminatorKind::FalseEdge { real_target: target, .. }  => {
+
+                let len = {
+                    let succs = &self.current_fpcs.as_ref().unwrap().terminator.succs;
+                    assert!(succs.len() <= 2);
+                    succs.len()
+                };
+
+                {
+                    let real_succ = &self.current_fpcs.as_ref().unwrap().terminator.succs[0];
+                    assert_eq!(&real_succ.location.block, target);
+                }
+
+                self.fpcs_repacks_term(|rep| &rep.repacks_start, LocOrTerm::Terminator(0));
+
                 self.vcx.alloc(vir::TerminatorStmtData::Goto(
                     self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
-                )),
+                ))
+            }
             mir::TerminatorKind::SwitchInt { discr, targets } => {
                 //let discr_version = self.ssa_analysis.version.get(&(location, discr.local)).unwrap();
                 //let discr_name = vir::vir_format!(self.vcx, "_{}s_{}", discr.local.index(), discr_version);
