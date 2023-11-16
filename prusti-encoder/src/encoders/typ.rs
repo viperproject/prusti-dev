@@ -1308,7 +1308,7 @@ fn mk_cons_read_axioms<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>,
                 ])]),
                 body: vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
                     kind: vir::BinOpKind::CmpEq,
-                    lhs: cons_read,
+                    lhs: cons_call,
                     rhs: cons_args[read_idx],
                 }))),
             }))),
