@@ -508,7 +508,7 @@ impl TaskEncoder for TypeEncoder {
 
             let field_access = mk_field_access_functions(&fields, vcx, name_p, name_s, ty_s);
 
-            mk_field_projection_p(&field_access, &fields, funcs, vcx, ty_s, field_projection_p);
+            mk_field_projection_p(vcx, &field_access, &fields, funcs, ty_s, field_projection_p);
 
             let cons_name = vir::vir_format!(vcx, "{name_s}_cons");
             funcs.push(
@@ -536,8 +536,8 @@ impl TaskEncoder for TypeEncoder {
 
             if !fields.is_empty() {
                 axioms.push(mk_cons_axiom(
-                    field_snaps_to_snap,
                     vcx,
+                    field_snaps_to_snap,
                     &fields,
                     field_access,
                     ty_s,
@@ -572,7 +572,7 @@ impl TaskEncoder for TypeEncoder {
                 }));
             }
 
-            mk_read_write_axioms(&fields, vcx, field_access, axioms, ty_s, name_s);
+            mk_read_write_axioms(vcx, &fields, field_access, axioms, ty_s, name_s);
 
             // discriminant of write call stays the same
             for (write_idx, write_ty_out) in fields.iter().enumerate() {
@@ -601,7 +601,7 @@ impl TaskEncoder for TypeEncoder {
                 }));
             }
 
-            predicates.push(mk_structlike_predicate(&fields, vcx, field_access, name_p));
+            predicates.push(mk_structlike_predicate(vcx, &fields, field_access, name_p));
 
             mk_structlike_snap_parts(vcx, name_p, field_snaps_to_snap, &fields, field_access)
         }
@@ -902,16 +902,16 @@ impl TaskEncoder for TypeEncoder {
 
             let mut field_projection_p = Vec::new();
             mk_field_projection_p(
+                vcx,
                 field_access,
                 &field_ty_out,
                 &mut funcs,
-                vcx,
                 ty_s,
                 &mut field_projection_p,
             );
             let field_projection_p = vcx.alloc_slice(&field_projection_p);
 
-            mk_read_write_axioms(&field_ty_out, vcx, field_access, &mut axioms, ty_s, name_s);
+            mk_read_write_axioms(vcx, &field_ty_out, field_access, &mut axioms, ty_s, name_s);
 
             // constructor
             {
@@ -926,8 +926,8 @@ impl TaskEncoder for TypeEncoder {
 
                 if !field_ty_out.is_empty() {
                     axioms.push(mk_cons_axiom(
-                        field_snaps_to_snap,
                         vcx,
+                        field_snaps_to_snap,
                         &field_ty_out,
                         field_access,
                         ty_s,
@@ -937,7 +937,7 @@ impl TaskEncoder for TypeEncoder {
             }
 
             // predicate
-            let predicate = mk_structlike_predicate(&field_ty_out, vcx, field_access, name_p);
+            let predicate = mk_structlike_predicate(vcx, &field_ty_out, field_access, name_p);
 
             let function_snap = mk_structlike_snap(
                 vcx,
@@ -1258,8 +1258,8 @@ fn mk_structlike_snap_parts<'vir, 'tcx>(
 }
 
 fn mk_structlike_predicate<'vir, 'tcx>(
-    field_ty_out: &Vec<TypeEncoderOutputRef<'vir>>,
     vcx: &'vir vir::VirCtxt<'tcx>,
+    field_ty_out: &Vec<TypeEncoderOutputRef<'vir>>,
     field_access: &[FieldAccessFunctions<'vir>],
     name_p: &'vir str,
 ) -> &'vir vir::PredicateData<'vir> {
@@ -1292,8 +1292,8 @@ fn mk_structlike_predicate<'vir, 'tcx>(
 }
 
 fn mk_read_write_axioms<'vir, 'tcx>(
-    field_ty_out: &Vec<TypeEncoderOutputRef<'vir>>,
     vcx: &'vir vir::VirCtxt<'tcx>,
+    field_ty_out: &Vec<TypeEncoderOutputRef<'vir>>,
     field_access: &[FieldAccessFunctions<'vir>],
     axioms: &mut Vec<&vir::DomainAxiomData<'vir>>,
     ty_s: &'vir vir::TypeData<'vir>,
@@ -1331,8 +1331,8 @@ fn mk_read_write_axioms<'vir, 'tcx>(
 }
 
 fn mk_cons_axiom<'vir, 'tcx>(
-    field_snaps_to_snap: FunctionIdent<'vir, UnknownArity<'vir>>,
     vcx: &'vir vir::VirCtxt<'tcx>,
+    field_snaps_to_snap: FunctionIdent<'vir, UnknownArity<'vir>>,
     field_ty_out: &Vec<TypeEncoderOutputRef<'vir>>,
     field_access: &[FieldAccessFunctions<'vir>],
     ty_s: &'vir vir::TypeData<'vir>,
@@ -1420,10 +1420,10 @@ fn cons_read_parts<'vir, 'tcx>(
 }
 
 fn mk_field_projection_p<'vir, 'tcx>(
+    vcx: &'vir vir::VirCtxt<'tcx>,
     field_access: &'vir [FieldAccessFunctions<'_>],
     field_ty_out: &[TypeEncoderOutputRef<'vir>],
     funcs: &mut Vec<&vir::DomainFunctionData<'vir>>,
-    vcx: &'vir vir::VirCtxt<'tcx>,
     ty_s: &'vir vir::TypeData<'vir>,
     field_projection_p: &mut Vec<&vir::FunctionData<'vir>>,
 ) {
