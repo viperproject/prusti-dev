@@ -580,10 +580,13 @@ impl TaskEncoder for TypeEncoder {
                     vcx.mk_local_decl("val", write_ty_out.snapshot),
                 ]);
         
-                let write_call = vcx.mk_func_app(
+
+                let write_func: FunctionIdent<'vir, BinaryArity<'vir>> = FunctionIdent::new(
                     vir::vir_format!(vcx, "{name_s}_write_{write_idx}"),
-                    &[vcx.mk_local_ex("self"), vcx.mk_local_ex("val")],
+                    BinaryArity::new([ty_s, write_ty_out.snapshot])
                 );
+
+                let write_call = write_func.apply(vcx, [vcx.mk_local_ex("self"), vcx.mk_local_ex("val")]);
         
                 let discriminant_of_write = s_discr_func.apply(vcx, [write_call]);
         
