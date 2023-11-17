@@ -72,7 +72,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_local_ex<'vir, Curr, Next>(&'vir self, name: &'vir str) -> ExprGen<'vir, Curr, Next> {
         self.mk_local_ex_local(self.mk_local(name))
     }
-    pub fn mk_func_app<'vir, Curr, Next>(
+    pub (crate) fn mk_func_app<'vir, Curr, Next>(
         &'vir self,
         target: &'vir str,
         src_args: &[ExprGen<'vir, Curr, Next>],
@@ -177,7 +177,6 @@ impl<'tcx> VirCtxt<'tcx> {
         }
     }
 
-
     pub fn mk_bin_op<'vir, Curr, Next>(
         &'vir self,
         kind: BinOpKind,
@@ -191,38 +190,12 @@ impl<'tcx> VirCtxt<'tcx> {
         })))
     }
 
-    pub fn mk_not<'vir, Curr, Next>(
-        &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::UnOp(self.alloc(UnOpGenData {
-            kind: UnOpKind::Not,
-            expr,
-        })))
-    }
-
-    pub fn mk_impl<'vir, Curr, Next>(
-        &'vir self,
-        cond: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.mk_or(self.mk_not(cond), rhs)
-    }
-
     pub fn mk_and<'vir, Curr, Next>(
         &'vir self,
         lhs: ExprGen<'vir, Curr, Next>,
         rhs: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
         self.mk_bin_op(BinOpKind::And, lhs, rhs)
-    }
-
-    pub fn mk_or<'vir, Curr, Next>(
-        &'vir self,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.mk_bin_op(BinOpKind::Or, lhs, rhs)
     }
 
     pub fn mk_eq<'vir, Curr, Next>(
