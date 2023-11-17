@@ -45,7 +45,7 @@ pub struct TypeEncoderOutputRefSubStruct<'vir> {
 #[derive(Clone, Debug)]
 pub struct TypeEncoderOutputRefSubEnum<'vir> {
     pub field_discriminant: &'vir str,
-    pub func_discriminant: &'vir str, // FIXME
+    pub func_discriminant: FunctionIdent<'vir, UnaryArity<'vir>>, // FIXME
     pub variants: &'vir [TypeEncoderOutputRef<'vir>],
 }
 
@@ -306,13 +306,18 @@ impl TaskEncoder for TypeEncoder {
             let ref_to_snap = mk_function_snap_identifier(vcx, name_p, ty_s);
             let method_assign = mk_function_assign(vcx, name_p, ty_s);
 
+            let discr_func = FunctionIdent::new(
+                s_discr_func_name,
+                UnaryArity::new([ty_s])
+            );
+
             deps.emit_output_ref::<TypeEncoder>(
                 *task_key,
                 TypeEncoderOutputRef {
                     snapshot: ty_s,
                     specifics: TypeEncoderOutputRefSub::EnumLike(TypeEncoderOutputRefSubEnum {
                         field_discriminant,
-                        func_discriminant: s_discr_func_name,
+                        func_discriminant: discr_func ,
                         variants: vcx.alloc(variants),
                     }),
                     method_assign,
@@ -353,7 +358,7 @@ impl TaskEncoder for TypeEncoder {
                     ty_s,
                     name_s,
                     name_p,
-                    s_discr_func_name,
+                    discr_func,
                     &mut funcs,
                     &mut field_projection_p,
                     &mut axioms,
@@ -423,7 +428,7 @@ impl TaskEncoder for TypeEncoder {
             // discriminant bounds axiom
             {
                 let self_local = vcx.mk_local_ex("self");
-                let discr_func_call = vcx.mk_func_app(s_discr_func_name, vcx.alloc_slice(&[self_local]));
+                let discr_func_call =  discr_func.apply(vcx, [self_local]);
                 let body1 = vcx.mk_bin_op(
                     vir::BinOpKind::CmpGe,
                     discr_func_call,
@@ -479,7 +484,7 @@ impl TaskEncoder for TypeEncoder {
             ty_s: &'vir vir::TypeData<'vir>,
             name_s: &'vir str,
             name_p: &'vir str,
-            s_discr_func_name: &'vir str,
+            s_discr_func: FunctionIdent<'vir, UnaryArity<'vir>>,
             funcs: &mut Vec<&'vir vir::DomainFunctionData<'vir>>,
             field_projection_p: &mut Vec<&'vir vir::FunctionData<'vir>>,
             axioms: &mut Vec<vir::DomainAxiom<'vir>>,
@@ -545,7 +550,7 @@ impl TaskEncoder for TypeEncoder {
                 let (cons_qvars, cons_args, cons_call) = cons_read_parts(vcx, &fields, field_snaps_to_snap);
         
                 let body = vcx.mk_eq(
-                    vcx.mk_func_app(s_discr_func_name, &[cons_call]),
+                    s_discr_func.apply(vcx, [cons_call]),
                     vcx.mk_const(variant_idx.into()),
                 );
         
@@ -580,7 +585,7 @@ impl TaskEncoder for TypeEncoder {
                     &[vcx.mk_local_ex("self"), vcx.mk_local_ex("val")],
                 );
         
-                let discriminant_of_write = vcx.mk_func_app(s_discr_func_name, &[write_call]);
+                let discriminant_of_write = s_discr_func.apply(vcx, [write_call]);
         
                 axioms.push(vcx.alloc(vir::DomainAxiomData {
                     name: vir::vir_format!(vcx, "ax_{name_s}_discriminant_write_{write_idx}"),
@@ -1123,8 +1128,8 @@ impl TaskEncoder for TypeEncoder {
                 let method_assign = mk_function_assign(vcx, "p_Never", ty_s);
                 let specifics = TypeEncoderOutputRefSub::EnumLike(TypeEncoderOutputRefSubEnum {
                     field_discriminant: "FIXME", // FIXME
-                    func_discriminant: "FIXME", // FIXME
-                    variants: &[] // FIXME
+                    func_discriminant: FunctionIdent::new("FIXME", UnaryArity::new([ty_s])), // FIXME
+                    variants: &[]
                 });
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
                     ref_to_pred,
