@@ -9,7 +9,7 @@ use task_encoder::{
     TaskEncoderDependencies,
 };
 use std::collections::HashMap;
-use crate::encoders::{ViperTupleEncoder, TypeEncoder};
+use crate::encoders::{ViperTupleEncoder, TypeEncoder, typ::TypeEncoderOutputRefSub};
 
 pub struct MirPureEncoder;
 
@@ -118,9 +118,7 @@ impl TaskEncoder for MirPureEncoder {
                 PureKind::Closure => vcx.body.borrow_mut().get_closure_body(def_id, substs, caller_def_id),
                 PureKind::Spec => vcx.body.borrow_mut().get_spec_body(def_id, substs, caller_def_id),
                 PureKind::Pure => vcx.body.borrow_mut().get_pure_fn_body(def_id, substs, caller_def_id),
-                PureKind::Constant => {
-                    vcx.body.borrow_mut().get_promoted(def_id, promoted.unwrap())
-                }
+                PureKind::Constant => vcx.body.borrow_mut().get_promoted_constant_body(def_id, promoted.unwrap())
             };
 
             let expr_inner = Encoder::new(vcx, task_key.0, def_id, &body, deps).encode_body();
@@ -599,24 +597,22 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                         .unwrap();
 
                     let cons = match adt_typ.specifics {
-                        crate::encoders::typ::TypeEncoderOutputRefSub::EnumLike(e) => {
-                            let variant = &e.variants[variant_idx.as_usize()].expect_structlike();
-                            variant.field_snaps_to_snap
+                        TypeEncoderOutputRefSub::EnumLike(e) => {
+                            e.variants[variant_idx.as_usize()].expect_structlike().field_snaps_to_snap
                         }
-                        crate::encoders::typ::TypeEncoderOutputRefSub::StructLike(sl) => {
+                        TypeEncoderOutputRefSub::StructLike(sl) => {
                             assert_eq!(variant_idx.as_u32(), 0);
                             sl.field_snaps_to_snap
                         }
                         _ => todo!(),
                     };
 
-
-                    let args = fields
+                    let cons_args = fields
                         .iter()
                         .map(|field| self.encode_operand(curr_ver, field))
                         .collect::<Vec<_>>();
 
-                        cons.apply(self.vcx, self.vcx.alloc_slice(&args))
+                    cons.apply(self.vcx, self.vcx.alloc_slice(&cons_args))
                 }
                 _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
             }
