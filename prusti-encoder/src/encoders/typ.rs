@@ -925,10 +925,6 @@ impl TaskEncoder for TypeEncoder {
             })
         }
 
-
-        
-       
-
         vir::with_vcx(|vcx| match task_key.kind() {
             TyKind::Bool => {
                 let ty_s = vcx.alloc(vir::TypeData::Domain("s_Bool"));
