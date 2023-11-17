@@ -336,36 +336,31 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     }
     */
 
-    /// Do the same as [self::fpcs_repacks] but instead of adding the statements to [self.current_stmts] return them instead
-    fn collect_repacks(
+    /// Do the same as [self::fpcs_repacks_terminator] but instead of adding the statements to [self.current_stmts] return them instead
+    fn collect_terminator_repacks(
         &mut self,
         idx: usize,
         repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) -> Vec<&'vir vir::StmtData<'vir>> {
         let mut real_stmts = Some(Vec::new());
+
         std::mem::swap(&mut self.current_stmts, &mut real_stmts);
-
         self.fpcs_repacks_terminator(idx, repacks);
-
         std::mem::swap(&mut self.current_stmts, &mut real_stmts);
 
         real_stmts.unwrap()
     }
-
-
-
    
 
     fn fpcs_repacks(
         &mut self,
-        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
         l_or_t: LocationOrTerminator,
+        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) {
         let current_fpcs = self.current_fpcs.take().unwrap();
 
-
         let repacks_result = match l_or_t {
-            LocationOrTerminator::Terminator(idx) => repacks(&current_fpcs.terminator.succs[idx]),
+            LocationOrTerminator::Terminator(succ_idx) => repacks(&current_fpcs.terminator.succs[succ_idx]),
             LocationOrTerminator::Location(l) => repacks(&current_fpcs.statements[l.statement_index])
         };
 
@@ -426,15 +421,15 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
         location: mir::Location,
         repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) {
-        self.fpcs_repacks(repacks, LocationOrTerminator::Location(location))
+        self.fpcs_repacks(LocationOrTerminator::Location(location), repacks)
     }
 
     fn fpcs_repacks_terminator(
         &mut self,
-        idx: usize,
+        succ_idx: usize,
         repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) {
-        self.fpcs_repacks(repacks, LocationOrTerminator::Terminator(idx))
+        self.fpcs_repacks(LocationOrTerminator::Terminator(succ_idx), repacks)
     }
 
     fn encode_operand_snap(
@@ -756,11 +751,8 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         self.stmt(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, cons]));
                         None
                     }
-
-
                     mir::Rvalue::Discriminant(place) => {
                         let place_ty = self.local_defs.locals[place.local].ty.clone();
-
                         let place_expr = self.encode_place(Place::from(*place));
 
                         let discr_expr = match place_ty.specifics {
@@ -832,7 +824,6 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
             mir::TerminatorKind::Goto { target }
             | mir::TerminatorKind::FalseUnwind { real_target: target, .. }
             | mir::TerminatorKind::FalseEdge { real_target: target, .. }  => {
-
                 const REAL_TARGET_SUCC_IDX : usize = 0;
                 // Ensure that the terminator succ that we use for the repacks is the correct one
                 assert_eq!(&self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX].location.block, target);                
@@ -853,12 +844,11 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     .map(|(idx, (value, target))| {
                         assert_eq!(self.current_fpcs.as_ref().unwrap().terminator.succs[idx].location.block, target);
 
-                        let extra_exprs = self.collect_repacks(idx, |rep| &rep.repacks_start);
+                        let extra_stmts = self.collect_terminator_repacks(idx, |rep| &rep.repacks_start);
                         (
                             ty_out.expr_from_u128(value),
-                            //self.vcx.alloc(vir::ExprData::Todo(vir::vir_format!(self.vcx, "constant({value})"))),
                             self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
-                            self.vcx.alloc_slice(&extra_exprs),
+                            self.vcx.alloc_slice(&extra_stmts),
                         )
                 
                     })
@@ -867,21 +857,16 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     targets.otherwise().as_usize(),
                 ));
 
-                let otherwise_expr = {
-                    let terminator_fpcs =
-                        &self.current_fpcs.as_ref().unwrap().terminator.succs[goto_targets.len()];
-
-                    assert_eq!(terminator_fpcs.location.block, targets.otherwise());
-
-                    self.collect_repacks(goto_targets.len(), |rep| &rep.repacks_start)
-                };
+                let otherwise_succ_idx = goto_targets.len();
+                assert_eq!(self.current_fpcs.as_ref().unwrap().terminator.succs[otherwise_succ_idx].location.block, targets.otherwise());
+                let otherwise_stmts = self.collect_terminator_repacks(otherwise_succ_idx, |rep| &rep.repacks_start);
 
                 let discr_ex = self.encode_operand_snap(discr);
                 self.vcx.alloc(vir::TerminatorStmtData::GotoIf(self.vcx.alloc(vir::GotoIfData {
                     value: discr_ex, // self.vcx.mk_local_ex(discr_name),
                     targets: goto_targets,
                     otherwise: goto_otherwise,
-                    otherwise_extra: self.vcx.alloc_slice(&otherwise_expr),
+                    otherwise_extra: self.vcx.alloc_slice(&otherwise_stmts),
                 })))
             }
             mir::TerminatorKind::Return => self.vcx.alloc(vir::TerminatorStmtData::Goto(
