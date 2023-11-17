@@ -72,7 +72,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_local_ex<'vir, Curr, Next>(&'vir self, name: &'vir str) -> ExprGen<'vir, Curr, Next> {
         self.mk_local_ex_local(self.mk_local(name))
     }
-    pub (crate) fn mk_func_app<'vir, Curr, Next>(
+    pub(crate) fn mk_func_app<'vir, Curr, Next>(
         &'vir self,
         target: &'vir str,
         src_args: &[ExprGen<'vir, Curr, Next>],
