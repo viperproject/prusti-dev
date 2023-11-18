@@ -286,7 +286,7 @@ impl TaskEncoder for TypeEncoder {
 
                 let method_assign = mk_function_assign(vcx, name_p, ty_s);
 
-                let x = TypeEncoderOutputRef {
+                let variant_ty = TypeEncoderOutputRef {
                     snapshot: ty_s,
                     //method_refold: vir::vir_format!(vcx, "refold_{name_p}"),
                     specifics: TypeEncoderOutputRefSub::StructLike(ref_sub_struct),
@@ -296,7 +296,7 @@ impl TaskEncoder for TypeEncoder {
                     unreachable_to_snap: mk_function_unreachable_identifier(vcx, name_s),
                 };
 
-                variants.push(x);
+                variants.push(variant_ty);
             }
 
             let unreachable_to_snap = mk_function_unreachable_identifier(vcx, name_s);
