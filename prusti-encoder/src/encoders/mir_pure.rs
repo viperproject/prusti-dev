@@ -640,7 +640,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                     .expect_enumlike()
                     .func_discriminant;
 
-                    discriminent_func.apply(self.vcx, [self.encode_place(curr_ver, place)])
+                discriminent_func.apply(self.vcx, [self.encode_place(curr_ver, place)])
             }
             // ShallowInitBox
             // CopyForDeref

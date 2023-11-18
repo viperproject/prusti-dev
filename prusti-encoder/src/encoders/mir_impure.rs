@@ -756,8 +756,8 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         let place_expr = self.encode_place(Place::from(*place));
 
                         let discr_expr = match place_ty.specifics {
-                            TypeEncoderOutputRefSub::EnumLike(x) => {
-                                self.vcx.alloc(vir::ExprGenData::Field(place_expr, x.field_discriminant))
+                            TypeEncoderOutputRefSub::EnumLike(el) => {
+                                self.vcx.alloc(vir::ExprGenData::Field(place_expr, el.field_discriminant))
                             }
                             _ => {
                                 // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
