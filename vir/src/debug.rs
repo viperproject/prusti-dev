@@ -314,7 +314,7 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
                     }
                     write!(f, " {{ ")?;
 
-                    for extra in data.otherwise_extra {
+                    for extra in data.otherwise_statements {
                         write!(f, "{extra:?}")?;
                     }
 

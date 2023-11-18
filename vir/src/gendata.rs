@@ -187,7 +187,7 @@ pub struct GotoIfGenData<'vir, Curr, Next> {
         &'vir [StmtGen<'vir, Curr, Next>],
     )],
     #[reify_copy] pub otherwise: CfgBlockLabel<'vir>,
-    pub otherwise_extra: &'vir [StmtGen<'vir, Curr, Next>],
+    pub otherwise_statements: &'vir [StmtGen<'vir, Curr, Next>],
 }
 
 #[derive(Reify)]

@@ -866,7 +866,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     value: discr_ex, // self.vcx.mk_local_ex(discr_name),
                     targets: goto_targets,
                     otherwise: goto_otherwise,
-                    otherwise_extra: self.vcx.alloc_slice(&otherwise_stmts),
+                    otherwise_statements: self.vcx.alloc_slice(&otherwise_stmts),
                 })))
             }
             mir::TerminatorKind::Return => self.vcx.alloc(vir::TerminatorStmtData::Goto(
@@ -945,7 +945,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     value: enc,  
                     targets: self.vcx.alloc_slice(&[(expected, &target_bb, &[])]),
                     otherwise,
-                    otherwise_extra: &[],
+                    otherwise_statements: &[],
                 })))
             }
             unsupported_kind => self.vcx.alloc(vir::TerminatorStmtData::Dummy(
