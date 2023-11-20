@@ -116,7 +116,6 @@ impl TaskEncoder for MirFunctionEncoder {
                         encoding_depth: 0,
                         kind: PureKind::Pure,
                         parent_def_id: def_id,
-                        promoted: None,
                         param_env: vcx.tcx.param_env(def_id),
                         substs,
                         caller_def_id,
