@@ -696,11 +696,11 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             .unwrap()
                             .expr;
 
+                        let expr = vir::Reify::reify(&expr, self.vcx, (uneval.def, &[]));
+
                         self.vcx.alloc(vir::ExprGenData::Lazy(
                             vir::vir_format!(self.vcx, "unevaluated const {:?}", uneval.def),
-                            Box::new(move |vcx, lctx: ExprInput<'_>| {
-                                vir::Reify::reify(&expr, vcx, (lctx.0, &[])) //TODO: no idea why i do this so probably wrong
-                            }),
+                            Box::new(move |_, _| expr ),
                         ))
                     }
                     unsupported_literal => todo!("unsupported constant literal: {unsupported_literal:?}"),
