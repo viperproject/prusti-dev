@@ -41,7 +41,7 @@ pub enum PureKind {
     Closure,
     Spec,
     Pure,
-    Constant,
+    Constant(mir::Promoted),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -51,7 +51,6 @@ pub struct MirPureEncoderTask<'tcx> {
     pub encoding_depth: usize,
     pub kind: PureKind,
     pub parent_def_id: DefId, // ID of the function
-    pub promoted: Option<mir::Promoted>, // ID of a constant within the function
     pub param_env: ty::ParamEnv<'tcx>, // param environment at the usage site
     pub substs: ty::GenericArgsRef<'tcx>, // type substitutions at the usage site
     pub caller_def_id: DefId, // Caller/Use DefID
@@ -64,7 +63,6 @@ impl TaskEncoder for MirPureEncoder {
         usize, // encoding depth
         PureKind, // encoding a pure function?
         DefId, // ID of the function
-        Option<mir::Promoted>, // ID of a constant within the function, or `None` if encoding the function itself
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
         DefId, // Caller/Use DefID
     );
@@ -91,7 +89,6 @@ impl TaskEncoder for MirPureEncoder {
             task.encoding_depth,
             task.kind,
             task.parent_def_id,
-            task.promoted,
             task.substs,
             task.caller_def_id,
         )
@@ -109,7 +106,7 @@ impl TaskEncoder for MirPureEncoder {
     )> {
         deps.emit_output_ref::<Self>(*task_key, ());
 
-        let (_, kind, def_id, promoted, substs, caller_def_id) = *task_key;
+        let (_, kind, def_id, substs, caller_def_id) = *task_key;
 
         tracing::debug!("encoding {def_id:?}");
         let expr = vir::with_vcx(move |vcx| {
@@ -118,7 +115,7 @@ impl TaskEncoder for MirPureEncoder {
                 PureKind::Closure => vcx.body.borrow_mut().get_closure_body(def_id, substs, caller_def_id),
                 PureKind::Spec => vcx.body.borrow_mut().get_spec_body(def_id, substs, caller_def_id),
                 PureKind::Pure => vcx.body.borrow_mut().get_pure_fn_body(def_id, substs, caller_def_id),
-                PureKind::Constant => vcx.body.borrow_mut().get_promoted_constant_body(def_id, promoted.unwrap())
+                PureKind::Constant(promoted) => vcx.body.borrow_mut().get_promoted_constant_body(def_id, promoted)
             };
 
             let expr_inner = Encoder::new(vcx, task_key.0, def_id, &body, deps).encode_body();
@@ -691,10 +688,9 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             .require_local::<MirPureEncoder>(MirPureEncoderTask {
                                 encoding_depth: self.encoding_depth + 1,
                                 parent_def_id: uneval.def,
-                                promoted: Some(uneval.promoted.unwrap()),
                                 param_env: self.vcx.tcx.param_env(uneval.def),
                                 substs: ty::List::identity_for_item(self.vcx.tcx, uneval.def),
-                                kind: PureKind::Constant, 
+                                kind: PureKind::Constant(uneval.promoted.unwrap()), 
                                 caller_def_id: self.def_id
                             })
                             .unwrap()
@@ -870,7 +866,6 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                         encoding_depth: self.encoding_depth + 1,
                         kind: PureKind::Closure,
                         parent_def_id: cl_def_id,
-                        promoted: None,
                         param_env: self.vcx.tcx.param_env(cl_def_id),
                         substs: ty::List::identity_for_item(self.vcx.tcx, cl_def_id),
                         caller_def_id: self.def_id,

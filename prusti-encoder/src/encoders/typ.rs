@@ -45,7 +45,7 @@ pub struct TypeEncoderOutputRefSubStruct<'vir> {
 #[derive(Clone, Debug)]
 pub struct TypeEncoderOutputRefSubEnum<'vir> {
     pub field_discriminant: &'vir str,
-    pub func_discriminant: FunctionIdent<'vir, UnaryArity<'vir>>, // FIXME
+    pub func_discriminant: FunctionIdent<'vir, UnaryArity<'vir>>,
     pub variants: &'vir [TypeEncoderOutputRef<'vir>],
 }
 
@@ -247,6 +247,17 @@ impl TaskEncoder for TypeEncoder {
             let ty_s = vcx.alloc(vir::TypeData::Domain(name_s));
 
             let s_discr_func_name = vir::vir_format!(vcx, "{name_s}_discriminant");
+           
+            let discr_bit_width = {
+                use crate::rustc_middle::ty::util::IntTypeExt;
+                TypeEncoder::get_bit_width(vcx.tcx, adt.repr().discr_type().to_ty(vcx.tcx))
+            };
+
+            let discr_type = vcx.alloc(vir::TypeData::Int {
+                bit_width: discr_bit_width.try_into().unwrap(),
+                signed: false,
+            });
+
 
             let mut variants: Vec<TypeEncoderOutputRef<'vir>> = Vec::new();
 
@@ -330,19 +341,16 @@ impl TaskEncoder for TypeEncoder {
                 unique: false,
                 name: s_discr_func_name,
                 args: vcx.alloc_slice(&[ty_s]),
-                ret: &vir::TypeData::Int {
-                    bit_width: 10,
-                    signed: false,
-                }, //TODO
+                ret: discr_type,
             }));
 
-            let mut predicate_per_variant_predicates = vcx.mk_bool::<false>();
+            let mut predicate_accumulator = vcx.mk_bool::<false>();
 
             let self_local = vcx.mk_local_ex("self_p");
 
             let discr_field_access =
                 vcx.alloc(vir::ExprGenData::Field(self_local, field_discriminant));
-            let mut snap_cur = unreachable_to_snap.apply(vcx, []);
+            let mut snap_accumulator = unreachable_to_snap.apply(vcx, []);
 
             for (idx, variant) in adt.variants().iter().enumerate() {
                 let name_s =
@@ -368,10 +376,10 @@ impl TaskEncoder for TypeEncoder {
                 let cond = vcx.mk_eq(discr_field_access, vcx.mk_const(idx.into()));
 
                 let pred_call = vcx.mk_pred_app(name_p, vcx.alloc_slice(&[self_local]));
-                predicate_per_variant_predicates =
-                    vcx.mk_tern(cond, pred_call, predicate_per_variant_predicates);
+                predicate_accumulator =
+                    vcx.mk_tern(cond, pred_call, predicate_accumulator);
 
-                snap_cur = vcx.mk_tern(cond, cons_call, snap_cur)
+                snap_accumulator = vcx.mk_tern(cond, cons_call, snap_accumulator)
             }
 
             let predicate = {
@@ -397,7 +405,7 @@ impl TaskEncoder for TypeEncoder {
                         acc,
                         disc_lower_bound,
                         disc_upper_bound,
-                        predicate_per_variant_predicates,
+                        predicate_accumulator,
                     ])),
                 })
             };
@@ -416,7 +424,7 @@ impl TaskEncoder for TypeEncoder {
                 expr: Some(
                     vcx.alloc(vir::ExprData::Unfolding(vcx.alloc(vir::UnfoldingData {
                         target: pred_app,
-                        expr: snap_cur,
+                        expr: snap_accumulator,
                     }))),
                 ),
             });
@@ -453,10 +461,7 @@ impl TaskEncoder for TypeEncoder {
 
             Ok(TypeEncoderOutput {
                 fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
-                    ty: &vir::TypeData::Int {
-                        bit_width: 10,
-                        signed: false,
-                    }, //TODO
+                    ty: discr_type, 
                     name: field_discriminant,
                 })]),
                 snapshot: vir::vir_domain! { vcx; domain [name_s] {
