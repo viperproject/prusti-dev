@@ -104,9 +104,9 @@ macro_rules! vir_expr {
 #[macro_export]
 macro_rules! vir_expr {
     ($vcx:expr; $( $args:tt )* ) => {
-        &*$vcx.arena.alloc($crate::ExprData::Todo(
+        &*$vcx.mk_todo_expr(
             $vcx.alloc_str(stringify!($($args)*)),
-        ))
+        )
     }
 }
 
@@ -148,24 +148,24 @@ macro_rules! vir_domain_axiom {
     ($vcx:expr; axiom_inverse($a:tt, $b:tt, $ty:tt)) => {{
         let val_ex = $vcx.mk_local_ex("val");
         let inner = $b.apply($vcx, [val_ex]);
-        $vcx.alloc($crate::DomainAxiomData {
-            name: $vcx.alloc_str(&format!(
+        $vcx.mk_domain_axiom(
+            $vcx.alloc_str(&format!(
                 "ax_inverse_{}_{}",
                 $a.name(),
                 $b.name(),
             )),
-            expr: $vcx.alloc($crate::ExprData::Forall($vcx.alloc($crate::ForallData {
-                qvars: $vcx.alloc_slice(&[
+            $vcx.mk_forall_expr(
+                $vcx.alloc_slice(&[
                     $vcx.mk_local_decl("val", $crate::vir_type!($vcx; $ty)),
                 ]),
-                triggers: $vcx.alloc_slice(&[$vcx.alloc_slice(&[inner])]),
-                body: $vcx.alloc($crate::ExprData::BinOp($vcx.alloc($crate::BinOpData {
-                    kind: $crate::BinOpKind::CmpEq,
-                    lhs: $a.apply($vcx, [inner]),
-                    rhs: val_ex,
-                }))),
-            }))),
-        })
+                $vcx.alloc_slice(&[$vcx.alloc_slice(&[inner])]),
+                $vcx.mk_bin_op_expr(
+                    $crate::BinOpKind::CmpEq,
+                    $a.apply($vcx, [inner]),
+                    val_ex,
+                ),
+            ),
+        )
     }};
     ($vcx:expr; axiom $name:tt { $( $body:tt )* }) => {{
         $vcx.alloc($crate::DomainAxiomData {
@@ -243,29 +243,29 @@ macro_rules! vir_domain {
         #[allow(unused_mut)]
         let mut functions = vec![];
         $crate::vir_domain_members!($vcx; axioms; functions; $($member)*);
-        $vcx.alloc($crate::DomainData {
-            name: $crate::vir_ident!($vcx; $name),
-            typarams: &[],
-            axioms: $vcx.alloc_slice(&axioms),
-            functions: $vcx.alloc_slice(&functions),
-        })
+        $vcx.mk_domain(
+            $crate::vir_ident!($vcx; $name),
+            &[],
+            $vcx.alloc_slice(&axioms),
+            $vcx.alloc_slice(&functions),
+        )
     }};
 }
 
 #[macro_export]
 macro_rules! vir_predicate {
     ($vcx:expr; predicate $name:tt ( $( $args:tt )* ) { [$expr:expr] }) => {{
-        $vcx.alloc($crate::PredicateData {
-            name: $crate::vir_ident!($vcx; $name),
-            args: $crate::vir_arg_list!($vcx; $($args)*),
-            expr: Some($expr),
-        })
+        $vcx.mk_predicate(
+            $crate::vir_ident!($vcx; $name),
+            $crate::vir_arg_list!($vcx; $($args)*),
+            Some($expr)
+        )
     }};
     ($vcx:expr; predicate $name:tt ( $( $args:tt )* )) => {{
-        $vcx.alloc($crate::PredicateData {
-            name: $crate::vir_ident!($vcx; $name),
-            args: $crate::vir_arg_list!($vcx; $($args)*),
-            expr: None,
-        })
+        $vcx.mk_predicate(
+            $crate::vir_ident!($vcx; $name),
+            $crate::vir_arg_list!($vcx; $($args)*),
+            None
+        )
     }};
 }

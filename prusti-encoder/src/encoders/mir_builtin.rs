@@ -128,10 +128,7 @@ impl MirBuiltinEncoder {
         let prim_arg = e_ty.expect_prim().snap_to_prim.apply(vcx, [snap_arg]);
         // `prim_to_snap(-snap_to_prim(arg))`
         let mut val = prim_res_ty.prim_to_snap.apply(vcx,
-            [vcx.alloc(vir::ExprData::UnOp(vcx.alloc(vir::UnOpData {
-                kind: vir::UnOpKind::from(op),
-                expr: prim_arg,
-            })))]
+            [vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg)]
         );
         // Can overflow when doing `- iN::MIN -> iN::MIN`. There is no
         // `CheckedUnOp`, instead the compiler puts an `TerminatorKind::Assert`
@@ -140,28 +137,20 @@ impl MirBuiltinEncoder {
         if op == mir::UnOp::Neg && ty.is_signed() {
             let bound = vcx.get_min_int(prim_res_ty.prim_type, ty.kind());
             // `snap_to_prim(arg) == -iN::MIN`
-            let cond = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                kind: vir::BinOpKind::CmpEq,
-                lhs: prim_arg,
-                rhs: bound,
-            })));
+            let cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, prim_arg, bound);
             // `snap_to_prim(arg) == -iN::MIN ? arg :
             // prim_to_snap(-snap_to_prim(arg))`
-            val = vcx.alloc(vir::ExprData::Ternary(vcx.alloc(vir::TernaryData {
-                cond,
-                then: snap_arg,
-                else_: val,
-            })))
+            val = vcx.mk_ternary_expr(cond, snap_arg, val)
         }
 
-        vcx.alloc(vir::FunctionData {
+        vcx.mk_function(
             name,
-            args: vcx.alloc_slice(&[vcx.mk_local_decl("arg", e_ty.snapshot)]),
-            ret: e_res_ty.snapshot,
-            pres: &[],
-            posts: &[],
-            expr: Some(val),
-        })
+            vcx.alloc_slice(&[vcx.mk_local_decl("arg", e_ty.snapshot)]),
+            e_res_ty.snapshot,
+            &[],
+            &[],
+            Some(val)
+        )
     }
 
     fn handle_bin_op<'vir, 'tcx>(
@@ -200,18 +189,10 @@ impl MirBuiltinEncoder {
         if matches!(op, Shl | Shr) {
             // RHS must be smaller than the bit width of the LHS, this is
             // implicit in the `Shl` and `Shr` operators.
-            rhs = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                kind: vir::BinOpKind::Mod,
-                lhs: rhs,
-                rhs: vcx.get_bit_width_int(e_l_ty.expect_prim().prim_type, l_ty.kind()),
-            })));
+            rhs = vcx.mk_bin_op_expr(vir::BinOpKind::Mod, rhs, vcx.get_bit_width_int(e_l_ty.expect_prim().prim_type, l_ty.kind()));
         }
         let val = prim_res_ty.prim_to_snap.apply(vcx,
-            [vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                kind: vir::BinOpKind::from(op),
-                lhs,
-                rhs,
-            })))]
+            [vcx.mk_bin_op_expr(vir::BinOpKind::from(op), lhs, rhs)]
         );
         let (pres, val) = match op {
             // Overflow well defined as wrapping (implicit) and for the shifts
@@ -222,18 +203,10 @@ impl MirBuiltinEncoder {
             AddUnchecked | SubUnchecked | MulUnchecked => {
                 let min = vcx.get_min_int(prim_res_ty.prim_type, res_ty.kind());
                 // `(arg1 op arg2) >= -iN::MIN`
-                let lower_bound = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                    kind: vir::BinOpKind::CmpGe,
-                    lhs: val,
-                    rhs: min,
-                })));
+                let lower_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, val, min);
                 let max = vcx.get_max_int(prim_res_ty.prim_type, res_ty.kind());
                 // `(arg1 op arg2) <= iN::MAX`
-                let upper_bound = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                    kind: vir::BinOpKind::CmpLe,
-                    lhs: val,
-                    rhs: max,
-                })));
+                let upper_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpLe, val, max);
                 (vec![lower_bound, upper_bound], val)
             }
             // Overflow is well defined as wrapping (implicit), but shifting by
@@ -241,49 +214,25 @@ impl MirBuiltinEncoder {
             ShlUnchecked | ShrUnchecked => {
                 let min = vcx.mk_int::<0>();
                 // `arg2 >= 0`
-                let lower_bound = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                    kind: vir::BinOpKind::CmpGe,
-                    lhs: rhs,
-                    rhs: min,
-                })));
+                let lower_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, rhs, min);
                 let max = vcx.get_bit_width_int(e_l_ty.expect_prim().prim_type, l_ty.kind());
                 // `arg2 < bit_width(arg1)`
-                let upper_bound = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                    kind: vir::BinOpKind::CmpLt,
-                    lhs: rhs,
-                    rhs: max,
-                })));
+                let upper_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpLt, rhs, max);
                 (vec![lower_bound, upper_bound], Self::get_wrapped_val(vcx, val, prim_res_ty.prim_type, res_ty))
             }
             // Could divide by zero or overflow if divisor is `-1`
             Div | Rem => {
                 // `0 != arg2 `
-                let pre = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                    kind: vir::BinOpKind::CmpNe,
-                    lhs: vcx.mk_int::<0>(),
-                    rhs,
-                })));
+                let pre = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, vcx.mk_int::<0>(), rhs);
                 let mut pres = vec![pre];
                 if res_ty.is_signed() {
                     let min = vcx.get_min_int(prim_res_ty.prim_type, res_ty.kind());
                     // `arg1 != -iN::MIN`
-                    let arg1_cond = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                        kind: vir::BinOpKind::CmpNe,
-                        lhs,
-                        rhs: min,
-                    })));
+                    let arg1_cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, lhs, min);
                     // `-1 != arg2 `
-                    let arg2_cond = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                        kind: vir::BinOpKind::CmpNe,
-                        lhs: vcx.mk_int::<-1>(),
-                        rhs,
-                    })));
+                    let arg2_cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, vcx.mk_int::<-1>(), rhs);
                     // `-1 != arg2 || arg1 != -iN::MIN`
-                    let pre = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                        kind: vir::BinOpKind::Or,
-                        rhs: arg2_cond,
-                        lhs: arg1_cond,
-                    })));
+                    let pre = vcx.mk_bin_op_expr(vir::BinOpKind::Or, arg1_cond, arg2_cond);
                     pres.push(pre);
                 }
                 (pres, val)
@@ -292,17 +241,16 @@ impl MirBuiltinEncoder {
             BitXor | BitAnd | BitOr | Eq | Lt | Le | Ne | Ge | Gt | Offset =>
                 (Vec::new(), val),
         };
-        vcx.alloc(vir::FunctionData {
-            name,
-            args: vcx.alloc_slice(&[
+        vcx.mk_function(name,
+            vcx.alloc_slice(&[
                 vcx.mk_local_decl("arg1", e_l_ty.snapshot),
                 vcx.mk_local_decl("arg2", e_r_ty.snapshot),
             ]),
-            ret: e_res_ty.snapshot,
-            pres: vcx.alloc_slice(&pres),
-            posts: &[],
-            expr: Some(val),
-        })
+            e_res_ty.snapshot,
+            vcx.alloc_slice(&pres),
+            &[],
+            Some(val)
+        )
     }
 
     fn handle_checked_bin_op<'vir, 'tcx>(
@@ -347,15 +295,11 @@ impl MirBuiltinEncoder {
         ).unwrap().expect_prim().prim_to_snap;
 
         // Unbounded value
-        let val_exp = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-            kind: vir::BinOpKind::from(op),
-            lhs: e_l_ty.expect_prim().snap_to_prim.apply(vcx,
-                [vcx.mk_local_ex("arg1")],
-            ),
-            rhs: e_r_ty.expect_prim().snap_to_prim.apply(vcx,
-                [vcx.mk_local_ex("arg2")],
-            ),
-        })));
+        let val_exp = vcx.mk_bin_op_expr(vir::BinOpKind::from(op), e_l_ty.expect_prim().snap_to_prim.apply(vcx,
+            [vcx.mk_local_ex("arg1")],
+        ), e_r_ty.expect_prim().snap_to_prim.apply(vcx,
+            [vcx.mk_local_ex("arg2")],
+        ));
         let val_str = vir::vir_format!(vcx, "val");
         let val = vcx.mk_local_ex(val_str);
         // Wrapped value
@@ -366,38 +310,26 @@ impl MirBuiltinEncoder {
             [wrapped_val],
         );
         // Overflowed?
-        let overflowed = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-            kind: vir::BinOpKind::CmpNe,
-            lhs: wrapped_val,
-            rhs: val,
-        })));
+        let overflowed = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val);
         let overflowed_snap = bool_cons.apply(vcx, [overflowed]);
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
         let tuple = e_res_ty.expect_structlike().field_snaps_to_snap.apply(vcx,
             &[wrapped_val_snap, overflowed_snap]
         );
         // `let wrapped_val == (val ..) in $tuple`
-        let inner_let = vcx.alloc(vir::ExprData::Let(vcx.alloc(vir::LetGenData {
-            name: wrapped_val_str,
-            val: wrapped_val_exp,
-            expr: tuple,
-        })));
+        let inner_let = vcx.mk_let_expr(wrapped_val_str, wrapped_val_exp, tuple);
 
-        vcx.alloc(vir::FunctionData {
+        vcx.mk_function(
             name,
-            args: vcx.alloc_slice(&[
+            vcx.alloc_slice(&[
                 vcx.mk_local_decl("arg1", e_l_ty.snapshot),
                 vcx.mk_local_decl("arg2", e_r_ty.snapshot),
             ]),
-            ret: e_res_ty.snapshot,
-            pres: &[],
-            posts: &[],
-            expr: Some(vcx.alloc(vir::ExprData::Let(vcx.alloc(vir::LetGenData {
-                name: val_str,
-                val: val_exp,
-                expr: inner_let,
-            })))),
-        })
+            e_res_ty.snapshot,
+            &[],
+            &[],
+            Some(vcx.mk_let_expr(val_str, val_exp, inner_let))
+        )
     }
 
     /// Wrap the value in the range of the type, e.g. `uN` is wrapped in the
@@ -406,24 +338,12 @@ impl MirBuiltinEncoder {
     fn get_wrapped_val<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, mut exp: &'vir vir::ExprData<'vir>, ty: vir::Type, rust_ty: ty::Ty) -> &'vir vir::ExprData<'vir> {
         let shift_amount = vcx.get_signed_shift_int(ty, rust_ty.kind());
         if let Some(half) = shift_amount {
-            exp = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                kind: vir::BinOpKind::Add,
-                lhs: exp,
-                rhs: half,
-            })));
+            exp = vcx.mk_bin_op_expr(vir::BinOpKind::Add, exp, half);
         }
         let modulo_val = vcx.get_modulo_int(ty, rust_ty.kind());
-        exp = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-            kind: vir::BinOpKind::Mod,
-            lhs: exp,
-            rhs: modulo_val,
-        })));
+        exp = vcx.mk_bin_op_expr(vir::BinOpKind::Mod, exp, modulo_val);
         if let Some(half) = shift_amount {
-            exp = vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                kind: vir::BinOpKind::Sub,
-                lhs: exp,
-                rhs: half,
-            })));
+            exp = vcx.mk_bin_op_expr(vir::BinOpKind::Sub, exp, half);
         }
         exp
     }
