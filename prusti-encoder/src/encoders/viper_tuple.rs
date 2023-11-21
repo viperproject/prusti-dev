@@ -125,20 +125,17 @@ impl TaskEncoder for ViperTupleEncoder {
                         .map(|qvar| vcx.mk_local_ex(qvar))
                         .collect::<Vec<_>>(),
                 );
-                let axiom = vcx.alloc(vir::DomainAxiomData {
-                    name: vir::vir_format!(vcx, "ax_Tuple_{task_key}_elem"),
-                    expr: vcx.alloc(vir::ExprData::Forall(vcx.alloc(vir::ForallData {
-                        qvars: qvars_decl,
-                        triggers: vcx.alloc_slice(&[vcx.alloc_slice(&[cons_call])]),
-                        body: vcx.mk_conj(&(0..*task_key)
-                            .map(|idx| vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-                                kind: vir::BinOpKind::CmpEq,
-                                lhs: elem_getters[idx].apply(vcx, [cons_call]),
-                                rhs: qvars_ex[idx],
-                            }))))
-                            .collect::<Vec<_>>()),
-                    }))),
-                });
+                let axiom = vcx.mk_domain_axiom(
+                    vir::vir_format!(vcx, "ax_Tuple_{task_key}_elem"),
+                    vcx.mk_forall_expr(
+                        qvars_decl,
+                        vcx.alloc_slice(&[vcx.alloc_slice(&[cons_call])]),
+                        vcx.mk_conj(&(0..*task_key)
+                            .map(|idx| vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, elem_getters[idx].apply(vcx, [cons_call]), qvars_ex[idx]))
+                            .collect::<Vec<_>>()
+                        )
+                    )
+                );
                 axioms.push(axiom);
             }
             let elem_args = vcx.alloc_slice(&[domain_ty]);
@@ -157,12 +154,12 @@ impl TaskEncoder for ViperTupleEncoder {
                 ret: domain_ty,
             }));
             Ok((ViperTupleEncoderOutput {
-                domain: Some(vcx.alloc(vir::DomainData {
-                    name: domain_name,
-                    typarams: vcx.alloc_slice(&typaram_names),
-                    axioms: vcx.alloc_slice(&axioms),
-                    functions: vcx.alloc_slice(&functions),
-                })),
+                domain: Some(vcx.mk_domain(
+                    domain_name,
+                    vcx.alloc_slice(&typaram_names),
+                    vcx.alloc_slice(&axioms),
+                    vcx.alloc_slice(&functions),
+                )),
             }, ()))
         })
     }
