@@ -517,6 +517,22 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         curr_ver: &HashMap<mir::Local, usize>,
         rvalue: &mir::Rvalue<'tcx>,
     ) -> ExprRet<'vir> {
+        if let mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(..), fields) = rvalue {
+            // TODO: only when this is a spec closure?
+            let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
+                fields.len(),
+            ).unwrap();
+            let fields = fields.iter()
+                .map(|field| self.encode_operand(curr_ver, field))
+                .collect::<Vec<_>>();
+            return tuple_ref.mk_cons(self.vcx, &fields);
+        }
+
+        let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx);
+        let e_rvalue_ty = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+            rvalue_ty,
+        ).unwrap();
+
         match rvalue {
             mir::Rvalue::Use(op) => self.encode_operand(curr_ver, op),
             // Repeat
@@ -525,110 +541,62 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             // AddressOf
             // Len
             // Cast
-            mir::Rvalue::BinaryOp(op, box (l, r)) => {
-                let ty_l = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                    l.ty(self.body, self.vcx.tcx),
-                ).unwrap().expect_prim().snap_to_prim;
-                let ty_r = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                    r.ty(self.body, self.vcx.tcx),
-                ).unwrap().expect_prim().snap_to_prim;
-                let ty_rvalue = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                    rvalue.ty(self.body, self.vcx.tcx),
-                ).unwrap().expect_prim().prim_to_snap;
 
-                ty_rvalue.apply(self.vcx,
-                    [self.vcx.mk_bin_op_expr(
-                        op.into(),
-                        ty_l.apply(self.vcx, [self.encode_operand(curr_ver, l)]),
-                        ty_r.apply(self.vcx, [self.encode_operand(curr_ver, r)])
-                    )],
-                )
-            }
-            // CheckedBinaryOp
-            // NullaryOp
-            mir::Rvalue::UnaryOp(op, expr) => {
-                let ty_expr = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                    expr.ty(self.body, self.vcx.tcx),
-                ).unwrap().expect_prim().snap_to_prim;
-                let ty_rvalue = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                    rvalue.ty(self.body, self.vcx.tcx),
-                ).unwrap().expect_prim().prim_to_snap;
-
-                ty_rvalue.apply(self.vcx,
-                    [self.vcx.mk_unary_op_expr(
-                        op.into(),
-                        ty_expr.apply(self.vcx, [self.encode_operand(curr_ver, expr)]),
-                    )]
-                )
-            }
-            // Discriminant
-            mir::Rvalue::Aggregate(box kind, fields) => match kind {
-                mir::AggregateKind::Tuple if fields.len() == 0 =>
-                    // TODO: why is this not a constant?
-                    self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "s_Tuple0_cons()")),
-                mir::AggregateKind::Closure(..) => {
-                    // TODO: only when this is a spec closure?
-                    let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
-                        fields.len(),
-                    ).unwrap();
-                    tuple_ref.mk_cons(self.vcx, &fields.iter()
-                        .map(|field| self.encode_operand(curr_ver, field))
-                        .collect::<Vec<_>>())
-                }
-                mir::AggregateKind::Adt(def_id, variant_idx, args, _, union_field) => {
-                    assert!(union_field.is_none(), "unions not yet implemented");
-                    let ty = self.vcx.tcx.type_of(def_id).skip_binder();
-
-                    let adt_typ = self
-                        .deps
-                        .require_ref::<crate::encoders::TypeEncoder>(ty)
-                        .unwrap();
-
-                    let cons = match adt_typ.specifics {
-                        TypeEncoderOutputRefSub::EnumLike(e) => {
-                            e.variants[variant_idx.as_usize()].expect_structlike().field_snaps_to_snap
-                        }
-                        TypeEncoderOutputRefSub::StructLike(sl) => {
-                            assert_eq!(variant_idx.as_u32(), 0);
-                            sl.field_snaps_to_snap
-                        }
-                        _ => todo!(),
-                    };
-
-                    let cons_args = fields
-                        .iter()
-                        .map(|field| self.encode_operand(curr_ver, field))
-                        .collect::<Vec<_>>();
-
-                    cons.apply(self.vcx, self.vcx.alloc_slice(&cons_args))
-                }
-                _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
-            }
-            mir::Rvalue::CheckedBinaryOp(binop, box (l, r)) => {
+            rv@mir::Rvalue::BinaryOp(op, box (l, r)) |
+            rv@mir::Rvalue::CheckedBinaryOp(op, box (l, r)) => {
+                let l_ty = l.ty(self.body, self.vcx.tcx);
+                let r_ty = r.ty(self.body, self.vcx.tcx);
+                use crate::encoders::MirBuiltinEncoderTask::{BinOp, CheckedBinOp};
+                let task = if matches!(rv, mir::Rvalue::BinaryOp(..)) {
+                    BinOp(rvalue_ty, *op, l_ty, r_ty)
+                } else {
+                    CheckedBinOp(rvalue_ty, *op, l_ty, r_ty)
+                };
                 let binop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEncoder>(
-                    crate::encoders::MirBuiltinEncoderTask::CheckedBinOp(
-                        rvalue.ty(self.body, self.vcx.tcx),
-                        *binop,
-                        l.ty(self.body, self.vcx.tcx),
-                        r.ty(self.body, self.vcx.tcx),
-                    ),
+                    task
                 ).unwrap().function;
                 binop_function.apply(self.vcx, &[
                     self.encode_operand(curr_ver, l),
                     self.encode_operand(curr_ver, r),
                 ])
             }
+            // NullaryOp
+            mir::Rvalue::UnaryOp(unop, operand) => {
+                let operand_ty = operand.ty(self.body, self.vcx.tcx);
+                let unop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEncoder>(
+                    crate::encoders::MirBuiltinEncoderTask::UnOp(
+                        rvalue_ty,
+                        *unop,
+                        operand_ty,
+                    ),
+                ).unwrap().function;
+                unop_function.apply(self.vcx, &[self.encode_operand(curr_ver, operand)])
+            }
+            // Discriminant
+            mir::Rvalue::Aggregate(box kind, fields) => match kind {
+                mir::AggregateKind::Closure(..) => unreachable!(),
+                mir::AggregateKind::Adt(..) | mir::AggregateKind::Tuple => {
+                    let sl = match kind {
+                        mir::AggregateKind::Adt(_, vidx, _, _, _) =>
+                            e_rvalue_ty.expect_variant(*vidx),
+                        _ => e_rvalue_ty.expect_structlike()
+                    };
+                    let cons_args: Vec<_> = fields.iter().map(|field| self.encode_operand(curr_ver, field)).collect();
+                    sl.field_snaps_to_snap.apply(self.vcx, &cons_args)
+                }
+                _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
+            }
             mir::Rvalue::Discriminant(place) => {
-                let discriminent_func = self
+                let snap_to_disc_snap = self
                     .deps
                     .require_ref::<crate::encoders::TypeEncoder>(
                         place.ty(&self.body.local_decls, self.vcx.tcx).ty,
                     )
                     .unwrap()
                     .expect_enumlike()
-                    .func_discriminant;
+                    .snap_to_disc_snap;
 
-                discriminent_func.apply(self.vcx, [self.encode_place(curr_ver, place)])
+                snap_to_disc_snap.apply(self.vcx, [self.encode_place(curr_ver, place)])
             }
             // ShallowInitBox
             // CopyForDeref
@@ -696,15 +664,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             })
                             .unwrap()
                             .expr;
-
-                        let expr = vir::Reify::reify(&expr, self.vcx, (uneval.def, &[]));
-
-                        // FIXME: Decide which one of these two to use
-                        expr.lift()
-                        // self.vcx.alloc(vir::ExprGenData::Lazy(
-                        //     vir::vir_format!(self.vcx, "unevaluated const {:?}", uneval.def),
-                        //     Box::new(move |_, _| expr ),
-                        // ))
+                        use vir::Reify;
+                        expr.reify(self.vcx, (uneval.def, &[])).lift()
                     }
                     unsupported_literal => todo!("unsupported constant literal: {unsupported_literal:?}"),
                 }

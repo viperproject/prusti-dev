@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use prusti_rustc_interface::middle::mir;
-use crate::refs::*;
+use crate::{refs::*, UnaryArity};
 
 pub struct LocalData<'vir> {
     pub name: &'vir str, // TODO: identifiers
@@ -83,24 +83,6 @@ impl From<&mir::BinOp> for BinOpKind {
 pub enum ConstData {
     Bool(bool),
     Int(u128), // TODO: what about negative numbers? larger numbers?
-}
-
-impl From<bool> for ConstData {
-    fn from(value: bool) -> Self {
-        ConstData::Bool(value)
-    }
-}
-
-impl From<u128> for ConstData {
-    fn from(value: u128) -> Self {
-        ConstData::Int(value)
-    }
-}
-
-impl From<usize> for ConstData {
-    fn from(value: usize) -> Self {
-        ConstData::Int(value.try_into().unwrap())
-    }
 }
 
 pub enum TypeData<'vir> {

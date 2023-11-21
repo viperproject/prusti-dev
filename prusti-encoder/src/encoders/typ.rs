@@ -1,5 +1,7 @@
-use prusti_rustc_interface::middle::ty;
-use rustc_type_ir::sty::TyKind;
+use prusti_rustc_interface::{
+    middle::ty::{self, TyKind},
+    abi,
+};
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
@@ -45,7 +47,7 @@ pub struct TypeEncoderOutputRefSubStruct<'vir> {
 #[derive(Clone, Debug)]
 pub struct TypeEncoderOutputRefSubEnum<'vir> {
     pub field_discriminant: &'vir str,
-    pub func_discriminant: FunctionIdent<'vir, UnaryArity<'vir>>,
+    pub snap_to_disc_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
     pub variants: &'vir [TypeEncoderOutputRef<'vir>],
 }
 
@@ -78,27 +80,32 @@ pub struct TypeEncoderOutputRef<'vir> {
 impl<'vir> task_encoder::OutputRefAny for TypeEncoderOutputRef<'vir> {}
 
 impl<'vir> TypeEncoderOutputRef<'vir> {
-    #[track_caller]
     pub fn expect_structlike(&self) -> &TypeEncoderOutputRefSubStruct<'vir> {
         match &self.specifics {
             TypeEncoderOutputRefSub::StructLike(data) => data,
             _ => panic!("expected structlike type"),
         }
     }
-
-    #[track_caller]
     pub fn expect_prim(&self) -> &TypeEncoderOutputRefSubPrim<'vir> {
         match &self.specifics {
             TypeEncoderOutputRefSub::Primitive(prim) => prim,
             _ => panic!("expected primitive type"),
         }
     }
-
-    #[track_caller]
     pub fn expect_enumlike(&self) -> &TypeEncoderOutputRefSubEnum<'vir> {
         match &self.specifics {
             TypeEncoderOutputRefSub::EnumLike(enu) => enu,
             _ => panic!("expected enumlike type"),
+        }
+    }
+    pub fn expect_variant(&self, vid: abi::VariantIdx) -> &TypeEncoderOutputRefSubStruct<'vir> {
+        match &self.specifics {
+            TypeEncoderOutputRefSub::StructLike(s) => {
+                assert_eq!(vid, abi::FIRST_VARIANT);
+                s
+            }
+            TypeEncoderOutputRefSub::EnumLike(e) => e.variants[vid.as_usize()].expect_structlike(),
+            _ => panic!("expected struct or enum type"),
         }
     }
 
@@ -226,7 +233,7 @@ impl TaskEncoder for TypeEncoder {
         fn mk_enum<'tcx, 'vir>(
             vcx: &'vir vir::VirCtxt<'tcx>,
             deps: &mut TaskEncoderDependencies<'vir>,
-            adt: &'tcx ty::AdtDef,
+            adt: ty::AdtDef<'tcx>,
             task_key: &<TypeEncoder as TaskEncoder>::TaskKey<'tcx>,
         ) -> Result<
             <TypeEncoder as TaskEncoder>::OutputFullLocal<'vir>,
@@ -312,7 +319,7 @@ impl TaskEncoder for TypeEncoder {
             let ref_to_snap = mk_function_snap_identifier(vcx, name_p, ty_s);
             let method_assign = mk_function_assign(vcx, name_p, ty_s);
 
-            let discr_func = FunctionIdent::new(s_discr_func_name, UnaryArity::new([ty_s]));
+            let snap_to_disc_snap = FunctionIdent::new(s_discr_func_name, UnaryArity::new([ty_s]));
 
             deps.emit_output_ref::<TypeEncoder>(
                 *task_key,
@@ -320,7 +327,7 @@ impl TaskEncoder for TypeEncoder {
                     snapshot: ty_s,
                     specifics: TypeEncoderOutputRefSub::EnumLike(TypeEncoderOutputRefSubEnum {
                         field_discriminant,
-                        func_discriminant: discr_func,
+                        snap_to_disc_snap,
                         variants: vcx.alloc(variants),
                     }),
                     method_assign,
@@ -346,8 +353,7 @@ impl TaskEncoder for TypeEncoder {
 
             let self_local = vcx.mk_local_ex("self_p");
 
-            let discr_field_access =
-                vcx.alloc(vir::ExprGenData::Field(self_local, field_discriminant));
+            let discr_field_access = vcx.mk_field_expr(self_local, field_discriminant);
             let mut snap_accumulator = unreachable_to_snap.apply(vcx, []);
 
             for (idx, variant) in adt.variants().iter().enumerate() {
@@ -357,24 +363,26 @@ impl TaskEncoder for TypeEncoder {
                     vir::vir_format!(vcx, "p_Adt_{did_name}_{idx}_{}", variant.name.as_str());
 
                 let ref_to_pred = mk_predicate_ident(name_p);
+                let idx_expr = vcx.mk_const_expr(vir::ConstData::Int(idx as u128));
 
                 let (_, cons_call) = mk_enum_variant(
                     vcx,
                     deps,
                     variant,
                     idx,
+                    idx_expr,
                     ty_s,
                     name_s,
                     name_p,
                     ref_to_pred,
-                    discr_func,
+                    snap_to_disc_snap,
                     &mut funcs,
                     &mut field_projection_p,
                     &mut axioms,
                     &mut other_predicates,
                 );
 
-                let cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, discr_field_access, vcx.mk_const_expr(idx.into()));
+                let cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, discr_field_access, idx_expr);
 
                 let pred_call = vcx.alloc(vir::ExprData::PredicateApp(ref_to_pred.apply(vcx, [self_local])));
                 predicate_accumulator =
@@ -382,6 +390,8 @@ impl TaskEncoder for TypeEncoder {
 
                 snap_accumulator = vcx.mk_ternary_expr(cond, cons_call, snap_accumulator)
             }
+
+            let variants_len = vcx.mk_const_expr(vir::ConstData::Int(adt.variants().len() as u128));
 
             let predicate = {
                 let acc = vcx.mk_acc_field_expr(self_local, field_discriminant);
@@ -393,7 +403,7 @@ impl TaskEncoder for TypeEncoder {
                 let disc_upper_bound = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpLt,
                     discr_field_access,
-                    vcx.mk_const_expr(adt.variants().len().into()),
+                    variants_len,
                 );
 
                 let expr = Some(vcx.mk_conj(&[
@@ -420,17 +430,17 @@ impl TaskEncoder for TypeEncoder {
             // discriminant bounds axiom
             {
                 let self_local = vcx.mk_local_ex("self");
-                let discr_func_call = discr_func.apply(vcx, [self_local]);
+                let discr_func_call = snap_to_disc_snap.apply(vcx, [self_local]);
                 let body1 = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpGe,
                     discr_func_call,
-                    vcx.mk_const_expr(0usize.into()),
+                    vcx.mk_int::<0>(),
                 );
 
                 let body2 = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpLt,
                     discr_func_call,
-                    vcx.mk_const_expr(adt.variants().len().into()),
+                    variants_len,
                 );
 
                 let body = vcx.mk_bin_op_expr(vir::BinOpKind::And, body1, body2);
@@ -471,11 +481,12 @@ impl TaskEncoder for TypeEncoder {
             deps: &mut TaskEncoderDependencies<'vir>,
             variant: &ty::VariantDef,
             variant_idx: usize,
+            variant_idx_expr: vir::Expr<'vir>,
             ty_s: &'vir vir::TypeData<'vir>,
             name_s: &'vir str,
             name_p: &'vir str,
             ref_to_pred: PredicateIdent<'vir, UnaryArity<'vir>>,
-            s_discr_func: FunctionIdent<'vir, UnaryArity<'vir>>,
+            snap_to_disc_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
             funcs: &mut Vec<&'vir vir::DomainFunctionData<'vir>>,
             field_projection_p: &mut Vec<&'vir vir::FunctionData<'vir>>,
             axioms: &mut Vec<vir::DomainAxiom<'vir>>,
@@ -545,8 +556,8 @@ impl TaskEncoder for TypeEncoder {
                     cons_read_parts(vcx, &fields, field_snaps_to_snap);
 
                 let body = vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, 
-                    s_discr_func.apply(vcx, [cons_call]),
-                    vcx.mk_const_expr(variant_idx.into()),
+                    snap_to_disc_snap.apply(vcx, [cons_call]),
+                    variant_idx_expr,
                 );
 
                 let ax = if fields.is_empty() {
@@ -580,14 +591,14 @@ impl TaskEncoder for TypeEncoder {
                 let write_call =
                     write_func.apply(vcx, [vcx.mk_local_ex("self"), vcx.mk_local_ex("val")]);
 
-                let discriminant_of_write = s_discr_func.apply(vcx, [write_call]);
+                let discriminant_of_write = snap_to_disc_snap.apply(vcx, [write_call]);
 
                 axioms.push(vcx.mk_domain_axiom(
                     vir::vir_format!(vcx, "ax_{name_s}_discriminant_write_{write_idx}"),
                     vcx.mk_forall_expr(
                         qvars,
                         vcx.alloc_slice(&[vcx.alloc_slice(&[discriminant_of_write])]),
-                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, discriminant_of_write, vcx.mk_const_expr(variant_idx.into())),
+                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, discriminant_of_write, variant_idx_expr),
                     ),
                 ));
             }
@@ -1137,7 +1148,7 @@ impl TaskEncoder for TypeEncoder {
                 )?, ()))
             }
             TyKind::Adt(adt_def, substs) if adt_def.is_enum() => {
-                Ok((mk_enum(vcx, deps, adt_def, task_key)?, ()))
+                Ok((mk_enum(vcx, deps, *adt_def, task_key)?, ()))
             }
             TyKind::Never => {
                 let ty_s = vcx.alloc(vir::TypeData::Domain("s_Never"));
@@ -1147,7 +1158,7 @@ impl TaskEncoder for TypeEncoder {
                 let method_assign = mk_function_assign(vcx, "p_Never", ty_s);
                 let specifics = TypeEncoderOutputRefSub::EnumLike(TypeEncoderOutputRefSubEnum {
                     field_discriminant: "FIXME", // FIXME
-                    func_discriminant: FunctionIdent::new("FIXME", UnaryArity::new([ty_s])), // FIXME
+                    snap_to_disc_snap: FunctionIdent::new("FIXME", UnaryArity::new([ty_s])), // FIXME
                     variants: &[],
                 });
                 deps.emit_output_ref::<Self>(*task_key, TypeEncoderOutputRef {
