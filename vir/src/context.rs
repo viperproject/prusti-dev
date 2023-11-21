@@ -72,7 +72,7 @@ impl<'tcx> VirCtxt<'tcx> {
             args: self.alloc_slice(src_args),
         })))
     }
-    pub fn mk_pred_app<'vir>(&'vir self, target: &'vir str, src_args: &[Expr<'vir>]) -> Expr<'vir> {
+    pub(crate) fn mk_pred_app<'vir>(&'vir self, target: &'vir str, src_args: &[Expr<'vir>]) -> Expr<'vir> {
         self.alloc(ExprData::PredicateApp(self.arena.alloc(PredicateAppData {
             target,
             args: self.alloc_slice(src_args),
@@ -346,14 +346,16 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_goto_if_stmt<'vir, Curr, Next>(
         &'vir self,
         value: ExprGen<'vir, Curr, Next>,
-        targets: &'vir [(ExprGen<'vir, Curr, Next>, CfgBlockLabel<'vir>)],
+        targets: &'vir [(ExprGen<'vir, Curr, Next>, CfgBlockLabel<'vir>, &'vir [StmtGen<'vir, Curr, Next>])],
         otherwise: CfgBlockLabel<'vir>,
+        otherwise_statements: &'vir [StmtGen<'vir, Curr, Next>],
     ) -> TerminatorStmtGen<'vir, Curr, Next> {
         self.alloc(
             TerminatorStmtGenData::GotoIf(self.alloc(GotoIfGenData {
                 value,
                 targets,
-                otherwise
+                otherwise,
+                otherwise_statements,
             }))
         )
     }
