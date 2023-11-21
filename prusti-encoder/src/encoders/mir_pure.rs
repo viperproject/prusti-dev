@@ -576,7 +576,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                     let sl = match kind {
                         mir::AggregateKind::Adt(_, vidx, _, _, _) =>
                             e_rvalue_ty.expect_variant(*vidx),
-                        _ => e_rvalue_ty.expect_structlike()
+                        _ => e_rvalue_ty.expect_structlike(),
                     };
                     let cons_args: Vec<_> = fields.iter().map(|field| self.encode_operand(curr_ver, field)).collect();
                     sl.field_snaps_to_snap.apply(self.vcx, &cons_args)
@@ -686,19 +686,19 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         let mut place_ty =  mir::tcx::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
         let mut expr = self.mk_local_ex(place.local, curr_ver[&place.local]);
         for elem in place.projection {
-            expr = self.encode_place_element(place_ty.ty, elem, expr);
+            expr = self.encode_place_element(place_ty, elem, expr);
             place_ty = place_ty.projection_ty(self.vcx.tcx, elem);
         }
         expr
     }
 
-    fn encode_place_element(&mut self, ty: ty::Ty<'tcx>, elem: mir::PlaceElem<'tcx>, expr: ExprRet<'vir>) -> ExprRet<'vir> {
+    fn encode_place_element(&mut self, place_ty: mir::tcx::PlaceTy<'tcx>, elem: mir::PlaceElem<'tcx>, expr: ExprRet<'vir>) -> ExprRet<'vir> {
          match elem {
             mir::ProjectionElem::Deref =>
                 expr,
             mir::ProjectionElem::Field(field_idx, _) => {
                 let field_idx= field_idx.as_usize();
-                match ty.kind() {
+                match place_ty.ty.kind() {
                     TyKind::Closure(_def_id, args) => {
                         let upvars = args.as_closure().upvar_tys().iter().collect::<Vec<_>>().len();
                         let tuple_ref = self.deps.require_ref::<ViperTupleEncoder>(
@@ -707,8 +707,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                         tuple_ref.mk_elem(self.vcx, expr, field_idx)
                     }
                     _ => {
-                        let e_ty = self.deps.require_ref::<TypeEncoder>(ty).unwrap();
-                        let struct_like = e_ty.expect_structlike();
+                        let e_ty = self.deps.require_ref::<TypeEncoder>(place_ty.ty).unwrap();
+                        let struct_like = e_ty.expect_variant_opt(place_ty.variant_index);
                         let proj = struct_like.field_access[field_idx].read;
                         proj.apply(self.vcx, [expr])
                     }

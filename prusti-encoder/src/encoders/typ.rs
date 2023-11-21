@@ -1,5 +1,5 @@
 use prusti_rustc_interface::{
-    middle::ty::{self, TyKind},
+    middle::ty::{self, TyKind, util::IntTypeExt},
     abi,
 };
 use task_encoder::{
@@ -48,7 +48,7 @@ pub struct TypeEncoderOutputRefSubStruct<'vir> {
 pub struct TypeEncoderOutputRefSubEnum<'vir> {
     pub field_discriminant: &'vir str,
     pub snap_to_disc_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
-    pub variants: &'vir [TypeEncoderOutputRef<'vir>],
+    pub variants: &'vir [(TypeEncoderOutputRefSubStruct<'vir>, PredicateIdent<'vir, UnaryArity<'vir>>)],
 }
 
 #[derive(Clone, Debug)]
@@ -104,7 +104,17 @@ impl<'vir> TypeEncoderOutputRef<'vir> {
                 assert_eq!(vid, abi::FIRST_VARIANT);
                 s
             }
-            TypeEncoderOutputRefSub::EnumLike(e) => e.variants[vid.as_usize()].expect_structlike(),
+            TypeEncoderOutputRefSub::EnumLike(e) => &e.variants[vid.as_usize()].0,
+            _ => panic!("expected struct or enum type"),
+        }
+    }
+    pub fn expect_variant_opt(&self, vid: Option<abi::VariantIdx>) -> &TypeEncoderOutputRefSubStruct<'vir> {
+        match &self.specifics {
+            TypeEncoderOutputRefSub::StructLike(s) => {
+                assert_eq!(vid, None);
+                s
+            }
+            TypeEncoderOutputRefSub::EnumLike(e) => &e.variants[vid.unwrap().as_usize()].0,
             _ => panic!("expected struct or enum type"),
         }
     }
@@ -252,25 +262,17 @@ impl TaskEncoder for TypeEncoder {
             let ty_s = vcx.alloc(vir::TypeData::Domain(name_s));
 
             let s_discr_func_name = vir::vir_format!(vcx, "{name_s}_discriminant");
-           
-            let discr_bit_width = {
-                use crate::rustc_middle::ty::util::IntTypeExt;
-                TypeEncoder::get_bit_width(vcx.tcx, adt.repr().discr_type().to_ty(vcx.tcx))
-            };
 
-            let discr_type = vcx.alloc(vir::TypeData::Int {
-                bit_width: discr_bit_width.try_into().unwrap(),
-                signed: false,
-            });
+            let discr_type = adt.repr().discr_type().to_ty(vcx.tcx);
+            let discr_type = deps.require_ref::<crate::encoders::TypeEncoder>(discr_type).unwrap();
 
+            let mut variants = Vec::new();
 
-            let mut variants: Vec<TypeEncoderOutputRef<'vir>> = Vec::new();
-
-            for (idx, variant) in adt.variants().iter().enumerate() {
+            for (idx, variant) in adt.variants().iter_enumerated() {
                 let name_s =
-                    vir::vir_format!(vcx, "s_Adt_{did_name}_{idx}_{}", variant.name.as_str());
+                    vir::vir_format!(vcx, "s_Adt_{did_name}_{idx:?}_{}", variant.name.as_str());
                 let name_p =
-                    vir::vir_format!(vcx, "p_Adt_{did_name}_{idx}_{}", variant.name.as_str());
+                    vir::vir_format!(vcx, "p_Adt_{did_name}_{idx:?}_{}", variant.name.as_str());
 
                 // TODO dedup with the mk_enum_variant code
                 let substs = ty::List::identity_for_item(vcx.tcx, variant.def_id);
@@ -300,19 +302,7 @@ impl TaskEncoder for TypeEncoder {
                     field_access,
                 };
 
-                let method_assign = mk_function_assign(vcx, name_p, ty_s);
-
-                let variant_ty = TypeEncoderOutputRef {
-                    snapshot: ty_s,
-                    //method_refold: vir::vir_format!(vcx, "refold_{name_p}"),
-                    specifics: TypeEncoderOutputRefSub::StructLike(ref_sub_struct),
-                    method_assign,
-                    ref_to_pred: mk_predicate_ident(name_p),
-                    ref_to_snap: mk_function_snap_identifier(vcx, name_p, ty_s),
-                    unreachable_to_snap: mk_function_unreachable_identifier(vcx, name_s),
-                };
-
-                variants.push(variant_ty);
+                variants.push((ref_sub_struct, mk_predicate_ident(name_p)));
             }
 
             let unreachable_to_snap = mk_function_unreachable_identifier(vcx, name_s);
@@ -346,7 +336,7 @@ impl TaskEncoder for TypeEncoder {
                 unique: false,
                 name: s_discr_func_name,
                 args: vcx.alloc_slice(&[ty_s]),
-                ret: discr_type,
+                ret: discr_type.snapshot,
             }));
 
             let mut predicate_accumulator = vcx.mk_bool::<false>();
@@ -356,20 +346,22 @@ impl TaskEncoder for TypeEncoder {
             let discr_field_access = vcx.mk_field_expr(self_local, field_discriminant);
             let mut snap_accumulator = unreachable_to_snap.apply(vcx, []);
 
-            for (idx, variant) in adt.variants().iter().enumerate() {
+            for (vidx, discr) in adt.discriminants(vcx.tcx) {
+                let variant = adt.variant(vidx);
                 let name_s =
-                    vir::vir_format!(vcx, "s_Adt_{did_name}_{idx}_{}", variant.name.as_str());
+                    vir::vir_format!(vcx, "s_Adt_{did_name}_{vidx:?}_{}", variant.name.as_str());
                 let name_p =
-                    vir::vir_format!(vcx, "p_Adt_{did_name}_{idx}_{}", variant.name.as_str());
+                    vir::vir_format!(vcx, "p_Adt_{did_name}_{vidx:?}_{}", variant.name.as_str());
 
                 let ref_to_pred = mk_predicate_ident(name_p);
-                let idx_expr = vcx.mk_const_expr(vir::ConstData::Int(idx as u128));
+                let discr_ty = deps.require_ref::<crate::encoders::TypeEncoder>(discr.ty).unwrap();
+                let idx_expr = discr_ty.expr_from_u128(discr.val);
 
                 let (_, cons_call) = mk_enum_variant(
                     vcx,
                     deps,
                     variant,
-                    idx,
+                    vidx,
                     idx_expr,
                     ty_s,
                     name_s,
@@ -395,14 +387,18 @@ impl TaskEncoder for TypeEncoder {
 
             let predicate = {
                 let acc = vcx.mk_acc_field_expr(self_local, field_discriminant);
+                let discr_field_access_int = discr_type.expect_prim().snap_to_prim.apply(vcx, [discr_field_access]);
 
                 // TODO: handle the empty enum? i guess the lower and upper bound together for an empty enum are false which is correct?
-                let disc_lower_bound =
-                    vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, discr_field_access, vcx.mk_int::<0>());
+                let disc_lower_bound = vcx.mk_bin_op_expr(
+                    vir::BinOpKind::CmpGe,
+                    discr_field_access_int,
+                    vcx.mk_int::<0>(),
+                );
 
                 let disc_upper_bound = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpLt,
-                    discr_field_access,
+                    discr_field_access_int,
                     variants_len,
                 );
 
@@ -431,15 +427,16 @@ impl TaskEncoder for TypeEncoder {
             {
                 let self_local = vcx.mk_local_ex("self");
                 let discr_func_call = snap_to_disc_snap.apply(vcx, [self_local]);
+                let discr_func_call_int = discr_type.expect_prim().snap_to_prim.apply(vcx, [discr_func_call]);
                 let body1 = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpGe,
-                    discr_func_call,
+                    discr_func_call_int,
                     vcx.mk_int::<0>(),
                 );
 
                 let body2 = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpLt,
-                    discr_func_call,
+                    discr_func_call_int,
                     variants_len,
                 );
 
@@ -459,7 +456,7 @@ impl TaskEncoder for TypeEncoder {
 
             Ok(TypeEncoderOutput {
                 fields: vcx.alloc_slice(&[vcx.alloc(vir::FieldData {
-                    ty: discr_type, 
+                    ty: discr_type.snapshot, 
                     name: field_discriminant,
                 })]),
                 snapshot: vir::vir_domain! { vcx; domain [name_s] {
@@ -480,7 +477,7 @@ impl TaskEncoder for TypeEncoder {
             vcx: &'vir vir::VirCtxt<'tcx>,
             deps: &mut TaskEncoderDependencies<'vir>,
             variant: &ty::VariantDef,
-            variant_idx: usize,
+            variant_idx: abi::VariantIdx,
             variant_idx_expr: vir::Expr<'vir>,
             ty_s: &'vir vir::TypeData<'vir>,
             name_s: &'vir str,
@@ -571,7 +568,7 @@ impl TaskEncoder for TypeEncoder {
                     )
                 };
 
-                axioms.push(vcx.mk_domain_axiom(vir::vir_format!(vcx, "ax_{name_s}_cons_{variant_idx}_discr"), ax));
+                axioms.push(vcx.mk_domain_axiom(vir::vir_format!(vcx, "ax_{name_s}_cons_{variant_idx:?}_discr"), ax));
             }
 
             mk_read_write_axioms(vcx, &fields, field_access, axioms, ty_s, name_s);
