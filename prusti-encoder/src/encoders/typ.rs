@@ -1381,23 +1381,6 @@ fn mk_cons_read_axioms<'vir, 'tcx>(
     let (cons_qvars, cons_args, cons_call) =
         cons_read_parts(vcx, field_ty_out, field_snaps_to_snap);
 
-    // TODO: remove
-    // for (read_idx, _) in field_ty_out.iter().enumerate() {
-    //     let cons_read = field_access[read_idx].read.apply(vcx, [cons_call]);
-    //     axioms.push(vcx.alloc(vir::DomainAxiomData {
-    //         name: vir::vir_format!(vcx, "ax_{name_s}_cons_read_{read_idx}"),
-    //         expr: vcx.alloc(vir::ExprData::Forall(vcx.alloc(vir::ForallData {
-    //             qvars: cons_qvars,
-    //             triggers: vcx.alloc_slice(&[vcx.alloc_slice(&[cons_call])]),
-    //             body: vcx.alloc(vir::ExprData::BinOp(vcx.alloc(vir::BinOpData {
-    //                 kind: vir::BinOpKind::CmpEq,
-    //                 lhs: cons_read,
-    //                 rhs: cons_args[read_idx],
-    //             }))),
-    //         }))),
-    //     }));
-    // }
-
     for (read_idx, _) in field_ty_out.iter().enumerate() {
         let cons_read = field_access[read_idx].read.apply(vcx, [cons_call]);
         axioms.push(
@@ -1437,22 +1420,6 @@ fn cons_read_parts<'vir, 'tcx>(
         ))
         .collect::<Vec<_>>();
     let cons_call = field_snaps_to_snap.apply(vcx, &cons_args);
-    // TODO: remove
-    // let cons_qvars = vcx.alloc_slice(
-    //     &field_ty_out
-    //         .iter()
-    //         .enumerate()
-    //         .map(|(idx, field_ty_out)| {
-    //             vcx.mk_local_decl(vir::vir_format!(vcx, "f{idx}"), field_ty_out.snapshot)
-    //         })
-    //         .collect::<Vec<_>>(),
-    // );
-    // let cons_args = field_ty_out
-    //     .iter()
-    //     .enumerate()
-    //     .map(|(idx, _field_ty_out)| vcx.mk_local_ex(vir::vir_format!(vcx, "f{idx}")))
-    //     .collect::<Vec<_>>();
-    // let cons_call = field_snaps_to_snap.apply(vcx, &cons_args);
     (cons_qvars, cons_args, cons_call)
 }
 
