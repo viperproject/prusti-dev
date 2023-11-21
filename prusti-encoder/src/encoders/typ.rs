@@ -265,7 +265,7 @@ impl TaskEncoder for TypeEncoder {
                 let name_p =
                     vir::vir_format!(vcx, "p_Adt_{did_name}_{idx}_{}", variant.name.as_str());
 
-                // FIXME dedup with the mk_enum_variant code
+                // TODO dedup with the mk_enum_variant code
                 let substs = ty::List::identity_for_item(vcx.tcx, variant.def_id);
 
                 let fields = variant
