@@ -137,28 +137,27 @@ impl TaskEncoder for MirImpureEncoder {
                 let mut start_stmts = Vec::new();
                 for local in (arg_count..body.local_decls.len()).map(mir::Local::from) {
                     let name_p = local_defs.locals[local].local.name;
-                    start_stmts.push(vcx.alloc(vir::StmtData::LocalDecl(
-                        vir::vir_local_decl! { vcx; [name_p] : Ref },
-                        None,
-                    )))
+                    start_stmts.push(
+                        vcx.mk_local_decl_stmt(vir::vir_local_decl! { vcx; [name_p] : Ref }, None)
+                    )
                 }
                 if ENCODE_REACH_BB {
                     start_stmts.extend((0..block_count)
                         .map(|block| {
                             let name = vir::vir_format!(vcx, "_reach_bb{block}");
-                            vcx.alloc(vir::StmtData::LocalDecl(
+                            vcx.mk_local_decl_stmt(
                                 vir::vir_local_decl! { vcx; [name] : Bool },
-                                Some(vcx.alloc(vir::ExprData::Todo("false"))),
-                            ))
+                                Some(vcx.mk_todo_expr("false"))
+                            )
                         }));
                 }
-                encoded_blocks.push(vcx.alloc(vir::CfgBlockData {
-                    label: vcx.alloc(vir::CfgBlockLabelData::Start),
-                    stmts: vcx.alloc_slice(&start_stmts),
-                    terminator: vcx.alloc(vir::TerminatorStmtData::Goto(
-                        vcx.alloc(vir::CfgBlockLabelData::BasicBlock(0)),
-                    )),
-                }));
+                encoded_blocks.push(
+                    vcx.mk_cfg_block(
+                        vcx.alloc(vir::CfgBlockLabelData::Start),
+                        vcx.alloc_slice(&start_stmts),
+                        vcx.mk_goto_stmt(vcx.alloc(vir::CfgBlockLabelData::BasicBlock(0)))
+                    )
+                );
 
                 let mut visitor = EncoderVisitor {
                     vcx,
@@ -179,11 +178,13 @@ impl TaskEncoder for MirImpureEncoder {
                 };
                 visitor.visit_body(&body);
 
-                visitor.encoded_blocks.push(vcx.alloc(vir::CfgBlockData {
-                    label: vcx.alloc(vir::CfgBlockLabelData::End),
-                    stmts: &[],
-                    terminator: vcx.alloc(vir::TerminatorStmtData::Exit),
-                }));
+                visitor.encoded_blocks.push(
+                    vcx.mk_cfg_block(
+                        vcx.alloc(vir::CfgBlockLabelData::End),
+                        &[],
+                        vcx.alloc(vir::TerminatorStmtData::Exit)
+                    )
+                );
                 Some(vcx.alloc_slice(&visitor.encoded_blocks))
             } else {
                 None
@@ -210,14 +211,14 @@ impl TaskEncoder for MirImpureEncoder {
             posts.extend(spec_posts);
 
             Ok((MirImpureEncoderOutput {
-                method: vcx.alloc(vir::MethodData {
-                    name: method_name,
-                    args: vcx.alloc_slice(&args),
-                    rets: &[],
-                    pres: vcx.alloc_slice(&pres),
-                    posts: vcx.alloc_slice(&posts),
-                    blocks,
-                }),
+                method: vcx.mk_method(
+                    method_name,
+                    vcx.alloc_slice(&args),
+                    &[],
+                    vcx.alloc_slice(&pres),
+                    vcx.alloc_slice(&posts),
+                    blocks
+                ),
             }, ()))
         })
     }
@@ -246,11 +247,11 @@ struct EncoderVisitor<'tcx, 'vir, 'enc>
 }
 
 impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
-    fn stmt(&mut self, stmt: vir::StmtData<'vir>) {
+    fn stmt(&mut self, stmt: vir::Stmt<'vir>) {
         self.current_stmts
             .as_mut()
             .unwrap()
-            .push(self.vcx.alloc(stmt));
+            .push(stmt);
     }
 
     fn project_one(
@@ -350,9 +351,9 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                     let ref_p = self.encode_place(place);
                     let predicate = place_ty_out.ref_to_pred.apply(self.vcx, [ref_p]);
                     if matches!(repack_op, mir_state_analysis::free_pcs::RepackOp::Expand(..)) {
-                        self.stmt(vir::StmtData::Unfold(predicate));
+                        self.stmt(self.vcx.mk_unfold_stmt(predicate));
                     } else {
-                        self.stmt(vir::StmtData::Fold(predicate));
+                        self.stmt(self.vcx.mk_fold_stmt(predicate));
                     }
                 }
                 RepackOp::Weaken(place, CapabilityKind::Exclusive, CapabilityKind::Write) => {
@@ -364,9 +365,9 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                     ).unwrap();
 
                     let ref_p = self.encode_place(place);
-                    self.stmt(vir::StmtData::Exhale(self.vcx.alloc(vir::ExprData::PredicateApp(
+                    self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_predicate_app_expr(
                         place_ty_out.ref_to_pred.apply(self.vcx, [ref_p])
-                    ))));
+                    )));
                 }
                 unsupported_op => panic!("unsupported repack op: {unsupported_op:?}"),
             }
@@ -389,13 +390,10 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                 let snap_val = ty_out.ref_to_snap.apply(self.vcx, [place_exp]);
 
                 let tmp_exp = self.new_tmp(ty_out.snapshot).1;
-                self.stmt(vir::StmtData::PureAssign(self.vcx.alloc(vir::PureAssignData {
-                    lhs: tmp_exp,
-                    rhs: snap_val,
-                })));
-                self.stmt(vir::StmtData::Exhale(self.vcx.alloc(vir::ExprData::PredicateApp(
+                self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
+                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_predicate_app_expr(
                     ty_out.ref_to_pred.apply(self.vcx, [place_exp])
-                ))));
+                )));
                 tmp_exp
             }
             &mir::Operand::Copy(source) => {
@@ -433,7 +431,7 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
             }
         };
         let tmp_exp = self.new_tmp(&vir::TypeData::Ref).1;
-        self.stmt(ty_out.method_assign.apply(self.vcx, [tmp_exp, snap_val]));
+        self.stmt(self.vcx.alloc(ty_out.method_assign.apply(self.vcx, [tmp_exp, snap_val])));
         tmp_exp
     }
 
@@ -459,24 +457,37 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
         match constant.literal {
             mir::ConstantKind::Val(const_val, const_ty) => {
                 match const_ty.kind() {
-                    ty::TyKind::Tuple(tys) if tys.len() == 0 => self.vcx.alloc(vir::ExprData::Todo(
-                        vir::vir_format!(self.vcx, "s_Tuple0_cons()"),
-                    )),
+                    ty::TyKind::Tuple(tys) if tys.len() == 0 =>
+                        self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "s_Tuple0_cons()")),
                     ty::TyKind::Int(int_ty) => {
                         let scalar_val = const_val.try_to_scalar_int().unwrap();
-                        self.vcx.alloc(vir::ExprData::Todo(
-                            vir::vir_format!(self.vcx, "s_Int_{}_cons({})", int_ty.name_str(), scalar_val.try_to_int(scalar_val.size()).unwrap()),
-                        ))
+                        self.vcx.mk_todo_expr(
+                            vir::vir_format!(
+                                self.vcx,
+                                "s_Int_{}_cons({})",
+                                int_ty.name_str(),
+                                scalar_val.try_to_int(scalar_val.size()).unwrap()
+                            )
+                        )
                     }
                     ty::TyKind::Uint(uint_ty) => {
                         let scalar_val = const_val.try_to_scalar_int().unwrap();
-                        self.vcx.alloc(vir::ExprData::Todo(
-                            vir::vir_format!(self.vcx, "s_Uint_{}_cons({})", uint_ty.name_str(), scalar_val.try_to_uint(scalar_val.size()).unwrap()),
-                        ))
+                        self.vcx.mk_todo_expr(
+                            vir::vir_format!(
+                                self.vcx,
+                                "s_Uint_{}_cons({})",
+                                uint_ty.name_str(),
+                                scalar_val.try_to_uint(scalar_val.size()).unwrap()
+                            )
+                        )
                     }
-                    ty::TyKind::Bool => self.vcx.alloc(vir::ExprData::Todo(
-                        vir::vir_format!(self.vcx, "s_Bool_cons({})", const_val.try_to_bool().unwrap()),
-                    )),
+                    ty::TyKind::Bool => self.vcx.mk_todo_expr(
+                        vir::vir_format!(
+                            self.vcx,
+                            "s_Bool_cons({})",
+                            const_val.try_to_bool().unwrap()
+                        )
+                    ),
                     unsupported_ty => todo!("unsupported constant literal type: {unsupported_ty:?}"),
                 }
             }
@@ -487,7 +498,7 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     fn new_tmp(&mut self, ty: &'vir vir::TypeData<'vir>) -> (vir::Local<'vir>, vir::Expr<'vir>) {
         let name = vir::vir_format!(self.vcx, "_tmp{}", self.tmp_ctr);
         self.tmp_ctr += 1;
-        self.stmt(vir::StmtData::LocalDecl(
+        self.stmt(self.vcx.mk_local_decl_stmt(
             vir::vir_local_decl! { self.vcx; [name] : [ty] },
             None,
         ));
@@ -511,10 +522,14 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
             data.statements.len(), // TODO: not exact?
         ));
         if ENCODE_REACH_BB {
-            self.stmt(vir::StmtData::PureAssign(self.vcx.alloc(vir::PureAssignData {
-                lhs: self.vcx.mk_local_ex(vir::vir_format!(self.vcx, "_reach_bb{}", block.as_usize())),
-                rhs: self.vcx.mk_bool::<true>(),
-            })));
+            self.stmt(
+                self.vcx.mk_pure_assign_stmt(
+                    self.vcx.mk_local_ex(
+                        vir::vir_format!(self.vcx, "_reach_bb{}", block.as_usize())
+                    ),
+                    self.vcx.mk_bool::<true>()
+                )
+            );
         }
 
         /*
@@ -548,11 +563,13 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
         self.super_basic_block_data(block, data);
         let stmts = self.current_stmts.take().unwrap();
         let terminator = self.current_terminator.take().unwrap();
-        self.encoded_blocks.push(self.vcx.alloc(vir::CfgBlockData {
-            label: self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())),
-            stmts: self.vcx.alloc_slice(&stmts),
-            terminator,
-        }));
+        self.encoded_blocks.push(
+            self.vcx.mk_cfg_block(
+                self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())),
+                self.vcx.alloc_slice(&stmts),
+                terminator
+            )
+        );
     }
 
     fn visit_statement(
@@ -574,7 +591,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
             }
         }
 
-        self.stmt(vir::StmtData::Comment(
+        self.stmt(self.vcx.mk_comment_stmt(
             // TODO: also add bb and location for better debugging?
             vir::vir_format!(self.vcx, "{statement:?}"),
         ));
@@ -678,7 +695,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         let cons_args: Vec<_> = fields.iter().map(|field| self.encode_operand_snap(field)).collect();
                         let cons = cons_name.apply(self.vcx, &cons_args);
 
-                        self.stmt(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, cons]));
+                        self.stmt(self.vcx.alloc(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, cons])));
                         None
                     }
 
@@ -687,14 +704,12 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     //mir::Rvalue::CopyForDeref(Place<'tcx>) => {}
                     other => {
                         tracing::error!("unsupported rvalue {other:?}");
-                        Some(self.vcx.alloc(vir::ExprData::Todo(
-                            vir::vir_format!(self.vcx, "rvalue {rvalue:?}"),
-                        )))
+                        Some(self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "rvalue {rvalue:?}")))
                     }
                 };
 
                 if let Some(expr) = expr {
-                    self.stmt(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, expr]));
+                    self.stmt(self.vcx.alloc(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, expr])));
                 }
             }
 
@@ -720,7 +735,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
         terminator: &mir::Terminator<'tcx>,
         location: mir::Location,
     ) {
-        self.stmt(vir::StmtData::Comment(
+        self.stmt(self.vcx.mk_comment_stmt(
             // TODO: also add bb and location for better debugging?
             vir::vir_format!(self.vcx, "{:?}", terminator.kind),
         ));
@@ -731,9 +746,9 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
         let terminator = match &terminator.kind {
             mir::TerminatorKind::Goto { target }
             | mir::TerminatorKind::FalseUnwind { real_target: target, .. } =>
-                self.vcx.alloc(vir::TerminatorStmtData::Goto(
-                    self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
-                )),
+                self.vcx.mk_goto_stmt(
+                    self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize()))
+                ),
             mir::TerminatorKind::SwitchInt { discr, targets } => {
                 //let discr_version = self.ssa_analysis.version.get(&(location, discr.local)).unwrap();
                 //let discr_name = vir::vir_format!(self.vcx, "_{}s_{}", discr.local.index(), discr_version);
@@ -753,15 +768,14 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                 ));
 
                 let discr_ex = self.encode_operand_snap(discr);
-                self.vcx.alloc(vir::TerminatorStmtData::GotoIf(self.vcx.alloc(vir::GotoIfData {
-                    value: discr_ex, // self.vcx.mk_local_ex(discr_name),
-                    targets: goto_targets,
-                    otherwise: goto_otherwise,
-                })))
+                self.vcx.mk_goto_if_stmt(
+                    discr_ex, // self.vcx.mk_local_ex(discr_name),
+                    goto_targets,
+                    goto_otherwise,
+                )
             }
-            mir::TerminatorKind::Return => self.vcx.alloc(vir::TerminatorStmtData::Goto(
-                self.vcx.alloc(vir::CfgBlockLabelData::End),
-            )),
+            mir::TerminatorKind::Return =>
+                self.vcx.mk_goto_stmt(self.vcx.alloc(vir::CfgBlockLabelData::End)),
             mir::TerminatorKind::Call {
                 func,
                 args,
@@ -792,7 +806,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     let func_args: Vec<_> = args.iter().map(|op| self.encode_operand_snap(op)).collect();
                     let pure_func_app = pure_func.function_ref.apply(self.vcx, &func_args);
 
-                    self.stmt(pure_func.return_type.method_assign.apply(self.vcx, [dest, pure_func_app]));
+                    self.stmt(self.vcx.alloc(pure_func.return_type.method_assign.apply(self.vcx, [dest, pure_func_app])));
                 } else {
                     let func_out = self.deps.require_ref::<crate::encoders::MirImpureEncoder>(
                         (task.0, task.1, Some(task.2)),
@@ -803,12 +817,12 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         .chain(method_in)
                         .collect::<Vec<_>>();
 
-                    self.stmt(func_out.method_ref.apply(self.vcx, &method_args));
+                    self.stmt(self.vcx.alloc(func_out.method_ref.apply(self.vcx, &method_args)));
                 }
 
-                self.vcx.alloc(vir::TerminatorStmtData::Goto(
-                    self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.unwrap().as_usize())),
-                ))
+                self.vcx.mk_goto_stmt(
+                    self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.unwrap().as_usize()))
+                )
             }
             mir::TerminatorKind::Assert { cond, expected, msg, target, unwind } => {
                 let e_bool = self.deps.require_ref::<crate::encoders::TypeEncoder>(
@@ -816,13 +830,9 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                 ).unwrap();
                 let enc = self.encode_operand_snap(cond);
                 let enc = e_bool.expect_prim().snap_to_prim.apply(self.vcx, [enc]);
-                let expected = self.vcx.alloc(vir::ExprData::Const(self.vcx.alloc(vir::ConstData::Bool(*expected))));
-                let assert = self.vcx.alloc(vir::ExprData::BinOp(self.vcx.alloc(vir::BinOpData {
-                    kind: vir::BinOpKind::CmpEq,
-                    lhs: enc,
-                    rhs: expected,
-                })));
-                self.stmt(vir::StmtData::Exhale(assert));
+                let expected = self.vcx.mk_const_expr(vir::ConstData::Bool(*expected));
+                let assert = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, enc, expected);
+                self.stmt(self.vcx.mk_exhale_stmt(assert));
 
                 let target_bb = self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize()));
                 let otherwise = match unwind {
@@ -831,15 +841,11 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     _ => todo!()
                 };
 
-                self.vcx.alloc(vir::TerminatorStmtData::GotoIf(self.vcx.alloc(vir::GotoIfData {
-                    value: enc,  
-                    targets: self.vcx.alloc_slice(&[(expected, &target_bb)]),
-                    otherwise,
-                })))
+                self.vcx.mk_goto_if_stmt(enc, self.vcx.alloc_slice(&[(expected, &target_bb)]), otherwise)
             }
-            unsupported_kind => self.vcx.alloc(vir::TerminatorStmtData::Dummy(
-                vir::vir_format!(self.vcx, "terminator {unsupported_kind:?}"),
-            )),
+            unsupported_kind => self.vcx.mk_dummy_stmt(
+                vir::vir_format!(self.vcx, "terminator {unsupported_kind:?}")
+            ),
         };
         assert!(self.current_terminator.replace(terminator).is_none());
     }
