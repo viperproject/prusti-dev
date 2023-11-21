@@ -248,11 +248,6 @@ struct EncoderVisitor<'tcx, 'vir, 'enc>
     encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
 }
 
-enum LocationOrTerminator {
-    Terminator(usize),
-    Location(mir::Location)
-}
-
 impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     fn stmt(&mut self, stmt: vir::Stmt<'vir>) {
         self.current_stmts
@@ -276,9 +271,8 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                 let field_ref = ty_out_struct.field_access[f.as_usize()].projection_p.apply(self.vcx, [base]);
                 (field_ref, field_ty_out)
             }
-            mir::ProjectionElem::Downcast(name, idx) => {
+            mir::ProjectionElem::Downcast(_, idx) => {
                 let ty_out_struct = &ty_out.expect_enumlike().variants[idx.as_usize()];
-
                 (base, ty_out_struct.clone())
             }
             other => panic!("unsupported projection {other:?}"),
@@ -337,36 +331,26 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     }
     */
 
-    /// Do the same as [self::fpcs_repacks_terminator] but instead of adding the statements to [self.current_stmts] return them instead
+    /// Do the same as [self.fpcs_repacks_terminator] but instead of adding the statements to [self.current_stmts] return them instead.
+    /// TODO: clean this up
     fn collect_terminator_repacks(
         &mut self,
         idx: usize,
         repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) -> Vec<&'vir vir::StmtData<'vir>> {
-        let mut real_stmts = Some(Vec::new());
-
-        std::mem::swap(&mut self.current_stmts, &mut real_stmts);
+        let current_stmts = self.current_stmts.take();
+        self.current_stmts = Some(Vec::new());
         self.fpcs_repacks_terminator(idx, repacks);
-        std::mem::swap(&mut self.current_stmts, &mut real_stmts);
-
-        real_stmts.unwrap()
+        let new_stmts = self.current_stmts.take().unwrap();
+        self.current_stmts = current_stmts;
+        new_stmts
     }
-   
 
     fn fpcs_repacks(
         &mut self,
-        l_or_t: LocationOrTerminator,
-        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
+        repacks: &[RepackOp<'tcx>],
     ) {
-        let current_fpcs = self.current_fpcs.take().unwrap();
-
-        let repacks_result = match l_or_t {
-            LocationOrTerminator::Terminator(succ_idx) => repacks(&current_fpcs.terminator.succs[succ_idx]),
-            LocationOrTerminator::Location(l) => repacks(&current_fpcs.statements[l.statement_index])
-        };
-
-
-        for &repack_op in repacks_result {
+        for &repack_op in repacks {
             match repack_op {
                 RepackOp::Expand(place, _target, capability_kind)
                 | RepackOp::Collapse(place, _target, capability_kind) => {
@@ -382,15 +366,13 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                         place_ty.ty,
                     ).unwrap();
 
-                    let pred_name = match place_ty.variant_index {
-                        None => place_ty_out.ref_to_pred,
-                        Some(idx) => {
-                            place_ty_out.expect_enumlike().variants[idx.as_usize()].ref_to_pred
-                        }
+                    let variant = match place_ty.variant_index {
+                        None => &place_ty_out,
+                        Some(idx) => &place_ty_out.expect_enumlike().variants[idx.as_usize()],
                     };
 
                     let ref_p = self.encode_place(place);
-                    let predicate = pred_name.apply(self.vcx, [ref_p]);
+                    let predicate = variant.ref_to_pred.apply(self.vcx, [ref_p]);
                     if matches!(repack_op, mir_state_analysis::free_pcs::RepackOp::Expand(..)) {
                         self.stmt(self.vcx.mk_unfold_stmt(predicate));
                     } else {
@@ -413,7 +395,6 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                 unsupported_op => panic!("unsupported repack op: {unsupported_op:?}"),
             }
         }
-        self.current_fpcs = Some(current_fpcs);
     }
     
 
@@ -422,7 +403,10 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
         location: mir::Location,
         repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) {
-        self.fpcs_repacks(LocationOrTerminator::Location(location), repacks)
+        let current_fpcs = self.current_fpcs.take().unwrap();
+        let repacks = repacks(&current_fpcs.statements[location.statement_index]);
+        self.fpcs_repacks(repacks);
+        self.current_fpcs = Some(current_fpcs);
     }
 
     fn fpcs_repacks_terminator(
@@ -430,7 +414,10 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
         succ_idx: usize,
         repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) {
-        self.fpcs_repacks(LocationOrTerminator::Terminator(succ_idx), repacks)
+        let current_fpcs = self.current_fpcs.take().unwrap();
+        let repacks = repacks(&current_fpcs.terminator.succs[succ_idx]);
+        self.fpcs_repacks(repacks);
+        self.current_fpcs = Some(current_fpcs);
     }
 
     fn encode_operand_snap(
@@ -662,12 +649,6 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                 //let ssa_update = self.ssa_analysis.updates.get(&location).cloned().unwrap();
                 //assert!(ssa_update.local == dest.local);
 
-                let dest_ty = dest.ty(self.local_decls, self.vcx.tcx);
-                assert!(dest_ty.variant_index.is_none());
-                let dest_ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                    dest_ty.ty,
-                ).unwrap();
-
                 //let old_name_s = vir::vir_format!(self.vcx, "_{}s_{}", dest.local.index(), ssa_update.old_version);
                 //let name_s = vir::vir_format!(self.vcx, "_{}s_{}", dest.local.index(), ssa_update.new_version);
                 //let ty_s = self.local_types[ssa_update.local].snapshot;
@@ -686,7 +667,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                 // multiple assignments performed in multiple statements. In
                 // such a case, `expr` is left as `None`.
                 let expr = match rvalue {
-                    mir::Rvalue::Use(op) => Some(self.encode_operand_snap(op)),
+                    mir::Rvalue::Use(op) => self.encode_operand_snap(op),
 
                     //mir::Rvalue::Repeat(Operand<'tcx>, Const<'tcx>) => {}
                     //mir::Rvalue::Ref(Region<'tcx>, BorrowKind, Place<'tcx>) => {}
@@ -708,10 +689,10 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         let binop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEncoder>(
                             task
                         ).unwrap().function;
-                        Some(binop_function.apply(self.vcx, &[
+                        binop_function.apply(self.vcx, &[
                             self.encode_operand_snap(l),
                             self.encode_operand_snap(r),
-                        ]))
+                        ])
                     }
 
                     //mir::Rvalue::NullaryOp(NullOp, Ty<'tcx>) => {}
@@ -725,7 +706,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                                 operand_ty,
                             ),
                         ).unwrap().function;
-                        Some(unop_function.apply(self.vcx, &[self.encode_operand_snap(operand)]))
+                        unop_function.apply(self.vcx, &[self.encode_operand_snap(operand)])
                         /*
                         assert!(source.projection.is_empty());
                         let source_version = self.ssa_analysis.version.get(&(location, source.local)).unwrap();
@@ -744,47 +725,33 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     }
 
                     mir::Rvalue::Aggregate(
-                        kind @ (box mir::AggregateKind::Adt(..) | box mir::AggregateKind::Tuple),
+                        box kind @ (mir::AggregateKind::Adt(..) | mir::AggregateKind::Tuple),
                         fields,
                     ) => {
                         let sl = match kind {
-                            box mir::AggregateKind::Adt(_,vidx,_, _, _)  => {
-                                match &dest_ty_out.specifics {
-                                    TypeEncoderOutputRefSub::StructLike(sl) => {
-                                        assert_eq!(vidx.as_u32(), 0);
-                                        sl
-                                    },
-                                    TypeEncoderOutputRefSub::EnumLike(el) => el.variants[vidx.as_usize()].expect_structlike(),
-                                    TypeEncoderOutputRefSub::Param => todo!(),
-                                    TypeEncoderOutputRefSub::Primitive(_) => todo!(),
-                                }
-                            }
-                            _ => dest_ty_out.expect_structlike()
+                            mir::AggregateKind::Adt(_, vidx, _, _, _) =>
+                                e_rvalue_ty.expect_variant(*vidx),
+                            _ => e_rvalue_ty.expect_structlike()
                         };
-
                         let cons_args: Vec<_> = fields.iter().map(|field| self.encode_operand_snap(field)).collect();
-                        let cons = sl.field_snaps_to_snap.apply(self.vcx, &cons_args);
-
-                        self.stmt(self.vcx.alloc(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, cons])));
-                        None
+                        sl.field_snaps_to_snap.apply(self.vcx, &cons_args)
                     }
                     mir::Rvalue::Discriminant(place) => {
                         let place_ty = self.local_defs.locals[place.local].ty.clone();
                         let place_expr = self.encode_place(Place::from(*place));
 
                         let discr_expr = match place_ty.specifics {
-                            TypeEncoderOutputRefSub::EnumLike(el) => {
-                                self.vcx.alloc(vir::ExprGenData::Field(place_expr, el.field_discriminant))
-                            }
+                            TypeEncoderOutputRefSub::EnumLike(el) =>
+                                self.vcx.mk_field_expr(place_expr, el.field_discriminant),
                             _ => {
                                 // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
-                                self.vcx.mk_const_expr(0u128.into())
+                                self.vcx.mk_uint::<0>()
                             }
                         };
                         let discr_expr_unfold = self.vcx
                             .mk_unfolding_expr(place_ty.ref_to_pred.apply(self.vcx, [place_expr]), discr_expr);
 
-                        Some(dest_ty_out.expect_prim().prim_to_snap.apply(self.vcx, [discr_expr_unfold]))
+                        e_rvalue_ty.expect_prim().prim_to_snap.apply(self.vcx, [discr_expr_unfold])
                     }
 
                     //mir::Rvalue::Discriminant(Place<'tcx>) => {}
@@ -792,13 +759,17 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     //mir::Rvalue::CopyForDeref(Place<'tcx>) => {}
                     other => {
                         tracing::error!("unsupported rvalue {other:?}");
-                        Some(self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "rvalue {rvalue:?}")))
+                        self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "rvalue {rvalue:?}"))
                     }
                 };
 
-                if let Some(expr) = expr {
-                    self.stmt(self.vcx.alloc(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, expr])));
-                }
+                let dest_ty = dest.ty(self.local_decls, self.vcx.tcx);
+                assert!(dest_ty.variant_index.is_none());
+                let dest_ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                    dest_ty.ty,
+                ).unwrap();
+
+                self.stmt(self.vcx.alloc(dest_ty_out.method_assign.apply(self.vcx, [proj_ref, expr])));
             }
 
             // no-ops ?

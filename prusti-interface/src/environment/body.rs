@@ -276,7 +276,7 @@ impl<'tcx> EnvBody<'tcx> {
         self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
     }
 
-    pub fn get_promoted_constant_body(&self,  def_id: DefId, promoted: mir::Promoted ) -> MirBody<'tcx> {
+    pub fn get_promoted_constant_body(&self,  def_id: DefId, promoted: mir::Promoted) -> MirBody<'tcx> {
        MirBody(Rc::new(
             self.tcx.promoted_mir(def_id)[promoted].clone(),
         ))
