@@ -100,7 +100,7 @@ impl<'vir, 'tcx> TaskEncoder<'vir, 'tcx> for MirBodyImpureEncoder<'vir, 'tcx> {
     );
     // TaskKey, OutputRef same as above
     type OutputFull = vir::Method<'vir>;
-} 
+}
 
 struct MirTyEncoder<'vir, 'tcx>(PhantomData<&'vir ()>, PhantomData<&'tcx ()>);
 impl<'vir, 'tcx> TaskEncoder<'vir, 'tcx> for MirTyEncoder<'vir, 'tcx> {
@@ -220,20 +220,15 @@ pub fn test_entrypoint<'tcx>(
 
     std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
 
-    vir::with_vcx(|vcx| vcx.alloc(vir::ProgramData {
-        fields: &[],
-        domains: &[],
-        predicates: &[],
-        functions: vcx.alloc_slice(&[
-            vcx.alloc(vir::FunctionData {
-                name: "test_function",
-                args: &[],
-                ret: &vir::TypeData::Bool,
-                pres: &[],
-                posts: &[],
-                expr: None,
-            }),
-        ]),
-        methods: &[],
-    }))
+    vir::with_vcx(|vcx|
+        vcx.mk_program(
+            &[],
+            &[],
+            &[],
+            vcx.alloc_slice(&[
+                vcx.mk_function("test_function", &[], &vir::TypeData::Bool, &[], &[], None),
+            ]),
+            &[]
+        )
+    )
 }
