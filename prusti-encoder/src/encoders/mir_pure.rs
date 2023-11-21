@@ -517,22 +517,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         curr_ver: &HashMap<mir::Local, usize>,
         rvalue: &mir::Rvalue<'tcx>,
     ) -> ExprRet<'vir> {
-        if let mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(..), fields) = rvalue {
-            // TODO: only when this is a spec closure?
-            let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
-                fields.len(),
-            ).unwrap();
-            let fields = fields.iter()
-                .map(|field| self.encode_operand(curr_ver, field))
-                .collect::<Vec<_>>();
-            return tuple_ref.mk_cons(self.vcx, &fields);
-        }
-
         let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx);
-        let e_rvalue_ty = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-            rvalue_ty,
-        ).unwrap();
-
         match rvalue {
             mir::Rvalue::Use(op) => self.encode_operand(curr_ver, op),
             // Repeat
@@ -574,8 +559,20 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             }
             // Discriminant
             mir::Rvalue::Aggregate(box kind, fields) => match kind {
-                mir::AggregateKind::Closure(..) => unreachable!(),
+                mir::AggregateKind::Closure(..) => {
+                    // TODO: only when this is a spec closure?
+                    let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
+                        fields.len(),
+                    ).unwrap();
+                    let fields = fields.iter()
+                        .map(|field| self.encode_operand(curr_ver, field))
+                        .collect::<Vec<_>>();
+                    tuple_ref.mk_cons(self.vcx, &fields)
+                }
                 mir::AggregateKind::Adt(..) | mir::AggregateKind::Tuple => {
+                    let e_rvalue_ty = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                        rvalue_ty,
+                    ).unwrap();
                     let sl = match kind {
                         mir::AggregateKind::Adt(_, vidx, _, _, _) =>
                             e_rvalue_ty.expect_variant(*vidx),
