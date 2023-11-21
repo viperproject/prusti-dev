@@ -484,65 +484,6 @@ impl<'tcx> VirCtxt<'tcx> {
         }
     }
 
-    pub fn mk_bin_op<'vir, Curr, Next>(
-        &'vir self,
-        kind: BinOpKind,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::BinOp(self.alloc(BinOpGenData {
-            kind,
-            lhs,
-            rhs,
-        })))
-    }
-
-    pub fn mk_and<'vir, Curr, Next>(
-        &'vir self,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.mk_bin_op(BinOpKind::And, lhs, rhs)
-    }
-
-    pub fn mk_eq<'vir, Curr, Next>(
-        &'vir self,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.mk_bin_op(BinOpKind::CmpEq, lhs, rhs)
-    }
-
-    pub fn mk_forall<'vir, Curr, Next>(
-        &'vir self,
-        qvars: &'vir [&'vir LocalDeclData<'vir>],
-        triggers: &'vir [&'vir [ExprGen<'vir, Curr, Next>]],
-        body: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::Forall(self.alloc(ForallGenData {
-            qvars,
-            triggers,
-            body,
-        })))
-    }
-
-    pub fn mk_tern<'vir, Curr, Next>(
-        &'vir self,
-        cond: ExprGen<'vir, Curr, Next>,
-        then: ExprGen<'vir, Curr, Next>,
-        else_: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::Ternary(self.alloc(TernaryGenData {
-            cond,
-            then,
-            else_,
-        })))
-    }
-
-    pub fn mk_const<'vir, Curr, Next>(&'vir self, cnst: ConstData) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::Const(self.alloc(cnst)))
-    }
-
     pub fn mk_conj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
         if elems.len() == 0 {
             return self.mk_bool::<true>();
