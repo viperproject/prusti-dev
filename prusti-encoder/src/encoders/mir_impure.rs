@@ -256,39 +256,6 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
             .push(stmt);
     }
 
-    fn project_one(
-        &mut self,
-        base: vir::Expr<'vir>,
-        ty_out: crate::encoders::TypeEncoderOutputRef<'vir>,
-        projection: mir::PlaceElem<'tcx>,
-    ) -> (vir::Expr<'vir>, crate::encoders::TypeEncoderOutputRef<'vir>) {
-        match projection {
-            mir::ProjectionElem::Field(f, ty) => {
-                let ty_out_struct = ty_out.expect_structlike();
-                let field_ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
-                    ty,
-                ).unwrap();
-                let field_ref = ty_out_struct.field_access[f.as_usize()].projection_p.apply(self.vcx, [base]);
-                (field_ref, field_ty_out)
-            }
-            mir::ProjectionElem::Downcast(_, idx) => {
-                let ty_out_struct = &ty_out.expect_enumlike().variants[idx.as_usize()];
-                (base, ty_out_struct.clone())
-            }
-            other => panic!("unsupported projection {other:?}"),
-        }
-    }
-
-    fn project(
-        &mut self,
-        base: vir::Expr<'vir>,
-        ty_out: crate::encoders::TypeEncoderOutputRef<'vir>,
-        projection: &'vir [mir::PlaceElem<'tcx>],
-    ) -> (vir::Expr<'vir>, crate::encoders::TypeEncoderOutputRef<'vir>) {
-        projection.iter()
-            .fold((base, ty_out), |(base, ty_out), proj| self.project_one(base, ty_out, *proj))
-    }
-
     /*
     fn project_fields(
         &mut self,
@@ -366,13 +333,13 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                         place_ty.ty,
                     ).unwrap();
 
-                    let variant = match place_ty.variant_index {
-                        None => &place_ty_out,
-                        Some(idx) => &place_ty_out.expect_enumlike().variants[idx.as_usize()],
+                    let ref_to_pred = match place_ty.variant_index {
+                        None => &place_ty_out.ref_to_pred,
+                        Some(idx) => &place_ty_out.expect_enumlike().variants[idx.as_usize()].1,
                     };
 
                     let ref_p = self.encode_place(place);
-                    let predicate = variant.ref_to_pred.apply(self.vcx, [ref_p]);
+                    let predicate = ref_to_pred.apply(self.vcx, [ref_p]);
                     if matches!(repack_op, mir_state_analysis::free_pcs::RepackOp::Expand(..)) {
                         self.stmt(self.vcx.mk_unfold_stmt(predicate));
                     } else {
@@ -486,11 +453,28 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     ) -> vir::Expr<'vir> {
         //assert!(place.projection.is_empty());
         //self.vcx.mk_local_ex(vir::vir_format!(self.vcx, "_{}p", place.local.index()))
-        self.project(
-            self.local_defs.locals[place.local].local_ex,
-            self.local_defs.locals[place.local].ty.clone(),
-            place.projection,
-        ).0
+        
+        let mut place_ty =  mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
+        let mut expr = self.local_defs.locals[place.local].local_ex;
+        for &elem in place.projection {
+            expr = self.encode_place_element(place_ty, elem, expr);
+            place_ty = place_ty.projection_ty(self.vcx.tcx, elem);
+        }
+        expr
+    }
+
+    fn encode_place_element(&mut self, place_ty: mir::tcx::PlaceTy<'tcx>, elem: mir::PlaceElem<'tcx>, expr: vir::Expr<'vir>) -> vir::Expr<'vir> {
+         match elem {
+            mir::ProjectionElem::Field(field_idx, _) => {
+                let e_ty = self.deps.require_ref::<crate::encoders::TypeEncoder>(place_ty.ty).unwrap();
+                let field_access = e_ty.expect_variant_opt(place_ty.variant_index).field_access;
+                let projection_p = field_access[field_idx.as_usize()].projection_p;
+                projection_p.apply(self.vcx, [expr])
+            }
+            // All variants start at the same `Ref`?
+            mir::ProjectionElem::Downcast(..) => expr,
+            _ => todo!("Unsupported ProjectionElem {:?}", elem),
+        }
     }
 
     // TODO: this will not work for unevaluated constants (which needs const
@@ -740,18 +724,17 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         let place_ty = self.local_defs.locals[place.local].ty.clone();
                         let place_expr = self.encode_place(Place::from(*place));
 
-                        let discr_expr = match place_ty.specifics {
-                            TypeEncoderOutputRefSub::EnumLike(el) =>
-                                self.vcx.mk_field_expr(place_expr, el.field_discriminant),
+                        match place_ty.specifics {
+                            TypeEncoderOutputRefSub::EnumLike(el) => {
+                                let discr_expr = self.vcx.mk_field_expr(place_expr, el.field_discriminant);
+                                self.vcx.mk_unfolding_expr(place_ty.ref_to_pred.apply(self.vcx, [place_expr]), discr_expr)
+                            }
                             _ => {
                                 // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
-                                self.vcx.mk_uint::<0>()
+                                let zero = self.vcx.mk_uint::<0>();
+                                e_rvalue_ty.expect_prim().prim_to_snap.apply(self.vcx, [zero])
                             }
-                        };
-                        let discr_expr_unfold = self.vcx
-                            .mk_unfolding_expr(place_ty.ref_to_pred.apply(self.vcx, [place_expr]), discr_expr);
-
-                        e_rvalue_ty.expect_prim().prim_to_snap.apply(self.vcx, [discr_expr_unfold])
+                        }
                     }
 
                     //mir::Rvalue::Discriminant(Place<'tcx>) => {}
