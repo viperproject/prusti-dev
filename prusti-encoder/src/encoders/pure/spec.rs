@@ -117,7 +117,7 @@ impl TaskEncoder for MirSpecEncoder {
                 all_args
             } else {
                 let post_args: Vec<_> = pre_args.iter().map(|arg|
-                        vcx.alloc(vir::ExprData::Old(arg))
+                        vcx.mk_old_expr(arg)
                     )
                     .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
                     .collect();

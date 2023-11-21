@@ -21,7 +21,6 @@ pub enum MirPureEncoderError {
 
 // TODO: does this need to be `&'vir [..]`?
 type ExprInput<'vir> = (DefId, &'vir [vir::Expr<'vir>]);
-type ExprRetData<'vir> = vir::ExprGenData<'vir, ExprInput<'vir>, vir::Expr<'vir>>;
 type ExprRet<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::Expr<'vir>>;
 
 #[derive(Clone, Debug)]
@@ -124,7 +123,7 @@ impl TaskEncoder for MirPureEncoder {
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
             // only the type system.
-            vcx.alloc(vir::ExprGenData::Lazy(
+            vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
                 Box::new(move |vcx, lctx: ExprInput<'_>| {
                     // check: are we actually providing arguments for the
@@ -137,7 +136,7 @@ impl TaskEncoder for MirPureEncoder {
                     use vir::Reify;
                     expr_inner.reify(vcx, lctx)
                 }),
-            ))
+            )
         });
         tracing::debug!("finished {def_id:?}");
 
@@ -262,16 +261,10 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
     ) -> ExprRet<'vir> {
         update.binds.iter()
             .rfold(expr, |expr, bind| match bind {
-                UpdateBind::Local(local, ver, val) => self.vcx.alloc(ExprRetData::Let(self.vcx.alloc(vir::LetGenData {
-                    name: self.mk_local(*local, *ver),
-                    val,
-                    expr,
-                }))),
-                UpdateBind::Phi(idx, val) => self.vcx.alloc(ExprRetData::Let(self.vcx.alloc(vir::LetGenData {
-                    name: self.mk_phi(*idx),
-                    val,
-                    expr,
-                }))),
+                UpdateBind::Local(local, ver, val) =>
+                    self.vcx.mk_let_expr(self.mk_local(*local, *ver), val, expr),
+                UpdateBind::Phi(idx, val) =>
+                    self.vcx.mk_let_expr(self.mk_phi(*idx), val, expr),
             })
     }
 
@@ -303,10 +296,10 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         let mut init = Update::new();
         init.versions.insert(mir::RETURN_PLACE, 0);
         for local in 1..=self.body.arg_count {
-            let local_ex = self.vcx.alloc(vir::ExprGenData::Lazy(
+            let local_ex = self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "pure in _{local}"),
                 Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local - 1]),
-            ));
+            );
             init.binds.push(UpdateBind::Local(local.into(), 0, local_ex));
             init.versions.insert(local.into(), 0);
         }
@@ -319,7 +312,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
 
         let res = init.merge(update);
         let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(0);
-      
+
         self.reify_binds(res, self.mk_local_ex(mir::RETURN_PLACE, ret_version))
     }
 
@@ -409,15 +402,15 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                     .zip(updates.into_iter())
                     .fold(
                         self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, otherwise_update),
-                        |expr, ((cond_val, target), (_, branch_update))| self.vcx.alloc(ExprRetData::Ternary(self.vcx.alloc(vir::TernaryGenData {
-                            cond: self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
-                                kind: vir::BinOpKind::CmpEq,
-                                lhs: discr_expr,
-                                rhs: discr_ty_out.expr_from_u128(cond_val).lift(),
-                            }))),
-                            then: self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, branch_update),
-                            else_: expr,
-                        }))),
+                        |expr, ((cond_val, target), (_, branch_update))| self.vcx.mk_ternary_expr(
+                            self.vcx.mk_bin_op_expr(
+                                vir::BinOpKind::CmpEq,
+                                discr_expr,
+                                discr_ty_out.expr_from_u128(cond_val).lift()
+                            ),
+                            self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, branch_update),
+                            expr,
+                        ),
                     );
 
                 // assign tuple into a `phi` variable
@@ -506,7 +499,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             },
             mir::StatementKind::StorageDead(..)
             | mir::StatementKind::FakeRead(..)
-            | mir::StatementKind::AscribeUserType(..) 
+            | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::PlaceMention(..) => {}, // nop
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 assert!(dest.projection.is_empty());
@@ -543,11 +536,11 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 ).unwrap().expect_prim().prim_to_snap;
 
                 ty_rvalue.apply(self.vcx,
-                    [self.vcx.alloc(ExprRetData::BinOp(self.vcx.alloc(vir::BinOpGenData {
-                        kind: op.into(),
-                        lhs: ty_l.apply(self.vcx, [self.encode_operand(curr_ver, l)]),
-                        rhs: ty_r.apply(self.vcx, [self.encode_operand(curr_ver, r)]),
-                    })))],
+                    [self.vcx.mk_bin_op_expr(
+                        op.into(),
+                        ty_l.apply(self.vcx, [self.encode_operand(curr_ver, l)]),
+                        ty_r.apply(self.vcx, [self.encode_operand(curr_ver, r)])
+                    )],
                 )
             }
             // CheckedBinaryOp
@@ -561,19 +554,17 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 ).unwrap().expect_prim().prim_to_snap;
 
                 ty_rvalue.apply(self.vcx,
-                    [self.vcx.alloc(ExprRetData::UnOp(self.vcx.alloc(vir::UnOpGenData {
-                        kind: op.into(),
-                        expr: ty_expr.apply(self.vcx, [self.encode_operand(curr_ver, expr)]),
-                    })))]
+                    [self.vcx.mk_unary_op_expr(
+                        op.into(),
+                        ty_expr.apply(self.vcx, [self.encode_operand(curr_ver, expr)]),
+                    )]
                 )
             }
             // Discriminant
             mir::Rvalue::Aggregate(box kind, fields) => match kind {
                 mir::AggregateKind::Tuple if fields.len() == 0 =>
                     // TODO: why is this not a constant?
-                    self.vcx.alloc(ExprRetData::Todo(
-                        vir::vir_format!(self.vcx, "s_Tuple0_cons()"),
-                    )),
+                    self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "s_Tuple0_cons()")),
                 mir::AggregateKind::Closure(..) => {
                     // TODO: only when this is a spec closure?
                     let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
@@ -621,24 +612,34 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 match constant.literal {
                     mir::ConstantKind::Val(const_val, const_ty) => {
                         match const_ty.kind() {
-                            ty::TyKind::Tuple(tys) if tys.len() == 0 => self.vcx.alloc(ExprRetData::Todo(
-                                vir::vir_format!(self.vcx, "s_Tuple0_cons()"),
-                            )),
+                            ty::TyKind::Tuple(tys) if tys.len() == 0 =>
+                                self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "s_Tuple0_cons()")),
                             ty::TyKind::Int(int_ty) => {
                                 let scalar_val = const_val.try_to_scalar_int().unwrap();
-                                self.vcx.alloc(ExprRetData::Todo(
-                                    vir::vir_format!(self.vcx, "s_Int_{}_cons({})", int_ty.name_str(), scalar_val.try_to_int(scalar_val.size()).unwrap()),
-                                ))
+                                self.vcx.mk_todo_expr(
+                                    vir::vir_format!(
+                                        self.vcx,
+                                        "s_Int_{}_cons({})",
+                                        int_ty.name_str(),
+                                        scalar_val.try_to_int(scalar_val.size()).unwrap()
+                                    )
+                                )
                             }
                             ty::TyKind::Uint(uint_ty) => {
                                 let scalar_val = const_val.try_to_scalar_int().unwrap();
-                                self.vcx.alloc(ExprRetData::Todo(
-                                    vir::vir_format!(self.vcx, "s_Uint_{}_cons({})", uint_ty.name_str(), scalar_val.try_to_uint(scalar_val.size()).unwrap()),
-                                ))
+                                self.vcx.mk_todo_expr(
+                                    vir::vir_format!(
+                                        self.vcx,
+                                        "s_Uint_{}_cons({})",
+                                        uint_ty.name_str(),
+                                        scalar_val.try_to_uint(scalar_val.size()).unwrap()
+                                    )
+                                )
                             }
-                            ty::TyKind::Bool => self.vcx.alloc(ExprRetData::Todo(
-                                vir::vir_format!(self.vcx, "s_Bool_cons({})", const_val.try_to_bool().unwrap()),
-                            )),
+                            ty::TyKind::Bool =>
+                                self.vcx.mk_todo_expr(
+                                    vir::vir_format!(self.vcx, "s_Bool_cons({})", const_val.try_to_bool().unwrap())
+                                ),
                             unsupported_ty => todo!("unsupported constant literal type: {unsupported_ty:?}"),
                         }
                     }
@@ -656,9 +657,9 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         // TODO: remove (debug)
         if !curr_ver.contains_key(&place.local) {
             tracing::error!("unknown version of local! {}", place.local.as_usize());
-            return self.vcx.alloc(ExprRetData::Todo(
-                vir::vir_format!(self.vcx, "unknown_version_{}", place.local.as_usize()),
-            ));
+            return self.vcx.mk_todo_expr(
+                vir::vir_format!(self.vcx, "unknown_version_{}", place.local.as_usize())
+            );
         }
 
         let mut place_ty =  mir::tcx::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
@@ -728,17 +729,17 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 _ => panic!("illegal prusti::builtin"),
             }
         }
-        
+
         match builtin.expect("call to unknown non-pure function in pure code") {
             PrustiBuiltin::SnapshotEquality => {
                 assert_eq!(args.len(), 2);
                 let lhs = self.encode_operand(&curr_ver, &args[0]);
                 let rhs = self.encode_operand(&curr_ver, &args[1]);
-                let eq_expr  = self.vcx.alloc(vir::ExprGenData::BinOp(self.vcx.alloc(vir::BinOpGenData {
-                    kind: vir::BinOpKind::CmpEq,
+                let eq_expr  = self.vcx.mk_bin_op_expr(
+                    vir::BinOpKind::CmpEq,
                     lhs,
                     rhs,
-                })));
+                );
 
                 let bool_cons = self.deps.require_ref::<crate::encoders::TypeEncoder>(
                     self.vcx.tcx.types.bool,
@@ -825,13 +826,11 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 ).unwrap();
                 let bool = bool.expect_prim();
 
-                let forall = bool.prim_to_snap.apply(self.vcx, [self.vcx.alloc(ExprRetData::Forall(self.vcx.alloc(vir::ForallGenData {
+                bool.prim_to_snap.apply(self.vcx, [self.vcx.mk_forall_expr(
                     qvars,
-                    triggers: &[], // TODO
-                    body: bool.snap_to_prim.apply(self.vcx, [body]),
-                })))]);
-
-                forall
+                    &[], // TODO
+                    bool.snap_to_prim.apply(self.vcx, [body]),
+                )])
             }
         }
     }

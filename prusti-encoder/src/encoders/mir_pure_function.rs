@@ -131,14 +131,14 @@ impl TaskEncoder for MirFunctionEncoder {
 
             Ok((
                 MirFunctionEncoderOutput {
-                    function: vcx.alloc(vir::FunctionData {
-                        name: function_name,
-                        args: vcx.alloc_slice(&func_args),
-                        ret: local_defs.locals[mir::RETURN_PLACE].ty.snapshot,
-                        pres: vcx.alloc_slice(&spec.pres),
-                        posts: vcx.alloc_slice(&spec.posts),
-                        expr,
-                    }),
+                    function: vcx.mk_function(
+                        function_name,
+                        vcx.alloc_slice(&func_args),
+                        local_defs.locals[mir::RETURN_PLACE].ty.snapshot,
+                        vcx.alloc_slice(&spec.pres),
+                        vcx.alloc_slice(&spec.posts),
+                        expr
+                    ),
                 },
                 (),
             ))
