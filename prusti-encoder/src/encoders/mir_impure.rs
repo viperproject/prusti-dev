@@ -778,7 +778,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                             }
                             _ => {
                                 // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
-                                self.vcx.mk_const(0u128.into())
+                                self.vcx.mk_const_expr(0u128.into())
                             }
                         };
                         let discr_expr_unfold = self.vcx

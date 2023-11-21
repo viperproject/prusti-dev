@@ -374,13 +374,13 @@ impl TaskEncoder for TypeEncoder {
                     &mut other_predicates,
                 );
 
-                let cond = vcx.mk_eq(discr_field_access, vcx.mk_const(idx.into()));
+                let cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, discr_field_access, vcx.mk_const_expr(idx.into()));
 
                 let pred_call = vcx.alloc(vir::ExprData::PredicateApp(ref_to_pred.apply(vcx, [self_local])));
                 predicate_accumulator =
-                    vcx.mk_tern(cond, pred_call, predicate_accumulator);
+                    vcx.mk_ternary_expr(cond, pred_call, predicate_accumulator);
 
-                snap_accumulator = vcx.mk_tern(cond, cons_call, snap_accumulator)
+                snap_accumulator = vcx.mk_ternary_expr(cond, cons_call, snap_accumulator)
             }
 
             let predicate = {
@@ -388,12 +388,12 @@ impl TaskEncoder for TypeEncoder {
 
                 // TODO: handle the empty enum? i guess the lower and upper bound together for an empty enum are false which is correct?
                 let disc_lower_bound =
-                    vcx.mk_bin_op(vir::BinOpKind::CmpGe, discr_field_access, vcx.mk_int::<0>());
+                    vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, discr_field_access, vcx.mk_int::<0>());
 
-                let disc_upper_bound = vcx.mk_bin_op(
+                let disc_upper_bound = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpLt,
                     discr_field_access,
-                    vcx.mk_const(adt.variants().len().into()),
+                    vcx.mk_const_expr(adt.variants().len().into()),
                 );
 
                 let expr = Some(vcx.mk_conj(&[
@@ -421,23 +421,23 @@ impl TaskEncoder for TypeEncoder {
             {
                 let self_local = vcx.mk_local_ex("self");
                 let discr_func_call = discr_func.apply(vcx, [self_local]);
-                let body1 = vcx.mk_bin_op(
+                let body1 = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpGe,
                     discr_func_call,
-                    vcx.mk_const(0usize.into()),
+                    vcx.mk_const_expr(0usize.into()),
                 );
 
-                let body2 = vcx.mk_bin_op(
+                let body2 = vcx.mk_bin_op_expr(
                     vir::BinOpKind::CmpLt,
                     discr_func_call,
-                    vcx.mk_const(adt.variants().len().into()),
+                    vcx.mk_const_expr(adt.variants().len().into()),
                 );
 
-                let body = vcx.mk_and(body1, body2);
+                let body = vcx.mk_bin_op_expr(vir::BinOpKind::And, body1, body2);
 
                 axioms.push(vcx.mk_domain_axiom(
                     vir::vir_format!(vcx, "ax_{name_s}_discriminant_bounds"),
-                    vcx.mk_forall(
+                    vcx.mk_forall_expr(
                         vcx.alloc_slice(&[vcx.mk_local_decl("self", ty_s)]),
                         &[],
                         body,
@@ -544,16 +544,16 @@ impl TaskEncoder for TypeEncoder {
                 let (cons_qvars, cons_args, cons_call) =
                     cons_read_parts(vcx, &fields, field_snaps_to_snap);
 
-                let body = vcx.mk_eq(
+                let body = vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, 
                     s_discr_func.apply(vcx, [cons_call]),
-                    vcx.mk_const(variant_idx.into()),
+                    vcx.mk_const_expr(variant_idx.into()),
                 );
 
                 let ax = if fields.is_empty() {
                     body
                 } else {
                     // only apply the forall if there are fields
-                    vcx.mk_forall(
+                    vcx.mk_forall_expr(
                         cons_qvars,
                         vcx.alloc_slice(&[vcx.alloc_slice(&[cons_call])]),
                         body,
@@ -584,10 +584,10 @@ impl TaskEncoder for TypeEncoder {
 
                 axioms.push(vcx.mk_domain_axiom(
                     vir::vir_format!(vcx, "ax_{name_s}_discriminant_write_{write_idx}"),
-                    vcx.mk_forall(
+                    vcx.mk_forall_expr(
                         qvars,
                         vcx.alloc_slice(&[vcx.alloc_slice(&[discriminant_of_write])]),
-                        vcx.mk_eq(discriminant_of_write, vcx.mk_const(variant_idx.into())),
+                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, discriminant_of_write, vcx.mk_const_expr(variant_idx.into())),
                     ),
                 ));
             }
