@@ -3,12 +3,15 @@ mod mir_builtin;
 mod mir_impure;
 mod mir_pure;
 mod spec;
-mod typ;
 mod viper_tuple;
 mod mir_pure_function;
-pub mod pure;
-pub mod local_def;
+mod pure;
+mod local_def;
+mod r#type;
 
+pub use pure::*;
+pub use local_def::*;
+pub use r#type::*;
 pub use generic::GenericEncoder;
 pub use mir_builtin::{
     MirBuiltinEncoder,
