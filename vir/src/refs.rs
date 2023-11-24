@@ -7,6 +7,7 @@ pub type Domain<'vir> = &'vir crate::data::DomainData<'vir>;
 pub type DomainAxiom<'vir> = &'vir crate::data::DomainAxiomData<'vir>;
 pub type DomainFunction<'vir> = &'vir crate::data::DomainFunctionData<'vir>;
 pub type Expr<'vir> = &'vir crate::data::ExprData<'vir>;
+pub type ExprKind<'vir> = &'vir crate::data::ExprKindData<'vir>;
 pub type Field<'vir> = &'vir crate::data::FieldData<'vir>;
 pub type Forall<'vir> = &'vir crate::data::ForallData<'vir>;
 pub type FuncApp<'vir> = &'vir crate::data::FuncAppData<'vir>;

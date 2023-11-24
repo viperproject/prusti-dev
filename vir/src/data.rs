@@ -129,6 +129,7 @@ pub type CfgBlockData<'vir> = crate::gendata::CfgBlockGenData<'vir, !, !>;
 pub type DomainAxiomData<'vir> = crate::gendata::DomainAxiomGenData<'vir, !, !>;
 pub type DomainData<'vir> = crate::gendata::DomainGenData<'vir, !, !>;
 pub type ExprData<'vir> = crate::gendata::ExprGenData<'vir, !, !>;
+pub type ExprKindData<'vir> = crate::gendata::ExprKindGenData<'vir, ! ,!>;
 pub type ForallData<'vir> = crate::gendata::ForallGenData<'vir, !, !>;
 pub type FuncAppData<'vir> = crate::gendata::FuncAppGenData<'vir, !, !>;
 pub type FunctionData<'vir> = crate::gendata::FunctionGenData<'vir, !, !>;
