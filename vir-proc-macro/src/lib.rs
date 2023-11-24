@@ -17,7 +17,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
     let name = input.ident;
     let slice_impl = quote! {
         impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr>
-            for [&'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>]
+            for [&'vir #name<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>]
         {
             type Next = &'vir [&'vir #name<'vir, NextA, NextB>];
             fn reify<'tcx>(&self, vcx: &'vir crate::VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
@@ -59,7 +59,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                 .collect::<Vec<_>>();
             quote! {
                 impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr>
-                    for &'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>
+                    for &'vir #name<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>
                 {
                     type Next = &'vir #name<'vir, NextA, NextB>;
                     fn reify<'tcx>(&self, vcx: &'vir crate::VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
@@ -130,7 +130,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                 .collect::<Vec<_>>();
             quote! {
                 impl<'vir, Curr: Copy, NextA, NextB> crate::Reify<'vir, Curr>
-                    for &'vir #name<'vir, Curr, ExprGen<'vir, NextA, NextB>>
+                    for &'vir #name<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>
                 {
                     type Next = &'vir #name<'vir, NextA, NextB>;
                     fn reify<'tcx>(&self, vcx: &'vir crate::VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
