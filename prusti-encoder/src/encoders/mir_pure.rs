@@ -21,7 +21,7 @@ pub enum MirPureEncoderError {
 
 // TODO: does this need to be `&'vir [..]`?
 type ExprInput<'vir> = (DefId, &'vir [vir::Expr<'vir>]);
-type ExprRet<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::Expr<'vir>>;
+type ExprRet<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 
 #[derive(Clone, Debug)]
 pub struct MirPureEncoderOutput<'vir> {
@@ -134,7 +134,7 @@ impl TaskEncoder for MirPureEncoder {
                     assert_eq!(lctx.1.len(), body.arg_count);
 
                     use vir::Reify;
-                    expr_inner.reify(vcx, lctx)
+                    expr_inner.kind.reify(vcx, lctx)
                 }),
             )
         });
@@ -298,7 +298,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         for local in 1..=self.body.arg_count {
             let local_ex = self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "pure in _{local}"),
-                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local - 1]),
+                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local - 1].kind),
             );
             init.binds.push(UpdateBind::Local(local.into(), 0, local_ex));
             init.versions.insert(local.into(), 0);
