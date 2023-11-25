@@ -280,7 +280,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         prim_type: vir::Type<'vir>,
     ) -> DomainEncSpecifics<'vir> {
         let prim_type_args = self.vcx.alloc_array(&[prim_type]);
-        let data = self.mk_field_functions(prim_type_args, None);
+        let data = self.mk_field_functions(prim_type_args, None, ty.is_integral());
         // TODO: what to do about write?
         let snap_to_prim = data.field_access[0].read;
         let specifics = DomainDataPrim {
@@ -290,7 +290,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         };
         specifics.bounds(ty).map(|(lower, upper)| {
             let exp = snap_to_prim.apply(self.vcx, [self.self_ex]);
-            let axiom = self.mk_bounds_axioms(self.domain.name(), exp, lower, upper);
+            let axiom = self.mk_bounds_axiom(self.domain.name(), exp, lower, upper);
             self.axioms.push(axiom);
         });
         DomainEncSpecifics::Primitive(specifics)
@@ -299,7 +299,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         &mut self,
         fields: Vec<vir::Type<'vir>>,
     ) -> DomainEncSpecifics<'vir> {
-        let specifics = self.mk_field_functions(self.vcx.alloc_slice(&fields), None);
+        let specifics = self.mk_field_functions(self.vcx.alloc_slice(&fields), None, false);
         DomainEncSpecifics::StructLike(specifics)
     }
     pub fn mk_enum_specifics(
@@ -313,7 +313,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
             let snap_to_discr_snap = self.mk_discr_function(discr_ty);
             let variants = self.vcx.alloc_slice(&data.variants.iter().enumerate().map(|(idx, (name, vid, fields, _))| {
                 let discr = (snap_to_discr_snap, data.discr_prim.prim_to_snap.apply(self.vcx, [discr_vals[idx]]), *name);
-                let fields = self.mk_field_functions(self.vcx.alloc_slice(fields), Some(discr));
+                let fields = self.mk_field_functions(self.vcx.alloc_slice(fields), Some(discr), false);
                 DomainDataVariant { name: *name, vid: *vid, discr: discr_vals[idx], fields }
             }).collect::<Vec<_>>());
             let discr_bounds = self.mk_discr_bounds_axioms(data.discr_prim, snap_to_discr_snap, discr_vals, data.has_explicit);
@@ -333,6 +333,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         &mut self,
         field_tys: &'vir [vir::Type<'vir>],
         discr: Option<(FunctionIdent<'vir, UnaryArity<'vir>>, vir::Expr<'vir>, symbol::Symbol)>,
+        stronger_cons_axiom: bool,
     ) -> DomainDataStruct<'vir> {
         let name = self.domain.name();
         let base = discr.map(|(_, _, v)| format!("{name}_{v}")).unwrap_or_else(|| name.to_string());
@@ -417,11 +418,19 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
                 // Constructing from reads leads to same result
                 let all_reads: Vec<_> = field_access.iter().map(|field_access| field_access.read.apply(self.vcx, [self.self_ex])).collect();
                 let cons_call_with_reads = field_snaps_to_snap.apply(self.vcx, &all_reads);
+                let trigger = if stronger_cons_axiom {
+                    // Integer types require a simpler trigger to be complete
+                    // when snapshot equality may be used on them.
+                    assert_eq!(all_reads.len(), 1);
+                    all_reads[0]
+                } else {
+                    cons_call_with_reads
+                };
                 self.axioms.push(self.vcx.mk_domain_axiom(
                     vir::vir_format!(self.vcx, "ax_{base}_cons"),
                     self.vcx.mk_forall_expr(
                         self.self_decl,
-                    self.vcx.alloc_slice(&[self.vcx.alloc_slice(&[cons_call_with_reads])]),
+                    self.vcx.alloc_slice(&[self.vcx.alloc_slice(&[trigger])]),
                         self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, cons_call_with_reads, self.self_ex)
                     )
                 ));
@@ -489,12 +498,12 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
             let base = format!("{}_discr", self.domain.name());
             let lower = discr_vals.first().unwrap();
             let upper = discr_vals.last().unwrap();
-            let axiom = self.mk_bounds_axioms(&base, discr_prim, lower, upper);
+            let axiom = self.mk_bounds_axiom(&base, discr_prim, lower, upper);
             self.axioms.push(axiom);
             DiscrBounds::Range { lower, upper }
         }
     }
-    fn mk_bounds_axioms(
+    fn mk_bounds_axiom(
         &self,
         base: &str,
         exp: vir::Expr<'vir>,
