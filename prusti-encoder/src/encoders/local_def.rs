@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 use std::cell::RefCell;
 
-use crate::encoders::TypeEncoderOutputRef;
+use crate::encoders::PredicateEncOutputRef;
 
 pub struct MirLocalDefEncoder;
 #[derive(Clone, Copy)]
@@ -23,7 +23,7 @@ pub struct LocalDef<'vir> {
     pub local_ex: vir::Expr<'vir>,
     pub impure_snap: vir::Expr<'vir>,
     pub impure_pred: vir::Expr<'vir>,
-    pub ty: &'vir crate::encoders::TypeEncoderOutputRef<'vir>,
+    pub ty: &'vir crate::encoders::PredicateEncOutputRef<'vir>,
 }
 
 thread_local! {
@@ -73,7 +73,7 @@ impl TaskEncoder for MirLocalDefEncoder {
     > {
         let (def_id, substs, caller_def_id) = *task_key;
         deps.emit_output_ref::<Self>(*task_key, ());
-        fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: TypeEncoderOutputRef<'vir>) -> LocalDef<'vir> {
+        fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: PredicateEncOutputRef<'vir>) -> LocalDef<'vir> {
             let local = vcx.mk_local(name);
             let local_ex = vcx.mk_local_ex_local(local);
             let impure_snap = ty.ref_to_snap.apply(vcx, [local_ex]);
@@ -92,7 +92,7 @@ impl TaskEncoder for MirLocalDefEncoder {
                 let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {
                     let local = vir::vir_format!(vcx, "_{}p", arg.index());
-                    let ty = deps.require_ref::<crate::encoders::TypeEncoder>(
+                    let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
                         body.local_decls[arg].ty,
                     ).unwrap();
                     mk_local_def(vcx, local, ty)
@@ -114,7 +114,7 @@ impl TaskEncoder for MirLocalDefEncoder {
                     } else {
                         sig.inputs()[arg.index() - 1]
                     };
-                    let ty = deps.require_ref::<crate::encoders::TypeEncoder>(
+                    let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
                         ty,
                     ).unwrap();
                     mk_local_def(vcx, local, ty)

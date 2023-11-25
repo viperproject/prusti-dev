@@ -92,7 +92,7 @@ impl TaskEncoder for MirSpecEncoder {
                 all_args
             };
 
-            let to_bool = deps.require_ref::<crate::encoders::TypeEncoder>(
+            let to_bool = deps.require_ref::<crate::encoders::PredicateEnc>(
                 vcx.tcx.types.bool,
             ).unwrap().expect_prim().snap_to_prim;
 

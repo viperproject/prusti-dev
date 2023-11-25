@@ -40,7 +40,7 @@ fn indent(s: String) -> String {
 
 impl<'vir, Curr, Next> Debug for AccFieldGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "acc({:?}.{})", self.recv, self.field)
+        write!(f, "acc({:?}.{})", self.recv, self.field.name)
     }
 }
 
@@ -127,7 +127,7 @@ impl<'vir, Curr, Next> Debug for ExprGenData<'vir, Curr, Next> {
             Self::AccField(e) => e.fmt(f),
             Self::BinOp(e) => e.fmt(f),
             Self::Const(e) => e.fmt(f),
-            Self::Field(e, field) => write!(f, "{:?}.{}", e, field),
+            Self::Field(e, field) => write!(f, "{:?}.{}", e, field.name),
             Self::Forall(e) => e.fmt(f),
             Self::FuncApp(e) => e.fmt(f),
             Self::Let(e) => e.fmt(f),
@@ -165,9 +165,16 @@ impl<'vir, Curr, Next> Debug for ForallGenData<'vir, Curr, Next> {
 
 impl<'vir, Curr, Next> Debug for FuncAppGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if self.result_ty.is_some() {
+            write!(f, "(")?;
+        }
         write!(f, "{}(", self.target)?;
         fmt_comma_sep(f, &self.args)?;
-        write!(f, ")")
+        write!(f, ")")?;
+        if let Some(rt) = self.result_ty {
+            write!(f, ": {rt:?})")?;
+        }
+        Ok(())
     }
 }
 
@@ -340,14 +347,24 @@ impl<'vir> Debug for TypeData<'vir> {
         match self {
             Self::Int { .. } => write!(f, "Int"),
             Self::Bool => write!(f, "Bool"),
-            Self::Domain(name) => write!(f, "{}", name),
-            Self::DomainParams(name, params) => {
-                write!(f, "{}[", name)?;
-                fmt_comma_sep(f, &params)?;
-                write!(f, "]")
+            Self::DomainTypeParam(name) => write!(f, "{name}"),
+            Self::Domain(name, params) => {
+                write!(f, "{name}")?;
+                if !params.is_empty() {
+                    write!(f, "[")?;
+                    fmt_comma_sep(f, &params)?;
+                    write!(f, "]")?;
+                }
+                Ok(())
             }
             Self::Ref => write!(f, "Ref"),
         }
+    }
+}
+
+impl<'vir> Display for DomainParamData<'vir> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "{}", self.name)
     }
 }
 

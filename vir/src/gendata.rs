@@ -37,6 +37,7 @@ pub struct ForallGenData<'vir, Curr, Next> {
 pub struct FuncAppGenData<'vir, Curr, Next> {
     #[reify_copy] pub(crate) target: &'vir str, // TODO: identifiers
     pub(crate) args: &'vir [ExprGen<'vir, Curr, Next>],
+    #[reify_copy] pub(crate) result_ty: Option<Type<'vir>>,
 }
 
 #[derive(Reify)]
@@ -54,7 +55,7 @@ pub struct UnfoldingGenData<'vir, Curr, Next> {
 #[derive(Reify)]
 pub struct AccFieldGenData<'vir, Curr, Next> {
     pub(crate) recv: ExprGen<'vir, Curr, Next>,
-    #[reify_copy] pub(crate) field: &'vir str, // TODO: identifiers
+    #[reify_copy] pub(crate) field: Field<'vir>, // TODO: identifiers
     // TODO: permission amount
 }
 
@@ -83,7 +84,7 @@ impl<A, B: GenRow> GenRow for fn(A) -> B {
 
 pub enum ExprGenData<'vir, Curr: 'vir, Next: 'vir> {
     Local(Local<'vir>),
-    Field(ExprGen<'vir, Curr, Next>, &'vir str), // TODO: FieldApp?
+    Field(ExprGen<'vir, Curr, Next>, Field<'vir>), // TODO: FieldApp?
     Old(ExprGen<'vir, Curr, Next>),
     //LabelledOld(Expr<'vir>, &'vir str),
     Const(Const<'vir>),
@@ -127,7 +128,7 @@ pub struct DomainAxiomGenData<'vir, Curr, Next> {
 #[derive(Reify)]
 pub struct DomainGenData<'vir, Curr, Next> {
     #[reify_copy] pub(crate) name: &'vir str, // TODO: identifiers
-    #[reify_copy] pub(crate) typarams: &'vir [&'vir str],
+    #[reify_copy] pub(crate) typarams: &'vir [DomainParamData<'vir>],
     pub(crate) axioms: &'vir [DomainAxiomGen<'vir, Curr, Next>],
     #[reify_copy] pub(crate) functions: &'vir [DomainFunction<'vir>],
 }
