@@ -9,7 +9,8 @@ use task_encoder::{
     TaskEncoderDependencies,
 };
 use std::collections::HashMap;
-use crate::encoders::{ViperTupleEncoder, TypeEncoder, typ::TypeEncoderOutputRefSub};
+// TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
+use crate::encoders::{ViperTupleEncoder, PredicateEnc, SnapshotEnc, MirFunctionEncoder, MirBuiltinEncoder, ConstEncoder};
 
 pub struct MirPureEncoder;
 
@@ -234,7 +235,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
 
     fn mk_phi_acc(
         &self,
-        tuple_ref: crate::encoders::ViperTupleEncoderOutputRef<'vir>,
+        tuple_ref: crate::encoders::ViperTupleEncoderOutput<'vir>,
         idx: usize,
         elem_idx: usize,
     ) -> ExprRet<'vir> {
@@ -269,7 +270,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
 
     fn reify_branch(
         &self,
-        tuple_ref: &crate::encoders::ViperTupleEncoderOutputRef<'vir>,
+        tuple_ref: &crate::encoders::ViperTupleEncoderOutput<'vir>,
         mod_locals: &Vec<mir::Local>,
         curr_ver: &HashMap<mir::Local, usize>,
         update: Update<'vir>,
@@ -368,7 +369,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             mir::TerminatorKind::SwitchInt { discr, targets } => {
                 // encode the discriminant operand
                 let discr_expr = self.encode_operand(&new_curr_ver, discr);
-                let discr_ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                let discr_ty_out = self.deps.require_local::<SnapshotEnc>(
                     discr.ty(self.body, self.vcx.tcx),
                 ).unwrap();
 
@@ -393,7 +394,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 mod_locals.dedup();
 
                 // for each branch, create a Viper tuple of the updated locals
-                let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
+                let tuple_ref = self.deps.require_local::<ViperTupleEncoder>(
                     mod_locals.len(),
                 ).unwrap();
                 let (join, otherwise_update) = updates.pop().unwrap();
@@ -407,7 +408,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             self.vcx.mk_bin_op_expr(
                                 vir::BinOpKind::CmpEq,
                                 discr_expr,
-                                discr_ty_out.expr_from_u128(cond_val).lift()
+                                discr_ty_out.specifics.expect_primitive().expr_from_bits(cond_val).lift()
                             ),
                             self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, branch_update),
                             expr,
@@ -457,7 +458,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             def_spec.kind.is_pure().unwrap_or_default()
                         ).unwrap_or_default();
                         if is_pure {
-                            let pure_func = self.deps.require_ref::<crate::encoders::MirFunctionEncoder>(
+                            let pure_func = self.deps.require_ref::<MirFunctionEncoder>(
                                 (def_id, arg_tys, self.def_id)
                             ).unwrap().function_ref;
                             let encoded_args = args.iter()
@@ -537,7 +538,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 } else {
                     CheckedBinOp(rvalue_ty, *op, l_ty, r_ty)
                 };
-                let binop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEncoder>(
+                let binop_function = self.deps.require_ref::<MirBuiltinEncoder>(
                     task
                 ).unwrap().function;
                 binop_function.apply(self.vcx, &[
@@ -548,7 +549,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             // NullaryOp
             mir::Rvalue::UnaryOp(unop, operand) => {
                 let operand_ty = operand.ty(self.body, self.vcx.tcx);
-                let unop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEncoder>(
+                let unop_function = self.deps.require_ref::<MirBuiltinEncoder>(
                     crate::encoders::MirBuiltinEncoderTask::UnOp(
                         rvalue_ty,
                         *unop,
@@ -561,7 +562,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             mir::Rvalue::Aggregate(box kind, fields) => match kind {
                 mir::AggregateKind::Closure(..) => {
                     // TODO: only when this is a spec closure?
-                    let tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
+                    let tuple_ref = self.deps.require_local::<ViperTupleEncoder>(
                         fields.len(),
                     ).unwrap();
                     let fields = fields.iter()
@@ -570,30 +571,33 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                     tuple_ref.mk_cons(self.vcx, &fields)
                 }
                 mir::AggregateKind::Adt(..) | mir::AggregateKind::Tuple => {
-                    let e_rvalue_ty = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                    let e_rvalue_ty = self.deps.require_ref::<PredicateEnc>(
                         rvalue_ty,
                     ).unwrap();
                     let sl = match kind {
                         mir::AggregateKind::Adt(_, vidx, _, _, _) =>
-                            e_rvalue_ty.expect_variant(*vidx),
+                            e_rvalue_ty.get_variant_any(*vidx),
                         _ => e_rvalue_ty.expect_structlike(),
                     };
                     let cons_args: Vec<_> = fields.iter().map(|field| self.encode_operand(curr_ver, field)).collect();
-                    sl.field_snaps_to_snap.apply(self.vcx, &cons_args)
+                    sl.snap_data.field_snaps_to_snap.apply(self.vcx, &cons_args)
                 }
                 _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
             }
             mir::Rvalue::Discriminant(place) => {
-                let snap_to_disc_snap = self
-                    .deps
-                    .require_ref::<crate::encoders::TypeEncoder>(
-                        place.ty(&self.body.local_decls, self.vcx.tcx).ty,
-                    )
-                    .unwrap()
-                    .expect_enumlike()
-                    .snap_to_disc_snap;
-
-                snap_to_disc_snap.apply(self.vcx, [self.encode_place(curr_ver, place)])
+                let place_ty = place.ty(self.body, self.vcx.tcx);
+                let ty = self.deps.require_local::<SnapshotEnc>(place_ty.ty).unwrap().specifics;
+                match ty.get_enumlike().filter(|_| place_ty.variant_index.is_none()) {
+                    Some(ty) => ty.unwrap().snap_to_discr_snap.apply(self.vcx, [self.encode_place(curr_ver, place)]),
+                    None => {
+                        let e_rvalue_ty = self.deps.require_local::<SnapshotEnc>(
+                            rvalue_ty,
+                        ).unwrap().specifics.expect_primitive();
+                        // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
+                        let zero = self.vcx.mk_uint::<0>();
+                        e_rvalue_ty.prim_to_snap.apply(self.vcx, [zero]).lift()
+                    }
+                }
             }
             // ShallowInitBox
             // CopyForDeref
@@ -612,61 +616,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
         match operand {
             mir::Operand::Copy(place)
             | mir::Operand::Move(place) => self.encode_place(curr_ver, place),
-            mir::Operand::Constant(box constant) => {
-                // TODO: duplicated from mir_impure!
-                match constant.literal {
-                    mir::ConstantKind::Val(const_val, const_ty) => {
-                        match const_ty.kind() {
-                            ty::TyKind::Tuple(tys) if tys.len() == 0 =>
-                                self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "s_Tuple0_cons()")),
-                            ty::TyKind::Int(int_ty) => {
-                                let scalar_val = const_val.try_to_scalar_int().unwrap();
-                                self.vcx.mk_todo_expr(
-                                    vir::vir_format!(
-                                        self.vcx,
-                                        "s_Int_{}_cons({})",
-                                        int_ty.name_str(),
-                                        scalar_val.try_to_int(scalar_val.size()).unwrap()
-                                    )
-                                )
-                            }
-                            ty::TyKind::Uint(uint_ty) => {
-                                let scalar_val = const_val.try_to_scalar_int().unwrap();
-                                self.vcx.mk_todo_expr(
-                                    vir::vir_format!(
-                                        self.vcx,
-                                        "s_Uint_{}_cons({})",
-                                        uint_ty.name_str(),
-                                        scalar_val.try_to_uint(scalar_val.size()).unwrap()
-                                    )
-                                )
-                            }
-                            ty::TyKind::Bool =>
-                                self.vcx.mk_todo_expr(
-                                    vir::vir_format!(self.vcx, "s_Bool_cons({})", const_val.try_to_bool().unwrap())
-                                ),
-                            unsupported_ty => todo!("unsupported constant literal type: {unsupported_ty:?}"),
-                        }
-                    }
-                    mir::ConstantKind::Unevaluated(uneval, _) => {
-                        let expr = self
-                            .deps
-                            .require_local::<MirPureEncoder>(MirPureEncoderTask {
-                                encoding_depth: self.encoding_depth + 1,
-                                parent_def_id: uneval.def,
-                                param_env: self.vcx.tcx.param_env(uneval.def),
-                                substs: ty::List::identity_for_item(self.vcx.tcx, uneval.def),
-                                kind: PureKind::Constant(uneval.promoted.unwrap()), 
-                                caller_def_id: self.def_id
-                            })
-                            .unwrap()
-                            .expr;
-                        use vir::Reify;
-                        expr.reify(self.vcx, (uneval.def, &[])).lift()
-                    }
-                    unsupported_literal => todo!("unsupported constant literal: {unsupported_literal:?}"),
-                }
-            }
+            mir::Operand::Constant(box constant) =>
+                self.deps.require_local::<ConstEncoder>((constant.literal, self.encoding_depth, self.def_id)).unwrap().lift(),
         }
     }
 
@@ -685,10 +636,13 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
 
         let mut place_ty =  mir::tcx::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
         let mut expr = self.mk_local_ex(place.local, curr_ver[&place.local]);
+        // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
             expr = self.encode_place_element(place_ty, elem, expr);
             place_ty = place_ty.projection_ty(self.vcx.tcx, elem);
         }
+        // Can we ever have the use of a projected place?
+        assert!(place_ty.variant_index.is_none());
         expr
     }
 
@@ -701,19 +655,20 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 match place_ty.ty.kind() {
                     TyKind::Closure(_def_id, args) => {
                         let upvars = args.as_closure().upvar_tys().iter().collect::<Vec<_>>().len();
-                        let tuple_ref = self.deps.require_ref::<ViperTupleEncoder>(
+                        let tuple_ref = self.deps.require_local::<ViperTupleEncoder>(
                             upvars,
                         ).unwrap();
                         tuple_ref.mk_elem(self.vcx, expr, field_idx)
                     }
                     _ => {
-                        let e_ty = self.deps.require_ref::<TypeEncoder>(place_ty.ty).unwrap();
+                        let e_ty = self.deps.require_ref::<PredicateEnc>(place_ty.ty).unwrap();
                         let struct_like = e_ty.expect_variant_opt(place_ty.variant_index);
-                        let proj = struct_like.field_access[field_idx].read;
+                        let proj = struct_like.snap_data.field_access[field_idx].read;
                         proj.apply(self.vcx, [expr])
                     }
                 }
             }
+            mir::ProjectionElem::Downcast(..) => expr,
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }
     }
@@ -762,9 +717,9 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                     rhs,
                 );
 
-                let bool_cons = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                let bool_cons = self.deps.require_local::<SnapshotEnc>(
                     self.vcx.tcx.types.bool,
-                ).unwrap().expect_prim().prim_to_snap;
+                ).unwrap().specifics.expect_primitive().prim_to_snap;
                 bool_cons.apply(self.vcx, [eq_expr])
             }
             PrustiBuiltin::Forall => {
@@ -784,7 +739,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 let qvars = self.vcx.alloc_slice(&qvar_tys.iter()
                     .enumerate()
                     .map(|(idx, qvar_ty)| {
-                        let ty_out = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                        let ty_out = self.deps.require_ref::<SnapshotEnc>(
                             qvar_ty,
                         ).unwrap();
                         self.vcx.mk_local_decl(
@@ -793,10 +748,10 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                         )
                     })
                     .collect::<Vec<_>>());
-                //let qvar_tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
+                //let qvar_tuple_ref = self.deps.require_ref::<ViperTupleEncoder>(
                 //    qvars.len(),
                 //).unwrap();
-                //let upvar_tuple_ref = self.deps.require_ref::<crate::encoders::ViperTupleEncoder>(
+                //let upvar_tuple_ref = self.deps.require_ref::<ViperTupleEncoder>(
                 //    upvar_tys.len(),
                 //).unwrap();
 
@@ -841,10 +796,10 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                     ))
                     .lift();
 
-                let bool = self.deps.require_ref::<crate::encoders::TypeEncoder>(
+                let bool = self.deps.require_local::<SnapshotEnc>(
                     self.vcx.tcx.types.bool,
-                ).unwrap();
-                let bool = bool.expect_prim();
+                ).unwrap().specifics;
+                let bool = bool.expect_primitive();
 
                 bool.prim_to_snap.apply(self.vcx, [self.vcx.mk_forall_expr(
                     qvars,

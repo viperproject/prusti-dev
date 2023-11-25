@@ -5,10 +5,10 @@ use vir::{Reify, FunctionIdent, UnknownArity, CallableIdent};
 use std::cell::RefCell;
 
 use crate::encoders::{
-    MirPureEncoder, MirPureEncoderTask, SpecEncoder, SpecEncoderTask, TypeEncoder, mir_pure::PureKind,
+    MirPureEncoder, MirPureEncoderTask, mir_pure::PureKind, MirSpecEncoder, MirLocalDefEncoder,
 };
 
-use super::TypeEncoderOutputRef;
+use super::PredicateEncOutputRef;
 pub struct MirFunctionEncoder;
 
 #[derive(Clone, Debug)]
@@ -20,7 +20,7 @@ pub enum MirFunctionEncoderError {
 pub struct MirFunctionEncoderOutputRef<'vir> {
     pub function_ref: FunctionIdent<'vir, UnknownArity<'vir>>,
     /// Always `TypeData::Domain`.
-    pub return_type: &'vir TypeEncoderOutputRef<'vir>,
+    pub return_type: &'vir PredicateEncOutputRef<'vir>,
 }
 impl<'vir> task_encoder::OutputRefAny for MirFunctionEncoderOutputRef<'vir> {}
 
@@ -81,7 +81,7 @@ impl TaskEncoder for MirFunctionEncoder {
         ).unwrap_or_default();
 
         vir::with_vcx(|vcx| {
-            let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEncoder>(
+            let local_defs = deps.require_local::<MirLocalDefEncoder>(
                 (def_id, substs, Some(caller_def_id)),
             ).unwrap();
 
@@ -98,7 +98,7 @@ impl TaskEncoder for MirFunctionEncoder {
             let function_ref = FunctionIdent::new(function_name, args);
             deps.emit_output_ref::<Self>(*task_key, MirFunctionEncoderOutputRef { function_ref, return_type: local_defs.locals[mir::RETURN_PLACE].ty });
 
-            let spec = deps.require_local::<crate::encoders::pure::spec::MirSpecEncoder>(
+            let spec = deps.require_local::<MirSpecEncoder>(
                 (def_id, substs, Some(caller_def_id), true)
             ).unwrap();
 

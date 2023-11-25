@@ -2,7 +2,7 @@ use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
 };
-use vir::{FunctionIdent, CallableIdent, NullaryArity};
+use vir::{FunctionIdent, CallableIdent, NullaryArity, DomainIdent};
 
 pub struct GenericEncoder;
 
@@ -71,19 +71,19 @@ impl TaskEncoder for GenericEncoder {
             predicate_param_name: "p_Param",
             domain_type_name: "s_Type",
         });
-        let s_Type_Bool = FunctionIdent::new("s_Type_Bool", NullaryArity::new([]));
-        let s_Type_Int_isize = FunctionIdent::new("s_Type_Int_isize", NullaryArity::new([]));
-        let s_Type_Int_i8 = FunctionIdent::new("s_Type_Int_i8", NullaryArity::new([]));
-        let s_Type_Int_i16 = FunctionIdent::new("s_Type_Int_i16", NullaryArity::new([]));
-        let s_Type_Int_i32 = FunctionIdent::new("s_Type_Int_i32", NullaryArity::new([]));
-        let s_Type_Int_i64 = FunctionIdent::new("s_Type_Int_i64", NullaryArity::new([]));
-        let s_Type_Int_i128 = FunctionIdent::new("s_Type_Int_i128", NullaryArity::new([]));
-        let s_Type_Uint_usize = FunctionIdent::new("s_Type_Uint_usize", NullaryArity::new([]));
-        let s_Type_Uint_u8 = FunctionIdent::new("s_Type_Uint_u8", NullaryArity::new([]));
-        let s_Type_Uint_u16 = FunctionIdent::new("s_Type_Uint_u16", NullaryArity::new([]));
-        let s_Type_Uint_u32 = FunctionIdent::new("s_Type_Uint_u32", NullaryArity::new([]));
-        let s_Type_Uint_u64 = FunctionIdent::new("s_Type_Uint_u64", NullaryArity::new([]));
-        let s_Type_Uint_u128 = FunctionIdent::new("s_Type_Uint_u128", NullaryArity::new([]));
+        let s_Type_Bool = FunctionIdent::new("s_Type_Bool", NullaryArity::new(&[]));
+        let s_Type_Int_isize = FunctionIdent::new("s_Type_Int_isize", NullaryArity::new(&[]));
+        let s_Type_Int_i8 = FunctionIdent::new("s_Type_Int_i8", NullaryArity::new(&[]));
+        let s_Type_Int_i16 = FunctionIdent::new("s_Type_Int_i16", NullaryArity::new(&[]));
+        let s_Type_Int_i32 = FunctionIdent::new("s_Type_Int_i32", NullaryArity::new(&[]));
+        let s_Type_Int_i64 = FunctionIdent::new("s_Type_Int_i64", NullaryArity::new(&[]));
+        let s_Type_Int_i128 = FunctionIdent::new("s_Type_Int_i128", NullaryArity::new(&[]));
+        let s_Type_Uint_usize = FunctionIdent::new("s_Type_Uint_usize", NullaryArity::new(&[]));
+        let s_Type_Uint_u8 = FunctionIdent::new("s_Type_Uint_u8", NullaryArity::new(&[]));
+        let s_Type_Uint_u16 = FunctionIdent::new("s_Type_Uint_u16", NullaryArity::new(&[]));
+        let s_Type_Uint_u32 = FunctionIdent::new("s_Type_Uint_u32", NullaryArity::new(&[]));
+        let s_Type_Uint_u64 = FunctionIdent::new("s_Type_Uint_u64", NullaryArity::new(&[]));
+        let s_Type_Uint_u128 = FunctionIdent::new("s_Type_Uint_u128", NullaryArity::new(&[]));
         vir::with_vcx(|vcx| Ok((GenericEncoderOutput {
             snapshot_param: vir::vir_domain! { vcx; domain s_Param {} },
             predicate_param: vir::vir_predicate! { vcx; predicate p_Param(self_p: Ref/*, self_s: s_Param*/) },

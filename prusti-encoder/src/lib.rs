@@ -195,31 +195,27 @@ pub fn test_entrypoint<'tcx>(
         viper_code.push_str(&format!("{:?}\n", output.domain_type));
     }
 
+    header(&mut viper_code, "snapshots");
+    for output in crate::encoders::DomainEnc::all_outputs() {
+        viper_code.push_str(&format!("{:?}\n", output));
+    }
+
     header(&mut viper_code, "types");
-    for output in crate::encoders::TypeEncoder::all_outputs() {
+    for output in crate::encoders::PredicateEnc::all_outputs() {
         for field in output.fields {
             viper_code.push_str(&format!("{:?}", field));
         }
-        viper_code.push_str(&format!("{:?}\n", output.snapshot));
-        for field_projection in output.field_projection_p {
+        for field_projection in output.ref_to_field_refs {
             viper_code.push_str(&format!("{:?}", field_projection));
         }
         viper_code.push_str(&format!("{:?}\n", output.unreachable_to_snap));
         viper_code.push_str(&format!("{:?}\n", output.function_snap));
-        viper_code.push_str(&format!("{:?}\n", output.predicate));
-        for pred in output.other_predicates {
+        for pred in output.predicates {
             viper_code.push_str(&format!("{:?}\n", pred));
         }
 
         //viper_code.push_str(&format!("{:?}\n", output.method_refold));
         viper_code.push_str(&format!("{:?}\n", output.method_assign));
-    }
-
-    header(&mut viper_code, "utility types");
-    for output in crate::encoders::ViperTupleEncoder::all_outputs() {
-        if let Some(domain) = output.domain {
-            viper_code.push_str(&format!("{:?}\n", domain));
-        }
     }
 
     std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
