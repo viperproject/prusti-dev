@@ -123,6 +123,13 @@ impl<'vir> Debug for DomainFunctionData<'vir> {
 
 impl<'vir, Curr, Next> Debug for ExprGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        // TODO: Position, etc
+        self.kind.fmt(f)
+    }
+}
+
+impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::AccField(e) => e.fmt(f),
             Self::BinOp(e) => e.fmt(f),
