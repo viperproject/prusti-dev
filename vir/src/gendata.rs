@@ -82,7 +82,13 @@ impl<A, B: GenRow> GenRow for fn(A) -> B {
     type Next = B;
 }*/
 
-pub enum ExprGenData<'vir, Curr: 'vir, Next: 'vir> {
+
+// TODO add position and other metadata
+pub struct ExprGenData<'vir, Curr: 'vir, Next: 'vir>{
+    pub kind: ExprKindGen<'vir, Curr, Next>
+}
+
+pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Local(Local<'vir>),
     Field(ExprGen<'vir, Curr, Next>, Field<'vir>), // TODO: FieldApp?
     Old(ExprGen<'vir, Curr, Next>),
@@ -110,14 +116,13 @@ pub enum ExprGenData<'vir, Curr: 'vir, Next: 'vir> {
     Todo(&'vir str),
 }
 impl<'vir, Curr, Next> ExprGenData<'vir, Curr, Next> {
-    pub fn lift<Prev>(&self) -> ExprGen<'vir, Prev, ExprGen<'vir, Curr, Next>> {
-        match self {
-            Self::Lazy(..) => panic!("cannot lift lazy expression"),
-            e => unsafe { std::mem::transmute(e) },
+    pub fn lift<Prev>(&self) -> ExprGen<'vir, Prev, ExprKindGen<'vir, Curr, Next>> {
+        match self.kind {
+            ExprKindGenData::Lazy(..) => panic!("cannot lift lazy expression"),
+            _ => unsafe { std::mem::transmute(self) },
         }
     }
 }
-// + position, meta?
 
 #[derive(Reify)]
 pub struct DomainAxiomGenData<'vir, Curr, Next> {
