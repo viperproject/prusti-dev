@@ -371,7 +371,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 let discr_expr = self.encode_operand(&new_curr_ver, discr);
                 let discr_ty_out = self.deps.require_local::<SnapshotEnc>(
                     discr.ty(self.body, self.vcx.tcx),
-                ).unwrap();
+                ).unwrap().specifics.expect_primitive();
 
                 // walk `curr` -> `targets[i]` -> `join` for each target. The
                 // join point is identified by reaching a bb where
@@ -407,8 +407,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                         |expr, ((cond_val, target), (_, branch_update))| self.vcx.mk_ternary_expr(
                             self.vcx.mk_bin_op_expr(
                                 vir::BinOpKind::CmpEq,
-                                discr_expr,
-                                discr_ty_out.specifics.expect_primitive().expr_from_bits(cond_val).lift()
+                                discr_ty_out.snap_to_prim.apply(self.vcx, [discr_expr]),
+                                discr_ty_out.expr_from_bits(cond_val).lift()
                             ),
                             self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, branch_update),
                             expr,
