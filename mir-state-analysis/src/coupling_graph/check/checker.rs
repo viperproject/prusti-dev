@@ -107,7 +107,7 @@ pub(crate) fn check<'tcx>(
 
         // Repacks
         for op in fpcs_after.repacks_middle {
-            op.update_free(&mut fpcs.summary, false, rp);
+            op.update_free(&mut fpcs.summary, false, true, rp);
         }
         // Couplings bound set
         let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> =
@@ -121,7 +121,7 @@ pub(crate) fn check<'tcx>(
         fpcs.visit_terminator(data.terminator(), loc);
         // Repacks
         for op in fpcs_after.repacks {
-            op.update_free(&mut fpcs.summary, false, rp);
+            op.update_free(&mut fpcs.summary, false, true, rp);
         }
         // Statement post
         assert!(fpcs.repackings.is_empty());
@@ -153,6 +153,7 @@ pub(crate) fn check<'tcx>(
                 op.update_free(
                     &mut fpcs_from.summary,
                     body.basic_blocks[fpcs_succ.location.block].is_cleanup,
+                    false,
                     rp,
                 );
             }
@@ -213,7 +214,7 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
 
         // Repacks
         for op in fpcs_after.repacks_middle {
-            op.update_free(&mut fpcs.summary, false, rp);
+            op.update_free(&mut fpcs.summary, false, true, rp);
         }
         // Couplings bound set
         let bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind> =
@@ -228,7 +229,7 @@ impl<'a, 'tcx> CouplingState<'a, 'tcx> {
         assert!(fpcs.repackings.is_empty());
         // Repacks
         for op in fpcs_after.repacks {
-            op.update_free(&mut fpcs.summary, false, rp);
+            op.update_free(&mut fpcs.summary, false, true, rp);
         }
         // Statement post
         assert!(fpcs.repackings.is_empty());
