@@ -83,6 +83,7 @@ impl From<&mir::BinOp> for BinOpKind {
 pub enum ConstData {
     Bool(bool),
     Int(u128), // TODO: what about negative numbers? larger numbers?
+    Wildcard,
 }
 
 pub enum TypeData<'vir> {
@@ -95,6 +96,7 @@ pub enum TypeData<'vir> {
     Domain(&'vir str, &'vir [Type<'vir>]), // TODO: identifiers
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
+    Perm,
 }
 
 #[derive(Clone, Copy, Debug)]

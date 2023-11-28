@@ -77,7 +77,7 @@ impl TaskEncoder for MirLocalDefEncoder {
             let local = vcx.mk_local(name);
             let local_ex = vcx.mk_local_ex_local(local);
             let impure_snap = ty.ref_to_snap.apply(vcx, [local_ex]);
-            let impure_pred = vcx.mk_predicate_app_expr(ty.ref_to_pred.apply(vcx, [local_ex]));
+            let impure_pred = vcx.mk_predicate_app_expr(ty.ref_to_pred.apply(vcx, [local_ex], None));
             LocalDef {
                 local,
                 local_ex,
