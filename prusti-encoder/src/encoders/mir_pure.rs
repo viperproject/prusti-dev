@@ -507,7 +507,14 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         match rvalue {
             mir::Rvalue::Use(op) => self.encode_operand(curr_ver, op),
             // Repeat
-            mir::Rvalue::Ref(_, _, place) => self.encode_place(curr_ver, place),
+            mir::Rvalue::Ref(_, _, place) => {
+                let e_rvalue_ty = self.deps.require_local::<SnapshotEnc>(
+                    rvalue_ty,
+                ).unwrap().specifics.expect_structlike().field_snaps_to_snap;
+                let snap = self.encode_place(curr_ver, place);
+                // TODO: make `null` first class and decide if it even belongs here.
+                e_rvalue_ty.apply(self.vcx, &[snap, self.vcx.mk_local_ex("null")])
+            }
             // ThreadLocalRef
             // AddressOf
             // Len
@@ -633,8 +640,11 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
 
     fn encode_place_element(&mut self, place_ty: mir::tcx::PlaceTy<'tcx>, elem: mir::PlaceElem<'tcx>, expr: ExprRet<'vir>) -> ExprRet<'vir> {
          match elem {
-            mir::ProjectionElem::Deref =>
-                expr,
+            mir::ProjectionElem::Deref => {
+                assert!(place_ty.variant_index.is_none());
+                let e_ty = self.deps.require_local::<SnapshotEnc>(place_ty.ty).unwrap();
+                e_ty.specifics.expect_structlike().field_access[0].read.apply(self.vcx, [expr])
+            }
             mir::ProjectionElem::Field(field_idx, _) => {
                 let field_idx= field_idx.as_usize();
                 match place_ty.ty.kind() {
