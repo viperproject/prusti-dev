@@ -195,7 +195,15 @@ impl TaskEncoder for DomainEnc {
                 let specifics = enc.mk_enum_specifics(None);
                 Ok((enc.finalize(), specifics))
             }
-            _ => todo!(),
+            &TyKind::Ref(_, inner, m) => {
+                let base_name = format!("Ref_{m:?}");
+                let (mut enc, mut ty_params) = DomainEncData::new(vcx, &base_name, [inner].into_iter());
+                deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
+                ty_params.push(&vir::TypeData::Ref);
+                let specifics = enc.mk_struct_specifics(ty_params);
+                Ok((enc.finalize(), specifics))
+            }
+            kind => todo!("{kind:?}"),
         })
     }
 }

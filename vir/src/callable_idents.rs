@@ -160,12 +160,14 @@ impl<'vir, const N: usize> PredicateIdent<'vir, KnownArity<'vir, N>> {
     pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'tcx>,
-        args: [ExprGen<'vir, Curr, Next>; N]
+        args: [ExprGen<'vir, Curr, Next>; N],
+        perm: Option<ExprGen<'vir, Curr, Next>>,
     ) -> PredicateAppGen<'vir, Curr, Next>{
         self.1.check_types(self.name(), &args);
         vcx.alloc(PredicateAppGenData {
             target: self.name(),
             args: vcx.alloc_slice(&args),
+            perm,
         })
     }
 }
@@ -220,12 +222,14 @@ impl<'vir> PredicateIdent<'vir, UnknownArity<'vir>> {
     pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'tcx>,
-        args: &[ExprGen<'vir, Curr, Next>]
+        args: &[ExprGen<'vir, Curr, Next>],
+        perm: Option<ExprGen<'vir, Curr, Next>>,
     ) -> PredicateAppGen<'vir, Curr, Next>{
         self.1.check_types(self.name(), args);
         vcx.alloc(PredicateAppGenData {
             target: self.name(),
             args: vcx.alloc_slice(args),
+            perm,
         })
     }
 }

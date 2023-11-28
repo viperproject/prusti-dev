@@ -173,8 +173,10 @@ impl<'tcx> EnvBody<'tcx> {
                 .entry((def_id, substs, caller_def_id))
         {
             let param_env = self.tcx.param_env(caller_def_id.unwrap_or(def_id));
+            // TODO: figure out some other way to substitute without losing the region information
+            let body = self.tcx.erase_regions(body.0);
             let monomorphised = self.tcx
-                    .subst_and_normalize_erasing_regions(substs, param_env, ty::EarlyBinder::bind(body.0));
+                    .subst_and_normalize_erasing_regions(substs, param_env, ty::EarlyBinder::bind(body));
             v.insert(MirBody(monomorphised)).clone()
         } else {
             unreachable!()
