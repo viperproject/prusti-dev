@@ -547,14 +547,14 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_conj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
         elems.split_first().map(|(first, rest)| {
-            rest.iter().fold(*first, |acc, e| {
+            rest.iter().rfold(*first, |acc, e| {
                 self.mk_bin_op_expr(BinOpKind::And, acc, *e)
             })
         }).unwrap_or_else(|| self.mk_bool::<true>())
     }
     pub fn mk_disj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
         elems.split_first().map(|(first, rest)| {
-            rest.iter().fold(*first, |acc, e| {
+            rest.iter().rfold(*first, |acc, e| {
                 self.mk_bin_op_expr(BinOpKind::Or, acc, *e)
             })
         }).unwrap_or_else(|| self.mk_bool::<false>())

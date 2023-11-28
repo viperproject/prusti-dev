@@ -4,23 +4,23 @@ use task_encoder::{
 };
 use vir::{FunctionIdent, CallableIdent, NullaryArity, DomainIdent};
 
-pub struct GenericEncoder;
+pub struct GenericEnc;
 
 #[derive(Clone, Debug)]
-pub enum GenericEncoderError {
+pub enum GenericEncError {
     UnsupportedType,
 }
 
 #[derive(Clone, Debug)]
-pub struct GenericEncoderOutputRef<'vir> {
+pub struct GenericEncOutputRef<'vir> {
     pub snapshot_param_name: &'vir str,
     pub predicate_param_name: &'vir str,
     pub domain_type_name: &'vir str,
 }
-impl<'vir> task_encoder::OutputRefAny for GenericEncoderOutputRef<'vir> {}
+impl<'vir> task_encoder::OutputRefAny for GenericEncOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
-pub struct GenericEncoderOutput<'vir> {
+pub struct GenericEncOutput<'vir> {
     pub snapshot_param: vir::Domain<'vir>,
     pub predicate_param: vir::Predicate<'vir>,
     pub domain_type: vir::Domain<'vir>,
@@ -28,19 +28,19 @@ pub struct GenericEncoderOutput<'vir> {
 
 use std::cell::RefCell;
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<GenericEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<GenericEnc> = RefCell::new(Default::default());
 }
 
-impl TaskEncoder for GenericEncoder {
+impl TaskEncoder for GenericEnc {
     type TaskDescription<'tcx> = (); // ?
 
-    type OutputRef<'vir> = GenericEncoderOutputRef<'vir>;
-    type OutputFullLocal<'vir> = GenericEncoderOutput<'vir>;
+    type OutputRef<'vir> = GenericEncOutputRef<'vir>;
+    type OutputFullLocal<'vir> = GenericEncOutput<'vir>;
 
-    type EncodingError = GenericEncoderError;
+    type EncodingError = GenericEncError;
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, GenericEncoder>) -> R,
+        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, GenericEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -66,7 +66,7 @@ impl TaskEncoder for GenericEncoder {
         Self::EncodingError,
         Option<Self::OutputFullDependency<'vir>>,
     )> {
-        deps.emit_output_ref::<Self>(*task_key, GenericEncoderOutputRef {
+        deps.emit_output_ref::<Self>(*task_key, GenericEncOutputRef {
             snapshot_param_name: "s_Param",
             predicate_param_name: "p_Param",
             domain_type_name: "s_Type",
@@ -84,7 +84,7 @@ impl TaskEncoder for GenericEncoder {
         let s_Type_Uint_u32 = FunctionIdent::new("s_Type_Uint_u32", NullaryArity::new(&[]));
         let s_Type_Uint_u64 = FunctionIdent::new("s_Type_Uint_u64", NullaryArity::new(&[]));
         let s_Type_Uint_u128 = FunctionIdent::new("s_Type_Uint_u128", NullaryArity::new(&[]));
-        vir::with_vcx(|vcx| Ok((GenericEncoderOutput {
+        vir::with_vcx(|vcx| Ok((GenericEncOutput {
             snapshot_param: vir::vir_domain! { vcx; domain s_Param {} },
             predicate_param: vir::vir_predicate! { vcx; predicate p_Param(self_p: Ref/*, self_s: s_Param*/) },
             domain_type: vir::vir_domain! { vcx; domain s_Type {
