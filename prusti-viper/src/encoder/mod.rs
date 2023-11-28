@@ -12,6 +12,7 @@ mod encoder;
 mod errors;
 mod foldunfold;
 mod initialisation;
+mod interface;
 mod loop_encoder;
 mod mir_encoder;
 mod mir_successor;
