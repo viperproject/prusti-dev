@@ -1,25 +1,15 @@
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
-    mir::specifications::SpecificationsInterface,
     snapshot::interface::SnapshotEncoderInterface,
-    stub_function_encoder::StubFunctionEncoder,
     Encoder,
 };
-use log::{debug, trace};
-use prusti_common::config;
-use prusti_interface::data::ProcedureDefId;
+
 use prusti_rustc_interface::{
-    middle::{
-        mir, ty,
-        ty::{Binder, GenericArgsRef},
-    },
+    middle::{mir, ty, ty::Binder},
     span::Span,
 };
-use rustc_hash::{FxHashMap, FxHashSet};
 
-use prusti_interface::specs::typed::ProcedureSpecificationKind;
-use std::cell::RefCell;
-use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
+use vir_crate::polymorphic as vir_poly;
 
 pub(crate) trait PureFunctionFormalArgsEncoderInterface<'p, 'v: 'p, 'tcx: 'v> {
     fn encoder(&self) -> &'p Encoder<'v, 'tcx>;

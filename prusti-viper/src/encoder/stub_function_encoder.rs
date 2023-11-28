@@ -8,7 +8,6 @@ use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
     high::generics::HighGenericsEncoderInterface,
     interface::PureFunctionFormalArgsEncoderInterface,
-    mir_encoder::{MirEncoder, PlaceEncoder},
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
@@ -16,9 +15,7 @@ use log::debug;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{
-        mir,
-        mir::Local,
-        ty,
+        mir, ty,
         ty::{Binder, GenericArgsRef},
     },
     span::Span,
@@ -30,7 +27,6 @@ use super::mir::specifications::SpecificationsInterface;
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     mir: Option<&'p mir::Body<'tcx>>,
-    mir_encoder: Option<MirEncoder<'p, 'v, 'tcx>>,
     proc_def_id: DefId,
     substs: GenericArgsRef<'tcx>,
     sig: ty::PolyFnSig<'tcx>,
@@ -64,7 +60,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         StubFunctionEncoder {
             encoder,
             mir,
-            mir_encoder: mir.map(|m| MirEncoder::new(encoder, m, proc_def_id)),
             proc_def_id,
             substs,
             sig,

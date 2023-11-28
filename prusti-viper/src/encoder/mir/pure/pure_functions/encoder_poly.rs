@@ -39,8 +39,6 @@ use vir_crate::{
     polymorphic::{self as vir, ExprIterator},
 };
 
-use super::PureFunctionEncoderInterface;
-
 pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     /// The function to be encoded.
