@@ -7,6 +7,7 @@
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
+    interface::PureFunctionFormalArgsEncoderInterface,
     mir::{
         contracts::{ContractsEncoderInterface, ProcedureContract},
         pure::{
@@ -19,7 +20,7 @@ use crate::encoder::{
     },
     mir_encoder::PlaceEncoder,
     snapshot::interface::SnapshotEncoderInterface,
-    Encoder, interface::PureFunctionFormalArgsEncoderInterface,
+    Encoder,
 };
 use log::debug;
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
@@ -52,7 +53,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Span of the function declaration.
     span: Span,
     /// Signature of the function to be encoded.
-    pub (crate) sig: ty::PolyFnSig<'tcx>,
+    pub(crate) sig: ty::PolyFnSig<'tcx>,
     /// Spans of MIR locals, when encoding a local pure function.
     local_spans: Option<Vec<Span>>,
 }
@@ -139,12 +140,18 @@ fn encode_mir<'p, 'v: 'p, 'tcx: 'v>(
     Ok(body_expr)
 }
 
-impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionFormalArgsEncoderInterface<'p, 'v, 'tcx> for PureFunctionEncoder<'p, 'v, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionFormalArgsEncoderInterface<'p, 'v, 'tcx>
+    for PureFunctionEncoder<'p, 'v, 'tcx>
+{
     fn encoder(&self) -> &'p Encoder<'v, 'tcx> {
         self.encoder
     }
 
-    fn check_type(&self, var_span: Span, ty: ty::Binder<'tcx, ty::Ty<'tcx>>) -> SpannedEncodingResult<()> {
+    fn check_type(
+        &self,
+        var_span: Span,
+        ty: ty::Binder<'tcx, ty::Ty<'tcx>>,
+    ) -> SpannedEncodingResult<()> {
         if !self
             .encoder
             .env()
@@ -537,6 +544,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .collect::<Result<_, _>>()?;
         let encoded_return = self.encode_local(contract.returned_value.into())?;
         debug!("encoded_return: {:?}", encoded_return);
+
+        eprintln!("IN IT");
 
         for (assertion, assertion_substs) in
             contract.functional_postcondition(self.encoder.env(), self.substs)

@@ -2,17 +2,19 @@
 
 use super::encoder_poly::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
 use crate::encoder::{
-    Encoder,
     errors::{SpannedEncodingResult, WithSpan},
     mir::specifications::SpecificationsInterface,
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
+    Encoder,
 };
 use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
-use prusti_rustc_interface::middle::{mir, ty, ty::GenericArgsRef};
-use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::{
+    middle::{mir, ty, ty::GenericArgsRef},
+    span::Span,
+};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use prusti_interface::specs::typed::ProcedureSpecificationKind;
@@ -397,11 +399,26 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                     self.register_encoding_error(error);
                     debug!("Error encoding pure function: {:?}", proc_def_id);
                     let function = if !is_bodyless {
-                        let pure_fn_body = self.env().body.get_pure_fn_body(proc_def_id, substs, parent_def_id);
-                        let encoder = StubFunctionEncoder::new(self, proc_def_id, Some(&pure_fn_body), substs, pure_function_encoder.sig);
+                        let pure_fn_body =
+                            self.env()
+                                .body
+                                .get_pure_fn_body(proc_def_id, substs, parent_def_id);
+                        let encoder = StubFunctionEncoder::new(
+                            self,
+                            proc_def_id,
+                            Some(&pure_fn_body),
+                            substs,
+                            pure_function_encoder.sig,
+                        );
                         encoder.encode_function()?
                     } else {
-                        let encoder = StubFunctionEncoder::new(self, proc_def_id, None, substs, pure_function_encoder.sig);
+                        let encoder = StubFunctionEncoder::new(
+                            self,
+                            proc_def_id,
+                            None,
+                            substs,
+                            pure_function_encoder.sig,
+                        );
                         encoder.encode_function()?
                     };
                     self.log_vir_program_before_viper(function.to_string());

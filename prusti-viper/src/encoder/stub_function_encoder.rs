@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::interface::PureFunctionFormalArgsEncoderInterface;
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
     high::generics::HighGenericsEncoderInterface,
+    interface::PureFunctionFormalArgsEncoderInterface,
     mir_encoder::{MirEncoder, PlaceEncoder},
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
@@ -15,7 +15,12 @@ use crate::encoder::{
 use log::debug;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::{mir, mir::Local, ty, ty::GenericArgsRef, ty::Binder},
+    middle::{
+        mir,
+        mir::Local,
+        ty,
+        ty::{Binder, GenericArgsRef},
+    },
     span::Span,
 };
 use vir_crate::polymorphic as vir;
@@ -28,11 +33,12 @@ pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir_encoder: Option<MirEncoder<'p, 'v, 'tcx>>,
     proc_def_id: DefId,
     substs: GenericArgsRef<'tcx>,
-    sig: ty::PolyFnSig<'tcx>
+    sig: ty::PolyFnSig<'tcx>,
 }
 
-impl <'p, 'v, 'tcx> PureFunctionFormalArgsEncoderInterface<'p, 'v, 'tcx> for StubFunctionEncoder<'p, 'v, 'tcx> {
-
+impl<'p, 'v, 'tcx> PureFunctionFormalArgsEncoderInterface<'p, 'v, 'tcx>
+    for StubFunctionEncoder<'p, 'v, 'tcx>
+{
     fn check_type(&self, _span: Span, _ty: Binder<ty::Ty<'tcx>>) -> SpannedEncodingResult<()> {
         Ok(())
     }
@@ -53,7 +59,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         proc_def_id: DefId,
         mir: Option<&'p mir::Body<'tcx>>,
         substs: GenericArgsRef<'tcx>,
-        sig: ty::PolyFnSig<'tcx>
+        sig: ty::PolyFnSig<'tcx>,
     ) -> Self {
         StubFunctionEncoder {
             encoder,
@@ -61,12 +67,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             mir_encoder: mir.map(|m| MirEncoder::new(encoder, m, proc_def_id)),
             proc_def_id,
             substs,
-            sig
+            sig,
         }
     }
 
     fn default_span(&self) -> Span {
-        self.mir.map(|m| m.span).unwrap_or_else(|| self.encoder.get_spec_span(self.proc_def_id))
+        self.mir
+            .map(|m| m.span)
+            .unwrap_or_else(|| self.encoder.get_spec_span(self.proc_def_id))
     }
 
     #[tracing::instrument(level = "debug", skip(self))]

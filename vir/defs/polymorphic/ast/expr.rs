@@ -1454,6 +1454,20 @@ impl Expr {
         PlaceReplacer { replacements }.fold(self)
     }
 
+    pub fn has_old_expression(&self) -> bool {
+        struct OldFinder {
+            has_old: bool,
+        }
+        impl ExprWalker for OldFinder {
+            fn walk_labelled_old(&mut self, _labelled_old: &LabelledOld) {
+                self.has_old = true;
+            }
+        }
+        let mut walker = OldFinder { has_old: false };
+        walker.walk(self);
+        walker.has_old
+    }
+
     /// Replaces expressions like `old[l5](old[l5](_9.val_ref).foo.bar)`
     /// into `old[l5](_9.val_ref.foo.bar)`
     #[must_use]
