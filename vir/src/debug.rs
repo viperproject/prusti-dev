@@ -40,7 +40,11 @@ fn indent(s: String) -> String {
 
 impl<'vir, Curr, Next> Debug for AccFieldGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "acc({:?}.{})", self.recv, self.field.name)
+        write!(f, "acc({:?}.{}", self.recv, self.field.name)?;
+        if let Some(perm) = self.perm {
+            write!(f, ", {perm:?}")?;
+        }
+        write!(f, ")")
     }
 }
 
@@ -79,9 +83,9 @@ impl Debug for CfgBlockLabelData {
 impl Debug for ConstData {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Bool(true) => write!(f, "true"),
-            Self::Bool(false) => write!(f, "false"),
+            Self::Bool(b) => write!(f, "{b}"),
             Self::Int(n) => write!(f, "{n}"),
+            Self::Wildcard => write!(f, "wildcard"),
         }
     }
 }
@@ -272,9 +276,16 @@ impl<'vir, Curr, Next> Debug for PredicateGenData<'vir, Curr, Next> {
 
 impl<'vir, Curr, Next> Debug for PredicateAppGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if self.perm.is_some() {
+            write!(f, "acc(")?;
+        }
         write!(f, "{}(", self.target)?;
         fmt_comma_sep(f, &self.args)?;
-        write!(f, ")")
+        write!(f, ")")?;
+        if let Some(perm) = self.perm {
+            write!(f, ", {perm:?})")?;
+        }
+        Ok(())
     }
 }
 
@@ -365,6 +376,7 @@ impl<'vir> Debug for TypeData<'vir> {
                 Ok(())
             }
             Self::Ref => write!(f, "Ref"),
+            Self::Perm => write!(f, "Perm"),
         }
     }
 }
