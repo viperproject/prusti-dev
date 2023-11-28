@@ -5,18 +5,18 @@ use task_encoder::{
 };
 use std::cell::RefCell;
 
-use crate::encoders::DomainEnc;
+use crate::encoders::SnapshotEnc;
 
-use super::{domain::DomainDataStruct, SnapshotEnc};
+use super::domain::{DomainEnc, DomainDataStruct};
 
-pub struct ViperTupleEncoder;
+pub struct ViperTupleEnc;
 
 #[derive(Clone, Debug)]
-pub struct ViperTupleEncoderOutput<'vir> {
+pub struct ViperTupleEncOutput<'vir> {
     tuple: Option<DomainDataStruct<'vir>>,
 }
 
-impl<'vir> ViperTupleEncoderOutput<'vir> {
+impl<'vir> ViperTupleEncOutput<'vir> {
     pub fn mk_cons<'tcx, Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
@@ -40,17 +40,17 @@ impl<'vir> ViperTupleEncoderOutput<'vir> {
 }
 
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<ViperTupleEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<ViperTupleEnc> = RefCell::new(Default::default());
 }
 
-impl TaskEncoder for ViperTupleEncoder {
+impl TaskEncoder for ViperTupleEnc {
     type TaskDescription<'vir> = usize;
 
-    type OutputFullLocal<'vir> = ViperTupleEncoderOutput<'vir>;
+    type OutputFullLocal<'vir> = ViperTupleEncOutput<'vir>;
     type EncodingError = ();
 
     fn with_cache<'tcx, 'vir, F, R>(f: F) -> R
-       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, ViperTupleEncoder>) -> R,
+       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, ViperTupleEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -77,7 +77,7 @@ impl TaskEncoder for ViperTupleEncoder {
     )> {
         deps.emit_output_ref::<Self>(*task_key, ());
         if *task_key == 1 {
-            Ok((ViperTupleEncoderOutput { tuple: None }, ()))
+            Ok((ViperTupleEncOutput { tuple: None }, ()))
         } else {
             let tuple = vir::with_vcx(|vcx| {
                 let new_tys = vcx.tcx.mk_type_list_from_iter((0..*task_key).map(|index|
@@ -86,7 +86,7 @@ impl TaskEncoder for ViperTupleEncoder {
                 vcx.tcx.mk_ty_from_kind(ty::TyKind::Tuple(new_tys))
             });
             let ret = deps.require_dep::<DomainEnc>(tuple).unwrap();
-            Ok((ViperTupleEncoderOutput { tuple: Some(ret.expect_structlike()) }, ()))
+            Ok((ViperTupleEncOutput { tuple: Some(ret.expect_structlike()) }, ()))
         }
     }
 }

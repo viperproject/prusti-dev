@@ -24,8 +24,7 @@ pub struct SnapshotEncOutput<'vir> {
 
 use std::cell::RefCell;
 
-use crate::encoders::DomainEnc;
-use super::domain::DomainEncSpecifics;
+use super::domain::{DomainEnc, DomainEncSpecifics};
 thread_local! {
     static CACHE: task_encoder::CacheStaticRef<SnapshotEnc> = RefCell::new(Default::default());
 }

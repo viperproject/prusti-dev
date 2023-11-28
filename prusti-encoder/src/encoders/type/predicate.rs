@@ -173,7 +173,7 @@ impl TaskEncoder for PredicateEnc {
         Option<Self::OutputFullDependency<'vir>>,
     )> {
         let snap = deps.require_local::<SnapshotEnc>(*task_key).unwrap();
-        let mut enc = vir::with_vcx(|vcx| PredicateEncoderData::new(vcx, &snap.base_name, snap.snapshot));
+        let mut enc = vir::with_vcx(|vcx| PredicateEncValues::new(vcx, &snap.base_name, snap.snapshot));
         match task_key.kind() {
             TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_)  => {
                 let specifics = PredicateEncData::Primitive(snap.specifics.expect_primitive());
@@ -235,7 +235,7 @@ impl TaskEncoder for PredicateEnc {
     }
 }
 
-struct PredicateEncoderData<'vir, 'tcx> {
+struct PredicateEncValues<'vir, 'tcx> {
     vcx: &'vir vir::VirCtxt<'tcx>,
     ref_to_pred: vir::PredicateIdent<'vir, vir::UnaryArity<'vir>>,
     snap_inst: vir::Type<'vir>,
@@ -253,7 +253,7 @@ struct PredicateEncoderData<'vir, 'tcx> {
     ref_to_field_refs: Vec<vir::Function<'vir>>,
 }
 
-impl<'vir, 'tcx> PredicateEncoderData<'vir, 'tcx> {
+impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
     // Creation
     pub fn new(vcx: &'vir vir::VirCtxt<'tcx>, base_name: &str, snap_inst: vir::Type<'vir>) -> Self {
         let ref_to_pred = vir::PredicateIdent::new(

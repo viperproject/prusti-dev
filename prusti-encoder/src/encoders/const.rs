@@ -9,23 +9,23 @@ use task_encoder::{
 };
 use vir::{CallableIdent, Arity};
 
-pub struct ConstEncoder;
+pub struct ConstEnc;
 
 #[derive(Clone, Debug)]
-pub struct ConstEncoderOutputRef<'vir> {
+pub struct ConstEncOutputRef<'vir> {
     pub base_name: String,
     pub snap_inst: vir::Type<'vir>,
 }
-impl<'vir> task_encoder::OutputRefAny for ConstEncoderOutputRef<'vir> {}
+impl<'vir> task_encoder::OutputRefAny for ConstEncOutputRef<'vir> {}
 
 use std::cell::RefCell;
 
-use crate::encoders::{MirPureEncoder, mir_pure::PureKind, MirPureEncoderTask, SnapshotEnc};
+use crate::encoders::{MirPureEnc, mir_pure::PureKind, MirPureEncTask, SnapshotEnc};
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<ConstEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<ConstEnc> = RefCell::new(Default::default());
 }
 
-impl TaskEncoder for ConstEncoder {
+impl TaskEncoder for ConstEnc {
     type TaskDescription<'tcx> = (
         mir::ConstantKind<'tcx>,
         usize, // current encoding depth
@@ -35,7 +35,7 @@ impl TaskEncoder for ConstEncoder {
     type EncodingError = ();
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, ConstEncoder>) -> R,
+        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, ConstEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -95,7 +95,7 @@ impl TaskEncoder for ConstEncoder {
                 }
             }
             mir::ConstantKind::Unevaluated(uneval, _) => vir::with_vcx(|vcx| {
-                let task = MirPureEncoderTask {
+                let task = MirPureEncTask {
                     encoding_depth: encoding_depth + 1,
                     parent_def_id: uneval.def,
                     param_env: vcx.tcx.param_env(uneval.def),
@@ -103,7 +103,7 @@ impl TaskEncoder for ConstEncoder {
                     kind: PureKind::Constant(uneval.promoted.unwrap()), 
                     caller_def_id: def_id
                 };
-                let expr = deps.require_local::<MirPureEncoder>(task).unwrap().expr;
+                let expr = deps.require_local::<MirPureEnc>(task).unwrap().expr;
                 use vir::Reify;
                 expr.reify(vcx, (uneval.def, &[]))
             }),
