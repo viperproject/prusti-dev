@@ -393,7 +393,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
                     vir::vir_format!(self.vcx, "ax_{base}_cons_read_{idx}"),
                     self.vcx.mk_forall_expr(
                         cons_qvars,
-                        self.vcx.alloc_slice(&[self.vcx.alloc_slice(&[cons_read])]),
+                        self.vcx.alloc_slice(&[self.vcx.alloc_slice(&[cons_call_with_qvars])]),
                         self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, cons_read, cons_args[idx])
                     )
                 ));
