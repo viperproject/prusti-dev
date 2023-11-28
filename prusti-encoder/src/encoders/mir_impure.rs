@@ -317,7 +317,7 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
                     let ref_to_pred = place_ty_out.expect_pred_variant_opt(place_ty.variant_index);
 
                     let ref_p = self.encode_place(place);
-                    let predicate = ref_to_pred.apply(self.vcx, [ref_p]);
+                    let predicate = ref_to_pred.apply(self.vcx, [ref_p], None);
                     if matches!(repack_op, mir_state_analysis::free_pcs::RepackOp::Expand(..)) {
                         self.stmt(self.vcx.mk_unfold_stmt(predicate));
                     } else {
@@ -332,7 +332,7 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
 
                     let ref_p = self.encode_place(place);
                     self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_predicate_app_expr(
-                        place_ty_out.ref_to_pred.apply(self.vcx, [ref_p])
+                        place_ty_out.ref_to_pred.apply(self.vcx, [ref_p], None)
                     )));
                 }
                 unsupported_op => panic!("unsupported repack op: {unsupported_op:?}"),
@@ -370,15 +370,7 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
         let ty = operand.ty(self.local_decls, self.vcx.tcx);
         match operand {
             &mir::Operand::Move(source) => {
-                let ty_out = self.deps.require_ref::<PredicateEnc>(ty).unwrap();
-                let place_exp = self.encode_place(Place::from(source));
-                let snap_val = ty_out.ref_to_snap.apply(self.vcx, [place_exp]);
-
-                let tmp_exp = self.new_tmp(ty_out.snapshot).1;
-                self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
-                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_predicate_app_expr(
-                    ty_out.ref_to_pred.apply(self.vcx, [place_exp])
-                )));
+                let (tmp_exp, _) = self.encode_place_snap(Place::from(source), ty, None);
                 tmp_exp
             }
             &mir::Operand::Copy(source) => {
@@ -413,11 +405,29 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
         tmp_exp
     }
 
+    fn encode_place_snap(
+        &mut self,
+        place: Place<'tcx>,
+        ty: ty::Ty<'tcx>,
+        perm: Option<vir::Expr<'vir>>,
+    ) -> (vir::Expr<'vir>, vir::Expr<'vir>) {
+        let ty_out = self.deps.require_ref::<PredicateEnc>(ty).unwrap();
+        let place_exp = self.encode_place(Place::from(place));
+        let snap_val = ty_out.ref_to_snap.apply(self.vcx, [place_exp]);
+
+        let tmp_exp = self.new_tmp(ty_out.snapshot).1;
+        self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
+        self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_predicate_app_expr(
+            ty_out.ref_to_pred.apply(self.vcx, [place_exp], perm)
+        )));
+        (tmp_exp, place_exp)
+    }
+
     fn encode_place(
         &mut self,
         place: Place<'tcx>,
     ) -> vir::Expr<'vir> {
-        let mut place_ty =  mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
+        let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
         let mut expr = self.local_defs.locals[place.local].local_ex;
         // TODO: factor this out (duplication with pure encoder)?
         for &elem in place.projection {
@@ -437,6 +447,12 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
             }
             // TODO: should all variants start at the same `Ref`?
             mir::ProjectionElem::Downcast(..) => expr,
+            mir::ProjectionElem::Deref => {
+                assert!(place_ty.variant_index.is_none());
+                let e_ty = self.deps.require_ref::<PredicateEnc>(place_ty.ty).unwrap();
+                let ref_field = e_ty.expect_ref().ref_field;
+                self.vcx.mk_field_expr(expr, ref_field)
+            }
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }
     }
@@ -641,7 +657,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                         match ty.get_enumlike().filter(|_| place_ty.variant_index.is_none()) {
                             Some(el) => {
                                 let discr_expr = self.vcx.mk_field_expr(place_expr, el.as_ref().unwrap().discr);
-                                self.vcx.mk_unfolding_expr(ty.ref_to_pred.apply(self.vcx, [place_expr]), discr_expr)
+                                self.vcx.mk_unfolding_expr(ty.ref_to_pred.apply(self.vcx, [place_expr], Some(self.vcx.mk_wildcard())), discr_expr)
                             }
                             None => {
                                 // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
@@ -649,6 +665,19 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                                 e_rvalue_ty.expect_prim().prim_to_snap.apply(self.vcx, [zero])
                             }
                         }
+                    }
+
+                    mir::Rvalue::Ref(_, kind, source) => {
+                        let place_ty = source.ty(self.local_decls, self.vcx.tcx);
+                        assert!(place_ty.variant_index.is_none());
+                        let perm = match kind {
+                            mir::BorrowKind::Shared => e_rvalue_ty.expect_ref().perm,
+                            mir::BorrowKind::Shallow => todo!(),
+                            mir::BorrowKind::Mut { kind: mir::MutBorrowKind::Default } => e_rvalue_ty.expect_ref().perm,
+                            mir::BorrowKind::Mut { .. } => todo!(),
+                        };
+                        let (snap, place_expr) = self.encode_place_snap(Place::from(*source), place_ty.ty, perm);
+                        e_rvalue_ty.expect_ref().snap_data.field_snaps_to_snap.apply(self.vcx, &[snap, place_expr])
                     }
 
                     //mir::Rvalue::Discriminant(Place<'tcx>) => {}
