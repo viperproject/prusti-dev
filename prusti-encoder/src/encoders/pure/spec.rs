@@ -4,11 +4,11 @@ use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 use vir::Reify;
 use std::cell::RefCell;
 
-use crate::encoders::{MirPureEncoder, mir_pure::PureKind};
-pub struct MirSpecEncoder;
+use crate::encoders::{MirPureEnc, mir_pure::PureKind};
+pub struct MirSpecEnc;
 
 #[derive(Clone)]
-pub struct MirSpecEncoderOutput<'vir> {
+pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::Expr<'vir>>,
     pub posts: Vec<vir::Expr<'vir>>,
     pub pre_args: &'vir [vir::Expr<'vir>],
@@ -16,10 +16,10 @@ pub struct MirSpecEncoderOutput<'vir> {
 }
 
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirSpecEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<MirSpecEnc> = RefCell::new(Default::default());
 }
 
-impl TaskEncoder for MirSpecEncoder {
+impl TaskEncoder for MirSpecEnc {
     type TaskDescription<'tcx> = (
         DefId,  // The function annotated with specs
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
@@ -27,13 +27,13 @@ impl TaskEncoder for MirSpecEncoder {
         bool,   // If to encode as pure or not
     );
 
-    type OutputFullLocal<'vir> = MirSpecEncoderOutput<'vir>;
+    type OutputFullLocal<'vir> = MirSpecEncOutput<'vir>;
 
-    type EncodingError = <MirPureEncoder as TaskEncoder>::EncodingError;
+    type EncodingError = <MirPureEnc as TaskEncoder>::EncodingError;
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
     where
-        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirSpecEncoder>) -> R,
+        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirSpecEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -64,11 +64,11 @@ impl TaskEncoder for MirSpecEncoder {
         let (def_id, substs, caller_def_id, pure) = *task_key;
         deps.emit_output_ref::<Self>(*task_key, ());
 
-        let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEncoder>(
+        let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEnc>(
             (def_id, substs, caller_def_id),
         ).unwrap();
-        let specs = deps.require_local::<crate::encoders::SpecEncoder>(
-            crate::encoders::SpecEncoderTask {
+        let specs = deps.require_local::<crate::encoders::SpecEnc>(
+            crate::encoders::SpecEncTask {
                 def_id,
             }
         ).unwrap();
@@ -97,8 +97,8 @@ impl TaskEncoder for MirSpecEncoder {
             ).unwrap().expect_prim().snap_to_prim;
 
             let pres = specs.pres.iter().map(|spec_def_id| {
-                let expr = deps.require_local::<crate::encoders::MirPureEncoder>(
-                    crate::encoders::MirPureEncoderTask {
+                let expr = deps.require_local::<crate::encoders::MirPureEnc>(
+                    crate::encoders::MirPureEncTask {
                         encoding_depth: 0,
                         kind: PureKind::Spec,
                         parent_def_id: *spec_def_id,
@@ -123,8 +123,8 @@ impl TaskEncoder for MirSpecEncoder {
                 vcx.alloc_slice(&post_args)
             };
             let posts = specs.posts.iter().map(|spec_def_id| {
-                let expr = deps.require_local::<crate::encoders::MirPureEncoder>(
-                    crate::encoders::MirPureEncoderTask {
+                let expr = deps.require_local::<crate::encoders::MirPureEnc>(
+                    crate::encoders::MirPureEncTask {
                         encoding_depth: 0,
                         kind: PureKind::Spec,
                         parent_def_id: *spec_def_id,
@@ -137,7 +137,7 @@ impl TaskEncoder for MirSpecEncoder {
                 let expr = expr.reify(vcx, (*spec_def_id, post_args));
                 to_bool.apply(vcx, [expr])
             }).collect::<Vec<vir::Expr<'_>>>();
-            let data = MirSpecEncoderOutput {
+            let data = MirSpecEncOutput {
                 pres,
                 posts,
                 pre_args,

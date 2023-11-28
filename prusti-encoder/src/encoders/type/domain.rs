@@ -12,7 +12,7 @@ use vir::{BinaryArity, UnaryArity, UnknownArity, FunctionIdent, CallableIdent, A
 /// You probably never want to use this, use `SnapshotEnc` instead.
 /// Note: there should never be a dependency on `PredicateEnc` inside this
 /// encoder!
-pub struct DomainEnc;
+pub(super) struct DomainEnc;
 
 #[derive(Clone, Copy, Debug)]
 pub struct FieldFunctions<'vir> {
@@ -79,8 +79,14 @@ impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 
 use std::cell::RefCell;
 
+use crate::encoders::SnapshotEnc;
+
 thread_local! {
     static CACHE: task_encoder::CacheStaticRef<DomainEnc> = RefCell::new(Default::default());
+}
+
+pub fn all_outputs<'vir>() -> Vec<vir::Domain<'vir>> {
+    DomainEnc::all_outputs()
 }
 
 impl TaskEncoder for DomainEnc {
@@ -168,9 +174,10 @@ impl TaskEncoder for DomainEnc {
                         } else {
                             let has_explicit = adt.variants().iter().any(|v| matches!(v.discr, ty::VariantDiscr::Explicit(_)));
                             let discr_ty = adt.repr().discr_type().to_ty(vcx.tcx);
+                            let discr_ty = deps.require_local::<SnapshotEnc>(discr_ty).unwrap();
                             Some(VariantData {
-                                discr_ty: deps.require_ref::<crate::encoders::DomainEnc>(discr_ty).unwrap(),
-                                discr_prim: deps.require_dep::<crate::encoders::DomainEnc>(discr_ty).unwrap().expect_primitive(),
+                                discr_ty: discr_ty.snapshot,
+                                discr_prim: discr_ty.specifics.expect_primitive(),
                                 has_explicit,
                                 variants,
                             })
@@ -222,7 +229,7 @@ impl DomainEnc {
 }
 
 pub struct VariantData<'vir, 'tcx>  {
-    discr_ty: DomainEncOutputRef<'vir>,
+    discr_ty: vir::Type<'vir>,
     discr_prim: DomainDataPrim<'vir>,
     /// Do any of the variants have an explicit discriminant value?
     has_explicit: bool,
@@ -266,7 +273,6 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         ty_params: &Vec<vir::Type<'vir>>,
         params: ty::GenericArgsRef<'tcx>,
     ) -> Vec<vir::Type<'vir>> {
-        use crate::encoders::SnapshotEnc;
         variant.fields.iter().map(|f| f.ty(self.vcx.tcx, params)).map(|ty| match *ty.kind() {
             TyKind::Param(param) => ty_params[SnapshotEnc::from_viper_param(param.index) as usize],
             _ => deps.require_ref::<SnapshotEnc>(ty).unwrap().snapshot,
@@ -308,9 +314,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
     ) -> DomainEncSpecifics<'vir> {
         let specifics = data.map(|data| {
             let discr_vals: Vec<_> = data.variants.iter().map(|(_, _, _, discr)| data.discr_prim.expr_from_bits(discr.val)).collect();
-            // Should always be primitive and thus require no args.
-            let discr_ty = data.discr_ty.domain.apply(self.vcx, &[]);
-            let snap_to_discr_snap = self.mk_discr_function(discr_ty);
+            let snap_to_discr_snap = self.mk_discr_function(data.discr_ty);
             let variants = self.vcx.alloc_slice(&data.variants.iter().enumerate().map(|(idx, (name, vid, fields, _))| {
                 let discr = (snap_to_discr_snap, data.discr_prim.prim_to_snap.apply(self.vcx, [discr_vals[idx]]), *name);
                 let fields = self.mk_field_functions(self.vcx.alloc_slice(fields), Some(discr), false);
@@ -318,7 +322,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
             }).collect::<Vec<_>>());
             let discr_bounds = self.mk_discr_bounds_axioms(data.discr_prim, snap_to_discr_snap, discr_vals, data.has_explicit);
             DomainDataEnum { 
-                discr_ty,
+                discr_ty: data.discr_ty,
                 discr_prim: data.discr_prim,
                 discr_bounds,
                 snap_to_discr_snap,

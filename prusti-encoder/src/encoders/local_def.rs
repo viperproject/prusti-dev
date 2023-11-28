@@ -9,13 +9,13 @@ use std::cell::RefCell;
 
 use crate::encoders::PredicateEncOutputRef;
 
-pub struct MirLocalDefEncoder;
+pub struct MirLocalDefEnc;
 #[derive(Clone, Copy)]
-pub struct MirLocalDefEncoderOutput<'vir> {
+pub struct MirLocalDefEncOutput<'vir> {
     pub locals: &'vir IndexVec<mir::Local, LocalDef<'vir>>,
     pub arg_count: usize,
 }
-pub type MirLocalDefEncoderError = ();
+pub type MirLocalDefEncError = ();
 
 #[derive(Clone, Copy)]
 pub struct LocalDef<'vir> {
@@ -27,23 +27,23 @@ pub struct LocalDef<'vir> {
 }
 
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirLocalDefEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<MirLocalDefEnc> = RefCell::new(Default::default());
 }
 
-impl TaskEncoder for MirLocalDefEncoder {
+impl TaskEncoder for MirLocalDefEnc {
     type TaskDescription<'tcx> = (
         DefId, // ID of the function
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
         Option<DefId>, // ID of the caller function, if any
     );
 
-    type OutputFullLocal<'vir> = MirLocalDefEncoderOutput<'vir>;
+    type OutputFullLocal<'vir> = MirLocalDefEncOutput<'vir>;
 
-    type EncodingError = MirLocalDefEncoderError;
+    type EncodingError = MirLocalDefEncError;
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
     where
-        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirLocalDefEncoder>) -> R,
+        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirLocalDefEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -97,7 +97,7 @@ impl TaskEncoder for MirLocalDefEncoder {
                     ).unwrap();
                     mk_local_def(vcx, local, ty)
                 }, body.local_decls.len());
-                MirLocalDefEncoderOutput {
+                MirLocalDefEncOutput {
                     locals: vcx.alloc(locals),
                     arg_count: body.arg_count,
                 }
@@ -120,7 +120,7 @@ impl TaskEncoder for MirLocalDefEncoder {
                     mk_local_def(vcx, local, ty)
                 }, sig.inputs_and_output.len());
 
-                MirLocalDefEncoderOutput {
+                MirLocalDefEncOutput {
                     locals: vcx.alloc(locals),
                     arg_count: sig.inputs().len(),
                 }

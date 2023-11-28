@@ -14,35 +14,35 @@ use task_encoder::{
 };
 use vir::{MethodIdent, UnknownArity, CallableIdent};
 
-pub struct MirImpureEncoder;
+pub struct MirImpureEnc;
 
 #[derive(Clone, Debug)]
-pub enum MirImpureEncoderError {
+pub enum MirImpureEncError {
     Unsupported,
 }
 
 #[derive(Clone, Debug)]
-pub struct MirImpureEncoderOutputRef<'vir> {
+pub struct MirImpureEncOutputRef<'vir> {
     pub method_ref: MethodIdent<'vir, UnknownArity<'vir>>,
 }
-impl<'vir> task_encoder::OutputRefAny for MirImpureEncoderOutputRef<'vir> {}
+impl<'vir> task_encoder::OutputRefAny for MirImpureEncOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
-pub struct MirImpureEncoderOutput<'vir> {
+pub struct MirImpureEncOutput<'vir> {
     pub method: vir::Method<'vir>,
 }
 
 use std::cell::RefCell;
 
-use crate::encoders::{PredicateEnc, ConstEncoder, MirBuiltinEncoder, MirFunctionEncoder, MirLocalDefEncoder, MirSpecEncoder};
+use crate::encoders::{PredicateEnc, ConstEnc, MirBuiltinEnc, MirFunctionEnc, MirLocalDefEnc, MirSpecEnc};
 
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirImpureEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<MirImpureEnc> = RefCell::new(Default::default());
 }
 
 const ENCODE_REACH_BB: bool = false;
 
-impl TaskEncoder for MirImpureEncoder {
+impl TaskEncoder for MirImpureEnc {
     // TODO: local def id (+ promoted, substs, etc)
     type TaskDescription<'tcx> = (
         DefId, // ID of the function
@@ -50,13 +50,13 @@ impl TaskEncoder for MirImpureEncoder {
         Option<DefId>, // ID of the caller function, if any
     );
 
-    type OutputRef<'vir> = MirImpureEncoderOutputRef<'vir>;
-    type OutputFullLocal<'vir> = MirImpureEncoderOutput<'vir>;
+    type OutputRef<'vir> = MirImpureEncOutputRef<'vir>;
+    type OutputFullLocal<'vir> = MirImpureEncOutput<'vir>;
 
-    type EncodingError = MirImpureEncoderError;
+    type EncodingError = MirImpureEncError;
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirImpureEncoder>) -> R,
+        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirImpureEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -89,7 +89,7 @@ impl TaskEncoder for MirImpureEncoder {
 
         vir::with_vcx(|vcx| {
             use mir::visit::Visitor;
-            let local_defs = deps.require_local::<MirLocalDefEncoder>(
+            let local_defs = deps.require_local::<MirLocalDefEnc>(
                 *task_key,
             ).unwrap();
 
@@ -111,7 +111,7 @@ impl TaskEncoder for MirImpureEncoder {
             let args = vec![&vir::TypeData::Ref; arg_count];
             let args = UnknownArity::new(vcx.alloc_slice(&args));
             let method_ref = MethodIdent::new(method_name, args);
-            deps.emit_output_ref::<Self>(*task_key, MirImpureEncoderOutputRef {
+            deps.emit_output_ref::<Self>(*task_key, MirImpureEncOutputRef {
                 method_ref,
             });
 
@@ -162,7 +162,7 @@ impl TaskEncoder for MirImpureEncoder {
                     )
                 );
 
-                let mut visitor = EncoderVisitor {
+                let mut visitor = EncVisitor {
                     vcx,
                     deps,
                     def_id,
@@ -193,7 +193,7 @@ impl TaskEncoder for MirImpureEncoder {
                 None
             };
 
-            let spec = deps.require_local::<MirSpecEncoder>(
+            let spec = deps.require_local::<MirSpecEnc>(
                 (def_id, substs, caller_def_id, false)
             ).unwrap();
             let (spec_pres, spec_posts) = (spec.pres, spec.posts);
@@ -213,7 +213,7 @@ impl TaskEncoder for MirImpureEncoder {
             posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
             posts.extend(spec_posts);
 
-            Ok((MirImpureEncoderOutput {
+            Ok((MirImpureEncOutput {
                 method: vcx.mk_method(
                     method_name,
                     vcx.alloc_slice(&args),
@@ -227,7 +227,7 @@ impl TaskEncoder for MirImpureEncoder {
     }
 }
 
-struct EncoderVisitor<'tcx, 'vir, 'enc>
+struct EncVisitor<'tcx, 'vir, 'enc>
     where 'vir: 'enc
 {
     vcx: &'vir vir::VirCtxt<'tcx>,
@@ -236,7 +236,7 @@ struct EncoderVisitor<'tcx, 'vir, 'enc>
     local_decls: &'enc mir::LocalDecls<'tcx>,
     //ssa_analysis: SsaAnalysis,
     fpcs_analysis: FreePcsAnalysis<'enc, 'tcx>,
-    local_defs: crate::encoders::local_def::MirLocalDefEncoderOutput<'vir>,
+    local_defs: crate::encoders::local_def::MirLocalDefEncOutput<'vir>,
 
     tmp_ctr: usize,
 
@@ -249,7 +249,7 @@ struct EncoderVisitor<'tcx, 'vir, 'enc>
     encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
 }
 
-impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
+impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
     fn stmt(&mut self, stmt: vir::Stmt<'vir>) {
         self.current_stmts
             .as_mut()
@@ -402,7 +402,7 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                 ty_out.ref_to_snap.apply(self.vcx, [self.encode_place(Place::from(source))])
             }
             mir::Operand::Constant(box constant) =>
-                self.deps.require_local::<ConstEncoder>((constant.literal, 0, self.def_id)).unwrap()
+                self.deps.require_local::<ConstEnc>((constant.literal, 0, self.def_id)).unwrap()
         }
     }
 
@@ -420,7 +420,7 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
             }
             mir::Operand::Constant(box constant) => {
                 let ty_out = self.deps.require_ref::<PredicateEnc>(ty).unwrap();
-                let constant = self.deps.require_local::<ConstEncoder>((constant.literal, 0, self.def_id)).unwrap();
+                let constant = self.deps.require_local::<ConstEnc>((constant.literal, 0, self.def_id)).unwrap();
                 (constant, ty_out)
             }
         };
@@ -451,7 +451,7 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
                 let projection_p = field_access[field_idx.as_usize()];
                 projection_p.apply(self.vcx, [expr])
             }
-            // All variants start at the same `Ref`?
+            // TODO: should all variants start at the same `Ref`?
             mir::ProjectionElem::Downcast(..) => expr,
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }
@@ -469,7 +469,7 @@ impl<'tcx, 'vir, 'enc> EncoderVisitor<'tcx, 'vir, 'enc> {
     }
 }
 
-impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 'enc> {
+impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc> {
     // fn visit_body(&mut self, body: &mir::Body<'tcx>) {
     //     println!("visiting body!");
     // }
@@ -578,11 +578,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     rvalue_ty,
                 ).unwrap();
 
-                // What value are we assigning? This will be an option, in most
-                // cases an expression with the snapshot to be assigned to the
-                // destination. In the case of `Aggregate`, however, there are
-                // multiple assignments performed in multiple statements. In
-                // such a case, `expr` is left as `None`.
+                // The snapshot of the value that we are assigning.
                 let expr = match rvalue {
                     mir::Rvalue::Use(op) => self.encode_operand_snap(op),
 
@@ -597,13 +593,13 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                     rv@mir::Rvalue::CheckedBinaryOp(op, box (l, r)) => {
                         let l_ty = l.ty(self.local_decls, self.vcx.tcx);
                         let r_ty = r.ty(self.local_decls, self.vcx.tcx);
-                        use crate::encoders::MirBuiltinEncoderTask::{BinOp, CheckedBinOp};
+                        use crate::encoders::MirBuiltinEncTask::{BinOp, CheckedBinOp};
                         let task = if matches!(rv, mir::Rvalue::BinaryOp(..)) {
                             BinOp(rvalue_ty, *op, l_ty, r_ty)
                         } else {
                             CheckedBinOp(rvalue_ty, *op, l_ty, r_ty)
                         };
-                        let binop_function = self.deps.require_ref::<MirBuiltinEncoder>(
+                        let binop_function = self.deps.require_ref::<MirBuiltinEnc>(
                             task
                         ).unwrap().function;
                         binop_function.apply(self.vcx, &[
@@ -616,8 +612,8 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
 
                     mir::Rvalue::UnaryOp(unop, operand) => {
                         let operand_ty = operand.ty(self.local_decls, self.vcx.tcx);
-                        let unop_function = self.deps.require_ref::<MirBuiltinEncoder>(
-                            crate::encoders::MirBuiltinEncoderTask::UnOp(
+                        let unop_function = self.deps.require_ref::<MirBuiltinEnc>(
+                            crate::encoders::MirBuiltinEncTask::UnOp(
                                 rvalue_ty,
                                 *unop,
                                 operand_ty,
@@ -629,8 +625,8 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
                         let source_version = self.ssa_analysis.version.get(&(location, source.local)).unwrap();
                         let source_name = vir::vir_format!(self.vcx, "_{}s_{}", source.local.index(), source_version);
 
-                        let unop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEncoder>(
-                            crate::encoders::MirBuiltinEncoderTask::UnOp(
+                        let unop_function = self.deps.require_ref::<crate::encoders::MirBuiltinEnc>(
+                            crate::encoders::MirBuiltinEncTask::UnOp(
                                 *unop,
                                 source.ty(self.local_decls, self.vcx.tcx).ty,
                             ),
@@ -721,7 +717,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
             mir::TerminatorKind::Goto { target }
             | mir::TerminatorKind::FalseUnwind { real_target: target, .. }
             | mir::TerminatorKind::FalseEdge { real_target: target, .. }  => {
-                const REAL_TARGET_SUCC_IDX : usize = 0;
+                const REAL_TARGET_SUCC_IDX: usize = 0;
                 // Ensure that the terminator succ that we use for the repacks is the correct one
                 assert_eq!(&self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX].location.block, target);                
                 self.fpcs_repacks_terminator(REAL_TARGET_SUCC_IDX, |rep| &rep.repacks_start);
@@ -791,7 +787,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
 
                 let task = (func_def_id, arg_tys, self.def_id);
                 if is_pure {
-                    let pure_func = self.deps.require_ref::<MirFunctionEncoder>(
+                    let pure_func = self.deps.require_ref::<MirFunctionEnc>(
                         task
                     ).unwrap();
 
@@ -800,7 +796,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncoderVisitor<'tcx, 'vir, 
 
                     self.stmt(self.vcx.alloc(pure_func.return_type.method_assign.apply(self.vcx, [dest, pure_func_app])));
                 } else {
-                    let func_out = self.deps.require_ref::<MirImpureEncoder>(
+                    let func_out = self.deps.require_ref::<MirImpureEnc>(
                         (task.0, task.1, Some(task.2)),
                     ).unwrap();
 
