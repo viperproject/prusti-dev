@@ -10,12 +10,12 @@ use task_encoder::{
 };
 use std::collections::HashMap;
 // TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
-use crate::encoders::{ViperTupleEncoder, PredicateEnc, SnapshotEnc, MirFunctionEncoder, MirBuiltinEncoder, ConstEncoder};
+use crate::encoders::{ViperTupleEnc, PredicateEnc, SnapshotEnc, MirFunctionEnc, MirBuiltinEnc, ConstEnc};
 
-pub struct MirPureEncoder;
+pub struct MirPureEnc;
 
 #[derive(Clone, Debug)]
-pub enum MirPureEncoderError {
+pub enum MirPureEncError {
     UnsupportedStatement,
     UnsupportedTerminator,
 }
@@ -25,7 +25,7 @@ type ExprInput<'vir> = (DefId, &'vir [vir::Expr<'vir>]);
 type ExprRet<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 
 #[derive(Clone, Debug)]
-pub struct MirPureEncoderOutput<'vir> {
+pub struct MirPureEncOutput<'vir> {
     // TODO: is this a good place for argument types?
     //pub arg_tys: &'vir [Type<'vir>],
     pub expr: ExprRet<'vir>,
@@ -33,7 +33,7 @@ pub struct MirPureEncoderOutput<'vir> {
 
 use std::cell::RefCell;
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirPureEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<MirPureEnc> = RefCell::new(Default::default());
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -45,7 +45,7 @@ pub enum PureKind {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct MirPureEncoderTask<'tcx> {
+pub struct MirPureEncTask<'tcx> {
     // TODO: depth of encoding should be in the lazy context rather than here;
     //   can we integrate the lazy context into the identifier system?
     pub encoding_depth: usize,
@@ -56,8 +56,8 @@ pub struct MirPureEncoderTask<'tcx> {
     pub caller_def_id: DefId, // Caller/Use DefID
 }
 
-impl TaskEncoder for MirPureEncoder {
-    type TaskDescription<'tcx> = MirPureEncoderTask<'tcx>;
+impl TaskEncoder for MirPureEnc {
+    type TaskDescription<'tcx> = MirPureEncTask<'tcx>;
 
     type TaskKey<'tcx> = (
         usize, // encoding depth
@@ -67,12 +67,12 @@ impl TaskEncoder for MirPureEncoder {
         DefId, // Caller/Use DefID
     );
 
-    type OutputFullLocal<'vir> = MirPureEncoderOutput<'vir>;
+    type OutputFullLocal<'vir> = MirPureEncOutput<'vir>;
 
-    type EncodingError = MirPureEncoderError;
+    type EncodingError = MirPureEncError;
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirPureEncoder>) -> R,
+       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirPureEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -118,7 +118,7 @@ impl TaskEncoder for MirPureEncoder {
                 PureKind::Constant(promoted) => vcx.body.borrow_mut().get_promoted_constant_body(def_id, promoted)
             };
 
-            let expr_inner = Encoder::new(vcx, task_key.0, def_id, &body, deps).encode_body();
+            let expr_inner = Enc::new(vcx, task_key.0, def_id, &body, deps).encode_body();
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
@@ -140,7 +140,7 @@ impl TaskEncoder for MirPureEncoder {
         });
         tracing::debug!("finished {def_id:?}");
 
-        Ok((MirPureEncoderOutput { expr }, ()))
+        Ok((MirPureEncOutput { expr }, ()))
     }
 }
 
@@ -175,7 +175,7 @@ impl<'vir> Update<'vir> {
     }
 }
 
-struct Encoder<'tcx, 'vir: 'enc, 'enc>
+struct Enc<'tcx, 'vir: 'enc, 'enc>
 {
     vcx: &'vir vir::VirCtxt<'tcx>,
     encoding_depth: usize,
@@ -187,7 +187,7 @@ struct Encoder<'tcx, 'vir: 'enc, 'enc>
     phi_ctr: usize,
 }
 
-impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
+impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
 {
     fn new(
         vcx: &'vir vir::VirCtxt<'tcx>,
@@ -235,7 +235,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
 
     fn mk_phi_acc(
         &self,
-        tuple_ref: crate::encoders::ViperTupleEncoderOutput<'vir>,
+        tuple_ref: crate::encoders::ViperTupleEncOutput<'vir>,
         idx: usize,
         elem_idx: usize,
     ) -> ExprRet<'vir> {
@@ -270,7 +270,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
 
     fn reify_branch(
         &self,
-        tuple_ref: &crate::encoders::ViperTupleEncoderOutput<'vir>,
+        tuple_ref: &crate::encoders::ViperTupleEncOutput<'vir>,
         mod_locals: &Vec<mir::Local>,
         curr_ver: &HashMap<mir::Local, usize>,
         update: Update<'vir>,
@@ -394,7 +394,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 mod_locals.dedup();
 
                 // for each branch, create a Viper tuple of the updated locals
-                let tuple_ref = self.deps.require_local::<ViperTupleEncoder>(
+                let tuple_ref = self.deps.require_local::<ViperTupleEnc>(
                     mod_locals.len(),
                 ).unwrap();
                 let (join, otherwise_update) = updates.pop().unwrap();
@@ -458,7 +458,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                             def_spec.kind.is_pure().unwrap_or_default()
                         ).unwrap_or_default();
                         if is_pure {
-                            let pure_func = self.deps.require_ref::<MirFunctionEncoder>(
+                            let pure_func = self.deps.require_ref::<MirFunctionEnc>(
                                 (def_id, arg_tys, self.def_id)
                             ).unwrap().function_ref;
                             let encoded_args = args.iter()
@@ -532,13 +532,13 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             rv@mir::Rvalue::CheckedBinaryOp(op, box (l, r)) => {
                 let l_ty = l.ty(self.body, self.vcx.tcx);
                 let r_ty = r.ty(self.body, self.vcx.tcx);
-                use crate::encoders::MirBuiltinEncoderTask::{BinOp, CheckedBinOp};
+                use crate::encoders::MirBuiltinEncTask::{BinOp, CheckedBinOp};
                 let task = if matches!(rv, mir::Rvalue::BinaryOp(..)) {
                     BinOp(rvalue_ty, *op, l_ty, r_ty)
                 } else {
                     CheckedBinOp(rvalue_ty, *op, l_ty, r_ty)
                 };
-                let binop_function = self.deps.require_ref::<MirBuiltinEncoder>(
+                let binop_function = self.deps.require_ref::<MirBuiltinEnc>(
                     task
                 ).unwrap().function;
                 binop_function.apply(self.vcx, &[
@@ -549,8 +549,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             // NullaryOp
             mir::Rvalue::UnaryOp(unop, operand) => {
                 let operand_ty = operand.ty(self.body, self.vcx.tcx);
-                let unop_function = self.deps.require_ref::<MirBuiltinEncoder>(
-                    crate::encoders::MirBuiltinEncoderTask::UnOp(
+                let unop_function = self.deps.require_ref::<MirBuiltinEnc>(
+                    crate::encoders::MirBuiltinEncTask::UnOp(
                         rvalue_ty,
                         *unop,
                         operand_ty,
@@ -562,7 +562,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             mir::Rvalue::Aggregate(box kind, fields) => match kind {
                 mir::AggregateKind::Closure(..) => {
                     // TODO: only when this is a spec closure?
-                    let tuple_ref = self.deps.require_local::<ViperTupleEncoder>(
+                    let tuple_ref = self.deps.require_local::<ViperTupleEnc>(
                         fields.len(),
                     ).unwrap();
                     let fields = fields.iter()
@@ -617,7 +617,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
             mir::Operand::Copy(place)
             | mir::Operand::Move(place) => self.encode_place(curr_ver, place),
             mir::Operand::Constant(box constant) =>
-                self.deps.require_local::<ConstEncoder>((constant.literal, self.encoding_depth, self.def_id)).unwrap().lift(),
+                self.deps.require_local::<ConstEnc>((constant.literal, self.encoding_depth, self.def_id)).unwrap().lift(),
         }
     }
 
@@ -655,7 +655,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 match place_ty.ty.kind() {
                     TyKind::Closure(_def_id, args) => {
                         let upvars = args.as_closure().upvar_tys().iter().collect::<Vec<_>>().len();
-                        let tuple_ref = self.deps.require_local::<ViperTupleEncoder>(
+                        let tuple_ref = self.deps.require_local::<ViperTupleEnc>(
                             upvars,
                         ).unwrap();
                         tuple_ref.mk_elem(self.vcx, expr, field_idx)
@@ -748,10 +748,10 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                         )
                     })
                     .collect::<Vec<_>>());
-                //let qvar_tuple_ref = self.deps.require_ref::<ViperTupleEncoder>(
+                //let qvar_tuple_ref = self.deps.require_ref::<ViperTupleEnc>(
                 //    qvars.len(),
                 //).unwrap();
-                //let upvar_tuple_ref = self.deps.require_ref::<ViperTupleEncoder>(
+                //let upvar_tuple_ref = self.deps.require_ref::<ViperTupleEnc>(
                 //    upvar_tys.len(),
                 //).unwrap();
 
@@ -777,8 +777,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Encoder<'tcx, 'vir, 'enc>
                 // variable to use, then closure access = tuple access
                 // (then hope to optimise this away later ...?)
                 use vir::Reify;
-                let body = self.deps.require_local::<MirPureEncoder>(
-                    MirPureEncoderTask {
+                let body = self.deps.require_local::<MirPureEnc>(
+                    MirPureEncTask {
                         encoding_depth: self.encoding_depth + 1,
                         kind: PureKind::Closure,
                         parent_def_id: cl_def_id,

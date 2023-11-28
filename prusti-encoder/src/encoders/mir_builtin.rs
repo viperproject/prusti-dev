@@ -8,28 +8,28 @@ use task_encoder::{
 };
 use vir::{UnknownArity, FunctionIdent, CallableIdent};
 
-pub struct MirBuiltinEncoder;
+pub struct MirBuiltinEnc;
 
 #[derive(Clone, Debug)]
-pub enum MirBuiltinEncoderError {
+pub enum MirBuiltinEncError {
     Unsupported,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
-pub enum MirBuiltinEncoderTask<'tcx> {
+pub enum MirBuiltinEncTask<'tcx> {
     UnOp(ty::Ty<'tcx>, mir::UnOp, ty::Ty<'tcx>),
     BinOp(ty::Ty<'tcx>, mir::BinOp, ty::Ty<'tcx>, ty::Ty<'tcx>),
     CheckedBinOp(ty::Ty<'tcx>, mir::BinOp, ty::Ty<'tcx>, ty::Ty<'tcx>),
 }
 
 #[derive(Clone, Debug)]
-pub struct MirBuiltinEncoderOutputRef<'vir> {
+pub struct MirBuiltinEncOutputRef<'vir> {
     pub function: FunctionIdent<'vir, UnknownArity<'vir>>,
 }
-impl<'vir> task_encoder::OutputRefAny for MirBuiltinEncoderOutputRef<'vir> {}
+impl<'vir> task_encoder::OutputRefAny for MirBuiltinEncOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
-pub struct MirBuiltinEncoderOutput<'vir> {
+pub struct MirBuiltinEncOutput<'vir> {
     pub function: vir::Function<'vir>,
 }
 
@@ -38,19 +38,19 @@ use std::cell::RefCell;
 use crate::encoders::SnapshotEnc;
 
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirBuiltinEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<MirBuiltinEnc> = RefCell::new(Default::default());
 }
 
-impl TaskEncoder for MirBuiltinEncoder {
-    type TaskDescription<'vir> = MirBuiltinEncoderTask<'vir>;
+impl TaskEncoder for MirBuiltinEnc {
+    type TaskDescription<'vir> = MirBuiltinEncTask<'vir>;
 
-    type OutputRef<'vir> = MirBuiltinEncoderOutputRef<'vir>;
-    type OutputFullLocal<'vir> = MirBuiltinEncoderOutput<'vir>;
+    type OutputRef<'vir> = MirBuiltinEncOutputRef<'vir>;
+    type OutputFullLocal<'vir> = MirBuiltinEncOutput<'vir>;
 
-    type EncodingError = MirBuiltinEncoderError;
+    type EncodingError = MirBuiltinEncError;
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirBuiltinEncoder>) -> R,
+        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirBuiltinEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -77,18 +77,18 @@ impl TaskEncoder for MirBuiltinEncoder {
     )> {
         vir::with_vcx(|vcx| {
             match *task_key {
-                MirBuiltinEncoderTask::UnOp(res_ty, op, operand_ty) => {
+                MirBuiltinEncTask::UnOp(res_ty, op, operand_ty) => {
                     assert_eq!(res_ty, operand_ty);
                     let function = Self::handle_un_op(vcx, deps, *task_key, op, operand_ty);
-                    Ok((MirBuiltinEncoderOutput { function }, ()))
+                    Ok((MirBuiltinEncOutput { function }, ()))
                 }
-                MirBuiltinEncoderTask::BinOp(res_ty, op, l_ty, r_ty) => {
+                MirBuiltinEncTask::BinOp(res_ty, op, l_ty, r_ty) => {
                     let function = Self::handle_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty);
-                    Ok((MirBuiltinEncoderOutput { function }, ()))
+                    Ok((MirBuiltinEncOutput { function }, ()))
                 }
-                MirBuiltinEncoderTask::CheckedBinOp(res_ty, op, l_ty, r_ty) => {
+                MirBuiltinEncTask::CheckedBinOp(res_ty, op, l_ty, r_ty) => {
                     let function = Self::handle_checked_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty);
-                    Ok((MirBuiltinEncoderOutput { function }, ()))
+                    Ok((MirBuiltinEncOutput { function }, ()))
                 }
             }
         })
@@ -105,7 +105,7 @@ fn int_name<'tcx>(ty: ty::Ty<'tcx>) -> &'static str {
     }
 }
 
-impl MirBuiltinEncoder {
+impl MirBuiltinEnc {
     fn handle_un_op<'vir, 'tcx>(
         vcx: &'vir vir::VirCtxt<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
@@ -118,7 +118,7 @@ impl MirBuiltinEncoder {
         let name = vir::vir_format!(vcx, "mir_unop_{op:?}_{}", int_name(ty));
         let arity = UnknownArity::new(vcx.alloc_slice(&[e_ty.snapshot]));
         let function = FunctionIdent::new(name, arity);
-        deps.emit_output_ref::<Self>(key, MirBuiltinEncoderOutputRef {
+        deps.emit_output_ref::<Self>(key, MirBuiltinEncOutputRef {
             function,
         });
 
@@ -171,7 +171,7 @@ impl MirBuiltinEncoder {
         let name = vir::vir_format!(vcx, "mir_binop_{op:?}_{}_{}", int_name(l_ty), int_name(r_ty));
         let arity = UnknownArity::new(vcx.alloc_slice(&[e_l_ty.snapshot, e_r_ty.snapshot]));
         let function = FunctionIdent::new(name, arity);
-        deps.emit_output_ref::<Self>(key, MirBuiltinEncoderOutputRef {
+        deps.emit_output_ref::<Self>(key, MirBuiltinEncOutputRef {
             function,
         });
         let lhs = prim_l_ty.snap_to_prim.apply(vcx,
@@ -264,7 +264,7 @@ impl MirBuiltinEncoder {
         let name = vir::vir_format!(vcx, "mir_checkedbinop_{op:?}_{}_{}", int_name(l_ty), int_name(r_ty));
         let arity = UnknownArity::new(vcx.alloc_slice(&[e_l_ty.snapshot, e_r_ty.snapshot]));
         let function = FunctionIdent::new(name, arity);
-        deps.emit_output_ref::<Self>(key, MirBuiltinEncoderOutputRef {
+        deps.emit_output_ref::<Self>(key, MirBuiltinEncOutputRef {
             function,
         });
 
