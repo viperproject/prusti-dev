@@ -543,8 +543,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_return = self.encode_local(contract.returned_value.into())?;
         debug!("encoded_return: {:?}", encoded_return);
 
-        eprintln!("IN IT");
-
         for (assertion, assertion_substs) in
             contract.functional_postcondition(self.encoder.env(), self.substs)
         {
