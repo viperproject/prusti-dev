@@ -46,6 +46,9 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn alloc_slice<T: Copy>(&self, val: &[T]) -> &[T] {
         &*self.arena.alloc_slice_copy(val)
     }
+    pub fn alloc_array<T: Copy, const N: usize>(&self, val: &[T; N]) -> &[T; N] {
+        &*self.arena.alloc(*val)
+    }
 
     pub fn mk_local<'vir>(&'vir self, name: &'vir str) -> Local<'vir> {
         self.alloc(LocalData { name })
@@ -68,11 +71,13 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         target: &'vir str,
         src_args: &[ExprGen<'vir, Curr, Next>],
+        result_ty: Option<Type<'vir>>,
     ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData {
             kind: self.alloc(ExprKindGenData::FuncApp(self.arena.alloc(FuncAppGenData {
                 target,
                 args: self.alloc_slice(src_args),
+                result_ty,
             }))),
         })
     }
@@ -186,11 +191,18 @@ impl<'tcx> VirCtxt<'tcx> {
             }))),
         })
     }
+    pub fn mk_eq_expr<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.mk_bin_op_expr(BinOpKind::CmpEq, lhs, rhs)
+    }
 
     pub fn mk_field_expr<'vir, Curr, Next>(
         &'vir self,
         recv: ExprGen<'vir, Curr, Next>,
-        field: &'vir str,
+        field: Field<'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData {
             kind: self.alloc(ExprKindGenData::Field(recv, field)),
@@ -212,7 +224,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_acc_field_expr<'vir, Curr, Next>(
         &'vir self,
         recv: ExprGen<'vir, Curr, Next>,
-        field: &'vir str,
+        field: Field<'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData {kind : self.alloc(ExprKindGenData::AccField(self.alloc(AccFieldGenData { recv, field })))})
     }
@@ -245,6 +257,14 @@ impl<'tcx> VirCtxt<'tcx> {
         &ExprGenData {kind : &ExprKindGenData::Const(&ConstData::Int(VALUE))}
     }
 
+    pub fn mk_field<'vir>(
+        &'vir self,
+        name: &'vir str,
+        ty: Type<'vir>,
+    ) -> Field<'vir> {
+        self.alloc(FieldData { name, ty })
+    }
+
     pub fn mk_domain_axiom<'vir, Curr, Next>(
         &'vir self,
         name: &'vir str,
@@ -253,6 +273,21 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(DomainAxiomGenData {
             name,
             expr
+        })
+    }
+
+    pub fn mk_domain_function<'vir>(
+        &'vir self,
+        unique: bool,
+        name: &'vir str,
+        args: &'vir [Type<'vir>],
+        ret: Type<'vir>,
+    ) -> DomainFunction<'vir> {
+        self.alloc(DomainFunctionData {
+            unique,
+            name,
+            args,
+            ret,
         })
     }
 
@@ -292,7 +327,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_domain<'vir, Curr, Next>(
         &'vir self,
         name: &'vir str,
-        typarams: &'vir [&'vir str],
+        typarams: &'vir [DomainParamData<'vir>],
         axioms: &'vir [DomainAxiomGen<'vir, Curr, Next>],
         functions: &'vir [DomainFunction<'vir>]
     ) -> DomainGen<'vir, Curr, Next> {
@@ -378,14 +413,16 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_goto_if_stmt<'vir, Curr, Next>(
         &'vir self,
         value: ExprGen<'vir, Curr, Next>,
-        targets: &'vir [(ExprGen<'vir, Curr, Next>, CfgBlockLabel<'vir>)],
+        targets: &'vir [(ExprGen<'vir, Curr, Next>, CfgBlockLabel<'vir>, &'vir [StmtGen<'vir, Curr, Next>])],
         otherwise: CfgBlockLabel<'vir>,
+        otherwise_statements: &'vir [StmtGen<'vir, Curr, Next>],
     ) -> TerminatorStmtGen<'vir, Curr, Next> {
         self.alloc(
             TerminatorStmtGenData::GotoIf(self.alloc(GotoIfGenData {
                 value,
                 targets,
-                otherwise
+                otherwise,
+                otherwise_statements,
             }))
         )
     }
@@ -515,14 +552,18 @@ impl<'tcx> VirCtxt<'tcx> {
     }
 
     pub fn mk_conj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
-        if elems.len() == 0 {
-            return self.mk_bool::<true>();
-        }
-        let mut e = elems[0];
-        for i in 1..elems.len() {
-            e = self.mk_bin_op_expr(BinOpKind::And, e, elems[i]);
-        }
-        e
+        elems.split_first().map(|(first, rest)| {
+            rest.iter().rfold(*first, |acc, e| {
+                self.mk_bin_op_expr(BinOpKind::And, acc, *e)
+            })
+        }).unwrap_or_else(|| self.mk_bool::<true>())
+    }
+    pub fn mk_disj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
+        elems.split_first().map(|(first, rest)| {
+            rest.iter().rfold(*first, |acc, e| {
+                self.mk_bin_op_expr(BinOpKind::Or, acc, *e)
+            })
+        }).unwrap_or_else(|| self.mk_bool::<false>())
     }
 }
 

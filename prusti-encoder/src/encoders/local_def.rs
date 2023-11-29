@@ -7,15 +7,15 @@ use prusti_rustc_interface::{
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 use std::cell::RefCell;
 
-use crate::encoders::TypeEncoderOutputRef;
+use crate::encoders::PredicateEncOutputRef;
 
-pub struct MirLocalDefEncoder;
+pub struct MirLocalDefEnc;
 #[derive(Clone, Copy)]
-pub struct MirLocalDefEncoderOutput<'vir> {
+pub struct MirLocalDefEncOutput<'vir> {
     pub locals: &'vir IndexVec<mir::Local, LocalDef<'vir>>,
     pub arg_count: usize,
 }
-pub type MirLocalDefEncoderError = ();
+pub type MirLocalDefEncError = ();
 
 #[derive(Clone, Copy)]
 pub struct LocalDef<'vir> {
@@ -23,27 +23,27 @@ pub struct LocalDef<'vir> {
     pub local_ex: vir::Expr<'vir>,
     pub impure_snap: vir::Expr<'vir>,
     pub impure_pred: vir::Expr<'vir>,
-    pub ty: &'vir crate::encoders::TypeEncoderOutputRef<'vir>,
+    pub ty: &'vir crate::encoders::PredicateEncOutputRef<'vir>,
 }
 
 thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirLocalDefEncoder> = RefCell::new(Default::default());
+    static CACHE: task_encoder::CacheStaticRef<MirLocalDefEnc> = RefCell::new(Default::default());
 }
 
-impl TaskEncoder for MirLocalDefEncoder {
+impl TaskEncoder for MirLocalDefEnc {
     type TaskDescription<'tcx> = (
         DefId, // ID of the function
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
         Option<DefId>, // ID of the caller function, if any
     );
 
-    type OutputFullLocal<'vir> = MirLocalDefEncoderOutput<'vir>;
+    type OutputFullLocal<'vir> = MirLocalDefEncOutput<'vir>;
 
-    type EncodingError = MirLocalDefEncoderError;
+    type EncodingError = MirLocalDefEncError;
 
     fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
     where
-        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirLocalDefEncoder>) -> R,
+        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirLocalDefEnc>) -> R,
     {
         CACHE.with(|cache| {
             // SAFETY: the 'vir and 'tcx given to this function will always be
@@ -73,7 +73,7 @@ impl TaskEncoder for MirLocalDefEncoder {
     > {
         let (def_id, substs, caller_def_id) = *task_key;
         deps.emit_output_ref::<Self>(*task_key, ());
-        fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: TypeEncoderOutputRef<'vir>) -> LocalDef<'vir> {
+        fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: PredicateEncOutputRef<'vir>) -> LocalDef<'vir> {
             let local = vcx.mk_local(name);
             let local_ex = vcx.mk_local_ex_local(local);
             let impure_snap = ty.ref_to_snap.apply(vcx, [local_ex]);
@@ -92,12 +92,12 @@ impl TaskEncoder for MirLocalDefEncoder {
                 let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {
                     let local = vir::vir_format!(vcx, "_{}p", arg.index());
-                    let ty = deps.require_ref::<crate::encoders::TypeEncoder>(
+                    let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
                         body.local_decls[arg].ty,
                     ).unwrap();
                     mk_local_def(vcx, local, ty)
                 }, body.local_decls.len());
-                MirLocalDefEncoderOutput {
+                MirLocalDefEncOutput {
                     locals: vcx.alloc(locals),
                     arg_count: body.arg_count,
                 }
@@ -114,13 +114,13 @@ impl TaskEncoder for MirLocalDefEncoder {
                     } else {
                         sig.inputs()[arg.index() - 1]
                     };
-                    let ty = deps.require_ref::<crate::encoders::TypeEncoder>(
+                    let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
                         ty,
                     ).unwrap();
                     mk_local_def(vcx, local, ty)
                 }, sig.inputs_and_output.len());
 
-                MirLocalDefEncoderOutput {
+                MirLocalDefEncOutput {
                     locals: vcx.alloc(locals),
                     arg_count: sig.inputs().len(),
                 }
