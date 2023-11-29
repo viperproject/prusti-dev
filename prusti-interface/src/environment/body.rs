@@ -276,6 +276,12 @@ impl<'tcx> EnvBody<'tcx> {
         self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
     }
 
+    pub fn get_promoted_constant_body(&self,  def_id: DefId, promoted: mir::Promoted) -> MirBody<'tcx> {
+       MirBody(Rc::new(
+            self.tcx.promoted_mir(def_id)[promoted].clone(),
+        ))
+    }
+
     ///// Get Polonius facts of a local procedure.
     //pub fn local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Rc<BorrowckFacts> {
     //    self.try_get_local_mir_borrowck_facts(def_id).unwrap()
