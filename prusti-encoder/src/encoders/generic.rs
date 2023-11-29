@@ -26,30 +26,15 @@ pub struct GenericEncOutput<'vir> {
     pub domain_type: vir::Domain<'vir>,
 }
 
-use std::cell::RefCell;
-thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<GenericEnc> = RefCell::new(Default::default());
-}
-
 impl TaskEncoder for GenericEnc {
+    task_encoder::encoder_cache!(GenericEnc);
+
     type TaskDescription<'tcx> = (); // ?
 
     type OutputRef<'vir> = GenericEncOutputRef<'vir>;
     type OutputFullLocal<'vir> = GenericEncOutput<'vir>;
 
     type EncodingError = GenericEncError;
-
-    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, GenericEnc>) -> R,
-    {
-        CACHE.with(|cache| {
-            // SAFETY: the 'vir and 'tcx given to this function will always be
-            //   the same (or shorter) than the lifetimes of the VIR arena and
-            //   the rustc type context, respectively
-            let cache = unsafe { std::mem::transmute(cache) };
-            f(cache)
-        })
-    }
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task

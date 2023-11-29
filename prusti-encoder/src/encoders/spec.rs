@@ -22,7 +22,6 @@ pub struct SpecEncOutput<'vir> {
 use std::cell::RefCell;
 thread_local! {
     static DEF_SPEC_MAP: RefCell<Option<DefSpecificationMap>> = RefCell::new(Default::default());
-    static CACHE: task_encoder::CacheStaticRef<SpecEnc> = RefCell::new(Default::default());
 }
 
 pub fn with_def_spec<F, R>(f: F) -> R
@@ -57,6 +56,8 @@ pub struct SpecEncTask {
 }
 
 impl TaskEncoder for SpecEnc {
+    task_encoder::encoder_cache!(SpecEnc);
+
     type TaskDescription<'vir> = SpecEncTask;
 
     type TaskKey<'vir> = (
@@ -66,18 +67,6 @@ impl TaskEncoder for SpecEnc {
     type OutputFullLocal<'vir> = SpecEncOutput<'vir>;
 
     type EncodingError = SpecEncError;
-
-    fn with_cache<'tcx, 'vir, F, R>(f: F) -> R
-       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, SpecEnc>) -> R,
-    {
-        CACHE.with(|cache| {
-            // SAFETY: the 'vir and 'tcx given to this function will always be
-            //   the same (or shorter) than the lifetimes of the VIR arena and
-            //   the rustc type context, respectively
-            let cache = unsafe { std::mem::transmute(cache) };
-            f(cache)
-        })
-    }
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         (
