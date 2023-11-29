@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use prusti_rustc_interface::middle::mir;
-use crate::refs::*;
+use crate::{refs::*, UnaryArity};
 
 pub struct LocalData<'vir> {
     pub name: &'vir str, // TODO: identifiers
@@ -91,30 +91,27 @@ pub enum TypeData<'vir> {
         signed: bool,
     },
     Bool,
-    Domain(&'vir str), // TODO: identifiers
-    DomainParams(&'vir str, &'vir [Type<'vir>]),
+    DomainTypeParam(DomainParamData<'vir>), // TODO: identifiers
+    Domain(&'vir str, &'vir [Type<'vir>]), // TODO: identifiers
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
 }
-impl<'vir> TypeData<'vir> {
-    pub fn get_domain(&self) -> Option<&'vir str> {
-        match self {
-            TypeData::Domain(name) => Some(name),
-            _ => None,
-        }
-    }
+
+#[derive(Clone, Copy, Debug)]
+pub struct DomainParamData<'vir> {
+    pub name: &'vir str, // TODO: identifiers
 }
 
 pub struct FieldData<'vir> {
-    pub name: &'vir str, // TODO: identifiers
-    pub ty: Type<'vir>,
+    pub(crate) name: &'vir str, // TODO: identifiers
+    pub(crate) ty: Type<'vir>,
 }
 
 pub struct DomainFunctionData<'vir> {
-    pub unique: bool,
-    pub name: &'vir str, // TODO: identifiers
-    pub args: &'vir [Type<'vir>],
-    pub ret: Type<'vir>,
+    pub(crate) unique: bool,
+    pub(crate) name: &'vir str, // TODO: identifiers
+    pub(crate) args: &'vir [Type<'vir>],
+    pub(crate) ret: Type<'vir>,
 }
 
 pub enum CfgBlockLabelData {

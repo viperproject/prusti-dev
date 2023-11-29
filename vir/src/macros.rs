@@ -129,7 +129,7 @@ macro_rules! vir_type {
     ($vcx:expr; Int($bit_width:expr)) => { $vcx.alloc($crate::TypeData::Int { signed: true, bit_width: $bit_width }) };
     ($vcx:expr; [ $ty:expr ]) => { $ty };
     ($vcx:expr; $name:ident) => {
-        $vcx.alloc($crate::TypeData::Domain($vcx.alloc_str(stringify!($name))))
+        $vcx.alloc($crate::TypeData::Domain($vcx.alloc_str(stringify!($name)), &[]))
     };
 }
 
@@ -178,20 +178,20 @@ macro_rules! vir_domain_axiom {
 #[macro_export]
 macro_rules! vir_domain_func {
     ($vcx:expr; unique function $name:tt ( $( $args:tt )* ): $ret:tt ) => {{
-        $vcx.alloc($crate::DomainFunctionData {
-            unique: true,
-            name: $name.name(),
-            args: $crate::vir_type_list!($vcx; $($args)*),
-            ret: $crate::vir_type!($vcx; $ret),
-        })
+        $vcx.mk_domain_function(
+            true,
+            $name.name(),
+            $crate::vir_type_list!($vcx; $($args)*),
+            $crate::vir_type!($vcx; $ret),
+        )
     }};
     ($vcx:expr; function $name:tt ( $( $args:tt )* ): $ret:tt ) => {{
-        $vcx.alloc($crate::DomainFunctionData {
-            unique: false,
-            name: $name.name(),
-            args: $crate::vir_type_list!($vcx; $($args)*),
-            ret: $crate::vir_type!($vcx; $ret),
-        })
+        $vcx.mk_domain_function(
+            false,
+            $name.name(),
+            $crate::vir_type_list!($vcx; $($args)*),
+            $crate::vir_type!($vcx; $ret),
+        )
     }};
 }
 
