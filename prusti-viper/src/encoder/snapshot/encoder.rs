@@ -1841,7 +1841,7 @@ impl SnapshotEncoder {
                     .map(|f| {
                         let field_access_func = field_access_funcs
                             .get(&f.name)
-                            .expect(&format!("No accessor for field {}", f.name));
+                            .unwrap_or_else(|| panic!("No accessor for field {}", f.name));
                         field_access_func.apply(vec![self_expr.clone()])
                     })
                     .collect();
