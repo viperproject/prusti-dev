@@ -7,6 +7,9 @@ use task_encoder::{
     TaskEncoderDependencies,
 };
 
+/// Takes a Rust `Ty` and returns a Viper `Type`. The returned type is always a
+/// domain type. To get specifics such as constructors for the domain, use the
+/// full encoding: this is generally the one to use as it also includes the type.
 pub struct SnapshotEnc;
 
 #[derive(Clone, Debug)]
@@ -84,6 +87,8 @@ impl TaskEncoder for SnapshotEnc {
                     (ty, tys.to_vec())
                 }
                 TyKind::Param(mut param) => {
+                    // TODO: remove this hack of using a very large index to
+                    // indicate that this is a Viper param.
                     if Self::is_viper_param(param.index) {
                         // We are encoding a previously normalised type
                         // parameter. Stop here.

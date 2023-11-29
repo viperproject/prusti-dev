@@ -8,6 +8,8 @@ use task_encoder::{
 };
 use vir::{BinaryArity, UnaryArity, NullaryArity, UnknownArity, FunctionIdent, MethodIdent, PredicateIdent, CallableIdent};
 
+/// Takes a Rust `Ty` and returns various Viper predicates and functions for
+/// working with the type.
 pub struct PredicateEnc;
 
 #[derive(Clone, Debug)]
