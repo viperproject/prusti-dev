@@ -1691,10 +1691,10 @@ impl SnapshotEncoder {
         // * the constructor, which takes the flattened value-only
         //   representation of the variant and returns an instance of the
         //   snapshot domain
-        // * the injectivity axiom for that constructor:
+        // * the injectivity axiom for that variant:
         //   ```plain
-        //   forall _l_args..., _r_args... :: {cons(_l_args...), cons(_r_args)}
-        //     cons(_l_args...) == cons(_r_args) ==> _l_args... == _r_args...
+        //   forall this: Variant :: {field1(this), field2(this), ...}
+        //     this == cons(field1(this), field2(this), ...)
         //   ```
         // * the discriminant axiom for that constructor:
         //   ```plain
@@ -1704,7 +1704,7 @@ impl SnapshotEncoder {
         //   * field access function
         //   * field access axiom:
         //     ```plain
-        //     forall args... :: {field(cons(arg_field, other_args...))}
+        //     forall args... :: {cons(arg_field, other_args...)}
         //       field(cons(arg_field, other_args...)) == arg_field
         //     ```
         for (variant_idx, variant) in variants.iter().enumerate() {
@@ -1715,8 +1715,6 @@ impl SnapshotEncoder {
                 .enumerate()
                 .map(|(idx, field)| vir::LocalVar::new(format!("_{idx}"), field.typ.clone()))
                 .collect::<Vec<vir::LocalVar>>();
-            // TODO: filter out Units to reduce constructor size
-            let has_args = !args.is_empty();
 
             // record name to index mapping
             if let Some(name) = &variant.name {
@@ -1744,7 +1742,6 @@ impl SnapshotEncoder {
             let encode_constructor_call = |args: &Vec<vir::LocalVar>| -> Expr {
                 constructor.apply(args.iter().cloned().map(Expr::local).collect())
             };
-
 
             if has_multiple_variants {
                 // encode discriminant axiom
@@ -1837,23 +1834,24 @@ impl SnapshotEncoder {
                 }
             }
 
-            if has_args {
-                let field_access_apps: Vec<_> = variant.fields.iter().map(
-                    |f| {
-                        let field_access_func = field_access_funcs.get(&f.name).expect(&format!("No accessor for field {}", f.name));
+            if !args.is_empty() {
+                let field_access_apps: Vec<_> = variant
+                    .fields
+                    .iter()
+                    .map(|f| {
+                        let field_access_func = field_access_funcs
+                            .get(&f.name)
+                            .expect(&format!("No accessor for field {}", f.name));
                         field_access_func.apply(vec![self_expr.clone()])
-                    }
-                ).collect();
+                    })
+                    .collect();
                 let expr = Expr::forall(
                     vec![self_local.clone()],
-                    field_access_apps.iter().map(|e|
-                        vir::Trigger::new(
-                            vec![e.clone()]
-                        )).collect(),
-                    Expr::eq_cmp(
-                        self_expr.clone(),
-                        constructor.apply(field_access_apps)
-                    )
+                    field_access_apps
+                        .iter()
+                        .map(|e| vir::Trigger::new(vec![e.clone()]))
+                        .collect(),
+                    Expr::eq_cmp(self_expr.clone(), constructor.apply(field_access_apps)),
                 );
 
                 domain_axioms.push(vir::DomainAxiom {
