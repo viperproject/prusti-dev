@@ -250,7 +250,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                         // on an axiom, then we should also retain the axiom.
                         let mut used_snap_domain_function_prefixes = vec![];
                         let mut used_snap_domain_constructor = false;
-                        domain.functions.retain(|function| {
+                        for function in domain.functions.iter() {
                             let function_name = function.get_identifier();
                             let prefix = function_name.split("__").next().map(String::from);
                             let is_constructor = function_name.starts_with("cons");
@@ -260,11 +260,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                             {
                                 used_snap_domain_function_prefixes.extend(prefix);
                                 used_snap_domain_constructor |= is_constructor;
-                                true
-                            } else {
-                                false
                             }
-                        });
+                        }
                         domain.axioms.retain(|axiom| {
                             let used = used_snap_domain_function_prefixes
                                 .iter()
@@ -272,9 +269,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                             let retain_type_invariant = axiom.name.ends_with("$valid") && used;
                             let retain_injectivity = used_snap_domain_constructor
                                 && axiom.name.ends_with("$injectivity");
-                            let retain_field_axiom = used_snap_domain_constructor && used;
+                            let retain_field_axiom = used_snap_domain_constructor
+                                && axiom.name.ends_with("$axiom");
 
                             retain_type_invariant || retain_injectivity || retain_field_axiom
+                        });
+                        struct Walker {
+                            function_names: FxHashSet<String>
+                        }
+
+                        impl ExprWalker for Walker {
+                            fn walk_domain_func_app(&mut self, function_call: &vir::DomainFuncApp) {
+                                self.function_names.insert(function_call.domain_function.get_identifier());
+                            }
+                        }
+                        let mut functions_in_axioms: FxHashSet<String> = Default::default();
+                        for axiom in domain.axioms.iter() {
+                            let mut walker = Walker {
+                                function_names: Default::default()
+                            };
+                            walker.walk(&axiom.expr);
+                            functions_in_axioms.extend(walker.function_names);
+                        }
+                        domain.functions.retain(|function| {
+                            let function_name = function.get_identifier();
+                            self
+                                .used_snap_domain_functions
+                                .contains(&function_name.clone().into())
+                            || functions_in_axioms.contains(&function_name)
                         });
                     }
                 }
