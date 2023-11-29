@@ -3,7 +3,6 @@ use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
 };
-use std::cell::RefCell;
 
 use crate::encoders::SnapshotEnc;
 
@@ -39,27 +38,13 @@ impl<'vir> ViperTupleEncOutput<'vir> {
     }
 }
 
-thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<ViperTupleEnc> = RefCell::new(Default::default());
-}
-
 impl TaskEncoder for ViperTupleEnc {
+    task_encoder::encoder_cache!(ViperTupleEnc);
+
     type TaskDescription<'vir> = usize;
 
     type OutputFullLocal<'vir> = ViperTupleEncOutput<'vir>;
     type EncodingError = ();
-
-    fn with_cache<'tcx, 'vir, F, R>(f: F) -> R
-       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, ViperTupleEnc>) -> R,
-    {
-        CACHE.with(|cache| {
-            // SAFETY: the 'vir and 'tcx given to this function will always be
-            //   the same (or shorter) than the lifetimes of the VIR arena and
-            //   the rustc type context, respectively
-            let cache = unsafe { std::mem::transmute(cache) };
-            f(cache)
-        })
-    }
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task

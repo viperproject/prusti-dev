@@ -5,7 +5,6 @@ use prusti_rustc_interface::{
 };
 
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
-use std::cell::RefCell;
 
 use crate::encoders::PredicateEncOutputRef;
 
@@ -26,11 +25,9 @@ pub struct LocalDef<'vir> {
     pub ty: &'vir crate::encoders::PredicateEncOutputRef<'vir>,
 }
 
-thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirLocalDefEnc> = RefCell::new(Default::default());
-}
-
 impl TaskEncoder for MirLocalDefEnc {
+    task_encoder::encoder_cache!(MirLocalDefEnc);
+
     type TaskDescription<'tcx> = (
         DefId, // ID of the function
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
@@ -40,19 +37,6 @@ impl TaskEncoder for MirLocalDefEnc {
     type OutputFullLocal<'vir> = MirLocalDefEncOutput<'vir>;
 
     type EncodingError = MirLocalDefEncError;
-
-    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-    where
-        F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirLocalDefEnc>) -> R,
-    {
-        CACHE.with(|cache| {
-            // SAFETY: the 'vir and 'tcx given to this function will always be
-            //   the same (or shorter) than the lifetimes of the VIR arena and
-            //   the rustc type context, respectively
-            let cache = unsafe { std::mem::transmute(cache) };
-            f(cache)
-        })
-    }
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task

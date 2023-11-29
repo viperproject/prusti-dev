@@ -31,11 +31,6 @@ pub struct MirPureEncOutput<'vir> {
     pub expr: ExprRet<'vir>,
 }
 
-use std::cell::RefCell;
-thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<MirPureEnc> = RefCell::new(Default::default());
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PureKind {
     Closure,
@@ -57,6 +52,8 @@ pub struct MirPureEncTask<'tcx> {
 }
 
 impl TaskEncoder for MirPureEnc {
+    task_encoder::encoder_cache!(MirPureEnc);
+
     type TaskDescription<'tcx> = MirPureEncTask<'tcx>;
 
     type TaskKey<'tcx> = (
@@ -70,18 +67,6 @@ impl TaskEncoder for MirPureEnc {
     type OutputFullLocal<'vir> = MirPureEncOutput<'vir>;
 
     type EncodingError = MirPureEncError;
-
-    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-       where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, MirPureEnc>) -> R,
-    {
-        CACHE.with(|cache| {
-            // SAFETY: the 'vir and 'tcx given to this function will always be
-            //   the same (or shorter) than the lifetimes of the VIR arena and
-            //   the rustc type context, respectively
-            let cache = unsafe { std::mem::transmute(cache) };
-            f(cache)
-        })
-    }
 
     fn task_to_key<'tcx>(task: &Self::TaskDescription<'tcx>) -> Self::TaskKey<'tcx> {
         (

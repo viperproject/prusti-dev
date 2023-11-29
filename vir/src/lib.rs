@@ -1,5 +1,4 @@
 #![feature(rustc_private)]
-#![feature(local_key_cell_methods)]
 #![feature(never_type)]
 #![feature(iter_intersperse)]
 

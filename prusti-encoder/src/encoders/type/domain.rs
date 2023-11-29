@@ -77,19 +77,15 @@ pub struct DomainEncOutputRef<'vir> {
 }
 impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 
-use std::cell::RefCell;
-
 use crate::encoders::SnapshotEnc;
-
-thread_local! {
-    static CACHE: task_encoder::CacheStaticRef<DomainEnc> = RefCell::new(Default::default());
-}
 
 pub fn all_outputs<'vir>() -> Vec<vir::Domain<'vir>> {
     DomainEnc::all_outputs()
 }
 
 impl TaskEncoder for DomainEnc {
+    task_encoder::encoder_cache!(DomainEnc);
+
     type TaskDescription<'vir> = ty::Ty<'vir>;
 
     type OutputRef<'vir> = DomainEncOutputRef<'vir>;
@@ -98,18 +94,6 @@ impl TaskEncoder for DomainEnc {
     //type OutputFullDependency<'vir> = DomainEncOutputDep<'vir>;
 
     type EncodingError = ();
-
-    fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
-        where F: FnOnce(&'vir task_encoder::CacheRef<'tcx, 'vir, DomainEnc>) -> R,
-    {
-        CACHE.with(|cache| {
-            // SAFETY: the 'vir and 'tcx given to this function will always be
-            //   the same (or shorter) than the lifetimes of the VIR arena and
-            //   the rustc type context, respectively
-            let cache = unsafe { std::mem::transmute(cache) };
-            f(cache)
-        })
-    }
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task

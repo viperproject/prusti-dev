@@ -476,21 +476,32 @@ pub trait TaskEncoder {
     }
 }
 
-/*
-/// TODO: the implementation always looks the same but cannot be provided as
-///   a default implementation in the trait, because of how generics interact
-///   with const/static items. Could this be a derive for a separate trait?
+/// Create the cache storage (a static `RefCell`) and a `with_cache`
+/// implementation within a `TaskEncoder` `impl` block. This should always be
+/// placed at the beginning of the `impl` block for consistency.
+///
+/// (Implementation notes: the implementation is always the same. However, it
+/// cannot be a method provided by the trait, because such an implementation
+/// would only create a single static; each cache storage must syntactically
+/// differ. A supertrait of `TaskEncoder` which only contains the cache and
+/// has a derive macro *might* work, but the `CacheRef` etc types make this a
+/// bit difficult without introducing a cyclic dependency in the two traits.)
 #[macro_export]
 macro_rules! encoder_cache {
     ($encoder: ty) => {
-        fn cache<'vir>() -> $crate::CacheRef<'vir, Self> {
-            const CACHE: once_cell::unsync::Lazy<$crate::CacheStaticRef<$encoder>>
-                = once_cell::unsync::Lazy::new(|| { println!("lazy construction"); Default::default() });
-            // SAFETY: the 'vir and 'tcx given to this function will always be
-            //   the same (or shorter) than the lifetimes of the VIR arena and
-            //   the rustc type context, respectively
-            unsafe { std::mem::transmute((*CACHE).clone()) }
+        fn with_cache<'tcx: 'vir, 'vir, F, R>(f: F) -> R
+            where F: FnOnce(&'vir $crate::CacheRef<'tcx, 'vir, $encoder>) -> R,
+        {
+            ::std::thread_local! {
+                static CACHE: $crate::CacheStaticRef<$encoder> = ::std::cell::RefCell::new(Default::default());
+            }
+            CACHE.with(|cache| {
+                // SAFETY: the 'vir and 'tcx given to this function will always be
+                //   the same (or shorter) than the lifetimes of the VIR arena and
+                //   the rustc type context, respectively
+                let cache = unsafe { ::std::mem::transmute(cache) };
+                f(cache)
+            })
         }
     };
 }
-*/
