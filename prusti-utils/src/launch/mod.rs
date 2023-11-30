@@ -26,6 +26,9 @@ pub fn get_current_executable_dir() -> PathBuf {
         .to_path_buf()
 }
 
+/// Finds the closest `target` directory in the current path.
+/// This should be the target directory at the root of the repository,
+/// i.e. `prusti-dev/target`.
 pub fn get_target_dir(exe_dir: &Path) -> PathBuf {
     let mut root_dir = exe_dir;
     while root_dir.file_name().unwrap() != "target" {

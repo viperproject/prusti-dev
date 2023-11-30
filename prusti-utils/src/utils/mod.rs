@@ -17,8 +17,13 @@ pub fn find_compiled_executable(name: &str) -> PathBuf {
 
     let mut target_path = PathBuf::from("target");
 
-    // For CI, however this is presumably also relevant for anyone
-    // wishing to run tests for cross-compiled prusti
+    // If prusti was compiled for a custom target, e.g. via x.py build --target
+    // <triple>, then the executables will be placed in /target/<triple>/debug
+    // rather than /target/debug.
+
+    // The environment variable COMPILATION_TARGET_PRUSTI should be set to the
+    // appropriate triple when running the tests, so that the appropriate
+    // directory is used.
     if let Ok(triple) = env::var("COMPILATION_TARGET_PRUSTI") {
         if !triple.is_empty() {
             target_path.push(triple);
