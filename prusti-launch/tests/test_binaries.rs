@@ -5,12 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use glob::glob;
+use prusti_utils::utils::find_compiled_executable;
 use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
     process::{Child, Command, Stdio},
 };
-use prusti_utils::utils::find_compiled_executable;
 
 fn run_on_test_files<F: Fn(&PathBuf) -> Command>(run: F) {
     let mut num_pass_tests = 0;

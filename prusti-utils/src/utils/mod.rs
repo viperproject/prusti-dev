@@ -6,8 +6,7 @@
 
 pub mod identifiers;
 pub mod to_string;
-use std::env;
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 
 pub fn find_compiled_executable(name: &str) -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
