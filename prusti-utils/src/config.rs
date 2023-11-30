@@ -350,7 +350,7 @@ pub fn viper_home() -> String {
         if let Some(path) = find_viper_home(&current_executable_dir) {
             path.to_str().unwrap().to_owned()
         } else {
-            panic!("Failed to detect Vipe home, please set viper_home configuration flag")
+            panic!("Failed to detect Viper home, please set viper_home configuration flag")
         }
     }
 }
