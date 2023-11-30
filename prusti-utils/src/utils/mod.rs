@@ -20,7 +20,9 @@ pub fn find_compiled_executable(name: &str) -> PathBuf {
     // For CI, however this is presumably also relevant for anyone
     // wishing to run tests for cross-compiled prusti
     if let Ok(triple) = env::var("COMPILATION_TARGET_PRUSTI") {
-        target_path.push(triple);
+        if !triple.is_empty() {
+            target_path.push(triple);
+        }
     }
 
     target_path.push(target_directory);
