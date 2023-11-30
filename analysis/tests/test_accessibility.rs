@@ -1,5 +1,6 @@
 mod utils;
 
+use prusti_utils::utils::find_compiled_executable;
 use glob::glob;
 use std::{
     env,
