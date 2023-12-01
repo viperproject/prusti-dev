@@ -383,6 +383,14 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(StmtGenData::LocalDecl(local, expr))
     }
 
+    pub fn mk_assume_false_stmt<'vir, Curr, Next>(
+        &'vir self
+    ) -> TerminatorStmtGen<'vir, Curr, Next> {
+        self.alloc(
+            TerminatorStmtGenData::AssumeFalse
+        )
+    }
+
     pub fn mk_goto_stmt<'vir, Curr, Next>(
         &'vir self,
         block: CfgBlockLabel<'vir>
