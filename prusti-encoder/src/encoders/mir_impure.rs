@@ -667,19 +667,6 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                         }
                     }
 
-                    mir::Rvalue::Ref(_, kind, source) => {
-                        let place_ty = source.ty(self.local_decls, self.vcx.tcx);
-                        assert!(place_ty.variant_index.is_none());
-                        let perm = match kind {
-                            mir::BorrowKind::Shared => e_rvalue_ty.expect_ref().perm,
-                            mir::BorrowKind::Shallow => todo!(),
-                            mir::BorrowKind::Mut { kind: mir::MutBorrowKind::Default } => e_rvalue_ty.expect_ref().perm,
-                            mir::BorrowKind::Mut { .. } => todo!(),
-                        };
-                        let (snap, place_expr) = self.encode_place_snap(Place::from(*source), place_ty.ty, perm);
-                        e_rvalue_ty.expect_ref().snap_data.field_snaps_to_snap.apply(self.vcx, &[snap, place_expr])
-                    }
-
                     //mir::Rvalue::Discriminant(Place<'tcx>) => {}
                     //mir::Rvalue::ShallowInitBox(Operand<'tcx>, Ty<'tcx>) => {}
                     //mir::Rvalue::CopyForDeref(Place<'tcx>) => {}
