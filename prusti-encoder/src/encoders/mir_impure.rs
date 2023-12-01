@@ -241,6 +241,11 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
             .push(stmt);
     }
 
+    fn unreachable(&mut self) -> vir::TerminatorStmt<'vir> {
+        self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+        self.vcx.mk_assume_false_stmt()
+    }
+
     /*
     fn project_fields(
         &mut self,
@@ -792,11 +797,11 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                     self.stmt(self.vcx.alloc(func_out.method_ref.apply(self.vcx, &method_args)));
                 }
 
-                self.vcx.mk_goto_stmt(
-                    self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.unwrap().as_usize()))
-                )
+                target.map(|target| self.vcx.mk_goto_stmt(
+                    self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize()))
+                )).unwrap_or_else(|| self.unreachable())
             }
-            mir::TerminatorKind::Assert { cond, expected, msg, target, unwind } => {
+            mir::TerminatorKind::Assert { cond, expected, target, unwind, .. } => {
                 let e_bool = self.deps.require_ref::<PredicateEnc>(
                     self.vcx.tcx.types.bool,
                 ).unwrap();
@@ -815,6 +820,8 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
 
                 self.vcx.mk_goto_if_stmt(enc, self.vcx.alloc_slice(&[(expected, &target_bb, &[])]), otherwise, &[])
             }
+            mir::TerminatorKind::Unreachable => self.unreachable(),
+
             unsupported_kind => self.vcx.mk_dummy_stmt(
                 vir::vir_format!(self.vcx, "terminator {unsupported_kind:?}")
             ),
