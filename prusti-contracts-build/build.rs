@@ -1,5 +1,7 @@
 use std::{path::PathBuf, process::Command};
 
+use prusti_utils::launch::get_prusti_contracts_build_destination_dir;
+
 fn main() {
     // Rerun if running with e.g. cargo clippy
     println!("cargo:rerun-if-env-changed=RUSTC_WORKSPACE_WRAPPER");
@@ -14,12 +16,10 @@ fn main() {
     let target: PathBuf = ["..", "target"].iter().collect();
     force_reexport_specs(target.join("verify").as_path());
 
-    // Copy just-built binaries to `target/dir` dir
-    let bin_dir = if cfg!(debug_assertions) {
-        target.join("debug")
-    } else {
-        target.join("release")
-    };
+    let bin_dir = get_prusti_contracts_build_destination_dir(&target);
+
+    std::fs::create_dir_all(&bin_dir).unwrap();
+
     for (krate, file) in [
         ("PRUSTI_LAUNCH", "cargo-prusti"),
         ("PRUSTI_LAUNCH", "prusti-rustc"),

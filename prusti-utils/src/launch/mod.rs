@@ -18,6 +18,12 @@ pub mod job;
 /// for `prusti-rustc`.
 pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-std"];
 
+#[cfg(debug_assertions)]
+pub const BUILD_MODE: &str = "debug";
+
+#[cfg(not(debug_assertions))]
+pub const BUILD_MODE: &str = "release";
+
 pub fn get_current_executable_dir() -> PathBuf {
     env::current_exe()
         .expect("current executable path invalid")
@@ -37,20 +43,20 @@ pub fn get_target_dir(exe_dir: &Path) -> PathBuf {
     root_dir.to_path_buf()
 }
 
+pub fn get_prusti_contracts_build_destination_dir(target_dir: &Path) -> PathBuf {
+    let target_dir = target_dir.join("prusti-contracts");
+    target_dir.join("verify").join(BUILD_MODE)
+}
+
 pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
     let a_prusti_contracts_file = format!("lib{}.rlib", PRUSTI_LIBS[0].replace('-', "_"));
-    let build_mode = if cfg!(debug_assertions) {
-        "debug"
-    } else {
-        "release"
-    };
 
     let target_dir = get_target_dir(exe_dir);
     let candidates = [
         // Libraries in the Prusti artifact will show up here
-        exe_dir.to_path_buf(),
+        get_prusti_contracts_build_destination_dir(&target_dir),
         // Libraries when building Prusti will show up here
-        target_dir.join("verify").join(build_mode),
+        target_dir.join("verify").join(BUILD_MODE),
     ];
     candidates
         .into_iter()
