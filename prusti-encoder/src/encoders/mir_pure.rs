@@ -487,7 +487,30 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         match rvalue {
             mir::Rvalue::Use(op) => self.encode_operand(curr_ver, op),
             // Repeat
-            mir::Rvalue::Ref(_, _, place) => self.encode_place(curr_ver, place),
+            mir::Rvalue::Ref(_, kind, place) => {
+                let e_rvalue_ty = self.deps.require_local::<SnapshotEnc>(
+                    rvalue_ty,
+                ).unwrap().specifics.expect_structlike().field_snaps_to_snap;
+                let (snap, place_ref) = self.encode_place_with_ref(curr_ver, place);
+                if kind.mutability().is_mut() {
+                    // We want to distinguish if `place` is a value that lives
+                    // in pure code or not. If it lives in impure (the only way
+                    // that this can happen is that we have a `&mut` argument)
+                    // then we want to return the actual address in the
+                    // snapshot. Otherwise we want to use `null` as this value
+                    // should never escape pure code anyway. Thus `place_ref`
+                    // will return `None` if this isn't a re-borrow, and if it's
+                    // a re-borrow of created-in-pure reference then it will be
+                    // field projections of `null` which is also `null`.
+                    let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null());
+                    e_rvalue_ty.apply(self.vcx, &[snap, place_ref])
+                } else {
+                    // For shared borrows we want to use just the snapshot
+                    // without the reference so that snapshot equality compares
+                    // only values.
+                    e_rvalue_ty.apply(self.vcx, &[snap])
+                }
+            }
             // ThreadLocalRef
             // AddressOf
             // Len
@@ -591,30 +614,45 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         curr_ver: &HashMap<mir::Local, usize>,
         place: &mir::Place<'tcx>,
     ) -> ExprRet<'vir> {
+        self.encode_place_with_ref(curr_ver, place).0
+    }
+
+    fn encode_place_with_ref(
+        &mut self,
+        curr_ver: &HashMap<mir::Local, usize>,
+        place: &mir::Place<'tcx>,
+    ) -> (ExprRet<'vir>, Option<ExprRet<'vir>>) {
         // TODO: remove (debug)
-        if !curr_ver.contains_key(&place.local) {
-            tracing::error!("unknown version of local! {}", place.local.as_usize());
-            return self.vcx.mk_todo_expr(
-                vir::vir_format!(self.vcx, "unknown_version_{}", place.local.as_usize())
-            );
-        }
+        assert!(curr_ver.contains_key(&place.local));
 
         let mut place_ty =  mir::tcx::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
         let mut expr = self.mk_local_ex(place.local, curr_ver[&place.local]);
+        let mut place_ref = None;
         // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
-            expr = self.encode_place_element(place_ty, elem, expr);
+            (expr, place_ref) = self.encode_place_element(place_ty, elem, expr, place_ref);
             place_ty = place_ty.projection_ty(self.vcx.tcx, elem);
         }
         // Can we ever have the use of a projected place?
         assert!(place_ty.variant_index.is_none());
-        expr
+        (expr, place_ref)
     }
 
-    fn encode_place_element(&mut self, place_ty: mir::tcx::PlaceTy<'tcx>, elem: mir::PlaceElem<'tcx>, expr: ExprRet<'vir>) -> ExprRet<'vir> {
-         match elem {
-            mir::ProjectionElem::Deref =>
-                expr,
+    fn encode_place_element(
+        &mut self,
+        place_ty: mir::tcx::PlaceTy<'tcx>,
+        elem: mir::PlaceElem<'tcx>,
+        expr: ExprRet<'vir>,
+        place_ref: Option<ExprRet<'vir>>
+    ) -> (ExprRet<'vir>, Option<ExprRet<'vir>>) {
+        match elem {
+            mir::ProjectionElem::Deref => {
+                assert!(place_ty.variant_index.is_none());
+                let e_ty = self.deps.require_local::<SnapshotEnc>(place_ty.ty).unwrap();
+                let place_ref = e_ty.specifics.expect_structlike().field_access.get(1).map(|r| r.read.apply(self.vcx, [expr]));
+                let expr = e_ty.specifics.expect_structlike().field_access[0].read.apply(self.vcx, [expr]);
+                (expr, place_ref)
+            }
             mir::ProjectionElem::Field(field_idx, _) => {
                 let field_idx= field_idx.as_usize();
                 match place_ty.ty.kind() {
@@ -623,17 +661,20 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                         let tuple_ref = self.deps.require_local::<ViperTupleEnc>(
                             upvars,
                         ).unwrap();
-                        tuple_ref.mk_elem(self.vcx, expr, field_idx)
+                       (tuple_ref.mk_elem(self.vcx, expr, field_idx), place_ref)
                     }
                     _ => {
                         let e_ty = self.deps.require_ref::<PredicateEnc>(place_ty.ty).unwrap();
                         let struct_like = e_ty.expect_variant_opt(place_ty.variant_index);
                         let proj = struct_like.snap_data.field_access[field_idx].read;
-                        proj.apply(self.vcx, [expr])
+                        let place_ref = place_ref.map(|pr|
+                            struct_like.ref_to_field_refs[field_idx].apply(self.vcx, [pr])
+                        );
+                        (proj.apply(self.vcx, [expr]), place_ref)
                     }
                 }
             }
-            mir::ProjectionElem::Downcast(..) => expr,
+            mir::ProjectionElem::Downcast(..) => (expr, place_ref),
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }
     }

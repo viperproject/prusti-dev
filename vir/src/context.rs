@@ -81,16 +81,6 @@ impl<'tcx> VirCtxt<'tcx> {
             }))),
         })
     }
-    pub fn mk_pred_app<'vir>(&'vir self, target: &'vir str, src_args: &[Expr<'vir>]) -> Expr<'vir> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::PredicateApp(self.arena.alloc(
-                PredicateAppData {
-                    target,
-                    args: self.alloc_slice(src_args),
-                },
-            ))),
-        })
-    }
 
     pub fn mk_lazy_expr<'vir, Curr, Next>(
         &'vir self,
@@ -225,8 +215,9 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         recv: ExprGen<'vir, Curr, Next>,
         field: Field<'vir>,
+        perm: Option<ExprGen<'vir, Curr, Next>>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {kind : self.alloc(ExprKindGenData::AccField(self.alloc(AccFieldGenData { recv, field })))})
+        self.alloc(ExprGenData {kind : self.alloc(ExprKindGenData::AccField(self.alloc(AccFieldGenData { recv, field, perm })))})
     }
 
     pub fn mk_const_expr<'vir, Curr, Next>(
@@ -255,6 +246,15 @@ impl<'tcx> VirCtxt<'tcx> {
     }
     pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> Expr<'vir> {
         &ExprGenData {kind : &ExprKindGenData::Const(&ConstData::Int(VALUE))}
+    }
+    pub const fn mk_wildcard<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
+        &ExprGenData { kind : &ExprKindGenData::Const(&ConstData::Wildcard) }
+    }
+    pub const fn mk_null<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
+        &ExprGenData { kind : &ExprKindGenData::Const(&ConstData::Null) }
+    }
+    pub const fn mk_result<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
+        &ExprGenData { kind : &ExprKindGenData::Result }
     }
 
     pub fn mk_field<'vir>(
@@ -560,16 +560,16 @@ impl<'tcx> VirCtxt<'tcx> {
     }
 
     pub fn mk_conj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
-        elems.split_first().map(|(first, rest)| {
-            rest.iter().rfold(*first, |acc, e| {
-                self.mk_bin_op_expr(BinOpKind::And, acc, *e)
+        elems.split_last().map(|(last, rest)| {
+            rest.iter().rfold(*last, |acc, e| {
+                self.mk_bin_op_expr(BinOpKind::And, *e, acc)
             })
         }).unwrap_or_else(|| self.mk_bool::<true>())
     }
     pub fn mk_disj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
-        elems.split_first().map(|(first, rest)| {
-            rest.iter().rfold(*first, |acc, e| {
-                self.mk_bin_op_expr(BinOpKind::Or, acc, *e)
+        elems.split_last().map(|(last, rest)| {
+            rest.iter().rfold(*last, |acc, e| {
+                self.mk_bin_op_expr(BinOpKind::Or, *e, acc)
             })
         }).unwrap_or_else(|| self.mk_bool::<false>())
     }

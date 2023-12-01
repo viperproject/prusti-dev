@@ -44,6 +44,7 @@ pub struct FuncAppGenData<'vir, Curr, Next> {
 pub struct PredicateAppGenData<'vir, Curr, Next> {
     #[reify_copy] pub(crate) target: &'vir str, // TODO: identifiers
     pub(crate) args: &'vir [ExprGen<'vir, Curr, Next>],
+    pub(crate) perm: Option<ExprGen<'vir, Curr, Next>>,
 }
 
 #[derive(Reify)]
@@ -56,7 +57,7 @@ pub struct UnfoldingGenData<'vir, Curr, Next> {
 pub struct AccFieldGenData<'vir, Curr, Next> {
     pub(crate) recv: ExprGen<'vir, Curr, Next>,
     #[reify_copy] pub(crate) field: Field<'vir>, // TODO: identifiers
-    // TODO: permission amount
+    pub(crate) perm: Option<ExprGen<'vir, Curr, Next>>,
 }
 
 #[derive(Reify)]
@@ -94,6 +95,7 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Old(ExprGen<'vir, Curr, Next>),
     //LabelledOld(Expr<'vir>, &'vir str),
     Const(Const<'vir>),
+    Result,
     // magic wand
     AccField(AccFieldGen<'vir, Curr, Next>),
     Unfolding(UnfoldingGen<'vir, Curr, Next>),
