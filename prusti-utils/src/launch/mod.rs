@@ -43,9 +43,8 @@ pub fn get_target_dir(exe_dir: &Path) -> PathBuf {
     root_dir.to_path_buf()
 }
 
-pub fn get_prusti_contracts_build_destination_dir(target_dir: &Path) -> PathBuf {
-    let target_dir = target_dir.join("prusti-contracts");
-    target_dir.join("verify").join(BUILD_MODE)
+pub fn get_prusti_contracts_build_target_dir(target_dir: &Path) -> PathBuf {
+    target_dir.join("prusti-contracts").join(BUILD_MODE)
 }
 
 pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
@@ -54,10 +53,11 @@ pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
     let target_dir = get_target_dir(exe_dir);
     let candidates = [
         // Libraries in the Prusti artifact will show up here
-        get_prusti_contracts_build_destination_dir(&target_dir),
+        get_prusti_contracts_build_target_dir(&target_dir),
         // Libraries when building Prusti will show up here
-        target_dir.join("verify").join(BUILD_MODE),
-    ];
+        target_dir,
+    ]
+    .map(|path| path.join("verify").join(BUILD_MODE));
     candidates
         .into_iter()
         .find(|candidate| candidate.join(&a_prusti_contracts_file).exists())
