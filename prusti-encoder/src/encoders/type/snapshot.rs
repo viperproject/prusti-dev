@@ -101,6 +101,11 @@ impl TaskEncoder for SnapshotEnc {
                     let ty = vcx.tcx.mk_ty_from_kind(TyKind::Slice(ty));
                     (ty, vec![orig])
                 }
+                TyKind::Ref(r, orig, m) => {
+                    let ty = Self::to_placeholder(vcx.tcx, None);
+                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Ref(r, ty, m));
+                    (ty, vec![orig])
+                }
                 _ => (*task_key, Vec::new()),
             };
             let out = deps.require_ref::<DomainEnc>(ty).unwrap();
