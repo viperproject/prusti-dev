@@ -22,8 +22,8 @@ pub fn find_compiled_executable(name: &str) -> PathBuf {
     // rather than /target/debug.
 
     // The environment variable COMPILATION_TARGET_PRUSTI should be set to the
-    // appropriate triple when running the tests, so that the appropriate
-    // directory is used.
+    // appropriate triple when running the tests, so that executable for that
+    // target is used.
     if let Ok(triple) = env::var("COMPILATION_TARGET_PRUSTI") {
         if !triple.is_empty() {
             target_path.push(triple);
