@@ -166,6 +166,7 @@ struct Enc<'tcx, 'vir: 'enc, 'enc>
     encoding_depth: usize,
     def_id: DefId,
     body: &'enc mir::Body<'tcx>,
+    rev_doms: rev_doms::ReverseDominators,
     deps: &'enc mut TaskEncoderDependencies<'vir>,
     visited: IndexVec<mir::BasicBlock, bool>,
     version_ctr: IndexVec<mir::Local, usize>,
@@ -182,12 +183,13 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         deps: &'enc mut TaskEncoderDependencies<'vir>,
     ) -> Self {
         assert!(!body.basic_blocks.is_cfg_cyclic(), "MIR pure encoding does not support loops");
-
+        let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
         Self {
             vcx,
             encoding_depth,
             def_id,
             body,
+            rev_doms,
             deps,
             visited: IndexVec::from_elem_n(false, body.basic_blocks.len()),
             version_ctr: IndexVec::from_elem_n(0, body.local_decls.len()),
@@ -289,10 +291,10 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
             init.versions.insert(local.into(), 0);
         }
 
-        let (_, update) = self.encode_cfg(
+        let update = self.encode_cfg(
             &init.versions,
             mir::START_BLOCK,
-            None,
+            self.rev_doms.end,
         );
 
         let res = init.merge(update);
@@ -305,19 +307,13 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
         curr: mir::BasicBlock,
-        branch_point: Option<mir::BasicBlock>,
-    ) -> (mir::BasicBlock, Update<'vir>) {
-        let dominators = self.body.basic_blocks.dominators();
-        // We should never actually reach the join point bb: we should catch
-        // this case and stop recursion in the `Goto` branch below. If this
-        // assert fails we we may need to add catches in the other branches.
-        debug_assert!(match (dominators.immediate_dominator(curr), branch_point) {
-            (Some(immediate_dominator), Some(branch_point)) if immediate_dominator == branch_point =>
-                // We could also be immediately dominated by the join point if we
-                // are the next bb right after the `SwitchInt`.
-                self.body.basic_blocks.predecessors()[curr].contains(&branch_point),
-            _ => true,
-        }, "reached join point bb {curr:?} (bp {branch_point:?})");
+        join_point: mir::BasicBlock,
+    ) -> Update<'vir> {    
+        if curr == join_point {
+            // We are done with the current fragment of the CFG, the rest is
+            // handled in a parent call.
+            return Update::new();
+        }
 
         // walk block statements first
         let mut new_curr_ver = curr_ver.clone();
@@ -334,21 +330,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
             &mir::TerminatorKind::Goto { target } 
             | &mir::TerminatorKind::FalseEdge { real_target: target, ..}
             => {
-                match (dominators.immediate_dominator(target), branch_point) {
-                    // As soon as we are about to step to a bb where the
-                    // immediate dominator is the last branch point, we stop.
-                    // Walking the rest of the CFG is handled in a parent call.
-                    (Some(immediate_dominator), Some(branch_point))
-                        if immediate_dominator == branch_point =>
-                        // We are done with the current fragment of the CFG, the
-                        // rest is handled in a parent call.
-                        (target, stmt_update),
-                    _ => {
-                        // If you hit this then the join point algorithm
-                        // probably not working correctly.
-                        unreachable!("goto target not a join point {curr:?} -> {target:?} (branch point {branch_point:?})")
-                    }
-                }
+                let rest_update = self.encode_cfg(&new_curr_ver, target, join_point);
+                stmt_update.merge(rest_update)
             }
 
             mir::TerminatorKind::SwitchInt { discr, targets } => {
@@ -359,18 +342,18 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                 ).unwrap().specifics.expect_primitive();
 
                 // walk `curr` -> `targets[i]` -> `join` for each target. The
-                // join point is identified by reaching a bb where
-                // `dominators.immediate_dominator(bb)` is equal to the bb of
-                // the branch point (so pass `branch_point: Some(curr)`).
+                // join point the bb which is an immediate reverse dominator of
+                // the branch point.
                 // TODO: indexvec?
+                let new_join_point = self.rev_doms.immediate_dominator(curr);
                 let mut updates = targets.all_targets().iter()
-                    .map(|target| self.encode_cfg(&new_curr_ver, *target, Some(curr)))
+                    .map(|target| self.encode_cfg(&new_curr_ver, *target, new_join_point))
                     .collect::<Vec<_>>();
 
                 // find locals updated in any of the results, which were also
                 // defined before the branch
                 let mut mod_locals = updates.iter()
-                    .map(|(_, update)| update.versions.keys())
+                    .map(|update| update.versions.keys())
                     .flatten()
                     .filter(|local| new_curr_ver.contains_key(&local))
                     .copied()
@@ -382,14 +365,12 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                 let tuple_ref = self.deps.require_local::<ViperTupleEnc>(
                     mod_locals.len(),
                 ).unwrap();
-                let (join, otherwise_update) = updates.pop().unwrap();
-                println!("join: {curr:?} -> {join:?}");
-                debug_assert!(updates.iter().all(|(other, _)| join == *other));
+                let otherwise_update = updates.pop().unwrap();
                 let phi_expr = targets.iter()
                     .zip(updates.into_iter())
                     .fold(
                         self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, otherwise_update),
-                        |expr, ((cond_val, target), (_, branch_update))| self.vcx.mk_ternary_expr(
+                        |expr, ((cond_val, target), branch_update)| self.vcx.mk_ternary_expr(
                             self.vcx.mk_bin_op_expr(
                                 vir::BinOpKind::CmpEq,
                                 discr_ty_out.snap_to_prim.apply(self.vcx, [discr_expr]),
@@ -416,13 +397,12 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                 }
 
                 // walk `join` -> `end`
-                let (end, end_update) = self.encode_cfg(&new_curr_ver, join, branch_point);
-                (end, stmt_update.merge(phi_update.merge(end_update)))
+                let end_update = self.encode_cfg(&new_curr_ver, new_join_point, join_point);
+                stmt_update.merge(phi_update.merge(end_update))
             }
 
             mir::TerminatorKind::Return => {
-                assert_eq!(branch_point, None);
-                return (curr, stmt_update);
+                stmt_update
             }
 
             mir::TerminatorKind::Call {
@@ -463,9 +443,9 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                 term_update.add_to_map(&mut new_curr_ver);
 
                 // walk rest of CFG
-                let (end,  end_update) = self.encode_cfg(&new_curr_ver, target.unwrap(), branch_point);
+                let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), join_point);
 
-                (end,  stmt_update.merge(term_update).merge(end_update))
+                stmt_update.merge(term_update).merge(end_update)
             }
 
             k => todo!("terminator kind {k:?}"),
@@ -791,6 +771,81 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                     &[], // TODO
                     bool.snap_to_prim.apply(self.vcx, [body]),
                 )])
+            }
+        }
+    }
+}
+
+mod rev_doms {
+    /// Identical to `body.basic_blocks.dominators()` except in reverse. Since
+    /// there may be multiple `Return`/`Unreachable`/etc. terminators, we add a
+    /// special end block index which is invalid in `basic_blocks` but pretends
+    /// to be the successor of all these no-successor blocks.
+    pub struct ReverseDominators {
+        pub dom: dominators::Dominators<mir::BasicBlock>,
+        pub end: mir::BasicBlock,
+    }
+    impl ReverseDominators {
+        pub fn new<'a, 'tcx>(blocks: &'a mir::BasicBlocks<'tcx>) -> Self {
+            let no_succ_blocks = blocks.iter_enumerated().filter(|(_, data)|
+                data.terminator().successors().next().is_none()
+            ).map(|(bb, _)| bb).collect();
+            let rbb = RevBasicBlocks(blocks, no_succ_blocks);
+            Self {
+                dom: dominators::dominators(&rbb),
+                end: rbb.start_node(),
+            }
+        }
+        pub fn immediate_dominator(&self, bb: mir::BasicBlock) -> mir::BasicBlock {
+            // This unwrap should never fail since all blocks can reach `end`
+            self.dom.immediate_dominator(bb).unwrap()
+        }
+    }
+
+    use super::*;
+    use prusti_rustc_interface::data_structures::graph::*;
+
+    /// A wrapper around `mir::BasicBlocks` which reverses the direction of the
+    /// edges. Implements `ControlFlowGraph` such that we can call `dominators`.
+    struct RevBasicBlocks<'a, 'tcx>(&'a mir::BasicBlocks<'tcx>, Vec<mir::BasicBlock>);
+    impl DirectedGraph for RevBasicBlocks<'_, '_> {
+        type Node = mir::BasicBlock;
+    }
+    impl WithStartNode for RevBasicBlocks<'_, '_> {
+        fn start_node(&self) -> Self::Node {
+            self.0.next_index()
+        }
+    }
+    impl WithNumNodes for RevBasicBlocks<'_, '_> {
+        fn num_nodes(&self) -> usize {
+            self.0.num_nodes() + 1
+        }
+    }
+    impl<'graph> GraphPredecessors<'graph> for RevBasicBlocks<'_, '_> {
+        type Item = mir::BasicBlock;
+        type Iter = Box<dyn Iterator<Item = Self::Item> + 'graph>;
+    }
+    impl WithPredecessors for RevBasicBlocks<'_, '_> {
+        fn predecessors<'a>(&'a self, node: Self::Node) -> <Self as GraphPredecessors<'a>>::Iter {
+            if node == self.start_node() {
+                Box::new([].into_iter())
+            } else if self.1.contains(&node) {
+                Box::new([self.start_node()].into_iter())
+            } else {
+                Box::new(self.0.successors(node))
+            }
+        }
+    }
+    impl<'graph> GraphSuccessors<'graph> for RevBasicBlocks<'_, '_> {
+        type Item = mir::BasicBlock;
+        type Iter = std::iter::Copied<std::slice::Iter<'graph, mir::BasicBlock>>;
+    }
+    impl WithSuccessors for RevBasicBlocks<'_, '_> {
+        fn successors<'a>(&'a self, node: Self::Node) -> <Self as GraphSuccessors<'a>>::Iter {
+            if node == self.start_node() {
+                self.1.iter().copied()
+            } else {
+                (&self.0).predecessors(node)
             }
         }
     }
