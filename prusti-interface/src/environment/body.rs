@@ -1,4 +1,5 @@
 use prusti_rustc_interface::{
+    borrowck::consumers::BodyWithBorrowckFacts,
     macros::{TyDecodable, TyEncodable},
     middle::{
         mir,
@@ -27,11 +28,18 @@ impl<'tcx> std::ops::Deref for MirBody<'tcx> {
     }
 }
 
-/// Stores body of functions which we'll need to encode as impure
-pub struct BodyWithBorrowckFacts<'tcx> {
-    pub body: MirBody<'tcx>,
-    ///// Cached borrowck information.
-    //borrowck_facts: Rc<BorrowckFacts>,
+pub enum MirBodyAny<'tcx> {
+    BodyOnly(MirBody<'tcx>),
+    BodyWithBorrowckFacts(Rc<BodyWithBorrowckFacts<'tcx>>),
+}
+impl<'tcx> std::ops::Deref for MirBodyAny<'tcx> {
+    type Target = mir::Body<'tcx>;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            MirBodyAny::BodyOnly(body) => body,
+            MirBodyAny::BodyWithBorrowckFacts(body) => &body.body,
+        }
+    }
 }
 
 /// Bodies which need not be synched across crates and so can be
@@ -90,7 +98,7 @@ type MonomorphKey<'tcx> = (DefId, GenericArgsRef<'tcx>, Option<DefId>);
 pub struct EnvBody<'tcx> {
     tcx: TyCtxt<'tcx>,
 
-    local_impure_fns: DynamicallyLoadedBodies<BodyWithBorrowckFacts<'tcx>>,
+    local_impure_fns: DynamicallyLoadedBodies<Rc<BodyWithBorrowckFacts<'tcx>>>,
     /// Loop invariants, quantifiers and triggers in impure functions
     local_closures: DynamicallyLoadedBodies<MirBody<'tcx>>,
 
@@ -123,21 +131,10 @@ impl<'tcx> EnvBody<'tcx> {
     pub fn load_local_mir_with_facts(
         tcx: TyCtxt<'tcx>,
         def_id: LocalDefId,
-    ) -> BodyWithBorrowckFacts<'tcx> {
+    ) -> Rc<BodyWithBorrowckFacts<'tcx>> {
         // SAFETY: This is safe because we are feeding in the same `tcx`
         // that was used to store the data.
-        let body_with_facts = unsafe { mir_storage::retrieve_mir_body(tcx, def_id) };
-
-        //let facts = BorrowckFacts {
-        //    input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-        //    output_facts: body_with_facts.output_facts,
-        //    location_table: RefCell::new(Some(body_with_facts.location_table)),
-        //};
-
-        BodyWithBorrowckFacts {
-            body: MirBody(Rc::new(body_with_facts.body)),
-           // borrowck_facts: Rc::new(facts),
-        }
+        Rc::new(unsafe { mir_storage::retrieve_mir_body(tcx, def_id) })
     }
 
     /// Get local MIR body of spec or pure functions. Retrieves the body from
@@ -184,24 +181,30 @@ impl<'tcx> EnvBody<'tcx> {
     }
 
     /// Get the MIR body of a local impure function, without any substitutions.
-    pub fn get_impure_fn_body_identity(&self, def_id: LocalDefId) -> MirBody<'tcx> {
+    pub fn get_impure_fn_body_identity(&self, def_id: LocalDefId) -> Rc<BodyWithBorrowckFacts<'tcx>> {
         let mut impure = self.local_impure_fns.borrow_mut();
         impure
             .entry(def_id)
             .or_insert_with(|| Self::load_local_mir_with_facts(self.tcx, def_id))
-            .body
             .clone()
     }
 
-    /// Get the MIR body of a local impure function, monomorphised
-    /// with the given type substitutions.
-    pub fn get_impure_fn_body(&self, def_id: LocalDefId, substs: GenericArgsRef<'tcx>, caller_def_id: Option<DefId>) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, None) {
-            return body;
-        }
-        let body = self.get_impure_fn_body_identity(def_id);
-        self.set_monomorphised(def_id.to_def_id(), substs, caller_def_id, body)
+    /// This should only be used to get the signature of the body
+    pub fn get_any_fn_body(&self, def_id: DefId) -> Option<MirBodyAny<'tcx>> {
+        self.pure_fns.get(def_id).map(MirBodyAny::BodyOnly).or_else(||
+            def_id.as_local().map(|def_id| self.get_impure_fn_body_identity(def_id)).map(MirBodyAny::BodyWithBorrowckFacts)
+        )
     }
+
+    // /// Get the MIR body of a local impure function, monomorphised
+    // /// with the given type substitutions.
+    // pub fn get_impure_fn_body(&self, def_id: LocalDefId, substs: GenericArgsRef<'tcx>, caller_def_id: Option<DefId>) -> Rc<BodyWithBorrowckFacts<'tcx>> {
+    //     if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, None) {
+    //         return body;
+    //     }
+    //     let body = self.get_impure_fn_body_identity(def_id);
+    //     self.set_monomorphised(def_id.to_def_id(), substs, caller_def_id, body)
+    // }
 
     fn get_closure_body_identity(&self, def_id: DefId) -> MirBody<'tcx> {
         if let Some(body) = self.closures.get(def_id) {

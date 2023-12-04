@@ -103,10 +103,12 @@ impl TaskEncoder for MirImpureEnc {
             // a call stub.
             let local_def_id = def_id.as_local().filter(|_| !trusted && caller_def_id.is_none());
             let blocks = if let Some(local_def_id) = local_def_id {
-                let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
+                // TODO: substs, caller_def_id
+                let body = vcx.body.borrow_mut().get_impure_fn_body_identity(local_def_id);
                 // let body = vcx.tcx.mir_promoted(local_def_id).0.borrow();
 
                 let fpcs_analysis = mir_state_analysis::run_free_pcs(&body, vcx.tcx);
+                let body = &body.body;
 
                 //let ssa_analysis = SsaAnalysis::analyse(&body);
 

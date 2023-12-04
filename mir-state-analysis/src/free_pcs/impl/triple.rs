@@ -15,6 +15,7 @@ use prusti_rustc_interface::{
 use crate::free_pcs::{CapabilityKind, Fpcs};
 
 impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
+    #[tracing::instrument(name = "Fpcs::visit_operand", level = "debug", skip(self))]
     fn visit_operand(&mut self, operand: &Operand<'tcx>, location: Location) {
         self.super_operand(operand, location);
         match *operand {
@@ -29,6 +30,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
         }
     }
 
+    #[tracing::instrument(name = "Fpcs::visit_statement", level = "debug", skip(self))]
     fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
         if self.apply_pre_effect {
             self.super_statement(statement, location);
@@ -45,7 +47,8 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     _ => unreachable!(),
                 }
             }
-            &FakeRead(box (_, place)) | &PlaceMention(box place) => self.requires_read(place),
+            &FakeRead(box (_, place)) => self.requires_read(place),
+            &PlaceMention(box place) => self.requires_alloc(place),
             &SetDiscriminant { box place, .. } => self.requires_exclusive(place),
             &Deinit(box place) => {
                 // TODO: Maybe OK to also allow `Write` here?
@@ -65,6 +68,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
         };
     }
 
+    #[tracing::instrument(name = "Fpcs::visit_terminator", level = "debug", skip(self))]
     fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
         if self.apply_pre_effect {
             self.super_terminator(terminator, location);
@@ -110,6 +114,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
         };
     }
 
+    #[tracing::instrument(name = "Fpcs::visit_rvalue", level = "debug", skip(self))]
     fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
         self.super_rvalue(rvalue, location);
         use Rvalue::*;
