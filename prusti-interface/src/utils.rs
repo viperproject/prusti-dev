@@ -10,6 +10,7 @@ use prusti_rustc_interface::{
     ast::ast,
     data_structures::fx::FxHashSet,
     middle::{mir, ty::TyCtxt},
+    index::IndexVec,
 };
 use std::borrow::Borrow;
 
@@ -37,12 +38,13 @@ pub fn is_prefix<'tcx>(place: mir::Place<'tcx>, potential_prefix: mir::Place<'tc
 /// could have resulted from the expansion.
 pub fn expand_one_level<'tcx>(
     mir: &mir::Body<'tcx>,
+    promoted: &IndexVec<mir::Promoted, mir::Body<'tcx>>,
     tcx: TyCtxt<'tcx>,
     current_place: mir::Place<'tcx>,
     guide_place: mir::Place<'tcx>,
 ) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
     use mir_state_analysis::utils::{Place, PlaceRepacker};
-    let repacker = PlaceRepacker::new(mir, tcx);
+    let repacker = PlaceRepacker::new(mir, promoted, tcx);
     let current_place = Place::from(current_place);
     let res = current_place.expand_one_level(Place::from(guide_place), repacker);
     (
@@ -90,6 +92,7 @@ pub fn try_pop_deref<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option
 #[tracing::instrument(level = "debug", skip(mir, tcx), ret)]
 pub fn expand<'tcx>(
     mir: &mir::Body<'tcx>,
+    promoted: &IndexVec<mir::Promoted, mir::Body<'tcx>>,
     tcx: TyCtxt<'tcx>,
     mut minuend: mir::Place<'tcx>,
     subtrahend: mir::Place<'tcx>,
@@ -100,7 +103,7 @@ pub fn expand<'tcx>(
     );
     let mut place_set = Vec::new();
     while minuend.projection.len() < subtrahend.projection.len() {
-        let (new_minuend, places) = expand_one_level(mir, tcx, minuend, subtrahend);
+        let (new_minuend, places) = expand_one_level(mir, promoted, tcx, minuend, subtrahend);
         minuend = new_minuend;
         place_set.extend(places);
     }
@@ -112,12 +115,14 @@ pub fn expand<'tcx>(
 /// `expand_struct_place`.
 pub fn collapse<'tcx>(
     mir: &mir::Body<'tcx>,
+    promoted: &IndexVec<mir::Promoted, mir::Body<'tcx>>,
     tcx: TyCtxt<'tcx>,
     places: &mut FxHashSet<mir::Place<'tcx>>,
     guide_place: mir::Place<'tcx>,
 ) {
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
+        promoted: &IndexVec<mir::Promoted, mir::Body<'tcx>>,
         tcx: TyCtxt<'tcx>,
         places: &mut FxHashSet<mir::Place<'tcx>>,
         current_place: mir::Place<'tcx>,
@@ -125,8 +130,8 @@ pub fn collapse<'tcx>(
     ) {
         if current_place != guide_place {
             let (new_current_place, mut expansion) =
-                expand_one_level(mir, tcx, current_place, guide_place);
-            recurse(mir, tcx, places, new_current_place, guide_place);
+                expand_one_level(mir, promoted, tcx, current_place, guide_place);
+            recurse(mir, promoted, tcx, places, new_current_place, guide_place);
             expansion.push(new_current_place);
             if expansion.iter().all(|place| places.contains(place)) {
                 for place in expansion {
@@ -136,7 +141,7 @@ pub fn collapse<'tcx>(
             }
         }
     }
-    recurse(mir, tcx, places, guide_place.local.into(), guide_place);
+    recurse(mir, promoted, tcx, places, guide_place.local.into(), guide_place);
 }
 
 #[derive(Debug)]
@@ -160,6 +165,7 @@ pub struct VecPlace<'tcx> {
 impl<'tcx> VecPlace<'tcx> {
     pub fn new(
         mir: &mir::Body<'tcx>,
+        promoted: &IndexVec<mir::Promoted, mir::Body<'tcx>>,
         tcx: TyCtxt<'tcx>,
         place: mir::Place<'tcx>,
     ) -> VecPlace<'tcx> {
@@ -171,7 +177,7 @@ impl<'tcx> VecPlace<'tcx> {
             .components
             .push(VecPlaceComponent { place: prefix });
         while prefix.projection.len() < place.projection.len() {
-            let (new_prefix, _) = expand_one_level(mir, tcx, prefix, place);
+            let (new_prefix, _) = expand_one_level(mir, promoted, tcx, prefix, place);
             prefix = new_prefix;
             vec_place
                 .components

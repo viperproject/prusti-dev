@@ -28,9 +28,16 @@ impl<'tcx> Fpcs<'_, 'tcx> {
             self.repackings.push(RepackOp::IgnoreStorageDead(local))
         }
     }
+    // TODO: make this work properly through references (i.e. check that the lifetime is live)
+    #[tracing::instrument(name = "Fpcs::requires_alloc", level = "trace")]
+    pub(crate) fn requires_alloc(&mut self, place: impl Into<Place<'tcx>> + Debug) {
+        let place = place.into();
+        self.requires(place, CapabilityKind::None)
+    }
     #[tracing::instrument(name = "Fpcs::requires_read", level = "trace")]
     pub(crate) fn requires_read(&mut self, place: impl Into<Place<'tcx>> + Debug) {
-        self.requires(place, CapabilityKind::Exclusive)
+        let place = place.into();
+        self.requires(place, CapabilityKind::Read)
     }
     /// May obtain write _or_ exclusive, if one should only have write afterwards,
     /// make sure to also call `ensures_write`!
@@ -50,8 +57,7 @@ impl<'tcx> Fpcs<'_, 'tcx> {
         assert!(!place.projects_shared_ref(self.repacker));
         self.requires(place, CapabilityKind::Exclusive)
     }
-    fn requires(&mut self, place: impl Into<Place<'tcx>>, cap: CapabilityKind) {
-        let place = place.into();
+    fn requires(&mut self, place: Place<'tcx>, cap: CapabilityKind) {
         let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
         let ops = cp.repack(place, self.repacker);
         self.repackings.extend(ops);
@@ -63,7 +69,8 @@ impl<'tcx> Fpcs<'_, 'tcx> {
                 self.repackings.push(RepackOp::Weaken(place, kind, cap));
             }
         };
-        assert!(kind >= cap);
+        let bounded = self.bound(place).minimum(kind).unwrap();
+        assert!(bounded >= cap);
     }
 
     pub(crate) fn ensures_unalloc(&mut self, local: Local) {
@@ -93,6 +100,12 @@ impl<'tcx> Fpcs<'_, 'tcx> {
 }
 
 impl<'tcx> CapabilityProjections<'tcx> {
+    #[tracing::instrument(
+        name = "CapabilityProjections::repack",
+        level = "trace",
+        skip(repacker),
+        ret
+    )]
     pub(super) fn repack(
         &mut self,
         to: Place<'tcx>,

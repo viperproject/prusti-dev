@@ -39,6 +39,8 @@ impl<'tcx> RepackingJoinSemiLattice<'tcx> for CapabilitySummary<'tcx> {
         }
         changed
     }
+
+    #[tracing::instrument(name = "CapabilitySummary::bridge", level = "trace", skip(repacker))]
     fn bridge(&self, other: &Self, repacker: PlaceRepacker<'_, 'tcx>) -> Vec<RepackOp<'tcx>> {
         let mut repacks = Vec::new();
         for (l, from) in self.iter_enumerated() {

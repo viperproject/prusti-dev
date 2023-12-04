@@ -63,11 +63,14 @@ fn run_on_crate(name: &str, version: &str) {
             .collect::<PathBuf>(),
     );
     println!("Running: {prusti:?}");
-    let exit = std::process::Command::new(prusti)
+    let exit = std::process::Command::new(&prusti)
         .env("PRUSTI_TEST_FREE_PCS", "true")
+        .env("PRUSTI_TEST_COUPLING_GRAPH", "true")
         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true")
         // .env("PRUSTI_LOG", "debug")
         .env("PRUSTI_NO_VERIFY_DEPS", "true")
+        .env("PRUSTI_CAP_LINTS", "allow")
+        .env("PRUSTI_TOP_CRATES", "true")
         .current_dir(&dirname)
         .status()
         .unwrap();

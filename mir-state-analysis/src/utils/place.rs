@@ -13,8 +13,9 @@ use std::{
 
 use derive_more::{Deref, DerefMut};
 
-use prusti_rustc_interface::middle::mir::{
-    Local, Place as MirPlace, PlaceElem, PlaceRef, ProjectionElem,
+use prusti_rustc_interface::middle::{
+    mir::{Local, Place as MirPlace, PlaceElem, PlaceRef, ProjectionElem},
+    ty::Ty,
 };
 
 // #[derive(Clone, Copy, Deref, DerefMut, Hash, PartialEq, Eq)]
@@ -205,6 +206,17 @@ impl<'tcx> Place<'tcx> {
         self.0
             .last_projection()
             .map(|(place, proj)| (place.into(), proj))
+    }
+
+    pub fn projects_exactly_one_deref(self) -> bool {
+        self.projection.len() == 1 && matches!(self.projection[0], ProjectionElem::Deref)
+    }
+
+    pub fn last_projection_ty(self) -> Option<Ty<'tcx>> {
+        self.last_projection().and_then(|(_, proj)| match proj {
+            ProjectionElem::Field(_, ty) | ProjectionElem::OpaqueCast(ty) => Some(ty),
+            _ => None,
+        })
     }
 }
 

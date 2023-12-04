@@ -7,16 +7,18 @@
 use prusti_rustc_interface::{
     data_structures::fx::FxHashSet,
     dataflow::storage,
-    index::bit_set::BitSet,
+    index::{bit_set::BitSet, Idx, IndexVec},
     middle::{
         mir::{
-            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, PlaceRef,
-            ProjectionElem,
+            tcx::PlaceTy, Body, HasLocalDecls, Local, Mutability, Place as MirPlace, PlaceElem,
+            ProjectionElem, Promoted,
         },
-        ty::{TyCtxt, TyKind},
+        ty::{Region, RegionVid, Ty, TyCtxt, TyKind},
     },
     target::abi::FieldIdx,
 };
+
+// use crate::utils::ty::{DeepTypeVisitable, DeepTypeVisitor, Stack};
 
 use super::Place;
 
@@ -49,12 +51,17 @@ impl ProjectionRefKind {
 // TODO: modified version of fns taken from `prusti-interface/src/utils.rs`; deduplicate
 pub struct PlaceRepacker<'a, 'tcx: 'a> {
     pub(super) mir: &'a Body<'tcx>,
+    pub(super) promoted: &'a IndexVec<Promoted, Body<'tcx>>,
     pub(super) tcx: TyCtxt<'tcx>,
 }
 
 impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
-    pub fn new(mir: &'a Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
-        Self { mir, tcx }
+    pub fn new(
+        mir: &'a Body<'tcx>,
+        promoted: &'a IndexVec<Promoted, Body<'tcx>>,
+        tcx: TyCtxt<'tcx>,
+    ) -> Self {
+        Self { mir, promoted, tcx }
     }
 
     pub fn local_count(self) -> usize {
@@ -64,9 +71,25 @@ impl<'a, 'tcx: 'a> PlaceRepacker<'a, 'tcx> {
     pub fn always_live_locals(self) -> BitSet<Local> {
         storage::always_storage_live_locals(self.mir)
     }
+    pub fn always_live_locals_non_args(self) -> BitSet<Local> {
+        let mut all = self.always_live_locals();
+        for arg in 0..self.mir.arg_count + 1 {
+            // Includes `RETURN_PLACE`
+            all.remove(Local::new(arg));
+        }
+        all
+    }
 
     pub fn body(self) -> &'a Body<'tcx> {
         self.mir
+    }
+
+    pub fn promoted(self) -> &'a IndexVec<Promoted, Body<'tcx>> {
+        self.promoted
+    }
+
+    pub fn tcx(self) -> TyCtxt<'tcx> {
+        self.tcx
     }
 }
 
@@ -327,7 +350,7 @@ impl<'tcx> Place<'tcx> {
     // }
 
     pub fn ty(self, repacker: PlaceRepacker<'_, 'tcx>) -> PlaceTy<'tcx> {
-        PlaceRef::ty(&self, repacker.mir, repacker.tcx)
+        (*self).ty(repacker.mir, repacker.tcx)
     }
 
     /// Should only be called on a `Place` obtained from `RootPlace::get_parent`.
@@ -338,6 +361,21 @@ impl<'tcx> Place<'tcx> {
         } else {
             unreachable!("get_ref_mutability called on non-ref type: {:?}", typ.ty);
         }
+    }
+
+    /// Returns all `TyKind::Ref` and `TyKind::RawPtr` that `self` projects through.
+    /// The `Option` acts as an either where `TyKind::RawPtr` corresponds to a `None`.
+    #[tracing::instrument(name = "Place::projection_refs", level = "trace", skip(repacker))]
+    pub fn projection_refs(
+        self,
+        repacker: PlaceRepacker<'_, 'tcx>,
+    ) -> impl Iterator<Item = Option<(Region<'tcx>, Ty<'tcx>, Mutability)>> {
+        self.projection_tys(repacker)
+            .filter_map(|(ty, _)| match ty.ty.kind() {
+                &TyKind::Ref(r, ty, m) => Some(Some((r, ty, m))),
+                &TyKind::RawPtr(_) => Some(None),
+                _ => None,
+            })
     }
 
     pub fn projects_shared_ref(self, repacker: PlaceRepacker<'_, 'tcx>) -> bool {
@@ -384,14 +422,74 @@ impl<'tcx> Place<'tcx> {
         mut predicate: impl FnMut(PlaceTy<'tcx>) -> bool,
         repacker: PlaceRepacker<'_, 'tcx>,
     ) -> Option<Place<'tcx>> {
+        self
+            .projection_tys(repacker)
+            .find(|(typ, _)| predicate(*typ))
+            .map(|(_, proj)| {
+                let projection = repacker.tcx.mk_place_elems(proj);
+                Self::new(self.local, projection)
+            })
+    }
+
+    #[tracing::instrument(name = "Place::projection_tys", level = "trace", skip(repacker), ret)]
+    pub fn projection_tys(
+        self,
+        repacker: PlaceRepacker<'_, 'tcx>,
+    ) -> impl Iterator<Item = (PlaceTy<'tcx>, &'tcx [PlaceElem<'tcx>])> {
         let mut typ = PlaceTy::from_ty(repacker.mir.local_decls()[self.local].ty);
-        for (idx, elem) in self.projection.iter().enumerate() {
-            if predicate(typ) {
-                let projection = repacker.tcx.mk_place_elems(&self.projection[0..idx]);
-                return Some(Self::new(self.local, projection));
-            }
+        self.projection.iter().enumerate().map(move |(idx, elem)| {
+            let ret = (typ, &self.projection[0..idx]);
             typ = typ.projection_ty(repacker.tcx, *elem);
+            ret
+        })
+    }
+
+    // pub fn all_behind_region(self, r: RegionVid, repacker: PlaceRepacker<'_, 'tcx>) -> Vec<Self> {
+    //     struct AllBehindWalker<'tcx>(Place<'tcx>, Vec<Place<'tcx>>, TyCtxt<'tcx>);
+    //     impl<'tcx> DeepTypeVisitor<'tcx> for AllBehindWalker<'tcx> {
+    //         fn tcx(&self) -> TyCtxt<'tcx> {
+    //             self.2
+    //         }
+
+    //         fn visit_rec(&mut self, ty: Ty<'tcx>, stack: &mut Stack<'tcx>) {
+    //             ty.visit_with(self, stack);
+    //         }
+    //     }
+    //     todo!()
+    // }
+
+    pub fn mk_deref(self, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
+        self.mk_place_elem(PlaceElem::Deref, repacker)
+    }
+
+    pub fn mk_place_elem(self, elem: PlaceElem<'tcx>, repacker: PlaceRepacker<'_, 'tcx>) -> Self {
+        let elems = repacker
+            .tcx
+            .mk_place_elems_from_iter(self.projection.iter().copied().chain([elem]));
+        Self::new(self.local, elems)
+    }
+
+    pub fn deref_to_region(
+        mut self,
+        r: RegionVid,
+        repacker: PlaceRepacker<'_, 'tcx>,
+    ) -> Option<Self> {
+        let mut ty = self.ty(repacker).ty;
+        while let TyKind::Ref(rr, inner_ty, _) = *ty.kind() {
+            ty = inner_ty;
+            self = self.mk_deref(repacker);
+            if rr.is_var() && rr.as_var() == r {
+                return Some(self);
+            }
         }
         None
+    }
+
+    pub fn param_kind(self, repacker: PlaceRepacker<'_, 'tcx>) -> Option<Local> {
+        if self.local.as_usize() <= repacker.mir.arg_count {
+            Some(self.local)
+        } else {
+            None
+        }
     }
 }
