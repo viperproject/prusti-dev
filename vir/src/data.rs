@@ -84,6 +84,7 @@ pub enum ConstData {
     Bool(bool),
     Int(u128), // TODO: what about negative numbers? larger numbers?
     Wildcard,
+    Null,
 }
 
 pub enum TypeData<'vir> {
