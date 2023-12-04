@@ -95,6 +95,7 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Old(ExprGen<'vir, Curr, Next>),
     //LabelledOld(Expr<'vir>, &'vir str),
     Const(Const<'vir>),
+    Result,
     // magic wand
     AccField(AccFieldGen<'vir, Curr, Next>),
     Unfolding(UnfoldingGen<'vir, Curr, Next>),

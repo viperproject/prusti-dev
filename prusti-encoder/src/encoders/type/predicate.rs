@@ -292,9 +292,18 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
 
     // Ref creation
     pub fn mk_struct_ref(&mut self, base_name: Option<&str>, snap_data: DomainDataStruct<'vir>) -> PredicateEncDataStruct<'vir> {
+        let mut post = None;
         let ref_to_field_refs: Vec<_> = (0..snap_data.field_access.len()).map(|idx| {
+            let posts = post.unwrap_or_else(|| {
+                // result is null iff input is null (will be null if reference
+                // created in pure code).
+                let in_null = self.vcx.mk_eq_expr(self.self_ex, self.vcx.mk_null());
+                let out_null = self.vcx.mk_eq_expr(self.vcx.mk_result(), self.vcx.mk_null());
+                self.vcx.alloc_slice(&[self.vcx.mk_eq_expr(in_null, out_null)])
+            });
+            post = Some(posts);
             let name = vir::vir_format!(self.vcx, "{}_field_{idx}", base_name.unwrap_or(self.ref_to_pred.name()));
-            let field = self.vcx.mk_function(name, self.self_decl, &vir::TypeData::Ref, &[], &[], None);
+            let field = self.vcx.mk_function(name, self.self_decl, &vir::TypeData::Ref, &[], posts, None);
             self.ref_to_field_refs.push(field);
             FunctionIdent::new(name, UnaryArity::new(&[&vir::TypeData::Ref]))
         }).collect();
@@ -390,8 +399,9 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         let self_field = self.vcx.mk_acc_field_expr(self.self_ex, data.ref_field, None);
 
         let self_ref = self.vcx.mk_field_expr(self.self_ex, data.ref_field);
+        let non_null = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, self_ref, self.vcx.mk_null());
         let inner_pred = self.vcx.mk_predicate_app_expr(inner.ref_to_pred.apply(self.vcx, [self_ref], data.perm));
-        let predicate = self.vcx.mk_conj(&[self_field, inner_pred]);
+        let predicate = self.vcx.mk_conj(&[self_field, non_null, inner_pred]);
         self.predicates.push(self.vcx.mk_predicate(self.ref_to_pred.name(), self.self_decl, Some(predicate)));
 
         let inner_snap = inner.ref_to_snap.apply(self.vcx, [self_ref]);

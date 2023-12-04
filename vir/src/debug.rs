@@ -86,6 +86,7 @@ impl Debug for ConstData {
             Self::Bool(b) => write!(f, "{b}"),
             Self::Int(n) => write!(f, "{n}"),
             Self::Wildcard => write!(f, "wildcard"),
+            Self::Null => write!(f, "null"),
         }
     }
 }
@@ -138,6 +139,7 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::AccField(e) => e.fmt(f),
             Self::BinOp(e) => e.fmt(f),
             Self::Const(e) => e.fmt(f),
+            Self::Result => write!(f, "result"),
             Self::Field(e, field) => write!(f, "{:?}.{}", e, field.name),
             Self::Forall(e) => e.fmt(f),
             Self::FuncApp(e) => e.fmt(f),

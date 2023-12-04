@@ -247,8 +247,14 @@ impl<'tcx> VirCtxt<'tcx> {
     pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> Expr<'vir> {
         &ExprGenData {kind : &ExprKindGenData::Const(&ConstData::Int(VALUE))}
     }
-    pub const fn mk_wildcard<'vir>(&'vir self) -> Expr<'vir> {
+    pub const fn mk_wildcard<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
         &ExprGenData { kind : &ExprKindGenData::Const(&ConstData::Wildcard) }
+    }
+    pub const fn mk_null<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
+        &ExprGenData { kind : &ExprKindGenData::Const(&ConstData::Null) }
+    }
+    pub const fn mk_result<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
+        &ExprGenData { kind : &ExprKindGenData::Result }
     }
 
     pub fn mk_field<'vir>(
@@ -375,6 +381,14 @@ impl<'tcx> VirCtxt<'tcx> {
         expr: Option<ExprGen<'vir, Curr, Next>>
     ) ->  StmtGen<'vir, Curr, Next> {
         self.alloc(StmtGenData::LocalDecl(local, expr))
+    }
+
+    pub fn mk_assume_false_stmt<'vir, Curr, Next>(
+        &'vir self
+    ) -> TerminatorStmtGen<'vir, Curr, Next> {
+        self.alloc(
+            TerminatorStmtGenData::AssumeFalse
+        )
     }
 
     pub fn mk_goto_stmt<'vir, Curr, Next>(
@@ -546,16 +560,16 @@ impl<'tcx> VirCtxt<'tcx> {
     }
 
     pub fn mk_conj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
-        elems.split_first().map(|(first, rest)| {
-            rest.iter().rfold(*first, |acc, e| {
-                self.mk_bin_op_expr(BinOpKind::And, acc, *e)
+        elems.split_last().map(|(last, rest)| {
+            rest.iter().rfold(*last, |acc, e| {
+                self.mk_bin_op_expr(BinOpKind::And, *e, acc)
             })
         }).unwrap_or_else(|| self.mk_bool::<true>())
     }
     pub fn mk_disj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
-        elems.split_first().map(|(first, rest)| {
-            rest.iter().rfold(*first, |acc, e| {
-                self.mk_bin_op_expr(BinOpKind::Or, acc, *e)
+        elems.split_last().map(|(last, rest)| {
+            rest.iter().rfold(*last, |acc, e| {
+                self.mk_bin_op_expr(BinOpKind::Or, *e, acc)
             })
         }).unwrap_or_else(|| self.mk_bool::<false>())
     }
