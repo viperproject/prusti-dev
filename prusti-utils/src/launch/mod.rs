@@ -55,10 +55,11 @@ pub fn get_prusti_contracts_build_target_dir(target_dir: &Path) -> PathBuf {
 pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
     let a_prusti_contracts_file = format!("lib{}.rlib", PRUSTI_LIBS[0].replace('-', "_"));
 
-    // Libraries in the Prusti artifact will show up here
     if exe_dir.join(&a_prusti_contracts_file).exists() {
+        // If this branch is entered, then this is the Prusti Artifact
         return Some(exe_dir.to_path_buf());
     } else if let Some(target_dir) = get_target_dir(exe_dir) {
+        // If this branch is entered, then we're building Prusti
         let candidate = get_prusti_contracts_build_target_dir(&target_dir)
             .join("verify")
             .join(BUILD_MODE);
