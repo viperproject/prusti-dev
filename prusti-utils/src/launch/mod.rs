@@ -35,12 +35,17 @@ pub fn get_current_executable_dir() -> PathBuf {
 /// Finds the closest `target` directory in the current path.
 /// This should be the target directory at the root of the repository,
 /// i.e. `prusti-dev/target`.
-pub fn get_target_dir(exe_dir: &Path) -> PathBuf {
+fn get_target_dir(exe_dir: &Path) -> Option<PathBuf> {
     let mut root_dir = exe_dir;
-    while root_dir.file_name().unwrap() != "target" {
-        root_dir = root_dir.parent().unwrap();
+    loop {
+        if root_dir.file_name().unwrap() == "target" {
+            return Some(root_dir.to_path_buf());
+        }
+        match root_dir.parent() {
+            Some(parent) => root_dir = parent,
+            None => return None,
+        }
     }
-    root_dir.to_path_buf()
 }
 
 pub fn get_prusti_contracts_build_target_dir(target_dir: &Path) -> PathBuf {
@@ -50,17 +55,18 @@ pub fn get_prusti_contracts_build_target_dir(target_dir: &Path) -> PathBuf {
 pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
     let a_prusti_contracts_file = format!("lib{}.rlib", PRUSTI_LIBS[0].replace('-', "_"));
 
-    let target_dir = get_target_dir(exe_dir);
-    let candidates = [
-        // Libraries in the Prusti artifact will show up here
-        get_prusti_contracts_build_target_dir(&target_dir),
-        // Libraries when building Prusti will show up here
-        target_dir,
-    ]
-    .map(|path| path.join("verify").join(BUILD_MODE));
-    candidates
-        .into_iter()
-        .find(|candidate| candidate.join(&a_prusti_contracts_file).exists())
+    // Libraries in the Prusti artifact will show up here
+    if exe_dir.join(&a_prusti_contracts_file).exists() {
+        return Some(exe_dir.to_path_buf());
+    } else if let Some(target_dir) = get_target_dir(exe_dir) {
+        let candidate = get_prusti_contracts_build_target_dir(&target_dir)
+            .join("verify")
+            .join(BUILD_MODE);
+        if candidate.join(&a_prusti_contracts_file).exists() {
+            return Some(candidate);
+        }
+    }
+    None
 }
 
 /// Append paths to the loader environment variable
