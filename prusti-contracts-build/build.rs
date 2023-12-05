@@ -1,5 +1,17 @@
 use std::{path::PathBuf, process::Command};
 
+use prusti_utils::launch::get_prusti_contracts_build_target_dir;
+
+fn executable_name(name: &str) -> String {
+    #[cfg(windows)]
+    let name = format!("{}.exe", name);
+
+    #[cfg(not(windows))]
+    let name = name.to_string();
+
+    name
+}
+
 fn main() {
     // Rerun if running with e.g. cargo clippy
     println!("cargo:rerun-if-env-changed=RUSTC_WORKSPACE_WRAPPER");
@@ -14,32 +26,26 @@ fn main() {
     let target: PathBuf = ["..", "target"].iter().collect();
     force_reexport_specs(target.join("verify").as_path());
 
-    // Copy just-built binaries to `target/dir` dir
-    let bin_dir = if cfg!(debug_assertions) {
-        target.join("debug")
-    } else {
-        target.join("release")
-    };
+    let target = get_prusti_contracts_build_target_dir(&target);
+    let bin_dir = target.join("bin");
+    std::fs::create_dir_all(&bin_dir).unwrap();
+
+    // Copies all files into `bin_dir`. `cargo_prusti` cannot be run directly
+    // from std::env::var("CARGO_BIN_FILE_PRUSTI_LAUNCH_cargo-prusti")
+    // because it requires `prusti-rustc` and `prusti-driver` to be in the same
+    // path.
     for (krate, file) in [
         ("PRUSTI_LAUNCH", "cargo-prusti"),
         ("PRUSTI_LAUNCH", "prusti-rustc"),
         ("PRUSTI", "prusti-driver"),
     ] {
         let file_from = std::env::var(format!("CARGO_BIN_FILE_{krate}_{file}")).unwrap();
-        let file_to = &format!("{file}{}", if cfg!(windows) { ".exe" } else { "" });
+        let file_to = executable_name(file);
         let file_to = bin_dir.join(file_to);
         std::fs::copy(file_from, file_to).unwrap();
     }
 
-    // Run `cargo-prusti`
-    let cargo_prusti = format!("cargo-prusti{}", if cfg!(windows) { ".exe" } else { "" });
-    let cargo_prusti = bin_dir.join(cargo_prusti);
-
-    // In theory we should build to here (i.e. set `CARGO_TARGET_DIR` to this),
-    // but this is hard to find for linking. So instead build to the `prusti-contracts` dir.
-    // let out_dir = std::env::var("OUT_DIR").unwrap();
-    // println!("cargo:warning=out_dir: {}", out_dir);
-
+    let cargo_prusti = bin_dir.join(executable_name("cargo-prusti"));
     let mut cmd = Command::new(cargo_prusti);
     cmd.env("CARGO_TARGET_DIR", target.as_os_str());
     cmd.current_dir(&prusti_contracts);
