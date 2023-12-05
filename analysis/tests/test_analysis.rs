@@ -5,6 +5,7 @@ mod utils;
 
 /// Source: https://github.com/rust-lang/miri/blob/master/tests/compiletest.rs
 use compiletest_rs as compiletest;
+use prusti_utils::utils::find_compiled_executable;
 use std::{env, path::PathBuf};
 use utils::*;
 

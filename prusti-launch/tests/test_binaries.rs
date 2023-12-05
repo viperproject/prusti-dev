@@ -5,40 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use glob::glob;
+use prusti_utils::utils::find_compiled_executable;
 use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
     process::{Child, Command, Stdio},
 };
-
-fn find_executable_path(base_name: &str) -> PathBuf {
-    let target_directory = if cfg!(debug_assertions) {
-        "debug"
-    } else {
-        "release"
-    };
-    let executable_name = if cfg!(windows) {
-        format!("{base_name}.exe")
-    } else {
-        base_name.to_string()
-    };
-    let local_prusti_rustc_path: PathBuf = ["target", target_directory, &executable_name]
-        .iter()
-        .collect();
-    if local_prusti_rustc_path.exists() {
-        return local_prusti_rustc_path;
-    }
-    let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, &executable_name]
-        .iter()
-        .collect();
-    if workspace_prusti_rustc_path.exists() {
-        return workspace_prusti_rustc_path;
-    }
-    panic!(
-        "Could not find the {target_directory:?} prusti-rustc binary to be used in tests. \
-        It might be that Prusti has not been compiled correctly."
-    );
-}
 
 fn run_on_test_files<F: Fn(&PathBuf) -> Command>(run: F) {
     let mut num_pass_tests = 0;
@@ -107,7 +79,7 @@ impl Drop for ChildGuard {
 
 #[test]
 fn test_prusti_rustc() {
-    let prusti_rustc = find_executable_path("prusti-rustc");
+    let prusti_rustc = find_compiled_executable("prusti-rustc");
 
     run_on_test_files(|program: &PathBuf| {
         let mut cmd = Command::new(&prusti_rustc);
@@ -121,7 +93,7 @@ fn test_prusti_rustc() {
 
 #[test]
 fn test_prusti_rustc_dump() {
-    let prusti_rustc = find_executable_path("prusti-rustc");
+    let prusti_rustc = find_compiled_executable("prusti-rustc");
 
     run_on_test_files(|program: &PathBuf| {
         let mut cmd = Command::new(&prusti_rustc);
@@ -146,7 +118,7 @@ fn test_prusti_rustc_dump() {
 // so this test fails.
 #[test]
 fn test_prusti_be_rustc() {
-    let prusti_rustc = find_executable_path("prusti-rustc");
+    let prusti_rustc = find_compiled_executable("prusti-rustc");
 
     run_on_test_files(|program: &PathBuf| {
         let mut cmd = Command::new(&prusti_rustc);
@@ -162,8 +134,8 @@ fn test_prusti_be_rustc() {
 
 #[test]
 fn test_prusti_rustc_with_server() {
-    let prusti_rustc = find_executable_path("prusti-rustc");
-    let prusti_server = find_executable_path("prusti-server");
+    let prusti_rustc = find_compiled_executable("prusti-rustc");
+    let prusti_server = find_compiled_executable("prusti-server");
 
     // Preserve SYSTEMROOT on Windows.
     // See: https://travis-ci.community/t/socket-the-requested-service-provider-could-not-be-loaded-or-initialized/1127

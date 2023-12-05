@@ -1,6 +1,7 @@
 mod utils;
 
 use glob::glob;
+use prusti_utils::utils::find_compiled_executable;
 use std::{
     env,
     ffi::OsStr,
