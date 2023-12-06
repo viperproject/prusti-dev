@@ -233,17 +233,17 @@ def package(mode: str, package_path: str):
         (f"target/{mode}/prusti-server*", "."),
         (f"target/{mode}/prusti-rustc*", "."),
         (f"target/{mode}/cargo-prusti*", "."),
-        (f"target/verify/{mode}/libprusti_contracts.*", "."),
-        (f"target/verify/{mode}/deps/libprusti_contracts_proc_macros-*", "deps"),
-        (f"target/verify/{mode}/deps/prusti_contracts_proc_macros-*.dll", "deps"),
-        (f"target/verify/{mode}/libprusti_std.*", "."),
-        (f"target/verify/{mode}/deps/libprusti_contracts-*", "deps"),
-        (f"target/verify/{mode}/deps/prusti_contracts-*.dll", "deps"),
+        (f"target/prusti-contracts/{mode}/verify/{mode}/libprusti_contracts.*", "."),
+        (f"target/prusti-contracts/{mode}/verify/{mode}/deps/libprusti_contracts_proc_macros-*", "deps"),
+        (f"target/prusti-contracts/{mode}/verify/{mode}/deps/prusti_contracts_proc_macros-*.dll", "deps"),
+        (f"target/prusti-contracts/{mode}/verify/{mode}/libprusti_std.*", "."),
+        (f"target/prusti-contracts/{mode}/verify/{mode}/deps/libprusti_contracts-*", "deps"),
+        (f"target/prusti-contracts/{mode}/verify/{mode}/deps/prusti_contracts-*.dll", "deps"),
     ]
     exclude_paths = [
         f"target/{mode}/*.d",
-        f"target/verify/{mode}/*.d",
-        f"target/verify/{mode}/deps/*.d",
+        f"target/prusti-contracts/{mode}/verify/{mode}/*.d",
+        f"target/prusti-contracts/{mode}/verify/{mode}/deps/*.d",
     ]
     actual_exclude_set = set(path for pattern in exclude_paths for path in glob.glob(pattern))
     logging.debug(f"The number of excluded paths is: {len(actual_exclude_set)}")
