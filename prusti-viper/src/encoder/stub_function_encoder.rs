@@ -7,23 +7,45 @@
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
     high::generics::HighGenericsEncoderInterface,
-    mir_encoder::{MirEncoder, PlaceEncoder},
+    interface::PureFunctionFormalArgsEncoderInterface,
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
 use log::debug;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::{mir, ty::GenericArgsRef},
+    middle::{
+        mir, ty,
+        ty::{Binder, GenericArgsRef},
+    },
+    span::Span,
 };
 use vir_crate::polymorphic as vir;
 
+use super::mir::specifications::SpecificationsInterface;
+
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
-    mir: &'p mir::Body<'tcx>,
-    mir_encoder: MirEncoder<'p, 'v, 'tcx>,
+    mir: Option<&'p mir::Body<'tcx>>,
     proc_def_id: DefId,
     substs: GenericArgsRef<'tcx>,
+    sig: ty::PolyFnSig<'tcx>,
+}
+
+impl<'p, 'v, 'tcx> PureFunctionFormalArgsEncoderInterface<'p, 'v, 'tcx>
+    for StubFunctionEncoder<'p, 'v, 'tcx>
+{
+    fn check_type(&self, _span: Span, _ty: Binder<ty::Ty<'tcx>>) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+
+    fn encoder(&self) -> &'p Encoder<'v, 'tcx> {
+        self.encoder
+    }
+
+    fn get_span(&self, _local: mir::Local) -> Span {
+        self.encoder.get_spec_span(self.proc_def_id)
+    }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
@@ -31,16 +53,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
-        mir: &'p mir::Body<'tcx>,
+        mir: Option<&'p mir::Body<'tcx>>,
         substs: GenericArgsRef<'tcx>,
+        sig: ty::PolyFnSig<'tcx>,
     ) -> Self {
         StubFunctionEncoder {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new(encoder, mir, proc_def_id),
             proc_def_id,
             substs,
+            sig,
         }
+    }
+
+    fn default_span(&self) -> Span {
+        self.mir
+            .map(|m| m.span)
+            .unwrap_or_else(|| self.encoder.get_spec_span(self.proc_def_id))
     }
 
     #[tracing::instrument(level = "debug", skip(self))]
@@ -48,23 +77,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);
 
-        let formal_args: Vec<_> = self
-            .mir
-            .args_iter()
-            .map(|local| {
-                let var_name = self.mir_encoder.encode_local_var_name(local);
-                let mir_type = self.mir_encoder.get_local_ty(local);
-                self.encoder
-                    .encode_snapshot_type(mir_type)
-                    .map(|var_type| vir::LocalVar::new(var_name, var_type))
-            })
-            .collect::<Result<_, _>>()
-            .with_span(self.mir.span)?;
+        let formal_args = self.encode_formal_args(self.sig)?;
 
         let type_arguments = self
             .encoder
             .encode_generic_arguments(self.proc_def_id, self.substs)
-            .with_span(self.mir.span)?;
+            .with_span(self.default_span())?;
 
         let return_type = self.encode_function_return_type()?;
 
@@ -74,8 +92,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             formal_args,
             return_type,
             pres: vec![false.into()],
-            // Note: Silicon is currently unsound when declaring a function that ensures `false`
-            // See: https://github.com/viperproject/silicon/issues/376
             posts: vec![],
             body: None,
         };
@@ -94,9 +110,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
-        let ty = self.mir.return_ty();
-        let return_local = mir::Place::return_place().as_local().unwrap();
-        let span = self.mir_encoder.get_local_span(return_local);
-        self.encoder.encode_snapshot_type(ty).with_span(span)
+        let ty = self.sig.output();
+
+        self.encoder
+            .encode_snapshot_type(ty.skip_binder())
+            .with_span(self.encoder.get_spec_span(self.proc_def_id))
     }
 }

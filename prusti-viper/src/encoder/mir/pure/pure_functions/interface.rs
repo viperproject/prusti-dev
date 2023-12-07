@@ -331,10 +331,11 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 substs,
             );
 
+            let is_bodyless = self.is_trusted(proc_def_id, Some(substs))
+                || !self.env().query.has_body(proc_def_id);
+
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let proc_kind = self.get_proc_kind(proc_def_id, Some(substs));
-                let is_bodyless = self.is_trusted(proc_def_id, Some(substs))
-                    || !self.env().query.has_body(proc_def_id);
                 let mut function = if is_bodyless {
                     pure_function_encoder.encode_bodyless_function()?
                 } else {
@@ -393,13 +394,29 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 Err(error) => {
                     self.register_encoding_error(error);
                     debug!("Error encoding pure function: {:?}", proc_def_id);
-                    let body = self
-                        .env()
-                        .body
-                        .get_pure_fn_body(proc_def_id, substs, parent_def_id);
-                    // TODO(tymap): does stub encoder need substs?
-                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body, substs);
-                    let function = stub_encoder.encode_function()?;
+                    let function = if !is_bodyless {
+                        let pure_fn_body =
+                            self.env()
+                                .body
+                                .get_pure_fn_body(proc_def_id, substs, parent_def_id);
+                        let encoder = StubFunctionEncoder::new(
+                            self,
+                            proc_def_id,
+                            Some(&pure_fn_body),
+                            substs,
+                            pure_function_encoder.sig,
+                        );
+                        encoder.encode_function()?
+                    } else {
+                        let encoder = StubFunctionEncoder::new(
+                            self,
+                            proc_def_id,
+                            None,
+                            substs,
+                            pure_function_encoder.sig,
+                        );
+                        encoder.encode_function()?
+                    };
                     self.log_vir_program_before_viper(function.to_string());
                     let identifier = self.insert_function(function);
                     self.pure_function_encoder_state
