@@ -7,6 +7,7 @@
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
+    interface::PureFunctionFormalArgsEncoderInterface,
     mir::{
         contracts::{ContractsEncoderInterface, ProcedureContract},
         pure::{
@@ -50,7 +51,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Span of the function declaration.
     span: Span,
     /// Signature of the function to be encoded.
-    sig: ty::PolyFnSig<'tcx>,
+    pub(crate) sig: ty::PolyFnSig<'tcx>,
     /// Spans of MIR locals, when encoding a local pure function.
     local_spans: Option<Vec<Span>>,
 }
@@ -135,6 +136,38 @@ fn encode_mir<'p, 'v: 'p, 'tcx: 'v>(
     );
 
     Ok(body_expr)
+}
+
+impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionFormalArgsEncoderInterface<'p, 'v, 'tcx>
+    for PureFunctionEncoder<'p, 'v, 'tcx>
+{
+    fn encoder(&self) -> &'p Encoder<'v, 'tcx> {
+        self.encoder
+    }
+
+    fn check_type(
+        &self,
+        var_span: Span,
+        ty: ty::Binder<'tcx, ty::Ty<'tcx>>,
+    ) -> SpannedEncodingResult<()> {
+        if !self
+            .encoder
+            .env()
+            .query
+            .type_is_copy(ty, self.parent_def_id)
+        {
+            Err(SpannedEncodingError::incorrect(
+                "pure function parameters must be Copy",
+                var_span,
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn get_span(&self, local: mir::Local) -> Span {
+        self.get_local_span(local)
+    }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
@@ -314,7 +347,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mut precondition = vec![type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)?];
 
-        let formal_args = self.encode_formal_args()?;
+        let formal_args = self.encode_formal_args(self.sig)?;
         let return_type = self.encode_function_return_type()?;
 
         let res_value_range_pos = self.encoder.error_manager().register_error(
@@ -545,6 +578,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
+        if post.has_old_expression() {
+            return Err(SpannedEncodingError::incorrect(
+                "old expressions should not appear in the postconditions of pure functions",
+                self.span,
+            ));
+        }
+
         Ok(post)
     }
 
@@ -620,40 +660,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .with_span(self.span)
     }
 
-    fn encode_formal_args(&self) -> SpannedEncodingResult<Vec<vir::LocalVar>> {
-        let mut formal_args = vec![];
-        for local_idx in 0..self.sig.skip_binder().inputs().len() {
-            let local_ty = self.sig.input(local_idx);
-            let local = prusti_rustc_interface::middle::mir::Local::from_usize(local_idx + 1);
-            let var_name = format!("{local:?}");
-            let var_span = self.get_local_span(local);
-
-            if !self
-                .encoder
-                .env()
-                .query
-                .type_is_copy(local_ty, self.parent_def_id)
-            {
-                return Err(SpannedEncodingError::incorrect(
-                    "pure function parameters must be Copy",
-                    var_span,
-                ));
-            }
-
-            let var_type = self
-                .encoder
-                .encode_snapshot_type(local_ty.skip_binder())
-                .with_span(var_span)?;
-            formal_args.push(vir::LocalVar::new(var_name, var_type))
-        }
-        Ok(formal_args)
-    }
-
     pub fn encode_function_call_info(&self) -> SpannedEncodingResult<FunctionCallInfo> {
         Ok(FunctionCallInfo {
             name: self.encode_function_name(),
             type_arguments: self.encode_type_arguments()?,
-            formal_args: self.encode_formal_args()?,
+            formal_args: self.encode_formal_args(self.sig)?,
             return_type: self.encode_function_return_type()?,
         })
     }
