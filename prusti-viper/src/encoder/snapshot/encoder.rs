@@ -1691,10 +1691,10 @@ impl SnapshotEncoder {
         // * the constructor, which takes the flattened value-only
         //   representation of the variant and returns an instance of the
         //   snapshot domain
-        // * the injectivity axiom for that constructor:
+        // * the injectivity axiom for that variant:
         //   ```plain
-        //   forall _l_args..., _r_args... :: {cons(_l_args...), cons(_r_args)}
-        //     cons(_l_args...) == cons(_r_args) ==> _l_args... == _r_args...
+        //   forall this: Variant :: {field1(this), field2(this), ...}
+        //     this == cons(field1(this), field2(this), ...)
         //   ```
         // * the discriminant axiom for that constructor:
         //   ```plain
@@ -1704,7 +1704,7 @@ impl SnapshotEncoder {
         //   * field access function
         //   * field access axiom:
         //     ```plain
-        //     forall args... :: {field(cons(arg_field, other_args...))}
+        //     forall args... :: {cons(arg_field, other_args...)}
         //       field(cons(arg_field, other_args...)) == arg_field
         //     ```
         for (variant_idx, variant) in variants.iter().enumerate() {
@@ -1715,8 +1715,6 @@ impl SnapshotEncoder {
                 .enumerate()
                 .map(|(idx, field)| vir::LocalVar::new(format!("_{idx}"), field.typ.clone()))
                 .collect::<Vec<vir::LocalVar>>();
-            // TODO: filter out Units to reduce constructor size
-            let has_args = !args.is_empty();
 
             // record name to index mapping
             if let Some(name) = &variant.name {
@@ -1745,37 +1743,6 @@ impl SnapshotEncoder {
                 constructor.apply(args.iter().cloned().map(Expr::local).collect())
             };
 
-            if has_args {
-                // encode injectivity axiom of constructor
-                let lhs_args = encode_prefixed_args("_l");
-                let rhs_args = encode_prefixed_args("_r");
-
-                let lhs_call = encode_constructor_call(&lhs_args);
-                let rhs_call = encode_constructor_call(&rhs_args);
-
-                let mut forall_vars = vec![];
-                forall_vars.extend(lhs_args.iter().cloned());
-                forall_vars.extend(rhs_args.iter().cloned());
-
-                let conjunction = lhs_args
-                    .iter()
-                    .cloned()
-                    .zip(rhs_args.iter().cloned())
-                    .map(|(l, r)| Expr::eq_cmp(Expr::local(l), Expr::local(r)))
-                    .conjoin();
-
-                domain_axioms.push(vir::DomainAxiom {
-                    comment: None,
-                    name: format!("{domain_name}${variant_idx}$injectivity"),
-                    expr: forall_or_body(
-                        forall_vars,
-                        vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
-                        Expr::implies(Expr::eq_cmp(lhs_call, rhs_call), conjunction),
-                    ),
-                    domain_name: domain_name.to_string(),
-                });
-            }
-
             if has_multiple_variants {
                 // encode discriminant axiom
                 domain_axioms.push({
@@ -1799,12 +1766,15 @@ impl SnapshotEncoder {
 
             let mut field_access_funcs = FxHashMap::default();
 
+            let self_local = vir::LocalVar::new("self", snapshot_type.clone());
+            let self_expr = Expr::local(self_local.clone());
+
             for (field_idx, field) in variant.fields.iter().enumerate() {
                 // encode field access function
                 let field_access_func = vir::DomainFunc {
                     name: format!("{}${}$field${}", domain_name, variant_idx, field.name),
                     type_arguments: Vec::new(), // FIXME: This is most likely wrong.
-                    formal_args: vec![vir::LocalVar::new("self", snapshot_type.clone())],
+                    formal_args: vec![self_local.clone()],
                     return_type: field.typ.clone(),
                     unique: false,
                     domain_name: domain_name.to_string(),
@@ -1823,7 +1793,7 @@ impl SnapshotEncoder {
                         name: format!("{}${}$field${}$axiom", domain_name, variant_idx, field.name),
                         expr: forall_or_body(
                             args.clone(),
-                            vec![vir::Trigger::new(vec![field_of_cons.clone()])],
+                            vec![vir::Trigger::new(vec![call.clone()])],
                             Expr::eq_cmp(
                                 field_of_cons.clone(),
                                 Expr::local(args[field_idx].clone()),
@@ -1840,8 +1810,6 @@ impl SnapshotEncoder {
                     | ty::TyKind::Uint(_)
                     | ty::TyKind::Float(_)
                     | ty::TyKind::Char => domain_axioms.push({
-                        let self_local = vir::LocalVar::new("self", snapshot_type.clone());
-                        let self_expr = Expr::local(self_local.clone());
                         let field_of_self = field_access_func.apply(vec![self_expr.clone()]);
 
                         vir::DomainAxiom {
@@ -1864,6 +1832,34 @@ impl SnapshotEncoder {
 
                     _ => {}
                 }
+            }
+
+            if !args.is_empty() {
+                let field_access_apps: Vec<_> = variant
+                    .fields
+                    .iter()
+                    .map(|f| {
+                        let field_access_func = field_access_funcs
+                            .get(&f.name)
+                            .unwrap_or_else(|| panic!("No accessor for field {}", f.name));
+                        field_access_func.apply(vec![self_expr.clone()])
+                    })
+                    .collect();
+                let expr = Expr::forall(
+                    vec![self_local.clone()],
+                    field_access_apps
+                        .iter()
+                        .map(|e| vir::Trigger::new(vec![e.clone()]))
+                        .collect(),
+                    Expr::eq_cmp(self_expr.clone(), constructor.apply(field_access_apps)),
+                );
+
+                domain_axioms.push(vir::DomainAxiom {
+                    comment: None,
+                    name: format!("{domain_name}${variant_idx}$injectivity"),
+                    expr,
+                    domain_name: domain_name.to_string(),
+                });
             }
 
             variant_domain_funcs.push((constructor.clone(), field_access_funcs));
