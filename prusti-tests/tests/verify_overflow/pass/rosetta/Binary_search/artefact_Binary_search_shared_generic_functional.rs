@@ -1,3 +1,5 @@
+// compile-flags: -Puse_more_complete_exhale=false
+
 //! A copy of `artefact_Binary_search_shared.rs` with fixed non-termination bug and manually
 //! encoded termination check.
 
@@ -52,6 +54,7 @@ impl<T> MyOption<T> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum Ordering {
     Less,
     Equal,
@@ -61,7 +64,8 @@ pub enum Ordering {
 use self::Ordering::*;
 
 #[trusted]
-#[ensures(matches!(result, Equal) ==> a === b)]
+#[pure]
+#[ensures(matches!(result, Equal) == (a === b))]
 fn cmp<T: Ord>(a: &T, b: &T) -> Ordering {
     match Ord::cmp(a, b) {
         std::cmp::Ordering::Less => Less,
@@ -70,6 +74,30 @@ fn cmp<T: Ord>(a: &T, b: &T) -> Ordering {
     }
 }
 
+#[trusted]
+#[requires(cmp(bound, elem) === Less)]
+#[ensures(
+    forall(|a: &T|
+        matches!(cmp(a, bound), Less | Equal) ==>
+        cmp(a, elem) === Less,
+        triggers=[(cmp(a, elem),)])
+)]
+fn lemma_cmp_less_transitive<T: Ord>(bound: &T, elem: &T) {}
+
+#[trusted]
+#[requires(cmp(bound, elem) === Greater)]
+#[ensures(
+    forall(|a: &T|
+        matches!(cmp(bound, a), Less | Equal) ==>
+        cmp(a, elem) === Greater,
+        triggers=[(cmp(a, elem),)])
+)]
+fn lemma_cmp_greater_transitive<T: Ord>(bound: &T, elem: &T) {}
+
+#[requires(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+             matches!(cmp(arr.lookup(k1), arr.lookup(k2)), Less | Equal)))]
+#[ensures(result.is_none() ==>
+            (forall(|k: usize| (0 <= k && k < arr.len()) ==> elem !== arr.lookup(k))))]
 #[ensures(match result {
                 MyOption::Some(index) => (
                     0 <= index && index < arr.len() &&
@@ -88,6 +116,11 @@ fn binary_search<T: Ord>(arr: &VecWrapper<T>, elem: &T) -> MyOption<usize> {
     while continue_loop {
         body_invariant!(continue_loop == (size > 0 && result.is_none()));
         body_invariant!(base + size <= arr.len());
+        body_invariant!(forall(|k: usize| (0 <= k && k < base) ==>
+            cmp(arr.lookup(k), elem) === Less, triggers=[(arr.lookup(k),),]));
+        body_invariant!(result.is_none() ==>
+                (forall(|k: usize| (base + size <= k && k < arr.len()) ==>
+                        cmp(arr.lookup(k), elem) === Greater, triggers=[(arr.lookup(k),),])));
         body_invariant!(match result {
                     MyOption::Some(index) => (
                         0 <= index && index < arr.len() &&
@@ -104,9 +137,11 @@ fn binary_search<T: Ord>(arr: &VecWrapper<T>, elem: &T) -> MyOption<usize> {
         let cmp_result = cmp(mid_element, elem);
         base = match cmp_result {
             Less    => {
+                lemma_cmp_less_transitive(mid_element, elem);
                 mid
             },
             Greater => {
+                lemma_cmp_greater_transitive(mid_element, elem);
                 base
             },
             // Equal
