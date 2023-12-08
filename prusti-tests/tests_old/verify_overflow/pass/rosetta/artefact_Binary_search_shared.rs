@@ -72,8 +72,7 @@
 //!
 //! This file contains a verified version of it.
 
-#![allow(dead_code)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
     v: Vec<T>
@@ -88,7 +87,7 @@ impl<T> VecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn index(&self, index: usize) -> &T {
         &self.v[index]
     }
@@ -137,9 +136,9 @@ fn binary_search<T: Ord>(arr: &VecWrapper<T>, elem: &T) -> UsizeOption {
     let mut continue_loop = size > 0;
 
 
-    #[invariant="continue_loop == (size > 0 && result.is_none())"]
-    #[invariant="base + size <= arr.len()"]
     while continue_loop {
+        body_invariant!(continue_loop == (size > 0 && result.is_none()));
+        body_invariant!(base + size <= arr.len());
         let half = size / 2;
         let mid = base + half;
 

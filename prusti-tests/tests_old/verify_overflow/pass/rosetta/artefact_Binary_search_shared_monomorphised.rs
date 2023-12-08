@@ -77,8 +77,7 @@
 //!
 //! This file contains a verified version of it.
 
-#![allow(dead_code)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapperI32{
     v: Vec<i32>
@@ -93,14 +92,14 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="self.lookup(index) == *result"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(self.lookup(index) == *result)]
     pub fn index(&self, index: usize) -> &i32 {
         &self.v[index]
     }
@@ -136,11 +135,11 @@ pub enum Ordering {
 
 use self::Ordering::*;
 
-#[ensures="(match result {
+#[ensures(match result {
                 Equal => *a == *b,
                 Less => *a < *b,
                 Greater => *a > *b,
-            })"]
+            })]
 fn cmp(a: &i32, b: &i32) -> Ordering {
     if *a == *b { Equal }
         else if *a < *b { Less }
@@ -148,17 +147,17 @@ fn cmp(a: &i32, b: &i32) -> Ordering {
 }
 
 
-#[requires="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-             arr.lookup(k1) <= arr.lookup(k2)"]
-#[ensures="result.is_none() ==>
-            (forall k: usize :: (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k))"]
-#[ensures="match result {
+#[requires(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+             arr.lookup(k1) <= arr.lookup(k2)))]
+#[ensures(result.is_none() ==>
+            (forall(|k: usize| (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k))))]
+#[ensures(match result {
                 UsizeOption::Some(index) => (
                     0 <= index && index < arr.len() &&
                     arr.lookup(index) == *elem
                 ),
                 UsizeOption::None => true,
-            }"]
+            })]
 fn binary_search(arr: &VecWrapperI32, elem: &i32) -> UsizeOption {
     let mut size = arr.len();
     let mut base = 0;
@@ -167,21 +166,21 @@ fn binary_search(arr: &VecWrapperI32, elem: &i32) -> UsizeOption {
     let mut continue_loop = size > 0;
 
 
-    #[invariant="continue_loop == (size > 0 && result.is_none())"]
-    #[invariant="base + size <= arr.len()"]
-    #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-            arr.lookup(k1) <= arr.lookup(k2)"]
-    #[invariant="forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem"]
-    #[invariant="result.is_none() ==>
-                (forall k: usize :: (base + size <= k && k < arr.len()) ==> *elem != arr.lookup(k))"]
-    #[invariant="match result {
+    while continue_loop {
+        body_invariant!(continue_loop == (size > 0 && result.is_none()));
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+            arr.lookup(k1) <= arr.lookup(k2)));
+        body_invariant!(forall(|k: usize| (0 <= k && k < base) ==> arr.lookup(k) < *elem));
+        body_invariant!(result.is_none() ==>
+                (forall(|k: usize| (base + size <= k && k < arr.len()) ==> *elem != arr.lookup(k))));
+        body_invariant!(match result {
                     UsizeOption::Some(index) => (
                         0 <= index && index < arr.len() &&
                         arr.lookup(index) == *elem
                     ),
                     UsizeOption::None => true,
-                }"]
-    while continue_loop {
+                });
         let half = size / 2;
         let mid = base + half;
 
