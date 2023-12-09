@@ -1,5 +1,7 @@
 // compile-flags: -Puse_more_complete_exhale=false
 
+#![feature(box_patterns)]
+
 //! An adaptation of the example from
 //! https://rust-unofficial.github.io/too-many-lists/second-final.html
 //!
@@ -8,8 +10,8 @@
 //!
 //! +   Wrapped built-in types and functions.
 //! +   Add additional functions for capturing functional specification.
-//! +   Change the loop into the supported shape.
 //! +   Replace `assert_eq!` with supported ones.
+//! +   Rewrite to not use closures and higher-order functions.
 //!
 //! Verified methods:
 //!
@@ -17,13 +19,38 @@
 //! +   `push`
 //! +   `pop`
 //!
+//! Added new verified methods:
+//!
+//! +   `index`
+//! +   `index_mut`
+//!
 //! Verified properties:
 //!
 //! +   Absence of panics.
 //! +   Push and pop behaves correctly.
 
+use prusti_contracts::*;
+
 pub struct List<T> {
     head: Link<T>,
+}
+
+#[pure]
+fn is_some<T>(s: &Option<T>) -> bool {
+    matches!(s, Some(_))
+}
+
+#[pure]
+fn is_none<T>(s: &Option<T>) -> bool {
+    matches!(s, None)
+}
+
+#[trusted]
+#[ensures(
+    *old(option) === result
+)]
+fn take<T>(option: &mut Option<T>) -> Option<T> {
+    option.take()
 }
 
 type Link<T> = Option<Box<Node<T>>>;
@@ -34,183 +61,184 @@ struct Node<T> {
 }
 
 impl<T> List<T> {
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         List { head: None }
     }
 
+    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(forall(|i: usize| 0 < i && i < self.len() ==> 
+        self.index(i) === old(self.index(i-1))
+    ))]
+    #[ensures(*self.index(0) === elem)]
     pub fn push(&mut self, elem: T) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: self.head.take(),
+            next: take(&mut self.head),
         });
 
         self.head = Some(new_node);
     }
 
-    pub fn pop(&mut self) -> Option<T> {
-        self.head.take().map(|node| {
+    #[requires(self.len() > 0)]
+    #[ensures(self.len() == old(self.len()) - 1)]
+    #[ensures(forall(|i: usize| 0 <= i && i < self.len() ==>
+        self.index(i) === old(self.index(i+1))
+    ))]
+    #[ensures(result === *old(self.index(0)))]
+    pub fn pop_unchecked(&mut self) -> T {
+        if let Some(node) = take(&mut self.head) {
             self.head = node.next;
             node.elem
-        })
+        } else {
+            unreachable!();
+        }
     }
 
-    pub fn peek(&self) -> Option<&T> {
-        self.head.as_ref().map(|node| {
-            &node.elem
-        })
+    #[ensures(if old(self.len()) == 0 {
+        self.len() == 0 &&
+        is_none(&result)
+    } else {
+        self.len() == old(self.len()) - 1 &&
+        forall(|i: usize| (0 <= i && i < self.len()) ==>
+               self.index(i) === old(self.index(i+1)),
+               triggers=[(self.index(i),),]) &&
+        match result {
+            Some(r) => r === *old(self.index(0)),
+            _ => false,
+        }
+    })]
+    pub fn pop(&mut self) -> Option<T> {
+        if is_some(&self.head) {
+            Some(self.pop_unchecked())
+        } else {
+            None
+        }
     }
 
-    pub fn peek_mut(&mut self) -> Option<&mut T> {
-        self.head.as_mut().map(|node| {
-            &mut node.elem
-        })
+    #[pure]
+    pub fn len(&self) -> usize {
+        match &self.head {
+            Some(node) => node.len(),
+            None => 0,
+        }
     }
 
-    pub fn into_iter(self) -> IntoIter<T> {
-        IntoIter(self)
+    #[pure]
+    #[requires(0 <= index && index < self.len())]
+    pub fn index(&self, index: usize) -> &T {
+        match &self.head {
+            Some(node) => node.index(index),
+            None => unreachable!(),
+        }
     }
 
-    pub fn iter(&self) -> Iter<'_, T> {
-        Iter { next: self.head.as_deref() }
-    }
-
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
-        IterMut { next: self.head.as_deref_mut() }
-    }
-}
-
-impl<T> Drop for List<T> {
-    fn drop(&mut self) {
-        let mut cur_link = self.head.take();
-        while let Some(mut boxed_node) = cur_link {
-            cur_link = boxed_node.next.take();
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(&*result === old(self.index(index)))]
+    #[after_expiry(
+        self.len() == old(self.len()) &&
+        forall(|i: usize| 0 <= i && i < self.len() && i != index ==>
+               self.index(i) === old(self.index(i))
+        ) &&
+        self.index(index) === before_expiry(result)
+    )]
+    pub fn index_mut(&mut self, index: usize) -> &mut T {
+        match self.head {
+            Some(box ref mut node) => node.index_mut(index),
+            None => unreachable!(),
         }
     }
 }
 
-pub struct IntoIter<T>(List<T>);
+impl<T> Node<T> {
+    #[pure]
+    pub fn len(&self) -> usize {
+        1 + match &self.next {
+            Some(next) => next.len(),
+            None => 0,
+        }
+    }
 
-impl<T> Iterator for IntoIter<T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
-        // access fields of a tuple struct numerically
-        self.0.pop()
+    #[pure]
+    #[requires(0 <= index && index < self.len())]
+    pub fn index(&self, index: usize) -> &T {
+        if index == 0 {
+            &self.elem
+        } else {
+            match &self.next {
+                Some(next) => next.index(index-1),
+                None => unreachable!(),
+            }
+        }
+    }
+
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(&*result === old(self.index(index)))]
+    #[after_expiry(
+        self.len() == old(self.len()) &&
+        forall(|i: usize| 0 <= i && i < self.len() && i != index ==>
+               self.index(i) === old(self.index(i))
+        ) &&
+        self.index(index) === before_expiry(result)
+    )]
+    pub fn index_mut(&mut self, index: usize) -> &mut T {
+        if index == 0 {
+            &mut self.elem
+        } else {
+            match self.next {
+                Some(box ref mut next) => next.index_mut(index-1),
+                None => unreachable!(),
+            }
+        }
     }
 }
 
-pub struct Iter<'a, T> {
-    next: Option<&'a Node<T>>,
-}
-
-impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = &'a T;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.next.map(|node| {
-            self.next = node.next.as_deref();
-            &node.elem
-        })
-    }
-}
-
-pub struct IterMut<'a, T> {
-    next: Option<&'a mut Node<T>>,
-}
-
-impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = &'a mut T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.next.take().map(|node| {
-            self.next = node.next.as_deref_mut();
-            &mut node.elem
-        })
-    }
-}
-
-#[cfg(test)]
 mod test {
     use super::List;
 
-    #[test]
+    use prusti_contracts::*;
+
     fn basics() {
         let mut list = List::new();
 
         // Check empty list behaves right
-        assert_eq!(list.pop(), None);
+        assert!(matches!(list.pop(), None));
 
         // Populate list
         list.push(1);
         list.push(2);
         list.push(3);
 
+        prusti_assert!(list.len() == 3);
+        prusti_assert!(*list.index(0) == 3);
+        prusti_assert!(*list.index(1) == 2);
+        prusti_assert!(*list.index(2) == 1);
+
         // Check normal removal
-        assert_eq!(list.pop(), Some(3));
-        assert_eq!(list.pop(), Some(2));
+        assert!(matches!(list.pop(), Some(3)));
+        prusti_assert!(list.len() == 2);
+        prusti_assert!(*list.index(0) == 2);
+        prusti_assert!(*list.index(1) == 1);
+        assert!(matches!(list.pop(), Some(2)));
+        prusti_assert!(*list.index(0) == 1);
 
         // Push some more just to make sure nothing's corrupted
         list.push(4);
         list.push(5);
 
+        prusti_assert!(*list.index(0) == 5);
+        prusti_assert!(*list.index(1) == 4);
+        prusti_assert!(*list.index(2) == 1);
+
         // Check normal removal
-        assert_eq!(list.pop(), Some(5));
-        assert_eq!(list.pop(), Some(4));
+        assert!(matches!(list.pop(), Some(5)));
+        assert!(matches!(list.pop(), Some(4)));
 
         // Check exhaustion
-        assert_eq!(list.pop(), Some(1));
-        assert_eq!(list.pop(), None);
+        assert!(matches!(list.pop(), Some(1)));
+        assert!(matches!(list.pop(), None));
     }
 
-    #[test]
-    fn peek() {
-        let mut list = List::new();
-        assert_eq!(list.peek(), None);
-        assert_eq!(list.peek_mut(), None);
-        list.push(1); list.push(2); list.push(3);
-
-        assert_eq!(list.peek(), Some(&3));
-        assert_eq!(list.peek_mut(), Some(&mut 3));
-
-        list.peek_mut().map(|value| {
-            *value = 42
-        });
-
-        assert_eq!(list.peek(), Some(&42));
-        assert_eq!(list.pop(), Some(42));
-    }
-
-    #[test]
-    fn into_iter() {
-        let mut list = List::new();
-        list.push(1); list.push(2); list.push(3);
-
-        let mut iter = list.into_iter();
-        assert_eq!(iter.next(), Some(3));
-        assert_eq!(iter.next(), Some(2));
-        assert_eq!(iter.next(), Some(1));
-        assert_eq!(iter.next(), None);
-    }
-
-    #[test]
-    fn iter() {
-        let mut list = List::new();
-        list.push(1); list.push(2); list.push(3);
-
-        let mut iter = list.iter();
-        assert_eq!(iter.next(), Some(&3));
-        assert_eq!(iter.next(), Some(&2));
-        assert_eq!(iter.next(), Some(&1));
-    }
-
-    #[test]
-    fn iter_mut() {
-        let mut list = List::new();
-        list.push(1); list.push(2); list.push(3);
-
-        let mut iter = list.iter_mut();
-        assert_eq!(iter.next(), Some(&mut 3));
-        assert_eq!(iter.next(), Some(&mut 2));
-        assert_eq!(iter.next(), Some(&mut 1));
-    }
 }
 
-}
+fn main() {}
