@@ -35,8 +35,8 @@ use prusti_rustc_interface::{
     middle::{mir, span_bug, ty},
 };
 use rustc_hash::FxHashMap;
-use std::{convert::TryInto, mem};
-use vir_crate::polymorphic::{self as vir};
+use std::{collections::HashSet, convert::TryInto, mem};
+use vir_crate::polymorphic::{self as vir, ExprWalker};
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -49,6 +49,7 @@ pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
     def_id: DefId, // TODO(tymap): is this actually caller_def_id?
+    arg_var_names: HashSet<String>,
 }
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
@@ -62,13 +63,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
     ) -> Self {
+        let mir_encoder = MirEncoder::new(encoder, mir, def_id);
+        let arg_var_names = mir
+            .args_iter()
+            .map(|arg| mir_encoder.encode_local_var_name(arg))
+            .collect();
         PureFunctionBackwardInterpreter {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new(encoder, mir, def_id),
+            mir_encoder,
             pure_encoding_context,
             caller_def_id,
             def_id,
+            arg_var_names,
         }
     }
 
@@ -430,6 +437,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         match full_func_proc_name {
                             "prusti_contracts::old" => {
                                 assert_eq!(args.len(), 1);
+
+                                struct InvalidInOldFinder<'a> {
+                                    has_invalid: bool,
+                                    local_vars: &'a HashSet<String>,
+                                }
+
+                                impl<'a> vir::ExprWalker for InvalidInOldFinder<'a> {
+                                    fn walk_local_var(&mut self, expr: &vir::LocalVar) {
+                                        if !self.local_vars.contains(&expr.name) {
+                                            self.has_invalid = true;
+                                        }
+                                    }
+                                }
+
+                                let mut invalid_finder = InvalidInOldFinder {
+                                    has_invalid: false,
+                                    local_vars: &self.arg_var_names,
+                                };
+
+                                invalid_finder.walk(&encoded_args[0]);
+
+                                if invalid_finder.has_invalid {
+                                    return Err(SpannedEncodingError::unsupported(
+                                        "local variables are not supported in old() expressions",
+                                        span,
+                                    ));
+                                }
 
                                 // Return an error for unsupported old(..) types
 
