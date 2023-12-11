@@ -47,6 +47,7 @@ fn is_none<T>(s: &Option<T>) -> bool {
 
 #[trusted]
 #[ensures(
+    is_none(option) &&
     *old(option) === result
 )]
 fn take<T>(option: &mut Option<T>) -> Option<T> {
@@ -80,21 +81,6 @@ impl<T> List<T> {
         self.head = Some(new_node);
     }
 
-    #[requires(self.len() > 0)]
-    #[ensures(self.len() == old(self.len()) - 1)]
-    #[ensures(forall(|i: usize| 0 <= i && i < self.len() ==>
-        self.index(i) === old(self.index(i+1))
-    ))]
-    #[ensures(result === *old(self.index(0)))]
-    pub fn pop_unchecked(&mut self) -> T {
-        if let Some(node) = take(&mut self.head) {
-            self.head = node.next;
-            node.elem
-        } else {
-            unreachable!();
-        }
-    }
-
     #[ensures(if old(self.len()) == 0 {
         self.len() == 0 &&
         is_none(&result)
@@ -109,8 +95,9 @@ impl<T> List<T> {
         }
     })]
     pub fn pop(&mut self) -> Option<T> {
-        if is_some(&self.head) {
-            Some(self.pop_unchecked())
+        if let Some(node) = take(&mut self.head) {
+            self.head = node.next;
+            Some(node.elem)
         } else {
             None
         }
