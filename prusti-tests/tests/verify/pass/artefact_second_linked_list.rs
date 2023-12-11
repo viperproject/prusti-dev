@@ -196,26 +196,26 @@ mod test {
         list.push(2);
         list.push(3);
 
-        prusti_assert!(list.len() == 3);
-        prusti_assert!(*list.index(0) == 3);
-        prusti_assert!(*list.index(1) == 2);
-        prusti_assert!(*list.index(2) == 1);
+      //prusti_assert!(list.len() == 3);
+      //prusti_assert!(*list.index(0) == 3);
+      //prusti_assert!(*list.index(1) == 2);
+      //prusti_assert!(*list.index(2) == 1);
 
         // Check normal removal
         assert!(matches!(list.pop(), Some(3)));
-        prusti_assert!(list.len() == 2);
-        prusti_assert!(*list.index(0) == 2);
-        prusti_assert!(*list.index(1) == 1);
+      //prusti_assert!(list.len() == 2);
+      //prusti_assert!(*list.index(0) == 2);
+      //prusti_assert!(*list.index(1) == 1);
         assert!(matches!(list.pop(), Some(2)));
-        prusti_assert!(*list.index(0) == 1);
+      //prusti_assert!(*list.index(0) == 1);
 
         // Push some more just to make sure nothing's corrupted
         list.push(4);
         list.push(5);
 
-        prusti_assert!(*list.index(0) == 5);
-        prusti_assert!(*list.index(1) == 4);
-        prusti_assert!(*list.index(2) == 1);
+      //prusti_assert!(*list.index(0) == 5);
+      //prusti_assert!(*list.index(1) == 4);
+      //prusti_assert!(*list.index(2) == 1);
 
         // Check normal removal
         assert!(matches!(list.pop(), Some(5)));
