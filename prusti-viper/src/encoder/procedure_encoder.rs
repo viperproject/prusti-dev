@@ -246,9 +246,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 if self.encoder.get_prusti_assumption(cl_def_id).is_none() {
                     return Ok(false);
                 }
-                let assume_expr =
-                    self.encoder
-                        .encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+                let assume_expr = self.encoder.encode_invariant(
+                    self.mir,
+                    bb,
+                    self.proc_def_id,
+                    cl_substs,
+                    false,
+                )?;
 
                 let assume_stmt = vir::Stmt::Inhale(vir::Inhale { expr: assume_expr });
 
@@ -281,9 +285,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .encoder
                     .get_definition_span(assertion.assertion.to_def_id());
 
-                let assert_expr =
-                    self.encoder
-                        .encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+                let assert_expr = self.encoder.encode_invariant(
+                    self.mir,
+                    bb,
+                    self.proc_def_id,
+                    cl_substs,
+                    false,
+                )?;
 
                 let assert_stmt = vir::Stmt::Assert(vir::Assert {
                     expr: assert_expr,
@@ -319,9 +327,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .encoder
                     .get_definition_span(refutation.refutation.to_def_id());
 
-                let refute_expr =
-                    self.encoder
-                        .encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
+                let refute_expr = self.encoder.encode_invariant(
+                    self.mir,
+                    bb,
+                    self.proc_def_id,
+                    cl_substs,
+                    false,
+                )?;
 
                 let refute_stmt = vir::Stmt::Refute(vir::Refute {
                     expr: refute_expr,
@@ -5566,6 +5578,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             bbi,
                             self.proc_def_id,
                             cl_substs,
+                            true,
                         )?);
                         let invariant = match spec {
                             prusti_interface::specs::typed::LoopSpecification::Invariant(inv) => {
