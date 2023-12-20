@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    errors::{SpannedEncodingResult, WithSpan},
+    errors::{SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         places::PlacesEncoderInterface,
         pure::{
@@ -28,13 +28,14 @@ use crate::encoder::{
     snapshot::interface::SnapshotEncoderInterface,
 };
 use prusti_rustc_interface::{
+    data_structures::fx::FxHashSet,
     hir::def_id::DefId,
     middle::{mir, ty::GenericArgsRef},
     span::Span,
 };
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
-    polymorphic as vir_poly,
+    polymorphic::{self as vir_poly, ExprWalker},
 };
 
 pub(crate) trait SpecificationEncoderInterface<'tcx> {
@@ -93,6 +94,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
         substs: GenericArgsRef<'tcx>,
+        is_loop_invariant: bool, // Because this is also used for assert/assume/refute as well
     ) -> SpannedEncodingResult<vir_poly::Expr>;
 }
 
@@ -303,6 +305,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
         substs: GenericArgsRef<'tcx>,
+        is_loop_invariant: bool, // because this function is also used for encoding assert/assume
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         // identify closure aggregate assign (the invariant body)
         let closure_assigns = mir.basic_blocks[invariant_block]
@@ -368,6 +371,67 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
 
         // TODO: deal with old(...) ?
         let final_invariant = invariant.unwrap().into_expr().unwrap();
+
+        if !is_loop_invariant {
+            ensure_no_old_local_vars(
+                &final_invariant,
+                mir.args_iter()
+                    .map(|local| self.encode_local_name(mir, local).unwrap())
+                    .collect(),
+                span,
+            )?;
+        }
+
         Ok(final_invariant)
     }
+}
+
+fn ensure_no_old_local_vars(
+    expr: &vir_poly::Expr,
+    args: FxHashSet<String>,
+    span: Span,
+) -> Result<(), SpannedEncodingError> {
+    struct InvalidInOldFinder<'a> {
+        invalid: &'a mut bool,
+        args: &'a FxHashSet<String>,
+    }
+
+    impl<'a> vir_poly::ExprWalker for InvalidInOldFinder<'a> {
+        fn walk_local(&mut self, expr: &vir_poly::Local) {
+            if !self.args.contains(&expr.variable.name) {
+                *self.invalid = true;
+            }
+        }
+    }
+
+    struct OldWalker<'a> {
+        invalid: bool,
+        args: &'a FxHashSet<String>,
+    }
+
+    impl<'a> vir_poly::ExprWalker for OldWalker<'a> {
+        fn walk_labelled_old(&mut self, expr: &vir_poly::LabelledOld) {
+            let mut invalid_finder = InvalidInOldFinder {
+                invalid: &mut self.invalid,
+                args: self.args,
+            };
+            if expr.label == PRECONDITION_LABEL {
+                invalid_finder.walk(&expr.base);
+            }
+        }
+    }
+
+    let mut walker = OldWalker {
+        invalid: false,
+        args: &args,
+    };
+
+    walker.walk(expr);
+    if walker.invalid {
+        return Err(SpannedEncodingError::incorrect(
+            "old expressions should not contain local variables",
+            span,
+        ));
+    }
+    Ok(())
 }
