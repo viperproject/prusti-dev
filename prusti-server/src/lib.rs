@@ -9,7 +9,6 @@
 mod client;
 mod process_verification;
 mod server;
-mod program_submitter;
 mod verification_request;
 mod backend;
 
