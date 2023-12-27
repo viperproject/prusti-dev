@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{Backend, VerificationRequest, ViperBackendConfig};
+use crate::program_submitter::ProgramSubmitter;
 use log::info;
 use once_cell::sync::Lazy;
 use prusti_common::{
@@ -115,6 +116,15 @@ pub fn process_verification_request<'v, 't: 'v>(
     };
 
     stopwatch.start_next("backend verification");
+
+    let backend_name: String = match request.backend_config.backend {
+        VerificationBackend::Carbon => String::from("Carbon"),
+        VerificationBackend::Silicon => String::from("Silicion")
+    };
+
+    let mut submitter: ProgramSubmitter = ProgramSubmitter::new(true, String::from("undefined"),
+         ast_utils.to_string(program), String::from("Prusti"), backend_name, vec![]);
+
     let mut result = backend.verify(&request.program);
 
     // Don't cache Java exceptions, which might be due to misconfigured paths.
@@ -126,6 +136,9 @@ pub fn process_verification_request<'v, 't: 'v>(
         );
         cache.insert(hash, result.clone());
     }
+
+    submitter.set_success(!result);
+    submitter.submit();
 
     normalization_info.denormalize_result(&mut result);
     result
