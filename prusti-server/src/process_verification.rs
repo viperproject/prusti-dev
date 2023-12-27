@@ -122,7 +122,7 @@ pub fn process_verification_request<'v, 't: 'v>(
         VerificationBackend::Silicon => String::from("Silicion")
     };
 
-    let mut submitter: ProgramSubmitter = ProgramSubmitter::new(true, String::from("undefined"),
+    let mut submitter: ProgramSubmitter = ProgramSubmitter::new(config::submit_for_evaluation(), String::from("undefined"),
          ast_utils.to_string(program), String::from("Prusti"), backend_name, vec![]);
 
     let mut result = backend.verify(&request.program);

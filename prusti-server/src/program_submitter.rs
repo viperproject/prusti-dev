@@ -55,10 +55,11 @@ impl ProgramSubmitter {
                 "runtime": self.runtime(),
             });
 
-            match reqwest::blocking::Client::new()
+            match reqwest::Client::new()
                 .post(&format!("{}/submit-program", API_HOST))
                 .json(&submission)
                 .send()
+                .await?;
             {
                 Ok(_) => {}
                 Err(_) => eprintln!("Program couldn't be submitted"),
