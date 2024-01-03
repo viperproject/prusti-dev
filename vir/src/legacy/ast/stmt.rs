@@ -350,14 +350,18 @@ impl Stmt {
     /// Visit each position.
     /// Note: statements like `Stmt::If` can contain multiple positions.
     pub fn visit_positions<F: FnMut(&Position)>(&self, mut visitor: F) {
-        // Recursively visiting the statements of the nested Stmt::If statements is difficult; the
-        // recursive type constraints are hard to satisfy. So, here is an iterative implementation.
+        // Recursively visiting the statements of the nested statements is difficult; the recursive
+        // type constraints are hard to satisfy. So, here is an iterative implementation.
         let mut queue = vec![self];
         while let Some(stmt) = queue.pop() {
             stmt.pos().into_iter().for_each(&mut visitor);
-            if let Stmt::If(_, then_stmts, else_stmts) = stmt {
-                queue.extend(then_stmts);
-                queue.extend(else_stmts);
+            match stmt {
+                Stmt::If(_, then_stmts, else_stmts) => {
+                    queue.extend(then_stmts);
+                    queue.extend(else_stmts);
+                }
+                Stmt::PackageMagicWand(_, body, _, _, _) => queue.extend(body),
+                _ => {}
             }
         }
     }
@@ -365,14 +369,18 @@ impl Stmt {
     /// Mutably visit each position.
     /// Note: statements like `Stmt::If` can contain multiple positions.
     pub fn visit_positions_mut<F: FnMut(&mut Position)>(&mut self, mut visitor: F) {
-        // Recursively visiting the statements of the nested Stmt::If statements is difficult; the
-        // recursive type constraints are hard to satisfy. So, here is an iterative implementation.
+        // Recursively visiting the statements of nested statements is difficult; the recursive
+        // type constraints are hard to satisfy. So, here is an iterative implementation.
         let mut queue = vec![self];
         while let Some(stmt) = queue.pop() {
             stmt.pos_mut().into_iter().for_each(&mut visitor);
-            if let Stmt::If(_, then_stmts, else_stmts) = stmt {
-                queue.extend(then_stmts);
-                queue.extend(else_stmts);
+            match stmt {
+                Stmt::If(_, then_stmts, else_stmts) => {
+                    queue.extend(then_stmts);
+                    queue.extend(else_stmts);
+                }
+                Stmt::PackageMagicWand(_, body, _, _, _) => queue.extend(body),
+                _ => {}
             }
         }
     }
