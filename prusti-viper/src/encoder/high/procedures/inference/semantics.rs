@@ -1,8 +1,8 @@
-use std::collections::BTreeMap;
 use super::permission::{Blocked, Permission};
 use crate::encoder::{
     errors::SpannedEncodingResult, high::to_typed::types::HighToTypedTypeEncoderInterface, Encoder,
 };
+use std::collections::BTreeMap;
 use vir_crate::{
     common::{builtin_constants::ADDRESS_FIELD_NAME, position::Positioned},
     typed::{self as vir_typed, operations::ty::Typed},
