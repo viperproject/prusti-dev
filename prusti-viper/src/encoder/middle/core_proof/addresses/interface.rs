@@ -484,14 +484,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         checked_address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let start_index = self.create_domain_func_app(
-            ADDRESS_DOMAIN_NAME,
-            "get_index$",
-            vec![base_address.clone(), element_size.clone()],
-            vir_low::Type::Int,
-            position,
-        )?;
-        let end_index = vir_low::Expression::add(start_index.clone(), range_length);
+        // let start_index = self.create_domain_func_app(
+        //     ADDRESS_DOMAIN_NAME,
+        //     "get_index$",
+        //     vec![base_address.clone(), element_size.clone()],
+        //     vir_low::Type::Int,
+        //     position,
+        // )?;
+        // let end_index = vir_low::Expression::add(start_index.clone(), range_length);
+        let start_index = 0.into();
+        let end_index = range_length;
         self.address_range_contains(
             base_address,
             start_index,
