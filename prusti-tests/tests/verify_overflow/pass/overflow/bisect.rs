@@ -34,7 +34,6 @@ pub fn bisect<T: Function>(f: &T, target: i32) -> Option<usize> {
     let mut low = 0;
     let mut high = f.domain_size();
     while low < high {
-        body_invariant!(f.invariant());
         body_invariant!(high <= f.domain_size());
         body_invariant!(forall(|x: usize|
             (x < low || high <= x) && x < f.domain_size() ==> f.eval(x) != target
