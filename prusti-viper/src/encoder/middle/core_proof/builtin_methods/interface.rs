@@ -2527,6 +2527,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 BuiltinMethodKind::JoinMemoryBlock,
             )?;
             builder.create_parameters()?;
+            builder.add_address_valid_precondition()?;
             builder.add_memory_block_range_precondition()?;
             builder.add_whole_memory_block_postcondition()?;
             builder.add_byte_values_preserved_postcondition()?;
