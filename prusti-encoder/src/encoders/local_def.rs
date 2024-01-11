@@ -58,7 +58,7 @@ impl TaskEncoder for MirLocalDefEnc {
         let (def_id, substs, caller_def_id) = *task_key;
         deps.emit_output_ref::<Self>(*task_key, ());
         fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: PredicateEncOutputRef<'vir>) -> LocalDef<'vir> {
-            let local = vcx.mk_local(name);
+            let local = vcx.mk_local(name, &vir::TypeData::Ref);
             let local_ex = vcx.mk_local_ex_local(local);
             let impure_snap = ty.ref_to_snap.apply(vcx, [local_ex]);
             let impure_pred = vcx.mk_predicate_app_expr(ty.ref_to_pred.apply(vcx, [local_ex], None));

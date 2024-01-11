@@ -379,7 +379,14 @@ impl<'vir> Debug for TypeData<'vir> {
             }
             Self::Ref => write!(f, "Ref"),
             Self::Perm => write!(f, "Perm"),
+            Self::Unsupported(u) => u.fmt(f)
         }
+    }
+}
+
+impl<'vir> Debug for UnsupportedType<'vir> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "UnsupportedType({})", self.name)
     }
 }
 
