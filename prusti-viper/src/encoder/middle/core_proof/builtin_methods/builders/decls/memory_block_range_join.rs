@@ -78,6 +78,14 @@ impl<'l, 'p, 'v, 'tcx> MemoryBlockRangeJoinMethodBuilder<'l, 'p, 'v, 'tcx> {
         self.add_postcondition(memory_block);
         Ok(())
     }
+    
+    pub(in super::super::super::super) fn add_address_valid_precondition(
+        &mut self,
+    ) -> SpannedEncodingResult<()> {
+        let validity = self.inner.inner.lowerer.address_value_is_valid(self.inner.address.clone().into(), self.inner.inner.ty, self.inner.inner.position    )?;
+        self.add_precondition(validity);
+        Ok(())
+    }
 
     pub(in super::super::super::super) fn add_memory_block_range_precondition(
         &mut self,

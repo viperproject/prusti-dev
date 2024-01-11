@@ -9,7 +9,7 @@ use crate::encoder::{
         predicates::{
             owned::builders::common::function_decl::FunctionDeclBuilder, PredicatesOwnedInterface,
         },
-        snapshots::{IntoPureSnapshot, IntoSnapshot},
+        snapshots::{IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface},
         type_layouts::TypeLayoutsInterface,
     },
 };
@@ -96,6 +96,11 @@ impl<'l, 'p, 'v, 'tcx> FracRefRangeSnapFunctionBuilder<'l, 'p, 'v, 'tcx> {
 
     pub(in super::super::super) fn create_parameters(&mut self) -> SpannedEncodingResult<()> {
         self.inner.parameters.push(self.address.clone());
+        let address_valid = self.inner.lowerer.encode_snapshot_valid_call_for_type(
+            self.address.clone().into(),
+            self.inner.ty,
+        )?;
+        self.pres.push(address_valid);
         self.inner.parameters.push(self.start_index.clone());
         self.inner.parameters.push(self.end_index.clone());
         self.inner.parameters.push(self.reference_lifetime.clone());
