@@ -210,36 +210,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 )?;
             }
             vir_mid::TypeDecl::Pointer(decl) => {
-                let position = vir_low::Position::default();
                 self.ensure_type_definition(&decl.target_type)?;
                 let address_type = self.address_type()?;
-                let address = vir_low::VariableDecl::new("address", address_type);
-                let mut parameters = vec![address.clone()];
+                let mut parameters = vec![vir_low::VariableDecl::new("address", address_type)];
                 if decl.target_type.is_slice() {
                     let len_type = self.size_type()?;
                     parameters.push(vir_low::VariableDecl::new("len", len_type));
                 }
                 self.register_struct_constructor(&domain_name, parameters.clone())?;
                 // self.register_constant_constructor(&domain_name, address_type.clone())?;
-                let vir_mid::Type::Pointer(pointer_type) = ty else {
-                    unreachable!()
-                };
-                // let size = self.encode_type_size_expression2(&pointer_type.target_type, type_decl)?;
-                // let size_type_mid = self.size_type_mid()?;
-                // let size_int =
-                //     self.obtain_constant_value(&size_type_mid, size.clone(), position)?;
-                // let is_address_zst = self.address_is_zst(address.clone().into(), position)?;
-                // let invariant = expr! { [is_address_zst] == ([size_int] == [0.into()]) };
-                let invariant = self.address_value_is_valid(address.clone().into(), &pointer_type.target_type, position)?;
-                // self.encode_validity_axioms_primitive(&domain_name, address_type, invariant)?;
-                let parameters_with_validity = parameters.len();
-                // TODO: Add an uninterepreted function to mark the unknown part.
-                self.encode_validity_axioms_struct_with_invariant(
-                    &domain_name,
-                    parameters,
-                    parameters_with_validity,
-                    invariant,
-                )?;
+                // self.encode_validity_axioms_primitive(&domain_name, address_type, true.into())?;
+                self.encode_validity_axioms_struct(&domain_name, parameters)?;
             }
             vir_mid::TypeDecl::Reference(decl) => {
                 self.ensure_type_definition(&decl.target_type)?;

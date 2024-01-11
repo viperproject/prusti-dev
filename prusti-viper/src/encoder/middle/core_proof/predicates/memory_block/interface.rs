@@ -339,12 +339,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         let element_allocation =
             self.address_allocation(element_address.clone().into(), position)?;
         let address_allocation = self.address_allocation(address.clone(), position)?;
-        let element_is_zst = self.address_is_zst(element_address.clone().into(), position)?;
-        let address_is_zst = self.address_is_zst(address.clone(), position)?;
         let guard = expr! {
             (([0.into()] <= [index]) &&
             ([element_allocation] == [address_allocation])) &&
-            ([element_is_zst] == [address_is_zst]) &&
             [guard.substitute_variables(&replacements)]
         };
         let predicate =
