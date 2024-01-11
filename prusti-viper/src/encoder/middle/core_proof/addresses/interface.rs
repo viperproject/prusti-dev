@@ -8,7 +8,7 @@ use crate::encoder::{
         pointers::PointersInterface,
         snapshots::{SnapshotValuesInterface, SnapshotVariablesInterface},
         type_layouts::TypeLayoutsInterface,
-    }, high::types::HighTypeEncoderInterface,
+    },
 };
 use vir_crate::{
     common::{
@@ -49,25 +49,9 @@ pub(in super::super) trait AddressesInterface {
         address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
-    fn byte_index_into_allocation(
-        &mut self,
-        address: vir_low::Expression,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn address_allocation(
         &mut self,
         address: vir_low::Expression,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression>;
-    fn address_is_zst(
-        &mut self,
-        address: vir_low::Expression,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression>;
-    fn address_value_is_valid(
-        &mut self,
-        address: vir_low::Expression,
-        ty: &vir_mid::Type,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
     fn address_range_contains(
@@ -192,7 +176,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                     let get_byte_index = self.create_domain_func_app(
                         ADDRESS_DOMAIN_NAME,
                         "get_byte_index$",
-                        vec![address_constructor.clone()],
+                        vec![address_constructor.clone(), is_zst.clone().into()],
                         vir_low::Type::Int,
                         position,
                     )?;
@@ -232,7 +216,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         vir_low::Type::Bool,
                         position,
                     )?;
-                    let get_byte_index = self.create_domain_func_app(
+                    let get_index = self.create_domain_func_app(
                         ADDRESS_DOMAIN_NAME,
                         "get_byte_index$",
                         vec![address.clone().into()],
@@ -245,7 +229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         vec![
                             get_allocation.clone(),
                             get_is_zst.clone().into(),
-                            get_byte_index.clone().into(),
+                            get_index.clone().into(),
                         ],
                         address_type.clone(),
                         position,
@@ -295,7 +279,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         base_address.clone().into(),
                         start_index.clone().into(),
                         end_index.clone().into(),
-                        element_size.clone().into(),
                         checked_address.clone().into(),
                     ],
                     vir_low::Type::Bool,
@@ -332,14 +315,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 let get_byte_index_base_address = self.create_domain_func_app(
                     ADDRESS_DOMAIN_NAME,
                     "get_byte_index$",
-                    vec![base_address.clone().into()],
+                    vec![base_address.clone().into(), element_size.clone().into()],
                     vir_low::Type::Int,
                     position,
                 )?;
                 let get_byte_index_checked_address = self.create_domain_func_app(
                     ADDRESS_DOMAIN_NAME,
                     "get_byte_index$",
-                    vec![checked_address.clone().into()],
+                    vec![checked_address.clone().into(), element_size.clone().into()],
                     vir_low::Type::Int,
                     position,
                 )?;
@@ -426,7 +409,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 let get_byte_index = self.create_domain_func_app(
                     ADDRESS_DOMAIN_NAME,
                     "get_byte_index$",
-                    vec![address.clone().into()],
+                    vec![address.clone().into(), element_size.clone().into()],
                     vir_low::Type::Int,
                     position,
                 )?;
@@ -464,67 +447,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                     definition_non_zst,
                 );
                 let body = vir_low::Expression::forall(
-                    vec![address.clone(), offset, element_size.clone()],
+                    vec![address, offset, element_size.clone()],
                     vec![vir_low::Trigger::new(vec![offset_address.clone()])],
                     expr! { ([get_is_zst] == [element_size_is_zero]) ==> ([offset_address] == [definition]) },
                 );
                 let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$definition", body);
-                self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
-            }
-            {
-                // Define `get_index` function, which is used for obtaining the sized index into an allocation.
-                // ```
-                // forall address, element_size ::
-                // {get_index(address, element_size)}
-                // get_is_zst(address) == (element_size == 0) ==>
-                // get_index(address, element_size) == (
-                //      element_size == 0 ?
-                //      get_byte_index(address)
-                //      :
-                //      get_byte_index(address) / element_size
-                // )
-                // ```
-                let get_index = self.create_domain_func_app(
-                    ADDRESS_DOMAIN_NAME,
-                    "get_index$",
-                    vec![address.clone().into(), element_size.clone().into()],
-                    vir_low::Type::Int,
-                    position,
-                )?;
-                let get_is_zst = self.create_domain_func_app(
-                    ADDRESS_DOMAIN_NAME,
-                    "get_is_zst$",
-                    vec![address.clone().into()],
-                    vir_low::Type::Bool,
-                    position,
-                )?;
-                let get_byte_index = self.create_domain_func_app(
-                    ADDRESS_DOMAIN_NAME,
-                    "get_byte_index$",
-                    vec![address.clone().into()],
-                    vir_low::Type::Int,
-                    position,
-                )?;
-                let element_size_int = self.obtain_constant_value(
-                    &size_type_mid,
-                    element_size.clone().into(),
-                    position,
-                )?;
-                let element_size_is_zero = expr! { [element_size_int.clone()] == [0.into()] };
-                let definition_zst = get_index.clone();
-                let definition_non_zst =
-                    vir_low::Expression::multiply(get_index.clone(), element_size_int);
-                let definition = vir_low::Expression::conditional_no_pos(
-                    element_size_is_zero.clone(),
-                    definition_zst,
-                    definition_non_zst,
-                );
-                let body = vir_low::Expression::forall(
-                    vec![address, element_size.clone()],
-                    vec![vir_low::Trigger::new(vec![get_index.clone()])],
-                    expr! { ([get_is_zst] == [element_size_is_zero]) ==> ([get_byte_index] == [definition]) },
-                );
-                let axiom = vir_low::DomainAxiomDecl::new(None, "get_index$definition", body);
                 self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
             }
         }
@@ -588,20 +515,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         let offset = vir_low::Expression::subtract(index1, index2);
         Ok(offset)
     }
-    fn byte_index_into_allocation(
-        &mut self,
-        address: vir_low::Expression,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.encode_address_axioms()?;
-        self.create_domain_func_app(
-            ADDRESS_DOMAIN_NAME,
-            "get_byte_index$",
-            vec![address],
-            vir_low::Type::Int,
-            position,
-        )
-    }
     fn index_into_allocation(
         &mut self,
         size: vir_low::Expression,
@@ -611,7 +524,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_address_axioms()?;
         self.create_domain_func_app(
             ADDRESS_DOMAIN_NAME,
-            "get_index$",
+            "get_byte_index$",
             vec![address, size],
             vir_low::Type::Int,
             position,
@@ -631,36 +544,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
             allocation_type,
             position,
         )
-    }
-    fn address_is_zst(
-        &mut self,
-        address: vir_low::Expression,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.encode_address_axioms()?;
-        self.create_domain_func_app(
-            ADDRESS_DOMAIN_NAME,
-            "get_is_zst$",
-            vec![address],
-            vir_low::Type::Bool,
-            position,
-        )
-    }
-    fn address_value_is_valid(
-        &mut self,
-        address: vir_low::Expression,
-        ty: &vir_mid::Type,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
-        use vir_low::macros::*;
-        let type_decl = self.encoder.get_type_decl_mid(ty)?;
-        let size = self.encode_type_size_expression2(&ty, &type_decl)?;
-        let size_type_mid = self.size_type_mid()?;
-        let size_int =
-            self.obtain_constant_value(&size_type_mid, size.clone(), position)?;
-        let is_address_zst = self.address_is_zst(address.clone().into(), position)?;
-        let is_valid = expr! { [is_address_zst] == ([size_int] == [0.into()]) };
-        Ok(is_valid)
     }
     fn address_range_contains(
         &mut self,
