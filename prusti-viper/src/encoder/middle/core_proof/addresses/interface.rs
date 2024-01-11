@@ -6,7 +6,7 @@ use crate::encoder::{
     middle::core_proof::{
         lowerer::{DomainsLowererInterface, Lowerer},
         pointers::PointersInterface,
-        snapshots::SnapshotVariablesInterface,
+        snapshots::{SnapshotValuesInterface, SnapshotVariablesInterface},
         type_layouts::TypeLayoutsInterface,
     },
 };
@@ -124,13 +124,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         if !self.address_state.are_address_axioms_encoded {
             self.address_state.are_address_axioms_encoded = true;
             use vir_low::macros::*;
+            let size_type_mid = self.size_type_mid()?;
             let size_type = self.size_type()?;
             let address_type = self.address_type()?;
             let allocation_type = self.allocation_type()?;
             var_decls! {
                 allocation: Allocation,
                 address: Address,
-                index: Int,
+                byte_index: Int,
+                is_zst: Bool,
                 element_size: {size_type.clone()}
             }
             let position = vir_low::Position::default();
@@ -140,18 +142,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 // important for the performance.
                 {
                     // ```
-                    // forall allocation, index, element_size ::
-                    //   {address_constructor(allocation, index, element_size)}
-                    //   get_allocation(address_constructor(allocation, index, element_size)) == allocation &&
-                    //   get_index(address_constructor(allocation, index, element_size), element_size) == index
+                    // forall allocation, is_zst, byte_index ::
+                    //   {address_constructor(allocation, is_zst, byte_index)}
+                    //   get_allocation(address_constructor(allocation, is_zst, byte_index)) == allocation &&
+                    //   get_is_zst(address_constructor(allocation, is_zst, byte_index)) == is_zst &&
+                    //   get_byte_index(address_constructor(allocation, is_zst, byte_index)) == byte_index
                     // ```
                     let address_constructor = self.create_domain_func_app(
                         ADDRESS_DOMAIN_NAME,
                         "address_constructor$",
                         vec![
                             allocation.clone().into(),
-                            index.clone().into(),
-                            element_size.clone().into(),
+                            is_zst.clone().into(),
+                            byte_index.clone().into(),
                         ],
                         address_type.clone(),
                         position,
@@ -163,17 +166,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         allocation_type.clone(),
                         position,
                     )?;
-                    let get_index = self.create_domain_func_app(
+                    let get_is_zst = self.create_domain_func_app(
                         ADDRESS_DOMAIN_NAME,
-                        "get_index$",
-                        vec![address_constructor.clone(), element_size.clone().into()],
+                        "get_is_zst$",
+                        vec![address_constructor.clone()],
+                        vir_low::Type::Bool,
+                        position,
+                    )?;
+                    let get_byte_index = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "get_byte_index$",
+                        vec![address_constructor.clone(), is_zst.clone().into()],
                         vir_low::Type::Int,
                         position,
                     )?;
                     let body = vir_low::Expression::forall(
-                        vec![allocation.clone(), index.clone(), element_size.clone()],
+                        vec![allocation.clone(), is_zst.clone(), byte_index.clone()],
                         vec![vir_low::Trigger::new(vec![address_constructor])],
-                        expr! { ([get_allocation] == allocation) && ([get_index] == index) },
+                        expr! {
+                            (([get_allocation] == allocation) &&
+                            ([get_is_zst] == is_zst)) &&
+                            ([get_byte_index] == byte_index)
+                        },
                     );
                     let axiom = vir_low::DomainAxiomDecl::new(
                         None,
@@ -184,9 +198,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 }
                 {
                     // ```
-                    // forall address, element_size ::
-                    //   {address_constructor(get_allocation(address), get_index(address, element_size), element_size)}
-                    //   address_constructor(get_allocation(address), get_index(address, element_size), element_size) == address
+                    // forall address ::
+                    //   {address_constructor(get_allocation(address), get_is_zst(address), get_byte_index(address))}
+                    //   address_constructor(get_allocation(address), get_is_zst(address), get_byte_index(address)) == address
                     // ```
                     let get_allocation = self.create_domain_func_app(
                         ADDRESS_DOMAIN_NAME,
@@ -195,10 +209,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         allocation_type.clone(),
                         position,
                     )?;
+                    let get_is_zst = self.create_domain_func_app(
+                        ADDRESS_DOMAIN_NAME,
+                        "get_is_zst$",
+                        vec![address.clone().into()],
+                        vir_low::Type::Bool,
+                        position,
+                    )?;
                     let get_index = self.create_domain_func_app(
                         ADDRESS_DOMAIN_NAME,
-                        "get_index$",
-                        vec![address.clone().into(), element_size.clone().into()],
+                        "get_byte_index$",
+                        vec![address.clone().into()],
                         vir_low::Type::Int,
                         position,
                     )?;
@@ -207,16 +228,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         "address_constructor$",
                         vec![
                             get_allocation.clone(),
-                            index.clone().into(),
-                            element_size.clone().into(),
+                            get_is_zst.clone().into(),
+                            get_index.clone().into(),
                         ],
                         address_type.clone(),
                         position,
                     )?;
                     let body = vir_low::Expression::forall(
-                        vec![address.clone(), index.clone(), element_size.clone()],
+                        vec![address.clone()],
                         vec![vir_low::Trigger::new(vec![address_constructor.clone()])],
-                        expr! { ([get_index] == index) ==> ([address_constructor] == address) },
+                        expr! { ([address_constructor] == address) },
                     );
                     let axiom = vir_low::DomainAxiomDecl::new(
                         None,
@@ -229,13 +250,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             {
                 // Define range_contains function, which is used for defining
                 // quantified permissions.
+                //
                 // ```
                 // forall base_address, start_index, end_index, element_size, checked_address ::
                 // {address_range_contains(base_address, start_index, end_index, element_size, checked_address)}
                 //  address_range_contains(base_address, start_index, end_index, element_size, checked_address) ==
                 // (get_allocation(base_address) == get_allocation(checked_address) &&
-                // get_index(base_address, element_size) + start_index <= get_index(checked_address, element_size)) &&
-                // get_index(checked_address, element_size)) < get_index(base_address, element_size) + end_index
+                // get_is_zst(base_address) == get_is_zst(checked_address) &&
+                // get_is_zst(base_address) == (element_size == 0) &&
+                // (element_size == 0 ?
+                //      get_byte_index(base_address) + start_index <= get_byte_index(checked_address)) &&
+                //      get_byte_index(checked_address)) < get_byte_index(base_address) + end_index
+                //      :
+                //      get_byte_index(base_address) + element_size * start_index <= get_byte_index(checked_address)) &&
+                //      get_byte_index(checked_address)) < get_byte_index(base_address) + end_index * element_size
                 // )
                 // ```
                 var_decls! {
@@ -251,7 +279,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         base_address.clone().into(),
                         start_index.clone().into(),
                         end_index.clone().into(),
-                        element_size.clone().into(),
                         checked_address.clone().into(),
                     ],
                     vir_low::Type::Bool,
@@ -271,24 +298,56 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                     allocation_type.clone(),
                     position,
                 )?;
-                let get_index_base_address = self.create_domain_func_app(
+                let get_is_zst_base_address = self.create_domain_func_app(
                     ADDRESS_DOMAIN_NAME,
-                    "get_index$",
+                    "get_is_zst$",
+                    vec![base_address.clone().into()],
+                    vir_low::Type::Bool,
+                    position,
+                )?;
+                let get_is_zst_checked_address = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_is_zst$",
+                    vec![checked_address.clone().into()],
+                    vir_low::Type::Bool,
+                    position,
+                )?;
+                let get_byte_index_base_address = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_byte_index$",
                     vec![base_address.clone().into(), element_size.clone().into()],
                     vir_low::Type::Int,
                     position,
                 )?;
-                let get_index_checked_address = self.create_domain_func_app(
+                let get_byte_index_checked_address = self.create_domain_func_app(
                     ADDRESS_DOMAIN_NAME,
-                    "get_index$",
+                    "get_byte_index$",
                     vec![checked_address.clone().into(), element_size.clone().into()],
                     vir_low::Type::Int,
                     position,
                 )?;
+                let element_size_int = self.obtain_constant_value(
+                    &size_type_mid,
+                    element_size.clone().into(),
+                    position,
+                )?;
+                let element_size_is_zero = expr! { [element_size_int.clone()] == [0.into()] };
+                let bounds_check = vir_low::Expression::conditional_no_pos(
+                    element_size_is_zero.clone(),
+                    expr! {
+                        (([get_byte_index_base_address.clone()] + start_index) <= [get_byte_index_checked_address.clone()]) &&
+                        ([get_byte_index_checked_address.clone()] < ([get_byte_index_base_address.clone()] + end_index))
+                    },
+                    expr! {
+                        (([get_byte_index_base_address.clone()] + ([element_size_int.clone()] * start_index)) <= [get_byte_index_checked_address.clone()]) &&
+                        ([get_byte_index_checked_address] < ([get_byte_index_base_address] + ([element_size_int] * end_index)))
+                    },
+                );
                 let definition = expr! {
                     (([get_allocation_base_address] == [get_allocation_checked_address]) &&
-                    (([get_index_base_address.clone()] + start_index) <= [get_index_checked_address.clone()])) &&
-                    ([get_index_checked_address] < ([get_index_base_address] + end_index))
+                    ([get_is_zst_base_address.clone()] == [get_is_zst_checked_address]) &&
+                    ([get_is_zst_base_address] == [element_size_is_zero])) &&
+                    [bounds_check]
                 };
                 let body = vir_low::Expression::forall(
                     vec![
@@ -311,8 +370,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 // ```
                 // forall address, offset, element_size ::
                 // {offset_address(address, offset, element_size)}
-                // offset_address(address, offset, element_size) ==
-                // address_constructor(get_allocation(address), get_index(address, element_size) + offset, element_size)
+                // get_is_zst(address) == (element_size == 0) ==>
+                // offset_address(address, offset, element_size) == (
+                //      element_size == 0 ?
+                //      address_constructor(get_allocation(address), get_is_zst(address), get_byte_index(address) + offset)
+                //      :
+                //      address_constructor(get_allocation(address), get_is_zst(address), get_byte_index(address) + offset * element_size)
+                // )
                 // ```
                 var_decls! {
                     offset: Int
@@ -335,28 +399,57 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                     allocation_type.clone(),
                     position,
                 )?;
-                let get_index = self.create_domain_func_app(
+                let get_is_zst = self.create_domain_func_app(
                     ADDRESS_DOMAIN_NAME,
-                    "get_index$",
+                    "get_is_zst$",
+                    vec![address.clone().into()],
+                    vir_low::Type::Bool,
+                    position,
+                )?;
+                let get_byte_index = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "get_byte_index$",
                     vec![address.clone().into(), element_size.clone().into()],
                     vir_low::Type::Int,
                     position,
                 )?;
-                let definition = self.create_domain_func_app(
+                let element_size_int = self.obtain_constant_value(
+                    &size_type_mid,
+                    element_size.clone().into(),
+                    position,
+                )?;
+                let element_size_is_zero = expr! { [element_size_int.clone()] == [0.into()] };
+                let definition_zst = self.create_domain_func_app(
                     ADDRESS_DOMAIN_NAME,
                     "address_constructor$",
                     vec![
-                        get_allocation,
-                        vir_low::Expression::add(get_index, offset.clone().into()),
-                        element_size.clone().into(),
+                        get_allocation.clone(),
+                        get_is_zst.clone(),
+                        expr! { [get_byte_index.clone()] + offset },
                     ],
                     address_type.clone(),
                     position,
                 )?;
+                let definition_non_zst = self.create_domain_func_app(
+                    ADDRESS_DOMAIN_NAME,
+                    "address_constructor$",
+                    vec![
+                        get_allocation,
+                        get_is_zst.clone(),
+                        expr! { [get_byte_index] + (offset * [element_size_int]) },
+                    ],
+                    address_type.clone(),
+                    position,
+                )?;
+                let definition = vir_low::Expression::conditional_no_pos(
+                    element_size_is_zero.clone(),
+                    definition_zst,
+                    definition_non_zst,
+                );
                 let body = vir_low::Expression::forall(
                     vec![address, offset, element_size.clone()],
                     vec![vir_low::Trigger::new(vec![offset_address.clone()])],
-                    expr! { [offset_address] == [definition] },
+                    expr! { ([get_is_zst] == [element_size_is_zero]) ==> ([offset_address] == [definition]) },
                 );
                 let axiom = vir_low::DomainAxiomDecl::new(None, "offset_address$definition", body);
                 self.declare_axiom(ADDRESS_DOMAIN_NAME, axiom)?;
@@ -431,7 +524,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_address_axioms()?;
         self.create_domain_func_app(
             ADDRESS_DOMAIN_NAME,
-            "get_index$",
+            "get_byte_index$",
             vec![address, size],
             vir_low::Type::Int,
             position,
@@ -486,7 +579,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         // let start_index = self.create_domain_func_app(
         //     ADDRESS_DOMAIN_NAME,
-        //     "get_index$",
+        //     "get_byte_index$",
         //     vec![base_address.clone(), element_size.clone()],
         //     vir_low::Type::Int,
         //     position,
