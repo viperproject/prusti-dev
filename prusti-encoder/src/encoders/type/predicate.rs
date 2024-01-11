@@ -281,7 +281,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
             vir::vir_format!(vcx, "assign_{}", ref_to_pred.name()),
             BinaryArity::new(vcx.alloc_array(&[&vir::TypeData::Ref, snap_inst])),
         );
-        let self_ex = vcx.mk_local_ex("self");
+        let self_ex = vcx.mk_local_ex("self", &vir::TypeData::Ref);
         let self_pred_read = ref_to_pred.apply(vcx, [self_ex], Some(vcx.mk_wildcard()));
         let self_decl = vcx.alloc_array(&[vcx.mk_local_decl("self", &vir::TypeData::Ref)]);
         Self { vcx, snap_inst, ref_to_pred, ref_to_snap, unreachable_to_snap, method_assign, self_ex, self_pred_read, self_decl, fields: Vec::new(), predicates: Vec::new(), ref_to_field_refs: Vec::new() }
@@ -468,15 +468,16 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
 
         // method_assign
         let name = self.method_assign.name();
+        let self_new_local = self.vcx.mk_local("self_new", self.snap_inst);
         let args = self.vcx.alloc_slice(&[
             self.self_decl[0],
-            self.vcx.mk_local_decl("self_new", self.snap_inst),
+            self.vcx.mk_local_decl_local(self_new_local),
         ]);
         let posts = self.vcx.alloc_slice(&[
             self.vcx.mk_predicate_app_expr(self.ref_to_pred.apply(self.vcx, [self.self_ex], None)),
             self.vcx.mk_eq_expr(
                 self.ref_to_snap.apply(self.vcx, [self.self_ex]),
-                self.vcx.mk_local_ex("self_new")
+                self.vcx.mk_local_ex_local(self_new_local)
             ),
         ]);
         let method_assign = self.vcx.mk_method(name, args, &[], &[], posts, None);

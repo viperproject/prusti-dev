@@ -5,6 +5,7 @@ use crate::{refs::*, UnaryArity};
 
 pub struct LocalData<'vir> {
     pub name: &'vir str, // TODO: identifiers
+    pub ty: Type<'vir>,
 }
 
 pub struct LocalDeclData<'vir> {
@@ -98,6 +99,12 @@ pub enum TypeData<'vir> {
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
     Perm,
+    Unsupported(UnsupportedType<'vir>)
+}
+
+#[derive(Clone)]
+pub struct UnsupportedType<'vir> {
+    pub name: &'vir str,
 }
 
 #[derive(Clone, Copy, Debug)]

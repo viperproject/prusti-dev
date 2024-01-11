@@ -254,8 +254,9 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         );
         let ty_params: Vec<_> = domain_params.into_iter().map(|t| vcx.alloc(vir::TypeData::DomainTypeParam(t))).collect();
         let self_ty = domain.apply(vcx, &ty_params);
-        let self_ex = vcx.mk_local_ex("self");
-        let self_decl = vcx.alloc_array(&[vcx.mk_local_decl("self", self_ty)]);
+        let self_local = vcx.mk_local("self", self_ty);
+        let self_ex = vcx.mk_local_ex_local(self_local);
+        let self_decl = vcx.alloc_array(&[vcx.mk_local_decl_local(self_local)]);
         (Self { vcx, domain, self_ty, self_ex, self_decl, axioms: Vec::new(), functions: Vec::new() }, ty_params)
     }
 
@@ -315,7 +316,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
                 DomainDataVariant { name: *name, vid: *vid, discr: discr_vals[idx], fields }
             }).collect::<Vec<_>>());
             let discr_bounds = self.mk_discr_bounds_axioms(data.discr_prim, snap_to_discr_snap, discr_vals, data.has_explicit);
-            DomainDataEnum { 
+            DomainDataEnum {
                 discr_ty: data.discr_ty,
                 discr_prim: data.discr_prim,
                 discr_bounds,
@@ -343,12 +344,14 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         };
 
         // Variables and definitions useful for axioms
-        let fnames = (0..field_tys.len()).map(|idx| vir::vir_format!(self.vcx, "f{idx}")).collect::<Vec<_>>();
+        let fnames = field_tys.iter().enumerate().map(|(idx, ty)|
+            self.vcx.mk_local(vir::vir_format!(self.vcx, "f{idx}"), ty)
+        ).collect::<Vec<_>>();
         let cons_qvars: Vec<_> = field_tys.iter().enumerate().map(|(idx, ty)|
-            self.vcx.mk_local_decl(fnames[idx], ty)
+            self.vcx.mk_local_decl_local(fnames[idx])
         ).collect();
         let cons_qvars = self.vcx.alloc_slice(&cons_qvars);
-        let cons_args: Vec<_> = (0..field_tys.len()).map(|idx| self.vcx.mk_local_ex(fnames[idx])).collect();
+        let cons_args: Vec<_> = fnames.into_iter().map(|fname| self.vcx.mk_local_ex_local(fname)).collect();
         let cons_call_with_qvars = if field_tys.is_empty() {
             // TODO: workaround for `https://github.com/viperproject/silver/issues/236`
             // remove once fixed.
@@ -436,16 +439,19 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
 
             // Write and read to different fields change nothing, write and read to
             // the same field sees the new value.
-            let val: &vir::ExprGenData<'_, _, _> = self.vcx.mk_local_ex("val");
             for (wi, write) in field_access.iter().enumerate() {
+                let val_local = self.vcx.mk_local("val", field_tys[wi]);
+                let val = self.vcx.mk_local_ex_local(val_local);
+                let decl = self.vcx.mk_local_decl_local(val_local);
+                let write = write.write.apply(self.vcx, [self.self_ex, val]);
                 for (ri, read) in field_access.iter().enumerate() {
-                    let write_read = read.read.apply(self.vcx, [write.write.apply(self.vcx, [self.self_ex, val])]);
+                    let write_read = read.read.apply(self.vcx, [write]);
                     let rhs = if wi == ri { val } else { read.read.apply(self.vcx, [self.self_ex]) };
                     self.axioms.push(
                         self.vcx.mk_domain_axiom(
                             vir::vir_format!(self.vcx, "ax_{base}_write_{wi}_read_{ri}"),
                             self.vcx.mk_forall_expr(
-                                self.vcx.alloc_slice(&[self.self_decl[0], self.vcx.mk_local_decl("val", field_tys[wi])]),
+                                self.vcx.alloc_slice(&[self.self_decl[0], decl]),
                                 self.vcx.alloc_slice(&[self.vcx.alloc_slice(&[write_read])]),
                                 self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, write_read, rhs)
                             )
