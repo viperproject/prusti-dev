@@ -989,6 +989,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 subst_with(encoded_rhs)
             }
+            "prusti_contracts::multiply_int" => {
+                assert_eq!(encoded_args.len(), 2);
+                subst_with(vir_high::Expression::builtin_func_app_no_pos(
+                    Multiply,
+                    vec![Type::Int(vir_high::ty::Int::Unbounded)],
+                    encoded_args.into(),
+                    Type::Int(vir_high::ty::Int::Unbounded),
+                ))
+            }
+            "prusti_contracts::multiply_usize" => {
+                assert_eq!(encoded_args.len(), 2);
+                subst_with(vir_high::Expression::builtin_func_app_no_pos(
+                    Multiply,
+                    vec![Type::Int(vir_high::ty::Int::Usize)],
+                    encoded_args.into(),
+                    Type::Int(vir_high::ty::Int::Usize),
+                ))
+            }
             "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
                 if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
             {

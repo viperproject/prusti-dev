@@ -315,6 +315,8 @@ pub enum BuiltinFunc {
     BuildingFracRefPredicate,
     /// A function that signales whether allocation can fail.
     AllocationNeverFails,
+    /// An opaque multiplication to avoid non-linear arithmetic.
+    Multiply,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]

@@ -20,6 +20,7 @@ use crate::encoder::{
         types::TypesInterface,
     },
 };
+use prusti_common::config;
 use vir_crate::{
     common::{
         builtin_constants::LIFETIME_DOMAIN_NAME,
@@ -1230,6 +1231,54 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     app.position,
                 )?;
                 self.ensure_bool_expression(lowerer, app.get_type(), call, expect_math_bool)
+            }
+            BuiltinFunc::Multiply => {
+                let mut args = construct_args(self, lowerer)?;
+                assert_eq!(args.len(), 2);
+                let arg1 = args.pop().unwrap();
+                let arg2 = args.pop().unwrap();
+                let expression = if config::smt_use_nonlinear_arithmetic_solver() {
+                    vir_low::Expression::multiply(arg1, arg2)
+                } else {
+                    let arg1 = lowerer.obtain_constant_value(
+                        app.arguments[0].get_type(),
+                        arg1,
+                        app.position,
+                    )?;
+                    let arg2 = lowerer.obtain_constant_value(
+                        app.arguments[1].get_type(),
+                        arg2,
+                        app.position,
+                    )?;
+                    let multiply_call = lowerer.create_domain_func_app(
+                        "ArithmeticWrappers",
+                        "multiply_wrapper",
+                        vec![arg1, arg2],
+                        vir_low::ty::Type::Int,
+                        app.position,
+                    )?;
+                    lowerer.construct_constant_snapshot(&app.return_type, multiply_call, app.position)?
+                    // let unbounded_ty = vir_mid::Type::Int(vir_mid::ty::Int::Unbounded);
+                    // let return_type = self.type_to_snapshot(lowerer, &unbounded_ty)?;
+                    // let is_not_unbounded = !matches!(app.return_type, vir_mid::Type::Int(vir_mid::ty::Int::Unbounded));
+                    // if is_not_unbounded {
+                    //     // arg1 = lowerer.cast_int_to_int(&app.return_type, &unbounded_ty, arg1, app.position)?;
+                    //     // arg2 = lowerer.cast_int_to_int(&app.return_type, &unbounded_ty, arg2, app.position)?;
+                    //     arg1 = lowerer.obtain_constant_value(&app.return_type, arg1, app.position)?;
+                    // }
+                    // let mut call = lowerer.create_domain_func_app(
+                    //     "ArithmeticWrappers",
+                    //     "multiply_wrapper",
+                    //     vec![arg1, arg2],
+                    //     return_type,
+                    //     app.position,
+                    // )?;
+                    // if is_not_unbounded {
+                    //     call = lowerer.cast_int_to_int(&unbounded_ty, &app.return_type, call, app.position)?;
+                    // }
+                    // call
+                };
+                Ok(expression)
             }
         }
     }
