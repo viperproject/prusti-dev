@@ -167,8 +167,8 @@ impl usize {
     #[pure]
     #[no_panic]
     #[no_panic_ensures_postcondition]
-    #[ensures(if Int::new_usize(self) * Int::new_usize(rhs) <= Int::new_usize(usize::MAX) {
-        result == Some(self * rhs)
+    #[ensures(if multiply_int(Int::new_usize(self), Int::new_usize(rhs)) <= Int::new_usize(usize::MAX) {
+        result == Some(multiply_usize(self, rhs))
     } else {
         let none = None;
         result == none
@@ -218,6 +218,7 @@ mod core {
         #[pure]
         #[no_panic]
         #[no_panic_ensures_postcondition]
+        #[terminates]
         // FIXME: This is needed because this function is special cased only in the
         // pure encoder and not in the impure one.
         #[ensures(result == core::mem::size_of::<T>())]
@@ -226,6 +227,7 @@ mod core {
         #[pure]
         #[no_panic]
         #[no_panic_ensures_postcondition]
+        #[terminates]
         // FIXME: What are the guarantees?
         // https://doc.rust-lang.org/std/mem/fn.align_of.html says nothing…
         #[ensures(result > 0)]

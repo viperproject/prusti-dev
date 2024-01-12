@@ -833,6 +833,9 @@ pub fn prusti_own_range<T>(_address: T, _start: usize, _end: usize) -> bool {
 
 #[macro_export]
 macro_rules! own_range {
+    ($address:expr, $end:expr) => {
+        $crate::prusti_own_range($address, 0, $end)
+    };
     ($address:expr, $start:expr, $end:expr) => {
         $crate::prusti_own_range($address, $start, $end)
     };
@@ -1020,6 +1023,20 @@ pub fn address_from<T>(_ptr: *const T, _origin: *const T) -> Int {
 
 /// A ghost operation for expressing that the two pointers belong to the same allocation.
 pub fn same_allocation<T>(_ptr1: *const T, _ptr2: *const T) -> bool {
+    unreachable!();
+}
+
+#[pure]
+#[terminates]
+pub fn multiply_int(_left: Int, _right: Int) -> Int {
+    unreachable!();
+}
+
+#[pure]
+#[terminates]
+#[requires(multiply_int(Int::new_usize(left), Int::new_usize(right)) <= Int::new_usize(usize::MAX))]
+#[ensures(multiply_int(Int::new_usize(left), Int::new_usize(right)) == Int::new_usize(result))]
+pub fn multiply_usize(left: usize, right: usize) -> usize {
     unreachable!();
 }
 
