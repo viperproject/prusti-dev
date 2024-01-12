@@ -3854,6 +3854,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 index.clone().into(),
                 position,
             )?;
+            let new_element_address_pointer = self.address_to_pointer(
+                &ty,
+                new_element_address.clone(),
+                position,
+            )?;
+            let new_element_address_wrapped = self.pointer_address(
+                &ty,
+                new_element_address_pointer,
+                position,
+            )?;
             let old_index = vir_low::Expression::add(
                 vir_low::Expression::labelled_old(
                     Some(label.clone()),
@@ -3866,6 +3876,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 self.address_offset(size.clone(), old_start_address.clone(), old_index, position)?;
             let new_block_bytes = self
                 .encode_memory_block_bytes_expression(new_element_address.clone(), size.clone())?;
+            let new_block_bytes_wrapped = self
+                .encode_memory_block_bytes_expression(new_element_address_wrapped, size.clone())?;
             let old_block_bytes =
                 self.encode_memory_block_bytes_expression(old_element_address, size.clone())?;
             let old_block_bytes =
@@ -3874,6 +3886,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 self.obtain_constant_value(&size_type, size.clone(), position)?;
             let new_read_element_byte = self.encode_read_byte_expression_int(
                 new_block_bytes.clone(),
+                byte_index.clone().into(),
+                position,
+            )?;
+            let new_read_element_byte_wrapped = self.encode_read_byte_expression_int(
+                new_block_bytes_wrapped.clone(),
                 byte_index.clone().into(),
                 position,
             )?;
@@ -3887,11 +3904,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vec![index.clone().into(), byte_index.clone().into()],
                 position,
             )?;
+            let index_usize = self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
+            let index_is_usize = self.obtain_constant_value(&size_type, 
+                index_usize, position)?;
             let bytes_equal_body = expr!(
                 ((([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) &&
                 (([0.into()] <= byte_index) && (byte_index < [element_size_int]))) ==>
                 ([memory_block_range_join_trigger] &&
-                    ([new_read_element_byte.clone()] == [old_read_element_byte]))
+                    ([index_is_usize] == index) &&
+                    ([new_read_element_byte_wrapped] == [old_read_element_byte]))
             );
             let bytes_equal = vir_low::Expression::forall(
                 vec![index.clone(), byte_index],
