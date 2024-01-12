@@ -4,6 +4,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface,
+        arithmetic_wrappers::ArithmeticWrappersInterface,
         builtin_methods::CallContext,
         casts::CastsInterface,
         lifetimes::*,
@@ -761,34 +762,51 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                                 app.position,
                             )
                         } else {
-                            lowerer.create_domain_func_app(
-                                "Size",
+                            lowerer.encode_size_function_call_with_axioms(
                                 app.get_identifier(),
                                 args,
-                                return_type,
-                                app.position,
+                                app.position
                             )
+                            // lowerer.create_domain_func_app(
+                            //     "Size",
+                            //     app.get_identifier(),
+                            //     args,
+                            //     return_type,
+                            //     app.position,
+                            // )
                         }
                     }
-                    _ => lowerer.create_domain_func_app(
-                        "Size",
-                        app.get_identifier(),
-                        args,
-                        return_type,
-                        app.position,
-                    ),
+                    // _ => lowerer.create_domain_func_app(
+                    //     "Size",
+                    //     app.get_identifier(),
+                    //     args,
+                    //     return_type,
+                    //     app.position,
+                    // ),
+                    _ => {
+                        lowerer.encode_size_function_call_with_axioms(
+                            app.get_identifier(),
+                            args,
+                            app.position
+                        )
+                    }
                 }
             }
             BuiltinFunc::PaddingSize => {
                 let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 0);
-                let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
-                lowerer.create_domain_func_app(
-                    "Size",
+                // let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
+                // lowerer.create_domain_func_app(
+                //     "Size",
+                //     app.get_identifier(),
+                //     args,
+                //     return_type,
+                //     app.position,
+                // )
+                lowerer.encode_size_function_call_with_axioms(
                     app.get_identifier(),
                     args,
-                    return_type,
-                    app.position,
+                    app.position
                 )
             }
             BuiltinFunc::Align => {
@@ -1250,14 +1268,19 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                         arg2,
                         app.position,
                     )?;
-                    let multiply_call = lowerer.create_domain_func_app(
-                        "ArithmeticWrappers",
-                        "multiply_wrapper",
-                        vec![arg1, arg2],
-                        vir_low::ty::Type::Int,
+                    // let multiply_call = lowerer.create_domain_func_app(
+                    //     "ArithmeticWrappers",
+                    //     "multiply_wrapper",
+                    //     vec![arg1, arg2],
+                    //     vir_low::ty::Type::Int,
+                    //     app.position,
+                    // )?;
+                    let multiply_call = lowerer.int_mul_call(arg1, arg2, app.position)?;
+                    lowerer.construct_constant_snapshot(
+                        &app.return_type,
+                        multiply_call,
                         app.position,
-                    )?;
-                    lowerer.construct_constant_snapshot(&app.return_type, multiply_call, app.position)?
+                    )?
                     // let unbounded_ty = vir_mid::Type::Int(vir_mid::ty::Int::Unbounded);
                     // let return_type = self.type_to_snapshot(lowerer, &unbounded_ty)?;
                     // let is_not_unbounded = !matches!(app.return_type, vir_mid::Type::Int(vir_mid::ty::Int::Unbounded));
