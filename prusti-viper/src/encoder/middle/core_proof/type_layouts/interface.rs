@@ -2,16 +2,22 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::{type_layouts::HighTypeLayoutsEncoderInterface, types::HighTypeEncoderInterface},
     middle::core_proof::{
-        lowerer::Lowerer,
+        lowerer::{Lowerer, DomainsLowererInterface},
         snapshots::{
-            IntoBuiltinMethodSnapshot, IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface,
+            IntoBuiltinMethodSnapshot, IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface, SnapshotValidityInterface,
         },
     },
 };
+use rustc_hash::FxHashSet;
 use vir_crate::{
     low as vir_low,
     middle::{self as vir_mid, operations::const_generics::WithConstArguments},
 };
+
+#[derive(Default)]
+pub(in super::super) struct TypeLayoutsState {
+    encoded_size_functions: FxHashSet<String>,
+}
 
 pub(in super::super) trait TypeLayoutsInterface {
     fn size_type_mid(&mut self) -> SpannedEncodingResult<vir_mid::Type>;
@@ -37,6 +43,12 @@ pub(in super::super) trait TypeLayoutsInterface {
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_size_function_call_with_axioms(
+        &mut self,
+        function_name: String,
+        arguments: Vec<vir_low::Expression>,
+        position: vir_low::Position,
+    )-> SpannedEncodingResult<vir_low::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
@@ -94,5 +106,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
             .encoder
             .encode_type_padding_size_expression_mid(mir_type)?;
         size.to_builtin_method_snapshot(self)
+    }
+    fn encode_size_function_call_with_axioms(
+        &mut self,
+        function_name: String,
+        arguments: Vec<vir_low::Expression>,
+        position: vir_low::Position,
+    )-> SpannedEncodingResult<vir_low::Expression> {
+        let return_type = self.size_type()?;
+        let call = self.create_domain_func_app(
+            "Size",
+            function_name.clone(),
+            arguments,
+            return_type,
+            position,
+        )?;
+        if !self.type_layouts_state.encoded_size_functions.contains(&function_name) {
+            self.type_layouts_state.encoded_size_functions.insert(function_name.clone());
+            let size_type = self.size_type_mid()?;
+            let body = self.encode_snapshot_valid_call_for_type(call.clone(), &size_type)?;
+            let axiom = vir_low::DomainAxiomDecl::new(None, format!("{function_name}$valid"), body);
+            self.declare_axiom("Size", axiom)?;
+        }
+        Ok(call)
     }
 }

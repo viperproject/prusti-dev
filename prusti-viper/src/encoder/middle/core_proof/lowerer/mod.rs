@@ -20,7 +20,7 @@ use super::{
     snapshots::{SnapshotDomainsInfo, SnapshotVariablesInterface, SnapshotsState},
     triggers::TriggersState,
     types::TypesState,
-    viewshifts::ViewShiftsState,
+    viewshifts::ViewShiftsState, type_layouts::TypeLayoutsState,
 };
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingResult},
@@ -137,6 +137,7 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) casts_state: CastsState,
     pub(super) triggers_state: TriggersState,
     pub(super) permissions_state: PermissionsState,
+    pub(super) type_layouts_state: TypeLayoutsState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -167,6 +168,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             casts_state: Default::default(),
             triggers_state: Default::default(),
             permissions_state: Default::default(),
+            type_layouts_state: Default::default(),
         }
     }
 
