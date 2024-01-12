@@ -149,6 +149,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArithmeticWrappersInterface for Lowerer<'p, 'v, 'tcx>
                 let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$non_negative_range", body);
                 self.declare_axiom(DOMAIN_NAME, axiom)?;
             }
+            {
+                var_decls!(a: Int, b: Int);
+                let call = self.create_domain_func_app(
+                    DOMAIN_NAME,
+                    MUL_FUNC_NAME,
+                    vec![a.clone().into(), b.clone().into()],
+                    vir_low::Type::Int,
+                    Default::default(),
+                )?;
+                let body = vir_low::Expression::forall(
+                    vec![a.clone(), b.clone()],
+                    vec![vir_low::Trigger::new(vec![call.clone()])],
+                    expr! {
+                        (([0.into()] < a) && ([0.into()] < b)) ==> (([a.into()] < [call.clone()]) && ([b.into()] < [call]))
+                    }
+                );
+                let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$positive_increases", body);
+                self.declare_axiom(DOMAIN_NAME, axiom)?;
+            }
             if config::smt_use_nonlinear_arithmetic_solver() {
                 let body = vir_low::Expression::forall(
                     vec![left.clone(), right.clone()],
