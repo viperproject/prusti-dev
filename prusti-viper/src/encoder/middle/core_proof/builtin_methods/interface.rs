@@ -3912,7 +3912,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 (([0.into()] <= byte_index) && (byte_index < [element_size_int]))) ==>
                 ([memory_block_range_join_trigger] &&
                     ([index_is_usize] == index) &&
-                    ([new_read_element_byte_wrapped] == [old_read_element_byte]))
+                    ([new_read_element_byte_wrapped.clone()] == [old_read_element_byte.clone()]) &&
+                    ([new_read_element_byte.clone()] == [new_read_element_byte_wrapped])
+                )
             );
             let bytes_equal = vir_low::Expression::forall(
                 vec![index.clone(), byte_index],
