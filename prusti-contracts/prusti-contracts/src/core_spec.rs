@@ -194,6 +194,13 @@ impl usize {
     #[no_panic_ensures_postcondition]
     #[ensures(self >= rhs ==> result == self - rhs)]
     fn wrapping_sub(self, rhs: usize) -> usize;
+
+    #[terminates]
+    #[pure]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
+    #[ensures(Int::new_usize(self) + Int::new_usize(rhs) <= Int::new_usize(usize::MAX) ==> result == self + rhs)]
+    fn wrapping_add(self, rhs: usize) -> usize;
 }
 
 #[extern_spec]
