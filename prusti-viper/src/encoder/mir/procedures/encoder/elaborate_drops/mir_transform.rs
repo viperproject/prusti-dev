@@ -14,7 +14,6 @@ use super::mir_dataflow::{elaborate_drop, DropElaborator};
 use log::debug;
 use prusti_interface::environment::mir_body::patch::MirPatch;
 use prusti_rustc_interface::{
-    abi::FieldIdx,
     dataflow::{
         elaborate_drops::{DropFlagMode, DropFlagState, DropStyle, Unwind},
         impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
@@ -28,7 +27,7 @@ use prusti_rustc_interface::{
         ty::{self, TyCtxt},
     },
     span::Span,
-    target::abi::VariantIdx,
+    target::abi::{FieldIdx, VariantIdx},
 };
 use std::fmt;
 
@@ -65,16 +64,7 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>)
 
     let def_id = body.source.def_id();
     let param_env = tcx.param_env_reveal_all_normalized(def_id);
-    let move_data = match MoveData::gather_moves(body, tcx, param_env) {
-        Ok(move_data) => move_data,
-        Err((move_data, _)) => {
-            tcx.sess.delay_span_bug(
-                body.span,
-                "No `move_errors` should be allowed in MIR borrowck",
-            );
-            move_data
-        }
-    };
+    let move_data = MoveData::gather_moves(body, tcx, param_env, |_| true);
     let elaborate_patch = {
         let env = MoveDataParamEnv {
             move_data,
@@ -494,10 +484,10 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
     }
 
     fn constant_bool(&self, span: Span, val: bool) -> Rvalue<'tcx> {
-        Rvalue::Use(Operand::Constant(Box::new(Constant {
+        Rvalue::Use(Operand::Constant(Box::new(ConstOperand {
             span,
             user_ty: None,
-            literal: ConstantKind::from_bool(self.tcx, val),
+            const_: Const::from_bool(self.tcx, val),
         })))
     }
 

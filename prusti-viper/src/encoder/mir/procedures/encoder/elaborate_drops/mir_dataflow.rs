@@ -14,7 +14,6 @@
 use log::debug;
 use prusti_interface::environment::mir_body::patch::MirPatch;
 use prusti_rustc_interface::{
-    abi::{FieldIdx, VariantIdx, FIRST_VARIANT},
     dataflow::elaborate_drops::{DropFlagMode, DropStyle, Unwind},
     hir,
     hir::lang_items::LangItem,
@@ -24,6 +23,7 @@ use prusti_rustc_interface::{
         traits::Reveal,
         ty::{self, util::IntTypeExt, GenericArgsRef, Ty, TyCtxt},
     },
+    target::abi::{FieldIdx, VariantIdx, FIRST_VARIANT},
 };
 use std::{fmt, iter};
 use tracing::instrument;
@@ -852,8 +852,8 @@ where
             // This should only happen for the self argument on the resume function.
             // It effectively only contains upvars until the generator transformation runs.
             // See librustc_body/transform/generator.rs for more details.
-            ty::Generator(_, args, _) => {
-                let tys: Vec<_> = args.as_generator().upvar_tys().iter().collect();
+            ty::Coroutine(_, args, _) => {
+                let tys: Vec<_> = args.as_coroutine().upvar_tys().iter().collect();
                 self.open_drop_for_tuple(&tys)
             }
             ty::Tuple(fields) => self.open_drop_for_tuple(fields),
@@ -968,10 +968,10 @@ where
     }
 
     fn constant_usize(&self, val: u16) -> Operand<'tcx> {
-        Operand::Constant(Box::new(Constant {
+        Operand::Constant(Box::new(ConstOperand {
             span: self.source_info.span,
             user_ty: None,
-            literal: ConstantKind::from_usize(self.tcx(), val.into()),
+            const_: Const::from_usize(self.tcx(), val.into()),
         }))
     }
 

@@ -208,7 +208,7 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
         TerminatorKind::Yield { .. } => {
             graph.add_exit_edge(bb.to_text(), "yield".to_text());
         }
-        TerminatorKind::GeneratorDrop => {
+        TerminatorKind::CoroutineDrop => {
             graph.add_exit_edge(bb.to_text(), "generator_drop".to_text());
         }
         TerminatorKind::FalseEdge {

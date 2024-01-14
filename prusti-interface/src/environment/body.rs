@@ -174,7 +174,7 @@ impl<'tcx> EnvBody<'tcx> {
         {
             let monomorphised = if let Some(caller_def_id) = caller_def_id {
                 let param_env = self.tcx.param_env(caller_def_id);
-                self.tcx.subst_and_normalize_erasing_regions(
+                self.tcx.instantiate_and_normalize_erasing_regions(
                     substs,
                     param_env,
                     ty::EarlyBinder::bind(body.0),

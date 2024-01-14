@@ -1879,7 +1879,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 } else {
                     Some(
                         self.encoder
-                            .encode_const_expr(expr.ty(), expr.literal)
+                            .encode_const_expr(expr.ty(), expr.const_)
                             .with_span(span)?,
                     )
                 };
@@ -2418,17 +2418,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         {
                             let real_target = all_targets[(spec + 1) % 2];
                             let spec_target = all_targets[spec];
-                            if let Some(statements) = self.specification_block_encoding.remove(&spec_target) && !statements.is_empty()
+                            if let Some(statements) =
+                                self.specification_block_encoding.remove(&spec_target)
+                                && !statements.is_empty()
                             {
-                                stmts.push(
-                                    vir::Stmt::comment(
-                                        format!("Specification from block: {spec_target:?}")
-                                    )
-                                );
-                                stmts.extend(statements);
-                                return Ok((stmts, MirSuccessor::Goto(
-                                    real_target
+                                stmts.push(vir::Stmt::comment(format!(
+                                    "Specification from block: {spec_target:?}"
                                 )));
+                                stmts.extend(statements);
+                                return Ok((stmts, MirSuccessor::Goto(real_target)));
                             }
                         }
                     }
@@ -2573,11 +2571,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ref args,
                 destination,
                 target,
-                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
+                func: mir::Operand::Constant(box mir::ConstOperand { const_, .. }),
                 ..
             } => {
-                let ty = literal.ty();
-                let func_const_val = literal.try_to_scalar_int();
+                let ty = const_.ty();
+                let func_const_val = const_.try_to_scalar_int();
                 if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
                     let called_def_id = *called_def_id;
                     debug!(
@@ -2888,7 +2886,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             TerminatorKind::UnwindResume
             | TerminatorKind::Yield { .. }
-            | TerminatorKind::GeneratorDrop
+            | TerminatorKind::CoroutineDrop
             | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),
         };
         Ok(result)
@@ -6111,7 +6109,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // Initialize the constant
                             let const_val = self
                                 .encoder
-                                .encode_const_expr(ty, expr.literal)
+                                .encode_const_expr(ty, expr.const_)
                                 .with_span(span)?;
                             // Initialize value of lhs
                             stmts.push(vir::Stmt::Assign(vir::Assign {
@@ -6649,7 +6647,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?;
         let len: usize = self
             .encoder
-            .const_eval_intlike(mir::ConstantKind::Ty(times))
+            .const_eval_intlike(mir::Const::Ty(times))
             .with_span(span)?
             .to_u64()
             .unwrap()
@@ -7045,7 +7043,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            mir::AggregateKind::Generator(..) => {
+            mir::AggregateKind::Coroutine(..) => {
                 return Err(SpannedEncodingError::unsupported(
                     "construction of generators is not supported",
                     span,

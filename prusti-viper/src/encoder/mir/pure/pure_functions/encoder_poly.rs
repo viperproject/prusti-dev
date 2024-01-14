@@ -89,7 +89,7 @@ pub(super) fn encode_promoted<'p, 'v: 'p, 'tcx: 'v>(
     let tcx = encoder.env().tcx();
     let promoted_bodies = tcx.promoted_mir(proc_def_id);
     let param_env = tcx.param_env(parent_def_id);
-    let mir = tcx.subst_and_normalize_erasing_regions(
+    let mir = tcx.instantiate_and_normalize_erasing_regions(
         substs,
         param_env,
         ty::EarlyBinder::bind(promoted_bodies[promoted_id].clone()),

@@ -84,7 +84,9 @@ fn copy_exported_specs(cargo_target: PathBuf) -> io::Result<()> {
         if build_dir.is_dir() && deps_dir.is_dir() {
             for entry in fs::read_dir(deps_dir)? {
                 let entry = entry?.path();
-                if let Some(ext) = entry.extension() && ext == "specs" {
+                if let Some(ext) = entry.extension()
+                    && ext == "specs"
+                {
                     if let Some(fname) = entry.file_name() {
                         let pkg_name = fname.to_string_lossy();
                         if let Some(pkg_name) = pkg_name.split('-').next() {

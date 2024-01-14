@@ -134,8 +134,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             &mir::Operand::Move(place) | &mir::Operand::Copy(place) => {
                 Ok((self.encode_place(place)?.0, false))
             }
-            mir::Operand::Constant(constant) => match constant.literal {
-                mir::ConstantKind::Unevaluated(c, _cty) => {
+            mir::Operand::Constant(constant) => match constant.const_ {
+                mir::Const::Unevaluated(c, _cty) => {
                     Ok((self.encoder.encode_uneval_const(c)?, true))
                 }
                 _ => Ok((self.encoder.encode_snapshot_constant(constant)?, true)),
@@ -786,7 +786,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             TerminatorKind::Yield { .. }
-            | TerminatorKind::GeneratorDrop
+            | TerminatorKind::CoroutineDrop
             | TerminatorKind::InlineAsm { .. } => {
                 return Err(SpannedEncodingError::internal(
                     format!("unimplemented encoding of terminator '{:?}'", term.kind),
@@ -1249,7 +1249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     mir::Rvalue::Repeat(ref operand, times) => {
                         let (encoded_operand, _) = self.encode_operand(operand).with_span(span)?;
-                        let len: usize = self.encoder.const_eval_intlike(mir::ConstantKind::Ty(*times)).with_span(span)?
+                        let len: usize = self.encoder.const_eval_intlike(mir::Const::Ty(*times)).with_span(span)?
                             .to_u64().unwrap().try_into().unwrap();
                         let elem_ty = operand.ty(self.mir, self.encoder.env().tcx());
                         let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty)

@@ -268,8 +268,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Ref(_, _, _)
             | ty::TyKind::FnPtr(_)
             | ty::TyKind::Dynamic(..)
-            | ty::TyKind::GeneratorWitness(..)
-            | ty::TyKind::GeneratorWitnessMIR(..)
+            | ty::TyKind::CoroutineWitness(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Param(_)
@@ -281,7 +280,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Foreign(did)
             | ty::TyKind::FnDef(did, _)
             | ty::TyKind::Closure(did, _)
-            | ty::TyKind::Generator(did, _, _)
+            | ty::TyKind::Coroutine(did, _, _)
             | ty::TyKind::Alias(_, ty::AliasTy { def_id: did, .. }) => {
                 self.encoder.env().query.get_def_span(did).into()
             }
