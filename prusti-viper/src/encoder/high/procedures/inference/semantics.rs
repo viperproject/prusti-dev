@@ -1,4 +1,4 @@
-use super::permission::{Blocked, Permission};
+use super::permission::{Blocked, Permission, RawBlocked};
 use crate::encoder::{
     errors::SpannedEncodingResult, high::to_typed::types::HighToTypedTypeEncoderInterface, Encoder,
 };
@@ -488,6 +488,17 @@ impl CollectPermissionChanges for vir_typed::Assign {
         } else {
             produced_permissions.push(Permission::Owned(self.target.clone()));
         }
+        if let vir_typed::Rvalue::AddressOf(value) = &self.value {
+            produced_permissions.push(Permission::RawBlocked(RawBlocked {
+                borrowing_place: self
+                    .target
+                    .clone()
+                    .deref(value.place.get_type().clone(), self.target.position()),
+                borrowed_place: value.place.clone(),
+            }));
+            consumed_permissions.push(Permission::Owned(value.place.clone()));
+            return Ok(());
+        }
         self.value
             .collect(encoder, consumed_permissions, produced_permissions)
     }
@@ -598,7 +609,7 @@ impl CollectPermissionChanges for vir_typed::ast::rvalue::AddressOf {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
-        consumed_permissions: &mut Vec<Permission>,
+        _consumed_permissions: &mut Vec<Permission>,
         _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         // To take an address of a place on a stack, it must not be moved out.
@@ -618,8 +629,10 @@ impl CollectPermissionChanges for vir_typed::ast::rvalue::AddressOf {
         //     let _x = std::ptr::addr_of!(c);
         // }
         // ```
-        consumed_permissions.push(Permission::Owned(self.place.clone()));
-        Ok(())
+        unreachable!("Should be handled by the caller.")
+        // consumed_permissions.push(Permission::Owned(self.place.clone()));
+        // produced_permissions.push(Permission::RawBlocked(self.place.clone()));
+        // Ok(())
     }
 }
 
@@ -1034,10 +1047,12 @@ impl CollectPermissionChanges for vir_typed::RestoreRawBorrowed {
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
         _consumed_permissions: &mut Vec<Permission>,
-        produced_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
-        produced_permissions.push(Permission::Owned(self.restored_place.clone()));
-        Ok(())
+        unreachable!("Outdated code");
+        // consumed_permissions.push(Permission::RawBlocked(self.restored_place.clone()));
+        // produced_permissions.push(Permission::Owned(self.restored_place.clone()));
+        // Ok(())
     }
 }
 

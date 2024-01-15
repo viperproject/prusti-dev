@@ -3,7 +3,9 @@ use super::{
     places::PlaceWithDeadLifetimes,
     Places,
 };
-use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::{
+    errors::SpannedEncodingResult, high::procedures::inference::permission::RawBlocked,
+};
 use log::debug;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
@@ -23,6 +25,8 @@ pub(in super::super) struct PredicateStateOnPath {
     opened_references: BTreeMap<vir_typed::Expression, Option<vir_typed::VariableDecl>>,
     /// place → (lifetime, is_reborrow)
     blocked: BTreeMap<vir_typed::Expression, (vir_typed::ty::LifetimeConst, bool)>,
+    /// Places that are blocked by a raw pointer.
+    raw_blocked: BTreeMap<vir_typed::Expression, vir_typed::Expression>,
     dead_lifetimes: BTreeSet<vir_typed::ty::LifetimeConst>,
 }
 
@@ -72,6 +76,10 @@ impl std::fmt::Display for PredicateStateOnPath {
                 (if *is_reborrow { "reborrow" } else { "" })
             )?;
         }
+        writeln!(f, "    raw blocked ({}):", self.raw_blocked.len())?;
+        for (borrowed_place, borrowing_place) in &self.raw_blocked {
+            writeln!(f, "      {borrowed_place} by {borrowing_place}")?;
+        }
         Ok(())
     }
 }
@@ -88,6 +96,7 @@ impl PredicateStateOnPath {
             && self.memory_block_stack.is_empty()
             // && self.opened_references.is_empty()
             && self.blocked.is_empty()
+            && self.raw_blocked.is_empty()
     }
 
     pub(super) fn contains_only_leakable(&self) -> bool {
@@ -139,6 +148,18 @@ impl PredicateStateOnPath {
         Ok(())
     }
 
+    pub(in super::super) fn remove_raw_blocked(
+        &mut self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<()> {
+        assert!(place.is_place());
+        assert!(
+            self.raw_blocked.remove(place).is_some(),
+            "not found in raw blocked: {place}",
+        );
+        Ok(())
+    }
+
     pub(in super::super) fn insert(
         &mut self,
         kind: PermissionKind,
@@ -171,6 +192,15 @@ impl PredicateStateOnPath {
                     .insert(place, (lifetime, is_reborrow))
                     .is_none());
             }
+            Permission::RawBlocked(RawBlocked {
+                borrowing_place,
+                borrowed_place,
+            }) => {
+                assert!(self
+                    .raw_blocked
+                    .insert(borrowed_place, borrowing_place)
+                    .is_none());
+            }
         }
     }
 
@@ -183,6 +213,9 @@ impl PredicateStateOnPath {
                 assert!(self.owned_non_aliased.remove(place));
             }
             Permission::Blocked(_) => {
+                unreachable!()
+            }
+            Permission::RawBlocked(_) => {
                 unreachable!()
             }
         }
@@ -352,6 +385,24 @@ impl PredicateStateOnPath {
                 place.has_prefix(prefix_expr) || prefix_expr.has_prefix(place)
             })
             .map(|(place, (lifetime, reborrow))| (place, lifetime, *reborrow)))
+    }
+
+    pub(in super::super) fn contains_raw_blocked(
+        &self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<(&vir_typed::Expression, &vir_typed::Expression)>> {
+        Ok(self.raw_blocked.iter().find(|(p, _)| {
+            let prefix_expr = match p {
+                vir_typed::Expression::BuiltinFuncApp(vir_typed::BuiltinFuncApp {
+                    function: vir_typed::BuiltinFunc::Index,
+                    type_arguments: _,
+                    arguments,
+                    ..
+                }) => &arguments[0],
+                _ => *p,
+            };
+            place.has_prefix(prefix_expr) || prefix_expr.has_prefix(place)
+        }))
     }
 
     pub(in super::super) fn clear(&mut self) -> SpannedEncodingResult<()> {

@@ -137,6 +137,7 @@ pub(in super::super) fn ensure_required_permission(
         Permission::MemoryBlock(place) => (place, PermissionKind::MemoryBlock),
         Permission::Owned(place) => (place, PermissionKind::Owned),
         Permission::Blocked(borrow) => unreachable!("requiring a blocked place: {}", borrow),
+        Permission::RawBlocked(place) => unreachable!("requiring a raw blocked place: {}", place),
     };
 
     let base = place.get_base().erase_lifetime();
@@ -412,6 +413,16 @@ fn ensure_permission_in_state(
             lifetime,
             prefix.clone(),
             is_reborrow,
+        ));
+        ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?
+    } else if let Some((prefix, borrowing_place)) = predicate_state.contains_raw_blocked(&place)? {
+        let prefix = prefix.clone();
+        let borrowing_place = borrowing_place.clone();
+        predicate_state.remove_raw_blocked(&prefix)?;
+        predicate_state.insert(PermissionKind::Owned, prefix.clone())?;
+        actions.push(Action::restore_raw_borrowed(
+            borrowing_place,
+            prefix.clone(),
         ));
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?
     } else if permission_kind == PermissionKind::MemoryBlock
