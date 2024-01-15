@@ -9,6 +9,7 @@ pub(in super::super) enum Permission {
     /// `Owned`, but also with `UniqueRef` and `FracRef` predicates.
     Owned(vir_typed::Expression),
     Blocked(Blocked),
+    RawBlocked(RawBlocked),
 }
 
 impl Permission {
@@ -27,6 +28,7 @@ impl Permission {
             Self::MemoryBlock(place) => place,
             Self::Owned(place) => place,
             Self::Blocked(Blocked { place, .. }) => place,
+            Self::RawBlocked(RawBlocked { borrowed_place, .. }) => borrowed_place,
         }
     }
 }
@@ -37,6 +39,13 @@ pub(in super::super) struct Blocked {
     pub(in super::super) lifetime: vir_typed::ty::LifetimeConst,
     pub(in super::super) place: vir_typed::Expression,
     pub(in super::super) is_reborrow: bool,
+}
+
+#[derive(Debug, Clone, derive_more::Display, PartialEq, Eq, PartialOrd, Ord)]
+#[display(fmt = "RawBlocked({borrowing_place}, {borrowed_place})")]
+pub(in super::super) struct RawBlocked {
+    pub(in super::super) borrowing_place: vir_typed::Expression,
+    pub(in super::super) borrowed_place: vir_typed::Expression,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -51,6 +60,7 @@ impl Permission {
             Permission::MemoryBlock(place) => place,
             Permission::Owned(place) => place,
             Permission::Blocked(Blocked { place, .. }) => place,
+            Permission::RawBlocked(RawBlocked { borrowed_place, .. }) => borrowed_place,
         }
     }
 }

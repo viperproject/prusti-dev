@@ -248,6 +248,18 @@ impl<'v, 'tcx> TypedToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tc
         unreachable!("EncodingAction statement must be desugared in high-level VIR");
     }
 
+    fn typed_to_middle_statement_restore_raw_borrowed(
+        &self,
+        action: vir_typed::RestoreRawBorrowed,
+    ) -> Result<vir_mid::statement::RestoreRawBorrowed, Self::Error> {
+        Ok(vir_mid::statement::RestoreRawBorrowed {
+            borrowing_place: action.borrowing_place.typed_to_middle_expression(self)?,
+            restored_place: action.restored_place.typed_to_middle_expression(self)?,
+            condition: None,
+            position: action.position,
+        })
+    }
+
     // fn typed_to_middle_statement_statement_restore(
     //             &self,
     //             _statement: vir_typed::Restore,

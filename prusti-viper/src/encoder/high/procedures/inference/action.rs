@@ -11,6 +11,7 @@ pub(in super::super) enum Action {
     /// Convert the specified `Owned(place)` into `MemoryBlock(place)`.
     OwnedIntoMemoryBlock(ConversionState),
     RestoreMutBorrowed(RestorationState),
+    RestoreRawBorrowed(RawRestorationState),
     Unreachable(UnreachableState),
 }
 
@@ -28,6 +29,13 @@ impl std::fmt::Display for Action {
             }
             Action::RestoreMutBorrowed(RestorationState { place, .. }) => {
                 write!(f, "RestoreMutBorrowed({place})")
+            }
+            Action::RestoreRawBorrowed(RawRestorationState {
+                borrowing_place,
+                borrowed_place,
+                ..
+            }) => {
+                write!(f, "RestoreRawBorrowed({borrowing_place}, {borrowed_place})")
             }
             Action::Unreachable(_) => write!(f, "Unreachable"),
         }
@@ -58,6 +66,13 @@ pub(in super::super) struct RestorationState {
 }
 
 #[derive(Debug)]
+pub(in super::super) struct RawRestorationState {
+    pub(in super::super) borrowing_place: vir_typed::Expression,
+    pub(in super::super) borrowed_place: vir_typed::Expression,
+    pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
+}
+
+#[derive(Debug)]
 pub(in super::super) struct UnreachableState {
     pub(in super::super) position: vir_typed::Position,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
@@ -79,6 +94,10 @@ impl Action {
                 ..state
             }),
             Self::RestoreMutBorrowed(state) => Self::RestoreMutBorrowed(RestorationState {
+                condition: Some(condition.clone()),
+                ..state
+            }),
+            Self::RestoreRawBorrowed(state) => Self::RestoreRawBorrowed(RawRestorationState {
                 condition: Some(condition.clone()),
                 ..state
             }),
@@ -131,6 +150,17 @@ impl Action {
             lifetime,
             place,
             is_reborrow,
+            condition: None,
+        })
+    }
+
+    pub(in super::super) fn restore_raw_borrowed(
+        borrowing_place: vir_typed::Expression,
+        borrowed_place: vir_typed::Expression,
+    ) -> Self {
+        Self::RestoreRawBorrowed(RawRestorationState {
+            borrowing_place,
+            borrowed_place,
             condition: None,
         })
     }

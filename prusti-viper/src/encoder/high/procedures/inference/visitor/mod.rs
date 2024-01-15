@@ -1,4 +1,5 @@
 use super::{
+    action::RawRestorationState,
     ensurer::{
         ensure_required_permission, ensure_required_permissions,
         try_ensure_enum_discriminant_by_unfolding,
@@ -916,6 +917,19 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                         place.typed_to_middle_expression(self.encoder)?,
                         is_reborrow,
                         None,
+                        condition,
+                        position,
+                    )
+                }
+                Action::RestoreRawBorrowed(RawRestorationState {
+                    borrowing_place,
+                    borrowed_place,
+                    condition,
+                }) => {
+                    let position = borrowed_place.position();
+                    vir_mid::Statement::restore_raw_borrowed(
+                        borrowing_place.typed_to_middle_expression(self.encoder)?,
+                        borrowed_place.typed_to_middle_expression(self.encoder)?,
                         condition,
                         position,
                     )

@@ -406,6 +406,7 @@ pub struct SetUnionVariant {
 pub struct RestoreRawBorrowed {
     pub borrowing_place: Expression,
     pub restored_place: Expression,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
