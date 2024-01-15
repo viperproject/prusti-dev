@@ -80,49 +80,53 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArithmeticWrappersInterface for Lowerer<'p, 'v, 'tcx>
                 vec![left.clone().into(), right.clone().into()],
                 vir_low::Type::Int,
                 Default::default(),
-            )?;{
-            let call_commutative = self.create_domain_func_app(
-                DOMAIN_NAME,
-                MUL_FUNC_NAME,
-                vec![right.clone().into(), left.clone().into()],
-                vir_low::Type::Int,
-                Default::default(),
             )?;
-            let body = vir_low::Expression::forall(
-                vec![left.clone(), right.clone()],
-                vec![vir_low::Trigger::new(vec![call.clone()])],
-                vir_low::Expression::equals(call.clone(), call_commutative),
-            );
-            let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$commutativity", body);
-            self.declare_axiom(DOMAIN_NAME, axiom)?;}
-            {var_decls!(value: Int);
-            let call_zero_left = self.create_domain_func_app(
-                DOMAIN_NAME,
-                MUL_FUNC_NAME,
-                vec![0.into(), value.clone().into()],
-                vir_low::Type::Int,
-                Default::default(),
-            )?;
-            let call_zero_right = self.create_domain_func_app(
-                DOMAIN_NAME,
-                MUL_FUNC_NAME,
-                vec![value.clone().into(), 0.into()],
-                vir_low::Type::Int,
-                Default::default(),
-            )?;
-            let body = vir_low::Expression::forall(
-                vec![value.clone()],
-                vec![
-                    vir_low::Trigger::new(vec![call_zero_left.clone()]),
-                    vir_low::Trigger::new(vec![call_zero_right.clone()]),
-                ],
-                vir_low::Expression::and(
-                    vir_low::Expression::equals(call_zero_left, 0.into()),
-                    vir_low::Expression::equals(call_zero_right, 0.into()),
-                ),
-            );
-            let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$zero", body);
-            self.declare_axiom(DOMAIN_NAME, axiom)?;}
+            {
+                let call_commutative = self.create_domain_func_app(
+                    DOMAIN_NAME,
+                    MUL_FUNC_NAME,
+                    vec![right.clone().into(), left.clone().into()],
+                    vir_low::Type::Int,
+                    Default::default(),
+                )?;
+                let body = vir_low::Expression::forall(
+                    vec![left.clone(), right.clone()],
+                    vec![vir_low::Trigger::new(vec![call.clone()])],
+                    vir_low::Expression::equals(call.clone(), call_commutative),
+                );
+                let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$commutativity", body);
+                self.declare_axiom(DOMAIN_NAME, axiom)?;
+            }
+            {
+                var_decls!(value: Int);
+                let call_zero_left = self.create_domain_func_app(
+                    DOMAIN_NAME,
+                    MUL_FUNC_NAME,
+                    vec![0.into(), value.clone().into()],
+                    vir_low::Type::Int,
+                    Default::default(),
+                )?;
+                let call_zero_right = self.create_domain_func_app(
+                    DOMAIN_NAME,
+                    MUL_FUNC_NAME,
+                    vec![value.clone().into(), 0.into()],
+                    vir_low::Type::Int,
+                    Default::default(),
+                )?;
+                let body = vir_low::Expression::forall(
+                    vec![value.clone()],
+                    vec![
+                        vir_low::Trigger::new(vec![call_zero_left.clone()]),
+                        vir_low::Trigger::new(vec![call_zero_right.clone()]),
+                    ],
+                    vir_low::Expression::and(
+                        vir_low::Expression::equals(call_zero_left, 0.into()),
+                        vir_low::Expression::equals(call_zero_right, 0.into()),
+                    ),
+                );
+                let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$zero", body);
+                self.declare_axiom(DOMAIN_NAME, axiom)?;
+            }
             {
                 var_decls!(common: Int, a: Int, b: Int);
                 let call_first = self.create_domain_func_app(
@@ -141,12 +145,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArithmeticWrappersInterface for Lowerer<'p, 'v, 'tcx>
                 )?;
                 let body = vir_low::Expression::forall(
                     vec![common.clone(), a.clone(), b.clone()],
-                    vec![vir_low::Trigger::new(vec![call_first.clone(), call_second.clone()])],
+                    vec![vir_low::Trigger::new(vec![
+                        call_first.clone(),
+                        call_second.clone(),
+                    ])],
                     expr! {
                         ([0.into()] < common) ==> ((a <= b) ==> ([call_first] <= [call_second]))
-                    }
+                    },
                 );
-                let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$non_negative_range", body);
+                let axiom =
+                    vir_low::DomainAxiomDecl::new(None, "mul_wrapper$non_negative_range", body);
                 self.declare_axiom(DOMAIN_NAME, axiom)?;
             }
             {
@@ -163,9 +171,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArithmeticWrappersInterface for Lowerer<'p, 'v, 'tcx>
                     vec![vir_low::Trigger::new(vec![call.clone()])],
                     expr! {
                         (([0.into()] < a) && ([0.into()] < b)) ==> (([a.into()] < [call.clone()]) && ([b.into()] < [call]))
-                    }
+                    },
                 );
-                let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$positive_increases", body);
+                let axiom =
+                    vir_low::DomainAxiomDecl::new(None, "mul_wrapper$positive_increases", body);
                 self.declare_axiom(DOMAIN_NAME, axiom)?;
             }
             if config::smt_use_nonlinear_arithmetic_solver() {

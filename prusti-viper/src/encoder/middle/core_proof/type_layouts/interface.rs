@@ -2,9 +2,10 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::{type_layouts::HighTypeLayoutsEncoderInterface, types::HighTypeEncoderInterface},
     middle::core_proof::{
-        lowerer::{Lowerer, DomainsLowererInterface},
+        lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
-            IntoBuiltinMethodSnapshot, IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface, SnapshotValidityInterface,
+            IntoBuiltinMethodSnapshot, IntoProcedureSnapshot, IntoSnapshot,
+            SnapshotValidityInterface, SnapshotValuesInterface,
         },
     },
 };
@@ -48,7 +49,7 @@ pub(in super::super) trait TypeLayoutsInterface {
         function_name: String,
         arguments: Vec<vir_low::Expression>,
         position: vir_low::Position,
-    )-> SpannedEncodingResult<vir_low::Expression>;
+    ) -> SpannedEncodingResult<vir_low::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
@@ -112,7 +113,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
         function_name: String,
         arguments: Vec<vir_low::Expression>,
         position: vir_low::Position,
-    )-> SpannedEncodingResult<vir_low::Expression> {
+    ) -> SpannedEncodingResult<vir_low::Expression> {
         let return_type = self.size_type()?;
         let call = self.create_domain_func_app(
             "Size",
@@ -121,8 +122,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
             return_type,
             position,
         )?;
-        if !self.type_layouts_state.encoded_size_functions.contains(&function_name) {
-            self.type_layouts_state.encoded_size_functions.insert(function_name.clone());
+        if !self
+            .type_layouts_state
+            .encoded_size_functions
+            .contains(&function_name)
+        {
+            self.type_layouts_state
+                .encoded_size_functions
+                .insert(function_name.clone());
             let size_type = self.size_type_mid()?;
             let body = self.encode_snapshot_valid_call_for_type(call.clone(), &size_type)?;
             let axiom = vir_low::DomainAxiomDecl::new(None, format!("{function_name}$valid"), body);
