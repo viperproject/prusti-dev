@@ -765,7 +765,7 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                             lowerer.encode_size_function_call_with_axioms(
                                 app.get_identifier(),
                                 args,
-                                app.position
+                                app.position,
                             )
                             // lowerer.create_domain_func_app(
                             //     "Size",
@@ -783,13 +783,11 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                     //     return_type,
                     //     app.position,
                     // ),
-                    _ => {
-                        lowerer.encode_size_function_call_with_axioms(
-                            app.get_identifier(),
-                            args,
-                            app.position
-                        )
-                    }
+                    _ => lowerer.encode_size_function_call_with_axioms(
+                        app.get_identifier(),
+                        args,
+                        app.position,
+                    ),
                 }
             }
             BuiltinFunc::PaddingSize => {
@@ -806,7 +804,7 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                 lowerer.encode_size_function_call_with_axioms(
                     app.get_identifier(),
                     args,
-                    app.position
+                    app.position,
                 )
             }
             BuiltinFunc::Align => {

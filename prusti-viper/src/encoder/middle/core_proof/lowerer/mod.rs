@@ -19,8 +19,9 @@ use super::{
     predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface, PredicatesState},
     snapshots::{SnapshotDomainsInfo, SnapshotVariablesInterface, SnapshotsState},
     triggers::TriggersState,
+    type_layouts::TypeLayoutsState,
     types::TypesState,
-    viewshifts::ViewShiftsState, type_layouts::TypeLayoutsState,
+    viewshifts::ViewShiftsState,
 };
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingResult},

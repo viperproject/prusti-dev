@@ -3854,16 +3854,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 index.clone().into(),
                 position,
             )?;
-            let new_element_address_pointer = self.address_to_pointer(
-                &ty,
-                new_element_address.clone(),
-                position,
-            )?;
-            let new_element_address_wrapped = self.pointer_address(
-                &ty,
-                new_element_address_pointer,
-                position,
-            )?;
+            let new_element_address_pointer =
+                self.address_to_pointer(&ty, new_element_address.clone(), position)?;
+            let new_element_address_wrapped =
+                self.pointer_address(&ty, new_element_address_pointer, position)?;
             let old_index = vir_low::Expression::add(
                 vir_low::Expression::labelled_old(
                     Some(label.clone()),
@@ -3904,9 +3898,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vec![index.clone().into(), byte_index.clone().into()],
                 position,
             )?;
-            let index_usize = self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
-            let index_is_usize = self.obtain_constant_value(&size_type, 
-                index_usize, position)?;
+            let index_usize =
+                self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
+            let index_is_usize = self.obtain_constant_value(&size_type, index_usize, position)?;
             let bytes_equal_body = expr!(
                 ((([new_start_index.clone()] <= index) && (index < [new_end_index.clone()])) &&
                 (([0.into()] <= byte_index) && (byte_index < [element_size_int]))) ==>
