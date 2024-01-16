@@ -75,7 +75,8 @@ impl<T> Pointer<T> {
     #[pure]
     // FIXME: Check provenance.
     #[structural_requires(same_allocation(self, origin))]
-    #[structural_requires(address_from(self, origin) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
+    // #[structural_requires(address_from(self, origin) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
+    #[structural_requires(multiply_int(address_from(self, origin), Int::new_usize(std::mem::size_of::<T>())) <= Int::new_isize(isize::MAX))]
     #[structural_requires(address_from(self, origin) >= Int::new_isize(0))]
     #[ensures(Int::new_isize(result) == address_from(self, origin))]
     #[no_panic]
@@ -86,7 +87,8 @@ impl<T> Pointer<T> {
     #[terminates]
     #[pure]
     // FIXME: Check provenance.
-    #[structural_requires(Int::new_usize(count) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
+    // #[structural_requires(Int::new_usize(count) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
+    #[structural_requires(multiply_int(Int::new_usize(count), Int::new_usize(std::mem::size_of::<T>())) <= Int::new_usize(usize::MAX))]
     #[ensures(result == address_offset(self, Int::new_usize(count)))]
     #[no_panic]
     #[no_panic_ensures_postcondition]
@@ -141,7 +143,7 @@ impl<T> MutPointer<T> {
     #[pure]
     // FIXME: Check provenance.
     #[structural_requires(same_allocation(self, origin))]
-    #[structural_requires(address_from(self, origin) * Int::new_usize(std::mem::size_of::<T>()) <= Int::new_isize(isize::MAX))]
+    #[structural_requires(multiply_int(address_from(self, origin), Int::new_usize(std::mem::size_of::<T>())) <= Int::new_isize(isize::MAX))]
     #[structural_requires(address_from(self, origin) >= Int::new_isize(0))]
     #[ensures(Int::new_isize(result) == address_from(self, origin))]
     #[no_panic]

@@ -177,7 +177,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArithmeticWrappersInterface for Lowerer<'p, 'v, 'tcx>
                     vir_low::DomainAxiomDecl::new(None, "mul_wrapper$positive_increases", body);
                 self.declare_axiom(DOMAIN_NAME, axiom)?;
             }
-            if config::smt_use_nonlinear_arithmetic_solver() {
+            if config::define_multiply_int() {
                 let body = vir_low::Expression::forall(
                     vec![left.clone(), right.clone()],
                     vec![vir_low::Trigger::new(vec![call.clone()])],
