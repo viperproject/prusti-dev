@@ -122,6 +122,12 @@ pub use prusti_contracts_proc_macros::ghost;
 /// is dropped.
 pub use prusti_contracts_proc_macros::on_drop_unwind;
 
+/// A macro for defining a ghost block that is executed just before dropping the specified value.
+pub use prusti_contracts_proc_macros::before_drop;
+
+/// A macro for defining a ghost block that is executed just after dropping the specified value.
+pub use prusti_contracts_proc_macros::after_drop;
+
 /// A macro for defining a ghost block that is executed when the execution
 /// leaves the block including via panic.
 pub use prusti_contracts_proc_macros::with_finally;
@@ -278,6 +284,13 @@ mod private {
     #[derive(PartialEq, Eq, Copy, Clone)]
     pub struct Ghost<T> {
         _phantom: PhantomData<T>,
+    }
+
+    pub struct GhostDrop;
+
+    impl Drop for GhostDrop {
+        fn drop(&mut self) {
+        }
     }
 
     /// A type allowing to refer to a lifetime in places where Rust syntax does
@@ -512,6 +525,13 @@ mod private {
     impl<T> DerefMut for Ghost<T> {
         fn deref_mut(&mut self) -> &mut T {
             panic!()
+        }
+    }
+
+    pub struct GhostDrop;
+
+    impl Drop for GhostDrop {
+        fn drop(&mut self) {
         }
     }
 
@@ -760,6 +780,18 @@ pub fn prusti_forget_initialization_range<T>(_address: T, _start: usize, _end: u
 #[doc(hidden)]
 #[trusted]
 pub fn prusti_on_drop_unwind<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_before_drop<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_after_drop<T>(_arg: T) {
     unreachable!();
 }
 

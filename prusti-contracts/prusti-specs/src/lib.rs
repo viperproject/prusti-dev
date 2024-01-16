@@ -1475,6 +1475,40 @@ pub fn on_drop_unwind(tokens: TokenStream) -> TokenStream {
     )
 }
 
+pub fn before_drop(tokens: TokenStream) -> TokenStream {
+    let OnDropUnwind {
+        dropped_place,
+        block,
+    } = handle_result!(syn::parse2(tokens));
+    ghost_with_annotation(
+        quote! { #block },
+        unsafe_spec_function_call(quote! {
+            prusti_before_drop(std::ptr::addr_of!(#dropped_place))
+        }),
+        false,
+        quote! {specification_region_begin},
+        quote! {specification_region_end},
+        None,
+    )
+}
+
+pub fn after_drop(tokens: TokenStream) -> TokenStream {
+    let OnDropUnwind {
+        dropped_place,
+        block,
+    } = handle_result!(syn::parse2(tokens));
+    ghost_with_annotation(
+        quote! { #block },
+        unsafe_spec_function_call(quote! {
+            prusti_after_drop(std::ptr::addr_of!(#dropped_place))
+        }),
+        false,
+        quote! {specification_region_begin},
+        quote! {specification_region_end},
+        None,
+    )
+}
+
 pub fn with_finally(tokens: TokenStream) -> TokenStream {
     let WithFinally {
         executed_block,

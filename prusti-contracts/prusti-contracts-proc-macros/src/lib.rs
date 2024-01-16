@@ -230,6 +230,18 @@ pub fn on_drop_unwind(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn before_drop(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn after_drop(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn with_finally(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -697,6 +709,18 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn on_drop_unwind(tokens: TokenStream) -> TokenStream {
     prusti_specs::on_drop_unwind(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn before_drop(tokens: TokenStream) -> TokenStream {
+    prusti_specs::before_drop(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn after_drop(tokens: TokenStream) -> TokenStream {
+    prusti_specs::after_drop(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

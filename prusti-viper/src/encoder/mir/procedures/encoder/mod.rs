@@ -152,6 +152,8 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         specification_region_encoding_statements: Default::default(),
         specification_region_exit_target_block: Default::default(),
         specification_on_drop_unwind: Default::default(),
+        specification_before_drop: Default::default(),
+        specification_after_drop: Default::default(),
         add_specification_before_terminator: Default::default(),
         add_function_panic_specification_before_lifetime_effects: Default::default(),
         add_function_panic_specification_after_lifetime_effects: Default::default(),
@@ -219,6 +221,12 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// The specification region that should executed when the specified
     /// expression is dropped.
     specification_on_drop_unwind: FxHashMap<vir_high::Expression, mir::BasicBlock>,
+    /// The specification statements to be added before the drop of the
+    /// specified expression.
+    specification_before_drop: FxHashMap<vir_high::Expression, mir::BasicBlock>,
+    /// The specification statements to be added after the drop of the
+    /// specified expression.
+    specification_after_drop: FxHashMap<vir_high::Expression, mir::BasicBlock>,
     /// The specification statements to be added before the terminator of the
     /// specified block.
     add_specification_before_terminator: BTreeMap<mir::BasicBlock, Vec<vir_high::Statement>>,
@@ -1580,6 +1588,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.specification_on_drop_unwind.is_empty(),
             "not consumed specification on drop unwind: {:?}",
             self.specification_on_drop_unwind.keys()
+        );
+        assert!(
+            self.specification_before_drop.is_empty(),
+            "not consumed specification before drop: {:?}",
+            self.specification_before_drop.keys()
+        );
+        assert!(
+            self.specification_after_drop.is_empty(),
+            "not consumed specification after drop: {:?}",
+            self.specification_after_drop.keys()
         );
         assert!(
             self.add_specification_before_terminator.is_empty(),
@@ -3189,6 +3207,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } else {
                 None
             };
+        let before_drop_statements =
+            if let Some(region) = self.specification_before_drop.remove(&place) {
+                Some(
+                    self.specification_region_encoding_statements
+                        .remove(&region)
+                        .unwrap(),
+                )
+            } else {
+                None
+            };
+        let after_drop_statements =
+            if let Some(region) = self.specification_after_drop.remove(&place) {
+                Some(
+                    self.specification_region_encoding_statements
+                        .remove(&region)
+                        .unwrap(),
+                )
+            } else {
+                None
+            };
+        if let Some(statements) = before_drop_statements {
+            block_builder.add_statements(statements);
+        }
+
         // FIXME: Assert that the lifetimes used in type of the place are alive
         // at this point (by exhaling them and inhaling). Do not forget to take
         // into account
@@ -3296,6 +3338,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.def_id,
                 )?;
                 block_builder.add_statement(inhale_statement);
+            }
+            if let Some(statements) = after_drop_statements {
+                block_builder.add_statements(statements);
             }
             self.add_predecessor(location.block, target)?;
             Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
@@ -5604,6 +5649,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             };
                             assert!(self
                                 .specification_on_drop_unwind
+                                .insert(encoded_place, region_entry_block)
+                                .is_none());
+                            Ok(true)
+                        }
+                        "prusti_contracts::prusti_before_drop" => {
+                            let encoded_place = extract_place(self.mir, args, block, self)?;
+                            let Some(region_entry_block) = region_entry_block else {
+                                unreachable!()
+                            };
+                            assert!(self
+                                .specification_before_drop
+                                .insert(encoded_place, region_entry_block)
+                                .is_none());
+                            Ok(true)
+                        }
+                        "prusti_contracts::prusti_after_drop" => {
+                            let encoded_place = extract_place(self.mir, args, block, self)?;
+                            let Some(region_entry_block) = region_entry_block else {
+                                unreachable!()
+                            };
+                            assert!(self
+                                .specification_after_drop
                                 .insert(encoded_place, region_entry_block)
                                 .is_none());
                             Ok(true)
