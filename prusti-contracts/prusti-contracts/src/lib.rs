@@ -19,6 +19,9 @@ pub use prusti_contracts_proc_macros::panic_ensures;
 /// A macro for writing a structural postcondition on an unsafe function.
 pub use prusti_contracts_proc_macros::structural_ensures;
 
+/// A macro for writing a structural panic postcondition on an unsafe function.
+pub use prusti_contracts_proc_macros::structural_panic_ensures;
+
 /// A macro to indicate that the type invariant is not ensured by the function.
 /// FIXME: Remove
 pub use prusti_contracts_proc_macros::not_ensure;

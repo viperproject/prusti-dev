@@ -838,7 +838,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 preconditions.push(expression);
             }
         } else {
-            assert!(structural_preconditions.is_empty(), "TODO: A proper error message that structural preconditions allowed only in unsafe functions");
+            if !structural_preconditions.is_empty() {
+                return Err(SpannedEncodingError::incorrect(
+                    "structural preconditions allowed only on unsafe functions",
+                    self.mir.span,
+                ));
+            }
         }
         if include_functional {
             for (assertion, assertion_substs) in
@@ -852,11 +857,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.def_id,
                     assertion_substs,
                 )?;
-                assert!(
-                    expression.is_pure() || is_unsafe,
-                    "TODO: A proper error message that functional preconditions must be pure ({:?}): {expression}",
-                    procedure_contract.def_id,
-                );
+                if !expression.is_pure() {
+                    let span = self
+                        .encoder
+                        .error_manager()
+                        .position_manager()
+                        .get_span(expression.position().into())
+                        .cloned()
+                        .unwrap();
+                    return Err(SpannedEncodingError::incorrect(
+                        "only structural specifications can contain permissions",
+                        span,
+                    ));
+                }
                 preconditions.push(expression);
             }
         }
@@ -898,15 +911,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect();
         let structural_postconditions =
             procedure_contract.structural_postcondition(self.encoder.env(), call_substs);
-        // if mode.is_unsafe_function()
-        {
-            // Note: it is fine to have structural postconditions on both safe
-            // and unsafe functions. Only structural preconditions are not
-            // allowed on safe functions. Structural postconditions are useful
-            // for specifying that some additional property is preserved no
-            // matter how the function exits. Alternatively, the user would need
-            // to duplicate the specification in `#[ensures]` and
-            // `#[panic_ensures]`.
+        if mode.is_unsafe_function() {
             for (assertion, assertion_substs) in structural_postconditions {
                 let expression = self.encoder.encode_assertion_high(
                     assertion,
@@ -922,13 +927,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     expression,
                     &broken_invariants,
                 )?;
-                assert!(!expression.find(result), "TODO: A proper error message that structural postconditions must not contain the result ({:?}): {expression}", procedure_contract.def_id);
                 postconditions.push(expression);
             }
+        } else {
+            if !structural_postconditions.is_empty() {
+                return Err(SpannedEncodingError::incorrect(
+                    "structural postconditions allowed only on unsafe functions",
+                    self.mir.span,
+                ));
+            }
         }
-        //  else {
-        //     assert!(structural_postconditions.is_empty(), "TODO: A proper error message that structural postconditions allowed only in unsafe functions");
-        // }
         if mode.include_functional_ensures() {
             let postcondition_assertions =
                 procedure_contract.functional_postcondition(self.encoder.env(), call_substs);
@@ -953,7 +961,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     expression,
                     &broken_invariants,
                 )?;
-                if !(expression.is_pure() || mode.is_unsafe_function()) {
+                if !(expression.is_pure()) {
                     let span = self
                         .encoder
                         .error_manager()
@@ -962,7 +970,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .cloned()
                         .unwrap();
                     return Err(SpannedEncodingError::incorrect(
-                        "only unsafe functions can use permissions in their contracts",
+                        "only structural specifications can contain permissions",
                         span,
                     ));
                 }
@@ -1009,28 +1017,61 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &broken_invariants,
                 )?;
                 assert!(
-                    expression.is_pure() || mode.is_unsafe_function(),
+                    expression.is_pure(),
                     "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
                     procedure_contract.def_id,
                 );
                 postconditions.push(expression);
             }
         }
-        if mode.include_panic_ensures() {
-            let postcondition_assertions =
-                procedure_contract.panic_postcondition(self.encoder.env(), call_substs);
-            if mode.is_drop_implementation() {
-                assert!(
-                    postcondition_assertions.is_empty(),
-                    "TODO: implement support for panic postconditions on drop"
-                );
-                if !postconditions.is_empty() {
-                    // We have drop with postconditions, so make sure it does
-                    // not panic.
-                    postconditions.push(false.into());
+        assert!(!mode.include_panic_ensures());
+        Ok(postconditions)
+    }
+
+    /// * `is_unsafe` – whether the function is unsafe and can have structural postconditions.
+    /// * `include_functional` – whether to include functional postconditions.
+    fn encode_panic_postcondition_expressions(
+        &mut self,
+        procedure_contract: &ProcedureContractMirDef<'tcx>,
+        call_substs: SubstsRef<'tcx>,
+        mode: PostconditionMode,
+        arguments: Vec<vir_high::Expression>,
+        result: &vir_high::Expression,
+        precondition_label: &str,
+    ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
+        let broken_invariants =
+            self.encode_contract_broken_invariants(procedure_contract, call_substs)?;
+        let broken_invariant_mask =
+            self.encode_broken_invariant_argument_mask(procedure_contract, call_substs)?;
+        assert_eq!(arguments.len(), broken_invariant_mask.len());
+        let mut postconditions = Vec::new();
+        let arguments_in_old: Vec<_> = arguments
+            .into_iter()
+            .zip(broken_invariant_mask.into_iter())
+            .map(|(argument, is_broken_invariant)| {
+                if is_broken_invariant {
+                    argument
+                } else {
+                    let position = argument.position();
+                    vir_high::Expression::labelled_old(
+                        precondition_label.to_string(),
+                        argument,
+                        position,
+                    )
                 }
-            }
-            for (assertion, assertion_substs) in postcondition_assertions {
+            })
+            .collect();
+        let structural_postconditions =
+            procedure_contract.structural_panic_postcondition(self.encoder.env(), call_substs);
+        if mode.is_unsafe_function() {
+            // Note: it is fine to have structural postconditions on both safe
+            // and unsafe functions. Only structural preconditions are not
+            // allowed on safe functions. Structural postconditions are useful
+            // for specifying that some additional property is preserved no
+            // matter how the function exits. Alternatively, the user would need
+            // to duplicate the specification in `#[ensures]` and
+            // `#[panic_ensures]`.
+            for (assertion, assertion_substs) in structural_postconditions {
                 let expression = self.encoder.encode_assertion_high(
                     assertion,
                     Some(precondition_label),
@@ -1045,13 +1086,60 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     expression,
                     &broken_invariants,
                 )?;
-                assert!(
-                        expression.is_pure() || mode.is_unsafe_function(),
-                        "TODO: A proper error message that functional postconditions must be pure ({:?}): {expression}",
-                        procedure_contract.def_id,
-                    );
+                assert!(!expression.find(result), "TODO: A proper error message that structural panic postconditions must not contain the result ({:?}): {expression}", procedure_contract.def_id);
                 postconditions.push(expression);
             }
+        } else {
+            if !structural_postconditions.is_empty() {
+                return Err(SpannedEncodingError::incorrect(
+                    "structural panic postconditions allowed only on unsafe functions",
+                    self.mir.span,
+                ));
+            }
+        }
+        assert!(mode.include_panic_ensures());
+        let postcondition_assertions =
+            procedure_contract.panic_postcondition(self.encoder.env(), call_substs);
+        if mode.is_drop_implementation() {
+            assert!(
+                postcondition_assertions.is_empty(),
+                "TODO: implement support for panic postconditions on drop"
+            );
+            if !postconditions.is_empty() {
+                // We have drop with postconditions, so make sure it does
+                // not panic.
+                postconditions.push(false.into());
+            }
+        }
+        for (assertion, assertion_substs) in postcondition_assertions {
+            let expression = self.encoder.encode_assertion_high(
+                assertion,
+                Some(precondition_label),
+                &arguments_in_old,
+                Some(result),
+                self.def_id,
+                assertion_substs,
+            )?;
+            let expression = self.desugar_pledges_in_postcondition(
+                precondition_label,
+                result,
+                expression,
+                &broken_invariants,
+            )?;
+            if !(expression.is_pure()) {
+                let span = self
+                    .encoder
+                    .error_manager()
+                    .position_manager()
+                    .get_span(expression.position().into())
+                    .cloned()
+                    .unwrap();
+                return Err(SpannedEncodingError::incorrect(
+                    "only structural specifications can contain permissions",
+                    span,
+                ));
+            }
+            postconditions.push(expression);
         }
         Ok(postconditions)
     }
@@ -1197,7 +1285,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?;
         postconditions.push(exhale_statement);
         let mut panic_postcondition_conjuncts = Vec::new();
-        for expression in self.encode_postcondition_expressions(
+        for expression in self.encode_panic_postcondition_expressions(
             &procedure_contract,
             substs,
             PostconditionMode::panic_exit_on_definition_side(
@@ -1673,7 +1761,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             &encoded_target_place,
             &old_label,
         )?;
-        let panic_postcondition_expressions = self.encode_postcondition_expressions(
+        let panic_postcondition_expressions = self.encode_panic_postcondition_expressions(
             &procedure_contract,
             call_substs,
             PostconditionMode::panic_exit_on_definition_side(
@@ -3738,14 +3826,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 post_call_block_builder.build();
 
                 if let Some(cleanup_block) = cleanup {
-                    let panic_postcondition_expressions = self.encode_postcondition_expressions(
-                        &procedure_contract,
-                        call_substs,
-                        PostconditionMode::panic_exit_on_call_side(is_unsafe, self.check_mode),
-                        arguments.clone(),
-                        &encoded_target_place,
-                        &old_label,
-                    )?;
+                    let panic_postcondition_expressions = self
+                        .encode_panic_postcondition_expressions(
+                            &procedure_contract,
+                            call_substs,
+                            PostconditionMode::panic_exit_on_call_side(is_unsafe, self.check_mode),
+                            arguments.clone(),
+                            &encoded_target_place,
+                            &old_label,
+                        )?;
                     let fresh_cleanup_label = self.encode_function_call_cleanup_block(
                         *cleanup_block,
                         block_builder,
@@ -3774,7 +3863,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 unimplemented!();
             }
         } else if let Some(cleanup_block) = cleanup {
-            let panic_postcondition_expressions = self.encode_postcondition_expressions(
+            let panic_postcondition_expressions = self.encode_panic_postcondition_expressions(
                 &procedure_contract,
                 call_substs,
                 PostconditionMode::panic_exit_on_call_side(is_unsafe, self.check_mode),

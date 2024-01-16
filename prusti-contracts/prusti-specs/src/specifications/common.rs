@@ -59,6 +59,7 @@ pub enum SpecIdRef {
     Postcondition(SpecificationId),
     PanicPostcondition(SpecificationId),
     StructuralPostcondition(SpecificationId),
+    StructuralPanicPostcondition(SpecificationId),
     BrokenPrecondition(SpecificationId),
     BrokenPostcondition(SpecificationId),
     Purity(SpecificationId),
