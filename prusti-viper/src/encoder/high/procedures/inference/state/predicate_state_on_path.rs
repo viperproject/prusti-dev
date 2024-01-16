@@ -628,4 +628,8 @@ impl PredicateStateOnPath {
     pub(in super::super) fn blocked_equal(&self, other: &Self) -> bool {
         self.blocked == other.blocked
     }
+
+    pub(in super::super) fn raw_blocked_equal(&self, other: &Self) -> bool {
+        self.raw_blocked == other.raw_blocked
+    }
 }
