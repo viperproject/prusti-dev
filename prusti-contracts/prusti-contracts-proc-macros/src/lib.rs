@@ -55,6 +55,12 @@ pub fn panic_ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
+pub fn structural_panic_ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
 pub fn structural_ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
@@ -473,6 +479,17 @@ pub fn panic_ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn structural_ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     rewrite_prusti_attributes(
         SpecAttributeKind::StructuralEnsures,
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn structural_panic_ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(
+        SpecAttributeKind::StructuralPanicEnsures,
         attr.into(),
         tokens.into(),
     )

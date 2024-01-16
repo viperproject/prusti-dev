@@ -26,6 +26,7 @@ pub enum SpecAttributeKind {
     StructuralRequires = 18,
     StructuralEnsures = 19,
     PanicEnsures = 20,
+    StructuralPanicEnsures = 21,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -38,6 +39,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "ensures" => Ok(SpecAttributeKind::Ensures),
             "panic_ensures" => Ok(SpecAttributeKind::PanicEnsures),
             "structural_ensures" => Ok(SpecAttributeKind::StructuralEnsures),
+            "structural_panic_ensures" => Ok(SpecAttributeKind::StructuralPanicEnsures),
             "after_expiry" => Ok(SpecAttributeKind::AfterExpiry),
             "assert_on_expiry" => Ok(SpecAttributeKind::AssertOnExpiry),
             "pure" => Ok(SpecAttributeKind::Pure),

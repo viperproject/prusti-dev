@@ -76,6 +76,7 @@ fn extract_prusti_attributes(
                     | SpecAttributeKind::Ensures
                     | SpecAttributeKind::PanicEnsures
                     | SpecAttributeKind::StructuralEnsures
+                    | SpecAttributeKind::StructuralPanicEnsures
                     | SpecAttributeKind::NotRequire
                     | SpecAttributeKind::NotEnsure
                     | SpecAttributeKind::AfterExpiry
@@ -179,6 +180,9 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::PanicEnsures => generate_for_panic_ensures(attr_tokens, item),
             SpecAttributeKind::StructuralEnsures => {
                 generate_for_structural_ensures(attr_tokens, item)
+            }
+            SpecAttributeKind::StructuralPanicEnsures => {
+                generate_for_structural_panic_ensures(attr_tokens, item)
             }
             SpecAttributeKind::NotRequire => generate_for_not_require(attr_tokens, item),
             SpecAttributeKind::NotEnsure => generate_for_not_ensure(attr_tokens, item),
@@ -310,6 +314,25 @@ fn generate_for_structural_ensures(
         vec![spec_item],
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::post_structural_spec_id_ref = #spec_id_str]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck the and later retrieve
+/// "structural_ensures" annotations.
+fn generate_for_structural_panic_ensures(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Postcondition, spec_id, attr, item)?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::post_structural_panic_spec_id_ref = #spec_id_str]
         }],
     ))
 }
@@ -1100,6 +1123,9 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::StructuralEnsures => {
                         unreachable!("structural ensures on type")
                     }
+                    SpecAttributeKind::StructuralPanicEnsures => {
+                        unreachable!("structural panic_ensures on type")
+                    }
                     SpecAttributeKind::AfterExpiry => unreachable!("after_expiry on type"),
                     SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
                     SpecAttributeKind::RefineSpec => unreachable!("refine_spec on type"),
@@ -1159,6 +1185,7 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::Ensures => unreachable!(),
             SpecAttributeKind::PanicEnsures => unreachable!(),
             SpecAttributeKind::StructuralEnsures => unreachable!(),
+            SpecAttributeKind::StructuralPanicEnsures => unreachable!(),
             SpecAttributeKind::AfterExpiry => unreachable!(),
             SpecAttributeKind::AssertOnExpiry => unreachable!(),
             SpecAttributeKind::Pure => unreachable!(),

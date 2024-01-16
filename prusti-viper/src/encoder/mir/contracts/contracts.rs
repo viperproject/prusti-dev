@@ -230,6 +230,14 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         // }
     }
 
+    pub fn structural_panic_postcondition<'a, 'tcx>(
+        &'a self,
+        env: &'a Environment<'tcx>,
+        substs: SubstsRef<'tcx>,
+    ) -> Vec<(DefId, SubstsRef<'tcx>)> {
+        self.specification(&self.specification.structural_panic_posts, env, substs)
+    }
+
     pub fn functional_termination_measure<'a, 'tcx>(
         &'a self,
         env: &'a Environment<'tcx>,
