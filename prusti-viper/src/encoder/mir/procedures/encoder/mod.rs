@@ -1181,7 +1181,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for expression in self.encode_precondition_expressions(
             &procedure_contract,
             substs,
-            self.is_unsafe_function,
+            self.is_unsafe_function || self.is_drop_impl,
             self.check_mode.check_specifications(),
             &arguments,
         )? {
