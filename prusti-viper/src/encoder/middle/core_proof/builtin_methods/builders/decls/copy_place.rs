@@ -5,6 +5,7 @@ use super::{
 use crate::encoder::{
     errors::{BuiltinMethodKind, SpannedEncodingResult},
     middle::core_proof::{
+        addresses::AddressesInterface,
         builtin_methods::{BuiltinMethodCallsInterface, BuiltinMethodsInterface, CallContext},
         lowerer::Lowerer,
         places::PlacesInterface,
@@ -176,10 +177,22 @@ impl<'l, 'p, 'v, 'tcx> CopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.source_place.clone().into(),
             self.inner.inner.position,
         )?;
+        let source_field_address = self.inner.inner.lowerer.encode_field_address(
+            self.inner.inner.ty,
+            field,
+            self.inner.source_address.clone().into(),
+            self.inner.inner.position,
+        )?;
         let target_field_place = self.inner.inner.lowerer.encode_field_place(
             self.inner.inner.ty,
             field,
             self.inner.target_place.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let target_field_address = self.inner.inner.lowerer.encode_field_address(
+            self.inner.inner.ty,
+            field,
+            self.inner.target_address.clone().into(),
             self.inner.inner.position,
         )?;
         let source_field_snapshot = self.inner.inner.lowerer.obtain_struct_field_snapshot(
@@ -194,9 +207,9 @@ impl<'l, 'p, 'v, 'tcx> CopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             &field.ty,
             self.inner.inner.position,
             target_field_place,
-            self.inner.target_address.clone().into(),
+            target_field_address,
             source_field_place,
-            self.inner.source_address.clone().into(),
+            source_field_address,
             source_field_snapshot,
             self.source_permission_amount.clone().into(),
         )?;
