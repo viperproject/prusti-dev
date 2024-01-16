@@ -72,6 +72,7 @@ pub(super) fn wrap_in_eval_using(
                     state.owned_equal(first_state)
                         && state.memory_block_stack_equal(first_state)
                         && state.blocked_equal(first_state)
+                        && state.raw_blocked_equal(first_state)
                 }) {
                     collect_framing_places_from_a_state(
                         context,
@@ -82,7 +83,24 @@ pub(super) fn wrap_in_eval_using(
                         expression.position(),
                     )?;
                 } else {
-                    unimplemented!("Conditional predicate state: {predicates_state}");
+                    // FIXME: For now pick the first one that works.
+                    let mut found = false;
+                    for state in states.values() {
+                        if collect_framing_places_from_a_state(
+                            context,
+                            state,
+                            &accessed_place,
+                            &mut framing_places,
+                            &mut context_kinds,
+                            expression.position(),
+                        ).is_ok() {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if !found {
+                        unimplemented!("Conditional predicate state: {predicates_state}");
+                    }
                 }
             }
         }
@@ -138,7 +156,7 @@ fn collect_framing_places_from_a_state(
         }
     } else if let Some(_) = state.find_prefix(PermissionKind::MemoryBlock, accessed_place) {
         let span = context.get_span(position.into()).unwrap();
-        error_internal!(span => "found an uninitialized place in specification: {accessed_place}");
+        error_internal!(span => format!("found an uninitialized place in specification: {accessed_place}"));
     } else if state.contains_blocked(accessed_place)?.is_some() {
         let span = context.get_span(position.into()).unwrap();
         error_incorrect!(span => "cannot use specifications to trigger unblocking of a blocked place");

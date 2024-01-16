@@ -3248,15 +3248,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.add_specification_before_terminator
             .insert(target, close_ref_statements.clone());
 
-        let argument = vir_high::Operand::new(vir_high::OperandKind::Move, place);
-        let statement = self.encoder.set_statement_error_ctxt(
-            vir_high::Statement::consume_no_pos(argument),
-            span,
-            ErrorCtxt::DropCall,
-            self.def_id,
-        )?;
-        statement.check_no_default_position();
-        block_builder.add_statement(statement);
         if let Some((preconditions, _)) = &mut contracts {
             block_builder.add_statement(self.encoder.set_statement_error_ctxt(
                 vir_high::Statement::old_label_no_pos(old_label.clone()),
@@ -3285,6 +3276,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
             block_builder.add_statement(exhale_statement);
         }
+        let argument = vir_high::Operand::new(vir_high::OperandKind::Move, place);
+        let statement = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::consume_no_pos(argument),
+            span,
+            ErrorCtxt::DropCall,
+            self.def_id,
+        )?;
+        statement.check_no_default_position();
+        block_builder.add_statement(statement);
         if unwind.is_some() && contracts.is_none() {
             // If we have a contract, then we assume that the drop will not panic.
             let Some(unwind_block) = unwind else {
