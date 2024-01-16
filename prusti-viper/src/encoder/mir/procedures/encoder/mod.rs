@@ -3565,8 +3565,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             &arguments,
         )?;
         // let has_no_precondition = precondition_expressions.is_empty();
-        let is_precondition_checked =
-            self.check_mode.check_specifications() || is_unsafe || is_checked; // || has_no_precondition;
+        let is_precondition_checked = self.check_mode.check_specifications() || is_checked; // || has_no_precondition;
         let mut precondition_conjuncts = Vec::new();
         for expression in precondition_expressions {
             if let Some(expression) = self.convert_expression_to_check_mode_call_site(
