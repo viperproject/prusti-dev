@@ -104,6 +104,7 @@ lazy_static::lazy_static! {
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("smt_use_nonlinear_arithmetic_solver", false).unwrap();
+        settings.set_default("define_multiply_int", false).unwrap();
         settings.set_default("use_more_complete_exhale", false).unwrap();
         settings.set_default("use_carbon_qps", true).unwrap();
         settings.set_default("use_z3_api", false).unwrap();
@@ -535,6 +536,11 @@ pub fn smt_qi_eager_threshold() -> u64 {
 /// `smt.arith.nl` and `smt.arith.nl.gb` values to the given one.
 pub fn smt_use_nonlinear_arithmetic_solver() -> bool {
     read_setting("smt_use_nonlinear_arithmetic_solver")
+}
+
+/// Define `multiply_int` as a multiplication.
+pub fn define_multiply_int() -> bool {
+    read_setting("define_multiply_int")
 }
 
 /// Maximum time (in milliseconds) for the verifier to spend on checks.
