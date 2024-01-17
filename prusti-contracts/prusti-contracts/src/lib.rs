@@ -744,6 +744,9 @@ pub fn prusti_quantified_predicate<T>(_arg: T) {
 
 #[doc(hidden)]
 #[trusted]
+#[no_panic]
+#[no_panic_ensures_postcondition]
+#[ensures(allocation_never_fails())]
 pub fn prusti_assume_allocation_never_fails() {
     unreachable!();
 }
