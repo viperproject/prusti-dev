@@ -906,6 +906,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((MemoryBlockBytes, vir_high::Type::MBytes))
             }
+            "prusti_contracts::prusti_bytes_ptr" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((MemoryBlockBytesPtr, vir_high::Type::MBytes))
+            }
             "prusti_contracts::read_byte" => {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((ReadByte, vir_high::Type::MByte))

@@ -293,6 +293,7 @@ pub enum BuiltinFunc {
     ReadByte,
     /// Retrieve the bytes of a memory block.
     MemoryBlockBytes,
+    MemoryBlockBytesPtr,
     /// Dereference a raw pointer at a given index.
     DerefOwn,
     /// Cast `*mut T` to `*const T`.
