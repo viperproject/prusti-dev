@@ -65,9 +65,9 @@ pub(in super::super::super::super::super) struct SelfFramingAssertionToSnapshot 
     predicate_kind: PredicateKind,
     /// Keeps track of types for which we need to encode predicates.
     created_predicate_types: Vec<vir_mid::Type>,
-    /// Mapping from place to snapshot. We use a vector because we need to know
+    /// Mapping from (label, place) to snapshot. We use a vector because we need to know
     /// the insertion order.
-    snap_calls: Vec<(vir_mid::Expression, vir_low::Expression)>,
+    snap_calls: Vec<(Option<String>, vir_mid::Expression, vir_low::Expression)>,
     /// Mapping from the start of owned range to information needed to compute
     /// the snapshot of an element. We use a vector because we need to know the
     /// insertion order.
@@ -471,8 +471,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
         expression: &vir_mid::Expression,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        for (place, call) in &self.snap_calls {
-            if place == expression {
+        for (label, place, call) in &self.snap_calls {
+            if label == &self.old_label && place == expression {
                 return self.ensure_bool_expression(
                     lowerer,
                     expression.get_type(),
@@ -492,7 +492,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         if let Some(label) = &self.old_label {
-            for (place, call) in &self.snap_calls {
+            for (snap_label, place, call) in &self.snap_calls {
+                // FIXME: snap_label should probably used here somehow.
                 if let vir_mid::Expression::LabelledOld(vir_mid::LabelledOld {
                     label: old_label,
                     base: box vir_mid::Expression::Local(predicate_local),
@@ -712,7 +713,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 let snap_call =
                     self.snap_call(lowerer, ty, place, address, predicate.place.position())?;
                 self.maybe_store_snap_call(lowerer, &predicate.place, &snap_call)?;
-                self.snap_calls.push((predicate.place.clone(), snap_call));
+                self.snap_calls.push((None, predicate.place.clone(), snap_call));
                 acc
             }
             vir_mid::Predicate::OwnedRange(predicate) => {
@@ -769,7 +770,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 let snap_call =
                     self.snap_call(lowerer, ty, place, address, predicate.place.position())?;
                 self.maybe_store_snap_call(lowerer, &predicate.place, &snap_call)?;
-                self.snap_calls.push((predicate.place.clone(), snap_call));
+                self.snap_calls.push((None, predicate.place.clone(), snap_call));
                 acc
             }
             vir_mid::Predicate::UniqueRefRange(predicate) => {
@@ -1045,7 +1046,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 }
                 _ => unimplemented!("{type_decl}"),
             };
-            self.snap_calls.push((place.clone(), constructor_call));
+            self.snap_calls.push((None, place.clone(), constructor_call));
             let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
             self.snap_calls.pop();
             return Ok(result);
@@ -1151,7 +1152,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                         predicate.place.position(),
                     )
                 }
-                self.snap_calls.push((predicate.place.clone(), snap_call));
+                self.snap_calls.push((old_label.cloned(), predicate.place.clone(), snap_call));
                 let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
                 self.snap_calls.pop();
                 result
