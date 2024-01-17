@@ -1055,12 +1055,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
         //     unimplemented!("A proper error message that this must be a predicate: {}", eval_in.context);
         // };
         let (predicate, old_label) = match &*eval_in.context {
-            vir_mid::Expression::AccPredicate(predicate) => (predicate, None),
+            vir_mid::Expression::AccPredicate(predicate) => (predicate, self.old_label.clone()),
             vir_mid::Expression::LabelledOld(vir_mid::LabelledOld {
                 label,
                 base: box vir_mid::Expression::AccPredicate(predicate),
                 ..
-            }) => (predicate, Some(label)),
+            }) => (predicate, Some(label.clone())),
             _ => unimplemented!(
                 "A proper error message that this must be a predicate: {}",
                 eval_in.context
@@ -1145,14 +1145,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                     // purified.
                     func_app.context = vir_low::FuncAppContext::QuantifiedPermission;
                 }
-                if let Some(old_label) = old_label {
+                if let Some(old_label) = &old_label {
                     snap_call = vir_low::Expression::labelled_old(
                         Some(old_label.to_string()),
                         snap_call,
                         predicate.place.position(),
                     )
                 }
-                self.snap_calls.push((old_label.cloned(), predicate.place.clone(), snap_call));
+                self.snap_calls.push((old_label.clone(), predicate.place.clone(), snap_call));
                 let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
                 self.snap_calls.pop();
                 result
