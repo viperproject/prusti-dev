@@ -289,8 +289,7 @@ mod private {
     pub struct GhostDrop;
 
     impl Drop for GhostDrop {
-        fn drop(&mut self) {
-        }
+        fn drop(&mut self) {}
     }
 
     /// A type allowing to refer to a lifetime in places where Rust syntax does
@@ -531,8 +530,7 @@ mod private {
     pub struct GhostDrop;
 
     impl Drop for GhostDrop {
-        fn drop(&mut self) {
-        }
+        fn drop(&mut self) {}
     }
 
     /// A methematical type representing a machine byte.
@@ -958,6 +956,22 @@ pub fn prusti_bytes<T>(_address: T, _length: usize) -> Bytes {
 macro_rules! bytes {
     ($address:expr, $length:expr) => {
         $crate::prusti_bytes(unsafe { core::ptr::addr_of!($address) }, $length)
+    };
+}
+
+/// Obtain the bytes of the specified memory block.
+#[doc(hidden)]
+#[trusted]
+#[terminates]
+#[no_panic]
+pub fn prusti_bytes_ptr<T>(_pointer: *const T, _length: usize) -> Bytes {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! bytes_ptr {
+    ($pointer:expr, $length:expr) => {
+        $crate::prusti_bytes_ptr(unsafe { $pointer }, $length)
     };
 }
 

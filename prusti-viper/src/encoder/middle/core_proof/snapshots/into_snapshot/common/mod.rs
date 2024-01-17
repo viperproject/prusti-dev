@@ -1183,6 +1183,20 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                 let address = self.pointer_deref_into_address(lowerer, &app.arguments[0])?;
                 lowerer.encode_memory_block_bytes_expression(address, size)
             }
+            BuiltinFunc::MemoryBlockBytesPtr => {
+                // TODO: Should have been desugared into MemoryBlockBytes.
+                let pointer = &app.arguments[0];
+                let vir_mid::Type::Pointer(pointer_type) = pointer.get_type()  else {
+                    unreachable!("pointer.get_type() should be Pointer, got: {}", pointer.get_type());
+                };
+                let pointer_deref = pointer
+                    .clone()
+                    .deref((*pointer_type.target_type).clone(), app.position);
+                let size =
+                    self.expression_to_snapshot(lowerer, &app.arguments[1], expect_math_bool)?;
+                let address = self.pointer_deref_into_address(lowerer, &pointer_deref)?;
+                lowerer.encode_memory_block_bytes_expression(address, size)
+            }
             BuiltinFunc::DerefOwn => {
                 let mut args = construct_args(self, lowerer)?;
                 let pointer_type = app.arguments[0].get_type();

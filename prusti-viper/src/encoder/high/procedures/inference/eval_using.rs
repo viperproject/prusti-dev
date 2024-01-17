@@ -93,7 +93,9 @@ pub(super) fn wrap_in_eval_using(
                             &mut framing_places,
                             &mut context_kinds,
                             expression.position(),
-                        ).is_ok() {
+                        )
+                        .is_ok()
+                        {
                             found = true;
                             break;
                         }

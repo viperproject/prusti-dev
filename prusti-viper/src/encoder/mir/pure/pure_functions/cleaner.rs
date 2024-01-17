@@ -9,6 +9,7 @@ use vir_crate::{
     common::{expression::SyntacticEvaluation, position::Positioned},
     high::{
         self as vir_high,
+        operations::ty::Typed,
         visitors::{
             default_fallible_fold_acc_predicate, default_fallible_fold_binary_op,
             default_fallible_fold_builtin_func_app, default_fallible_fold_unfolding,
@@ -282,6 +283,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Cleaner<'p, 'v, 'tcx> {
             vir_high::BuiltinFunc::MemoryBlockBytes => {
                 let address = builtin_func_app.arguments[0].clone();
                 builtin_func_app.arguments[0] = peel_addr_of(address);
+            }
+            vir_high::BuiltinFunc::MemoryBlockBytesPtr => {
+                let pointer = builtin_func_app.arguments[0].clone();
+                let vir_high::Type::Pointer(pointer_type) = pointer.get_type()  else {
+                    unreachable!("pointer.get_type() should be Pointer, got: {}", pointer.get_type());
+                };
+                let target_type = (*pointer_type.target_type).clone();
+                let position = pointer.position();
+                let pointer_deref = pointer.deref(target_type, position);
+                builtin_func_app.function = vir_high::BuiltinFunc::MemoryBlockBytes;
+                builtin_func_app.arguments[0] = pointer_deref;
             }
             vir_high::BuiltinFunc::BuildingUniqueRefPredicateWithRealLifetime => {
                 let place = peel_addr_of(builtin_func_app.arguments.pop().unwrap());
