@@ -843,6 +843,19 @@ pub fn prusti_broken_invariant<T>(_place: T) -> bool {
     unreachable!();
 }
 
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_old_local<T>(_local: &T) -> T {
+    unreachable!();
+}
+
+#[macro_export]
+macro_rules! old_local {
+    ($local:expr) => {
+        $crate::prusti_old_local(unsafe { &$local })
+    };
+}
+
 /// Indicates that we have the `own` capability to the specified place.
 #[doc(hidden)]
 #[trusted]

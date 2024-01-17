@@ -955,6 +955,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 subst_with(encoded_rhs)
             }
+            "prusti_contracts::prusti_old_local" => {
+                assert_eq!(encoded_args.len(), 1);
+                let argument = encoded_args.last().cloned().unwrap();
+                let position = argument.position();
+                let vir_high::Type::Reference(reference_type) = argument.get_type() else {
+                    unreachable!("Expected a reference type; got: {:?}", argument.get_type());
+                };
+                let target_type = (*reference_type.target_type).clone();
+                let deref = argument.deref(target_type, position);
+                let encoded_rhs = vir_high::Expression::labelled_old(
+                    PRECONDITION_LABEL.to_string(),
+                    deref,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
             "prusti_contracts::prusti_eval_in" | "prusti_contracts::prusti_eval_in_quantified" => {
                 assert_eq!(encoded_args.len(), 2);
                 let predicate = encoded_args[0].clone();
