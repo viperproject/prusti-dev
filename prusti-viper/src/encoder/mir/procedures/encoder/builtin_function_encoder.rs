@@ -455,7 +455,6 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                         i -= 1;
                         let statement = &statements[i];
                         if let vir_high::Statement::MovePlace(assign) = statement {
-                            eprintln!("assign: {assign:?}");
                             assert_eq!(assign.target, original_place);
                             place = Some(assign.source.clone());
                             statements.remove(i);
