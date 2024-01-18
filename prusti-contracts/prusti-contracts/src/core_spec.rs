@@ -194,6 +194,18 @@ impl usize {
     #[pure]
     #[no_panic]
     #[no_panic_ensures_postcondition]
+    #[ensures(if Int::new_usize(0) <= Int::new_usize(self) - Int::new_usize(rhs) {
+        result == Some(self - rhs)
+    } else {
+        let none = None;
+        result == none
+    })]
+    fn checked_sub(self, rhs: usize) -> Option<usize>;
+
+    #[terminates]
+    #[pure]
+    #[no_panic]
+    #[no_panic_ensures_postcondition]
     #[ensures(self >= rhs ==> result == self - rhs)]
     fn wrapping_sub(self, rhs: usize) -> usize;
 
