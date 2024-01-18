@@ -523,37 +523,32 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                 let encoded_operand = self
                     .encode_operand_high(mir, operand, span)
                     .with_span(span)?;
-                if prusti_common::config::check_overflows() {
-                    // // Check the cast
-                    // // FIXME: Should use a high function.
-                    // let function_name = self
-                    //     .encode_cast_function_use(src_ty, dst_ty)
-                    //     .with_span(span)?;
-                    let position =
-                        self.error_manager()
-                            .register_error(span, ErrorCtxt::TypeCast, def_id);
-                    // let call = vir_high::Expression::function_call(
-                    //     function_name,
-                    //     vec![], // FIXME: This is probably wrong.
-                    //     vec![encoded_operand],
-                    //     destination_type,
-                    // )
-                    // .set_default_position(position.into());
-                    let source_type = self.encode_type_high(src_ty)?;
-                    let call = vir_high::Expression::builtin_func_app(
-                        vir_high::BuiltinFunc::CastIntToInt,
-                        vec![source_type, destination_type.clone()],
-                        vec![encoded_operand],
-                        destination_type,
-                        position.into(),
-                    );
-                    return Ok(call);
-                } else {
-                    unimplemented!("Not checking overflows is currently not supported.");
-                    // // Don't check the cast
-                    // encoded_operand.set_type(destination_type);
-                    // encoded_operand
-                }
+                // if prusti_common::config::check_overflows() { // TODO: Not checking casts is handled in into_low layer.
+                // // Check the cast
+                // // FIXME: Should use a high function.
+                // let function_name = self
+                //     .encode_cast_function_use(src_ty, dst_ty)
+                //     .with_span(span)?;
+                let position =
+                    self.error_manager()
+                        .register_error(span, ErrorCtxt::TypeCast, def_id);
+                // let call = vir_high::Expression::function_call(
+                //     function_name,
+                //     vec![], // FIXME: This is probably wrong.
+                //     vec![encoded_operand],
+                //     destination_type,
+                // )
+                // .set_default_position(position.into());
+                let source_type = self.encode_type_high(src_ty)?;
+                let call = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::CastIntToInt,
+                    vec![source_type, destination_type.clone()],
+                    vec![encoded_operand],
+                    destination_type,
+                    position.into(),
+                );
+                return Ok(call);
+                // }
             }
 
             _ => {

@@ -253,6 +253,8 @@ pub enum ErrorCtxt {
     IllegalUnfoldUniqueRef,
     // /// Permission error when dereferencing a raw pointer.
     // EnsureOwnedPredicate,
+    /// An error when calling std::mem::forget.
+    MemForget,
 }
 
 /// The error manager

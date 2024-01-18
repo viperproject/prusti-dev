@@ -189,6 +189,9 @@ impl<'a> BasicBlockBuilder<'a> {
             successor: SuccessorBuilder::Undefined,
         }
     }
+    pub fn borrow_statements_hack(&mut self) -> &mut Vec<vir_high::Statement> {
+        &mut self.statements
+    }
 }
 
 impl SuccessorBuilder {

@@ -5,6 +5,7 @@ use crate::encoder::{
         snapshots::{IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface},
     },
 };
+use prusti_common::config;
 use vir_crate::{
     common::{expression::QuantifierHelpers, identifier::WithIdentifier},
     low as vir_low, middle as vir_mid,
@@ -57,8 +58,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> CastsInterface for Lowerer<'p, 'v, 'tcx> {
                 parameter_int,
                 Default::default(),
             )?;
-            let validity =
-                self.encode_snapshot_valid_call_for_type(parameter_dst.clone(), destination_type)?;
+            let validity = if config::check_overflows() {
+                self.encode_snapshot_valid_call_for_type(parameter_dst.clone(), destination_type)?
+            } else {
+                true.into()
+            };
             let body = vir_low::Expression::forall(
                 vec![parameter],
                 vec![vir_low::Trigger::new(vec![call.clone()])],
