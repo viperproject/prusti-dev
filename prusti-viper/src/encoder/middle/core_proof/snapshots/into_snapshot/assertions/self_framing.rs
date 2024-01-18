@@ -713,7 +713,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 let snap_call =
                     self.snap_call(lowerer, ty, place, address, predicate.place.position())?;
                 self.maybe_store_snap_call(lowerer, &predicate.place, &snap_call)?;
-                self.snap_calls.push((None, predicate.place.clone(), snap_call));
+                self.snap_calls
+                    .push((None, predicate.place.clone(), snap_call));
                 acc
             }
             vir_mid::Predicate::OwnedRange(predicate) => {
@@ -770,7 +771,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 let snap_call =
                     self.snap_call(lowerer, ty, place, address, predicate.place.position())?;
                 self.maybe_store_snap_call(lowerer, &predicate.place, &snap_call)?;
-                self.snap_calls.push((None, predicate.place.clone(), snap_call));
+                self.snap_calls
+                    .push((None, predicate.place.clone(), snap_call));
                 acc
             }
             vir_mid::Predicate::UniqueRefRange(predicate) => {
@@ -1046,7 +1048,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 }
                 _ => unimplemented!("{type_decl}"),
             };
-            self.snap_calls.push((None, place.clone(), constructor_call));
+            self.snap_calls
+                .push((None, place.clone(), constructor_call));
             let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
             self.snap_calls.pop();
             return Ok(result);
@@ -1152,7 +1155,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                         predicate.place.position(),
                     )
                 }
-                self.snap_calls.push((old_label.clone(), predicate.place.clone(), snap_call));
+                self.snap_calls
+                    .push((old_label.clone(), predicate.place.clone(), snap_call));
                 let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
                 self.snap_calls.pop();
                 result
