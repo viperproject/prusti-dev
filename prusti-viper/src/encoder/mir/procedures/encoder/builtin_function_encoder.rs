@@ -436,52 +436,72 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 assert_eq!(args.len(), 1);
                 let operand = &args[0];
                 let mir_place = match operand {
-                    mir::Operand::Move(place) => {
-                        *place
-                    }
+                    mir::Operand::Move(place) => *place,
                     mir::Operand::Copy(_) => {
                         unimplemented!("operand {operand:?} is copy");
                     }
                     mir::Operand::Constant(_) => unimplemented!("operand {operand:?} is constant"),
                 };
-                let place = self.encoder
-                .encode_place_high(self.mir, mir_place, Some(span))?;
+                let original_place =
+                    self.encoder
+                        .encode_place_high(self.mir, mir_place, Some(span))?;
                 let mut deallocation = Vec::new(); // TODO: Clean-up.
-
+                let mut place = None;
                 {
-                    eprintln!("HACK: Removing move assignment before mem::forget");
                     // FIXME: This deletes the move assignment that causes the fold before mem::forget.
                     let statements = block_builder.borrow_statements_hack();
                     let mut i = statements.len();
                     while i > 0 {
                         i -= 1;
                         let statement = &statements[i];
-                        eprintln!("statement: {statement:?}");
-                        if let vir_high::Statement::Assign(assign) = statement {
+                        if let vir_high::Statement::MovePlace(assign) = statement {
                             eprintln!("assign: {assign:?}");
-                            unimplemented!("assign: {assign}");
+                            assert_eq!(assign.target, original_place);
+                            place = Some(assign.source.clone());
                             statements.remove(i);
                             break;
                         }
                     }
-                    eprintln!("HACK-END: Removing move assignment before mem::forget");
                 }
-                
+                let place = place.unwrap();
+
                 let position = self
                     .encoder
                     .error_manager()
                     .register_error(span, ErrorCtxt::MemForget, self.def_id)
                     .into();
-                self.add_drop_impl_deallocation_statements(&mut deallocation, position, place)?;
+                self.add_drop_impl_deallocation_statements(
+                    &mut deallocation,
+                    position,
+                    place.clone(),
+                )?;
                 let local = mir_place.as_local().unwrap();
                 let memory_block = self
                     .encoder
                     .encode_memory_block_for_local(self.mir, local)?;
-                let alloc_statement = vir_high::Statement::inhale_predicate_no_pos(
-                    memory_block,
-                );
+                let mut original_memory_block = memory_block.clone();
+                let vir_high::Predicate::MemoryBlockStack(original_memory_block_ref) = &mut original_memory_block else {
+                    unreachable!()
+                };
+                assert!(place.is_local(), "unimplemented!");
+                original_memory_block_ref.place = place;
+                let dealloc_statement =
+                    vir_high::Statement::exhale_predicate_no_pos(memory_block.clone());
+                deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
+                    dealloc_statement,
+                    position,
+                    ErrorCtxt::MemForget,
+                )?);
+                let alloc_statement = vir_high::Statement::inhale_predicate_no_pos(memory_block);
                 deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
                     alloc_statement,
+                    position,
+                    ErrorCtxt::MemForget,
+                )?);
+                let alloc_statement_original =
+                    vir_high::Statement::inhale_predicate_no_pos(original_memory_block);
+                deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
+                    alloc_statement_original,
                     position,
                     ErrorCtxt::MemForget,
                 )?);
@@ -523,8 +543,10 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                         .encoder
                         .get_local_type(encoder.mir, target_place_local)?,
                 )?;
-                let target_memory_block =
-                    vir_high::Predicate::memory_block_stack_no_pos(encoded_target_place.clone(), size);
+                let target_memory_block = vir_high::Predicate::memory_block_stack_no_pos(
+                    encoded_target_place.clone(),
+                    size,
+                );
                 block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
                     vir_high::Statement::exhale_predicate_no_pos(target_memory_block),
                     span,
@@ -544,12 +566,12 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 //     .encoder
                 //     .encode_generic_arguments_high(called_def_id, call_substs)
                 //     .with_span(span)?;
-    
+
                 // let encoded_arg_expressions =
                 //     encoded_args.into_iter().map(|arg| arg.expression).collect();
-    
+
                 // let target_type = encoded_target_place.get_type().clone();
-    
+
                 // let expression = vir_high::Expression::equals(
                 //     encoded_target_place,
                 //     rhs_gen(type_arguments, encoded_arg_expressions, target_type),
