@@ -474,6 +474,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     position,
                     place.clone(),
                 )?;
+                let is_zst = deallocation.len() == 0;
                 let local = mir_place.as_local().unwrap();
                 let memory_block = self
                     .encoder
@@ -497,6 +498,15 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     position,
                     ErrorCtxt::MemForget,
                 )?);
+                if is_zst {
+                    let dealloc_statement_original =
+                        vir_high::Statement::exhale_predicate_no_pos(original_memory_block.clone());
+                    deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
+                        dealloc_statement_original,
+                        position,
+                        ErrorCtxt::MemForget,
+                    )?);
+                }
                 let alloc_statement_original =
                     vir_high::Statement::inhale_predicate_no_pos(original_memory_block);
                 deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
