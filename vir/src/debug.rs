@@ -139,7 +139,7 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::AccField(e) => e.fmt(f),
             Self::BinOp(e) => e.fmt(f),
             Self::Const(e) => e.fmt(f),
-            Self::Result => write!(f, "result"),
+            Self::Result(_) => write!(f, "result"),
             Self::Field(e, field) => write!(f, "{:?}.{}", e, field.name),
             Self::Forall(e) => e.fmt(f),
             Self::FuncApp(e) => e.fmt(f),
@@ -178,15 +178,9 @@ impl<'vir, Curr, Next> Debug for ForallGenData<'vir, Curr, Next> {
 
 impl<'vir, Curr, Next> Debug for FuncAppGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if self.result_ty.is_some() {
-            write!(f, "(")?;
-        }
         write!(f, "{}(", self.target)?;
         fmt_comma_sep(f, &self.args)?;
         write!(f, ")")?;
-        if let Some(rt) = self.result_ty {
-            write!(f, ": {rt:?})")?;
-        }
         Ok(())
     }
 }
@@ -379,6 +373,7 @@ impl<'vir> Debug for TypeData<'vir> {
             }
             Self::Ref => write!(f, "Ref"),
             Self::Perm => write!(f, "Perm"),
+            Self::Predicate => write!(f, "Predicate"),
             Self::Unsupported(u) => u.fmt(f)
         }
     }

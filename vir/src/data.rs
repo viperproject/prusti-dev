@@ -1,7 +1,9 @@
 use std::fmt::Debug;
 
 use prusti_rustc_interface::middle::mir;
-use crate::{refs::*, UnaryArity};
+use crate::{refs::*, FunctionIdent, UnknownArity, callable_idents::CallableIdent};
+use std::collections::HashMap;
+
 
 pub struct LocalData<'vir> {
     pub name: &'vir str, // TODO: identifiers
@@ -88,26 +90,38 @@ pub enum ConstData {
     Null,
 }
 
+impl ConstData {
+    pub fn ty(&self) -> Type<'static> {
+        match self {
+            ConstData::Bool(_) => &TypeData::Bool,
+            ConstData::Int(_) => &TypeData::Int,
+            ConstData::Wildcard => &TypeData::Perm,
+            ConstData::Null => &TypeData::Ref
+        }
+    }
+}
+
+#[derive(PartialEq, Eq)]
 pub enum TypeData<'vir> {
-    Int {
-        bit_width: u8,
-        signed: bool,
-    },
+    Int,
     Bool,
     DomainTypeParam(DomainParamData<'vir>), // TODO: identifiers
     Domain(&'vir str, &'vir [Type<'vir>]), // TODO: identifiers
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
     Perm,
+    Predicate, // The type of a predicate application
     Unsupported(UnsupportedType<'vir>)
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct UnsupportedType<'vir> {
     pub name: &'vir str,
 }
 
-#[derive(Clone, Copy, Debug)]
+pub type TySubsts<'vir> = HashMap<&'vir str, Type<'vir>>;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DomainParamData<'vir> {
     pub name: &'vir str, // TODO: identifiers
 }
@@ -122,6 +136,12 @@ pub struct DomainFunctionData<'vir> {
     pub(crate) name: &'vir str, // TODO: identifiers
     pub(crate) args: &'vir [Type<'vir>],
     pub(crate) ret: Type<'vir>,
+}
+
+impl <'vir> DomainFunctionData<'vir> {
+    pub fn ident(&self) -> FunctionIdent<'vir, UnknownArity<'vir>> {
+        FunctionIdent::new(self.name, UnknownArity::new(self.args), self.ret)
+    }
 }
 
 pub enum CfgBlockLabelData {
