@@ -19,6 +19,21 @@ pub struct BinOpGenData<'vir, Curr, Next> {
     pub(crate) rhs: ExprGen<'vir, Curr, Next>,
 }
 
+impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
+    pub fn ty(&self) -> Type<'vir> {
+        match self.kind {
+              BinOpKind::CmpEq
+            | BinOpKind::CmpNe
+            | BinOpKind::CmpGt
+            | BinOpKind::CmpLt
+            | BinOpKind::CmpGe
+            | BinOpKind::CmpLe => &TypeData::Bool,
+            BinOpKind::And | BinOpKind::Or => &TypeData::Bool,
+            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mod => self.lhs.ty(),
+        }
+    }
+}
+
 #[derive(Reify)]
 pub struct TernaryGenData<'vir, Curr, Next> {
     pub(crate) cond: ExprGen<'vir, Curr, Next>,
@@ -37,7 +52,7 @@ pub struct ForallGenData<'vir, Curr, Next> {
 pub struct FuncAppGenData<'vir, Curr, Next> {
     #[reify_copy] pub(crate) target: &'vir str, // TODO: identifiers
     pub(crate) args: &'vir [ExprGen<'vir, Curr, Next>],
-    #[reify_copy] pub(crate) result_ty: Option<Type<'vir>>,
+    #[reify_copy] pub(crate) result_ty: Type<'vir>,
 }
 
 #[derive(Reify)]
@@ -95,7 +110,8 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Old(ExprGen<'vir, Curr, Next>),
     //LabelledOld(Expr<'vir>, &'vir str),
     Const(Const<'vir>),
-    Result,
+    /// Result of a pure function
+    Result(Type<'vir>),
     // magic wand
     AccField(AccFieldGen<'vir, Curr, Next>),
     Unfolding(UnfoldingGen<'vir, Curr, Next>),
@@ -117,7 +133,34 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
 
     Todo(&'vir str),
 }
+
+impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
+    pub fn ty(&self) -> Type<'vir> {
+        match self {
+            ExprKindGenData::Local(l) => l.ty,
+            ExprKindGenData::Field(_, f) => f.ty,
+            ExprKindGenData::Old(e) => e.ty(),
+            ExprKindGenData::Const(c) => c.ty(),
+            ExprKindGenData::Result(ty) => ty,
+            ExprKindGenData::AccField(_) => &TypeData::Bool,
+            ExprKindGenData::Unfolding(f) => f.expr.ty(),
+            ExprKindGenData::UnOp(u) => u.expr.ty(),
+            ExprKindGenData::BinOp(b) => b.ty(),
+            ExprKindGenData::Ternary(t) => t.then.ty(),
+            ExprKindGenData::Forall(_) => &TypeData::Bool,
+            ExprKindGenData::Let(l) => l.expr.ty(),
+            ExprKindGenData::FuncApp(a) => a.result_ty,
+            ExprKindGenData::PredicateApp(_) => &TypeData::Predicate,
+            ExprKindGenData::Lazy(_, _) => panic!("cannot get type of lazy expression"),
+            ExprKindGenData::Todo(msg) => panic!("{msg}")
+        }
+    }
+}
+
 impl<'vir, Curr, Next> ExprGenData<'vir, Curr, Next> {
+    pub fn ty(&self) -> Type<'vir> {
+        self.kind.ty()
+    }
     pub fn lift<Prev>(&self) -> ExprGen<'vir, Prev, ExprKindGen<'vir, Curr, Next>> {
         match self.kind {
             ExprKindGenData::Lazy(..) => panic!("cannot lift lazy expression"),

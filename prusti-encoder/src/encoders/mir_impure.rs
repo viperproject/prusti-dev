@@ -344,7 +344,7 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
             }
         }
     }
-    
+
 
     fn fpcs_repacks_location(
         &mut self,
@@ -715,7 +715,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
             | mir::TerminatorKind::FalseEdge { real_target: target, .. }  => {
                 const REAL_TARGET_SUCC_IDX: usize = 0;
                 // Ensure that the terminator succ that we use for the repacks is the correct one
-                assert_eq!(&self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX].location.block, target);                
+                assert_eq!(&self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX].location.block, target);
                 self.fpcs_repacks_terminator(REAL_TARGET_SUCC_IDX, |rep| &rep.repacks_start);
 
                 self.vcx.mk_goto_stmt(
@@ -725,8 +725,9 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
             mir::TerminatorKind::SwitchInt { discr, targets } => {
                 //let discr_version = self.ssa_analysis.version.get(&(location, discr.local)).unwrap();
                 //let discr_name = vir::vir_format!(self.vcx, "_{}s_{}", discr.local.index(), discr_version);
+                let discr_ty_rs = discr.ty(self.local_decls, self.vcx.tcx);
                 let discr_ty = self.deps.require_ref::<PredicateEnc>(
-                    discr.ty(self.local_decls, self.vcx.tcx),
+                    discr_ty_rs
                 ).unwrap().expect_prim();
 
                 let goto_targets = self.vcx.alloc_slice(&targets.iter().enumerate()
@@ -735,11 +736,11 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
 
                         let extra_stmts = self.collect_terminator_repacks(idx, |rep| &rep.repacks_start);
                         (
-                            discr_ty.expr_from_bits(value),
+                            discr_ty.expr_from_bits(discr_ty_rs, value),
                             self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
                             self.vcx.alloc_slice(&extra_stmts),
                         )
-                
+
                     })
                     .collect::<Vec<_>>());
                 let goto_otherwise = self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(
@@ -789,8 +790,12 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
 
                     let func_args: Vec<_> = args.iter().map(|op| self.encode_operand_snap(op)).collect();
                     let pure_func_app = pure_func.function_ref.apply(self.vcx, &func_args);
+                    let return_ty = destination.ty(self.local_decls, self.vcx.tcx).ty;
+                    let method_assign = self.deps.require_ref::<PredicateEnc>(
+                        return_ty,
+                    ).unwrap().method_assign;
 
-                    self.stmt(self.vcx.alloc(pure_func.return_type.method_assign.apply(self.vcx, [dest, pure_func_app])));
+                    self.stmt(self.vcx.alloc(method_assign.apply(self.vcx, [dest, pure_func_app])));
                 } else {
                     let func_out = self.deps.require_ref::<MirImpureEnc>(
                         (task.0, task.1, Some(task.2)),

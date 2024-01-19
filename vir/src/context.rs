@@ -75,7 +75,7 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         target: &'vir str,
         src_args: &[ExprGen<'vir, Curr, Next>],
-        result_ty: Option<Type<'vir>>,
+        result_ty: Type<'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData {
             kind: self.alloc(ExprKindGenData::FuncApp(self.arena.alloc(FuncAppGenData {
@@ -257,8 +257,19 @@ impl<'tcx> VirCtxt<'tcx> {
     pub const fn mk_null<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
         &ExprGenData { kind : &ExprKindGenData::Const(&ConstData::Null) }
     }
-    pub const fn mk_result<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
-        &ExprGenData { kind : &ExprKindGenData::Result }
+    pub fn mk_result<'vir, Curr, Next>(&'vir self, ty: Type<'vir>) -> ExprGen<'vir, Curr, Next> {
+        self.alloc(ExprGenData { kind : self.alloc(ExprKindGenData::Result(ty)) })
+    }
+
+    pub fn apply_ty_substs<'vir>(&'vir self, ty: Type<'vir>, substs: &TySubsts<'vir>) -> Type<'vir> {
+        match ty {
+            TypeData::DomainTypeParam(p) => substs.get(p.name).unwrap_or(&ty),
+            TypeData::Domain(name, args) => {
+                let args = args.iter().map(|t| self.apply_ty_substs(t, substs)).collect::<Vec<_>>();
+                self.alloc(TypeData::Domain(name, &self.alloc(args)))
+            }
+            other => other
+        }
     }
 
     pub fn mk_field<'vir>(
@@ -488,16 +499,25 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    const fn get_int_data(ty: Type, rust_ty: &ty::TyKind) -> (u32, bool) {
-        assert!(matches!(rust_ty, ty::Int(_) | ty::Uint(_)));
-        let TypeData::Int { bit_width, signed } = *ty else {
-            unreachable!();
-        };
-        assert!(matches!(rust_ty, ty::Int(_)) == signed);
-        (bit_width as u32, signed)
+    const fn get_int_data(rust_ty: &ty::TyKind) -> (u32, bool) {
+        match rust_ty {
+            ty::Int(ty::IntTy::Isize) => ((std::mem::size_of::<isize>() * 8) as u32, true),
+            ty::Int(ty::IntTy::I8) => (8, true),
+            ty::Int(ty::IntTy::I16) => (16, true),
+            ty::Int(ty::IntTy::I32) => (32, true),
+            ty::Int(ty::IntTy::I64) => (64, true),
+            ty::Int(ty::IntTy::I128) => (128, true),
+            ty::Uint(ty::UintTy::Usize) => ((std::mem::size_of::<usize>() * 8) as u32, true),
+            ty::Uint(ty::UintTy::U8) => (8, false),
+            ty::Uint(ty::UintTy::U16) => (16, false),
+            ty::Uint(ty::UintTy::U32) => (32, false),
+            ty::Uint(ty::UintTy::U64) => (64, false),
+            ty::Uint(ty::UintTy::U128) => (128, false),
+            _ => unreachable!(),
+        }
     }
     pub const fn get_min_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (_, false) => self.mk_uint::<0>(),
             (i8::BITS, true) => self.mk_int::<{ i8::MIN as i128 }>(),
             (i16::BITS, true) => self.mk_int::<{ i16::MIN as i128 }>(),
@@ -508,7 +528,7 @@ impl<'tcx> VirCtxt<'tcx> {
         }
     }
     pub const fn get_max_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (u8::BITS, false) => self.mk_uint::<{ u8::MAX as u128 }>(),
             (u16::BITS, false) => self.mk_uint::<{ u16::MAX as u128 }>(),
             (u32::BITS, false) => self.mk_uint::<{ u32::MAX as u128 }>(),
@@ -523,7 +543,7 @@ impl<'tcx> VirCtxt<'tcx> {
         }
     }
     pub fn get_modulo_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (u8::BITS, _) => self.mk_uint::<{ 1_u128 << u8::BITS }>(),
             (u16::BITS, _) => self.mk_uint::<{ 1_u128 << u16::BITS }>(),
             (u32::BITS, _) => self.mk_uint::<{ 1_u128 << u32::BITS }>(),
@@ -541,7 +561,7 @@ impl<'tcx> VirCtxt<'tcx> {
         ty: Type,
         rust_ty: &ty::TyKind,
     ) -> Option<Expr<'vir>> {
-        let int = match Self::get_int_data(ty, rust_ty) {
+        let int = match Self::get_int_data(rust_ty) {
             (_, false) => return None,
             (u8::BITS, true) => self.mk_uint::<{ 1_u128 << (u8::BITS - 1) }>(),
             (u16::BITS, true) => self.mk_uint::<{ 1_u128 << (u16::BITS - 1) }>(),
@@ -553,7 +573,7 @@ impl<'tcx> VirCtxt<'tcx> {
         Some(int)
     }
     pub fn get_bit_width_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (u8::BITS, _) => self.mk_uint::<{ u8::BITS as u128 }>(),
             (u16::BITS, _) => self.mk_uint::<{ u16::BITS as u128 }>(),
             (u32::BITS, _) => self.mk_uint::<{ u32::BITS as u128 }>(),
