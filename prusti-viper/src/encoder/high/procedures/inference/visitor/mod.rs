@@ -9,18 +9,26 @@ use super::{
         PredicateStateOnPath,
     },
 };
-use crate::encoder::{
-    errors::SpannedEncodingResult,
-    high::procedures::inference::{
-        action::{Action, ConversionState, FoldingActionState, RestorationState, UnreachableState},
-        permission::PermissionKind,
-        semantics::collect_permission_changes,
+use crate::{
+    encoder::{
+        errors::{SpannedEncodingError, SpannedEncodingResult},
+        high::{
+            procedures::inference::{
+                action::{
+                    Action, ConversionState, FoldingActionState, RestorationState, UnreachableState,
+                },
+                permission::PermissionKind,
+                semantics::collect_permission_changes,
+            },
+            to_typed::types::HighToTypedTypeEncoderInterface,
+        },
+        Encoder,
     },
-    Encoder,
+    error_unsupported,
 };
 use log::debug;
 use prusti_common::config;
-use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::{errors::MultiSpan, hir::def_id::DefId};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::{btree_map::Entry, BTreeMap};
 use vir_crate::{
@@ -32,7 +40,10 @@ use vir_crate::{
             TypedToMiddleType,
         },
     },
-    typed::{self as vir_typed},
+    typed::{
+        self as vir_typed, ast::predicate::visitors::PredicateFallibleWalker,
+        visitors::ExpressionFallibleWalker,
+    },
 };
 
 mod context;
@@ -348,7 +359,9 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     self.get_permission_for_maybe_opened_place(state, &unpack_statement.place)?;
                 let place = unpack_statement
                     .place
+                    .clone()
                     .typed_to_middle_expression(self.encoder)?;
+                let mut additional_statements = Vec::new();
                 // let permission = unpack_statement
                 //     .permission
                 //     .map(|permission| permission.clone().typed_to_middle_expression(self.encoder))
@@ -366,6 +379,72 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                         //     unreachable!()
                         // };
                         // let lifetime = reference.lifetime.clone();
+                        if let vir_typed::TypeDecl::Struct(type_decl) =
+                            self.encoder.encode_type_def_typed(
+                                vir_typed::operations::ty::Typed::get_type(&unpack_statement.place),
+                            )?
+                        {
+                            if let Some(invariant) = type_decl.structural_invariant {
+                                struct Checker {
+                                    span: MultiSpan,
+                                };
+                                impl ExpressionFallibleWalker for Checker {
+                                    type Error = SpannedEncodingError;
+                                    fn fallible_walk_expression(
+                                        &mut self,
+                                        expression: &vir_typed::Expression,
+                                    ) -> SpannedEncodingResult<()>
+                                    {
+                                        if expression.is_place() {
+                                            if expression.is_behind_pointer_dereference() {
+                                                error_unsupported!(self.span.clone() => "Invariant cannot contain a place behind a dereference");
+                                            }
+                                            return Ok(());
+                                        } else {
+                                            vir_typed::visitors::default_fallible_walk_expression(
+                                                self, expression,
+                                            )
+                                        }
+                                    }
+                                }
+                                impl PredicateFallibleWalker for Checker {
+                                    type Error = SpannedEncodingError;
+                                    fn fallible_walk_expression(
+                                        &mut self,
+                                        expression: &vir_typed::Expression,
+                                    ) -> SpannedEncodingResult<()>
+                                    {
+                                        ExpressionFallibleWalker::fallible_walk_expression(
+                                            self, expression,
+                                        )
+                                    }
+                                }
+                                let span = self
+                                    .encoder
+                                    .error_manager()
+                                    .position_manager()
+                                    .get_span(position.into())
+                                    .cloned()
+                                    .unwrap();
+                                let mut checker = Checker { span };
+                                for expression in &invariant {
+                                    ExpressionFallibleWalker::fallible_walk_expression(
+                                        &mut checker,
+                                        expression,
+                                    )?;
+                                }
+                                for field in type_decl.fields {
+                                    let field = field.typed_to_middle_expression(self.encoder)?;
+                                    let field_place = place.clone().field(field, position);
+                                    additional_statements.push(vir_mid::Statement::dead_reference(
+                                        field_place,
+                                        None,
+                                        None,
+                                        position,
+                                    ));
+                                }
+                            }
+                        }
                         vir_mid::Statement::unfold_ref(
                             place,
                             predicate_kind.lifetime.typed_to_middle_type(self.encoder)?,
@@ -387,6 +466,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     }
                 };
                 self.current_statements.push(encoded_statement);
+                self.current_statements.extend(additional_statements);
             }
             vir_typed::Statement::Obtain(_) => {
                 // Nothing to do because the fold-unfold already handled it.
@@ -806,6 +886,28 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                                 position,
                             )
                         } else {
+                            let has_invariant = {
+                                if let vir_typed::TypeDecl::Struct(type_decl) =
+                                    self.encoder.encode_type_def_typed(
+                                        vir_typed::operations::ty::Typed::get_type(&place),
+                                    )?
+                                {
+                                    type_decl.structural_invariant.is_some()
+                                } else {
+                                    false
+                                }
+                            };
+                            if uniqueness.is_unique() && has_invariant {
+                                // TODO: Check that contains the type invariant.
+                                let span = self
+                                    .encoder
+                                    .error_manager()
+                                    .position_manager()
+                                    .get_span(position.into())
+                                    .cloned()
+                                    .unwrap();
+                                error_unsupported!(span => "cannot automatically unpack a unique reference of a type with invariant");
+                            }
                             vir_mid::Statement::unfold_ref(
                                 place.typed_to_middle_expression(self.encoder)?,
                                 lifetime.typed_to_middle_type(self.encoder)?,
