@@ -1642,6 +1642,15 @@ pub fn unpack_mut_ref(tokens: TokenStream) -> TokenStream {
     pack_unpack_ref(tokens, quote! {prusti_unpack_mut_ref_place})
 }
 
+pub fn pack_mut_ref_obligation(tokens: TokenStream) -> TokenStream {
+    // generate_place_function(tokens, quote! {prusti_pack_mut_ref_place})
+    pack_unpack_ref(tokens, quote! {prusti_pack_mut_ref_place_obligation})
+}
+
+pub fn unpack_mut_ref_obligation(tokens: TokenStream) -> TokenStream {
+    pack_unpack_ref(tokens, quote! {prusti_unpack_mut_ref_place_obligation})
+}
+
 fn pack_unpack_ref(tokens: TokenStream, function: TokenStream) -> TokenStream {
     // let (lifetime_name, reference) =
     //     handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));

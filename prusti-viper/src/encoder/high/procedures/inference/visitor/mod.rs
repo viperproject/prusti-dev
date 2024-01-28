@@ -328,6 +328,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 //     .transpose()?;
                 // let encoded_statement = vir_mid::Statement::fold_owned(place, None, position);
                 // FIXME: Code duplication.
+                let mut additional_statements = Vec::new();
                 let encoded_statement = match pack_statement.predicate_kind {
                     vir_typed::ast::statement::PredicateKind::Owned => {
                         vir_mid::Statement::fold_owned(place, None, permission, position)
@@ -340,6 +341,19 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                         //     unreachable!()
                         // };
                         // let lifetime = reference.lifetime.clone();
+                        if let Some(obligation) = pack_statement.with_obligation {
+                            // FIXME: This should be done at the lowering to low instead of here and with permission amount that is unknown like with open.
+                            let permission = obligation.typed_to_middle_expression(self.encoder)?;
+                            let lifetime = predicate_kind
+                                .lifetime
+                                .clone()
+                                .typed_to_middle_type(self.encoder)?;
+                            let lifetime_token =
+                                vir_mid::Predicate::lifetime_token(lifetime, permission, position);
+                            let inhale =
+                                vir_mid::Statement::inhale_predicate(lifetime_token, position);
+                            additional_statements.push(inhale);
+                        }
                         vir_mid::Statement::fold_ref(
                             place,
                             predicate_kind.lifetime.typed_to_middle_type(self.encoder)?,
@@ -351,6 +365,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     vir_typed::ast::statement::PredicateKind::FracRef(_) => todo!(),
                 };
                 self.current_statements.push(encoded_statement);
+                self.current_statements.extend(additional_statements);
             }
             vir_typed::Statement::Unpack(unpack_statement) => {
                 // state.insert_manually_managed(unpack_statement.place.clone())?;
@@ -385,63 +400,84 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                             )?
                         {
                             if let Some(invariant) = type_decl.structural_invariant {
-                                struct Checker {
-                                    span: MultiSpan,
-                                };
-                                impl ExpressionFallibleWalker for Checker {
-                                    type Error = SpannedEncodingError;
-                                    fn fallible_walk_expression(
-                                        &mut self,
-                                        expression: &vir_typed::Expression,
-                                    ) -> SpannedEncodingResult<()>
-                                    {
-                                        if expression.is_place() {
-                                            if expression.is_behind_pointer_dereference() {
-                                                error_unsupported!(self.span.clone() => "Invariant cannot contain a place behind a dereference");
+                                if let Some(obligation) = unpack_statement.with_obligation {
+                                    // FIXME: This should be done at the lowering to low instead of here and with permission amount that is unknown like with open.
+                                    let permission =
+                                        obligation.typed_to_middle_expression(self.encoder)?;
+                                    let lifetime = predicate_kind
+                                        .lifetime
+                                        .clone()
+                                        .typed_to_middle_type(self.encoder)?;
+                                    let lifetime_token = vir_mid::Predicate::lifetime_token(
+                                        lifetime, permission, position,
+                                    );
+                                    let exhale = vir_mid::Statement::exhale_predicate(
+                                        lifetime_token,
+                                        position,
+                                    );
+                                    additional_statements.push(exhale);
+                                } else {
+                                    struct Checker {
+                                        span: MultiSpan,
+                                    };
+                                    impl ExpressionFallibleWalker for Checker {
+                                        type Error = SpannedEncodingError;
+                                        fn fallible_walk_expression(
+                                            &mut self,
+                                            expression: &vir_typed::Expression,
+                                        ) -> SpannedEncodingResult<()>
+                                        {
+                                            if expression.is_place() {
+                                                if expression.is_behind_pointer_dereference() {
+                                                    error_unsupported!(self.span.clone() => "Invariant cannot contain a place behind a dereference");
+                                                }
+                                                return Ok(());
+                                            } else {
+                                                vir_typed::visitors::default_fallible_walk_expression(
+                                                self, expression,
+                                            )
                                             }
-                                            return Ok(());
-                                        } else {
-                                            vir_typed::visitors::default_fallible_walk_expression(
+                                        }
+                                    }
+                                    impl PredicateFallibleWalker for Checker {
+                                        type Error = SpannedEncodingError;
+                                        fn fallible_walk_expression(
+                                            &mut self,
+                                            expression: &vir_typed::Expression,
+                                        ) -> SpannedEncodingResult<()>
+                                        {
+                                            ExpressionFallibleWalker::fallible_walk_expression(
                                                 self, expression,
                                             )
                                         }
                                     }
-                                }
-                                impl PredicateFallibleWalker for Checker {
-                                    type Error = SpannedEncodingError;
-                                    fn fallible_walk_expression(
-                                        &mut self,
-                                        expression: &vir_typed::Expression,
-                                    ) -> SpannedEncodingResult<()>
-                                    {
+                                    let span = self
+                                        .encoder
+                                        .error_manager()
+                                        .position_manager()
+                                        .get_span(position.into())
+                                        .cloned()
+                                        .unwrap();
+                                    let mut checker = Checker { span };
+                                    for expression in &invariant {
                                         ExpressionFallibleWalker::fallible_walk_expression(
-                                            self, expression,
-                                        )
+                                            &mut checker,
+                                            expression,
+                                        )?;
                                     }
-                                }
-                                let span = self
-                                    .encoder
-                                    .error_manager()
-                                    .position_manager()
-                                    .get_span(position.into())
-                                    .cloned()
-                                    .unwrap();
-                                let mut checker = Checker { span };
-                                for expression in &invariant {
-                                    ExpressionFallibleWalker::fallible_walk_expression(
-                                        &mut checker,
-                                        expression,
-                                    )?;
-                                }
-                                for field in type_decl.fields {
-                                    let field = field.typed_to_middle_expression(self.encoder)?;
-                                    let field_place = place.clone().field(field, position);
-                                    additional_statements.push(vir_mid::Statement::dead_reference(
-                                        field_place,
-                                        None,
-                                        None,
-                                        position,
-                                    ));
+                                    for field in type_decl.fields {
+                                        let field =
+                                            field.typed_to_middle_expression(self.encoder)?;
+                                        let field_place = place.clone().field(field, position);
+                                        additional_statements.push(
+                                            vir_mid::Statement::dead_reference(
+                                                field_place,
+                                                None,
+                                                None,
+                                                position,
+                                            ),
+                                        );
+                                    }
                                 }
                             }
                         }

@@ -169,6 +169,12 @@ pub use prusti_contracts_proc_macros::pack_mut_ref;
 /// A macro to manually unpack a place capability.
 pub use prusti_contracts_proc_macros::unpack_mut_ref;
 
+/// A macro to manually pack a place capability.
+pub use prusti_contracts_proc_macros::pack_mut_ref_obligation;
+
+/// A macro to manually unpack a place capability.
+pub use prusti_contracts_proc_macros::unpack_mut_ref_obligation;
+
 /// A macro to obtain a lifetime of a place.
 pub use prusti_contracts_proc_macros::take_lifetime;
 
@@ -628,6 +634,18 @@ pub fn prusti_pack_mut_ref_place<T>(_lifetime_name: &'static str, _arg: T) {
 #[doc(hidden)]
 #[trusted]
 pub fn prusti_unpack_mut_ref_place<T>(_lifetime_name: &'static str, _arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_pack_mut_ref_place_obligation<T>(_lifetime_name: &'static str, _arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_unpack_mut_ref_place_obligation<T>(_lifetime_name: &'static str, _arg: T) {
     unreachable!();
 }
 

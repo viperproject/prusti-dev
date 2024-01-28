@@ -880,12 +880,18 @@ impl CollectPermissionChanges for vir_typed::Unpack {
         if self.place.is_behind_pointer_dereference() {
             consumed_permissions.push(Permission::Owned(self.place.clone()));
         } else {
-            eprintln!("Unpack: {}", self);
             let type_decl = encoder.encode_type_def_typed(self.place.get_type())?;
             if let vir_typed::TypeDecl::Struct(decl) = type_decl {
                 if decl.is_manually_managed_type() {
                     consumed_permissions.push(Permission::Owned(self.place.clone()));
-                    add_struct_expansion(&self.place, decl, produced_permissions);
+                    if !matches!(
+                        self.predicate_kind,
+                        vir_typed::ast::statement::PredicateKind::UniqueRef(_)
+                    ) || self.with_obligation.is_some()
+                    {
+                        // unique_mut_ref resolves fields of types with invariants.
+                        add_struct_expansion(&self.place, decl, produced_permissions);
+                    }
                 } else {
                     consumed_permissions.push(Permission::Owned(self.place.clone()));
                     add_struct_expansion(&self.place, decl, produced_permissions);

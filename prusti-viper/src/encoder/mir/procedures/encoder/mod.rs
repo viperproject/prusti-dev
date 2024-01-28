@@ -4344,10 +4344,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 unwind_statements.extend(finally_at_panic_start_statements.clone());
                 unwind_statements.extend(finally_at_resume_statements.clone());
                 // FIXME: Not using source is probably wrong.
-                assert!(self
+                let old_statements = self
                     .add_specification_before_terminator
-                    .insert(*target, unwind_statements)
-                    .is_none());
+                    .insert(*target, unwind_statements);
+                // FIXME: assert!(old_statements.is_none(), "old_statements: {:?}", old_statements);
             }
             let mut statements = finally_at_panic_start_statements;
             statements.extend(finally_at_resume_statements);
@@ -4830,6 +4830,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 vir_high::Statement::pack_no_pos(
                                     encoded_place,
                                     vir_high::PredicateKind::Owned,
+                                    None,
                                     // permission_amount,
                                 ),
                                 span,
@@ -4848,6 +4849,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 vir_high::Statement::unpack_no_pos(
                                     encoded_place,
                                     vir_high::PredicateKind::Owned,
+                                    None,
                                     // permission_amount,
                                 ),
                                 span,
@@ -4894,6 +4896,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 vir_high::Statement::pack_no_pos(
                                     place,
                                     vir_high::PredicateKind::frac_ref(lifetime),
+                                    None,
                                     // permission_amount,
                                 ),
                                 span,
@@ -4926,6 +4929,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 vir_high::Statement::unpack_no_pos(
                                     place,
                                     vir_high::PredicateKind::frac_ref(lifetime),
+                                    None,
                                     // permission_amount,
                                 ),
                                 span,
@@ -4936,7 +4940,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             encoded_statements.push(statement);
                             Ok(true)
                         }
-                        "prusti_contracts::prusti_pack_mut_ref_place" => {
+                        "prusti_contracts::prusti_pack_mut_ref_place"
+                        | "prusti_contracts::prusti_pack_mut_ref_place_obligation" => {
                             assert_eq!(args.len(), 2);
                             let mut encoded_args = extract_args(self.mir, args, block, self)?;
                             let ArgKind::Place(place) = encoded_args.pop().unwrap() else {
@@ -4954,10 +4959,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // let encoded_place = extract_place(self.mir, args, block, self)?;
                             // let permission_amount =
                             //     self.lookup_opened_reference_place_permission(&place);
+                            let with_obligation = if full_called_function_name
+                                == "prusti_contracts::prusti_pack_mut_ref_place_obligation"
+                            {
+                                Some(self.lifetime_token_fractional_permission(self.lifetime_count))
+                            } else {
+                                None
+                            };
                             let statement = self.encoder.set_statement_error_ctxt(
                                 vir_high::Statement::pack_no_pos(
                                     place,
                                     vir_high::PredicateKind::unique_ref(lifetime),
+                                    with_obligation,
                                     // permission_amount,
                                 ),
                                 span,
@@ -4968,7 +4981,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             encoded_statements.push(statement);
                             Ok(true)
                         }
-                        "prusti_contracts::prusti_unpack_mut_ref_place" => {
+                        "prusti_contracts::prusti_unpack_mut_ref_place"
+                        | "prusti_contracts::prusti_unpack_mut_ref_place_obligation" => {
                             assert_eq!(args.len(), 2);
                             let mut encoded_args = extract_args(self.mir, args, block, self)?;
                             let ArgKind::Place(place) = encoded_args.pop().unwrap() else {
@@ -4985,10 +4999,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 .clone();
                             // let permission_amount =
                             //     self.lookup_opened_reference_place_permission(&place);
+                            let with_obligation = if full_called_function_name
+                                == "prusti_contracts::prusti_unpack_mut_ref_place_obligation"
+                            {
+                                Some(self.lifetime_token_fractional_permission(self.lifetime_count))
+                            } else {
+                                None
+                            };
                             let statement = self.encoder.set_statement_error_ctxt(
                                 vir_high::Statement::unpack_no_pos(
                                     place,
                                     vir_high::PredicateKind::unique_ref(lifetime),
+                                    with_obligation,
                                     // permission_amount,
                                 ),
                                 span,
