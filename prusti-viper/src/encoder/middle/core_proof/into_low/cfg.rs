@@ -1070,8 +1070,18 @@ impl IntoLow for vir_mid::Statement {
                 // TODO: These should be method calls.
                 let statements = match uniqueness {
                     vir_mid::ty::Uniqueness::Unique => {
-                        let final_snapshot =
-                            statement.target.to_procedure_final_snapshot(lowerer)?;
+                        let mut place_encoder =
+                            PlaceToSnapshot::for_place(PredicateKind::UniqueRef {
+                                lifetime: lifetime.clone().into(),
+                                is_final: true,
+                            });
+                        let final_snapshot = place_encoder.expression_to_snapshot(
+                            lowerer,
+                            &statement.target,
+                            false,
+                        )?;
+                        // let final_snapshot =
+                        //     statement.target.to_procedure_final_snapshot(lowerer)?;
                         let label = lowerer.fresh_label("dead_reference_label")?;
                         lowerer.save_old_label(label.clone())?;
                         let (current_snapshot, predicate) = if let Some(reborrowing_lifetime) =

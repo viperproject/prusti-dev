@@ -326,6 +326,18 @@ pub fn unpack_mut_ref(_tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn pack_mut_ref_obligation(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn unpack_mut_ref_obligation(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn take_lifetime(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -799,6 +811,18 @@ pub fn pack_mut_ref(tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn unpack_mut_ref(tokens: TokenStream) -> TokenStream {
     prusti_specs::unpack_mut_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn pack_mut_ref_obligation(tokens: TokenStream) -> TokenStream {
+    prusti_specs::pack_mut_ref_obligation(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn unpack_mut_ref_obligation(tokens: TokenStream) -> TokenStream {
+    prusti_specs::unpack_mut_ref_obligation(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

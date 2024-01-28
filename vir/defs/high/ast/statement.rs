@@ -313,6 +313,7 @@ pub struct FracRef {
 pub struct Pack {
     pub place: Expression,
     pub predicate_kind: PredicateKind,
+    pub with_obligation: Option<Expression>,
     pub position: Position,
 }
 
@@ -320,6 +321,8 @@ pub struct Pack {
 pub struct Unpack {
     pub place: Expression,
     pub predicate_kind: PredicateKind,
+    // Does it come with an obligation to pack? If yes, the permission amount it needs to return.
+    pub with_obligation: Option<Expression>,
     pub position: Position,
 }
 
