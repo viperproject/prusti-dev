@@ -218,6 +218,7 @@ mod prusti_tests {
         prusti_assert!(*list.peek() == 16);
     }
 
+    //// ANCHOR: test_peek_mut
     fn _test_peek_mut() {
         let mut list = List::new();
         list.push(8);
@@ -238,4 +239,5 @@ mod prusti_tests {
         prusti_assert!(*list.lookup(0) == 5); // slot 0 is now `5`
         prusti_assert!(*list.lookup(1) == 8); // slot 1 is unchanged
     }
+    //// ANCHOR_END: test_peek_mut
 }
