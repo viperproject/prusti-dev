@@ -22,7 +22,7 @@ error[P0004]: unreachable!(..) statement might be reachable
 This message correctly points out that the `unreachable!()` statement might actually be reachable.
 
 The message says "might" because Prusti is conservative, i.e., it reports a verification error *unless* it can prove that the statement is unreachable.
-Hence, Prusti successfully the example below as it can rule out that the condition in the conditional statement, `a <= 0`, holds.
+Hence, Prusti successfully verified the example below as it can rule out that the condition in the conditional statement, `a <= 0`, holds.
 
 ```rust,noplaypen,ignore
 pub fn main() {
