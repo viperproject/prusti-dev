@@ -264,8 +264,11 @@ pub fn apply_patch_to_borrowck<'tcx>(
         match data.terminator().kind {
             mir::TerminatorKind::Drop { place, .. } => {
                 let point = lt_patcher.start_point(block.index(), data.statements.len());
-                let variable = place.as_local().unwrap();
-                borrowck_input_facts.var_dropped_at.push((variable, point));
+                if let Some(variable) = place.as_local() {
+                    borrowck_input_facts.var_dropped_at.push((variable, point));
+                } else {
+                    // FIXME.
+                }
             }
             _ => {}
         }
