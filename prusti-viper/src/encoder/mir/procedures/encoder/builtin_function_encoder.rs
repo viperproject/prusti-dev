@@ -253,6 +253,10 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 // Do nothing, this function is used only by the drop
                 // elaboration pass.
             }
+            "prusti_contracts::prusti_attach_drop_lifetime" => {
+                // Do nothing, this function is used only by the drop
+                // elaboration pass.
+            }
             "prusti_contracts::Int::new"
             | "prusti_contracts::Int::new_usize"
             | "prusti_contracts::Int::new_isize" => make_builtin_call(

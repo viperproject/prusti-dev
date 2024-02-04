@@ -1815,6 +1815,13 @@ pub fn set_lifetime_for_raw_pointer_reference_casts(tokens: TokenStream) -> Toke
     })
 }
 
+pub fn attach_drop_lifetime(tokens: TokenStream) -> TokenStream {
+    parse_expressions!(tokens, syn::Token![,] => drop, reference);
+    unsafe_spec_function_call(quote! {
+        prusti_attach_drop_lifetime(std::ptr::addr_of!(#drop), std::ptr::addr_of!(#reference))
+    })
+}
+
 pub fn join(tokens: TokenStream) -> TokenStream {
     generate_place_function(tokens, quote! {prusti_join_place})
 }

@@ -186,6 +186,9 @@ pub use prusti_contracts_proc_macros::end_loan;
 /// casts.
 pub use prusti_contracts_proc_macros::set_lifetime_for_raw_pointer_reference_casts;
 
+/// Attach the lifetime to the drop handler.
+pub use prusti_contracts_proc_macros::attach_drop_lifetime;
+
 /// A macro to manually join a place capability.
 pub use prusti_contracts_proc_macros::join;
 
@@ -664,6 +667,12 @@ pub fn prusti_end_loan(_lifetime_name: &'static str) {
 #[doc(hidden)]
 #[trusted]
 pub fn prusti_set_lifetime_for_raw_pointer_reference_casts<T>(_arg: T) {
+    unreachable!();
+}
+
+#[doc(hidden)]
+#[trusted]
+pub fn prusti_attach_drop_lifetime<T1, T2>(_guard: T1, _reference: T2) {
     unreachable!();
 }
 
