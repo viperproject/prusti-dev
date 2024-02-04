@@ -356,6 +356,12 @@ pub fn set_lifetime_for_raw_pointer_reference_casts(_tokens: TokenStream) -> Tok
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro]
+pub fn attach_drop_lifetime(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
 pub fn join(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
@@ -841,6 +847,12 @@ pub fn end_loan(tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn set_lifetime_for_raw_pointer_reference_casts(tokens: TokenStream) -> TokenStream {
     prusti_specs::set_lifetime_for_raw_pointer_reference_casts(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn attach_drop_lifetime(tokens: TokenStream) -> TokenStream {
+    prusti_specs::attach_drop_lifetime(tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

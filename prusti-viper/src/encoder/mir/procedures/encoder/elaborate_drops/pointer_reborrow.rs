@@ -27,67 +27,140 @@ pub(super) fn add_pointer_reborrow_facts<'v, 'tcx: 'v>(
                 if let ty::TyKind::FnDef(called_def_id, _) = literal.ty().kind() {
                     let full_called_function_name =
                         encoder.env().name.get_absolute_item_name(*called_def_id);
-                    if full_called_function_name
-                        == "prusti_contracts::prusti_set_lifetime_for_raw_pointer_reference_casts"
-                    {
-                        assert_eq!(args.len(), 1);
-                        let arg = &args[0];
-                        let mut statement_index = data.statements.len() - 1;
-                        let argument_place = if let mir::Operand::Move(place) = arg {
-                            place
-                        } else {
-                            unreachable!()
-                        };
-                        let (place, borrow_use) = loop {
-                            if let Some(statement) = data.statements.get(statement_index) {
-                                if let mir::StatementKind::Assign(box (target_place, rvalue)) =
-                                    &statement.kind
-                                {
-                                    if target_place == argument_place {
-                                        match rvalue {
-                                            mir::Rvalue::AddressOf(_, place) => {
-                                                let point_mid = location_table.location_to_point(
-                                                    RichLocation::Mid(mir::Location {
-                                                        block,
-                                                        statement_index,
-                                                    }),
-                                                );
-                                                let mut variable = None;
-                                                for (var, point) in
-                                                    &borrowck_input_facts.var_used_at
-                                                {
-                                                    if *point == point_mid {
-                                                        assert!(variable.is_none());
-                                                        variable = Some(*var);
+                    match full_called_function_name.as_str() {
+                        "prusti_contracts::prusti_set_lifetime_for_raw_pointer_reference_casts" => {
+                            assert_eq!(args.len(), 1);
+                            let arg = &args[0];
+                            let mut statement_index = data.statements.len() - 1;
+                            let argument_place = if let mir::Operand::Move(place) = arg {
+                                place
+                            } else {
+                                unreachable!()
+                            };
+                            let (place, borrow_use) = loop {
+                                if let Some(statement) = data.statements.get(statement_index) {
+                                    if let mir::StatementKind::Assign(box (target_place, rvalue)) =
+                                        &statement.kind
+                                    {
+                                        if target_place == argument_place {
+                                            match rvalue {
+                                                mir::Rvalue::AddressOf(_, place) => {
+                                                    let point_mid = location_table
+                                                        .location_to_point(RichLocation::Mid(
+                                                            mir::Location {
+                                                                block,
+                                                                statement_index,
+                                                            },
+                                                        ));
+                                                    let mut variable = None;
+                                                    for (var, point) in
+                                                        &borrowck_input_facts.var_used_at
+                                                    {
+                                                        if *point == point_mid {
+                                                            assert!(variable.is_none());
+                                                            variable = Some(*var);
+                                                        }
                                                     }
-                                                }
-                                                let mut path = None;
-                                                for (accessed_path, point) in
-                                                    &borrowck_input_facts.path_accessed_at_base
-                                                {
-                                                    if *point == point_mid {
-                                                        assert!(path.is_none());
-                                                        path = Some(*accessed_path);
+                                                    let mut path = None;
+                                                    for (accessed_path, point) in
+                                                        &borrowck_input_facts.path_accessed_at_base
+                                                    {
+                                                        if *point == point_mid {
+                                                            assert!(path.is_none());
+                                                            path = Some(*accessed_path);
+                                                        }
                                                     }
+                                                    break (
+                                                        place,
+                                                        (variable.unwrap(), path.unwrap()),
+                                                    );
                                                 }
-                                                break (place, (variable.unwrap(), path.unwrap()));
-                                            }
-                                            _ => {
-                                                unimplemented!("rvalue: {:?}", rvalue);
+                                                _ => {
+                                                    unimplemented!("rvalue: {:?}", rvalue);
+                                                }
                                             }
                                         }
                                     }
+                                    statement_index -= 1;
+                                } else {
+                                    unreachable!();
                                 }
-                                statement_index -= 1;
+                            };
+                            let ty::TyKind::Ref(reference_region, _, _) = place.ty(body, tcx).ty.kind() else {
+                                unreachable!("place {place:?} must be a reference");
+                            };
+                            assert!(lifetime_with_borrow_use.is_none(), "the function can have only single prusti_set_lifetime_for_raw_pointer_reference_casts call");
+                            lifetime_with_borrow_use = Some((*reference_region, borrow_use));
+                        }
+                        "prusti_contracts::prusti_attach_drop_lifetime" => {
+                            assert_eq!(args.len(), 2);
+                            let guard_arg = &args[0];
+                            let reference_arg = &args[1];
+                            let guard_place = if let mir::Operand::Move(place) = guard_arg {
+                                place
                             } else {
-                                unreachable!();
-                            }
-                        };
-                        let ty::TyKind::Ref(reference_region, _, _) = place.ty(body, tcx).ty.kind() else {
-                            unreachable!("place {place:?} must be a reference");
-                        };
-                        assert!(lifetime_with_borrow_use.is_none(), "the function can have only single prusti_set_lifetime_for_raw_pointer_reference_casts call");
-                        lifetime_with_borrow_use = Some((*reference_region, borrow_use));
+                                unreachable!()
+                            };
+                            let reference_place = if let mir::Operand::Move(place) = reference_arg {
+                                place
+                            } else {
+                                unreachable!()
+                            };
+                            let mut statement_index = data.statements.len() - 1;
+                            let guard_local = loop {
+                                if let Some(statement) = data.statements.get(statement_index) {
+                                    if let mir::StatementKind::Assign(box (target_place, rvalue)) =
+                                        &statement.kind
+                                    {
+                                        if target_place == guard_place {
+                                            match rvalue {
+                                                mir::Rvalue::AddressOf(_, place) => {
+                                                    break place.as_local().unwrap();
+                                                }
+                                                _ => {
+                                                    unimplemented!("rvalue: {:?}", rvalue);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    statement_index -= 1;
+                                } else {
+                                    unreachable!();
+                                }
+                            };
+                            let mut statement_index = data.statements.len() - 1;
+                            let reference_place = loop {
+                                if let Some(statement) = data.statements.get(statement_index) {
+                                    if let mir::StatementKind::Assign(box (target_place, rvalue)) =
+                                        &statement.kind
+                                    {
+                                        if target_place == reference_place {
+                                            match rvalue {
+                                                mir::Rvalue::AddressOf(_, place) => {
+                                                    break *place;
+                                                }
+                                                _ => {
+                                                    unimplemented!("rvalue: {:?}", rvalue);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    statement_index -= 1;
+                                } else {
+                                    unreachable!();
+                                }
+                            };
+                            let ty::TyKind::Ref(reference_region, _, _) = reference_place.ty(body, tcx).ty.kind() else {
+                                unreachable!("place {reference_place:?} must be a reference");
+                            };
+                            let ty::RegionKind::ReVar(reference_lifetime_id) = reference_region.kind() else {
+                                unreachable!("reference_region: {:?}", reference_region);
+                            };
+                            borrowck_input_facts
+                                .drop_of_var_derefs_origin
+                                .push((guard_local, reference_lifetime_id));
+                        }
+                        _ => (),
                     }
                 }
             }

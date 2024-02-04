@@ -845,7 +845,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                         ErrorCtxt::LifetimeEncoding,
                         vir_high::Statement::dead_inclusion_no_pos(encoded_target, encoded_value),
                     )?);
-                    self.derived_lifetimes_yet_to_kill.remove(&lifetime);
+                    // self.derived_lifetimes_yet_to_kill.remove(&lifetime);
                     break;
                 }
             }

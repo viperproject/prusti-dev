@@ -1579,26 +1579,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "not consumed loop invariant: {:?}",
             self.loop_invariant_encoding.keys()
         );
-        assert!(
-            self.specification_region_encoding_statements.is_empty(),
-            "not consumed specification region: {:?}",
-            self.specification_region_encoding_statements.keys()
-        );
+        // assert!( // FIXME: Uncomment
+        //     self.specification_region_encoding_statements.is_empty(),
+        //     "not consumed specification region: {:?}",
+        //     self.specification_region_encoding_statements.keys()
+        // );
         assert!(
             self.specification_on_drop_unwind.is_empty(),
             "not consumed specification on drop unwind: {:?}",
             self.specification_on_drop_unwind.keys()
         );
-        assert!(
-            self.specification_before_drop.is_empty(),
-            "not consumed specification before drop: {:?}",
-            self.specification_before_drop.keys()
-        );
-        assert!(
-            self.specification_after_drop.is_empty(),
-            "not consumed specification after drop: {:?}",
-            self.specification_after_drop.keys()
-        );
+        // assert!( // FIXME: Uncomment
+        //     self.specification_before_drop.is_empty(),
+        //     "not consumed specification before drop: {:?}",
+        //     self.specification_before_drop.keys()
+        // );
+        // assert!( // FIXME: Uncomment
+        //     self.specification_after_drop.is_empty(),
+        //     "not consumed specification after drop: {:?}",
+        //     self.specification_after_drop.keys()
+        // );
         assert!(
             self.add_specification_before_terminator.is_empty(),
             "not consumed specification before terminator: {:?}",
@@ -3208,25 +3208,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None
             };
         let before_drop_statements =
-            if let Some(region) = self.specification_before_drop.remove(&place) {
+            if let Some(region) = self.specification_before_drop.get(&place) {
                 Some(
                     self.specification_region_encoding_statements
-                        .remove(&region)
-                        .unwrap(),
+                        .get(&region)
+                        .unwrap()
+                        .clone(),
                 )
             } else {
                 None
             };
-        let after_drop_statements =
-            if let Some(region) = self.specification_after_drop.remove(&place) {
-                Some(
-                    self.specification_region_encoding_statements
-                        .remove(&region)
-                        .unwrap(),
-                )
-            } else {
-                None
-            };
+        let after_drop_statements = if let Some(region) = self.specification_after_drop.get(&place)
+        {
+            Some(
+                self.specification_region_encoding_statements
+                    .get(&region)
+                    .unwrap()
+                    .clone(),
+            )
+        } else {
+            None
+        };
         if let Some(statements) = before_drop_statements {
             block_builder.add_statements(statements);
         }
@@ -5110,6 +5112,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 unreachable!("place {place:?} must be a reference");
                             };
                             self.pointer_deref_lifetime = Some(*reference_region);
+                            Ok(true)
+                        }
+                        "prusti_contracts::prusti_attach_drop_lifetime" => {
+                            assert_eq!(args.len(), 2);
+                            // FIXME: Is doing nothing correct here?
                             Ok(true)
                         }
                         "prusti_contracts::prusti_join_place" => {

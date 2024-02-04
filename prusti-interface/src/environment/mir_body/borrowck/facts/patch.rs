@@ -257,6 +257,19 @@ pub fn apply_patch_to_borrowck<'tcx>(
         .collect();
 
     borrowck_input_facts.cfg_edge.sort();
+
+    // Recompute `var_dropped_at` facts.
+    borrowck_input_facts.var_dropped_at.clear();
+    for (block, data) in patched_body.basic_blocks.iter_enumerated() {
+        match data.terminator().kind {
+            mir::TerminatorKind::Drop { place, .. } => {
+                let point = lt_patcher.start_point(block.index(), data.statements.len());
+                let variable = place.as_local().unwrap();
+                borrowck_input_facts.var_dropped_at.push((variable, point));
+            }
+            _ => {}
+        }
+    }
 }
 
 struct LocationTablePatcher<'a> {
