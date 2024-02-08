@@ -3,7 +3,7 @@
 > **Recommended reading:** 
 > [3.3: Peek](https://rust-unofficial.github.io/too-many-lists/second-peek.html)
 
-Ideally, we could implement `peek` and `try_peek` like we implemented `pop` and `try_pop` before. Like `pop`, `push` can only be called if the list is non-empty, and it then always returns a reference to the element at the head of the list (type `&T`). Similarly, `try_peek` can be called on any list, but returns an `Option<&T>`. The latter is currently not possible in Prusti, since structures containing references are not supported at the moment.
+Ideally, we could implement `peek` and `try_peek` like we implemented `pop` and `try_pop` before. Like `pop`, `peek` can only be called if the list is non-empty, and it then always returns a reference to the element at the head of the list (type `&T`). Similarly, `try_peek` can be called on any list, but returns an `Option<&T>`. The latter is currently not possible in Prusti, since structures containing references are not supported at the moment.
 
 <!-- TODO: link capabilities/limitations chapter (refs in structs) -->
 
