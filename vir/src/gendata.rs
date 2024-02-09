@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use crate::data::*;
+use crate::debug_info::DebugInfo;
 use crate::genrefs::*;
 use crate::refs::*;
 
@@ -101,7 +102,17 @@ impl<A, B: GenRow> GenRow for fn(A) -> B {
 
 // TODO add position and other metadata
 pub struct ExprGenData<'vir, Curr: 'vir, Next: 'vir>{
-    pub kind: ExprKindGen<'vir, Curr, Next>
+    pub kind: ExprKindGen<'vir, Curr, Next>,
+    pub debug_info: DebugInfo
+}
+
+impl <'vir, Curr: 'vir, Next: 'vir> ExprGenData<'vir, Curr, Next> {
+    pub fn new(kind: ExprKindGen<'vir, Curr, Next>) -> Self {
+        Self {
+            kind,
+            debug_info: DebugInfo::new()
+        }
+    }
 }
 
 pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
