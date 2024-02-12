@@ -16,12 +16,13 @@ The tool checks them, reporting error messages when the code does not adhere to 
 Useful links
 ------------
 
-* 💻 [VS Code extension](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) to use Prusti from your IDE.
-* 📖 [User guide](https://viperproject.github.io/prusti-dev/user-guide/), containing installation instructions, a guided tutorial and a description of various verification features.
-* 🧰 [Developer guide](https://viperproject.github.io/prusti-dev/dev-guide/), meant for new contributors. If you wonder how to help, give a look at the [good first issues](https://github.com/viperproject/prusti-dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
-* 📚 [List of publications](http://www.pm.inf.ethz.ch/research/prusti.html). To cite the Prusti verifier, please use [this BibTeX entry](http://pm.inf.ethz.ch/publications/getbib.php?action=bibtex&bibname=Own&id=AstrauskasMuellerPoliSummers19b).
-* ⚖️ [License](https://github.com/viperproject/prusti-dev/blob/master/LICENSE) of the source code (Mozilla Public License Version 2.0, with exceptions).
-* 💬 Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
+* :computer: [VS Code extension](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) to use Prusti from your IDE.
+* :book: [User guide](https://viperproject.github.io/prusti-dev/user-guide/), containing installation instructions, a guided tutorial and a description of various verification features.
+* :woman_technologist: [Developer guide](https://viperproject.github.io/prusti-dev/dev-guide/), meant for new contributors. If you wonder how to help, give a look at the [good first issues](https://github.com/viperproject/prusti-dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
+* :books: [List of publications](http://www.pm.inf.ethz.ch/research/prusti.html). To cite the Prusti verifier, please use [this BibTeX entry](http://pm.inf.ethz.ch/publications/getbib.php?action=bibtex&bibname=Own&id=AstrauskasMuellerPoliSummers19b).
+* :film_projector: [Presentation](https://www.youtube.com/watch?v=C9TTioH5JUg) of Prusti's research project. It includes a demo.
+* :balance_scale: [License](https://github.com/viperproject/prusti-dev/blob/master/LICENSE) of the source code (Mozilla Public License Version 2.0, for code authored by us).
+* :speech_balloon: Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
 
 Getting Prusti
 --------------
