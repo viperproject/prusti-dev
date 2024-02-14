@@ -1,4 +1,5 @@
 use crate::verifier::verify;
+use mir_state_analysis::{test_coupling_graph, test_free_pcs};
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
@@ -34,8 +35,13 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> &BorrowCheckResu
     // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
     // (anon) const bodies at all, and if so, how to get them?
     if !is_anon_const {
-        let consumer_opts = if is_spec_fn(tcx, def_id.to_def_id()) || config::no_verify() {
+        let consumer_opts = if is_spec_fn(tcx, def_id.to_def_id())
+            || config::no_verify()
+            || (config::test_free_pcs() && !config::test_coupling_graph())
+        {
             consumers::ConsumerOptions::RegionInferenceContext
+        } else if config::test_coupling_graph() {
+            consumers::ConsumerOptions::PoloniusInputFacts
         } else {
             consumers::ConsumerOptions::PoloniusOutputFacts
         };
@@ -67,7 +73,12 @@ fn mir_promoted<'tcx>(
     // SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
     unsafe {
-        mir_storage::store_promoted_mir_body(tcx, def_id, result.0.borrow().clone());
+        mir_storage::store_promoted_mir_body(
+            tcx,
+            def_id,
+            result.0.borrow().clone(),
+            result.1.borrow().clone(),
+        );
     }
     result
 }
@@ -157,7 +168,44 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
-                verify(env, def_spec);
+                if config::test_free_pcs() && !config::test_coupling_graph() {
+                    for proc_id in env.get_annotated_procedures_and_types().0.iter() {
+                        let current_procedure = env.get_procedure(*proc_id);
+                        let mir = current_procedure.get_mir_rc();
+                        let promoted = current_procedure.get_promoted_rc();
+
+                        let name = env.name.get_unique_item_name(*proc_id);
+                        println!("Calculating FPCS for: {name} ({:?})", mir.span);
+                        test_free_pcs(&mir, &promoted, tcx);
+                    }
+                }
+                if config::test_coupling_graph() {
+                    for proc_id in env.get_annotated_procedures_and_types().0.iter() {
+                        let mir = env.body.get_impure_fn_body_identity(proc_id.expect_local());
+                        let facts = env
+                            .body
+                            .try_get_local_mir_borrowck_facts(proc_id.expect_local())
+                            .unwrap();
+                        let facts2 = env
+                            .body
+                            .try_get_local_mir_borrowck_facts2(proc_id.expect_local())
+                            .unwrap();
+
+                        let name = env.name.get_unique_item_name(*proc_id);
+                        println!("Calculating CG for: {name} ({:?})", mir.span);
+                        test_coupling_graph(
+                            &*mir.body(),
+                            &*mir.promoted(),
+                            &*facts,
+                            &*facts2,
+                            tcx,
+                            config::top_crates(),
+                        );
+                    }
+                }
+                if !config::test_free_pcs() && !config::test_coupling_graph() {
+                    verify(env, def_spec);
+                }
             }
         });
 

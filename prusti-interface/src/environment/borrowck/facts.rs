@@ -5,7 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
-    borrowck::consumers::{LocationTable, RichLocation, RustcFacts},
+    borrowck::{
+        borrow_set::BorrowSet,
+        consumers::{LocationTable, RegionInferenceContext, RichLocation, RustcFacts},
+    },
     middle::mir,
     polonius_engine::FactTypes,
 };
@@ -30,6 +33,14 @@ impl LocationTableExt for LocationTable {
             RichLocation::Start(location) | RichLocation::Mid(location) => location,
         }
     }
+}
+
+pub struct BorrowckFacts2<'tcx> {
+    /// The set of borrows occurring in `body` with data about them.
+    pub borrow_set: Rc<BorrowSet<'tcx>>,
+    /// Context generated during borrowck, intended to be passed to
+    /// [`OutOfScopePrecomputer`](dataflow::OutOfScopePrecomputer).
+    pub region_inference_context: Rc<RegionInferenceContext<'tcx>>,
 }
 
 pub struct BorrowckFacts {

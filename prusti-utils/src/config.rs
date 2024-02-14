@@ -108,6 +108,7 @@ lazy_static::lazy_static! {
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
+        settings.set_default::<Option<String>>("cap_lints", None).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
         settings.set_default("opt_in_verification", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
@@ -130,6 +131,10 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
         settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
         settings.set_default("num_errors_per_function", 1).unwrap();
+        // TODO: remove this option
+        settings.set_default("test_free_pcs", false).unwrap();
+        settings.set_default("test_coupling_graph", false).unwrap();
+        settings.set_default("top_crates", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -985,6 +990,10 @@ pub fn set_no_verify(value: bool) {
     write_setting("no_verify", value);
 }
 
+pub fn cap_lints() -> Option<String> {
+    read_setting("cap_lints")
+}
+
 /// When enabled, verification is skipped for dependencies.
 pub fn no_verify_deps() -> bool {
     read_setting("no_verify_deps")
@@ -1029,4 +1038,17 @@ pub fn enable_type_invariants() -> bool {
 /// Silicon backend. A value of 0 means no limit.
 pub fn num_errors_per_function() -> u32 {
     read_setting("num_errors_per_function")
+}
+
+// TODO: remove
+pub fn test_free_pcs() -> bool {
+    read_setting("test_free_pcs")
+}
+
+pub fn test_coupling_graph() -> bool {
+    read_setting("test_coupling_graph")
+}
+
+pub fn top_crates() -> bool {
+    read_setting("top_crates")
 }
