@@ -258,6 +258,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    pub fn verify_core_programs(&mut self) -> prusti_interface::data::VerificationResult {
+        crate::encoder::middle::svirpti::verify_core_programs(self)
+    }
+
     #[tracing::instrument(level = "debug", skip(self))]
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
         let prusti_error: PrustiError = encoding_error.into();
