@@ -200,6 +200,10 @@ lazy_static::lazy_static! {
         settings.set_default::<Vec<String>>("verify_only_basic_block_path", vec![]).unwrap();
         settings.set_default::<Vec<String>>("delete_basic_blocks", vec![]).unwrap();
 
+        // Svirpti settings.
+        settings.set_default("svirpti_smt_solver", "z3").unwrap();
+        settings.set_default::<Option<String>>("svirpti_smt_solver_log", None).unwrap();
+
         // Get the list of all allowed flags.
         let mut allowed_keys = get_keys(&settings);
         allowed_keys.insert("server_max_stored_verifiers".to_string());
@@ -1284,6 +1288,16 @@ pub fn min_prusti_version() -> Option<String> {
 /// The given basic blocks will be replaced with `assume false`.
 pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("delete_basic_blocks")
+}
+
+/// The path to the SMT solver to be used by Svirpti.
+pub fn svirpti_smt_solver() -> String {
+    read_setting("svirpti_smt_solver")
+}
+
+/// The path to the log file in which Svirpti should log all communications with the SMT solver.
+pub fn svirpti_smt_solver_log() -> Option<String> {
+    read_setting("svirpti_smt_solver_log")
 }
 
 /// When enabled, features not supported by Prusti will be reported as warnings
