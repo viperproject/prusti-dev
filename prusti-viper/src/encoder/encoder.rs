@@ -258,8 +258,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn verify_core_programs(&mut self) -> prusti_interface::data::VerificationResult {
-        crate::encoder::middle::svirpti::verify_core_programs(self)
+    pub fn verify_core_proof_programs(&mut self) -> prusti_interface::data::VerificationResult {
+        crate::encoder::middle::svirpti::verify_core_proof_programs(self)
     }
 
     #[tracing::instrument(level = "debug", skip(self))]

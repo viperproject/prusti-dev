@@ -79,7 +79,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let polymorphic_programs = self.encoder.get_viper_programs();
 
         if config::viper_backend() == "svirpti" {
-            return self.encoder.verify_core_programs();
+            return self.encoder.verify_core_proof_programs();
         }
 
         let mut programs: Vec<Program> = if config::simplify_encoding() {
