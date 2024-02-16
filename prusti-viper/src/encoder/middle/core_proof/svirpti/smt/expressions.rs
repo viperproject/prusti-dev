@@ -2,6 +2,24 @@ use rsmt2::{print::Expr2Smt, SmtRes};
 use std::io::Write;
 use vir_crate::low::{self as vir_low};
 
+trait Expression2Smt<'a> {
+    fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
+    where
+        Writer: Write;
+}
+
+impl<'a, T> Expression2Smt<'a> for T
+where
+    Expr2SmtWrapper<'a, T>: Expr2Smt<()> + 'a,
+{
+    fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
+    where
+        Writer: Write,
+    {
+        Expr2SmtWrapper::new(self).expr_to_smt2(writer, info)
+    }
+}
+
 pub(super) struct Expr2SmtWrapper<'a, T> {
     expr: &'a T,
 }
@@ -28,24 +46,24 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Expression> {
         Writer: Write,
     {
         match self.expr {
-            vir_low::Expression::Local(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::Field(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::LabelledOld(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::Constant(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::MagicWand(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::PredicateAccessPredicate(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::FieldAccessPredicate(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::Unfolding(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::UnaryOp(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::BinaryOp(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::PermBinaryOp(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::ContainerOp(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::Conditional(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::Quantifier(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::LetExpr(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::FuncApp(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::DomainFuncApp(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
-            vir_low::Expression::InhaleExhale(expression) => Expr2SmtWrapper::new(expression).expr_to_smt2(writer, info),
+            vir_low::Expression::Local(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::Field(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::LabelledOld(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::Constant(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::MagicWand(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::PredicateAccessPredicate(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::FieldAccessPredicate(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::Unfolding(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::UnaryOp(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::BinaryOp(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::PermBinaryOp(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::ContainerOp(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::Conditional(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::Quantifier(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::LetExpr(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::FuncApp(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::DomainFuncApp(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::InhaleExhale(expression) => expression.expression_to_smt2(writer, info),
         }
     }
 }
@@ -187,12 +205,12 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Quantifier> {
             vir_low::QuantifierKind::Exists => write!(writer, "(exists (")?,
         }
         for variable in &expr.variables {
-            Expr2SmtWrapper::new(variable).expr_to_smt2(writer, info)?;
+            variable.expression_to_smt2(writer, info)?;
         }
         write!(writer, ") (! ")?;
         Expr2SmtWrapper::new(&*expr.body).expr_to_smt2(writer, info)?;
         for trigger in &expr.triggers {
-            Expr2SmtWrapper::new(trigger).expr_to_smt2(writer, info)?;
+            trigger.expression_to_smt2(writer, info)?;
         }
         write!(writer, " ))")?;
         Ok(())
