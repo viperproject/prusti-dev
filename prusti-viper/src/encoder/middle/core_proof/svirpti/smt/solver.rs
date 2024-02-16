@@ -1,5 +1,9 @@
-use super::{configuration::Configuration, errors::SmtSolverResult, parser::SmtParser};
+use super::{
+    configuration::Configuration, errors::SmtSolverResult, expressions::Expr2SmtWrap,
+    parser::SmtParser,
+};
 use rsmt2::Solver;
+use vir_crate::low::{self as vir_low};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum SatResult {
@@ -48,5 +52,17 @@ impl SmtSolver {
             None => SatResult::Unknown,
         };
         Ok(result)
+    }
+    pub fn declare_sort(&mut self, sort: &str) -> SmtSolverResult<()> {
+        self.solver.declare_sort(sort, 0)?;
+        Ok(())
+    }
+    pub fn comment(&mut self, comment: &str) -> SmtSolverResult<()> {
+        self.solver.comment(comment)?;
+        Ok(())
+    }
+    pub fn assert(&mut self, assertion: &vir_low::Expression) -> SmtSolverResult<()> {
+        self.solver.assert(assertion.wrap())?;
+        Ok(())
     }
 }
