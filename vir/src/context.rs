@@ -2,7 +2,16 @@ use prusti_interface::environment::EnvBody;
 use prusti_rustc_interface::middle::ty;
 use std::cell::RefCell;
 
-use crate::{data::*, gendata::*, genrefs::*, refs::*};
+use crate::{data::*, gendata::*, genrefs::*, refs::*, debug_info::{DebugInfo, DEBUGINFO_NONE}};
+
+macro_rules! const_expr {
+    ($expr_kind:expr) => {
+        &ExprGenData {
+            kind: $expr_kind,
+            debug_info: DEBUGINFO_NONE
+        }
+    };
+}
 
 /// The VIR context is a data structure used throughout the encoding process.
 pub struct VirCtxt<'tcx> {
@@ -50,36 +59,36 @@ impl<'tcx> VirCtxt<'tcx> {
         &*self.arena.alloc(*val)
     }
 
-    pub fn mk_local<'vir>(&'vir self, name: &'vir str) -> Local<'vir> {
-        self.alloc(LocalData { name })
+    pub fn mk_local<'vir>(&'vir self, name: &'vir str, ty: Type<'vir>) -> Local<'vir> {
+        self.alloc(LocalData { name, ty })
     }
     pub fn mk_local_decl<'vir>(&'vir self, name: &'vir str, ty: Type<'vir>) -> LocalDecl<'vir> {
         self.alloc(LocalDeclData { name, ty })
     }
+    pub fn mk_local_decl_local<'vir>(&'vir self, local: Local<'vir>) -> LocalDecl<'vir> {
+        self.alloc(LocalDeclData { name: local.name, ty: local.ty })
+    }
+
     pub fn mk_local_ex_local<'vir, Curr, Next>(
         &'vir self,
         local: Local<'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Local(local)),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Local(local))))
     }
-    pub fn mk_local_ex<'vir, Curr, Next>(&'vir self, name: &'vir str) -> ExprGen<'vir, Curr, Next> {
-        self.mk_local_ex_local(self.mk_local(name))
+    pub fn mk_local_ex<'vir, Curr, Next>(&'vir self, name: &'vir str, ty: Type<'vir>) -> ExprGen<'vir, Curr, Next> {
+        self.mk_local_ex_local(self.mk_local(name, ty))
     }
     pub(crate) fn mk_func_app<'vir, Curr, Next>(
         &'vir self,
         target: &'vir str,
         src_args: &[ExprGen<'vir, Curr, Next>],
-        result_ty: Option<Type<'vir>>,
+        result_ty: Type<'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::FuncApp(self.arena.alloc(FuncAppGenData {
-                target,
-                args: self.alloc_slice(src_args),
-                result_ty,
-            }))),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::FuncApp(self.arena.alloc(FuncAppGenData {
+            target,
+            args: self.alloc_slice(src_args),
+            result_ty,
+        })))))
     }
 
     pub fn mk_lazy_expr<'vir, Curr, Next>(
@@ -87,9 +96,7 @@ impl<'tcx> VirCtxt<'tcx> {
         name: &'vir str,
         func: Box<dyn for<'a> Fn(&'vir VirCtxt<'a>, Curr) -> Next + 'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Lazy(name, func)),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Lazy(name, func))))
     }
 
     pub fn mk_ternary_expr<'vir, Curr, Next>(
@@ -98,13 +105,11 @@ impl<'tcx> VirCtxt<'tcx> {
         then: ExprGen<'vir, Curr, Next>,
         else_: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Ternary(self.alloc(TernaryGenData {
-                cond,
-                then,
-                else_,
-            }))),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Ternary(self.alloc(TernaryGenData {
+            cond,
+            then,
+            else_,
+        })))))
     }
 
     pub fn mk_unary_op_expr<'vir, Curr, Next>(
@@ -112,20 +117,16 @@ impl<'tcx> VirCtxt<'tcx> {
         kind: UnOpKind,
         expr: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::UnOp(
-                self.alloc(UnOpGenData { kind, expr }),
-            )),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::UnOp(
+            self.alloc(UnOpGenData { kind, expr }),
+        ))))
     }
 
     pub fn mk_old_expr<'vir, Curr, Next>(
         &'vir self,
         expr: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Old(expr)),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Old(expr))))
     }
 
     pub fn mk_forall_expr<'vir, Curr, Next>(
@@ -134,13 +135,11 @@ impl<'tcx> VirCtxt<'tcx> {
         triggers: &'vir [&'vir [ExprGen<'vir, Curr, Next>]],
         body: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Forall(self.alloc(ForallGenData {
-                qvars,
-                triggers,
-                body,
-            }))),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Forall(self.alloc(ForallGenData {
+            qvars,
+            triggers,
+            body,
+        })))))
     }
 
     pub fn mk_let_expr<'vir, Curr, Next>(
@@ -149,22 +148,18 @@ impl<'tcx> VirCtxt<'tcx> {
         val: ExprGen<'vir, Curr, Next>,
         expr: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Let(self.alloc(LetGenData {
-                name,
-                val,
-                expr,
-            }))),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Let(self.alloc(LetGenData {
+            name,
+            val,
+            expr,
+        })))))
     }
 
     pub fn mk_predicate_app_expr<'vir, Curr, Next>(
         &'vir self,
         pred_app: PredicateAppGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::PredicateApp(pred_app)),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::PredicateApp(pred_app))))
     }
 
     pub fn mk_bin_op_expr<'vir, Curr, Next>(
@@ -173,13 +168,11 @@ impl<'tcx> VirCtxt<'tcx> {
         lhs: ExprGen<'vir, Curr, Next>,
         rhs: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::BinOp(self.alloc(BinOpGenData {
-                kind,
-                lhs,
-                rhs,
-            }))),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::BinOp(self.alloc(BinOpGenData {
+            kind,
+            lhs,
+            rhs,
+        })))))
     }
     pub fn mk_eq_expr<'vir, Curr, Next>(
         &'vir self,
@@ -194,9 +187,7 @@ impl<'tcx> VirCtxt<'tcx> {
         recv: ExprGen<'vir, Curr, Next>,
         field: Field<'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Field(recv, field)),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Field(recv, field))))
     }
 
     pub fn mk_unfolding_expr<'vir, Curr, Next>(
@@ -204,11 +195,9 @@ impl<'tcx> VirCtxt<'tcx> {
         target: PredicateAppGen<'vir, Curr, Next>,
         expr: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {
-            kind: self.alloc(ExprKindGenData::Unfolding(
-                self.alloc(UnfoldingGenData { target, expr }),
-            )),
-        })
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Unfolding(
+            self.alloc(UnfoldingGenData { target, expr }),
+        ))))
     }
 
     pub fn mk_acc_field_expr<'vir, Curr, Next>(
@@ -217,44 +206,55 @@ impl<'tcx> VirCtxt<'tcx> {
         field: Field<'vir>,
         perm: Option<ExprGen<'vir, Curr, Next>>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {kind : self.alloc(ExprKindGenData::AccField(self.alloc(AccFieldGenData { recv, field, perm })))})
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::AccField(self.alloc(AccFieldGenData { recv, field, perm })))))
     }
 
     pub fn mk_const_expr<'vir, Curr, Next>(
         &'vir self,
         value: ConstData,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {kind : self.alloc(ExprKindGenData::Const(self.alloc(value)))})
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Const(self.alloc(value)))))
     }
 
     pub fn mk_todo_expr<'vir, Curr, Next>(&'vir self, msg: &'vir str) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData {kind : self.alloc(ExprKindGenData::Todo(msg))})
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Todo(msg))))
     }
 
     pub const fn mk_bool<'vir, const VALUE: bool>(&'vir self) -> Expr<'vir> {
-        &ExprGenData {kind : &ExprKindGenData::Const(&ConstData::Bool(VALUE))}
+        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)))
     }
     pub const fn mk_int<'vir, const VALUE: i128>(&'vir self) -> Expr<'vir> {
         if VALUE < 0 {
-            &ExprGenData {kind : &ExprKindGenData::UnOp(&UnOpData {
+            const_expr!(&ExprKindGenData::UnOp(&UnOpData {
                 kind: UnOpKind::Neg,
-                expr: &ExprGenData {kind : &ExprKindGenData::Const(&ConstData::Int((-VALUE) as u128))},
-            })}
+                expr: const_expr!(&ExprKindGenData::Const(&ConstData::Int((-VALUE) as u128))),
+            }))
         } else {
-            &ExprGenData {kind : &ExprKindGenData::Const(&ConstData::Int(VALUE as u128))}
+            const_expr!(&ExprKindGenData::Const(&ConstData::Int(VALUE as u128)))
         }
     }
     pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> Expr<'vir> {
-        &ExprGenData {kind : &ExprKindGenData::Const(&ConstData::Int(VALUE))}
+        const_expr!(&ExprKindGenData::Const(&ConstData::Int(VALUE)))
     }
     pub const fn mk_wildcard<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
-        &ExprGenData { kind : &ExprKindGenData::Const(&ConstData::Wildcard) }
+        const_expr!(&ExprKindGenData::Const(&ConstData::Wildcard))
     }
     pub const fn mk_null<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
-        &ExprGenData { kind : &ExprKindGenData::Const(&ConstData::Null) }
+        const_expr!(&ExprKindGenData::Const(&ConstData::Null))
     }
-    pub const fn mk_result<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
-        &ExprGenData { kind : &ExprKindGenData::Result }
+    pub fn mk_result<'vir, Curr, Next>(&'vir self, ty: Type<'vir>) -> ExprGen<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Result(ty))))
+    }
+
+    pub fn apply_ty_substs<'vir>(&'vir self, ty: Type<'vir>, substs: &TySubsts<'vir>) -> Type<'vir> {
+        match ty {
+            TypeData::DomainTypeParam(p) => substs.get(p.name).unwrap_or(&ty),
+            TypeData::Domain(name, args) => {
+                let args = args.iter().map(|t| self.apply_ty_substs(t, substs)).collect::<Vec<_>>();
+                self.alloc(TypeData::Domain(name, &self.alloc(args)))
+            }
+            other => other
+        }
     }
 
     pub fn mk_field<'vir>(
@@ -484,16 +484,25 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    const fn get_int_data(ty: Type, rust_ty: &ty::TyKind) -> (u32, bool) {
-        assert!(matches!(rust_ty, ty::Int(_) | ty::Uint(_)));
-        let TypeData::Int { bit_width, signed } = *ty else {
-            unreachable!();
-        };
-        assert!(matches!(rust_ty, ty::Int(_)) == signed);
-        (bit_width as u32, signed)
+    const fn get_int_data(rust_ty: &ty::TyKind) -> (u32, bool) {
+        match rust_ty {
+            ty::Int(ty::IntTy::Isize) => ((std::mem::size_of::<isize>() * 8) as u32, true),
+            ty::Int(ty::IntTy::I8) => (8, true),
+            ty::Int(ty::IntTy::I16) => (16, true),
+            ty::Int(ty::IntTy::I32) => (32, true),
+            ty::Int(ty::IntTy::I64) => (64, true),
+            ty::Int(ty::IntTy::I128) => (128, true),
+            ty::Uint(ty::UintTy::Usize) => ((std::mem::size_of::<usize>() * 8) as u32, true),
+            ty::Uint(ty::UintTy::U8) => (8, false),
+            ty::Uint(ty::UintTy::U16) => (16, false),
+            ty::Uint(ty::UintTy::U32) => (32, false),
+            ty::Uint(ty::UintTy::U64) => (64, false),
+            ty::Uint(ty::UintTy::U128) => (128, false),
+            _ => unreachable!(),
+        }
     }
     pub const fn get_min_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (_, false) => self.mk_uint::<0>(),
             (i8::BITS, true) => self.mk_int::<{ i8::MIN as i128 }>(),
             (i16::BITS, true) => self.mk_int::<{ i16::MIN as i128 }>(),
@@ -504,7 +513,7 @@ impl<'tcx> VirCtxt<'tcx> {
         }
     }
     pub const fn get_max_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (u8::BITS, false) => self.mk_uint::<{ u8::MAX as u128 }>(),
             (u16::BITS, false) => self.mk_uint::<{ u16::MAX as u128 }>(),
             (u32::BITS, false) => self.mk_uint::<{ u32::MAX as u128 }>(),
@@ -519,7 +528,7 @@ impl<'tcx> VirCtxt<'tcx> {
         }
     }
     pub fn get_modulo_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (u8::BITS, _) => self.mk_uint::<{ 1_u128 << u8::BITS }>(),
             (u16::BITS, _) => self.mk_uint::<{ 1_u128 << u16::BITS }>(),
             (u32::BITS, _) => self.mk_uint::<{ 1_u128 << u32::BITS }>(),
@@ -537,7 +546,7 @@ impl<'tcx> VirCtxt<'tcx> {
         ty: Type,
         rust_ty: &ty::TyKind,
     ) -> Option<Expr<'vir>> {
-        let int = match Self::get_int_data(ty, rust_ty) {
+        let int = match Self::get_int_data(rust_ty) {
             (_, false) => return None,
             (u8::BITS, true) => self.mk_uint::<{ 1_u128 << (u8::BITS - 1) }>(),
             (u16::BITS, true) => self.mk_uint::<{ 1_u128 << (u16::BITS - 1) }>(),
@@ -549,7 +558,7 @@ impl<'tcx> VirCtxt<'tcx> {
         Some(int)
     }
     pub fn get_bit_width_int<'vir>(&'vir self, ty: Type, rust_ty: &ty::TyKind) -> Expr<'vir> {
-        match Self::get_int_data(ty, rust_ty) {
+        match Self::get_int_data(rust_ty) {
             (u8::BITS, _) => self.mk_uint::<{ u8::BITS as u128 }>(),
             (u16::BITS, _) => self.mk_uint::<{ u16::BITS as u128 }>(),
             (u32::BITS, _) => self.mk_uint::<{ u32::BITS as u128 }>(),

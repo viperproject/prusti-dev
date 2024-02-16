@@ -5,6 +5,7 @@
 mod context;
 mod data;
 mod debug;
+mod debug_info;
 mod gendata;
 mod genrefs; // TODO: explain gen...
 mod macros;

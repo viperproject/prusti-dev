@@ -54,7 +54,7 @@ impl TaskEncoder for ConstEnc {
                     ConstValue::Scalar(Scalar::Int(int)) => {
                         let prim = kind.expect_primitive();
                         let val = int.to_bits(int.size()).unwrap();
-                        let val = prim.expr_from_bits(val);
+                        let val = prim.expr_from_bits(ty, val);
                         vir::with_vcx(|vcx| prim.prim_to_snap.apply(vcx, [val]))
                     }
                     ConstValue::Scalar(Scalar::Ptr(ptr, _)) => vir::with_vcx(|vcx| {
