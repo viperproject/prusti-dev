@@ -185,9 +185,14 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                 &source_filename,
                 program,
             )?;
-            self.mid_core_proof_encoder_state
-                .encoded_programs
-                .push((Some(proc_def_id), program));
+            if config::viper_backend() == "svirpti" {
+                let result = super::svirpti::verify_program(self, program)?;
+                unimplemented!("save the result: {:?}", result);
+            } else {
+                self.mid_core_proof_encoder_state
+                    .encoded_programs
+                    .push((Some(proc_def_id), program));
+            }
         }
         Ok(())
     }

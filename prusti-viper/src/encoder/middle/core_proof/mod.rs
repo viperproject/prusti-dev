@@ -27,5 +27,6 @@ mod arithmetic_wrappers;
 mod casts;
 mod triggers;
 mod permissions;
+mod svirpti;
 
 pub(crate) use self::interface::{MidCoreProofEncoderInterface, MidCoreProofEncoderState};
