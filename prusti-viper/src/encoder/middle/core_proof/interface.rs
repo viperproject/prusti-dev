@@ -151,7 +151,15 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     &source_filename,
                     program,
                 )?;
-                let result = super::svirpti::verify_program(self, program)?;
+                let result = super::svirpti::verify_program(
+                    self,
+                    &source_filename,
+                    program,
+                    predicates_info.non_aliased_memory_block_addresses.clone(),
+                    &snapshot_domains_info,
+                    predicates_info.owned_predicates_info.clone(),
+                    &extensionality_gas_constant,
+                )?;
                 unimplemented!("save the result: {:?}", result);
             } else {
                 if config::trace_with_symbolic_execution() {

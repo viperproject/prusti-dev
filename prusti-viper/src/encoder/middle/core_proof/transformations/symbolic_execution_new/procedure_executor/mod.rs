@@ -7,7 +7,6 @@ use super::{
 use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
 use prusti_common::config;
-
 use std::collections::BTreeMap;
 use vir_crate::{
     common::{
