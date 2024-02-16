@@ -19,7 +19,7 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
     for ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>> {
     type Next = ExprGen<'vir, NextA, NextB>;
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
-        vcx.alloc(ExprGenData { kind: self.kind.reify(vcx, lctx) })
+        vcx.alloc(ExprGenData { kind: self.kind.reify(vcx, lctx), debug_info: self.debug_info })
     }
 }
 
@@ -43,7 +43,7 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
 
             ExprKindGenData::Local(v) => vcx.alloc(ExprKindGenData::Local(v)),
             ExprKindGenData::Const(v) => vcx.alloc(ExprKindGenData::Const(v)),
-            ExprKindGenData::Result => &ExprKindGenData::Result,
+            ExprKindGenData::Result(t) => vcx.alloc(ExprKindGenData::Result(t)),
             ExprKindGenData::Todo(v) => vcx.alloc(ExprKindGenData::Todo(v)),
 
             ExprKindGenData::Lazy(_, f) => f(vcx, lctx),

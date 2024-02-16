@@ -146,7 +146,7 @@ macro_rules! vir_local_decl {
 #[macro_export]
 macro_rules! vir_domain_axiom {
     ($vcx:expr; axiom_inverse($a:tt, $b:tt, $ty:tt)) => {{
-        let val_ex = $vcx.mk_local_ex("val");
+        let val_ex = $vcx.mk_local_ex("val", $crate::vir_type!($vcx; $ty));
         let inner = $b.apply($vcx, [val_ex]);
         $vcx.mk_domain_axiom(
             $vcx.alloc_str(&format!(
