@@ -1,4 +1,4 @@
-use crate::{ExprGen, PredicateAppGen, Type, PredicateAppGenData, StmtGenData, MethodCallGenData, VirCtxt, TypeData, DomainParamData, TySubsts};
+use crate::{ExprGen, PredicateAppGen, Type, PredicateAppGenData, StmtGenData, MethodCallGenData, VirCtxt, TypeData, DomainParamData, TySubsts, Function};
 use sealed::sealed;
 use std::collections::HashMap;
 
@@ -150,7 +150,8 @@ fn check<'vir>(substs: &mut TySubsts<'vir>, expected: Type<'vir>, actual: Type<'
             a1.len() == a2.len() &&
             a1.iter().zip(a2.iter()).all(|(e, a)| check(substs, e, a))
         }
-        (TypeData::DomainTypeParam(p), a) => unify(substs, p.name, a),
+        (TypeData::DomainTypeParam(p), a) | (a, TypeData::DomainTypeParam(p))
+            => unify(substs, p.name, a),
         _ => false,
     }
 }
@@ -210,6 +211,10 @@ pub type UnknownArity<'vir> = UnknownArityAny<'vir, Type<'vir>>;
 // TODO: maybe take `args: &[T; N]` instead?
 
 impl<'vir, const N: usize> FunctionIdent<'vir, KnownArity<'vir, N>> {
+    pub fn from_fn(f: Function<'vir>, vcx: &'vir VirCtxt<'_>) -> Self {
+        let args = f.args.iter().map(|a| a.ty).collect::<Vec<_>>().try_into().unwrap();
+        Self(f.name, KnownArity::new(vcx.alloc_array(&args)), f.ret)
+    }
     pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'tcx>,
@@ -238,11 +243,12 @@ impl<'vir, const N: usize> MethodIdent<'vir, KnownArity<'vir, N>> {
     pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'tcx>,
-        args: [ExprGen<'vir, Curr, Next>; N]
+        targets: &[ExprGen<'vir, Curr, Next>],
+        args: [ExprGen<'vir, Curr, Next>; N],
     ) -> StmtGenData<'vir, Curr, Next>{
         self.1.check_types(self.name(), &args);
         StmtGenData::MethodCall(vcx.alloc(MethodCallGenData {
-            targets: &[],
+            targets: vcx.alloc_slice(targets),
             method: self.name(),
             args: vcx.alloc_slice(&args),
         }))
@@ -292,11 +298,12 @@ impl<'vir> MethodIdent<'vir, UnknownArity<'vir>> {
     pub fn apply<'tcx, Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'tcx>,
-        args: &[ExprGen<'vir, Curr, Next>]
+        targets: &[ExprGen<'vir, Curr, Next>],
+        args: &[ExprGen<'vir, Curr, Next>],
     ) -> StmtGenData<'vir, Curr, Next>{
         self.1.check_types(self.name(), args);
         StmtGenData::MethodCall(vcx.alloc(MethodCallGenData {
-            targets: &[],
+            targets: vcx.alloc_slice(targets),
             method: self.name(),
             args: vcx.alloc_slice(args),
         }))

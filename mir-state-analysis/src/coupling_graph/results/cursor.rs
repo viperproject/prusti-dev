@@ -10,9 +10,9 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    coupling_graph::{engine::CouplingGraph, graph::Graph, CgContext},
+    coupling_graph::{engine::CgEngine, graph::Graph, CgContext},
     free_pcs::{
-        engine::FreePlaceCapabilitySummary, join_semi_lattice::RepackingJoinSemiLattice,
+        join_semi_lattice::RepackingJoinSemiLattice,
         CapabilitySummary, RepackOp,
     },
     utils::PlaceRepacker,
@@ -20,7 +20,7 @@ use crate::{
 
 use super::coupling::CouplingOp;
 
-type Cursor<'a, 'mir, 'tcx> = ResultsCursor<'mir, 'tcx, CouplingGraph<'a, 'tcx>>;
+type Cursor<'a, 'mir, 'tcx> = ResultsCursor<'mir, 'tcx, CgEngine<'a, 'tcx>>;
 
 pub struct CgAnalysis<'a, 'mir, 'tcx> {
     cursor: Cursor<'a, 'mir, 'tcx>,
@@ -60,12 +60,12 @@ impl<'a, 'mir, 'tcx> CgAnalysis<'a, 'mir, 'tcx> {
     fn body(&self) -> &'a Body<'tcx> {
         self.cursor.analysis().cgx.rp.body()
     }
-    pub(crate) fn cgx(&mut self) -> &'a CgContext<'a, 'tcx> {
-        self.cursor.results().analysis.cgx
-    }
+    // pub(crate) fn cgx(&mut self) -> &'a CgContext<'a, 'tcx> {
+    //     &self.cursor.results().analysis.cgx
+    // }
 
     pub fn initial_state(&self) -> &Graph<'tcx> {
-        &self.cursor.get().graph
+        &self.cursor.get().after
     }
     pub fn initial_coupling(&self) -> &Vec<CouplingOp> {
         &self.cursor.get().couplings
@@ -80,7 +80,7 @@ impl<'a, 'mir, 'tcx> CgAnalysis<'a, 'mir, 'tcx> {
         let state = self.cursor.get();
         CgLocation {
             location,
-            state: state.graph.clone(),
+            state: state.after.clone(),
             couplings: state.couplings.clone(),
         }
     }
@@ -96,7 +96,7 @@ impl<'a, 'mir, 'tcx> CgAnalysis<'a, 'mir, 'tcx> {
         let state = self.cursor.get();
         CgLocation {
             location,
-            state: state.graph.clone(),
+            state: state.after.clone(),
             couplings: state.couplings.clone(),
         }
     }
@@ -121,7 +121,7 @@ impl<'a, 'mir, 'tcx> CgAnalysis<'a, 'mir, 'tcx> {
                         block: succ,
                         statement_index: 0,
                     },
-                    state: to.graph.clone(),
+                    state: to.after.clone(),
                     couplings: state.bridge(&to),
                 }
             })

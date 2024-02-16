@@ -30,8 +30,9 @@ pub use spec::{
 };
 pub(super) use spec::{init_def_spec, with_def_spec, with_proc_spec};
 pub use snapshot::SnapshotEnc;
+pub use capability::CapabilityEnc;
 pub use predicate::{
-    PredicateEnc,
+    all_outputs as PredicateEnc_all_outputs,
     PredicateEncOutputRef,
     PredicateEncOutput,
 };

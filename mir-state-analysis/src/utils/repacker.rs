@@ -369,11 +369,11 @@ impl<'tcx> Place<'tcx> {
     pub fn projection_refs(
         self,
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> impl Iterator<Item = Option<(Region<'tcx>, Ty<'tcx>, Mutability)>> {
+    ) -> impl Iterator<Item = (Option<(Region<'tcx>, Ty<'tcx>, Mutability)>, &'tcx [PlaceElem<'tcx>])> {
         self.projection_tys(repacker)
-            .filter_map(|(ty, _)| match ty.ty.kind() {
-                &TyKind::Ref(r, ty, m) => Some(Some((r, ty, m))),
-                &TyKind::RawPtr(_) => Some(None),
+            .filter_map(|(ty, projs)| match ty.ty.kind() {
+                &TyKind::Ref(r, ty, m) => Some((Some((r, ty, m)), projs)),
+                &TyKind::RawPtr(_) => Some((None, projs)),
                 _ => None,
             })
     }

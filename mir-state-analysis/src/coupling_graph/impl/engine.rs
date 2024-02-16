@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::cell::{Cell, RefCell};
+use std::rc::Rc;
 
 use prusti_rustc_interface::{
     borrowck::{
@@ -37,14 +38,14 @@ use crate::{
         outlives_info::AssignsToPlace,
         CgContext,
     },
-    free_pcs::{CapabilityKind, CapabilityLocal, Fpcs},
+    free_pcs::{CapabilityKind, CapabilityLocal},
     utils::PlaceRepacker,
 };
 
-use super::triple::Cg;
+use super::triple::CouplingGraph;
 
 #[tracing::instrument(name = "draw_dots", level = "debug", skip(c))]
-pub(crate) fn draw_dots<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<'a, 'tcx>>) {
+pub(crate) fn draw_dots<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CgEngine<'a, 'tcx>>) {
     let mut graph = Vec::new();
     let body = c.body();
     c.seek_to_block_start(START_BLOCK);
@@ -101,7 +102,7 @@ pub(crate) fn draw_dots<'tcx, 'a>(c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<
 }
 
 fn print_after_loc<'tcx, 'a>(
-    c: &mut ResultsCursor<'_, 'tcx, CouplingGraph<'a, 'tcx>>,
+    c: &mut ResultsCursor<'_, 'tcx, CgEngine<'a, 'tcx>>,
     location: Location,
     graph: &mut Vec<u8>,
 ) {
@@ -112,16 +113,14 @@ fn print_after_loc<'tcx, 'a>(
     dot::render(&g, graph).unwrap();
 }
 
-pub(crate) struct CouplingGraph<'a, 'tcx> {
-    pub(crate) cgx: &'a CgContext<'a, 'tcx>,
+pub(crate) struct CgEngine<'a, 'tcx> {
+    pub(crate) cgx: Rc<CgContext<'a, 'tcx>>,
     bb_index: Cell<BasicBlock>,
-    out_of_scope: FxIndexMap<Location, Vec<BorrowIndex>>,
-    flow_borrows: RefCell<ResultsCursor<'a, 'tcx, Borrows<'a, 'tcx>>>,
     top_crates: bool,
 }
 
-impl<'a, 'tcx> CouplingGraph<'a, 'tcx> {
-    pub(crate) fn new(cgx: &'a CgContext<'a, 'tcx>, top_crates: bool) -> Self {
+impl<'a, 'tcx> CgEngine<'a, 'tcx> {
+    pub(crate) fn new(cgx: Rc<CgContext<'a, 'tcx>>, top_crates: bool) -> Self {
         if cfg!(debug_assertions) && !top_crates {
             std::fs::remove_dir_all("log/coupling").ok();
             std::fs::create_dir_all("log/coupling/individual").unwrap();
@@ -174,39 +173,34 @@ impl<'a, 'tcx> CouplingGraph<'a, 'tcx> {
         Self {
             cgx,
             bb_index: Cell::new(START_BLOCK),
-            out_of_scope,
-            flow_borrows: RefCell::new(flow_borrows),
             top_crates,
         }
     }
 }
 
-impl<'a, 'tcx> AnalysisDomain<'tcx> for CouplingGraph<'a, 'tcx> {
-    type Domain = Cg<'a, 'tcx>;
+impl<'a, 'tcx> AnalysisDomain<'tcx> for CgEngine<'a, 'tcx> {
+    type Domain = CouplingGraph<'a, 'tcx>;
     const NAME: &'static str = "coupling_graph";
 
     fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
         let block = self.bb_index.get();
         self.bb_index.set(block.plus(1));
-        Cg::new(
-            self.cgx,
+        CouplingGraph::new(
+            self.cgx.clone(),
             self.top_crates,
-            Location {
-                block,
-                statement_index: 0,
-            },
+            block,
         )
     }
 
     fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
         self.bb_index.set(START_BLOCK);
-        state.initialize_start_block()
+        state.initialize_start_block(&self.cgx)
     }
 }
 
-impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
+impl<'a, 'tcx> Analysis<'tcx> for CgEngine<'a, 'tcx> {
     #[tracing::instrument(
-        name = "CouplingGraph::apply_before_statement_effect",
+        name = "CgEngine::apply_before_statement_effect",
         level = "debug",
         skip(self)
     )]
@@ -230,24 +224,14 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
                 ),
                 false,
             );
-            self.flow_borrows
-                .borrow_mut()
-                .seek_to_block_start(location.block);
-            state.live = self.flow_borrows.borrow().get().clone();
         }
-        self.flow_borrows
-            .borrow_mut()
-            .seek_after_primary_effect(location);
-        let other = self.flow_borrows.borrow().get().clone();
-        let delta = calculate_diff(&other, &state.live);
-        state.live = other;
-
-        let oos = self.out_of_scope.get(&location);
-        state.handle_kills(&delta, oos, location);
+        let oos = self.cgx.borrows_killed_at_location(location);
+        state.handle_kills(oos, location, statement.kind.assigns_to());
+        state.start = state.after.clone();
     }
 
     #[tracing::instrument(
-        name = "CouplingGraph::apply_statement_effect",
+        name = "CgEngine::apply_statement_effect",
         level = "debug",
         skip(self)
     )]
@@ -269,7 +253,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
     }
 
     #[tracing::instrument(
-        name = "CouplingGraph::apply_before_terminator_effect",
+        name = "CgEngine::apply_before_terminator_effect",
         level = "debug",
         skip(self)
     )]
@@ -294,25 +278,14 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
                 ),
                 false,
             );
-            self.flow_borrows
-                .borrow_mut()
-                .seek_to_block_start(location.block);
-            state.live = self.flow_borrows.borrow().get().clone();
         }
-        self.flow_borrows
-            .borrow_mut()
-            .seek_after_primary_effect(location);
-        let other = self.flow_borrows.borrow().get().clone();
-
-        let delta = calculate_diff(&other, &state.live);
-        state.live = other;
-
-        let oos = self.out_of_scope.get(&location);
-        state.handle_kills(&delta, oos, location);
+        let oos = self.cgx.borrows_killed_at_location(location);
+        state.handle_kills(oos, location, terminator.kind.assigns_to());
+        state.start = state.after.clone();
     }
 
     #[tracing::instrument(
-        name = "CouplingGraph::apply_terminator_effect",
+        name = "CgEngine::apply_terminator_effect",
         level = "debug",
         skip(self)
     )]
@@ -338,7 +311,7 @@ impl<'a, 'tcx> Analysis<'tcx> for CouplingGraph<'a, 'tcx> {
                 );
                 // Pretend we have a storage dead for all `always_live_locals` other than the args/return
                 for l in self.cgx.rp.always_live_locals_non_args().iter() {
-                    state.kill_shared_borrows_on_place(Some(location), l.into());
+                    state.kill_regions_on_place(Some(location), l.into());
                 }
                 // Kill all the intermediate borrows, i.e. turn `return -> x.0 -> x` into `return -> x`
                 for r in self

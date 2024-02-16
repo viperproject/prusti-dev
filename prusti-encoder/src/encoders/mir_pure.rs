@@ -9,8 +9,8 @@ use task_encoder::{
     TaskEncoderDependencies,
 };
 use std::collections::HashMap;
-// TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
-use crate::encoders::{ViperTupleEnc, PredicateEnc, SnapshotEnc, MirFunctionEnc, MirBuiltinEnc, ConstEnc};
+// TODO: replace uses of `CapabilityEnc` with `SnapshotEnc`
+use crate::encoders::{ViperTupleEnc, CapabilityEnc, SnapshotEnc, MirFunctionEnc, MirBuiltinEnc, ConstEnc};
 
 pub struct MirPureEnc;
 
@@ -572,7 +572,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                     tuple_ref.mk_cons(self.vcx, &fields)
                 }
                 mir::AggregateKind::Adt(..) | mir::AggregateKind::Tuple => {
-                    let e_rvalue_ty = self.deps.require_ref::<PredicateEnc>(
+                    let e_rvalue_ty = self.deps.require_ref::<CapabilityEnc>(
                         rvalue_ty,
                     ).unwrap();
                     let sl = match kind {
@@ -677,7 +677,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                        (tuple_ref.mk_elem(self.vcx, expr, field_idx), place_ref)
                     }
                     _ => {
-                        let e_ty = self.deps.require_ref::<PredicateEnc>(place_ty.ty).unwrap();
+                        let e_ty = self.deps.require_ref::<CapabilityEnc>(place_ty.ty).unwrap();
                         let struct_like = e_ty.expect_variant_opt(place_ty.variant_index);
                         let proj = struct_like.snap_data.field_access[field_idx].read;
                         let place_ref = place_ref.map(|pr|

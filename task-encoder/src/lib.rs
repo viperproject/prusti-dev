@@ -460,14 +460,14 @@ pub trait TaskEncoder {
         Option<Self::OutputFullDependency<'vir>>,
     )>;
 
-    fn all_outputs<'vir>() -> Vec<Self::OutputFullLocal<'vir>>
+    fn all_outputs<'vir>() -> Vec<(Self::TaskKey<'vir>, Self::OutputFullLocal<'vir>)>
         where Self: 'vir
     {
         Self::with_cache(|cache| {
             let mut ret = vec![];
-            for (_task_key, cache_state) in cache.borrow().iter() {
+            for (task_key, cache_state) in cache.borrow().iter() {
                 match cache_state { // TODO: make this into an iterator chain
-                    TaskEncoderCacheState::Encoded { output_local, .. } => ret.push(output_local.clone()),
+                    TaskEncoderCacheState::Encoded { output_local, .. } => ret.push((task_key.clone(), output_local.clone())),
                     _ => {}
                 }
             }

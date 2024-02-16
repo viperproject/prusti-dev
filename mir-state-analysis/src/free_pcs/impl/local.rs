@@ -36,7 +36,7 @@ impl Debug for CapabilityLocal<'_> {
 
 impl Default for CapabilityLocal<'_> {
     fn default() -> Self {
-        Self::Unallocated
+        Self::Allocated(CapabilityProjections::empty())
     }
 }
 

@@ -72,3 +72,16 @@ impl Display for RepackOp<'_> {
         }
     }
 }
+
+impl<'tcx> RepackOp<'tcx> {
+    pub fn affected_place(&self) -> Place<'tcx> {
+        match *self {
+            RepackOp::StorageDead(local)
+            | RepackOp::IgnoreStorageDead(local) => local.into(),
+            RepackOp::Weaken(place, _, _)
+            | RepackOp::Collapse(place, _, _)
+            | RepackOp::Expand(place, _, _)
+            | RepackOp::DerefShallowInit(place, _) => place,
+        }
+    }
+}

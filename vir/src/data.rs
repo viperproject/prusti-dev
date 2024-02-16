@@ -48,6 +48,10 @@ pub enum BinOpKind {
     Sub,
     Mod,
     // ...
+    If,
+    Union,
+    Subset,
+    In,
 }
 impl From<mir::BinOp> for BinOpKind {
     fn from(value: mir::BinOp) -> Self {
@@ -86,6 +90,7 @@ impl From<&mir::BinOp> for BinOpKind {
 pub enum ConstData {
     Bool(bool),
     Int(u128), // TODO: what about negative numbers? larger numbers?
+    Write,
     Wildcard,
     Null,
 }
@@ -96,7 +101,8 @@ impl ConstData {
             ConstData::Bool(_) => &TypeData::Bool,
             ConstData::Int(_) => &TypeData::Int,
             ConstData::Wildcard => &TypeData::Perm,
-            ConstData::Null => &TypeData::Ref
+            ConstData::Null => &TypeData::Ref,
+            ConstData::Write => &TypeData::Perm,
         }
     }
 }
@@ -162,6 +168,7 @@ pub type FuncAppData<'vir> = crate::gendata::FuncAppGenData<'vir, !, !>;
 pub type FunctionData<'vir> = crate::gendata::FunctionGenData<'vir, !, !>;
 pub type GotoIfData<'vir> = crate::gendata::GotoIfGenData<'vir, !, !>;
 pub type LetData<'vir> = crate::gendata::LetGenData<'vir, !, !>;
+pub type MacroData<'vir> = crate::gendata::MacroGenData<'vir, !, !>;
 pub type MethodCallData<'vir> = crate::gendata::MethodCallGenData<'vir, !, !>;
 pub type MethodData<'vir> = crate::gendata::MethodGenData<'vir, !, !>;
 pub type PredicateAppData<'vir> = crate::gendata::PredicateAppGenData<'vir, !, !>;

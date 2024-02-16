@@ -236,6 +236,9 @@ impl<'tcx> VirCtxt<'tcx> {
     pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> Expr<'vir> {
         const_expr!(&ExprKindGenData::Const(&ConstData::Int(VALUE)))
     }
+    pub fn mk_write<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(&ExprKindGenData::Const(&ConstData::Write)))
+    }
     pub const fn mk_wildcard<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
         const_expr!(&ExprKindGenData::Const(&ConstData::Wildcard))
     }
@@ -375,6 +378,44 @@ impl<'tcx> VirCtxt<'tcx> {
         )
     }
 
+    pub fn mk_new_stmt<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGen<'vir, Curr, Next>,
+        fields: Option<&[Field<'vir>]>,
+    ) -> StmtGen<'vir, Curr, Next> {
+        let args = fields.map(|fs| {
+            self.alloc_slice(&fs.into_iter().map(|f| {
+                self.alloc(ExprGenData::new(
+                    self.alloc(ExprKindGenData::Local(self.alloc(LocalData {
+                        name: f.name,
+                        ty: f.ty,
+                    })))
+                ))
+            }).collect::<Vec<_>>())
+        }).unwrap_or_else(|| self.alloc([self.alloc(ExprGenData::new(
+            &ExprKindGenData::Local(&LocalData {
+                name: "*",
+                ty: &TypeData::Ref
+            })
+        ))]));
+        self.alloc(
+            StmtGenData::PureAssign(
+                self.alloc(PureAssignGenData {
+                    lhs,
+                    rhs: self.alloc(ExprGenData::new(
+                        self.alloc(ExprKindGenData::FuncApp(
+                            self.alloc(FuncAppGenData {
+                                target: "new",
+                                args,
+                                result_ty: &TypeData::Ref,
+                            }),
+                        )),
+                    )),
+                })
+            )
+        )
+    }
+
     pub fn mk_local_decl_stmt<'vir, Curr, Next>(
         &'vir self,
         local: LocalDecl<'vir>,
@@ -467,20 +508,35 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
+    pub fn mk_macro<'vir, Curr, Next>(
+        &'vir self,
+        name: &'vir str, // TODO: identifiers
+        args: &'vir [Local<'vir>],
+        expr: ExprGen<'vir, Curr, Next>
+    ) -> MacroGen<'vir, Curr, Next> {
+        self.alloc(MacroGenData {
+            name,
+            args,
+            expr
+        })
+    }
+
     pub fn mk_program<'vir, Curr, Next>(
         &'vir self,
         fields: &'vir [Field<'vir>],
         domains: &'vir [DomainGen<'vir, Curr, Next>],
         predicates: &'vir [PredicateGen<'vir, Curr, Next>],
         functions: &'vir [FunctionGen<'vir, Curr, Next>],
-        methods: &'vir [MethodGen<'vir, Curr, Next>]
+        methods: &'vir [MethodGen<'vir, Curr, Next>],
+        macros: &'vir [MacroGen<'vir, Curr, Next>],
     ) -> ProgramGen<'vir, Curr, Next> {
         self.alloc(ProgramGenData {
             fields,
             domains,
             predicates,
             functions,
-            methods
+            methods,
+            macros,
         })
     }
 

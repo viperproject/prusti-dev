@@ -30,12 +30,12 @@ use crate::{
         CgContext,
     },
     free_pcs::{
-        engine::FreePlaceCapabilitySummary, CapabilityLocal, CapabilityProjections, RepackOp,
+        CapabilityLocal, CapabilityProjections, RepackOp,
     },
     utils::{Place, PlaceRepacker},
 };
 
-use super::engine::CouplingGraph;
+use super::engine::CgEngine;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Graph<'tcx> {
@@ -47,6 +47,14 @@ pub struct Graph<'tcx> {
 }
 
 impl<'tcx> Graph<'tcx> {
+    pub fn empty() -> Self {
+        Self {
+            nodes: IndexVec::new(),
+            static_regions: FxHashSet::default(),
+            inactive_loans: FxHashSet::default(),
+        }
+    }
+
     #[tracing::instrument(name = "Graph::outlives", level = "trace", skip(self), ret)]
     pub fn outlives(&mut self, edge: Edge<'tcx>) -> Option<(RegionVid, RegionVid, bool)> {
         self.outlives_inner(vec![edge])

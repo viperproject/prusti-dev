@@ -7,7 +7,7 @@
 use std::{cell::RefCell, fmt};
 
 use self::{
-    outlives_info::OutlivesInfo, region_info::RegionInfo, shared_borrow_set::SharedBorrowSet,
+    outlives_info::OutlivesInfo, region_info::{map::RegionKind, RegionInfo}, shared_borrow_set::SharedBorrowSet,
 };
 use crate::{
     r#loop::LoopAnalysis,
@@ -15,12 +15,13 @@ use crate::{
 };
 use prusti_rustc_interface::{
     borrowck::consumers::BodyWithBorrowckFacts,
-    borrowck::consumers::{BorrowIndex, Borrows, OutlivesConstraint},
+    borrowck::consumers::{BorrowIndex, Borrows, calculate_borrows_out_of_scope_at_location},
     data_structures::fx::FxHashMap,
     dataflow::{Analysis, ResultsCursor},
     index::IndexVec,
+    data_structures::fx::FxIndexMap,
     middle::{
-        mir::{Body, Location, Promoted, RETURN_PLACE},
+        mir::{Body, Location, Promoted, RETURN_PLACE, Local},
         ty::{RegionVid, TyCtxt},
     },
 };
@@ -39,6 +40,8 @@ pub struct CgContext<'a, 'tcx> {
 
     pub region_info: RegionInfo<'tcx>,
     pub outlives_info: OutlivesInfo<'tcx>,
+
+    pub borrows_killed_at: FxIndexMap<Location, Vec<BorrowIndex>>,
 }
 
 impl fmt::Debug for CgContext<'_, '_> {
@@ -64,7 +67,8 @@ impl<'a, 'tcx> CgContext<'a, 'tcx> {
         let loops = LoopAnalysis::find_loops(&mir.body);
 
         let region_info = RegionInfo::new(rp, input_facts, mir.region_inference_context.as_ref(), borrow_set.as_ref(), &sbs);
-        let outlives_info = OutlivesInfo::new(input_facts, mir.region_inference_context.as_ref(), borrow_set.as_ref(), &region_info);
+        let outlives_info = OutlivesInfo::new(input_facts, rp, mir.region_inference_context.as_ref(), borrow_set.as_ref(), &region_info);
+        let borrows_killed_at = calculate_borrows_out_of_scope_at_location(&mir.body, &mir.region_inference_context, borrow_set);
 
         Self {
             rp,
@@ -73,6 +77,44 @@ impl<'a, 'tcx> CgContext<'a, 'tcx> {
             loops,
             region_info,
             outlives_info,
+            borrows_killed_at,
         }
+    }
+
+    pub fn borrows_killed_at_location(&self, location: Location) -> &[BorrowIndex] {
+        self.borrows_killed_at.get(&location).map_or(&[], |borrows| &borrows[..])
+    }
+
+    /// Copied from `rustc`'s `activations_at_location`.
+    pub fn activations_at_location(&self, location: Location) -> &[BorrowIndex] {
+        self.mir.borrow_set.activation_map.get(&location).map_or(&[], |activations| &activations[..])
+    }
+
+    pub fn signature_constraints(
+        &self,
+    ) -> Vec<(Vec<(RegionVid, Local)>, Vec<(RegionVid, Local)>)> {
+        let to_param = |r| (r, self.region_info.map.get(r).get_param().unwrap());
+        self.region_info.map.universal_regions()
+            .map(|r| self.region_info.map.get(r).get_param().map(|p| (r, p)))
+            .map(|(r, p)| {
+                ()
+            })
+        self.outlives_info.universal_constraints.iter().flat_map(|&(a, b)| {
+            // println!("[outlives_info] a: {:?}, b: {:?}", a, b);
+            match (self.region_info.map.get(a), self.region_info.map.get(b)) {
+                (RegionKind::Param(a), RegionKind::Param(b)) => {
+                    // println!("[params] a: {:?}, b: {:?}", a, b);
+                    let a: Vec<_> = a.regions.iter().flat_map(|&r| self.region_info.map.get(r).get_place().map(|p| (r, p))).collect();
+                    let b: Vec<_> = b.regions.iter().flat_map(|&r| self.region_info.map.get(r).get_place().map(|p| (r, p))).collect();
+                    // println!("[locals] a: {:?}, b: {:?}", a, b);
+                    if a.is_empty() || b.is_empty() {
+                        None
+                    } else {
+                        Some((a, b))
+                    }
+                }
+                _ => None,
+            }
+        }).collect()
     }
 }

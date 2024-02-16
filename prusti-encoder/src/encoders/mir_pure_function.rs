@@ -72,22 +72,20 @@ impl TaskEncoder for MirFunctionEnc {
             let extra: String = substs.iter().map(|s| format!("_{s}")).collect();
             let (krate, index) = (caller_def_id.krate, caller_def_id.index.index());
             let function_name = vir::vir_format!(vcx, "f_{}{extra}_CALLER_{krate}_{index}", vcx.tcx.item_name(def_id));
-            let args: Vec<_> = (1..=local_defs.arg_count)
-                .map(mir::Local::from)
-                .map(|def_idx| local_defs.locals[def_idx].ty.snapshot)
+            let args: Vec<_> = local_defs.inputs.iter()
+                .map(|input| input.ty.snapshot)
                 .collect();
             let args = UnknownArity::new(vcx.alloc_slice(&args));
-            let return_type = local_defs.locals[mir::RETURN_PLACE].ty;
-            let function_ref = FunctionIdent::new(function_name, args, return_type.snapshot);
+            let function_ref = FunctionIdent::new(function_name, args, local_defs.output.ty.snapshot);
             deps.emit_output_ref::<Self>(*task_key, MirFunctionEncOutputRef { function_ref });
 
             let spec = deps.require_local::<MirSpecEnc>(
                 (def_id, substs, Some(caller_def_id), true)
             ).unwrap();
 
-            let func_args: Vec<_> = (1..=local_defs.arg_count).map(mir::Local::from).map(|arg| vcx.alloc(vir::LocalDeclData {
-                name: local_defs.locals[arg].local.name,
-                ty: local_defs.locals[arg].ty.snapshot,
+            let func_args: Vec<_> = local_defs.inputs.iter().map(|input| vcx.alloc(vir::LocalDeclData {
+                name: input.local.name,
+                ty: input.ty.snapshot,
             })).collect();
 
             let expr = if trusted {
@@ -116,7 +114,7 @@ impl TaskEncoder for MirFunctionEnc {
                     function: vcx.mk_function(
                         function_name,
                         vcx.alloc_slice(&func_args),
-                        local_defs.locals[mir::RETURN_PLACE].ty.snapshot,
+                        local_defs.output.ty.snapshot,
                         vcx.alloc_slice(&spec.pres),
                         vcx.alloc_slice(&spec.posts),
                         expr

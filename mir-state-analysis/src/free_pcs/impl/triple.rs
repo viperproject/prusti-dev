@@ -4,114 +4,79 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::{
-    hir::Mutability,
-    middle::mir::{
-        visit::Visitor, BorrowKind, Local, Location, Operand, Rvalue, Statement, StatementKind,
-        Terminator, TerminatorKind, RETURN_PLACE,
-    },
+use prusti_rustc_interface::middle::mir::{
+    visit::Visitor, Local, Location, Operand, Rvalue, Statement, StatementKind,
+    Terminator, TerminatorKind, RETURN_PLACE,
 };
 
-use crate::free_pcs::{CapabilityKind, Fpcs};
+use crate::{free_pcs::CapabilityKind, utils::{Place, PlaceRepacker}};
 
-impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
+use super::CapabilitySummary;
+
+pub(crate) struct Triple<'tcx> {
+    pub(super) pre: Condition<'tcx>,
+    pub(super) post: Condition<'tcx>,
+}
+
+pub(crate) enum Condition<'tcx> {
+    Capability(Place<'tcx>, CapabilityKind),
+    AllocateOrDeallocate(Local),
+    Unalloc(Local),
+    Unchanged,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Stage {
+    Before,
+    Main,
+}
+
+pub(crate) struct TripleWalker<'a, 'b, 'tcx> {
+    pub(crate) summary: &'a mut CapabilitySummary<'tcx>,
+    repacker: PlaceRepacker<'b, 'tcx>,
+    stage: Stage,
+    preparing: bool,
+}
+
+impl<'a, 'b, 'tcx> TripleWalker<'a, 'b, 'tcx> {
+    pub(crate) fn prepare(summary: &'a mut CapabilitySummary<'tcx>, repacker: PlaceRepacker<'b, 'tcx>, stage: Stage) -> Self {
+        Self {
+            summary, repacker, stage, preparing: true
+        }
+    }
+    pub(crate) fn apply(summary: &'a mut CapabilitySummary<'tcx>, repacker: PlaceRepacker<'b, 'tcx>, stage: Stage) -> Self {
+        Self {
+            summary, repacker, stage, preparing: false
+        }
+    }
+    fn triple(&mut self, stage: Stage, t: Triple<'tcx>) {
+        if stage != self.stage {
+            return;
+        }
+        if self.preparing {
+            self.summary.requires(t.pre, self.repacker);
+        } else {
+            self.summary.ensures(t, self.repacker);
+        }
+    }
+}
+
+impl<'tcx> Visitor<'tcx> for TripleWalker<'_, '_, 'tcx> {
     #[tracing::instrument(name = "Fpcs::visit_operand", level = "debug", skip(self))]
     fn visit_operand(&mut self, operand: &Operand<'tcx>, location: Location) {
         self.super_operand(operand, location);
-        match *operand {
-            Operand::Copy(place) => {
-                self.requires_read(place);
-            }
-            Operand::Move(place) => {
-                self.requires_exclusive(place);
-                self.ensures_write(place);
-            }
-            Operand::Constant(..) => (),
-        }
-    }
-
-    #[tracing::instrument(name = "Fpcs::visit_statement", level = "debug", skip(self))]
-    fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
-        if self.apply_pre_effect {
-            self.super_statement(statement, location);
-            return;
-        }
-        use StatementKind::*;
-        match &statement.kind {
-            Assign(box (place, rvalue)) => {
-                self.requires_write(*place);
-                let ensures = rvalue.capability();
-                match ensures {
-                    CapabilityKind::Exclusive => self.ensures_exclusive(*place),
-                    CapabilityKind::ShallowExclusive => self.ensures_shallow_exclusive(*place),
-                    _ => unreachable!(),
-                }
-            }
-            &FakeRead(box (_, place)) => self.requires_read(place),
-            &PlaceMention(box place) => self.requires_alloc(place),
-            &SetDiscriminant { box place, .. } => self.requires_exclusive(place),
-            &Deinit(box place) => {
-                // TODO: Maybe OK to also allow `Write` here?
-                self.requires_exclusive(place);
-                self.ensures_write(place);
-            }
-            &StorageLive(local) => {
-                self.requires_unalloc(local);
-                self.ensures_allocates(local);
-            }
-            &StorageDead(local) => {
-                self.requires_unalloc_or_uninit(local);
-                self.ensures_unalloc(local);
-            }
-            &Retag(_, box place) => self.requires_exclusive(place),
-            AscribeUserType(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => (),
+        let t = match *operand {
+            Operand::Copy(place) => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Exclusive),
+                post: Condition::Unchanged,
+            },
+            Operand::Move(place) => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Exclusive),
+                post: Condition::Capability(place.into(), CapabilityKind::Write),
+            },
+            Operand::Constant(..) => return,
         };
-    }
-
-    #[tracing::instrument(name = "Fpcs::visit_terminator", level = "debug", skip(self))]
-    fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-        if self.apply_pre_effect {
-            self.super_terminator(terminator, location);
-            return;
-        }
-        use TerminatorKind::*;
-        match &terminator.kind {
-            Goto { .. }
-            | SwitchInt { .. }
-            | UnwindResume
-            | UnwindTerminate(_)
-            | Unreachable
-            | Assert { .. }
-            | GeneratorDrop
-            | FalseEdge { .. }
-            | FalseUnwind { .. } => (),
-            Return => {
-                let always_live = self.repacker.always_live_locals();
-                for local in 0..self.repacker.local_count() {
-                    let local = Local::from_usize(local);
-                    if local == RETURN_PLACE {
-                        self.requires_exclusive(RETURN_PLACE);
-                    } else if always_live.contains(local) {
-                        self.requires_write(local);
-                    } else {
-                        self.requires_unalloc(local);
-                    }
-                }
-            }
-            &Drop { place, .. } => {
-                self.requires_write(place);
-                self.ensures_write(place);
-            }
-            &Call { destination, .. } => {
-                self.requires_write(destination);
-                self.ensures_exclusive(destination);
-            }
-            &Yield { resume_arg, .. } => {
-                self.requires_write(resume_arg);
-                self.ensures_exclusive(resume_arg);
-            }
-            InlineAsm { .. } => todo!("{terminator:?}"),
-        };
+        self.triple(Stage::Before, t)
     }
 
     #[tracing::instrument(name = "Fpcs::visit_rvalue", level = "debug", skip(self))]
@@ -130,29 +95,106 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             | Aggregate(_, _)
             | ShallowInitBox(_, _) => {}
 
-            &Ref(_, bk, place) => match bk {
-                BorrowKind::Shared => {
-                    self.requires_read(place);
-                    // self.ensures_blocked_read(place);
-                }
-                // TODO: this should allow `Shallow Shared` as well
-                BorrowKind::Shallow => {
-                    self.requires_read(place);
-                    // self.ensures_blocked_read(place);
-                }
-                BorrowKind::Mut { .. } => {
-                    self.requires_exclusive(place);
-                    // self.ensures_blocked_exclusive(place);
-                }
-            },
-            &AddressOf(m, place) => match m {
-                Mutability::Not => self.requires_read(place),
-                Mutability::Mut => self.requires_exclusive(place),
-            },
-            &Len(place) => self.requires_read(place),
-            &Discriminant(place) => self.requires_read(place),
-            &CopyForDeref(place) => self.requires_read(place),
+            &Ref(_, _, place) |
+            &AddressOf(_, place) |
+            &Len(place) |
+            &Discriminant(place) |
+            &CopyForDeref(place) => self.triple(Stage::Before, Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Exclusive),
+                post: Condition::Unchanged,
+            }),
         }
+    }
+
+    #[tracing::instrument(name = "Fpcs::visit_statement", level = "debug", skip(self))]
+    fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
+        self.super_statement(statement, location);
+        use StatementKind::*;
+        let t = match &statement.kind {
+            &Assign(box (place, ref rvalue)) => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Write),
+                post: Condition::Capability(place.into(), rvalue.capability()),
+            },
+            &FakeRead(box (_, place)) => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Exclusive),
+                post: Condition::Unchanged,
+            },
+            &PlaceMention(box place) =>  Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Write),
+                post: Condition::Unchanged,
+            },
+            &SetDiscriminant { box place, .. } => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Exclusive),
+                post: Condition::Unchanged,
+            },
+            &Deinit(box place) => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Exclusive),
+                post: Condition::Capability(place.into(), CapabilityKind::Write),
+            },
+            &StorageLive(local) => Triple {
+                pre: Condition::Unalloc(local),
+                post: Condition::AllocateOrDeallocate(local),
+            },
+            &StorageDead(local) => Triple {
+                pre: Condition::AllocateOrDeallocate(local),
+                post: Condition::Unalloc(local),
+            },
+            &Retag(_, box place) => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Exclusive),
+                post: Condition::Unchanged,
+            },
+            AscribeUserType(..) | Coverage(..) | Intrinsic(..) | ConstEvalCounter | Nop => return,
+        };
+        self.triple(Stage::Main, t);
+    }
+
+    #[tracing::instrument(name = "Fpcs::visit_terminator", level = "debug", skip(self))]
+    fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+        self.super_terminator(terminator, location);
+        use TerminatorKind::*;
+        let t = match &terminator.kind {
+            Goto { .. }
+            | SwitchInt { .. }
+            | UnwindResume
+            | UnwindTerminate(_)
+            | Unreachable
+            | Assert { .. }
+            | GeneratorDrop
+            | FalseEdge { .. }
+            | FalseUnwind { .. } => return,
+            Return => {
+                let always_live = self.repacker.always_live_locals();
+                for local in 0..self.repacker.local_count() {
+                    let local = Local::from_usize(local);
+                    let pre = if local == RETURN_PLACE {
+                        Condition::Capability(RETURN_PLACE.into(), CapabilityKind::Exclusive)
+                    } else if always_live.contains(local) {
+                        Condition::Capability(local.into(), CapabilityKind::Write)
+                    } else {
+                        Condition::Unalloc(local)
+                    };
+                    self.triple(Stage::Main, Triple {
+                        pre,
+                        post: Condition::Unchanged,
+                    });
+                }
+                return;
+            }
+            &Drop { place, .. } => Triple {
+                pre: Condition::Capability(place.into(), CapabilityKind::Write),
+                post: Condition::Capability(place.into(), CapabilityKind::Write),
+            },
+            &Call { destination, .. } => Triple {
+                pre: Condition::Capability(destination.into(), CapabilityKind::Write),
+                post: Condition::Capability(destination.into(), CapabilityKind::Exclusive),
+            },
+            &Yield { resume_arg, .. } => Triple {
+                pre: Condition::Capability(resume_arg.into(), CapabilityKind::Write),
+                post: Condition::Capability(resume_arg.into(), CapabilityKind::Exclusive),
+            },
+            InlineAsm { .. } => todo!("{terminator:?}"),
+        };
+        self.triple(Stage::Main, t);
     }
 }
 

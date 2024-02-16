@@ -9,11 +9,10 @@ pub mod edge;
 use prusti_rustc_interface::{
     borrowck::{
     borrow_set::{BorrowData, BorrowSet},
-        consumers::{BorrowIndex, Borrows, OutlivesConstraint, PoloniusInput, RustcFacts, RegionInferenceContext},
+        consumers::{BorrowIndex, Borrows, OutlivesConstraint, PoloniusInput, RustcFacts, RegionInferenceContext, calculate_borrows_out_of_scope_at_location},
     },
-    data_structures::fx::{FxHashMap, FxHashSet},
+    data_structures::fx::{FxHashMap, FxHashSet, FxIndexMap},
     dataflow::{Analysis, ResultsCursor},
-    index::IndexVec,
     middle::{
         mir::{
             Body, ConstraintCategory, Local, Location, Operand, Place, StatementKind,
@@ -22,6 +21,8 @@ use prusti_rustc_interface::{
         ty::{RegionVid, Ty, TyCtxt},
     },
 };
+
+use crate::utils::PlaceRepacker;
 
 use super::region_info::RegionInfo;
 
@@ -32,11 +33,13 @@ pub struct OutlivesInfo<'tcx> {
     pub type_ascription_constraints: Vec<OutlivesConstraint<'tcx>>,
     pub location_constraints: FxHashMap<Location, Vec<OutlivesConstraint<'tcx>>>,
     pub universal_constraints: Vec<(RegionVid, RegionVid)>,
+    pub oos_loc: FxIndexMap<Location, Vec<BorrowIndex>>,
 }
 
 impl<'tcx> OutlivesInfo<'tcx> {
     pub fn new(
         input_facts: &PoloniusInput,
+        rp: PlaceRepacker<'_, 'tcx>,
         region_inference_context: &RegionInferenceContext<'tcx>,
         borrow_set: &BorrowSet<'tcx>,
         ri: &RegionInfo<'tcx>,
@@ -70,12 +73,15 @@ impl<'tcx> OutlivesInfo<'tcx> {
                 local_constraints.push(constraint);
             }
         }
+
+        let oos_loc = calculate_borrows_out_of_scope_at_location(rp.body(), region_inference_context, borrow_set);
         Self {
             universal_local_constraints,
             local_constraints,
             type_ascription_constraints,
             location_constraints,
             universal_constraints: universal_constraints.into_iter().collect(),
+            oos_loc,
         }
     }
 

@@ -15,15 +15,15 @@ use crate::{
         outlives_info::edge::{Edge, EdgeInfo, EdgeOrigin},
     },
     free_pcs::{
-        CapabilityKind, CapabilityLocal, CapabilityProjections, CapabilitySummary, Fpcs, RepackOp,
+        CapabilityKind, CapabilityLocal, CapabilityProjections, CapabilitySummary, RepackOp,
     },
     utils::{PlaceOrdering, PlaceRepacker},
 };
 
-use super::{graph::Graph, triple::Cg};
+use super::{graph::Graph, triple::CouplingGraph};
 
-impl JoinSemiLattice for Cg<'_, '_> {
-    #[tracing::instrument(name = "Cg::join", level = "debug", ret)]
+impl JoinSemiLattice for CouplingGraph<'_, '_> {
+    #[tracing::instrument(name = "CouplingGraph::join", level = "debug", ret)]
     fn join(&mut self, other: &Self) -> bool {
         let version = self.version.entry(other.location.block).or_default();
         *version += 1;
@@ -31,7 +31,7 @@ impl JoinSemiLattice for Cg<'_, '_> {
 
         let loop_head = self.cgx.loops.loop_head_of(self.location.block);
         let top = |sup, sub| {
-            EdgeInfo::no_reason(sup, sub, Some(self.location), EdgeOrigin::Opaque).to_edge(self.cgx)
+            EdgeInfo::no_reason(sup, sub, Some(self.location), EdgeOrigin::Opaque).to_edge(&self.cgx)
         };
         let needs_widening = |loc: Location| {
             loop_head
@@ -41,34 +41,34 @@ impl JoinSemiLattice for Cg<'_, '_> {
         // Are we looping back into the loop head from within the loop?
         let loop_into = loop_head.map(|l| self.cgx.loops.in_loop(other.location.block, l));
         let mut changed = false;
-        for (_, node) in other.graph.all_nodes() {
+        for (_, node) in other.after.all_nodes() {
             for (_, edges) in node.blocks.iter() {
                 for edge in edges {
                     let edge = Edge::widen(edge, top, needs_widening);
-                    let was_new = self.graph.outlives_join(edge);
+                    let was_new = self.after.outlives_join(edge);
                     changed = changed || was_new.is_some();
                 }
             }
         }
-        let old_len = self.graph.inactive_loans.len();
-        self.graph
+        let old_len = self.after.inactive_loans.len();
+        self.after
             .inactive_loans
-            .extend(other.graph.inactive_loans.iter().copied());
-        changed = changed || old_len != self.graph.inactive_loans.len();
+            .extend(other.after.inactive_loans.iter().copied());
+        changed = changed || old_len != self.after.inactive_loans.len();
         changed
     }
 }
 
-impl Cg<'_, '_> {
-    #[tracing::instrument(name = "Cg::bridge", level = "debug", fields(self.graph = ?self.graph, other.graph = ?self.graph), ret)]
+impl CouplingGraph<'_, '_> {
+    #[tracing::instrument(name = "CouplingGraph::bridge", level = "debug", fields(self.after = ?self.after, other.after = ?self.after), ret)]
     pub fn bridge(&self, other: &Self) -> Vec<CouplingOp> {
         other
-            .graph
+            .after
             .all_nodes()
             .flat_map(|(sub, node)| {
                 node.true_edges()
                     .into_iter()
-                    .filter(move |sup| !self.graph.nodes[sub].blocks.contains_key(sup))
+                    .filter(move |sup| !self.after.nodes[sub].blocks.contains_key(sup))
                     .map(move |sup| self.outlives_to_block((sup, sub, true)).unwrap())
                     .map(|block| CouplingOp::Add(block))
             })

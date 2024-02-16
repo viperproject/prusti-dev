@@ -29,8 +29,8 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             | BinOpKind::CmpLt
             | BinOpKind::CmpGe
             | BinOpKind::CmpLe => &TypeData::Bool,
-            BinOpKind::And | BinOpKind::Or => &TypeData::Bool,
-            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mod => self.lhs.ty(),
+            BinOpKind::And | BinOpKind::Or | BinOpKind::If | BinOpKind::In => &TypeData::Bool,
+            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mod | BinOpKind::Union | BinOpKind::Subset => self.lhs.ty(),
         }
     }
 }
@@ -222,7 +222,7 @@ pub struct PureAssignGenData<'vir, Curr, Next> {
 
 #[derive(Reify)]
 pub struct MethodCallGenData<'vir, Curr, Next> {
-    #[reify_copy] pub(crate) targets: &'vir [Local<'vir>],
+    pub(crate) targets: &'vir [ExprGen<'vir, Curr, Next>],
     #[reify_copy] pub(crate) method: &'vir str,
     pub(crate) args: &'vir [ExprGen<'vir, Curr, Next>],
 }
@@ -279,6 +279,13 @@ pub struct MethodGenData<'vir, Curr, Next> {
     pub(crate) blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
 }
 
+#[derive(Reify)]
+pub struct MacroGenData<'vir, Curr, Next> {
+    #[reify_copy] pub(crate) name: &'vir str, // TODO: identifiers
+    #[reify_copy] pub(crate) args: &'vir [Local<'vir>],
+    pub(crate) expr: ExprGen<'vir, Curr, Next>,
+}
+
 #[derive(Debug, Reify)]
 pub struct ProgramGenData<'vir, Curr, Next> {
     #[reify_copy] pub(crate) fields: &'vir [Field<'vir>],
@@ -286,5 +293,6 @@ pub struct ProgramGenData<'vir, Curr, Next> {
     pub(crate) predicates: &'vir [PredicateGen<'vir, Curr, Next>],
     pub(crate) functions: &'vir [FunctionGen<'vir, Curr, Next>],
     pub(crate) methods: &'vir [MethodGen<'vir, Curr, Next>],
+    pub(crate) macros: &'vir [MacroGen<'vir, Curr, Next>],
     // verification flags?
 }
