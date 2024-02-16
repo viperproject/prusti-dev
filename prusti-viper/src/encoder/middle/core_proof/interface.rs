@@ -73,7 +73,10 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             };
             let source_filename = self.env().name.source_file_name();
             program.assert_valid_debug();
-            if config::trace_with_symbolic_execution() || config::custom_heap_encoding() {
+            if config::trace_with_symbolic_execution()
+                || config::custom_heap_encoding()
+                || config::viper_backend() == "svirpti"
+            {
                 program = super::transformations::desugar_method_calls::desugar_method_calls(
                     &source_filename,
                     program,
@@ -95,25 +98,75 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             if config::inline_caller_for()
                 || config::trace_with_symbolic_execution()
                 || config::custom_heap_encoding()
+                || config::viper_backend() == "svirpti"
             {
                 super::transformations::inline_functions::inline_caller_for(
                     &source_filename,
                     &mut program,
                 );
             }
-            if config::trace_with_symbolic_execution() {
-                if config::trace_with_symbolic_execution_new() {
-                    program =
+            if config::viper_backend() == "svirpti" {
+                assert!(
+                    !config::trace_with_symbolic_execution(),
+                    "Incompattible setting: trace_with_symbolic_execution and svirpti backend"
+                );
+                program =
                         super::transformations::make_all_jumps_nondeterministic::make_all_jumps_nondeterministic(
                             &source_filename,
                             program
                         );
-                    program =
+                program = super::transformations::merge_consequent_blocks::merge_consequent_blocks(
+                    &source_filename,
+                    program,
+                );
+                if config::expand_quantifiers() {
+                    program = super::transformations::expand_quantifiers::expand_quantifiers(
+                        &source_filename,
+                        program,
+                    );
+                }
+                // We have to execute this pass because some of the transformations
+                // generate nested old expressions, which cause problems when
+                // triggering.
+                program = super::transformations::clean_old::clean_old(&source_filename, program);
+                // We have to execute this pass because some of the transformations
+                // generate unused variables whose types are not defined.
+                program = super::transformations::clean_variables::clean_variables(
+                    &source_filename,
+                    program,
+                );
+                if config::clean_labels() {
+                    program = super::transformations::clean_labels::clean_labels(
+                        &source_filename,
+                        program,
+                    );
+                }
+                if config::merge_consecutive_statements() {
+                    program = super::transformations::merge_statements::merge_statements(
+                        &source_filename,
+                        program,
+                    );
+                }
+                program = super::transformations::case_splits::desugar_case_splits(
+                    &source_filename,
+                    program,
+                )?;
+                let result = super::svirpti::verify_program(self, program)?;
+                unimplemented!("save the result: {:?}", result);
+            } else {
+                if config::trace_with_symbolic_execution() {
+                    if config::trace_with_symbolic_execution_new() {
+                        program =
+                        super::transformations::make_all_jumps_nondeterministic::make_all_jumps_nondeterministic(
+                            &source_filename,
+                            program
+                        );
+                        program =
                         super::transformations::merge_consequent_blocks::merge_consequent_blocks(
                             &source_filename,
                             program,
                         );
-                    program =
+                        program =
                         super::transformations::symbolic_execution_new::purify_with_symbolic_execution(
                             self,
                             &source_filename,
@@ -123,8 +176,8 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                             predicates_info.owned_predicates_info.clone(),
                             &extensionality_gas_constant,
                         )?;
-                } else {
-                    program =
+                    } else {
+                        program =
                         super::transformations::symbolic_execution::purify_with_symbolic_execution(
                             self,
                             &source_filename,
@@ -135,60 +188,60 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                             &extensionality_gas_constant,
                             2,
                         )?;
+                    }
+                    // program =
+                    //     super::transformations::symbolic_execution::purify_with_symbolic_execution(
+                    //         &source_filename,
+                    //         program,
+                    //         predicates_info.non_aliased_memory_block_addresses,
+                    //         &snapshot_domains_info,
+                    //         predicates_info.owned_predicates_info.clone(),
+                    //         2,
+                    //     )?;
                 }
-                // program =
-                //     super::transformations::symbolic_execution::purify_with_symbolic_execution(
-                //         &source_filename,
-                //         program,
-                //         predicates_info.non_aliased_memory_block_addresses,
-                //         &snapshot_domains_info,
-                //         predicates_info.owned_predicates_info.clone(),
-                //         2,
-                //     )?;
-            }
-            if config::custom_heap_encoding() {
-                program = super::transformations::desugar_conditionals::desugar_conditionals(
+                if config::custom_heap_encoding() {
+                    program = super::transformations::desugar_conditionals::desugar_conditionals(
+                        &source_filename,
+                        program,
+                    );
+                    super::transformations::custom_heap_encoding::custom_heap_encoding(
+                        self,
+                        &mut program,
+                        predicates_info.owned_predicates_info,
+                    )?;
+                }
+                if config::expand_quantifiers() {
+                    program = super::transformations::expand_quantifiers::expand_quantifiers(
+                        &source_filename,
+                        program,
+                    );
+                }
+                // We have to execute this pass because some of the transformations
+                // generate nested old expressions, which cause problems when
+                // triggering.
+                program = super::transformations::clean_old::clean_old(&source_filename, program);
+                // We have to execute this pass because some of the transformations
+                // generate unused variables whose types are not defined.
+                program = super::transformations::clean_variables::clean_variables(
                     &source_filename,
                     program,
                 );
-                super::transformations::custom_heap_encoding::custom_heap_encoding(
-                    self,
-                    &mut program,
-                    predicates_info.owned_predicates_info,
+                if config::clean_labels() {
+                    program = super::transformations::clean_labels::clean_labels(
+                        &source_filename,
+                        program,
+                    );
+                }
+                if config::merge_consecutive_statements() {
+                    program = super::transformations::merge_statements::merge_statements(
+                        &source_filename,
+                        program,
+                    );
+                }
+                program = super::transformations::case_splits::desugar_case_splits(
+                    &source_filename,
+                    program,
                 )?;
-            }
-            if config::expand_quantifiers() {
-                program = super::transformations::expand_quantifiers::expand_quantifiers(
-                    &source_filename,
-                    program,
-                );
-            }
-            // We have to execute this pass because some of the transformations
-            // generate nested old expressions, which cause problems when
-            // triggering.
-            program = super::transformations::clean_old::clean_old(&source_filename, program);
-            // We have to execute this pass because some of the transformations
-            // generate unused variables whose types are not defined.
-            program =
-                super::transformations::clean_variables::clean_variables(&source_filename, program);
-            if config::clean_labels() {
-                program =
-                    super::transformations::clean_labels::clean_labels(&source_filename, program);
-            }
-            if config::merge_consecutive_statements() {
-                program = super::transformations::merge_statements::merge_statements(
-                    &source_filename,
-                    program,
-                );
-            }
-            program = super::transformations::case_splits::desugar_case_splits(
-                &source_filename,
-                program,
-            )?;
-            if config::viper_backend() == "svirpti" {
-                let result = super::svirpti::verify_program(self, program)?;
-                unimplemented!("save the result: {:?}", result);
-            } else {
                 self.mid_core_proof_encoder_state
                     .encoded_programs
                     .push((Some(proc_def_id), program));
