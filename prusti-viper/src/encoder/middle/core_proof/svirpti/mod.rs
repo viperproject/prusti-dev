@@ -32,7 +32,7 @@ pub(super) fn verify_program(
         source_filename, program.name
     );
     let mut verifier = Verifier::new();
-    let program = verifier.execute(
+    let result = verifier.execute(
         source_filename,
         program,
         non_aliased_memory_block_addresses,
