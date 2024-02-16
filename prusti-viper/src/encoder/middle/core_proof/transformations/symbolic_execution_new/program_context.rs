@@ -11,7 +11,7 @@ use vir_crate::{
     low::{self as vir_low, operations::ty::Typed},
 };
 
-pub(super) struct ProgramContext<'a, EC: EncoderContext> {
+pub(in super::super::super) struct ProgramContext<'a, EC: EncoderContext> {
     domains: &'a [vir_low::DomainDecl],
     domain_functions: FxHashMap<String, &'a vir_low::DomainFunctionDecl>,
     functions: FxHashMap<String, &'a vir_low::FunctionDecl>,
@@ -27,7 +27,7 @@ pub(super) struct ProgramContext<'a, EC: EncoderContext> {
 }
 
 impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
-    pub(super) fn new(
+    pub(in super::super::super) fn new(
         domains: &'a [vir_low::DomainDecl],
         functions: &'a [vir_low::FunctionDecl],
         predicate_decls: &'a [vir_low::PredicateDecl],

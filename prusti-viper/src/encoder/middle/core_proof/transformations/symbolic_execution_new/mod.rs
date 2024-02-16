@@ -2,14 +2,13 @@
 //! predicates in the Viper program. This module depends on `ErrorManager` and,
 //! therefore, has to be in the `prusti-viper` crate.
 
-use self::{procedure_executor::ProcedureExecutor, program_context::ProgramContext};
+use self::procedure_executor::ProcedureExecutor;
 use super::encoder_context::EncoderContext;
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{predicates::OwnedPredicateInfo, snapshots::SnapshotDomainsInfo},
 };
 use log::debug;
-
 use rustc_hash::FxHashSet;
 use std::collections::BTreeMap;
 use vir_crate::low::{self as vir_low};
@@ -20,6 +19,8 @@ mod block_builder;
 mod trace_builder;
 mod expression_interner;
 mod egg;
+
+pub(in super::super) use self::program_context::ProgramContext;
 
 pub(in super::super) fn purify_with_symbolic_execution(
     encoder: &mut impl EncoderContext,
