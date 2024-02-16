@@ -97,7 +97,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     }
 
     fn current_block(&self) -> &vir_low::BasicBlock {
-        self.procedure.basic_blocks.get(&self.current_frame().label).unwrap()
+        self.procedure
+            .basic_blocks
+            .get(&self.current_frame().label)
+            .unwrap()
     }
 
     fn execute_block(&mut self) -> SpannedEncodingResult<()> {
