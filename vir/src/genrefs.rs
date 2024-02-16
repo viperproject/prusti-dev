@@ -10,6 +10,7 @@ pub type FuncAppGen<'vir, Curr, Next> = &'vir crate::gendata::FuncAppGenData<'vi
 pub type FunctionGen<'vir, Curr, Next> = &'vir crate::gendata::FunctionGenData<'vir, Curr, Next>;
 pub type GotoIfGen<'vir, Curr, Next> = &'vir crate::gendata::GotoIfGenData<'vir, Curr, Next>;
 pub type LetGen<'vir, Curr, Next> = &'vir crate::gendata::LetGenData<'vir, Curr, Next>;
+pub type MacroGen<'vir, Curr, Next> = &'vir crate::gendata::MacroGenData<'vir, Curr, Next>;
 pub type MethodGen<'vir, Curr, Next> = &'vir crate::gendata::MethodGenData<'vir, Curr, Next>;
 pub type MethodCallGen<'vir, Curr, Next> = &'vir crate::gendata::MethodCallGenData<'vir, Curr, Next>;
 pub type PredicateGen<'vir, Curr, Next> = &'vir crate::gendata::PredicateGenData<'vir, Curr, Next>;

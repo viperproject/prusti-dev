@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    free_pcs::{CapabilityKind, CapabilityLocal, CapabilityProjections, Summary},
+    free_pcs::{CapabilityKind, CapabilityLocal, CapabilityProjections, CapabilitySummary},
     utils::{Place, PlaceRepacker},
 };
 
@@ -13,7 +13,7 @@ pub trait CapabilityConsistency<'tcx> {
     fn consistency_check(&self, repacker: PlaceRepacker<'_, 'tcx>);
 }
 
-impl<'tcx, T: CapabilityConsistency<'tcx>> CapabilityConsistency<'tcx> for Summary<T> {
+impl<'tcx> CapabilityConsistency<'tcx> for CapabilitySummary<'tcx> {
     #[tracing::instrument(
         name = "Summary::consistency_check",
         level = "trace",

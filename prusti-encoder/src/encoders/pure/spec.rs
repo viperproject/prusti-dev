@@ -3,7 +3,7 @@ use prusti_rustc_interface::{middle::{mir, ty}, span::def_id::DefId};
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 use vir::Reify;
 
-use crate::encoders::{MirPureEnc, mir_pure::PureKind};
+use crate::encoders::{MirPureEnc, mir_pure::PureKind, CapabilityEnc};
 pub struct MirSpecEnc;
 
 #[derive(Clone)]
@@ -58,16 +58,18 @@ impl TaskEncoder for MirSpecEnc {
         ).unwrap();
 
         vir::with_vcx(|vcx| {
-            let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
             let all_args: Vec<_> = if pure {
-                let result_ty = local_defs.locals[mir::RETURN_PLACE].ty;
-                local_iter
-                    .map(|local| local_defs.locals[local].local_ex)
-                    .chain([vcx.mk_local_ex(vir::vir_format!(vcx, "result"), result_ty.snapshot)])
-                    .collect()
+                    local_defs
+                        .inputs
+                        .iter()
+                        .map(|input| input.local_ex)
+                        .chain([vcx.mk_local_ex(vir::vir_format!(vcx, "result"), local_defs.output.ty.snapshot)])
+                        .collect()
             } else {
-                local_iter
-                    .map(|local| local_defs.locals[local].impure_snap)
+                local_defs
+                    .inputs
+                    .iter()
+                    .map(|input| input.impure_snap)
                     .collect()
             };
             let all_args = vcx.alloc_slice(&all_args);
@@ -77,12 +79,12 @@ impl TaskEncoder for MirSpecEnc {
                 all_args
             };
 
-            let to_bool = deps.require_ref::<crate::encoders::PredicateEnc>(
+            let to_bool = deps.require_ref::<CapabilityEnc>(
                 vcx.tcx.types.bool,
             ).unwrap().expect_prim().snap_to_prim;
 
             let pres = specs.pres.iter().map(|spec_def_id| {
-                let expr = deps.require_local::<crate::encoders::MirPureEnc>(
+                let expr = deps.require_local::<MirPureEnc>(
                     crate::encoders::MirPureEncTask {
                         encoding_depth: 0,
                         kind: PureKind::Spec,
@@ -103,12 +105,12 @@ impl TaskEncoder for MirSpecEnc {
                 let post_args: Vec<_> = pre_args.iter().map(|arg|
                         vcx.mk_old_expr(arg)
                     )
-                    .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
+                    .chain([local_defs.output.impure_snap])
                     .collect();
                 vcx.alloc_slice(&post_args)
             };
             let posts = specs.posts.iter().map(|spec_def_id| {
-                let expr = deps.require_local::<crate::encoders::MirPureEnc>(
+                let expr = deps.require_local::<MirPureEnc>(
                     crate::encoders::MirPureEncTask {
                         encoding_depth: 0,
                         kind: PureKind::Spec,

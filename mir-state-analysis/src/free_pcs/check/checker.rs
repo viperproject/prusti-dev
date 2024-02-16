@@ -5,14 +5,15 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
+    dataflow::Analysis,
     data_structures::fx::FxHashMap,
     middle::mir::{visit::Visitor, Location, ProjectionElem},
 };
 
 use crate::{
     free_pcs::{
-        CapabilityKind, CapabilityLocal, CapabilitySummary, Fpcs, FpcsBound, FreePcsAnalysis,
-        RepackOp,
+        CapabilityKind, CapabilityLocal, CapabilitySummary, FreePcsAnalysis,
+        RepackOp, TripleWalker, Stage, HasFpcs,
     },
     utils::PlaceRepacker,
 };
@@ -20,21 +21,14 @@ use crate::{
 use super::consistency::CapabilityConsistency;
 
 #[tracing::instrument(name = "check", level = "debug", skip(cursor))]
-pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
+pub(crate) fn check<'mir, 'tcx, D: HasFpcs<'mir, 'tcx>, E: Analysis<'tcx, Domain = D>>(mut cursor: FreePcsAnalysis<'mir, 'tcx, D, E>) {
     let rp = cursor.repacker();
     let body = rp.body();
     for (block, data) in body.basic_blocks.iter_enumerated() {
         cursor.analysis_for_bb(block);
-        let mut fpcs = Fpcs {
-            summary: cursor.initial_state().clone(),
-            apply_pre_effect: true,
-            bottom: false,
-            repackings: Vec::new(),
-            repacker: rp,
-            bound: FpcsBound::empty(false),
-        };
+        let mut fpcs = cursor.initial_state().clone();
         // Consistency
-        fpcs.summary.consistency_check(rp);
+        fpcs.consistency_check(rp);
         for (statement_index, stmt) in data.statements.iter().enumerate() {
             let loc = Location {
                 block,
@@ -44,26 +38,21 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
             assert_eq!(fpcs_after.location, loc);
             // Repacks
             for &op in &fpcs_after.repacks_start {
-                op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
+                op.update_free(&mut fpcs, data.is_cleanup, true, rp);
             }
             // Consistency
-            fpcs.summary.consistency_check(rp);
+            fpcs.consistency_check(rp);
             // Statement pre
-            assert!(fpcs.repackings.is_empty());
-            fpcs.apply_pre_effect = true;
-            fpcs.visit_statement(stmt, loc);
-            assert!(fpcs.repackings.is_empty());
+            TripleWalker::apply(&mut fpcs, rp, Stage::Before).visit_statement(stmt, loc);
 
             // Repacks
             for op in fpcs_after.repacks_middle {
-                op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
+                op.update_free(&mut fpcs, data.is_cleanup, true, rp);
             }
             // Statement post
-            fpcs.apply_pre_effect = false;
-            fpcs.visit_statement(stmt, loc);
-            assert!(fpcs.repackings.is_empty());
+            TripleWalker::apply(&mut fpcs, rp, Stage::Main).visit_statement(stmt, loc);
             // Consistency
-            fpcs.summary.consistency_check(rp);
+            fpcs.consistency_check(rp);
         }
         let loc = Location {
             block,
@@ -73,27 +62,22 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
         assert_eq!(fpcs_after.location, loc);
         // Repacks
         for op in fpcs_after.repacks_start {
-            op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
+            op.update_free(&mut fpcs, data.is_cleanup, true, rp);
         }
         // Consistency
-        fpcs.summary.consistency_check(rp);
+        fpcs.consistency_check(rp);
         // Statement pre
-        assert!(fpcs.repackings.is_empty());
-        fpcs.apply_pre_effect = true;
-        fpcs.visit_terminator(data.terminator(), loc);
-        assert!(fpcs.repackings.is_empty());
+        TripleWalker::apply(&mut fpcs, rp, Stage::Before).visit_terminator(data.terminator(), loc);
 
         // Repacks
         for op in fpcs_after.repacks_middle {
-            op.update_free(&mut fpcs.summary, data.is_cleanup, true, rp);
+            op.update_free(&mut fpcs, data.is_cleanup, true, rp);
         }
         // Statement post
-        fpcs.apply_pre_effect = false;
-        fpcs.visit_terminator(data.terminator(), loc);
-        assert!(fpcs.repackings.is_empty());
+        TripleWalker::apply(&mut fpcs, rp, Stage::Main).visit_terminator(data.terminator(), loc);
         // Consistency
-        fpcs.summary.consistency_check(rp);
-        assert_eq!(fpcs.summary, fpcs_after.state);
+        fpcs.consistency_check(rp);
+        assert_eq!(fpcs, fpcs_after.state);
 
         let fpcs_end = cursor.terminator();
 
@@ -102,13 +86,13 @@ pub(crate) fn check(mut cursor: FreePcsAnalysis<'_, '_>) {
             let mut from = fpcs.clone();
             for op in succ.repacks_start {
                 op.update_free(
-                    &mut from.summary,
+                    &mut from,
                     body.basic_blocks[succ.location.block].is_cleanup,
                     false,
                     rp,
                 );
             }
-            assert_eq!(from.summary, succ.state);
+            assert_eq!(from, succ.state);
         }
     }
 }

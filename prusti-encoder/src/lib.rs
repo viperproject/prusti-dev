@@ -63,34 +63,38 @@ pub fn test_entrypoint<'tcx>(
     let mut viper_code = String::new();
 
     header(&mut viper_code, "methods");
-    for output in crate::encoders::MirImpureEnc::all_outputs() {
+    for (_, output) in crate::encoders::MirLocalFieldEnc::all_outputs() {
+        viper_code.push_str(&format!("{:?}\n", output.field));
+    }
+    for (_, output) in crate::encoders::MirImpureEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.method));
     }
 
     header(&mut viper_code, "functions");
-    for output in crate::encoders::MirFunctionEnc::all_outputs() {
+    for (_, output) in crate::encoders::MirFunctionEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.function));
     }
 
     header(&mut viper_code, "MIR builtins");
-    for output in crate::encoders::MirBuiltinEnc::all_outputs() {
+    for (_, output) in crate::encoders::MirBuiltinEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.function));
     }
 
     header(&mut viper_code, "generics");
-    for output in crate::encoders::GenericEnc::all_outputs() {
+    for (_, output) in crate::encoders::GenericEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.snapshot_param));
         viper_code.push_str(&format!("{:?}\n", output.predicate_param));
         viper_code.push_str(&format!("{:?}\n", output.domain_type));
     }
 
     header(&mut viper_code, "snapshots");
-    for output in crate::encoders::DomainEnc_all_outputs() {
+    for (_, output) in crate::encoders::DomainEnc_all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output));
     }
 
     header(&mut viper_code, "types");
-    for output in crate::encoders::PredicateEnc::all_outputs() {
+    for (ty, output) in crate::encoders::PredicateEnc_all_outputs() {
+        header(&mut viper_code, &format!("{ty}"));
         for field in output.fields {
             viper_code.push_str(&format!("{:?}", field));
         }
@@ -99,10 +103,19 @@ pub fn test_entrypoint<'tcx>(
         }
         viper_code.push_str(&format!("{:?}\n", output.unreachable_to_snap));
         viper_code.push_str(&format!("{:?}\n", output.function_snap));
+        if let Some(shallow_snap) = output.function_shallow_snap {
+            viper_code.push_str(&format!("{:?}\n", shallow_snap));
+        }
         for pred in output.predicates {
             viper_code.push_str(&format!("{:?}\n", pred));
         }
         viper_code.push_str(&format!("{:?}\n", output.method_assign));
+        for ref_to_refs in output.ref_to_refs {
+            viper_code.push_str(&format!("{:?}\n", ref_to_refs));
+        }
+        for perms_macro in output.perms_macros {
+            viper_code.push_str(&format!("{:?}\n", perms_macro));
+        }
     }
 
     std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
@@ -115,7 +128,8 @@ pub fn test_entrypoint<'tcx>(
             vcx.alloc_slice(&[
                 vcx.mk_function("test_function", &[], &vir::TypeData::Bool, &[], &[], None),
             ]),
-            &[]
+            &[],
+            &[],
         )
     )
 }

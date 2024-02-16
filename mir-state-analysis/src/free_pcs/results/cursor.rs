@@ -5,28 +5,55 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_rustc_interface::{
+    dataflow::{Analysis, Forward},
     dataflow::ResultsCursor,
-    middle::mir::{BasicBlock, Body, Location},
+    middle::{
+        ty::RegionVid,
+        mir::{BasicBlock, Body, Location, Local},
+    },
 };
 
 use crate::{
-    free_pcs::{
-        engine::FreePlaceCapabilitySummary, join_semi_lattice::RepackingJoinSemiLattice,
-        CapabilityKind, CapabilitySummary, RepackOp,
-    },
-    utils::{Place, PlaceRepacker},
+    combined_pcs::{PcsEngine, PlaceCapabilitySummary}, coupling_graph::CgContext, free_pcs::{
+        engine::FpcsEngine, CapabilitySummary, FreePlaceCapabilitySummary, RepackOp, RepackingBridgeSemiLattice
+    }, utils::PlaceRepacker
 };
 
-type Cursor<'mir, 'tcx> = ResultsCursor<'mir, 'tcx, FreePlaceCapabilitySummary<'mir, 'tcx>>;
+pub trait HasFpcs<'mir, 'tcx> {
+    fn get_curr_fpcs(&self) -> &FreePlaceCapabilitySummary<'mir, 'tcx>;
+}
+impl<'mir, 'tcx> HasFpcs<'mir, 'tcx> for FreePlaceCapabilitySummary<'mir, 'tcx> {
+    fn get_curr_fpcs(&self) -> &FreePlaceCapabilitySummary<'mir, 'tcx> {
+        self
+    }
+}
+impl<'mir, 'tcx> HasFpcs<'mir, 'tcx> for PlaceCapabilitySummary<'mir, 'tcx> {
+    fn get_curr_fpcs(&self) -> &FreePlaceCapabilitySummary<'mir, 'tcx> {
+        &self.fpcs
+    }
+}
 
-pub struct FreePcsAnalysis<'mir, 'tcx> {
-    cursor: Cursor<'mir, 'tcx>,
+// trait FpcsEngineLike<'mir, 'tcx, D: FreePlaceCapabilitySummaryLike<'mir, 'tcx>>: Analysis<'tcx, Domain = D>
+
+pub trait HasCgContext<'mir, 'tcx> {
+    fn get_cgx(&self) -> std::rc::Rc<CgContext<'mir, 'tcx>>;
+}
+impl<'mir, 'tcx> HasCgContext<'mir, 'tcx> for PcsEngine<'mir, 'tcx> {
+    fn get_cgx(&self) -> std::rc::Rc<CgContext<'mir, 'tcx>> {
+        self.cgx.clone()
+    }
+}
+
+type Cursor<'mir, 'tcx, E> = ResultsCursor<'mir, 'tcx, E>;
+
+pub struct FreePcsAnalysis<'mir, 'tcx, D: HasFpcs<'mir, 'tcx>, E: Analysis<'tcx, Domain = D>> {
+    cursor: Cursor<'mir, 'tcx, E>,
     curr_stmt: Option<Location>,
     end_stmt: Option<Location>,
 }
 
-impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
-    pub(crate) fn new(cursor: Cursor<'mir, 'tcx>) -> Self {
+impl<'mir, 'tcx, D: HasFpcs<'mir, 'tcx>, E: Analysis<'tcx, Domain = D>> FreePcsAnalysis<'mir, 'tcx, D, E> {
+    pub(crate) fn new(cursor: Cursor<'mir, 'tcx, E>) -> Self {
         Self {
             cursor,
             curr_stmt: None,
@@ -34,12 +61,13 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         }
     }
 
+    // pub fn universal_constraints(&self) -> Vec<(Vec<(RegionVid, Local)>, Vec<(RegionVid, Local)>)> where E: HasCgContext<'mir, 'tcx> {
+    //     self.cursor.analysis().get_cgx().signature_constraints()
+    // }
+
     pub fn analysis_for_bb(&mut self, block: BasicBlock) {
         self.cursor.seek_to_block_start(block);
         let end_stmt = self
-            .cursor
-            .analysis()
-            .0
             .body()
             .terminator_loc(block)
             .successor_within_block();
@@ -51,23 +79,14 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
     }
 
     fn body(&self) -> &'mir Body<'tcx> {
-        self.cursor.analysis().0.body()
+        self.repacker().body()
     }
-    pub(crate) fn repacker(&mut self) -> PlaceRepacker<'mir, 'tcx> {
-        self.cursor.results().analysis.0
+    pub(crate) fn repacker(&self) -> PlaceRepacker<'mir, 'tcx> {
+        self.cursor.get().get_curr_fpcs().repacker
     }
 
-    pub fn set_bound_non_empty(&self) {
-        self.cursor.get().bound.borrow_mut().1 = true;
-    }
-    pub fn set_bound(&self, bound: Box<dyn Fn(Place<'tcx>) -> CapabilityKind>) {
-        self.cursor.get().bound.borrow_mut().0 = Some(bound);
-    }
-    pub fn unset_bound(&self) {
-        self.cursor.get().bound.borrow_mut().0 = None;
-    }
     pub fn initial_state(&self) -> &CapabilitySummary<'tcx> {
-        &self.cursor.get().summary
+        &self.cursor.get().get_curr_fpcs().after
     }
     pub fn next(&mut self, exp_loc: Location) -> FreePcsLocation<'tcx> {
         let location = self.curr_stmt.unwrap();
@@ -75,15 +94,15 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         assert!(location < self.end_stmt.unwrap());
         self.curr_stmt = Some(location.successor_within_block());
 
-        self.cursor.seek_before_primary_effect(location);
-        let repacks_start = self.cursor.get().repackings.clone();
+        let after = self.cursor.get().get_curr_fpcs().after.clone();
         self.cursor.seek_after_primary_effect(location);
-        let state = self.cursor.get();
+        let c = self.cursor.get().get_curr_fpcs();
+        let (repacks_start, repacks_middle) = c.repack_ops(&after);
         FreePcsLocation {
             location,
-            state: state.summary.clone(),
+            state: c.after.clone(),
             repacks_start,
-            repacks_middle: state.repackings.clone(),
+            repacks_middle,
         }
     }
     pub fn terminator(&mut self) -> FreePcsTerminator<'tcx> {
@@ -94,21 +113,21 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
 
         // TODO: cleanup
         let rp: PlaceRepacker = self.repacker();
-        let state = self.cursor.get().clone();
+        let state = self.cursor.get().get_curr_fpcs().clone();
         let block = &self.body()[location.block];
         let succs = block
             .terminator()
             .successors()
             .map(|succ| {
                 // Get repacks
-                let to = self.cursor.results().entry_set_for_block(succ);
+                let to = self.cursor.results().entry_set_for_block(succ).get_curr_fpcs();
                 FreePcsLocation {
                     location: Location {
                         block: succ,
                         statement_index: 0,
                     },
-                    state: to.summary.clone(),
-                    repacks_start: state.summary.bridge(&to.summary, rp),
+                    state: to.after.clone(),
+                    repacks_start: state.after.bridge(&to.after, rp),
                     repacks_middle: Vec::new(),
                 }
             })
@@ -116,7 +135,7 @@ impl<'mir, 'tcx> FreePcsAnalysis<'mir, 'tcx> {
         FreePcsTerminator { succs }
     }
 
-    /// Recommened interface.
+    /// Recommended interface.
     /// Does *not* require that one calls `analysis_for_bb` first
     pub fn get_all_for_bb(&mut self, block: BasicBlock) -> FreePcsBasicBlock<'tcx> {
         self.analysis_for_bb(block);

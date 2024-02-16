@@ -44,11 +44,6 @@ pub enum CapabilityKind {
     /// [`CapabilityKind::Exclusive`] for everything not through a dereference,
     /// [`CapabilityKind::Write`] for everything through a dereference.
     ShallowExclusive,
-
-    /// The capability was `Exclusive` but has been blocked by a shared borrow.
-    Read,
-    /// The capability was `Exclusive` but has been blocked by a mutable borrow.
-    None,
 }
 impl Debug for CapabilityKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -56,8 +51,6 @@ impl Debug for CapabilityKind {
             CapabilityKind::Write => write!(f, "W"),
             CapabilityKind::Exclusive => write!(f, "E"),
             CapabilityKind::ShallowExclusive => write!(f, "e"),
-            CapabilityKind::Read => write!(f, "R"),
-            CapabilityKind::None => write!(f, "N"),
         }
     }
 }
@@ -71,11 +64,9 @@ impl PartialOrd for CapabilityKind {
         match (self, other) {
             // W < E, W < e
             (_, CapabilityKind::Exclusive)
-            | (CapabilityKind::None, _)
             | (CapabilityKind::Write, CapabilityKind::ShallowExclusive) => Some(Ordering::Less),
             // E > W, e > W
             (CapabilityKind::Exclusive, _)
-            | (_, CapabilityKind::None)
             | (CapabilityKind::ShallowExclusive, CapabilityKind::Write) => Some(Ordering::Greater),
             _ => None,
         }
@@ -92,25 +83,11 @@ impl CapabilityKind {
     pub fn is_shallow_exclusive(self) -> bool {
         matches!(self, CapabilityKind::ShallowExclusive)
     }
-    pub fn is_read(self) -> bool {
-        matches!(self, CapabilityKind::Read)
-    }
-    pub fn is_none(self) -> bool {
-        matches!(self, CapabilityKind::None)
-    }
     #[tracing::instrument(name = "CapabilityKind::minimum", level = "trace", ret)]
     pub fn minimum(self, other: Self) -> Option<Self> {
         match self.partial_cmp(&other)? {
             Ordering::Greater => Some(other),
             _ => Some(self),
-        }
-    }
-    #[tracing::instrument(name = "CapabilityKind::sum", level = "trace", ret)]
-    pub fn sum(self, other: Self) -> Option<Self> {
-        match (self, other) {
-            (other, CapabilityKind::None) | (CapabilityKind::None, other) => Some(other),
-            (CapabilityKind::Write, CapabilityKind::Read) => Some(CapabilityKind::Exclusive),
-            _ => None,
         }
     }
 }

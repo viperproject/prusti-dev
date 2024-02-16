@@ -6,71 +6,40 @@
 
 use prusti_rustc_interface::{
     dataflow::{Analysis, AnalysisDomain},
-    index::{Idx, IndexVec},
+    index::IndexVec,
     middle::{
         mir::{
-            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Location, Promoted,
-            Statement, Terminator, TerminatorEdges, RETURN_PLACE,
+            visit::Visitor, BasicBlock, Body, CallReturnPlaces, Location, Promoted,
+            Statement, Terminator, TerminatorEdges,
         },
         ty::TyCtxt,
     },
 };
 
 use crate::{
-    free_pcs::{CapabilityKind, CapabilityLocal, Fpcs},
     utils::PlaceRepacker,
 };
 
-pub(crate) struct FreePlaceCapabilitySummary<'a, 'tcx>(pub(crate) PlaceRepacker<'a, 'tcx>);
-impl<'a, 'tcx> FreePlaceCapabilitySummary<'a, 'tcx> {
-    pub(crate) fn new(
-        tcx: TyCtxt<'tcx>,
-        body: &'a Body<'tcx>,
-        promoted: &'a IndexVec<Promoted, Body<'tcx>>,
-    ) -> Self {
-        let repacker = PlaceRepacker::new(body, promoted, tcx);
-        FreePlaceCapabilitySummary(repacker)
-    }
-}
+use super::{triple::{Stage, TripleWalker}, FreePlaceCapabilitySummary};
 
-impl<'a, 'tcx> AnalysisDomain<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
-    type Domain = Fpcs<'a, 'tcx>;
+pub struct FpcsEngine<'a, 'tcx>(pub PlaceRepacker<'a, 'tcx>);
+
+impl<'a, 'tcx> AnalysisDomain<'tcx> for FpcsEngine<'a, 'tcx> {
+    type Domain = FreePlaceCapabilitySummary<'a, 'tcx>;
     const NAME: &'static str = "free_pcs";
 
     fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-        Fpcs::new(self.0)
+        FreePlaceCapabilitySummary::new(self.0)
     }
 
-    fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
-        state.bottom = false;
-        let always_live = self.0.always_live_locals();
-        let return_local = RETURN_PLACE;
-        let last_arg = Local::new(body.arg_count);
-        for (local, cap) in state.summary.iter_enumerated_mut() {
-            assert!(cap.is_unallocated());
-            let new_cap = if local == return_local {
-                CapabilityLocal::new(local, CapabilityKind::Write)
-            } else if local <= last_arg {
-                CapabilityLocal::new(local, CapabilityKind::Exclusive)
-            } else if always_live.contains(local) {
-                // TODO: figure out if `always_live` should start as `Uninit` or `Exclusive`
-                let al_cap = if true {
-                    CapabilityKind::Write
-                } else {
-                    CapabilityKind::Exclusive
-                };
-                CapabilityLocal::new(local, al_cap)
-            } else {
-                CapabilityLocal::Unallocated
-            };
-            *cap = new_cap;
-        }
+    fn initialize_start_block(&self, _body: &Body<'tcx>, state: &mut Self::Domain) {
+        state.initialize_as_start_block();
     }
 }
 
-impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
+impl<'a, 'tcx> Analysis<'tcx> for FpcsEngine<'a, 'tcx> {
     #[tracing::instrument(
-        name = "FreePlaceCapabilitySummary::apply_before_statement_effect",
+        name = "FpcsEngine::apply_before_statement_effect",
         level = "debug",
         skip(self)
     )]
@@ -80,12 +49,13 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         statement: &Statement<'tcx>,
         location: Location,
     ) {
-        state.repackings.clear();
-        state.apply_pre_effect = true;
-        state.visit_statement(statement, location);
+        TripleWalker::prepare(&mut state.after, self.0, Stage::Before).visit_statement(statement, location);
+        state.before_start = state.after.clone();
+        TripleWalker::apply(&mut state.after, self.0, Stage::Before).visit_statement(statement, location);
+        state.before_after = state.after.clone();
     }
     #[tracing::instrument(
-        name = "FreePlaceCapabilitySummary::apply_statement_effect",
+        name = "FpcsEngine::apply_statement_effect",
         level = "debug",
         skip(self)
     )]
@@ -95,13 +65,13 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         statement: &Statement<'tcx>,
         location: Location,
     ) {
-        state.repackings.clear();
-        state.apply_pre_effect = false;
-        state.visit_statement(statement, location);
+        TripleWalker::prepare(&mut state.after, self.0, Stage::Main).visit_statement(statement, location);
+        state.start = state.after.clone();
+        TripleWalker::apply(&mut state.after, self.0, Stage::Main).visit_statement(statement, location);
     }
 
     #[tracing::instrument(
-        name = "FreePlaceCapabilitySummary::apply_before_terminator_effect",
+        name = "FpcsEngine::apply_before_terminator_effect",
         level = "debug",
         skip(self)
     )]
@@ -111,12 +81,13 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         terminator: &Terminator<'tcx>,
         location: Location,
     ) {
-        state.repackings.clear();
-        state.apply_pre_effect = true;
-        state.visit_terminator(terminator, location);
+        TripleWalker::prepare(&mut state.after, self.0, Stage::Before).visit_terminator(terminator, location);
+        state.before_start = state.after.clone();
+        TripleWalker::apply(&mut state.after, self.0, Stage::Before).visit_terminator(terminator, location);
+        state.before_after = state.after.clone();
     }
     #[tracing::instrument(
-        name = "FreePlaceCapabilitySummary::apply_terminator_effect",
+        name = "FpcsEngine::apply_terminator_effect",
         level = "debug",
         skip(self)
     )]
@@ -126,9 +97,9 @@ impl<'a, 'tcx> Analysis<'tcx> for FreePlaceCapabilitySummary<'a, 'tcx> {
         terminator: &'mir Terminator<'tcx>,
         location: Location,
     ) -> TerminatorEdges<'mir, 'tcx> {
-        state.repackings.clear();
-        state.apply_pre_effect = false;
-        state.visit_terminator(terminator, location);
+        TripleWalker::prepare(&mut state.after, self.0, Stage::Main).visit_terminator(terminator, location);
+        state.start = state.after.clone();
+        TripleWalker::apply(&mut state.after, self.0, Stage::Main).visit_terminator(terminator, location);
         terminator.edges()
     }
 

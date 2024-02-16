@@ -158,6 +158,12 @@ impl<'tcx> RegionKind<'tcx> {
     pub fn is_param(&self) -> bool {
         matches!(self, Self::Param(..))
     }
+    pub fn get_param(&self) -> Option<&ParamRegion> {
+        match self {
+            Self::Param(p) => Some(p),
+            _ => None,
+        }
+    }
     pub fn is_function(&self) -> bool {
         matches!(self, Self::Function)
     }
@@ -504,6 +510,9 @@ impl<'tcx> RegionInfoMap<'tcx> {
     }
     pub fn all_regions(&self) -> impl Iterator<Item = RegionVid> {
         (0..self.region_info.len()).map(RegionVid::from)
+    }
+    pub fn universal_regions(&self) -> impl Iterator<Item = RegionVid> {
+        (0..self.universal).map(RegionVid::from)
     }
     pub fn for_local(&self, r: RegionVid, l: Local) -> bool {
         self.get(r).get_place() == Some(l)

@@ -64,6 +64,10 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
             BinOpKind::Add => "+",
             BinOpKind::Sub => "-",
             BinOpKind::Mod => "%",
+            BinOpKind::If => "==>",
+            BinOpKind::Union => "union",
+            BinOpKind::Subset => "subset",
+            BinOpKind::In => "in",
         })?;
         self.rhs.fmt(f)?;
         write!(f, ")")
@@ -85,6 +89,7 @@ impl Debug for ConstData {
         match self {
             Self::Bool(b) => write!(f, "{b}"),
             Self::Int(n) => write!(f, "{n}"),
+            Self::Write => write!(f, "write"),
             Self::Wildcard => write!(f, "wildcard"),
             Self::Null => write!(f, "null"),
         }
@@ -224,6 +229,14 @@ impl<'vir> Debug for LocalDeclData<'vir> {
         write!(f, "{}: ", self.name)?;
         self.ty.fmt(f)?;
         Ok(())
+    }
+}
+
+impl<'vir, Curr, Next> Debug for MacroGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        writeln!(f, "define {}(", self.name)?;
+        fmt_comma_sep_lines(f, &self.args)?;
+        writeln!(f, ") {:?}", self.expr)
     }
 }
 

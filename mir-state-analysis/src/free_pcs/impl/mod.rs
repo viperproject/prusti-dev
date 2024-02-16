@@ -11,7 +11,10 @@ pub(crate) mod engine;
 pub(crate) mod join_semi_lattice;
 mod triple;
 mod update;
+mod bridge;
 
 pub(crate) use fpcs::*;
 pub(crate) use local::*;
+pub use bridge::*;
 pub use place::*;
+pub use triple::*;

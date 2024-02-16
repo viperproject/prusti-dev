@@ -19,7 +19,7 @@ use prusti_rustc_interface::{
 
 use crate::coupling_graph::outlives_info::edge::{Edge as CgEdge, EdgeInfo};
 
-use super::triple::Cg;
+use super::triple::CouplingGraph;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Edge<'tcx> {
@@ -38,7 +38,7 @@ impl<'tcx> Edge<'tcx> {
     }
 }
 
-impl<'a, 'tcx> Cg<'a, 'tcx> {
+impl<'a, 'tcx> CouplingGraph<'a, 'tcx> {
     fn get_id(&self) -> String {
         if self.location.block == BasicBlock::MAX {
             "start".to_string()
@@ -50,7 +50,7 @@ impl<'a, 'tcx> Cg<'a, 'tcx> {
         }
     }
 }
-impl<'a, 'tcx> Cg<'a, 'tcx> {
+impl<'a, 'tcx> CouplingGraph<'a, 'tcx> {
     fn non_empty_edges(
         &self,
         sub: RegionVid,
@@ -68,7 +68,7 @@ impl<'a, 'tcx> Cg<'a, 'tcx> {
             // reasons.retain(|reason| reason.iter().any(|r| r.creation.is_some()) || reason.reason.is_some());
             return vec![Edge::new(start, sub, reasons)];
         }
-        for (&sup, edge) in &self.graph.nodes[sub].blocks {
+        for (&sup, edge) in &self.after.nodes[sub].blocks {
             let sup_info = self.cgx.region_info.map.get(sup);
             if !(self.dot_edge_filter)(sup_info, sub_info) {
                 continue;
@@ -82,7 +82,7 @@ impl<'a, 'tcx> Cg<'a, 'tcx> {
     }
 }
 
-impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
+impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for CouplingGraph<'b, 'tcx> {
     fn graph_id(&'a self) -> dot::Id<'a> {
         dot::Id::new(self.get_id()).unwrap()
     }
@@ -119,14 +119,14 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
         let kind = self.get_kind(*r);
         if kind.universal() {
             Some(dot::LabelText::LabelStr(Cow::Borrowed("red")))
-        } else if self.graph.inactive_loans.contains(r) {
+        } else if self.after.inactive_loans.contains(r) {
             Some(dot::LabelText::LabelStr(Cow::Borrowed("blue")))
         } else {
             None
         }
     }
     fn node_shape(&'a self, r: &RegionVid) -> Option<dot::LabelText<'a>> {
-        if self.graph.static_regions.contains(&r) {
+        if self.after.static_regions.contains(&r) {
             return Some(dot::LabelText::LabelStr(Cow::Borrowed("house")));
         }
         // For regions created by `... = &'r ...`, find the kind of borrow.
@@ -155,10 +155,10 @@ impl<'a, 'b, 'tcx> dot::Labeller<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
     }
 }
 
-impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
+impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for CouplingGraph<'b, 'tcx> {
     fn nodes(&self) -> dot::Nodes<'a, RegionVid> {
         let mut nodes: Vec<_> = self
-            .graph
+            .after
             .all_nodes()
             .filter(|(r, _)| (self.dot_node_filter)(self.cgx.region_info.map.get(*r)))
             .map(|(r, _)| r)
@@ -171,7 +171,7 @@ impl<'a, 'b, 'tcx> dot::GraphWalk<'a, RegionVid, Edge<'tcx>> for Cg<'b, 'tcx> {
 
     fn edges(&'a self) -> dot::Edges<'a, Edge<'tcx>> {
         let mut edges = Vec::new();
-        for (sub, n) in self.graph.all_nodes() {
+        for (sub, n) in self.after.all_nodes() {
             let sub_info = self.cgx.region_info.map.get(sub);
             if !(self.dot_node_filter)(sub_info) {
                 continue;

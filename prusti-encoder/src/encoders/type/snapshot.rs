@@ -49,6 +49,7 @@ impl TaskEncoder for SnapshotEnc {
         Self::EncodingError,
         Option<Self::OutputFullDependency<'vir>>,
     )> {
+        // println!("\nSnapshotEnc::do_encode_full: {task_key:?}");
         vir::with_vcx(|vcx| {
             // Here we need to normalise the task description.
             // In particular, any concrete type parameter instantiation is replaced
@@ -102,8 +103,9 @@ impl TaskEncoder for SnapshotEnc {
                     (ty, vec![orig])
                 }
                 TyKind::Ref(r, orig, m) => {
+                    // TODO: handle `r`?
                     let ty = Self::to_placeholder(vcx.tcx, None);
-                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Ref(r, ty, m));
+                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Ref(vcx.tcx.lifetimes.re_erased, ty, m));
                     (ty, vec![orig])
                 }
                 _ => (*task_key, Vec::new()),
@@ -111,15 +113,18 @@ impl TaskEncoder for SnapshotEnc {
             let out = deps.require_ref::<DomainEnc>(ty).unwrap();
             let tys: Vec<_> = args.iter().map(|arg| deps.require_ref::<Self>(*arg).unwrap().snapshot).collect();
             let snapshot = out.domain.apply(vcx, &tys);
+            // println!("SnapshotEnc::emit_output_ref: {task_key:?}");
             deps.emit_output_ref::<Self>(*task_key, SnapshotEncOutputRef { snapshot });
 
             let mut names = vec![out.base_name];
             for arg in args {
+                // println!("SnapshotEnc::require_local: {task_key:?} ({arg:?})");
                 let arg = deps.require_local::<Self>(arg).unwrap();
                 names.push(arg.base_name);
             }
             // TODO: figure out nicer way to avoid name clashes
             let base_name = names.join("_$_");
+            // println!("SnapshotEnc::require_dep: {task_key:?} ({ty:?})");
             let specifics = deps.require_dep::<DomainEnc>(ty).unwrap();
             Ok((SnapshotEncOutput { base_name, snapshot, specifics }, ()))
         })

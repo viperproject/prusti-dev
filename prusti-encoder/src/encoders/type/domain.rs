@@ -54,6 +54,11 @@ pub struct DomainDataVariant<'vir> {
     pub discr: vir::Expr<'vir>,
     pub fields: DomainDataStruct<'vir>,
 }
+#[derive(Clone, Copy, Debug)]
+pub struct DomainDataRef<'vir> {
+   pub deep: DomainDataStruct<'vir>,
+    pub shallow: DomainDataStruct<'vir>,
+}
 
 #[derive(Clone, Copy, Debug)]
 pub enum DiscrBounds<'vir> {
@@ -67,7 +72,8 @@ pub enum DomainEncSpecifics<'vir> {
     Primitive(DomainDataPrim<'vir>),
     // structs, tuples
     StructLike(DomainDataStruct<'vir>),
-    EnumLike(Option<DomainDataEnum<'vir>>)
+    EnumLike(Option<DomainDataEnum<'vir>>),
+    Ref(DomainDataRef<'vir>),
 }
 
 #[derive(Clone, Debug)]
@@ -79,7 +85,7 @@ impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 
 use crate::encoders::SnapshotEnc;
 
-pub fn all_outputs<'vir>() -> Vec<vir::Domain<'vir>> {
+pub fn all_outputs<'vir>() -> Vec<(ty::Ty<'vir>, vir::Domain<'vir>)> {
     DomainEnc::all_outputs()
 }
 
@@ -109,7 +115,8 @@ impl TaskEncoder for DomainEnc {
         Self::EncodingError,
         Option<Self::OutputFullDependency<'vir>>,
     )> {
-        vir::with_vcx(|vcx| match task_key.kind() {
+        // println!("DomainEnc::do_encode_full: {task_key:?}");
+        let ret = vir::with_vcx(|vcx| match task_key.kind() {
             TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_)  => {
                 let (base_name, prim_type) = match task_key.kind() {
                     TyKind::Bool => (String::from("Bool"), &vir::TypeData::Bool),
@@ -125,6 +132,7 @@ impl TaskEncoder for DomainEnc {
                 };
 
                 let (mut enc, _) = DomainEncData::new(vcx, &base_name, [].into_iter());
+                // println!("DomainEnc::emit_output_ref: {task_key:?}");
                 deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
                 let specifics = enc.mk_prim_specifics(*task_key, prim_type);
                 Ok((enc.finalize(), specifics))
@@ -132,6 +140,7 @@ impl TaskEncoder for DomainEnc {
             TyKind::Param(param) => {
                 let base_name = param.name.as_str().to_string();
                 let (enc, _) = DomainEncData::new(vcx, &base_name, [].into_iter());
+                // println!("DomainEnc::emit_output_ref: {task_key:?}");
                 deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
                 Ok((enc.finalize(), DomainEncSpecifics::Param))
             }
@@ -139,7 +148,13 @@ impl TaskEncoder for DomainEnc {
                 let base_name = vcx.tcx.item_name(adt.did()).to_ident_string();
                 let ty_params = params.iter().flat_map(ty::GenericArg::as_type);
                 let (mut enc, ty_params) = DomainEncData::new(vcx, &base_name, ty_params);
+                // println!("DomainEnc::emit_output_ref: {task_key:?}");
                 deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
+                if adt.is_box() {
+                    // TODO: remove special case?
+                    let specifics = enc.mk_struct_specifics(ty_params);
+                    return Ok((enc.finalize(), specifics));
+                }
                 match adt.adt_kind() {
                     ty::AdtKind::Struct => {
                         let variant = adt.non_enum_variant();
@@ -175,6 +190,7 @@ impl TaskEncoder for DomainEnc {
             TyKind::Tuple(params) => {
                 let base_name = format!("{}_Tuple", params.len());
                 let (mut enc, ty_params) = DomainEncData::new(vcx, &base_name, params.iter());
+                // println!("DomainEnc::emit_output_ref: {task_key:?}");
                 deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
                 let specifics = enc.mk_struct_specifics(ty_params);
                 Ok((enc.finalize(), specifics))
@@ -182,6 +198,7 @@ impl TaskEncoder for DomainEnc {
             TyKind::Never => {
                 let base_name = String::from("Never");
                 let (mut enc, _) = DomainEncData::new(vcx, &base_name, [].into_iter());
+                // println!("DomainEnc::emit_output_ref: {task_key:?}");
                 deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
                 let specifics = enc.mk_enum_specifics(None);
                 Ok((enc.finalize(), specifics))
@@ -189,13 +206,15 @@ impl TaskEncoder for DomainEnc {
             &TyKind::Ref(_, inner, m) => {
                 let base_name = format!("Ref_{m:?}");
                 let (mut enc, mut ty_params) = DomainEncData::new(vcx, &base_name, [inner].into_iter());
+                // println!("DomainEnc::emit_output_ref: {task_key:?}");
                 deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
-                ty_params.push(&vir::TypeData::Ref);
-                let specifics = enc.mk_struct_specifics(ty_params);
+                let specifics = enc.mk_ref_specifics(ty_params[0]);
                 Ok((enc.finalize(), specifics))
             }
             kind => todo!("{kind:?}"),
-        })
+        });
+        // println!("DomainEnc::done: {task_key:?}");
+        ret
     }
 }
 
@@ -279,7 +298,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         prim_type: vir::Type<'vir>,
     ) -> DomainEncSpecifics<'vir> {
         let prim_type_args = self.vcx.alloc_array(&[prim_type]);
-        let data = self.mk_field_functions(prim_type_args, None, ty.is_integral());
+        let data = self.mk_field_functions(prim_type_args, None, None, ty.is_integral());
         // TODO: what to do about write?
         let snap_to_prim = data.field_access[0].read;
         let specifics = DomainDataPrim {
@@ -298,7 +317,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         &mut self,
         fields: Vec<vir::Type<'vir>>,
     ) -> DomainEncSpecifics<'vir> {
-        let specifics = self.mk_field_functions(self.vcx.alloc_slice(&fields), None, false);
+        let specifics = self.mk_field_functions(self.vcx.alloc_slice(&fields), None, None, false);
         DomainEncSpecifics::StructLike(specifics)
     }
     pub fn mk_enum_specifics(
@@ -309,8 +328,8 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
             let discr_vals: Vec<_> = data.variants.iter().map(|(_, _, _, discr)| data.discr_prim.expr_from_bits(discr.ty, discr.val)).collect();
             let snap_to_discr_snap = self.mk_discr_function(data.discr_ty);
             let variants = self.vcx.alloc_slice(&data.variants.iter().enumerate().map(|(idx, (name, vid, fields, _))| {
-                let discr = (snap_to_discr_snap, data.discr_prim.prim_to_snap.apply(self.vcx, [discr_vals[idx]]), *name);
-                let fields = self.mk_field_functions(self.vcx.alloc_slice(fields), Some(discr), false);
+                let discr = (snap_to_discr_snap, data.discr_prim.prim_to_snap.apply(self.vcx, [discr_vals[idx]]));
+                let fields = self.mk_field_functions(self.vcx.alloc_slice(fields), Some(discr), Some(name.to_string()), false);
                 DomainDataVariant { name: *name, vid: *vid, discr: discr_vals[idx], fields }
             }).collect::<Vec<_>>());
             let discr_bounds = self.mk_discr_bounds_axioms(data.discr_prim, snap_to_discr_snap, discr_vals, data.has_explicit);
@@ -324,6 +343,31 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         });
         DomainEncSpecifics::EnumLike(specifics)
     }
+    pub fn mk_ref_specifics(
+        &mut self,
+        inner: vir::Type<'vir>,
+    ) -> DomainEncSpecifics<'vir> {
+        let fields = self.vcx.alloc_slice(&[inner, &vir::TypeData::Ref]);
+        let deep = self.mk_field_functions(fields, None, None, false);
+        let shallow = self.mk_field_functions(&fields[1..], None, Some(String::from("shallow")), false);
+
+        // Deep and shallow are equal
+        let read_deep = deep.field_access[1].read.apply(self.vcx, [self.self_ex]);
+        let read_shallow = shallow.field_access[0].read.apply(self.vcx, [self.self_ex]);
+        let expr = self.vcx.mk_forall_expr(
+            self.self_decl,
+            self.vcx.alloc_slice(&[self.vcx.alloc_slice(&[read_deep]), self.vcx.alloc_slice(&[read_shallow])]),
+            self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, read_deep, read_shallow)
+        );
+        self.axioms.push(self.vcx.mk_domain_axiom(
+            vir::vir_format!(self.vcx, "ax_deep_eq_shallow"),
+            expr,
+        ));
+        DomainEncSpecifics::Ref(DomainDataRef {
+            deep,
+            shallow,
+        })
+    }
 
     fn push_function(&mut self, func: vir::DomainFunction<'vir>) -> FunctionIdent<'vir, UnknownArity<'vir>> {
         let ident = func.ident();
@@ -335,11 +379,12 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
     fn mk_field_functions(
         &mut self,
         field_tys: &'vir [vir::Type<'vir>],
-        discr: Option<(FunctionIdent<'vir, UnaryArity<'vir>>, vir::Expr<'vir>, symbol::Symbol)>,
+        discr: Option<(FunctionIdent<'vir, UnaryArity<'vir>>, vir::Expr<'vir>)>,
+        suffix: Option<String>,
         stronger_cons_axiom: bool,
     ) -> DomainDataStruct<'vir> {
         let name = self.domain.name();
-        let base = discr.map(|(_, _, v)| format!("{name}_{v}")).unwrap_or_else(|| name.to_string());
+        let base = suffix.map(|s| format!("{name}_{s}")).unwrap_or_else(|| name.to_string());
         // Constructor
         let field_snaps_to_snap = {
             let name = vir::vir_format!(self.vcx, "{base}_cons");
@@ -358,7 +403,7 @@ impl<'vir, 'tcx> DomainEncData<'vir, 'tcx> {
         let cons_call_with_qvars = field_snaps_to_snap.apply(self.vcx, &cons_args);
 
         // Discriminant axioms
-        if let Some((get_discr, val, _)) = discr {
+        if let Some((get_discr, val)) = discr {
             let discr = get_discr.apply(self.vcx, [cons_call_with_qvars]);
             let mut expr = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, discr, val);
             if !field_tys.is_empty() {
@@ -564,6 +609,12 @@ impl<'vir> DomainEncSpecifics<'vir> {
     }
     pub fn expect_enumlike(self) -> Option<DomainDataEnum<'vir>> {
         self.get_enumlike().expect("expected enum-like")
+    }
+    pub fn expect_ref(self) -> DomainDataRef<'vir> {
+        match self {
+            Self::Ref(data) => data,
+            _ => panic!("expected ref"),
+        }
     }
 }
 impl<'vir> DomainDataPrim<'vir> {

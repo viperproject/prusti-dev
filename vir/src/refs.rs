@@ -16,6 +16,7 @@ pub type GotoIf<'vir> = &'vir crate::data::GotoIfData<'vir>;
 pub type Let<'vir> = &'vir crate::data::LetData<'vir>;
 pub type Local<'vir> = &'vir crate::data::LocalData<'vir>;
 pub type LocalDecl<'vir> = &'vir crate::data::LocalDeclData<'vir>;
+pub type Macro<'vir> = &'vir crate::data::MacroData<'vir>;
 pub type Method<'vir> = &'vir crate::data::MethodData<'vir>;
 pub type MethodCall<'vir> = &'vir crate::data::MethodCallData<'vir>;
 pub type Predicate<'vir> = &'vir crate::data::PredicateData<'vir>;

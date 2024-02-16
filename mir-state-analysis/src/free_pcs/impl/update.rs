@@ -4,98 +4,81 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::middle::mir::Local;
-
 use crate::{
-    free_pcs::{CapabilityKind, CapabilityLocal, CapabilityProjections, Fpcs, RepackOp},
+    free_pcs::{CapabilityKind, CapabilityLocal, CapabilityProjections},
     utils::{LocalMutationIsAllowed, Place, PlaceOrdering, PlaceRepacker},
 };
-use std::fmt::Debug;
 
-impl<'tcx> Fpcs<'_, 'tcx> {
-    #[tracing::instrument(name = "Fpcs::requires_unalloc", level = "trace")]
-    pub(crate) fn requires_unalloc(&mut self, local: Local) {
-        assert!(
-            self.summary[local].is_unallocated(),
-            "local: {local:?}, fpcs: {self:?}\n"
-        );
-    }
-    #[tracing::instrument(name = "Fpcs::requires_unalloc_or_uninit", level = "trace")]
-    pub(crate) fn requires_unalloc_or_uninit(&mut self, local: Local) {
-        if !self.summary[local].is_unallocated() {
-            self.requires_write(local)
-        } else {
-            self.repackings.push(RepackOp::IgnoreStorageDead(local))
+use super::{CapabilitySummary, triple::{Condition, Triple}};
+
+impl<'tcx> CapabilitySummary<'tcx> {
+    pub(crate) fn requires(&mut self, cond: Condition<'tcx>, repacker: PlaceRepacker<'_, 'tcx>) {
+        match cond {
+            Condition::Unchanged => {}
+            Condition::Unalloc(_) => {},
+            Condition::AllocateOrDeallocate(local) => {
+                match &mut self[local] {
+                    cap@CapabilityLocal::Unallocated => {
+                        // A bit of an unusual case: we're at a StorageDead but
+                        // already deallocated. Allocate now so that the
+                        // precondition of SD can be met, but we'll catch this in
+                        // `bridge` and emit a IgnoreSD op.
+                        *cap = CapabilityLocal::Allocated(CapabilityProjections::new_uninit(local));
+                    }
+                    CapabilityLocal::Allocated(_) =>
+                        self.requires(Condition::Capability(local.into(), CapabilityKind::Write), repacker),
+                }
+            }
+            Condition::Capability(place, cap) => {
+                let cp = self[place.local].get_allocated_mut();
+                cp.repack(place, repacker);
+                if cp[&place] > cap {
+                    // Requires write should deinit an exclusive
+                    cp.insert(place, cap);
+                };
+            }
         }
     }
-    // TODO: make this work properly through references (i.e. check that the lifetime is live)
-    #[tracing::instrument(name = "Fpcs::requires_alloc", level = "trace")]
-    pub(crate) fn requires_alloc(&mut self, place: impl Into<Place<'tcx>> + Debug) {
-        let place = place.into();
-        self.requires(place, CapabilityKind::None)
-    }
-    #[tracing::instrument(name = "Fpcs::requires_read", level = "trace")]
-    pub(crate) fn requires_read(&mut self, place: impl Into<Place<'tcx>> + Debug) {
-        let place = place.into();
-        self.requires(place, CapabilityKind::Read)
-    }
-    /// May obtain write _or_ exclusive, if one should only have write afterwards,
-    /// make sure to also call `ensures_write`!
-    #[tracing::instrument(name = "Fpcs::requires_write", level = "trace")]
-    pub(crate) fn requires_write(&mut self, place: impl Into<Place<'tcx>> + Debug) {
-        let place = place.into();
-        // Cannot get write on a shared ref
-        assert!(place
-            .is_mutable(LocalMutationIsAllowed::Yes, self.repacker)
-            .is_ok());
-        self.requires(place, CapabilityKind::Write)
-    }
-    #[tracing::instrument(name = "Fpcs::requires_write", level = "trace")]
-    pub(crate) fn requires_exclusive(&mut self, place: impl Into<Place<'tcx>> + Debug) {
-        let place = place.into();
-        // Cannot get exclusive on a shared ref
-        assert!(!place.projects_shared_ref(self.repacker));
-        self.requires(place, CapabilityKind::Exclusive)
-    }
-    fn requires(&mut self, place: Place<'tcx>, cap: CapabilityKind) {
-        let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
-        let ops = cp.repack(place, self.repacker);
-        self.repackings.extend(ops);
-        let kind = cp[&place];
-        if cap.is_write() {
-            // Requires write should deinit an exclusive
-            cp.insert(place, cap);
-            if kind != cap {
-                self.repackings.push(RepackOp::Weaken(place, kind, cap));
+    pub(crate) fn ensures(&mut self, t: Triple<'tcx>, repacker: PlaceRepacker<'_, 'tcx>) {
+        match t.pre {
+            Condition::Unchanged => {}
+            Condition::Unalloc(local) => {
+                assert!(self[local].is_unallocated(), "local: {local:?}, fpcs: {self:?}\n");
             }
-        };
-        let bounded = self.bound(place).minimum(kind).unwrap();
-        assert!(bounded >= cap);
-    }
+            Condition::AllocateOrDeallocate(local) => {
+                assert_eq!(self[local].get_allocated_mut()[&local.into()], CapabilityKind::Write);
+            }
+            Condition::Capability(place, cap) => {
+                match cap {
+                    CapabilityKind::Write => {
+                        // Cannot get write on a shared ref
+                        debug_assert!(place
+                            .is_mutable(LocalMutationIsAllowed::Yes, repacker)
+                            .is_ok());
+                    }
+                    CapabilityKind::Exclusive => {
+                        // Cannot get exclusive on a shared ref
+                        assert!(!place.projects_shared_ref(repacker));
+                    }
+                    CapabilityKind::ShallowExclusive => unreachable!(),
+                }
 
-    pub(crate) fn ensures_unalloc(&mut self, local: Local) {
-        self.summary[local] = CapabilityLocal::Unallocated;
-    }
-    pub(crate) fn ensures_allocates(&mut self, local: Local) {
-        assert_eq!(self.summary[local], CapabilityLocal::Unallocated);
-        self.summary[local] = CapabilityLocal::Allocated(CapabilityProjections::new_uninit(local));
-    }
-    fn ensures_alloc(&mut self, place: impl Into<Place<'tcx>>, cap: CapabilityKind) {
-        let place = place.into();
-        let cp: &mut CapabilityProjections = self.summary[place.local].get_allocated_mut();
-        cp.update_cap(place, cap);
-    }
-    pub(crate) fn ensures_exclusive(&mut self, place: impl Into<Place<'tcx>>) {
-        self.ensures_alloc(place, CapabilityKind::Exclusive)
-    }
-    pub(crate) fn ensures_shallow_exclusive(&mut self, place: impl Into<Place<'tcx>>) {
-        self.ensures_alloc(place, CapabilityKind::ShallowExclusive)
-    }
-    pub(crate) fn ensures_write(&mut self, place: impl Into<Place<'tcx>>) {
-        let place = place.into();
-        // Cannot get uninitialize behind a ref (actually drop does this)
-        assert!(place.can_deinit(self.repacker), "{place:?}");
-        self.ensures_alloc(place, CapabilityKind::Write)
+                let cp = self[place.local].get_allocated_mut();
+                assert_eq!(cp[&place], cap); // TODO: is this too strong for shallow exclusive?
+            }
+        }
+        match t.post {
+            Condition::Unchanged => {}
+            Condition::Unalloc(local) => {
+                self[local] = CapabilityLocal::Unallocated;
+            }
+            Condition::AllocateOrDeallocate(local) => {
+                self[local] = CapabilityLocal::Allocated(CapabilityProjections::new_uninit(local));
+            }
+            Condition::Capability(place, cap) => {
+                self[place.local].get_allocated_mut().update_cap(place, cap);
+            }
+        }
     }
 }
 
@@ -110,20 +93,22 @@ impl<'tcx> CapabilityProjections<'tcx> {
         &mut self,
         to: Place<'tcx>,
         repacker: PlaceRepacker<'_, 'tcx>,
-    ) -> Vec<RepackOp<'tcx>> {
+    ) {
         let related = self.find_all_related(to, None);
         match related.relation {
-            PlaceOrdering::Prefix => self.expand(related.get_only_from(), related.to, repacker),
-            PlaceOrdering::Equal => Vec::new(),
-            PlaceOrdering::Suffix => self.collapse(related.get_from(), related.to, repacker),
+            PlaceOrdering::Prefix => {
+                self.expand(related.get_only_from(), related.to, repacker);
+            }
+            PlaceOrdering::Equal => (),
+            PlaceOrdering::Suffix => {
+                self.collapse(related.get_from(), related.to, repacker);
+            }
             PlaceOrdering::Both => {
                 let cp = related.common_prefix(to);
                 // Collapse
-                let mut ops = self.collapse(related.get_from(), cp, repacker);
+                self.collapse(related.get_from(), cp, repacker);
                 // Expand
-                let unpacks = self.expand(cp, related.to, repacker);
-                ops.extend(unpacks);
-                ops
+                self.expand(cp, related.to, repacker);
             }
         }
     }
