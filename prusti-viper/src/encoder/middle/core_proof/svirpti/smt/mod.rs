@@ -3,6 +3,7 @@ mod parser;
 mod solver;
 mod errors;
 mod expressions;
+mod types;
 
 pub use self::{
     configuration::Configuration,
