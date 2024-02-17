@@ -1,6 +1,8 @@
 use rsmt2::{print::Expr2Smt, SmtRes};
 use std::io::Write;
-use vir_crate::low::{self as vir_low};
+use vir_crate::low::{self as vir_low, operations::ty::Typed};
+
+use super::types::Type2Smt;
 
 trait Expression2Smt<'a> {
     fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
@@ -48,22 +50,48 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Expression> {
         match self.expr {
             vir_low::Expression::Local(expression) => expression.expression_to_smt2(writer, info),
             vir_low::Expression::Field(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::LabelledOld(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::Constant(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::MagicWand(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::PredicateAccessPredicate(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::FieldAccessPredicate(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::Unfolding(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::LabelledOld(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::Constant(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::MagicWand(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::PredicateAccessPredicate(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::FieldAccessPredicate(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::Unfolding(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
             vir_low::Expression::UnaryOp(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::BinaryOp(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::PermBinaryOp(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::ContainerOp(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::Conditional(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::Quantifier(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::BinaryOp(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::PermBinaryOp(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::ContainerOp(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::Conditional(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::Quantifier(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
             vir_low::Expression::LetExpr(expression) => expression.expression_to_smt2(writer, info),
             vir_low::Expression::FuncApp(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::DomainFuncApp(expression) => expression.expression_to_smt2(writer, info),
-            vir_low::Expression::InhaleExhale(expression) => expression.expression_to_smt2(writer, info),
+            vir_low::Expression::DomainFuncApp(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::InhaleExhale(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
         }
     }
 }
@@ -73,7 +101,12 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::VariableDecl> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        write!(writer, "(")?;
+        write!(writer, "{}", self.expr.name)?;
+        write!(writer, " ")?;
+        self.expr.ty.type_to_smt2(writer, info)?;
+        write!(writer, ")")?;
+        Ok(())
     }
 }
 
@@ -82,7 +115,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Local> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        write!(writer, "{}", self.expr.variable.name)?;
+        Ok(())
     }
 }
 
@@ -163,7 +197,40 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::BinaryOp> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        write!(writer, "(")?;
+        match self.expr.op_kind {
+            vir_low::BinaryOpKind::EqCmp => write!(writer, "=")?,
+            vir_low::BinaryOpKind::NeCmp => {
+                write!(writer, "not (= ")?;
+            }
+            vir_low::BinaryOpKind::GtCmp => write!(writer, ">")?,
+            vir_low::BinaryOpKind::GeCmp => write!(writer, ">=")?,
+            vir_low::BinaryOpKind::LtCmp => write!(writer, "<")?,
+            vir_low::BinaryOpKind::LeCmp => write!(writer, "<=")?,
+            vir_low::BinaryOpKind::Add => write!(writer, "+")?,
+            vir_low::BinaryOpKind::Sub => write!(writer, "-")?,
+            vir_low::BinaryOpKind::Mul => write!(writer, "*")?,
+            vir_low::BinaryOpKind::Div => {
+                if matches!(self.expr.left.get_type(), vir_low::Type::Int) {
+                    write!(writer, "div")?
+                } else {
+                    write!(writer, "/")?
+                }
+            }
+            vir_low::BinaryOpKind::Mod => write!(writer, "mod")?,
+            vir_low::BinaryOpKind::And => write!(writer, "and")?,
+            vir_low::BinaryOpKind::Or => write!(writer, "or")?,
+            vir_low::BinaryOpKind::Implies => write!(writer, "=>")?,
+        }
+        write!(writer, " ")?;
+        self.expr.left.expression_to_smt2(writer, info)?;
+        write!(writer, " ")?;
+        self.expr.right.expression_to_smt2(writer, info)?;
+        write!(writer, " )")?;
+        if self.expr.op_kind == vir_low::BinaryOpKind::NeCmp {
+            write!(writer, " )")?;
+        }
+        Ok(())
     }
 }
 
@@ -181,7 +248,15 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::ContainerOp> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        write!(writer, "(")?;
+        self.expr.container_type.type_to_smt2(writer, info)?;
+        write!(writer, "::{}", self.expr.kind)?;
+        for arg in &self.expr.operands {
+            write!(writer, " ")?;
+            arg.expression_to_smt2(writer, info)?;
+        }
+        write!(writer, ")")?;
+        Ok(())
     }
 }
 
@@ -222,7 +297,12 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Trigger> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        write!(writer, " :pattern (")?;
+        for part in &self.expr.terms {
+            part.expression_to_smt2(writer, info)?;
+        }
+        write!(writer, ")")?;
+        Ok(())
     }
 }
 
@@ -249,7 +329,26 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::DomainFuncApp> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        if self.expr.arguments.is_empty() {
+            write!(
+                writer,
+                "{}::{}",
+                self.expr.domain_name, self.expr.function_name
+            )?;
+        } else {
+            write!(writer, "(")?;
+            write!(
+                writer,
+                "{}::{}",
+                self.expr.domain_name, self.expr.function_name
+            )?;
+            for arg in &self.expr.arguments {
+                write!(writer, " ")?;
+                arg.expression_to_smt2(writer, info)?;
+            }
+            write!(writer, ")")?;
+        }
+        Ok(())
     }
 }
 
