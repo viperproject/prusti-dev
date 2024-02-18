@@ -5,6 +5,7 @@ pub(super) mod custom_heap_encoding;
 pub(super) mod desugar_fold_unfold;
 pub(super) mod desugar_method_calls;
 pub(super) mod desugar_conditionals;
+pub(super) mod desugar_containers;
 pub(super) mod symbolic_execution;
 pub(super) mod symbolic_execution_new;
 pub(super) mod clean_old;

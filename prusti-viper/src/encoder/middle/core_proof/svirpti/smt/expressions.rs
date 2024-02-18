@@ -253,15 +253,19 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::ContainerOp> {
     where
         Writer: Write,
     {
-        write!(writer, "(")?;
-        self.expr.container_type.type_to_smt2(writer, info)?;
-        write!(writer, "@{}", self.expr.kind)?;
-        for arg in &self.expr.operands {
-            write!(writer, " ")?;
-            arg.expression_to_smt2(writer, info)?;
-        }
-        write!(writer, ")")?;
-        Ok(())
+        unreachable!(
+            "ContainerOp should be desugared before this point: {}",
+            self.expr
+        );
+        // write!(writer, "(")?;
+        // self.expr.container_type.type_to_smt2(writer, info)?;
+        // write!(writer, "@{}", self.expr.kind)?;
+        // for arg in &self.expr.operands {
+        //     write!(writer, " ")?;
+        //     arg.expression_to_smt2(writer, info)?;
+        // }
+        // write!(writer, ")")?;
+        // Ok(())
     }
 }
 

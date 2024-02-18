@@ -156,7 +156,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         domains: &[vir_low::DomainDecl],
     ) -> SpannedEncodingResult<()> {
-        self.create_builtin_types()?;
+        // self.create_builtin_types()?;
         self.create_domain_types(domains)?;
         self.create_domain_functions(domains)?;
         self.define_domain_axioms(domains)?;
@@ -164,27 +164,27 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    fn create_builtin_types(&mut self) -> SpannedEncodingResult<()> {
-        // TODO: Have a pass that desugars all ContainerOps into domains.
-        self.smt_solver.declare_sort("Set<Lifetime>").unwrap(); // FIXME: Handle errors
-        self.smt_solver
-            .declare_function(
-                "Set<Lifetime>",
-                "SetSubset",
-                &["Set<Lifetime>", "Set<Lifetime>"],
-                "Bool",
-            )
-            .unwrap(); // FIXME: Handle errors
-        self.smt_solver
-            .declare_function(
-                "Set<Lifetime>",
-                "SetContains",
-                &["Lifetime", "Set<Lifetime>"],
-                "Bool",
-            )
-            .unwrap(); // FIXME: Handle errors
-        Ok(())
-    }
+    // fn create_builtin_types(&mut self) -> SpannedEncodingResult<()> {
+    //     // TODO: Have a pass that desugars all ContainerOps into domains.
+    //     self.smt_solver.declare_sort("Set<Lifetime>").unwrap(); // FIXME: Handle errors
+    //     self.smt_solver
+    //         .declare_function(
+    //             "Set<Lifetime>",
+    //             "SetSubset",
+    //             &["Set<Lifetime>", "Set<Lifetime>"],
+    //             "Bool",
+    //         )
+    //         .unwrap(); // FIXME: Handle errors
+    //     self.smt_solver
+    //         .declare_function(
+    //             "Set<Lifetime>",
+    //             "SetContains",
+    //             &["Lifetime", "Set<Lifetime>"],
+    //             "Bool",
+    //         )
+    //         .unwrap(); // FIXME: Handle errors
+    //     Ok(())
+    // }
 
     fn create_domain_types(
         &mut self,

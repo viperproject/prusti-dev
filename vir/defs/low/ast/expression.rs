@@ -165,6 +165,7 @@ pub struct ContainerOp {
     pub position: Position,
 }
 
+#[derive(Copy)]
 pub enum ContainerOpKind {
     SeqEmpty,
     SeqConstructor,
