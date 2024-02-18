@@ -20,13 +20,23 @@ where
     }
 }
 
-pub(super) struct Sort2SmtWrapper<'a, T> {
+pub struct Sort2SmtWrapper<'a, T> {
     ty: &'a T,
 }
 
 impl<'a, T> Sort2SmtWrapper<'a, T> {
     pub(super) fn new(ty: &'a T) -> Self {
         Self { ty }
+    }
+}
+
+pub trait Sort2SmtWrap<T> {
+    fn wrap(&self) -> Sort2SmtWrapper<T>;
+}
+
+impl<'a> Sort2SmtWrap<vir_low::Type> for vir_low::Type {
+    fn wrap(&self) -> Sort2SmtWrapper<vir_low::Type> {
+        Sort2SmtWrapper::new(self)
     }
 }
 

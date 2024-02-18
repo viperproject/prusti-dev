@@ -257,10 +257,11 @@ pub macro expr {
     ($lhs: tt in $rhs: tt) => {
         {
             let lhs = $crate::low::macros::expr!( $lhs );
+            let rhs = $crate::low::macros::expr!( $rhs );
             $crate::low::ast::expression::Expression::container_op(
                 $crate::low::ast::expression::ContainerOpKind::SetContains,
-                ($crate::low::operations::ty::Typed::get_type(&lhs).clone()),
-                vec![lhs, $crate::low::macros::expr!( $rhs )],
+                ($crate::low::operations::ty::Typed::get_type(&rhs).clone()),
+                vec![lhs, rhs],
                 Default::default(),
             )
         }

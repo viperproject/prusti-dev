@@ -2,7 +2,7 @@ use super::{
     configuration::Configuration, errors::SmtSolverResult, expressions::Expr2SmtWrap,
     parser::SmtParser,
 };
-use rsmt2::Solver;
+use rsmt2::{print::Sort2Smt, Solver};
 use vir_crate::low::{self as vir_low};
 
 #[derive(Debug, PartialEq, Eq)]
@@ -55,6 +55,23 @@ impl SmtSolver {
     }
     pub fn declare_sort(&mut self, sort: &str) -> SmtSolverResult<()> {
         self.solver.declare_sort(sort, 0)?;
+        Ok(())
+    }
+    pub fn declare_function<ParameterSorts, ResultSort>(
+        &mut self,
+        domain_name: &str,
+        function_name: &str,
+        parameter_types: ParameterSorts,
+        result_type: ResultSort,
+    ) -> SmtSolverResult<()>
+    where
+        ParameterSorts: IntoIterator,
+        ParameterSorts::Item: Sort2Smt,
+        ResultSort: Sort2Smt,
+    {
+        let full_function_name = format!("{domain_name}@{function_name}");
+        self.solver
+            .declare_fun(full_function_name, parameter_types, result_type)?;
         Ok(())
     }
     pub fn comment(&mut self, comment: &str) -> SmtSolverResult<()> {

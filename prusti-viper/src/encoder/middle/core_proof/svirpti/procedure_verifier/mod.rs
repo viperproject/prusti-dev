@@ -2,7 +2,7 @@ use super::{
     super::transformations::{
         encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
     },
-    smt::SmtSolver,
+    smt::{SmtSolver, Sort2SmtWrap},
     VerificationResult, Verifier,
 };
 use crate::encoder::errors::SpannedEncodingResult;
@@ -156,9 +156,33 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         domains: &[vir_low::DomainDecl],
     ) -> SpannedEncodingResult<()> {
+        self.create_builtin_types()?;
         self.create_domain_types(domains)?;
+        self.create_domain_functions(domains)?;
         self.define_domain_axioms(domains)?;
         assert!(self.smt_solver.check_sat().unwrap().is_sat());
+        Ok(())
+    }
+
+    fn create_builtin_types(&mut self) -> SpannedEncodingResult<()> {
+        // TODO: Have a pass that desugars all ContainerOps into domains.
+        self.smt_solver.declare_sort("Set<Lifetime>").unwrap(); // FIXME: Handle errors
+        self.smt_solver
+            .declare_function(
+                "Set<Lifetime>",
+                "SetSubset",
+                &["Set<Lifetime>", "Set<Lifetime>"],
+                "Bool",
+            )
+            .unwrap(); // FIXME: Handle errors
+        self.smt_solver
+            .declare_function(
+                "Set<Lifetime>",
+                "SetContains",
+                &["Lifetime", "Set<Lifetime>"],
+                "Bool",
+            )
+            .unwrap(); // FIXME: Handle errors
         Ok(())
     }
 
@@ -169,6 +193,30 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         for domain in domains {
             let domain_name = &domain.name;
             self.smt_solver.declare_sort(domain_name).unwrap(); // FIXME: Handle errors
+        }
+        Ok(())
+    }
+
+    fn create_domain_functions(
+        &mut self,
+        domains: &[vir_low::DomainDecl],
+    ) -> SpannedEncodingResult<()> {
+        for domain in domains {
+            for function in &domain.functions {
+                let parameter_types = function
+                    .parameters
+                    .iter()
+                    .map(|parameter| parameter.ty.wrap())
+                    .collect::<Vec<_>>();
+                self.smt_solver
+                    .declare_function(
+                        &domain.name,
+                        &function.name,
+                        parameter_types,
+                        function.return_type.wrap(),
+                    )
+                    .unwrap(); // FIXME: Handle errors
+            }
         }
         Ok(())
     }
