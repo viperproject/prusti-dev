@@ -16,7 +16,7 @@ pub(crate) fn desugar_containers(
     mut program: vir_low::Program,
 ) -> vir_low::Program {
     let mut rewriter = Rewriter {
-        used_container_ops: FxHashMap::default(),
+        used_container_types: FxHashSet::default(),
     };
     for procedure in &mut program.procedures {
         desugar_containers_in_procedure(&mut rewriter, procedure);
@@ -63,7 +63,7 @@ fn desugar_containers_in_domain(rewriter: &mut Rewriter, domain: &mut vir_low::D
 }
 
 struct Rewriter {
-    used_container_ops: FxHashMap<vir_low::Type, FxHashSet<vir_low::ContainerOpKind>>,
+    used_container_types: FxHashSet<vir_low::Type>,
 }
 
 impl StatementFolder for Rewriter {
@@ -94,10 +94,6 @@ impl ExpressionFolder for Rewriter {
             unreachable!();
         };
         let domain_name = domain.name.clone();
-        self.used_container_ops
-            .entry(container_op.container_type)
-            .or_default()
-            .insert(container_op.kind);
         vir_low::Expression::domain_function_call(
             domain_name,
             container_op.kind.to_string(),
@@ -112,9 +108,9 @@ impl TypeFolder for Rewriter {
         match ty {
             vir_low::Type::Seq(container) => unimplemented!(),
             vir_low::Type::Set(mut container) => {
+                self.used_container_types.insert((*container.element_type).clone());
                 container.element_type = TypeFolder::fold_type_boxed(self, container.element_type);
                 let new_type = set_domain(&container);
-                self.used_container_ops.entry(new_type.clone()).or_default();
                 new_type
             }
             vir_low::Type::MultiSet(container) => unimplemented!(),
