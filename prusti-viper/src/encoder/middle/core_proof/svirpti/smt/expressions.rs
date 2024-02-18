@@ -1,7 +1,7 @@
+use super::types::Type2Smt;
 use rsmt2::{print::Expr2Smt, SmtRes};
 use std::io::Write;
 use vir_crate::low::{self as vir_low, operations::ty::Typed};
-use super::types::Type2Smt;
 
 trait Expression2Smt<'a> {
     fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
