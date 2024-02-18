@@ -1,7 +1,6 @@
 use rsmt2::{print::Expr2Smt, SmtRes};
 use std::io::Write;
 use vir_crate::low::{self as vir_low, operations::ty::Typed};
-
 use super::types::Type2Smt;
 
 trait Expression2Smt<'a> {
@@ -143,7 +142,13 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Constant> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        match &self.expr.value {
+            vir_low::ConstantValue::Bool(true) => write!(writer, "true")?,
+            vir_low::ConstantValue::Bool(false) => write!(writer, "false")?,
+            vir_low::ConstantValue::Int(value) => write!(writer, "{}", value)?,
+            vir_low::ConstantValue::BigInt(value) => write!(writer, "{}", value)?,
+        }
+        Ok(())
     }
 }
 
@@ -250,7 +255,7 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::ContainerOp> {
     {
         write!(writer, "(")?;
         self.expr.container_type.type_to_smt2(writer, info)?;
-        write!(writer, "::{}", self.expr.kind)?;
+        write!(writer, "@{}", self.expr.kind)?;
         for arg in &self.expr.operands {
             write!(writer, " ")?;
             arg.expression_to_smt2(writer, info)?;
@@ -332,14 +337,14 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::DomainFuncApp> {
         if self.expr.arguments.is_empty() {
             write!(
                 writer,
-                "{}::{}",
+                "{}@{}",
                 self.expr.domain_name, self.expr.function_name
             )?;
         } else {
             write!(writer, "(")?;
             write!(
                 writer,
-                "{}::{}",
+                "{}@{}",
                 self.expr.domain_name, self.expr.function_name
             )?;
             for arg in &self.expr.arguments {
