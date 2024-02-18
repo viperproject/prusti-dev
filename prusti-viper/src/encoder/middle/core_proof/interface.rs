@@ -151,6 +151,10 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     &source_filename,
                     program,
                 )?;
+                program = super::transformations::desugar_containers::desugar_containers(
+                    &source_filename,
+                    program,
+                );
                 let result = super::svirpti::verify_program(
                     self,
                     &source_filename,
