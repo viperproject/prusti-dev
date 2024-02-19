@@ -71,6 +71,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     pub(super) fn execute_procedure(mut self) -> SpannedEncodingResult<VerificationResult> {
         info!("Executing procedure: {}", self.procedure.name);
+        self.smt_solver.push().unwrap(); // FIXME: Handle errors
+        self.smt_solver
+            .comment(&format!("Executing procedure: {}", self.procedure.name))
+            .unwrap(); // FIXME: Handle errors
         let mut current_block = self.procedure.entry.clone();
         let frame = StackFrame {
             parent: None,
@@ -78,14 +82,33 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             statement_index: 0,
             is_executed: false,
         };
-        self.stack.push(frame);
+        self.stack_push(frame)?;
         while !self.stack.is_empty() {
             self.execute_block()?;
             self.execute_terminator()?;
-            self.pop_executed_frames();
+            self.pop_executed_frames()?;
         }
         info!("Finished executing procedure: {}", self.procedure.name);
+        self.smt_solver
+            .comment(&format!(
+                "Finished executing procedure: {}",
+                self.procedure.name
+            ))
+            .unwrap(); // FIXME: Handle errors
+        self.smt_solver.pop().unwrap(); // FIXME: Handle errors
         unimplemented!();
+    }
+
+    fn stack_push(&mut self, frame: StackFrame) -> SpannedEncodingResult<()> {
+        self.stack.push(frame);
+        self.smt_solver.push().unwrap(); // FIXME: Handle errors
+        Ok(())
+    }
+
+    fn stack_pop(&mut self) -> SpannedEncodingResult<()> {
+        self.stack.pop();
+        self.smt_solver.pop().unwrap(); // FIXME: Handle errors
+        Ok(())
     }
 
     fn current_frame(&self) -> &StackFrame {
@@ -114,42 +137,43 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         match self.current_block().successor.clone() {
             vir_low::Successor::Return => {
                 info!("Executing return terminator");
-                self.stack.pop();
+                self.stack_pop()?;
             }
             vir_low::Successor::Goto(ref label) => {
                 info!("Executing goto terminator");
-                self.stack.pop();
-                self.stack.push(StackFrame {
+                self.stack_pop()?;
+                self.stack_push(StackFrame {
                     parent: self.current_frame().parent.clone(),
                     label: label.clone(),
                     statement_index: 0,
                     is_executed: false,
-                });
+                })?;
             }
             vir_low::Successor::GotoSwitch(ref cases) => {
                 info!("Executing switch terminator");
                 for (_, label) in cases.iter().rev() {
                     let current_label = self.current_frame().label.clone();
-                    self.stack.push(StackFrame {
+                    self.stack_push(StackFrame {
                         parent: Some(current_label),
                         label: label.clone(),
                         statement_index: 0,
                         is_executed: false,
-                    });
+                    })?;
                 }
             }
         }
         Ok(())
     }
 
-    fn pop_executed_frames(&mut self) {
+    fn pop_executed_frames(&mut self) -> SpannedEncodingResult<()> {
         while let Some(frame) = self.stack.last() {
             if frame.is_executed {
-                self.stack.pop();
+                self.stack_pop()?;
             } else {
                 break;
             }
         }
+        Ok(())
     }
 
     pub(super) fn load_domains(
