@@ -39,6 +39,9 @@ impl<'a, 'c, EC: EncoderContext> Drop for ProcedureExecutor<'a, 'c, EC> {
             //     |writer| self.to_graphviz(writer).unwrap(),
             // );
         }
+        if !std::thread::panicking() {
+            assert_eq!(self.stack.len(), 0);
+        }
     }
 }
 
@@ -66,13 +69,15 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         self.smt_solver
             .comment(&format!("Executing procedure: {}", self.procedure.name))
             .unwrap(); // FIXME: Handle errors
-        let mut current_block = self.procedure.entry.clone();
-        self.stack_push(None, current_block.clone())?;
+        self.stack_push(None, self.procedure.entry.clone())?;
         while !self.stack.is_empty() {
             self.mark_current_frame_as_being_executed()?;
+            self.log_current_stack_status()?;
             self.execute_block()?;
-            self.execute_terminator()?;
+            // Executing the terminator changes the stack, so we need to mark
+            // the frame as executed now.
             self.mark_current_frame_as_executed()?;
+            self.execute_terminator()?;
             self.pop_executed_frames()?;
         }
         info!("Finished executing procedure: {}", self.procedure.name);
@@ -100,6 +105,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     }
 
     fn execute_terminator(&mut self) -> SpannedEncodingResult<()> {
+        let current_label = self.current_frame().label().clone();
         match self.current_block().successor.clone() {
             vir_low::Successor::Return => {
                 info!("Executing return terminator");
@@ -107,14 +113,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
             vir_low::Successor::Goto(ref label) => {
                 info!("Executing goto terminator");
-                let current_label = self.current_frame().label().clone();
                 self.stack_push(Some(current_label), label.clone())?;
             }
             vir_low::Successor::GotoSwitch(ref cases) => {
                 info!("Executing switch terminator");
                 for (_, label) in cases.iter().rev() {
-                    let current_label = self.current_frame().label().clone();
-                    self.stack_push(Some(current_label), label.clone())?;
+                    self.stack_push(Some(current_label.clone()), label.clone())?;
                 }
             }
         }

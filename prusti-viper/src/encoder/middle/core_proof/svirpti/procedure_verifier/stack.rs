@@ -109,4 +109,18 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         frame.status = StackFrameStatus::Executed;
         Ok(())
     }
+
+    pub(super) fn log_current_stack_status(&mut self) -> SpannedEncodingResult<()> {
+        for frame in &self.stack {
+            self.smt_solver
+                .comment(&format!(
+                    "Frame: {} status={:?} parent={:?}",
+                    frame.label(),
+                    frame.status,
+                    frame.parent()
+                ))
+                .unwrap(); // FIXME: Handle errors
+        }
+        Ok(())
+    }
 }
