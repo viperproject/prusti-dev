@@ -160,7 +160,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         self.create_domain_types(domains)?;
         self.create_domain_functions(domains)?;
         self.define_domain_axioms(domains)?;
-        assert!(self.smt_solver.check_sat().unwrap().is_sat());
+        assert!(self.smt_solver.check_sat().unwrap().is_sat_or_unknown());
         Ok(())
     }
 

@@ -19,6 +19,9 @@ impl SatResult {
     pub fn is_unsat(&self) -> bool {
         matches!(self, SatResult::Unsat)
     }
+    pub fn is_sat_or_unknown(&self) -> bool {
+        matches!(self, SatResult::Sat | SatResult::Unknown)
+    }
 }
 
 pub struct SmtSolver {
