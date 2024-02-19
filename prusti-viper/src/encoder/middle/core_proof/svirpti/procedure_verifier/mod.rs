@@ -1,3 +1,4 @@
+use self::stack::StackFrame;
 use super::{
     super::transformations::{
         encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
@@ -18,15 +19,7 @@ use vir_crate::{
     low::{self as vir_low},
 };
 
-#[derive(Debug)]
-pub struct StackFrame {
-    parent: Option<vir_low::Label>,
-    label: vir_low::Label,
-    /// The index of the statement in the block that is currently being
-    /// executed.
-    statement_index: usize,
-    is_executed: bool,
-}
+mod stack;
 
 pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     verifier: &'a mut Verifier,
@@ -57,8 +50,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         procedure: &'a vir_low::ProcedureDecl,
     ) -> SpannedEncodingResult<Self> {
         let smt_solver = SmtSolver::default().unwrap();
-        // let result = smt_solver.check_sat().unwrap();
-        // assert!(result.is_sat());
         Ok(Self {
             verifier,
             source_filename,
@@ -76,16 +67,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             .comment(&format!("Executing procedure: {}", self.procedure.name))
             .unwrap(); // FIXME: Handle errors
         let mut current_block = self.procedure.entry.clone();
-        let frame = StackFrame {
-            parent: None,
-            label: current_block.clone(),
-            statement_index: 0,
-            is_executed: false,
-        };
-        self.stack_push(frame)?;
+        self.stack_push(None, current_block.clone())?;
         while !self.stack.is_empty() {
+            self.mark_current_frame_as_being_executed()?;
             self.execute_block()?;
             self.execute_terminator()?;
+            self.mark_current_frame_as_executed()?;
             self.pop_executed_frames()?;
         }
         info!("Finished executing procedure: {}", self.procedure.name);
@@ -99,37 +86,16 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         unimplemented!();
     }
 
-    fn stack_push(&mut self, frame: StackFrame) -> SpannedEncodingResult<()> {
-        self.stack.push(frame);
-        self.smt_solver.push().unwrap(); // FIXME: Handle errors
-        Ok(())
-    }
-
-    fn stack_pop(&mut self) -> SpannedEncodingResult<()> {
-        self.stack.pop();
-        self.smt_solver.pop().unwrap(); // FIXME: Handle errors
-        Ok(())
-    }
-
-    fn current_frame(&self) -> &StackFrame {
-        self.stack.last().unwrap()
-    }
-
-    fn current_frame_mut(&mut self) -> &mut StackFrame {
-        self.stack.last_mut().unwrap()
-    }
-
     fn current_block(&self) -> &vir_low::BasicBlock {
         self.procedure
             .basic_blocks
-            .get(&self.current_frame().label)
+            .get(&self.current_frame().label())
             .unwrap()
     }
 
     fn execute_block(&mut self) -> SpannedEncodingResult<()> {
-        info!("Executing block: {}", self.current_frame().label);
+        info!("Executing block: {}", self.current_frame().label());
         let frame = self.current_frame_mut();
-        frame.is_executed = true;
         Ok(())
     }
 
@@ -141,36 +107,15 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
             vir_low::Successor::Goto(ref label) => {
                 info!("Executing goto terminator");
-                self.stack_pop()?;
-                self.stack_push(StackFrame {
-                    parent: self.current_frame().parent.clone(),
-                    label: label.clone(),
-                    statement_index: 0,
-                    is_executed: false,
-                })?;
+                let current_label = self.current_frame().label().clone();
+                self.stack_push(Some(current_label), label.clone())?;
             }
             vir_low::Successor::GotoSwitch(ref cases) => {
                 info!("Executing switch terminator");
                 for (_, label) in cases.iter().rev() {
-                    let current_label = self.current_frame().label.clone();
-                    self.stack_push(StackFrame {
-                        parent: Some(current_label),
-                        label: label.clone(),
-                        statement_index: 0,
-                        is_executed: false,
-                    })?;
+                    let current_label = self.current_frame().label().clone();
+                    self.stack_push(Some(current_label), label.clone())?;
                 }
-            }
-        }
-        Ok(())
-    }
-
-    fn pop_executed_frames(&mut self) -> SpannedEncodingResult<()> {
-        while let Some(frame) = self.stack.last() {
-            if frame.is_executed {
-                self.stack_pop()?;
-            } else {
-                break;
             }
         }
         Ok(())
@@ -187,28 +132,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         assert!(self.smt_solver.check_sat().unwrap().is_sat_or_unknown());
         Ok(())
     }
-
-    // fn create_builtin_types(&mut self) -> SpannedEncodingResult<()> {
-    //     // TODO: Have a pass that desugars all ContainerOps into domains.
-    //     self.smt_solver.declare_sort("Set<Lifetime>").unwrap(); // FIXME: Handle errors
-    //     self.smt_solver
-    //         .declare_function(
-    //             "Set<Lifetime>",
-    //             "SetSubset",
-    //             &["Set<Lifetime>", "Set<Lifetime>"],
-    //             "Bool",
-    //         )
-    //         .unwrap(); // FIXME: Handle errors
-    //     self.smt_solver
-    //         .declare_function(
-    //             "Set<Lifetime>",
-    //             "SetContains",
-    //             &["Lifetime", "Set<Lifetime>"],
-    //             "Bool",
-    //         )
-    //         .unwrap(); // FIXME: Handle errors
-    //     Ok(())
-    // }
 
     fn create_domain_types(
         &mut self,
