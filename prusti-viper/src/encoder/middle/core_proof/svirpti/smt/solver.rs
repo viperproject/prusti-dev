@@ -56,6 +56,14 @@ impl SmtSolver {
         };
         Ok(result)
     }
+    pub fn push(&mut self) -> SmtSolverResult<()> {
+        self.solver.push(1)?;
+        Ok(())
+    }
+    pub fn pop(&mut self) -> SmtSolverResult<()> {
+        self.solver.pop(1)?;
+        Ok(())
+    }
     pub fn declare_sort(&mut self, sort: &str) -> SmtSolverResult<()> {
         self.solver.declare_sort(sort, 0)?;
         Ok(())
