@@ -1,6 +1,5 @@
 use super::{super::super::encoder_context::EncoderContext, ProcedureExecutor};
 use crate::encoder::errors::SpannedEncodingResult;
-
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
     low::{self as vir_low},
