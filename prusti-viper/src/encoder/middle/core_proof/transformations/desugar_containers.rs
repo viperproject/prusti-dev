@@ -64,6 +64,7 @@ fn desugar_containers_in_domain(rewriter: &mut Rewriter, domain: &mut vir_low::D
 
 struct Rewriter {
     used_container_types: FxHashSet<vir_low::Type>,
+    used_set_constructors: FxHashSet<(vir_low::Type, usize)>,
 }
 
 impl StatementFolder for Rewriter {
@@ -87,6 +88,17 @@ impl ExpressionFolder for Rewriter {
         &mut self,
         container_op: vir_low::ContainerOp,
     ) -> vir_low::Expression {
+        match container_op.kind {
+            vir_low::ContainerOpKind::SeqConstructor => todo!(),
+            vir_low::ContainerOpKind::SetConstructor => {
+                self.used_set_constructors.insert((
+                    container_op.container_type.clone(),
+                    container_op.operands.len(),
+                ));
+            }
+            vir_low::ContainerOpKind::MultiSetConstructor => todo!(),
+            _ => {}
+        }
         let container_op = default_fold_container_op(self, container_op);
         // This is already the converterd type.
         let return_type = container_op.get_type().clone();
@@ -108,7 +120,8 @@ impl TypeFolder for Rewriter {
         match ty {
             vir_low::Type::Seq(container) => unimplemented!(),
             vir_low::Type::Set(mut container) => {
-                self.used_container_types.insert((*container.element_type).clone());
+                self.used_container_types
+                    .insert((*container.element_type).clone());
                 container.element_type = TypeFolder::fold_type_boxed(self, container.element_type);
                 let new_type = set_domain(&container);
                 new_type
