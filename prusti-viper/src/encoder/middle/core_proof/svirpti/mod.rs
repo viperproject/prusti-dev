@@ -73,9 +73,9 @@ impl Verifier {
         );
         for procedure in program.procedures {
             let mut procedure_executor =
-                ProcedureExecutor::new(self, source_filename, &mut program_context, &procedure)?;
+                ProcedureExecutor::new(self, source_filename, &mut program_context)?;
             procedure_executor.load_domains(&program.domains)?;
-            procedure_executor.execute_procedure()?;
+            procedure_executor.execute_procedure(&procedure)?;
         }
         unimplemented!();
     }

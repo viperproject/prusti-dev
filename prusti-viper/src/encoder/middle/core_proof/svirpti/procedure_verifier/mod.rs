@@ -20,12 +20,12 @@ use vir_crate::{
 };
 
 mod stack;
+mod statements;
 
 pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     verifier: &'a mut Verifier,
     source_filename: &'a str,
     program_context: &'a mut ProgramContext<'c, EC>,
-    procedure: &'a vir_low::ProcedureDecl,
     stack: Vec<StackFrame>,
     smt_solver: SmtSolver,
 }
@@ -50,72 +50,70 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         verifier: &'a mut Verifier,
         source_filename: &'a str,
         program_context: &'a mut ProgramContext<'c, EC>,
-        procedure: &'a vir_low::ProcedureDecl,
     ) -> SpannedEncodingResult<Self> {
         let smt_solver = SmtSolver::default().unwrap();
         Ok(Self {
             verifier,
             source_filename,
             program_context,
-            procedure,
             stack: Vec::new(),
             smt_solver,
         })
     }
 
-    pub(super) fn execute_procedure(mut self) -> SpannedEncodingResult<VerificationResult> {
-        info!("Executing procedure: {}", self.procedure.name);
+    pub(super) fn execute_procedure(
+        mut self,
+        procedure: &'a vir_low::ProcedureDecl,
+    ) -> SpannedEncodingResult<VerificationResult> {
+        info!("Executing procedure: {}", procedure.name);
         self.smt_solver.push().unwrap(); // FIXME: Handle errors
         self.smt_solver
-            .comment(&format!("Executing procedure: {}", self.procedure.name))
+            .comment(&format!("Executing procedure: {}", procedure.name))
             .unwrap(); // FIXME: Handle errors
-        self.stack_push(None, self.procedure.entry.clone())?;
+        self.stack_push(None, procedure.entry.clone())?;
         while !self.stack.is_empty() {
             self.mark_current_frame_as_being_executed()?;
             self.log_current_stack_status()?;
-            self.execute_block()?;
+            let block = procedure
+                .basic_blocks
+                .get(&self.current_frame().label())
+                .unwrap();
+            self.execute_block(block)?;
             // Executing the terminator changes the stack, so we need to mark
             // the frame as executed now.
             self.mark_current_frame_as_executed()?;
-            self.execute_terminator()?;
+            self.execute_terminator(block)?;
             self.pop_executed_frames()?;
         }
-        info!("Finished executing procedure: {}", self.procedure.name);
+        info!("Finished executing procedure: {}", procedure.name);
         self.smt_solver
-            .comment(&format!(
-                "Finished executing procedure: {}",
-                self.procedure.name
-            ))
+            .comment(&format!("Finished executing procedure: {}", procedure.name))
             .unwrap(); // FIXME: Handle errors
         self.smt_solver.pop().unwrap(); // FIXME: Handle errors
         unimplemented!();
     }
 
-    fn current_block(&self) -> &vir_low::BasicBlock {
-        self.procedure
-            .basic_blocks
-            .get(&self.current_frame().label())
-            .unwrap()
-    }
-
-    fn execute_block(&mut self) -> SpannedEncodingResult<()> {
+    fn execute_block(&mut self, block: &vir_low::BasicBlock) -> SpannedEncodingResult<()> {
         info!("Executing block: {}", self.current_frame().label());
         let frame = self.current_frame_mut();
+        for statement in &block.statements {
+            self.execute_statement(statement)?;
+        }
         Ok(())
     }
 
-    fn execute_terminator(&mut self) -> SpannedEncodingResult<()> {
+    fn execute_terminator(&mut self, block: &vir_low::BasicBlock) -> SpannedEncodingResult<()> {
         let current_label = self.current_frame().label().clone();
-        match self.current_block().successor.clone() {
+        match &block.successor {
             vir_low::Successor::Return => {
                 info!("Executing return terminator");
                 self.stack_pop()?;
             }
-            vir_low::Successor::Goto(ref label) => {
+            vir_low::Successor::Goto(label) => {
                 info!("Executing goto terminator");
                 self.stack_push(Some(current_label), label.clone())?;
             }
-            vir_low::Successor::GotoSwitch(ref cases) => {
+            vir_low::Successor::GotoSwitch(cases) => {
                 info!("Executing switch terminator");
                 for (_, label) in cases.iter().rev() {
                     self.stack_push(Some(current_label.clone()), label.clone())?;
