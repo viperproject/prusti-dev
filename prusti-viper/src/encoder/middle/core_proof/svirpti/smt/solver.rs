@@ -68,6 +68,13 @@ impl SmtSolver {
         self.solver.declare_sort(sort, 0)?;
         Ok(())
     }
+    pub fn declare_variable<Sort>(&mut self, name: &str, sort: Sort) -> SmtSolverResult<()>
+    where
+        Sort: Sort2Smt,
+    {
+        self.solver.declare_const(name, sort)?;
+        Ok(())
+    }
     pub fn declare_function<ParameterSorts, ResultSort>(
         &mut self,
         domain_name: &str,
