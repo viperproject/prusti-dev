@@ -39,6 +39,7 @@ pub struct StackFrame {
     statement_index: usize,
     status: StackFrameStatus,
     heap: Heap,
+    saved_state_labels: Vec<String>,
 }
 
 impl StackFrame {
@@ -56,6 +57,15 @@ impl StackFrame {
 
     pub(super) fn heap_mut(&mut self) -> &mut Heap {
         &mut self.heap
+    }
+
+    pub(super) fn heap(&self) -> &Heap {
+        &self.heap
+    }
+
+    pub(super) fn log_saved_state_label(&mut self, label: String) -> SpannedEncodingResult<()> {
+        self.saved_state_labels.push(label);
+        Ok(())
     }
 }
 
@@ -90,6 +100,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             statement_index: 0,
             status: StackFrameStatus::Created,
             heap,
+            saved_state_labels: Vec::new(),
         };
         self.stack.push(frame);
         self.smt_solver.push().unwrap(); // FIXME: Handle errors
@@ -99,6 +110,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn stack_pop(&mut self) -> SpannedEncodingResult<()> {
         let frame = self.stack.pop().unwrap();
         assert_eq!(frame.status, StackFrameStatus::Executed);
+        for label in frame.saved_state_labels {
+            assert!(self.saved_heaps.remove(&label).is_some());
+        }
         self.smt_solver.pop().unwrap(); // FIXME: Handle errors
         Ok(())
     }

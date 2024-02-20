@@ -69,9 +69,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Label,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!();
-        // self.save_state(statement.label.clone())?;
-        // self.add_statement(vir_low::Statement::Label(statement.clone()))?;
+        self.save_state(statement.label.clone())?;
         Ok(())
     }
 
@@ -120,13 +118,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Exhale,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!("statement: {statement}");
-        // let exhale_label = format!("exhale_label${}", self.exhale_label_generator_counter);
-        // self.exhale_label_generator_counter += 1;
-        // self.register_label(vir_low::Label::new(exhale_label.clone()))?;
-        // let label = vir_low::ast::statement::Label::new(exhale_label.clone());
-        // self.execute_statement_label(&label)?;
-        // self.execute_exhale(&statement.expression, statement.position, &exhale_label)?;
+        let exhale_label = format!("exhale_label${}", self.generate_fresh_id());
+        let label = vir_low::ast::statement::Label::new(exhale_label.clone());
+        self.execute_statement_label(&label)?;
+        self.execute_exhale(&statement.expression, statement.position, &exhale_label)?;
         Ok(())
     }
 

@@ -9,6 +9,7 @@ use super::{
 use crate::encoder::errors::SpannedEncodingResult;
 use log::{debug, info};
 use prusti_common::config;
+use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
 use vir_crate::{
     common::{
@@ -31,6 +32,7 @@ pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     stack: Vec<StackFrame>,
     smt_solver: SmtSolver,
     unique_id_generator: usize,
+    saved_heaps: FxHashMap<String, heap::Heap>,
 }
 
 impl<'a, 'c, EC: EncoderContext> Drop for ProcedureExecutor<'a, 'c, EC> {
@@ -62,6 +64,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             stack: Vec::new(),
             smt_solver,
             unique_id_generator: 0,
+            saved_heaps: FxHashMap::default(),
         })
     }
 

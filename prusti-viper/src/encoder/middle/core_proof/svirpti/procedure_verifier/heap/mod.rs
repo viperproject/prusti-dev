@@ -53,4 +53,48 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         };
         Ok(())
     }
+
+    pub(super) fn execute_exhale_predicate(
+        &mut self,
+        predicate: &vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+        exhale_label: &str,
+    ) -> SpannedEncodingResult<()> {
+        let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
+        match predicate_kind {
+            vir_low::PredicateKind::MemoryBlock => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::Owned => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::LifetimeToken => {
+                self.execute_exhale_lifetime_token(&predicate, position)?;
+            }
+            vir_low::PredicateKind::DeadLifetimeToken => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::CloseFracRef => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::WithoutSnapshotWhole => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::EndBorrowViewShift => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+        };
+        Ok(())
+    }
+
+    pub(super) fn save_state(&mut self, label: String) -> SpannedEncodingResult<()> {
+        let frame = self.current_frame_mut();
+        let heap = frame.heap().clone();
+        frame.log_saved_state_label(label.clone())?;
+        assert!(self.saved_heaps.insert(label, heap).is_none());
+        Ok(())
+    }
 }

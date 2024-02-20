@@ -254,7 +254,19 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::PermBinaryOp> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        write!(writer, "(")?;
+        match self.expr.op_kind {
+            vir_low::PermBinaryOpKind::Add => write!(writer, "+")?,
+            vir_low::PermBinaryOpKind::Sub => write!(writer, "-")?,
+            vir_low::PermBinaryOpKind::Mul => write!(writer, "*")?,
+            vir_low::PermBinaryOpKind::Div => write!(writer, "/")?,
+        }
+        write!(writer, " ")?;
+        self.expr.left.expression_to_smt2(writer, info)?;
+        write!(writer, " ")?;
+        self.expr.right.expression_to_smt2(writer, info)?;
+        write!(writer, " )")?;
+        Ok(())
     }
 }
 
