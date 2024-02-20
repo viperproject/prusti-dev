@@ -89,7 +89,7 @@ impl Verifier {
                 &predicate_domains_info,
             )?;
             procedure_executor.load_domains(&program.domains)?;
-            procedure_executor.execute_procedure(&procedure)?;
+            procedure_executor.execute_procedure(&procedure, &program.predicates)?;
         }
         assert!(self.errors.is_empty(), "Unimplemented error handling");
         unimplemented!();

@@ -77,6 +77,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn execute_procedure(
         mut self,
         procedure: &'a vir_low::ProcedureDecl,
+        predicates: &[vir_low::PredicateDecl],
     ) -> SpannedEncodingResult<()> {
         info!("Executing procedure: {}", procedure.name);
         if prusti_common::config::dump_debug_info() {
@@ -92,6 +93,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             .unwrap(); // FIXME: Handle errors
         self.declare_local_variables(procedure)?;
         self.stack_push(None, procedure.entry.clone())?;
+        self.initialise_heap(predicates)?;
         while !self.stack.is_empty() {
             self.mark_current_frame_as_being_executed()?;
             self.log_current_stack_status()?;

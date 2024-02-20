@@ -21,6 +21,27 @@ pub(super) struct Heap {
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
+    pub(super) fn initialise_heap(
+        &mut self,
+        predicates: &[vir_low::PredicateDecl],
+    ) -> SpannedEncodingResult<()> {
+        for predicate in predicates {
+            match predicate.kind {
+                vir_low::PredicateKind::MemoryBlock => {
+                    self.initialise_memory_block(&predicate.name)?;
+                }
+                vir_low::PredicateKind::Owned => todo!(),
+                vir_low::PredicateKind::LifetimeToken => todo!(),
+                vir_low::PredicateKind::CloseFracRef => todo!(),
+                vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
+                vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
+                vir_low::PredicateKind::DeadLifetimeToken => todo!(),
+                vir_low::PredicateKind::EndBorrowViewShift => todo!(),
+            }
+        }
+        Ok(())
+    }
+
     pub(super) fn execute_inhale_predicate(
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
