@@ -1,6 +1,5 @@
 use super::{super::super::super::encoder_context::EncoderContext, ProcedureExecutor};
 use crate::encoder::errors::SpannedEncodingResult;
-
 use vir_crate::low::{self as vir_low};
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {

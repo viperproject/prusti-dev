@@ -14,11 +14,15 @@ use vir_crate::{
     low::{self as vir_low},
 };
 
+mod exhale;
+mod inhale;
+
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn execute_statement(
         &mut self,
         statement: &vir_low::Statement,
     ) -> SpannedEncodingResult<()> {
+        eprintln!("Executing statement: {}", statement);
         match statement {
             vir_low::Statement::Label(statement) => {
                 self.execute_statement_label(statement)?;
@@ -89,10 +93,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Assume,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!();
-        // let expression = self.simplify_expression(&statement.expression, statement.position)?;
-        // self.try_assume_heap_independent_conjuncts(&expression)?;
-        // self.add_statement(vir_low::Statement::assume(expression, statement.position))?;
+        self.assume(&statement.expression)?;
         Ok(())
     }
 
@@ -111,9 +112,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Inhale,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!();
-        // self.execute_inhale(&statement.expression, statement.position)?;
-        // self.current_builder_mut().set_materialization_point()?;
+        self.execute_inhale(&statement.expression, statement.position)?;
         Ok(())
     }
 
