@@ -93,12 +93,13 @@ impl<'a, 'tcx> CgContext<'a, 'tcx> {
     pub fn signature_constraints(
         &self,
     ) -> Vec<(Vec<(RegionVid, Local)>, Vec<(RegionVid, Local)>)> {
-        let to_param = |r| (r, self.region_info.map.get(r).get_param().unwrap());
-        self.region_info.map.universal_regions()
-            .map(|r| self.region_info.map.get(r).get_param().map(|p| (r, p)))
-            .map(|(r, p)| {
-                ()
-            })
+        // let to_param = |r| (r, self.region_info.map.get(r).get_param().unwrap());
+        // fn outlives(universal_constraints: )
+        // self.region_info.map.universal_regions()
+        //     .map(|r| self.region_info.map.get(r).get_param().map(|p| (r, p)))
+        //     .map(|(r, p)| {
+        //         ((r, p), [(r, p)].into_iter().chain(self.region_info.map.get(r).get_place().map(|p| (r, p))).collect())
+        //     })
         self.outlives_info.universal_constraints.iter().flat_map(|&(a, b)| {
             // println!("[outlives_info] a: {:?}, b: {:?}", a, b);
             match (self.region_info.map.get(a), self.region_info.map.get(b)) {
