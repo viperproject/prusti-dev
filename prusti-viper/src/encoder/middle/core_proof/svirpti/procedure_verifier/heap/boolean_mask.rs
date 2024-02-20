@@ -172,7 +172,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
         // TODO: Havoc heap.
 
-        unimplemented!();
         Ok(())
     }
 }

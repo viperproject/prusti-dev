@@ -351,7 +351,7 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::FuncApp> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        unimplemented!("FuncApp: {}", self.expr);
     }
 }
 

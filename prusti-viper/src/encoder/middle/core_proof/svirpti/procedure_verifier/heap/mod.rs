@@ -92,7 +92,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
                     self.execute_exhale_boolean_mask_full(&predicate, position)?;
-                    unimplemented!("exhale_predicate: {predicate}");
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("exhale_predicate: {predicate}");
