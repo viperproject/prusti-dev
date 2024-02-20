@@ -11,6 +11,7 @@ use super::super::{
 use crate::encoder::errors::SpannedEncodingResult;
 use log::{debug, error};
 use prusti_common::config;
+use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
@@ -19,11 +20,12 @@ use vir_crate::{
 
 #[derive(Default, Clone, Debug)]
 pub(in super::super::super::super) struct MemoryBlock {
-    permission_mask_version: usize,
+    /// A map from predicate names to their permission mask versions.
+    permission_mask_versions: FxHashMap<String, usize>,
 }
 
-fn permission_mask_variable_name(id: usize) -> String {
-    format!("memory_block_permission_mask${}", id)
+fn permission_mask_variable_name(predicate_name: &str, id: usize) -> String {
+    format!("{}$mask${}", predicate_name, id)
 }
 
 // fn permission_mask_type() -> vir_low::Type {
@@ -38,6 +40,23 @@ fn permission_mask_variable_name(id: usize) -> String {
 // }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
+    pub(super) fn initialise_memory_block(
+        &mut self,
+        predicate_name: &str,
+    ) -> SpannedEncodingResult<()> {
+        let id = self.generate_fresh_id();
+        let heap = self.current_frame_mut().heap_mut();
+        assert!(heap
+            .memory_block
+            .permission_mask_versions
+            .insert(predicate_name.to_string(), id)
+            .is_none());
+        let permission_mask_name = permission_mask_variable_name(predicate_name, id);
+        let predicate_info = self.predicate_domains_info.get(predicate_name).unwrap();
+        let permission_mask = predicate_info.create_permission_mask_variable(permission_mask_name);
+        self.declare_variable(&permission_mask)?;
+        Ok(())
+    }
     pub(super) fn execute_inhale_memory_block_full(
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
@@ -49,13 +68,18 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let new_permission_mask_id = self.generate_fresh_id();
         let frame = self.current_frame_mut();
         let memory_block = &mut frame.heap_mut().memory_block;
-        let current_permission_mask_id = memory_block.permission_mask_version;
-        memory_block.permission_mask_version = new_permission_mask_id;
+        let permission_mask_version = memory_block
+            .permission_mask_versions
+            .get_mut(&predicate.name)
+            .unwrap();
+        let current_permission_mask_id = *permission_mask_version;
+        *permission_mask_version = new_permission_mask_id;
 
         // Update the SMT solver state.
         let current_permission_mask_name =
-            permission_mask_variable_name(current_permission_mask_id);
-        let new_permission_mask_name = permission_mask_variable_name(new_permission_mask_id);
+            permission_mask_variable_name(&predicate.name, current_permission_mask_id);
+        let new_permission_mask_name =
+            permission_mask_variable_name(&predicate.name, new_permission_mask_id);
 
         let predicate_info = self.predicate_domains_info.get(&predicate.name).unwrap();
         let current_permission_mask =
