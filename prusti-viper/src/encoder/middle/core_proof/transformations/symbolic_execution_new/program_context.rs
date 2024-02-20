@@ -159,7 +159,10 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
         self.non_aliased_memory_block_addresses
     }
 
-    pub(super) fn get_predicate_kind(&self, predicate_name: &str) -> vir_low::PredicateKind {
+    pub(in super::super::super) fn get_predicate_kind(
+        &self,
+        predicate_name: &str,
+    ) -> vir_low::PredicateKind {
         self.predicate_decls[predicate_name].kind
     }
 

@@ -18,6 +18,10 @@ mod procedure_verifier;
 #[derive(Debug)]
 pub(super) struct VerificationResult {}
 
+pub(super) struct VerificationError {
+    position: vir_low::Position,
+}
+
 pub(super) fn verify_program(
     encoder: &mut Encoder,
     source_filename: &str,
@@ -44,11 +48,13 @@ pub(super) fn verify_program(
     unimplemented!();
 }
 
-struct Verifier {}
+struct Verifier {
+    errors: Vec<VerificationError>,
+}
 
 impl Verifier {
     pub(crate) fn new() -> Self {
-        Self {}
+        Self { errors: Vec::new() }
     }
 
     pub(crate) fn execute(
@@ -77,6 +83,11 @@ impl Verifier {
             procedure_executor.load_domains(&program.domains)?;
             procedure_executor.execute_procedure(&procedure)?;
         }
+        assert!(self.errors.is_empty(), "Unimplemented error handling");
         unimplemented!();
+    }
+
+    pub(crate) fn report_error(&mut self, position: vir_low::Position) {
+        self.errors.push(VerificationError { position });
     }
 }

@@ -1,4 +1,4 @@
-use self::stack::StackFrame;
+use self::solver_stack::StackFrame;
 use super::{
     super::transformations::{
         encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
@@ -19,9 +19,10 @@ use vir_crate::{
     low::{self as vir_low},
 };
 
-mod stack;
+mod solver_stack;
 mod statements;
 mod solver;
+mod heap;
 
 pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     verifier: &'a mut Verifier,
@@ -29,6 +30,7 @@ pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     program_context: &'a mut ProgramContext<'c, EC>,
     stack: Vec<StackFrame>,
     smt_solver: SmtSolver,
+    unique_id_generator: usize,
 }
 
 impl<'a, 'c, EC: EncoderContext> Drop for ProcedureExecutor<'a, 'c, EC> {
@@ -59,13 +61,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             program_context,
             stack: Vec::new(),
             smt_solver,
+            unique_id_generator: 0,
         })
     }
 
     pub(super) fn execute_procedure(
         mut self,
         procedure: &'a vir_low::ProcedureDecl,
-    ) -> SpannedEncodingResult<VerificationResult> {
+    ) -> SpannedEncodingResult<()> {
         info!("Executing procedure: {}", procedure.name);
         if prusti_common::config::dump_debug_info() {
             prusti_common::report::log::report_with_writer(
@@ -78,6 +81,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         self.smt_solver
             .comment(&format!("Executing procedure: {}", procedure.name))
             .unwrap(); // FIXME: Handle errors
+        self.declare_local_variables(procedure)?;
         self.stack_push(None, procedure.entry.clone())?;
         while !self.stack.is_empty() {
             self.mark_current_frame_as_being_executed()?;
@@ -143,6 +147,16 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
+    fn declare_local_variables(
+        &mut self,
+        procedure: &vir_low::ProcedureDecl,
+    ) -> SpannedEncodingResult<()> {
+        for variable in &procedure.locals {
+            self.declare_variable(variable).unwrap(); // FIXME: Handle errors
+        }
+        Ok(())
+    }
+
     fn create_domain_types(
         &mut self,
         domains: &[vir_low::DomainDecl],
@@ -194,5 +208,11 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
         }
         Ok(())
+    }
+
+    fn generate_fresh_id(&mut self) -> usize {
+        let new_value = self.unique_id_generator.checked_add(1).unwrap();
+        self.unique_id_generator = new_value;
+        new_value
     }
 }

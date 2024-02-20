@@ -48,7 +48,7 @@ impl<'a> Sort2Smt for Sort2SmtWrapper<'a, vir_low::Type> {
         match self.ty {
             vir_low::Type::Int => write!(writer, "Int")?,
             vir_low::Type::Bool => write!(writer, "Bool")?,
-            vir_low::Type::Perm => todo!(),
+            vir_low::Type::Perm => write!(writer, "Real")?,
             vir_low::Type::Float(_) => todo!(),
             vir_low::Type::BitVector(_) => todo!(),
             vir_low::Type::Seq(_) => todo!(),

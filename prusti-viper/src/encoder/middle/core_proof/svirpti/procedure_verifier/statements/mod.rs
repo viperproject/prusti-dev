@@ -120,7 +120,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Exhale,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!();
+        unimplemented!("statement: {statement}");
         // let exhale_label = format!("exhale_label${}", self.exhale_label_generator_counter);
         // self.exhale_label_generator_counter += 1;
         // self.register_label(vir_low::Label::new(exhale_label.clone()))?;

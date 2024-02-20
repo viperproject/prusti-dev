@@ -6,6 +6,7 @@ use super::{
         smt::{SmtSolver, Sort2SmtWrap},
         VerificationResult, Verifier,
     },
+    heap::Heap,
     ProcedureExecutor,
 };
 use crate::encoder::errors::SpannedEncodingResult;
@@ -37,6 +38,7 @@ pub struct StackFrame {
     /// executed.
     statement_index: usize,
     status: StackFrameStatus,
+    heap: Heap,
 }
 
 impl StackFrame {
@@ -50,6 +52,10 @@ impl StackFrame {
 
     pub(super) fn statement_index(&self) -> usize {
         self.statement_index
+    }
+
+    pub(super) fn heap_mut(&mut self) -> &mut Heap {
+        &mut self.heap
     }
 }
 
@@ -67,11 +73,23 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         parent: Option<vir_low::Label>,
         label: vir_low::Label,
     ) -> SpannedEncodingResult<()> {
+        let heap = if let Some(parent) = &parent {
+            let frame = self
+                .stack
+                .iter()
+                .find(|frame| frame.label() == parent)
+                .unwrap();
+            assert_eq!(frame.status, StackFrameStatus::Executed);
+            frame.heap.clone()
+        } else {
+            Heap::default()
+        };
         let frame = StackFrame {
             parent,
             label,
             statement_index: 0,
             status: StackFrameStatus::Created,
+            heap,
         };
         self.stack.push(frame);
         self.smt_solver.push().unwrap(); // FIXME: Handle errors
