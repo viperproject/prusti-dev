@@ -6,7 +6,10 @@ use super::{
     smt::{SmtSolver, Sort2SmtWrap},
     VerificationResult, Verifier,
 };
-use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::{
+    errors::SpannedEncodingResult,
+    middle::core_proof::transformations::predicate_domains::PredicateDomainsInfo,
+};
 use log::{debug, info};
 use prusti_common::config;
 use rustc_hash::FxHashMap;
@@ -29,6 +32,7 @@ pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     verifier: &'a mut Verifier,
     source_filename: &'a str,
     program_context: &'a mut ProgramContext<'c, EC>,
+    predicate_domains_info: &'a PredicateDomainsInfo,
     stack: Vec<StackFrame>,
     smt_solver: SmtSolver,
     unique_id_generator: usize,
@@ -55,12 +59,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         verifier: &'a mut Verifier,
         source_filename: &'a str,
         program_context: &'a mut ProgramContext<'c, EC>,
+        predicate_domains_info: &'a PredicateDomainsInfo,
     ) -> SpannedEncodingResult<Self> {
         let smt_solver = SmtSolver::default().unwrap();
         Ok(Self {
             verifier,
             source_filename,
             program_context,
+            predicate_domains_info,
             stack: Vec::new(),
             smt_solver,
             unique_id_generator: 0,

@@ -17,23 +17,25 @@ use vir_crate::{
     low as vir_low,
 };
 
-const MEMORY_BLOCK_PERMISSION_MASK_DOMAIN: &str = "MemoryBlockPermissionMask";
-
 #[derive(Default, Clone, Debug)]
 pub(in super::super::super::super) struct MemoryBlock {
     permission_mask_version: usize,
 }
 
-fn permission_mask_type() -> vir_low::Type {
-    vir_low::Type::domain(MEMORY_BLOCK_PERMISSION_MASK_DOMAIN.to_string())
+fn permission_mask_variable_name(id: usize) -> String {
+    format!("memory_block_permission_mask${}", id)
 }
 
-fn permission_mask_variable(id: usize) -> SpannedEncodingResult<vir_low::VariableDecl> {
-    let name = format!("memory_block_permission_mask${}", id);
-    let ty = permission_mask_type();
-    let variable = vir_low::VariableDecl::new(name, ty);
-    Ok(variable)
-}
+// fn permission_mask_type() -> vir_low::Type {
+//     vir_low::Type::domain(MEMORY_BLOCK_PERMISSION_MASK_DOMAIN.to_string())
+// }
+
+// fn permission_mask_variable(id: usize) -> SpannedEncodingResult<vir_low::VariableDecl> {
+//     let name = format!("memory_block_permission_mask${}", id);
+//     let ty = permission_mask_type();
+//     let variable = vir_low::VariableDecl::new(name, ty);
+//     Ok(variable)
+// }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn execute_inhale_memory_block_full(
@@ -42,40 +44,63 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         assert!(predicate.permission.is_full_permission());
+
+        // Update local records.
         let new_permission_mask_id = self.generate_fresh_id();
         let frame = self.current_frame_mut();
         let memory_block = &mut frame.heap_mut().memory_block;
-        let current_permission_mask = permission_mask_variable(memory_block.permission_mask_version)?;
-        let new_permission_mask = permission_mask_variable(new_permission_mask_id)?;
+        let current_permission_mask_id = memory_block.permission_mask_version;
         memory_block.permission_mask_version = new_permission_mask_id;
+
+        // Update the SMT solver state.
+        let current_permission_mask_name =
+            permission_mask_variable_name(current_permission_mask_id);
+        let new_permission_mask_name = permission_mask_variable_name(new_permission_mask_id);
+
+        let predicate_info = self.predicate_domains_info.get(&predicate.name).unwrap();
+        let current_permission_mask =
+            predicate_info.create_permission_mask_variable(current_permission_mask_name);
+        let new_permission_mask =
+            predicate_info.create_permission_mask_variable(new_permission_mask_name);
+
         self.declare_variable(&new_permission_mask)?;
-        // // Assume that the old permission is none.
-        // let mut current_arguments = vec![current_permission_mask.clone().into()];
-        // current_arguments.extend(predicate.arguments.clone());
-        // let old_permission = vir_low::Expression::domain_function_call(
-        //     MEMORY_BLOCK_PERMISSION_MASK_DOMAIN,
-        //     "perm",
-        //     current_arguments,
-        //     permission_mask_type());
-        // let old_permission_is_none = vir_low::Expression::not(
-        //     old_permission,
-        // );
-        // self.assume(&old_permission_is_none)?;
-        // Update the permission mask. This also assumes that the old permission is none.
-        let mut new_arguments = vec![
-            current_permission_mask.clone().into(),
-            new_permission_mask.clone().into(),
-            ];
-        new_arguments.extend(predicate.arguments.clone());
-        let update_mask = vir_low::Expression::domain_function_call(
-            MEMORY_BLOCK_PERMISSION_MASK_DOMAIN,
-            "set_full_permission",
-            new_arguments,
-            permission_mask_type(),
+
+        let update_permissions = predicate_info.set_permissions_to_full(
+            &current_permission_mask,
+            &new_permission_mask,
+            &predicate.arguments,
         );
-        self.assume(&update_mask)?;
+
         // Note: We are keeping the old version of the heap because we are not
         // removing anything.
+        self.assume(&update_permissions)?;
+
+        // // // Assume that the old permission is none.
+        // // let mut current_arguments = vec![current_permission_mask.clone().into()];
+        // // current_arguments.extend(predicate.arguments.clone());
+        // // let old_permission = vir_low::Expression::domain_function_call(
+        // //     MEMORY_BLOCK_PERMISSION_MASK_DOMAIN,
+        // //     "perm",
+        // //     current_arguments,
+        // //     permission_mask_type());
+        // // let old_permission_is_none = vir_low::Expression::not(
+        // //     old_permission,
+        // // );
+        // // self.assume(&old_permission_is_none)?;
+        // // Update the permission mask. This also assumes that the old permission is none.
+        // let mut new_arguments = vec![
+        //     current_permission_mask.clone().into(),
+        //     new_permission_mask.clone().into(),
+        // ];
+        // new_arguments.extend(predicate.arguments.clone());
+        // let update_mask = vir_low::Expression::domain_function_call(
+        //     MEMORY_BLOCK_PERMISSION_MASK_DOMAIN,
+        //     "set_full_permission",
+        //     new_arguments,
+        //     permission_mask_type(),
+        // );
+        // self.assume(&update_mask)?;
+
         Ok(())
     }
 

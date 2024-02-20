@@ -155,16 +155,22 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     &source_filename,
                     program,
                 );
+                let (program, predicate_domains_info) =
+                    super::transformations::predicate_domains::define_predicate_domains(
+                        &source_filename,
+                        program,
+                    );
                 let result = super::svirpti::verify_program(
                     self,
                     &source_filename,
                     program,
+                    predicate_domains_info,
                     predicates_info.non_aliased_memory_block_addresses.clone(),
                     &snapshot_domains_info,
                     predicates_info.owned_predicates_info.clone(),
                     &extensionality_gas_constant,
                 )?;
-                unimplemented!("save the result: {:?}", result);
+                unimplemented!("save the result: {:?} and return", result);
             } else {
                 if config::trace_with_symbolic_execution() {
                     if config::trace_with_symbolic_execution_new() {
