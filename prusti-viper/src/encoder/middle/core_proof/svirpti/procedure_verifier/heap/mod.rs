@@ -86,13 +86,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
-        exhale_label: &str,
     ) -> SpannedEncodingResult<()> {
         let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
         match predicate_kind {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_exhale_boolean_mask_full(&predicate, position, exhale_label)?;
+                    self.execute_exhale_boolean_mask_full(&predicate, position)?;
                     unimplemented!("exhale_predicate: {predicate}");
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;

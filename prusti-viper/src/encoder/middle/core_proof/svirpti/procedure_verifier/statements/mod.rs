@@ -119,9 +119,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         statement: &vir_low::ast::statement::Exhale,
     ) -> SpannedEncodingResult<()> {
         let exhale_label = format!("exhale_label${}", self.generate_fresh_id());
+        let expression = statement.expression.clone().wrap_in_old(&exhale_label);
         let label = vir_low::ast::statement::Label::new(exhale_label.clone());
         self.execute_statement_label(&label)?;
-        self.execute_exhale(&statement.expression, statement.position, &exhale_label)?;
+        self.execute_exhale(expression, statement.position)?;
         Ok(())
     }
 
