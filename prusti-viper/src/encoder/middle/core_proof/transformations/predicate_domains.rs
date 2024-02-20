@@ -64,27 +64,35 @@ pub(crate) fn define_predicate_domains(
     for predicate in &program.predicates {
         match predicate.kind {
             vir_low::PredicateKind::MemoryBlock => {
-                define_memory_block_predicate_domain(
+                define_predicate_domain_for_boolean_mask(
                     &mut program.domains,
                     &mut domains_info,
                     predicate,
                 );
             }
-            vir_low::PredicateKind::Owned => todo!(),
+            vir_low::PredicateKind::Owned => {
+                define_predicate_domain_for_boolean_mask(
+                    &mut program.domains,
+                    &mut domains_info,
+                    predicate,
+                );
+            }
             vir_low::PredicateKind::LifetimeToken => {
                 // Lifetime tokens require no additional axioms.
             }
             vir_low::PredicateKind::CloseFracRef => todo!(),
             vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
-            vir_low::PredicateKind::DeadLifetimeToken => todo!(),
+            vir_low::PredicateKind::DeadLifetimeToken => {
+                // Dead lifetime tokens require no additional axioms.
+            }
             vir_low::PredicateKind::EndBorrowViewShift => todo!(),
         }
     }
     (program, domains_info)
 }
 
-fn define_memory_block_predicate_domain(
+fn define_predicate_domain_for_boolean_mask(
     domains: &mut Vec<vir_low::DomainDecl>,
     domains_info: &mut PredicateDomainsInfo,
     predicate: &vir_low::PredicateDecl,
@@ -99,62 +107,72 @@ fn define_memory_block_predicate_domain(
         heap_lookup_function_name: format!("{}$lookup", predicate.name),
     };
 
-    let permission_domain = {
-        let mask = predicate_info.create_permission_mask_variable("mask".to_string());
-        let mut lookup_parameters = Vec::with_capacity(1 + predicate.parameters.len());
-        lookup_parameters.push(mask.clone());
-        lookup_parameters.extend(predicate.parameters.iter().cloned());
-        let lookup = vir_low::DomainFunctionDecl::new(
-            predicate_info.permission_lookup_function_name.clone(),
-            false,
-            lookup_parameters,
-            predicate_info.permission_amount_type.clone(),
-        );
-
-        let old_mask = predicate_info.create_permission_mask_variable("old_mask".to_string());
-        let new_mask = predicate_info.create_permission_mask_variable("new_mask".to_string());
-        let mut set_full_parameters = Vec::with_capacity(2 + predicate.parameters.len());
-        set_full_parameters.push(old_mask.clone());
-        set_full_parameters.push(new_mask.clone());
-        set_full_parameters.extend(predicate.parameters.iter().cloned());
-        let set_full = vir_low::DomainFunctionDecl::new(
-            predicate_info.permission_set_full_function_name.clone(),
-            false,
-            set_full_parameters,
-            vir_low::Type::Bool,
-        );
-
-        let mut set_none_parameters = Vec::with_capacity(2 + predicate.parameters.len());
-        set_none_parameters.push(old_mask.clone());
-        set_none_parameters.push(new_mask.clone());
-        set_none_parameters.extend(predicate.parameters.iter().cloned());
-        let set_none = vir_low::DomainFunctionDecl::new(
-            predicate_info.permission_set_none_function_name.clone(),
-            false,
-            set_none_parameters,
-            vir_low::Type::Bool,
-        );
-
-        let functions = vec![lookup, set_full, set_none];
-        vir_low::DomainDecl::new(
-            predicate_info.permission_domain_name.clone(),
-            functions,
-            Vec::new(),
-            Vec::new(),
-        )
-    };
-    let heap_domain = {
-        vir_low::DomainDecl::new(
-            predicate_info.heap_domain_name.clone(),
-            Vec::new(),
-            Vec::new(),
-            Vec::new(),
-        )
-    };
+    let permission_domain = create_permission_domain_for_boolean_mask(predicate, &predicate_info);
+    let heap_domain = create_heap_domain_for_boolean_mask(predicate, &predicate_info);
 
     domains.push(permission_domain);
     domains.push(heap_domain);
     assert!(domains_info
         .insert(predicate.name.clone(), predicate_info)
         .is_none());
+}
+
+fn create_permission_domain_for_boolean_mask(
+    predicate: &vir_low::PredicateDecl,
+    predicate_info: &PredicateDomainInfo,
+) -> vir_low::DomainDecl {
+    let mask = predicate_info.create_permission_mask_variable("mask".to_string());
+    let mut lookup_parameters = Vec::with_capacity(1 + predicate.parameters.len());
+    lookup_parameters.push(mask.clone());
+    lookup_parameters.extend(predicate.parameters.iter().cloned());
+    let lookup = vir_low::DomainFunctionDecl::new(
+        predicate_info.permission_lookup_function_name.clone(),
+        false,
+        lookup_parameters,
+        predicate_info.permission_amount_type.clone(),
+    );
+
+    let old_mask = predicate_info.create_permission_mask_variable("old_mask".to_string());
+    let new_mask = predicate_info.create_permission_mask_variable("new_mask".to_string());
+    let mut set_full_parameters = Vec::with_capacity(2 + predicate.parameters.len());
+    set_full_parameters.push(old_mask.clone());
+    set_full_parameters.push(new_mask.clone());
+    set_full_parameters.extend(predicate.parameters.iter().cloned());
+    let set_full = vir_low::DomainFunctionDecl::new(
+        predicate_info.permission_set_full_function_name.clone(),
+        false,
+        set_full_parameters,
+        vir_low::Type::Bool,
+    );
+
+    let mut set_none_parameters = Vec::with_capacity(2 + predicate.parameters.len());
+    set_none_parameters.push(old_mask.clone());
+    set_none_parameters.push(new_mask.clone());
+    set_none_parameters.extend(predicate.parameters.iter().cloned());
+    let set_none = vir_low::DomainFunctionDecl::new(
+        predicate_info.permission_set_none_function_name.clone(),
+        false,
+        set_none_parameters,
+        vir_low::Type::Bool,
+    );
+
+    let functions = vec![lookup, set_full, set_none];
+    vir_low::DomainDecl::new(
+        predicate_info.permission_domain_name.clone(),
+        functions,
+        Vec::new(),
+        Vec::new(),
+    )
+}
+
+fn create_heap_domain_for_boolean_mask(
+    predicate: &vir_low::PredicateDecl,
+    predicate_info: &PredicateDomainInfo,
+) -> vir_low::DomainDecl {
+    vir_low::DomainDecl::new(
+        predicate_info.heap_domain_name.clone(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+    )
 }
