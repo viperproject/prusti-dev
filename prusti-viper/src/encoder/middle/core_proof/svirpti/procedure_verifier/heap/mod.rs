@@ -12,10 +12,12 @@ use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::low::{self as vir_low};
 
 mod lifetimes;
+mod memory_block;
 
 #[derive(Default, Clone, Debug)]
 pub(super) struct Heap {
     lifetime_tokens: lifetimes::LifetimeTokens,
+    memory_block: memory_block::MemoryBlock,
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
@@ -27,7 +29,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
         match predicate_kind {
             vir_low::PredicateKind::MemoryBlock => {
-                unimplemented!("inhale_predicate: {predicate}");
+                if predicate.permission.is_full_permission() {
+                    self.execute_inhale_memory_block_full(&predicate, position)?;
+                } else {
+                    // self.execute_inhale_memory_block_fractional(&predicate, position)?;
+                    unimplemented!("inhale_predicate: {predicate}");
+                }
             }
             vir_low::PredicateKind::Owned => {
                 unimplemented!("inhale_predicate: {predicate}");
@@ -63,28 +70,34 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
         match predicate_kind {
             vir_low::PredicateKind::MemoryBlock => {
-                unimplemented!("inhale_predicate: {predicate}");
+                if predicate.permission.is_full_permission() {
+                    self.execute_exhale_memory_block_full(&predicate, position, exhale_label)?;
+                    unimplemented!("exhale_predicate: {predicate}");
+                } else {
+                    // self.execute_exhale_memory_block_fractional(&predicate, position)?;
+                    unimplemented!("exhale_predicate: {predicate}");
+                }
             }
             vir_low::PredicateKind::Owned => {
-                unimplemented!("inhale_predicate: {predicate}");
+                unimplemented!("exhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::LifetimeToken => {
                 self.execute_exhale_lifetime_token(&predicate, position)?;
             }
             vir_low::PredicateKind::DeadLifetimeToken => {
-                unimplemented!("inhale_predicate: {predicate}");
+                unimplemented!("exhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::CloseFracRef => {
-                unimplemented!("inhale_predicate: {predicate}");
+                unimplemented!("exhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::WithoutSnapshotWhole => {
-                unimplemented!("inhale_predicate: {predicate}");
+                unimplemented!("exhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
-                unimplemented!("inhale_predicate: {predicate}");
+                unimplemented!("exhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::EndBorrowViewShift => {
-                unimplemented!("inhale_predicate: {predicate}");
+                unimplemented!("exhale_predicate: {predicate}");
             }
         };
         Ok(())
