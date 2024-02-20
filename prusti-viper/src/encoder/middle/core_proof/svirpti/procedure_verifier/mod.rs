@@ -21,6 +21,7 @@ use vir_crate::{
 
 mod stack;
 mod statements;
+mod solver;
 
 pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     verifier: &'a mut Verifier,
@@ -66,6 +67,13 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         procedure: &'a vir_low::ProcedureDecl,
     ) -> SpannedEncodingResult<VerificationResult> {
         info!("Executing procedure: {}", procedure.name);
+        if prusti_common::config::dump_debug_info() {
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_before_symbolic_execution",
+                format!("{}.{}.dot", self.source_filename, procedure.name,),
+                |writer| procedure.to_graphviz(writer).unwrap(),
+            );
+        }
         self.smt_solver.push().unwrap(); // FIXME: Handle errors
         self.smt_solver
             .comment(&format!("Executing procedure: {}", procedure.name))
@@ -94,7 +102,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     }
 
     fn execute_block(&mut self, block: &vir_low::BasicBlock) -> SpannedEncodingResult<()> {
-        info!("Executing block: {}", self.current_frame().label());
+        eprintln!("Executing block: {}", self.current_frame().label());
         let frame = self.current_frame_mut();
         for statement in &block.statements {
             self.execute_statement(statement)?;

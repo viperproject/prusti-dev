@@ -211,10 +211,9 @@ fn desugar_containers_in_procedure(
     procedure: &mut vir_low::ProcedureDecl,
 ) {
     for basic_block in procedure.basic_blocks.values_mut() {
-        let mut new_statements = Vec::new();
         for statement in std::mem::take(&mut basic_block.statements) {
             let new_statement = rewriter.fold_statement(statement);
-            new_statements.push(new_statement);
+            basic_block.statements.push(new_statement);
         }
     }
 }

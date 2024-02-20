@@ -193,7 +193,17 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::UnaryOp> {
     where
         Writer: Write,
     {
-        unimplemented!()
+        match self.expr.op_kind {
+            vir_low::UnaryOpKind::Not => {
+                write!(writer, "(not ")?;
+            }
+            vir_low::UnaryOpKind::Minus => {
+                write!(writer, "(- ")?;
+            }
+        }
+        self.expr.argument.expression_to_smt2(writer, info)?;
+        write!(writer, " )")?;
+        Ok(())
     }
 }
 
