@@ -1,6 +1,7 @@
 use self::procedure_verifier::ProcedureExecutor;
 use super::transformations::{
-    encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
+    encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
+    symbolic_execution_new::ProgramContext,
 };
 use crate::encoder::{
     errors::SpannedEncodingResult,
@@ -26,6 +27,7 @@ pub(super) fn verify_program(
     encoder: &mut Encoder,
     source_filename: &str,
     program: vir_low::Program,
+    predicate_domains_info: PredicateDomainsInfo,
     non_aliased_memory_block_addresses: FxHashSet<vir_low::Expression>,
     snapshot_domains_info: &SnapshotDomainsInfo,
     owned_predicates_info: BTreeMap<String, OwnedPredicateInfo>,
@@ -39,6 +41,7 @@ pub(super) fn verify_program(
     let result = verifier.execute(
         source_filename,
         program,
+        predicate_domains_info,
         non_aliased_memory_block_addresses,
         snapshot_domains_info,
         owned_predicates_info,
@@ -61,6 +64,7 @@ impl Verifier {
         &mut self,
         source_filename: &str,
         program: vir_low::Program,
+        predicate_domains_info: PredicateDomainsInfo,
         non_aliased_memory_block_addresses: FxHashSet<vir_low::Expression>,
         snapshot_domains_info: &SnapshotDomainsInfo,
         owned_predicates_info: BTreeMap<String, OwnedPredicateInfo>,
@@ -78,8 +82,12 @@ impl Verifier {
             encoder,
         );
         for procedure in program.procedures {
-            let mut procedure_executor =
-                ProcedureExecutor::new(self, source_filename, &mut program_context)?;
+            let mut procedure_executor = ProcedureExecutor::new(
+                self,
+                source_filename,
+                &mut program_context,
+                &predicate_domains_info,
+            )?;
             procedure_executor.load_domains(&program.domains)?;
             procedure_executor.execute_procedure(&procedure)?;
         }
