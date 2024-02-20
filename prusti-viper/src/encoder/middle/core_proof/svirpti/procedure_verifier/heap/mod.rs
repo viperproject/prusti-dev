@@ -12,12 +12,12 @@ use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::low::{self as vir_low};
 
 mod lifetimes;
-mod memory_block;
+mod boolean_mask;
 
 #[derive(Default, Clone, Debug)]
 pub(super) struct Heap {
     lifetime_tokens: lifetimes::LifetimeTokens,
-    memory_block: memory_block::MemoryBlock,
+    memory_block: boolean_mask::MemoryBlock,
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
@@ -27,15 +27,18 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     ) -> SpannedEncodingResult<()> {
         for predicate in predicates {
             match predicate.kind {
-                vir_low::PredicateKind::MemoryBlock => {
-                    self.initialise_memory_block(&predicate.name)?;
+                vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
+                    self.initialise_boolean_mask(&predicate.name)?;
                 }
-                vir_low::PredicateKind::Owned => todo!(),
-                vir_low::PredicateKind::LifetimeToken => todo!(),
+                vir_low::PredicateKind::LifetimeToken => {
+                    // Nothing to do.
+                }
                 vir_low::PredicateKind::CloseFracRef => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
-                vir_low::PredicateKind::DeadLifetimeToken => todo!(),
+                vir_low::PredicateKind::DeadLifetimeToken => {
+                    // Nothing to do.
+                }
                 vir_low::PredicateKind::EndBorrowViewShift => todo!(),
             }
         }
@@ -49,16 +52,13 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     ) -> SpannedEncodingResult<()> {
         let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
         match predicate_kind {
-            vir_low::PredicateKind::MemoryBlock => {
+            vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_inhale_memory_block_full(&predicate, position)?;
+                    self.execute_inhale_boolean_mask_full(&predicate, position)?;
                 } else {
                     // self.execute_inhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("inhale_predicate: {predicate}");
                 }
-            }
-            vir_low::PredicateKind::Owned => {
-                unimplemented!("inhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::LifetimeToken => {
                 self.execute_inhale_lifetime_token(&predicate, position)?;
@@ -90,17 +90,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     ) -> SpannedEncodingResult<()> {
         let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
         match predicate_kind {
-            vir_low::PredicateKind::MemoryBlock => {
+            vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_exhale_memory_block_full(&predicate, position, exhale_label)?;
+                    self.execute_exhale_boolean_mask_full(&predicate, position, exhale_label)?;
                     unimplemented!("exhale_predicate: {predicate}");
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("exhale_predicate: {predicate}");
                 }
-            }
-            vir_low::PredicateKind::Owned => {
-                unimplemented!("exhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::LifetimeToken => {
                 self.execute_exhale_lifetime_token(&predicate, position)?;

@@ -37,8 +37,9 @@ impl PredicateDomainInfo {
         vir_low::VariableDecl::new(name, self.permission_mask_type())
     }
 
-    pub(crate) fn set_permissions_to_full(
+    fn set_permissions(
         &self,
+        setter: &str,
         old_permission_mask: &vir_low::VariableDecl,
         new_permission_mask: &vir_low::VariableDecl,
         predicate_arguments: &[vir_low::Expression],
@@ -49,9 +50,37 @@ impl PredicateDomainInfo {
         arguments.extend(predicate_arguments.iter().cloned());
         vir_low::Expression::domain_function_call(
             self.permission_domain_name.clone(),
-            self.permission_set_full_function_name.clone(),
+            setter.to_string(),
             arguments,
             vir_low::Type::Bool,
+        )
+    }
+
+    pub(crate) fn set_permissions_to_full(
+        &self,
+        old_permission_mask: &vir_low::VariableDecl,
+        new_permission_mask: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        self.set_permissions(
+            &self.permission_set_full_function_name,
+            old_permission_mask,
+            new_permission_mask,
+            predicate_arguments,
+        )
+    }
+
+    pub(crate) fn set_permissions_to_none(
+        &self,
+        old_permission_mask: &vir_low::VariableDecl,
+        new_permission_mask: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        self.set_permissions(
+            &self.permission_set_none_function_name,
+            old_permission_mask,
+            new_permission_mask,
+            predicate_arguments,
         )
     }
 }
