@@ -132,7 +132,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
-        exhale_label: &str,
     ) -> SpannedEncodingResult<()> {
         assert!(predicate.permission.is_full_permission());
 
