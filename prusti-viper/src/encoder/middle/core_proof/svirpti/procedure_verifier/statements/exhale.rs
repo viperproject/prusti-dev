@@ -25,7 +25,16 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 return Ok(());
             }
         }
-        unimplemented!();
+        if let vir_low::Expression::PredicateAccessPredicate(predicate) = &expression {
+            self.execute_exhale_predicate(predicate, position, exhale_label)?;
+            return Ok(());
+        }
+        let expression = expression.clone().wrap_in_old(exhale_label);
+        if expression.is_pure() {
+            self.assert(expression, position)?;
+        } else {
+            unimplemented!("exhale: {expression}");
+        }
         Ok(())
     }
 }
