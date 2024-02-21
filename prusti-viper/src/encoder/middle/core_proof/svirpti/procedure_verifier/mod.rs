@@ -210,12 +210,11 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         for domain in domains {
             for axiom in &domain.axioms {
                 if let Some(comment) = &axiom.comment {
-                    self.smt_solver.comment(comment).unwrap(); // FIXME: Handle errors
+                    self.comment(comment)?;
                 }
-                self.smt_solver
-                    .comment(&format!("axiom: {}", axiom.name))
-                    .unwrap(); // FIXME: Handle errors
-                self.smt_solver.assert(&axiom.body).unwrap(); // FIXME: Handle errors
+                self
+                    .comment(&format!("axiom: {}", axiom.name))?;
+                self.assume(&axiom.body)?;
             }
         }
         Ok(())

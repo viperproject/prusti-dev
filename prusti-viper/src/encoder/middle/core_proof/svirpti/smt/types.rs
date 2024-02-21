@@ -1,9 +1,13 @@
 use rsmt2::{print::Sort2Smt, SmtRes};
 use std::io::Write;
+use super::super::super::transformations::{
+    encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
+    symbolic_execution_new::ProgramContext,
+};
 use vir_crate::low::{self as vir_low};
 
 pub(super) trait Type2Smt<'a> {
-    fn type_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
+    fn type_to_smt2<Writer>(&'a self, writer: &mut Writer) -> SmtRes<()>
     where
         Writer: Write;
 }
@@ -12,7 +16,7 @@ impl<'a, T> Type2Smt<'a> for T
 where
     Sort2SmtWrapper<'a, T>: Sort2Smt + 'a,
 {
-    fn type_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
+    fn type_to_smt2<Writer>(&'a self, writer: &mut Writer) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -54,7 +58,7 @@ impl<'a> Sort2Smt for Sort2SmtWrapper<'a, vir_low::Type> {
             vir_low::Type::Seq(_) => todo!(),
             vir_low::Type::Set(ty) => {
                 write!(writer, "Set<")?;
-                ty.element_type.type_to_smt2(writer, ())?;
+                ty.element_type.type_to_smt2(writer)?;
                 write!(writer, ">")?;
             }
             vir_low::Type::MultiSet(_) => todo!(),

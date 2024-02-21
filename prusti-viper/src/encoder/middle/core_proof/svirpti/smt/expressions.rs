@@ -2,18 +2,23 @@ use super::types::Type2Smt;
 use rsmt2::{print::Expr2Smt, SmtRes};
 use std::io::Write;
 use vir_crate::low::{self as vir_low, operations::ty::Typed};
+use super::super::super::transformations::{
+    encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
+    symbolic_execution_new::ProgramContext,
+};
+use super::solver::Info;
 
-trait Expression2Smt<'a> {
-    fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
+trait Expression2Smt<'a, Info> {
+    fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: Info) -> SmtRes<()>
     where
         Writer: Write;
 }
 
-impl<'a, T> Expression2Smt<'a> for T
+impl<'a, 'c, EC: EncoderContext, T> Expression2Smt<'a, Info<'a, 'c, EC>> for T
 where
-    Expr2SmtWrapper<'a, T>: Expr2Smt<()> + 'a,
+    Expr2SmtWrapper<'a, T>: Expr2Smt<Info<'a, 'c, EC>> + 'a,
 {
-    fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: ()) -> SmtRes<()>
+    fn expression_to_smt2<Writer>(&'a self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -41,8 +46,8 @@ impl<'a> Expr2SmtWrap<vir_low::Expression> for vir_low::Expression {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Expression> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::Expression> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -95,22 +100,22 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Expression> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::VariableDecl> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::VariableDecl> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
         write!(writer, "(")?;
         write!(writer, "{}", self.expr.name)?;
         write!(writer, " ")?;
-        self.expr.ty.type_to_smt2(writer, info)?;
+        self.expr.ty.type_to_smt2(writer)?;
         write!(writer, ")")?;
         Ok(())
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Local> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::Local> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -119,8 +124,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Local> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Field> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::Field> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -128,8 +133,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Field> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::LabelledOld> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::LabelledOld> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -137,8 +142,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::LabelledOld> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Constant> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::Constant> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -152,8 +157,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Constant> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::MagicWand> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::MagicWand> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -161,8 +166,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::MagicWand> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::PredicateAccessPredicate> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::PredicateAccessPredicate> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -170,8 +175,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::PredicateAccessPredicate> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::FieldAccessPredicate> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::FieldAccessPredicate> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -179,8 +184,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::FieldAccessPredicate> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Unfolding> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::Unfolding> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -188,8 +193,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Unfolding> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::UnaryOp> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::UnaryOp> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -207,8 +212,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::UnaryOp> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::BinaryOp> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::BinaryOp> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -249,8 +254,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::BinaryOp> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::PermBinaryOp> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::PermBinaryOp> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -270,8 +275,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::PermBinaryOp> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::ContainerOp> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::ContainerOp> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -291,8 +296,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::ContainerOp> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::ConditionalExpression> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::ConditionalExpression> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -300,8 +305,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::ConditionalExpression> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Quantifier> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::Quantifier> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -323,8 +328,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Quantifier> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Trigger> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::Trigger> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -337,8 +342,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::Trigger> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::LetExpr> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::LetExpr> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -346,17 +351,24 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::LetExpr> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::FuncApp> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::FuncApp> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
+        let function = info.program_context.get_function(&self.expr.function_name);
+        match function.kind {
+            vir_low::FunctionKind::MemoryBlockBytes => todo!(),
+            vir_low::FunctionKind::CallerFor => todo!(),
+            vir_low::FunctionKind::Snap => todo!(),
+            vir_low::FunctionKind::SnapRange => todo!(),
+        }
         unimplemented!("FuncApp: {}", self.expr);
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::DomainFuncApp> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::DomainFuncApp> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
@@ -383,8 +395,8 @@ impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::DomainFuncApp> {
     }
 }
 
-impl<'a> Expr2Smt for Expr2SmtWrapper<'a, vir_low::InhaleExhale> {
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: ()) -> SmtRes<()>
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>> for Expr2SmtWrapper<'a, vir_low::InhaleExhale> {
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
     where
         Writer: Write,
     {
