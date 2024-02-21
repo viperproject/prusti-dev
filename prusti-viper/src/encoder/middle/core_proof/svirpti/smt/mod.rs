@@ -11,3 +11,4 @@ pub use self::{
     solver::SmtSolver,
     types::Sort2SmtWrap,
 };
+pub(in super) use self::solver::Info;

@@ -3,7 +3,7 @@ use super::{
         super::transformations::{
             encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
         },
-        smt::{SmtSolver, Sort2SmtWrap},
+        smt::{SmtSolver, Sort2SmtWrap, Info},
         VerificationResult, Verifier,
     },
     ProcedureExecutor,
@@ -15,8 +15,16 @@ use vir_crate::{
 };
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
+    pub(super) fn comment(&mut self, comment: &str) -> SpannedEncodingResult<()> {
+        self.smt_solver.comment(comment).unwrap(); // TODO: handle error
+        Ok(())
+    }
+
     pub(super) fn assume(&mut self, expression: &vir_low::Expression) -> SpannedEncodingResult<()> {
-        self.smt_solver.assert(expression).unwrap(); // TODO: handle error
+        let info = Info {
+            program_context: self.program_context,
+        };
+        self.smt_solver.assert(expression, info).unwrap(); // TODO: handle error
         Ok(())
     }
 
@@ -27,7 +35,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     ) -> SpannedEncodingResult<()> {
         self.smt_solver.push().unwrap(); // TODO: handle error
         let negated_expression = vir_low::Expression::not(expression);
-        self.smt_solver.assert(&negated_expression).unwrap(); // TODO: handle error
+        let info = Info {
+            program_context: self.program_context,
+        };
+        self.smt_solver.assert(&negated_expression, info).unwrap(); // TODO: handle error
         let result = self.smt_solver.check_sat().unwrap(); // TODO: handle error
         if result.is_sat_or_unknown() {
             self.verifier.report_error(position);

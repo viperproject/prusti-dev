@@ -102,7 +102,7 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
         self.domains
     }
 
-    pub(super) fn get_function(&self, name: &str) -> &'a vir_low::FunctionDecl {
+    pub(in super::super::super) fn get_function(&self, name: &str) -> &'a vir_low::FunctionDecl {
         self.functions
             .get(name)
             .unwrap_or_else(|| panic!("Function not found: {}", name,))

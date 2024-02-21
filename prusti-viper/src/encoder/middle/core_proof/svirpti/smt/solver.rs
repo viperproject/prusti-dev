@@ -4,6 +4,10 @@ use super::{
 };
 use rsmt2::{print::Sort2Smt, Solver};
 use vir_crate::low::{self as vir_low};
+use super::super::super::transformations::{
+    encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
+    symbolic_execution_new::ProgramContext,
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum SatResult {
@@ -23,6 +27,20 @@ impl SatResult {
         matches!(self, SatResult::Sat | SatResult::Unknown)
     }
 }
+
+pub struct Info<'a, 'c, EC: EncoderContext> {
+    pub(in super::super) program_context: &'a ProgramContext<'c, EC>,
+}
+
+impl<'a, 'c, EC: EncoderContext> Clone for Info<'a, 'c, EC> {
+    fn clone(&self) -> Self {
+        Self {
+            program_context: self.program_context,
+        }
+    }
+}
+
+impl<'a, 'c, EC: EncoderContext> Copy for Info<'a, 'c, EC> {}
 
 pub struct SmtSolver {
     solver: Solver<SmtParser>,
@@ -96,8 +114,8 @@ impl SmtSolver {
         self.solver.comment(comment)?;
         Ok(())
     }
-    pub fn assert(&mut self, assertion: &vir_low::Expression) -> SmtSolverResult<()> {
-        self.solver.assert(assertion.wrap())?;
+    pub fn assert<'a, 'c, EC: EncoderContext>(&mut self, assertion: &vir_low::Expression, info: Info<'a, 'c, EC>) -> SmtSolverResult<()> {
+        self.solver.assert_with(assertion.wrap(), info)?;
         Ok(())
     }
 }

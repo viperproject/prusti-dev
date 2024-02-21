@@ -2,7 +2,7 @@ use crate::encoder::{errors::ErrorCtxt, mir::errors::ErrorInterface, Encoder};
 use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::low::{self as vir_low};
 
-pub(in super::super) trait EncoderContext {
+pub trait EncoderContext {
     fn get_span(&mut self, position: vir_low::Position) -> Option<MultiSpan>;
     fn change_error_context(
         &mut self,
