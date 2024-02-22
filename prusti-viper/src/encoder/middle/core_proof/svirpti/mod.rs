@@ -15,12 +15,27 @@ use vir_crate::low as vir_low;
 
 mod smt;
 mod procedure_verifier;
+mod errors;
+
+pub(crate) use self::errors::VerificationError;
 
 #[derive(Debug)]
-pub(super) struct VerificationResult {}
+pub(crate) enum VerificationResult {
+    Success,
+    Failure { errors: Vec<VerificationError> },
+}
 
-pub(super) struct VerificationError {
-    position: vir_low::Position,
+impl VerificationResult {
+    pub(crate) fn is_success(&self) -> bool {
+        matches!(self, Self::Success)
+    }
+
+    pub(crate) fn get_errors(&self) -> &[VerificationError] {
+        match self {
+            Self::Success => &[],
+            Self::Failure { errors } => errors,
+        }
+    }
 }
 
 pub(super) fn verify_program(
@@ -37,8 +52,8 @@ pub(super) fn verify_program(
         "purify_with_symbolic_execution {} {}",
         source_filename, program.name
     );
-    let mut verifier = Verifier::new();
-    let result = verifier.execute(
+    let mut verifier = Verifier::new(program.name.clone());
+    verifier.execute(
         source_filename,
         program,
         predicate_domains_info,
@@ -48,16 +63,27 @@ pub(super) fn verify_program(
         extensionality_gas_constant,
         encoder,
     )?;
-    unimplemented!();
+    let result = if verifier.errors.is_empty() {
+        VerificationResult::Success
+    } else {
+        VerificationResult::Failure {
+            errors: verifier.errors,
+        }
+    };
+    Ok(result)
 }
 
 struct Verifier {
+    program_name: String,
     errors: Vec<VerificationError>,
 }
 
 impl Verifier {
-    pub(crate) fn new() -> Self {
-        Self { errors: Vec::new() }
+    pub(crate) fn new(program_name: String) -> Self {
+        Self {
+            program_name,
+            errors: Vec::new(),
+        }
     }
 
     pub(crate) fn execute(
@@ -70,7 +96,7 @@ impl Verifier {
         owned_predicates_info: BTreeMap<String, OwnedPredicateInfo>,
         extensionality_gas_constant: &vir_low::Expression,
         encoder: &mut impl EncoderContext,
-    ) -> SpannedEncodingResult<VerificationResult> {
+    ) -> SpannedEncodingResult<()> {
         let mut program_context = ProgramContext::new(
             &program.domains,
             &program.functions,
@@ -85,17 +111,17 @@ impl Verifier {
             let mut procedure_executor = ProcedureExecutor::new(
                 self,
                 source_filename,
+                procedure.name.clone(),
                 &mut program_context,
                 &predicate_domains_info,
             )?;
             procedure_executor.load_domains(&program.domains)?;
             procedure_executor.execute_procedure(&procedure, &program.predicates)?;
         }
-        assert!(self.errors.is_empty(), "Unimplemented error handling");
-        unimplemented!();
+        Ok(())
     }
 
-    pub(crate) fn report_error(&mut self, position: vir_low::Position) {
-        self.errors.push(VerificationError { position });
+    pub(crate) fn report_error(&mut self, error: VerificationError) {
+        self.errors.push(error);
     }
 }

@@ -31,6 +31,7 @@ mod heap;
 pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     verifier: &'a mut Verifier,
     source_filename: &'a str,
+    procedure_name: String,
     program_context: &'a mut ProgramContext<'c, EC>,
     predicate_domains_info: &'a PredicateDomainsInfo,
     stack: Vec<StackFrame>,
@@ -58,6 +59,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn new(
         verifier: &'a mut Verifier,
         source_filename: &'a str,
+        procedure_name: String,
         program_context: &'a mut ProgramContext<'c, EC>,
         predicate_domains_info: &'a PredicateDomainsInfo,
     ) -> SpannedEncodingResult<Self> {
@@ -65,6 +67,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(Self {
             verifier,
             source_filename,
+            procedure_name,
             program_context,
             predicate_domains_info,
             stack: Vec::new(),
@@ -72,6 +75,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             unique_id_generator: 0,
             saved_heaps: FxHashMap::default(),
         })
+    }
+
+    pub(super) fn source_filename(&self) -> &str {
+        self.source_filename
+    }
+
+    pub(super) fn procedure_name(&self) -> &str {
+        &self.procedure_name
     }
 
     pub(super) fn execute_procedure(
@@ -113,14 +124,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             .comment(&format!("Finished executing procedure: {}", procedure.name))
             .unwrap(); // FIXME: Handle errors
         self.smt_solver.pop().unwrap(); // FIXME: Handle errors
-        unimplemented!();
+        Ok(())
     }
 
     fn execute_block(&mut self, block: &vir_low::BasicBlock) -> SpannedEncodingResult<()> {
         eprintln!("Executing block: {}", self.current_frame().label());
-        let frame = self.current_frame_mut();
         for statement in &block.statements {
             self.execute_statement(statement)?;
+            self.inc_statement_index()?;
         }
         Ok(())
     }

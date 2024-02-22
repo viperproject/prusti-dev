@@ -44,7 +44,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             (*predicate.permission).clone(),
             vir_low::Expression::no_permission(),
         );
-        self.assert(permission_amount_is_non_negative, position)?;
+        let error = self.create_verification_error_for_expression(
+            "inhale.failed:negative.permission",
+            position,
+            &permission_amount_is_non_negative,
+        )?;
+        self.assert(permission_amount_is_non_negative, error)?;
         let new_permission_id = self.generate_fresh_id();
         let new_permission_variable = permission_variable(new_permission_id)?;
         self.declare_variable(&new_permission_variable)?;
@@ -95,7 +100,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             (*predicate.permission).clone(),
             vir_low::Expression::no_permission(),
         );
-        self.assert(permission_amount_is_non_negative, position)?;
+        let error = self.create_verification_error_for_expression(
+            "exhale.failed:negative.permission",
+            position,
+            &permission_amount_is_non_negative,
+        )?;
+        self.assert(permission_amount_is_non_negative, error)?;
         let new_permission_id = self.generate_fresh_id();
         let new_permission_variable = permission_variable(new_permission_id)?;
         self.declare_variable(&new_permission_variable)?;
@@ -122,7 +132,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 new_permission_variable.into(),
                 vir_low::Expression::no_permission(),
             );
-            self.assert(new_permission_amount_is_non_negative, position)?;
+            let error = self.create_verification_error_for_expression(
+                "exhale.failed:insufficient.permission",
+                position,
+                &new_permission_amount_is_non_negative,
+            )?;
+            self.assert(new_permission_amount_is_non_negative, error)?;
         } else {
             unimplemented!("TODO: Report a verification error.");
         }

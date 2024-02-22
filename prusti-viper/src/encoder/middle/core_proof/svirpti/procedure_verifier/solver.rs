@@ -4,7 +4,7 @@ use super::{
             encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
         },
         smt::{Info, SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
+        VerificationError, VerificationResult, Verifier,
     },
     ProcedureExecutor,
 };
@@ -31,7 +31,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn assert(
         &mut self,
         expression: vir_low::Expression,
-        position: vir_low::Position,
+        error: VerificationError,
     ) -> SpannedEncodingResult<()> {
         self.smt_solver.push().unwrap(); // TODO: handle error
         let negated_expression = vir_low::Expression::not(expression);
@@ -41,7 +41,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         self.smt_solver.assert(&negated_expression, info).unwrap(); // TODO: handle error
         let result = self.smt_solver.check_sat().unwrap(); // TODO: handle error
         if result.is_sat_or_unknown() {
-            self.verifier.report_error(position);
+            self.verifier.report_error(error);
         }
         self.smt_solver.pop().unwrap(); // TODO: handle error
         Ok(())

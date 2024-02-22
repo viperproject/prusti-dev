@@ -1,3 +1,4 @@
+use super::svirpti::VerificationResult;
 use crate::encoder::{
     errors::SpannedEncodingResult, high::procedures::HighProcedureEncoderInterface,
     mir::specifications::SpecificationsInterface,
@@ -13,7 +14,10 @@ use vir_crate::{
 
 #[derive(Default)]
 pub(crate) struct MidCoreProofEncoderState {
+    /// Encoded programs for the case when Viper is used as a backend.
     encoded_programs: Vec<(Option<ProcedureDefId>, vir_low::Program)>,
+    /// Verification results for the case when Svirpti is used as a backend.
+    verification_results: Vec<(Option<ProcedureDefId>, VerificationResult)>,
 }
 
 pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
@@ -28,6 +32,7 @@ pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<()>;
     fn take_core_proof_programs(&mut self) -> Vec<(Option<ProcedureDefId>, vir_low::Program)>;
+    fn take_verification_results(&mut self) -> Vec<(Option<ProcedureDefId>, VerificationResult)>;
 }
 
 impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -171,7 +176,9 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     predicates_info.owned_predicates_info.clone(),
                     &extensionality_gas_constant,
                 )?;
-                unimplemented!("save the result: {:?} and return", result);
+                self.mid_core_proof_encoder_state
+                    .verification_results
+                    .push((Some(proc_def_id), result));
             } else {
                 if config::trace_with_symbolic_execution() {
                     if config::trace_with_symbolic_execution_new() {
@@ -330,5 +337,9 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
 
     fn take_core_proof_programs(&mut self) -> Vec<(Option<ProcedureDefId>, vir_low::Program)> {
         std::mem::take(&mut self.mid_core_proof_encoder_state.encoded_programs)
+    }
+
+    fn take_verification_results(&mut self) -> Vec<(Option<ProcedureDefId>, VerificationResult)> {
+        std::mem::take(&mut self.mid_core_proof_encoder_state.verification_results)
     }
 }

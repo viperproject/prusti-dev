@@ -14,7 +14,7 @@ use prusti_common::config;
 use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
+    common::expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
     low as vir_low,
 };
 
@@ -179,7 +179,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
         let check_permissions =
             predicate_info.check_permissions_full(&current_permission_mask, &predicate.arguments);
-        self.assert(check_permissions, position)?;
+        let error = self.create_verification_error_for_expression(
+            "exhale.failed:insufficient.permission",
+            position,
+            &check_permissions,
+        )?;
+        self.assert(check_permissions, error)?;
 
         let update_permissions = predicate_info.set_permissions_to_none(
             &current_permission_mask,
@@ -224,7 +229,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         // Generate heap snapshot lookup.
         let snapshot = predicate_info.lookup_snapshot(&current_heap, arguments);
 
-        self.assert(check_permissions, position)?;
+        let guard = path_condition.iter().cloned().conjoin();
+        let check = vir_low::Expression::implies(guard, check_permissions);
+        let error = self.create_verification_error_for_expression(
+            "application.precondition:insufficient.permission",
+            position,
+            &check,
+        )?;
+        self.assert(check, error)?;
 
         Ok(snapshot)
     }
