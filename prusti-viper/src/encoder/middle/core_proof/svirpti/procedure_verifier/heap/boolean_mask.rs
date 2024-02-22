@@ -34,17 +34,6 @@ fn heap_variable_name(predicate_name: &str, id: usize) -> String {
     format!("{}$heap${}", predicate_name, id)
 }
 
-// fn permission_mask_type() -> vir_low::Type {
-//     vir_low::Type::domain(MEMORY_BLOCK_PERMISSION_MASK_DOMAIN.to_string())
-// }
-
-// fn permission_mask_variable(id: usize) -> SpannedEncodingResult<vir_low::VariableDecl> {
-//     let name = format!("memory_block_permission_mask${}", id);
-//     let ty = permission_mask_type();
-//     let variable = vir_low::VariableDecl::new(name, ty);
-//     Ok(variable)
-// }
-
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn initialise_boolean_mask_with_heap(
         &mut self,
@@ -75,7 +64,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    pub(super) fn execute_inhale_boolean_mask_full(
+    pub(super) fn execute_inhale_boolean_mask_with_heap_full(
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
@@ -148,7 +137,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    pub(super) fn execute_exhale_boolean_mask_full(
+    pub(super) fn execute_exhale_boolean_mask_with_heap_full(
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
@@ -207,7 +196,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    pub(super) fn resolve_snapshot_with_check_boolean_mask(
+    pub(super) fn resolve_snapshot_with_check_boolean_mask_with_heap(
         &mut self,
         path_condition: &[vir_low::Expression],
         label: &Option<String>,

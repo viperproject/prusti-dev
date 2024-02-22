@@ -1,0 +1,156 @@
+use super::super::{
+    super::{
+        super::transformations::{
+            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
+        },
+        smt::{SmtSolver, Sort2SmtWrap},
+        VerificationResult, Verifier,
+    },
+    ProcedureExecutor,
+};
+use crate::encoder::errors::SpannedEncodingResult;
+use log::{debug, error};
+use prusti_common::config;
+use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
+use vir_crate::{
+    common::expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
+    low as vir_low,
+};
+
+#[derive(Default, Clone, Debug)]
+pub(in super::super::super::super) struct BooleanMaskWithoutHeap {
+    /// A map from predicate names to their permission mask versions.
+    permission_mask_versions: FxHashMap<String, usize>,
+}
+
+fn permission_mask_variable_name(predicate_name: &str, id: usize) -> String {
+    format!("{}$mask${}", predicate_name, id)
+}
+
+impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
+    pub(super) fn initialise_boolean_mask_without_heap(
+        &mut self,
+        predicate_name: &str,
+    ) -> SpannedEncodingResult<()> {
+        let id = self.generate_fresh_id();
+        let heap = self.current_frame_mut().heap_mut();
+        assert!(heap
+            .boolean_mask_without_heap
+            .permission_mask_versions
+            .insert(predicate_name.to_string(), id)
+            .is_none());
+        let permission_mask_name = permission_mask_variable_name(predicate_name, id);
+        let predicate_info = self
+            .predicate_domains_info
+            .get_permissions_info(predicate_name)
+            .unwrap();
+        let permission_mask = predicate_info.create_permission_mask_variable(permission_mask_name);
+        self.declare_variable(&permission_mask)?;
+        Ok(())
+    }
+
+    pub(super) fn execute_inhale_boolean_mask_without_heap_full(
+        &mut self,
+        predicate: &vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        assert!(predicate.permission.is_full_permission());
+
+        // Update local records.
+        let new_permission_mask_id = self.generate_fresh_id();
+        let frame = self.current_frame_mut();
+        let memory_block = &mut frame.heap_mut().boolean_mask_without_heap;
+        let permission_mask_version = memory_block
+            .permission_mask_versions
+            .get_mut(&predicate.name)
+            .unwrap();
+        let current_permission_mask_id = *permission_mask_version;
+        *permission_mask_version = new_permission_mask_id;
+
+        // Update the SMT solver state.
+        let current_permission_mask_name =
+            permission_mask_variable_name(&predicate.name, current_permission_mask_id);
+        let new_permission_mask_name =
+            permission_mask_variable_name(&predicate.name, new_permission_mask_id);
+
+        let predicate_info = self
+            .predicate_domains_info
+            .get_with_heap(&predicate.name)
+            .unwrap();
+        let current_permission_mask =
+            predicate_info.create_permission_mask_variable(current_permission_mask_name);
+        let new_permission_mask =
+            predicate_info.create_permission_mask_variable(new_permission_mask_name);
+
+        self.declare_variable(&new_permission_mask)?;
+
+        let update_permissions = predicate_info.set_permissions_to_full(
+            &current_permission_mask,
+            &new_permission_mask,
+            &predicate.arguments,
+        );
+        // Note: We are keeping the old version of the heap because we are not
+        // removing anything.
+        self.assume(&update_permissions)?;
+
+        Ok(())
+    }
+
+    pub(super) fn execute_exhale_boolean_mask_without_heap_full(
+        &mut self,
+        predicate: &vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        assert!(predicate.permission.is_full_permission());
+
+        // TODO: Avoid code duplication with execute_inhale_boolean_mask_full. BEGIN
+
+        // Update local records.
+        let new_permission_mask_id = self.generate_fresh_id();
+        let frame = self.current_frame_mut();
+        let memory_block = &mut frame.heap_mut().boolean_mask_without_heap;
+        let permission_mask_version = memory_block
+            .permission_mask_versions
+            .get_mut(&predicate.name)
+            .unwrap();
+        let current_permission_mask_id = *permission_mask_version;
+        *permission_mask_version = new_permission_mask_id;
+
+        // Update the SMT solver state.
+        let current_permission_mask_name =
+            permission_mask_variable_name(&predicate.name, current_permission_mask_id);
+        let new_permission_mask_name =
+            permission_mask_variable_name(&predicate.name, new_permission_mask_id);
+
+        let predicate_info = self
+            .predicate_domains_info
+            .get_with_heap(&predicate.name)
+            .unwrap();
+        let current_permission_mask =
+            predicate_info.create_permission_mask_variable(current_permission_mask_name);
+        let new_permission_mask =
+            predicate_info.create_permission_mask_variable(new_permission_mask_name);
+
+        self.declare_variable(&new_permission_mask)?;
+        // TODO: END
+
+        let check_permissions =
+            predicate_info.check_permissions_full(&current_permission_mask, &predicate.arguments);
+        let error = self.create_verification_error_for_expression(
+            "exhale.failed:insufficient.permission",
+            position,
+            &check_permissions,
+        )?;
+        self.assert(check_permissions, error)?;
+
+        let update_permissions = predicate_info.set_permissions_to_none(
+            &current_permission_mask,
+            &new_permission_mask,
+            &predicate.arguments,
+        );
+        self.assume(&update_permissions)?;
+
+        Ok(())
+    }
+}

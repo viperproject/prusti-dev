@@ -35,6 +35,13 @@ impl PredicateDomainsInfo {
             heap: heap,
         })
     }
+
+    pub(crate) fn get_permissions_info(
+        &self,
+        predicate_name: &str,
+    ) -> Option<&PredicatePermissionDomainInfo> {
+        self.permission.get(predicate_name)
+    }
 }
 
 pub(crate) struct PredicatePermissionDomainInfo {
