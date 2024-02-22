@@ -337,7 +337,14 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
     where
         Writer: Write,
     {
-        unimplemented!()
+        write!(writer, "(ite ")?;
+        self.expr.guard.expression_to_smt2(writer, info)?;
+        write!(writer, " ")?;
+        self.expr.then_expr.expression_to_smt2(writer, info)?;
+        write!(writer, " ")?;
+        self.expr.else_expr.expression_to_smt2(writer, info)?;
+        write!(writer, ")")?;
+        Ok(())
     }
 }
 

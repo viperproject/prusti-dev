@@ -87,6 +87,27 @@ impl PredicateDomainInfo {
         )
     }
 
+    fn lookup_permission(
+        &self,
+        permission_mask: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::VariableDecl],
+    ) -> vir_low::Expression {
+        let mut arguments = Vec::with_capacity(1 + predicate_arguments.len());
+        arguments.push(permission_mask.clone().into());
+        arguments.extend(
+            predicate_arguments
+                .iter()
+                .cloned()
+                .map(|parameter| parameter.into()),
+        );
+        vir_low::Expression::domain_function_call(
+            self.permission_domain_name.clone(),
+            self.permission_lookup_function_name.clone(),
+            arguments,
+            self.permission_amount_type.clone(),
+        )
+    }
+
     pub(crate) fn check_permissions_full(
         &self,
         permission_mask: &vir_low::VariableDecl,
@@ -203,6 +224,8 @@ fn create_permission_domain_for_boolean_mask(
     predicate: &vir_low::PredicateDecl,
     predicate_info: &PredicateDomainInfo,
 ) -> vir_low::DomainDecl {
+    use vir_low::macros::*;
+
     let mask = predicate_info.create_permission_mask_variable("mask".to_string());
     let mut lookup_parameters = Vec::with_capacity(1 + predicate.parameters.len());
     lookup_parameters.push(mask.clone());
@@ -223,9 +246,64 @@ fn create_permission_domain_for_boolean_mask(
     let set_full = vir_low::DomainFunctionDecl::new(
         predicate_info.permission_set_full_function_name.clone(),
         false,
-        set_full_parameters,
+        set_full_parameters.clone(),
         vir_low::Type::Bool,
     );
+
+    let set_full_axiom = {
+        let old_lookup = predicate_info.lookup_permission(&old_mask, &predicate.parameters);
+        let new_lookup = predicate_info.lookup_permission(&new_mask, &predicate.parameters);
+
+        let set_full_arguments = set_full_parameters
+            .iter()
+            .map(|parameter| parameter.clone().into())
+            .collect();
+        let set_full_call = vir_low::Expression::domain_function_call(
+            predicate_info.permission_domain_name.clone(),
+            predicate_info.permission_set_full_function_name.clone(),
+            set_full_arguments,
+            vir_low::Type::Bool,
+        );
+
+        let other_preserved = {
+            let parameters_nested: Vec<_> = predicate
+                .parameters
+                .iter()
+                .map(|parameter| {
+                    vir_low::VariableDecl::new(
+                        format!("{}$nested", parameter.name),
+                        parameter.ty.clone(),
+                    )
+                })
+                .collect();
+            let old_lookup_nested = predicate_info.lookup_permission(&old_mask, &parameters_nested);
+            let new_lookup_nested = predicate_info.lookup_permission(&new_mask, &parameters_nested);
+
+            vir_low::Expression::forall(
+                parameters_nested,
+                vec![vir_low::Trigger::new(vec![new_lookup_nested.clone()])],
+                expr! { [old_lookup_nested] ==> [new_lookup_nested] },
+            )
+        };
+
+        let set_full_definition = expr! {
+            (![old_lookup]) &&
+            [new_lookup] &&
+            [other_preserved]
+        };
+
+        let axiom_body = vir_low::Expression::forall(
+            set_full_parameters,
+            vec![vir_low::Trigger::new(vec![set_full_call.clone()])],
+            expr! { [set_full_call] == [set_full_definition]},
+        );
+
+        vir_low::DomainAxiomDecl::new(
+            None,
+            format!("{}$definitional_axiom", lookup.name),
+            axiom_body,
+        )
+    };
 
     let mut set_none_parameters = Vec::with_capacity(2 + predicate.parameters.len());
     set_none_parameters.push(old_mask.clone());
@@ -234,15 +312,74 @@ fn create_permission_domain_for_boolean_mask(
     let set_none = vir_low::DomainFunctionDecl::new(
         predicate_info.permission_set_none_function_name.clone(),
         false,
-        set_none_parameters,
+        set_none_parameters.clone(),
         vir_low::Type::Bool,
     );
 
+    let set_none_axiom = {
+        let set_none_arguments = set_none_parameters
+            .iter()
+            .map(|parameter| parameter.clone().into())
+            .collect();
+        let set_none_call = vir_low::Expression::domain_function_call(
+            predicate_info.permission_domain_name.clone(),
+            predicate_info.permission_set_none_function_name.clone(),
+            set_none_arguments,
+            vir_low::Type::Bool,
+        );
+
+        let set_none_definition = {
+            let parameters_nested: Vec<_> = predicate
+                .parameters
+                .iter()
+                .map(|parameter| {
+                    vir_low::VariableDecl::new(
+                        format!("{}$nested", parameter.name),
+                        parameter.ty.clone(),
+                    )
+                })
+                .collect();
+            let old_lookup_nested = predicate_info.lookup_permission(&old_mask, &parameters_nested);
+            let new_lookup_nested = predicate_info.lookup_permission(&new_mask, &parameters_nested);
+            let arguments_equal = predicate
+                .parameters
+                .iter()
+                .zip(parameters_nested.iter())
+                .map(|(parameter, parameter_nested)| {
+                    expr! { parameter == parameter_nested }
+                })
+                .conjoin();
+
+            vir_low::Expression::forall(
+                parameters_nested,
+                vec![vir_low::Trigger::new(vec![new_lookup_nested.clone()])],
+                vir_low::Expression::conditional_no_pos(
+                    arguments_equal,
+                    expr! { ![new_lookup_nested.clone()] },
+                    expr! { [old_lookup_nested] == [new_lookup_nested] },
+                ),
+            )
+        };
+
+        let axiom_body = vir_low::Expression::forall(
+            set_none_parameters,
+            vec![vir_low::Trigger::new(vec![set_none_call.clone()])],
+            expr! { [set_none_call] == [set_none_definition]},
+        );
+
+        vir_low::DomainAxiomDecl::new(
+            None,
+            format!("{}$definitional_axiom", lookup.name),
+            axiom_body,
+        )
+    };
+
     let functions = vec![lookup, set_full, set_none];
+    let axioms = vec![set_full_axiom, set_none_axiom];
     vir_low::DomainDecl::new(
         predicate_info.permission_domain_name.clone(),
         functions,
-        Vec::new(),
+        axioms,
         Vec::new(),
     )
 }
