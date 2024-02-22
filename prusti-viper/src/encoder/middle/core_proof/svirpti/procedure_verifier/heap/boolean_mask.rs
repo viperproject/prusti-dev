@@ -64,7 +64,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             .is_none());
         let permission_mask_name = permission_mask_variable_name(predicate_name, id);
         let heap_name = heap_variable_name(predicate_name, id);
-        let predicate_info = self.predicate_domains_info.get(predicate_name).unwrap();
+        let predicate_info = self
+            .predicate_domains_info
+            .get_with_heap(predicate_name)
+            .unwrap();
         let permission_mask = predicate_info.create_permission_mask_variable(permission_mask_name);
         let heap = predicate_info.create_heap_variable(heap_name);
         self.declare_variable(&permission_mask)?;
@@ -96,7 +99,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let new_permission_mask_name =
             permission_mask_variable_name(&predicate.name, new_permission_mask_id);
 
-        let predicate_info = self.predicate_domains_info.get(&predicate.name).unwrap();
+        let predicate_info = self
+            .predicate_domains_info
+            .get_with_heap(&predicate.name)
+            .unwrap();
         let current_permission_mask =
             predicate_info.create_permission_mask_variable(current_permission_mask_name);
         let new_permission_mask =
@@ -168,7 +174,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let new_permission_mask_name =
             permission_mask_variable_name(&predicate.name, new_permission_mask_id);
 
-        let predicate_info = self.predicate_domains_info.get(&predicate.name).unwrap();
+        let predicate_info = self
+            .predicate_domains_info
+            .get_with_heap(&predicate.name)
+            .unwrap();
         let current_permission_mask =
             predicate_info.create_permission_mask_variable(current_permission_mask_name);
         let new_permission_mask =
@@ -217,7 +226,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let current_permission_mask_name =
             permission_mask_variable_name(predicate_name, current_permission_mask_id);
         let current_heap_name = heap_variable_name(predicate_name, current_heap_id);
-        let predicate_info = self.predicate_domains_info.get(predicate_name).unwrap();
+        let predicate_info = self
+            .predicate_domains_info
+            .get_with_heap(predicate_name)
+            .unwrap();
         let current_permission_mask =
             predicate_info.create_permission_mask_variable(current_permission_mask_name);
         let current_heap = predicate_info.create_heap_variable(current_heap_name);
