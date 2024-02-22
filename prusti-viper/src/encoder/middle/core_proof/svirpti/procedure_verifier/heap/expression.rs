@@ -58,10 +58,32 @@ impl<'a, 'b, 'c, EC: EncoderContext> ExpressionFallibleFolder
         &mut self,
         func_app: vir_low::expression::FuncApp,
     ) -> Result<vir_low::Expression, Self::Error> {
-        unimplemented!();
-        // let func_app = self.fallible_fold_func_app(func_app)?;
-        // let function = self.program_context.get_function(&func_app.function_name);
-        // assert_eq!(function.parameters.len(), func_app.arguments.len());
+        let func_app = self.fallible_fold_func_app(func_app)?;
+        let function = self
+            .executor
+            .program_context
+            .get_function(&func_app.function_name);
+        assert_eq!(function.parameters.len(), func_app.arguments.len());
+        let snapshot = match function.kind {
+            vir_low::FunctionKind::MemoryBlockBytes | vir_low::FunctionKind::Snap => {
+                let predicate_name = self
+                    .executor
+                    .program_context
+                    .get_snapshot_predicate(&func_app.function_name)
+                    .unwrap()
+                    .to_string();
+                self.executor.resolve_snapshot_with_check_predicate(
+                    &self.path_condition,
+                    &self.label,
+                    &predicate_name,
+                    &func_app.arguments,
+                    func_app.position,
+                )?
+            }
+            vir_low::FunctionKind::CallerFor => todo!(),
+            vir_low::FunctionKind::SnapRange => todo!(),
+        };
+
         // if func_app.context == vir_low::FuncAppContext::QuantifiedPermission {
         //     debug_assert!(matches!(
         //         function.kind,
@@ -106,16 +128,17 @@ impl<'a, 'b, 'c, EC: EncoderContext> ExpressionFallibleFolder
         //         }
         //     }
         // }
+        Ok(snapshot)
     }
 
-    fn fallible_fold_labelled_old(
+    fn fallible_fold_labelled_old_enum(
         &mut self,
-        mut labelled_old: vir_low::expression::LabelledOld,
-    ) -> Result<vir_low::expression::LabelledOld, Self::Error> {
+        mut labelled_old: vir_low::LabelledOld,
+    ) -> Result<vir_low::Expression, Self::Error> {
         std::mem::swap(&mut labelled_old.label, &mut self.label);
-        labelled_old.base = self.fallible_fold_expression_boxed(labelled_old.base)?;
+        let body = self.fallible_fold_expression(*labelled_old.base)?;
         std::mem::swap(&mut labelled_old.label, &mut self.label);
-        Ok(labelled_old)
+        Ok(body)
     }
 
     fn fallible_fold_quantifier_enum(

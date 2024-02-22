@@ -133,7 +133,10 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
         }
     }
 
-    pub(super) fn get_snapshot_predicate(&self, function_name: &str) -> Option<&str> {
+    pub(in super::super::super) fn get_snapshot_predicate(
+        &self,
+        function_name: &str,
+    ) -> Option<&str> {
         let function = self.get_function(function_name);
         match function.kind {
             vir_low::FunctionKind::MemoryBlockBytes => Some(MEMORY_BLOCK_PREDICATE_NAME),

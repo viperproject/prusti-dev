@@ -16,6 +16,8 @@ use vir_crate::{
     },
 };
 
+use crate::encoder::middle::core_proof::predicates::OwnedPredicateInfo;
+
 pub(crate) type PredicateDomainsInfo = FxHashMap<String, PredicateDomainInfo>;
 
 pub(crate) struct PredicateDomainInfo {
@@ -25,6 +27,7 @@ pub(crate) struct PredicateDomainInfo {
     pub(crate) permission_set_full_function_name: String,
     pub(crate) permission_set_none_function_name: String,
     pub(crate) heap_domain_name: String,
+    pub(crate) heap_snapshot_type: vir_low::Type,
     pub(crate) heap_lookup_function_name: String,
 }
 
@@ -83,11 +86,53 @@ impl PredicateDomainInfo {
             predicate_arguments,
         )
     }
+
+    pub(crate) fn check_permissions_full(
+        &self,
+        permission_mask: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        let mut arguments = Vec::with_capacity(1 + predicate_arguments.len());
+        arguments.push(permission_mask.clone().into());
+        arguments.extend(predicate_arguments.iter().cloned());
+        let lookup_permission = vir_low::Expression::domain_function_call(
+            self.permission_domain_name.clone(),
+            self.permission_lookup_function_name.clone(),
+            arguments,
+            self.permission_amount_type.clone(),
+        );
+        lookup_permission
+    }
+
+    pub(crate) fn heap_type(&self) -> vir_low::Type {
+        vir_low::Type::domain(self.heap_domain_name.clone())
+    }
+
+    pub(crate) fn create_heap_variable(&self, name: String) -> vir_low::VariableDecl {
+        vir_low::VariableDecl::new(name, self.heap_type())
+    }
+
+    pub(crate) fn lookup_snapshot(
+        &self,
+        heap: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        let mut arguments = Vec::with_capacity(1 + predicate_arguments.len());
+        arguments.push(heap.clone().into());
+        arguments.extend(predicate_arguments.iter().cloned());
+        vir_low::Expression::domain_function_call(
+            self.heap_domain_name.clone(),
+            self.heap_lookup_function_name.clone(),
+            arguments,
+            self.heap_snapshot_type.clone(),
+        )
+    }
 }
 
-pub(crate) fn define_predicate_domains(
+pub(in super::super) fn define_predicate_domains(
     source_filename: &str,
     mut program: vir_low::Program,
+    owned_predicate_info: &BTreeMap<String, OwnedPredicateInfo>,
 ) -> (vir_low::Program, PredicateDomainsInfo) {
     let mut domains_info = FxHashMap::default();
     for predicate in &program.predicates {
@@ -97,6 +142,7 @@ pub(crate) fn define_predicate_domains(
                     &mut program.domains,
                     &mut domains_info,
                     predicate,
+                    vir_low::macros::ty!(Bytes),
                 );
             }
             vir_low::PredicateKind::Owned => {
@@ -104,6 +150,11 @@ pub(crate) fn define_predicate_domains(
                     &mut program.domains,
                     &mut domains_info,
                     predicate,
+                    owned_predicate_info
+                        .get(&predicate.name)
+                        .unwrap()
+                        .snapshot_type
+                        .clone(),
                 );
             }
             vir_low::PredicateKind::LifetimeToken => {
@@ -125,6 +176,7 @@ fn define_predicate_domain_for_boolean_mask(
     domains: &mut Vec<vir_low::DomainDecl>,
     domains_info: &mut PredicateDomainsInfo,
     predicate: &vir_low::PredicateDecl,
+    snapshot_type: vir_low::Type,
 ) {
     let predicate_info = PredicateDomainInfo {
         permission_domain_name: format!("{}$Perm", predicate.name),
@@ -133,6 +185,7 @@ fn define_predicate_domain_for_boolean_mask(
         permission_set_full_function_name: format!("{}$set_write", predicate.name),
         permission_set_none_function_name: format!("{}$set_none", predicate.name),
         heap_domain_name: format!("{}$Heap", predicate.name),
+        heap_snapshot_type: snapshot_type,
         heap_lookup_function_name: format!("{}$lookup", predicate.name),
     };
 
@@ -198,9 +251,21 @@ fn create_heap_domain_for_boolean_mask(
     predicate: &vir_low::PredicateDecl,
     predicate_info: &PredicateDomainInfo,
 ) -> vir_low::DomainDecl {
+    let heap = predicate_info.create_heap_variable("heap".to_string());
+    let mut lookup_parameters = Vec::with_capacity(1 + predicate.parameters.len());
+    lookup_parameters.push(heap.clone());
+    lookup_parameters.extend(predicate.parameters.iter().cloned());
+    let lookup = vir_low::DomainFunctionDecl::new(
+        predicate_info.heap_lookup_function_name.clone(),
+        false,
+        lookup_parameters,
+        predicate_info.heap_snapshot_type.clone(),
+    );
+
+    let functions = vec![lookup];
     vir_low::DomainDecl::new(
         predicate_info.heap_domain_name.clone(),
-        Vec::new(),
+        functions,
         Vec::new(),
         Vec::new(),
     )
