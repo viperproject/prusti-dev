@@ -23,10 +23,15 @@ pub(in super::super::super::super) struct MemoryBlock {
     // TODO: Rename to BooleanMaskHeap.
     /// A map from predicate names to their permission mask versions.
     permission_mask_versions: FxHashMap<String, usize>,
+    heap_versions: FxHashMap<String, usize>,
 }
 
 fn permission_mask_variable_name(predicate_name: &str, id: usize) -> String {
     format!("{}$mask${}", predicate_name, id)
+}
+
+fn heap_variable_name(predicate_name: &str, id: usize) -> String {
+    format!("{}$heap${}", predicate_name, id)
 }
 
 // fn permission_mask_type() -> vir_low::Type {
@@ -52,10 +57,18 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             .permission_mask_versions
             .insert(predicate_name.to_string(), id)
             .is_none());
+        assert!(heap
+            .memory_block
+            .heap_versions
+            .insert(predicate_name.to_string(), id)
+            .is_none());
         let permission_mask_name = permission_mask_variable_name(predicate_name, id);
+        let heap_name = heap_variable_name(predicate_name, id);
         let predicate_info = self.predicate_domains_info.get(predicate_name).unwrap();
         let permission_mask = predicate_info.create_permission_mask_variable(permission_mask_name);
+        let heap = predicate_info.create_heap_variable(heap_name);
         self.declare_variable(&permission_mask)?;
+        self.declare_variable(&heap)?;
         Ok(())
     }
 
@@ -164,6 +177,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         self.declare_variable(&new_permission_mask)?;
         // TODO: END
 
+        let check_permissions =
+            predicate_info.check_permissions_full(&current_permission_mask, &predicate.arguments);
+        self.assert(check_permissions, position)?;
+
         let update_permissions = predicate_info.set_permissions_to_none(
             &current_permission_mask,
             &new_permission_mask,
@@ -174,5 +191,41 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         // TODO: Havoc heap.
 
         Ok(())
+    }
+
+    pub(super) fn resolve_snapshot_with_check_boolean_mask(
+        &mut self,
+        path_condition: &[vir_low::Expression],
+        label: &Option<String>,
+        predicate_name: &str,
+        arguments: &[vir_low::Expression],
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let heap = self.heap_at_label(label);
+        let current_permission_mask_id = *heap
+            .memory_block
+            .permission_mask_versions
+            .get(predicate_name)
+            .unwrap();
+        let current_heap_id = *heap.memory_block.heap_versions.get(predicate_name).unwrap();
+
+        let current_permission_mask_name =
+            permission_mask_variable_name(predicate_name, current_permission_mask_id);
+        let current_heap_name = heap_variable_name(predicate_name, current_heap_id);
+        let predicate_info = self.predicate_domains_info.get(predicate_name).unwrap();
+        let current_permission_mask =
+            predicate_info.create_permission_mask_variable(current_permission_mask_name);
+        let current_heap = predicate_info.create_heap_variable(current_heap_name);
+
+        // Check for sufficient permissions.
+        let check_permissions =
+            predicate_info.check_permissions_full(&current_permission_mask, arguments);
+
+        // Generate heap snapshot lookup.
+        let snapshot = predicate_info.lookup_snapshot(&current_heap, arguments);
+
+        self.assert(check_permissions, position)?;
+
+        Ok(snapshot)
     }
 }

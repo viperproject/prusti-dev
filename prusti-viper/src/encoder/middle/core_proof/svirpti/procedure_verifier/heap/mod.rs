@@ -129,11 +129,46 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         purifier.fallible_fold_expression(expression)
     }
 
+    fn resolve_snapshot_with_check_predicate(
+        &mut self,
+        path_condition: &[vir_low::Expression],
+        label: &Option<String>,
+        predicate_name: &str,
+        arguments: &[vir_low::Expression],
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let predicate_kind = self.program_context.get_predicate_kind(predicate_name);
+        let snapshot = match predicate_kind {
+            vir_low::PredicateKind::MemoryBlock | vir_low::PredicateKind::Owned => self
+                .resolve_snapshot_with_check_boolean_mask(
+                    path_condition,
+                    label,
+                    predicate_name,
+                    arguments,
+                    position,
+                )?,
+            vir_low::PredicateKind::LifetimeToken => todo!(),
+            vir_low::PredicateKind::CloseFracRef => todo!(),
+            vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
+            vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
+            vir_low::PredicateKind::DeadLifetimeToken => todo!(),
+            vir_low::PredicateKind::EndBorrowViewShift => todo!(),
+        };
+        Ok(snapshot)
+    }
+
     pub(super) fn save_state(&mut self, label: String) -> SpannedEncodingResult<()> {
         let frame = self.current_frame_mut();
         let heap = frame.heap().clone();
         frame.log_saved_state_label(label.clone())?;
         assert!(self.saved_heaps.insert(label, heap).is_none());
         Ok(())
+    }
+
+    pub(super) fn heap_at_label(&self, label: &Option<String>) -> &Heap {
+        match label {
+            Some(label) => self.saved_heaps.get(label).unwrap(),
+            None => self.current_frame().heap(),
+        }
     }
 }

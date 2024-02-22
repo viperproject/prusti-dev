@@ -154,7 +154,7 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
     where
         Writer: Write,
     {
-        unimplemented!()
+        unreachable!("Should be desugared by the caller: {}", self.expr);
     }
 }
 
@@ -400,23 +400,6 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
     where
         Writer: Write,
     {
-        // let function = info.program_context.get_function(&self.expr.function_name);
-        // match function.kind {
-        //     vir_low::FunctionKind::MemoryBlockBytes |
-        //     vir_low::FunctionKind::Snap => {
-        //         let predicate_name = info.program_context.get_snapshot_predicate(&self.expr.function_name).unwrap();
-
-        //         // Check for sufficient permissions.
-        //         let sufficient_permission_check = info.current_heap.generate_sufficient_permission_check(
-        //             &predicate_name,
-        //             &self.expr.arguments,
-        //         )?;
-        //         // Lookup the heap value.
-
-        //     },
-        //     vir_low::FunctionKind::CallerFor => todo!(),
-        //     vir_low::FunctionKind::SnapRange => todo!(),
-        // }
         unreachable!("FuncApp: {}. Should be desugared by the caller.", self.expr);
     }
 }

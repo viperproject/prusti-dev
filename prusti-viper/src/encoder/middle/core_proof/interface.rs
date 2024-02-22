@@ -159,6 +159,7 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                     super::transformations::predicate_domains::define_predicate_domains(
                         &source_filename,
                         program,
+                        &predicates_info.owned_predicates_info,
                     );
                 let result = super::svirpti::verify_program(
                     self,
