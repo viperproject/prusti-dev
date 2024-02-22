@@ -18,7 +18,24 @@ use vir_crate::{
 
 use crate::encoder::middle::core_proof::predicates::OwnedPredicateInfo;
 
-pub(crate) type PredicateDomainsInfo = FxHashMap<String, PredicateDomainInfo>;
+pub(crate) struct PredicateDomainsInfo {
+    permission: FxHashMap<String, PredicatePermissionDomainInfo>,
+    heap: FxHashMap<String, PredicateHeapDomainInfo>,
+}
+
+impl PredicateDomainsInfo {
+    pub(crate) fn get_with_heap<'a>(
+        &'a self,
+        predicate_name: &str,
+    ) -> Option<PredicateWithHeapDomainInfo<'a>> {
+        let permission = self.permission.get(predicate_name)?;
+        let heap = self.heap.get(predicate_name)?;
+        Some(PredicateWithHeapDomainInfo {
+            permission: permission,
+            heap: heap,
+        })
+    }
+}
 
 pub(crate) struct PredicatePermissionDomainInfo {
     pub(crate) domain_name: String,
@@ -155,12 +172,12 @@ impl PredicateHeapDomainInfo {
     }
 }
 
-pub(crate) struct PredicateDomainInfo {
-    pub(crate) permission: PredicatePermissionDomainInfo,
-    pub(crate) heap: PredicateHeapDomainInfo,
+pub(crate) struct PredicateWithHeapDomainInfo<'a> {
+    pub(crate) permission: &'a PredicatePermissionDomainInfo,
+    pub(crate) heap: &'a PredicateHeapDomainInfo,
 }
 
-impl PredicateDomainInfo {
+impl<'a> PredicateWithHeapDomainInfo<'a> {
     pub(crate) fn create_permission_mask_variable(&self, name: String) -> vir_low::VariableDecl {
         self.permission.create_permission_mask_variable(name)
     }
@@ -218,7 +235,10 @@ pub(in super::super) fn define_predicate_domains(
     mut program: vir_low::Program,
     owned_predicate_info: &BTreeMap<String, OwnedPredicateInfo>,
 ) -> (vir_low::Program, PredicateDomainsInfo) {
-    let mut domains_info = FxHashMap::default();
+    let mut domains_info = PredicateDomainsInfo {
+        permission: FxHashMap::default(),
+        heap: FxHashMap::default(),
+    };
     for predicate in &program.predicates {
         match predicate.kind {
             vir_low::PredicateKind::MemoryBlock => {
@@ -276,19 +296,19 @@ fn define_predicate_domain_for_boolean_mask(
         snapshot_type,
         lookup_function_name: format!("{}$lookup", predicate.name),
     };
-    let predicate_info = PredicateDomainInfo {
-        permission: permission_info,
-        heap: heap_info,
-    };
 
-    let permission_domain =
-        create_permission_domain_for_boolean_mask(predicate, &predicate_info.permission);
-    let heap_domain = create_heap_domain_for_boolean_mask(predicate, &predicate_info.heap);
+    let permission_domain = create_permission_domain_for_boolean_mask(predicate, &permission_info);
+    let heap_domain = create_heap_domain_for_boolean_mask(predicate, &heap_info);
 
     domains.push(permission_domain);
     domains.push(heap_domain);
     assert!(domains_info
-        .insert(predicate.name.clone(), predicate_info)
+        .permission
+        .insert(predicate.name.clone(), permission_info)
+        .is_none());
+    assert!(domains_info
+        .heap
+        .insert(predicate.name.clone(), heap_info)
         .is_none());
 }
 
