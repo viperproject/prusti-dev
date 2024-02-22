@@ -20,20 +20,17 @@ use crate::encoder::middle::core_proof::predicates::OwnedPredicateInfo;
 
 pub(crate) type PredicateDomainsInfo = FxHashMap<String, PredicateDomainInfo>;
 
-pub(crate) struct PredicateDomainInfo {
-    pub(crate) permission_domain_name: String,
-    pub(crate) permission_amount_type: vir_low::Type,
-    pub(crate) permission_lookup_function_name: String,
-    pub(crate) permission_set_full_function_name: String,
-    pub(crate) permission_set_none_function_name: String,
-    pub(crate) heap_domain_name: String,
-    pub(crate) heap_snapshot_type: vir_low::Type,
-    pub(crate) heap_lookup_function_name: String,
+pub(crate) struct PredicatePermissionDomainInfo {
+    pub(crate) domain_name: String,
+    pub(crate) amount_type: vir_low::Type,
+    pub(crate) lookup_function_name: String,
+    pub(crate) set_full_function_name: String,
+    pub(crate) set_none_function_name: String,
 }
 
-impl PredicateDomainInfo {
+impl PredicatePermissionDomainInfo {
     pub(crate) fn permission_mask_type(&self) -> vir_low::Type {
-        vir_low::Type::domain(self.permission_domain_name.clone())
+        vir_low::Type::domain(self.domain_name.clone())
     }
 
     pub(crate) fn create_permission_mask_variable(&self, name: String) -> vir_low::VariableDecl {
@@ -52,7 +49,7 @@ impl PredicateDomainInfo {
         arguments.push(new_permission_mask.clone().into());
         arguments.extend(predicate_arguments.iter().cloned());
         vir_low::Expression::domain_function_call(
-            self.permission_domain_name.clone(),
+            self.domain_name.clone(),
             setter.to_string(),
             arguments,
             vir_low::Type::Bool,
@@ -66,7 +63,7 @@ impl PredicateDomainInfo {
         predicate_arguments: &[vir_low::Expression],
     ) -> vir_low::Expression {
         self.set_permissions(
-            &self.permission_set_full_function_name,
+            &self.set_full_function_name,
             old_permission_mask,
             new_permission_mask,
             predicate_arguments,
@@ -80,7 +77,7 @@ impl PredicateDomainInfo {
         predicate_arguments: &[vir_low::Expression],
     ) -> vir_low::Expression {
         self.set_permissions(
-            &self.permission_set_none_function_name,
+            &self.set_none_function_name,
             old_permission_mask,
             new_permission_mask,
             predicate_arguments,
@@ -101,10 +98,10 @@ impl PredicateDomainInfo {
                 .map(|parameter| parameter.into()),
         );
         vir_low::Expression::domain_function_call(
-            self.permission_domain_name.clone(),
-            self.permission_lookup_function_name.clone(),
+            self.domain_name.clone(),
+            self.lookup_function_name.clone(),
             arguments,
-            self.permission_amount_type.clone(),
+            self.amount_type.clone(),
         )
     }
 
@@ -117,16 +114,24 @@ impl PredicateDomainInfo {
         arguments.push(permission_mask.clone().into());
         arguments.extend(predicate_arguments.iter().cloned());
         let lookup_permission = vir_low::Expression::domain_function_call(
-            self.permission_domain_name.clone(),
-            self.permission_lookup_function_name.clone(),
+            self.domain_name.clone(),
+            self.lookup_function_name.clone(),
             arguments,
-            self.permission_amount_type.clone(),
+            self.amount_type.clone(),
         );
         lookup_permission
     }
+}
 
+pub(crate) struct PredicateHeapDomainInfo {
+    pub(crate) domain_name: String,
+    pub(crate) snapshot_type: vir_low::Type,
+    pub(crate) lookup_function_name: String,
+}
+
+impl PredicateHeapDomainInfo {
     pub(crate) fn heap_type(&self) -> vir_low::Type {
-        vir_low::Type::domain(self.heap_domain_name.clone())
+        vir_low::Type::domain(self.domain_name.clone())
     }
 
     pub(crate) fn create_heap_variable(&self, name: String) -> vir_low::VariableDecl {
@@ -142,11 +147,69 @@ impl PredicateDomainInfo {
         arguments.push(heap.clone().into());
         arguments.extend(predicate_arguments.iter().cloned());
         vir_low::Expression::domain_function_call(
-            self.heap_domain_name.clone(),
-            self.heap_lookup_function_name.clone(),
+            self.domain_name.clone(),
+            self.lookup_function_name.clone(),
             arguments,
-            self.heap_snapshot_type.clone(),
+            self.snapshot_type.clone(),
         )
+    }
+}
+
+pub(crate) struct PredicateDomainInfo {
+    pub(crate) permission: PredicatePermissionDomainInfo,
+    pub(crate) heap: PredicateHeapDomainInfo,
+}
+
+impl PredicateDomainInfo {
+    pub(crate) fn create_permission_mask_variable(&self, name: String) -> vir_low::VariableDecl {
+        self.permission.create_permission_mask_variable(name)
+    }
+
+    pub(crate) fn set_permissions_to_full(
+        &self,
+        old_permission_mask: &vir_low::VariableDecl,
+        new_permission_mask: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        self.permission.set_permissions_to_full(
+            old_permission_mask,
+            new_permission_mask,
+            predicate_arguments,
+        )
+    }
+
+    pub(crate) fn set_permissions_to_none(
+        &self,
+        old_permission_mask: &vir_low::VariableDecl,
+        new_permission_mask: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        self.permission.set_permissions_to_none(
+            old_permission_mask,
+            new_permission_mask,
+            predicate_arguments,
+        )
+    }
+
+    pub(crate) fn check_permissions_full(
+        &self,
+        permission_mask: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        self.permission
+            .check_permissions_full(permission_mask, predicate_arguments)
+    }
+
+    pub(crate) fn create_heap_variable(&self, name: String) -> vir_low::VariableDecl {
+        self.heap.create_heap_variable(name)
+    }
+
+    pub(crate) fn lookup_snapshot(
+        &self,
+        heap: &vir_low::VariableDecl,
+        predicate_arguments: &[vir_low::Expression],
+    ) -> vir_low::Expression {
+        self.heap.lookup_snapshot(heap, predicate_arguments)
     }
 }
 
@@ -181,13 +244,15 @@ pub(in super::super) fn define_predicate_domains(
             vir_low::PredicateKind::LifetimeToken => {
                 // Lifetime tokens require no additional axioms.
             }
-            vir_low::PredicateKind::CloseFracRef => todo!(),
-            vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
-            vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
+            vir_low::PredicateKind::CloseFracRef => todo!("predicate: {predicate}"),
+            vir_low::PredicateKind::WithoutSnapshotWhole => todo!("predicate: {predicate}"),
+            vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
+                unimplemented!("predicate: {predicate}");
+            }
             vir_low::PredicateKind::DeadLifetimeToken => {
                 // Dead lifetime tokens require no additional axioms.
             }
-            vir_low::PredicateKind::EndBorrowViewShift => todo!(),
+            vir_low::PredicateKind::EndBorrowViewShift => todo!("predicate: {predicate}"),
         }
     }
     (program, domains_info)
@@ -199,19 +264,26 @@ fn define_predicate_domain_for_boolean_mask(
     predicate: &vir_low::PredicateDecl,
     snapshot_type: vir_low::Type,
 ) {
+    let permission_info = PredicatePermissionDomainInfo {
+        domain_name: format!("{}$Perm", predicate.name),
+        amount_type: vir_low::Type::Bool,
+        lookup_function_name: format!("{}$perm", predicate.name),
+        set_full_function_name: format!("{}$set_write", predicate.name),
+        set_none_function_name: format!("{}$set_none", predicate.name),
+    };
+    let heap_info = PredicateHeapDomainInfo {
+        domain_name: format!("{}$Heap", predicate.name),
+        snapshot_type,
+        lookup_function_name: format!("{}$lookup", predicate.name),
+    };
     let predicate_info = PredicateDomainInfo {
-        permission_domain_name: format!("{}$Perm", predicate.name),
-        permission_amount_type: vir_low::Type::Bool,
-        permission_lookup_function_name: format!("{}$perm", predicate.name),
-        permission_set_full_function_name: format!("{}$set_write", predicate.name),
-        permission_set_none_function_name: format!("{}$set_none", predicate.name),
-        heap_domain_name: format!("{}$Heap", predicate.name),
-        heap_snapshot_type: snapshot_type,
-        heap_lookup_function_name: format!("{}$lookup", predicate.name),
+        permission: permission_info,
+        heap: heap_info,
     };
 
-    let permission_domain = create_permission_domain_for_boolean_mask(predicate, &predicate_info);
-    let heap_domain = create_heap_domain_for_boolean_mask(predicate, &predicate_info);
+    let permission_domain =
+        create_permission_domain_for_boolean_mask(predicate, &predicate_info.permission);
+    let heap_domain = create_heap_domain_for_boolean_mask(predicate, &predicate_info.heap);
 
     domains.push(permission_domain);
     domains.push(heap_domain);
@@ -222,7 +294,7 @@ fn define_predicate_domain_for_boolean_mask(
 
 fn create_permission_domain_for_boolean_mask(
     predicate: &vir_low::PredicateDecl,
-    predicate_info: &PredicateDomainInfo,
+    predicate_info: &PredicatePermissionDomainInfo,
 ) -> vir_low::DomainDecl {
     use vir_low::macros::*;
 
@@ -231,10 +303,10 @@ fn create_permission_domain_for_boolean_mask(
     lookup_parameters.push(mask.clone());
     lookup_parameters.extend(predicate.parameters.iter().cloned());
     let lookup = vir_low::DomainFunctionDecl::new(
-        predicate_info.permission_lookup_function_name.clone(),
+        predicate_info.lookup_function_name.clone(),
         false,
         lookup_parameters,
-        predicate_info.permission_amount_type.clone(),
+        predicate_info.amount_type.clone(),
     );
 
     let old_mask = predicate_info.create_permission_mask_variable("old_mask".to_string());
@@ -244,7 +316,7 @@ fn create_permission_domain_for_boolean_mask(
     set_full_parameters.push(new_mask.clone());
     set_full_parameters.extend(predicate.parameters.iter().cloned());
     let set_full = vir_low::DomainFunctionDecl::new(
-        predicate_info.permission_set_full_function_name.clone(),
+        predicate_info.set_full_function_name.clone(),
         false,
         set_full_parameters.clone(),
         vir_low::Type::Bool,
@@ -259,8 +331,8 @@ fn create_permission_domain_for_boolean_mask(
             .map(|parameter| parameter.clone().into())
             .collect();
         let set_full_call = vir_low::Expression::domain_function_call(
-            predicate_info.permission_domain_name.clone(),
-            predicate_info.permission_set_full_function_name.clone(),
+            predicate_info.domain_name.clone(),
+            predicate_info.set_full_function_name.clone(),
             set_full_arguments,
             vir_low::Type::Bool,
         );
@@ -310,7 +382,7 @@ fn create_permission_domain_for_boolean_mask(
     set_none_parameters.push(new_mask.clone());
     set_none_parameters.extend(predicate.parameters.iter().cloned());
     let set_none = vir_low::DomainFunctionDecl::new(
-        predicate_info.permission_set_none_function_name.clone(),
+        predicate_info.set_none_function_name.clone(),
         false,
         set_none_parameters.clone(),
         vir_low::Type::Bool,
@@ -322,8 +394,8 @@ fn create_permission_domain_for_boolean_mask(
             .map(|parameter| parameter.clone().into())
             .collect();
         let set_none_call = vir_low::Expression::domain_function_call(
-            predicate_info.permission_domain_name.clone(),
-            predicate_info.permission_set_none_function_name.clone(),
+            predicate_info.domain_name.clone(),
+            predicate_info.set_none_function_name.clone(),
             set_none_arguments,
             vir_low::Type::Bool,
         );
@@ -377,7 +449,7 @@ fn create_permission_domain_for_boolean_mask(
     let functions = vec![lookup, set_full, set_none];
     let axioms = vec![set_full_axiom, set_none_axiom];
     vir_low::DomainDecl::new(
-        predicate_info.permission_domain_name.clone(),
+        predicate_info.domain_name.clone(),
         functions,
         axioms,
         Vec::new(),
@@ -386,22 +458,22 @@ fn create_permission_domain_for_boolean_mask(
 
 fn create_heap_domain_for_boolean_mask(
     predicate: &vir_low::PredicateDecl,
-    predicate_info: &PredicateDomainInfo,
+    predicate_info: &PredicateHeapDomainInfo,
 ) -> vir_low::DomainDecl {
     let heap = predicate_info.create_heap_variable("heap".to_string());
     let mut lookup_parameters = Vec::with_capacity(1 + predicate.parameters.len());
     lookup_parameters.push(heap.clone());
     lookup_parameters.extend(predicate.parameters.iter().cloned());
     let lookup = vir_low::DomainFunctionDecl::new(
-        predicate_info.heap_lookup_function_name.clone(),
+        predicate_info.lookup_function_name.clone(),
         false,
         lookup_parameters,
-        predicate_info.heap_snapshot_type.clone(),
+        predicate_info.snapshot_type.clone(),
     );
 
     let functions = vec![lookup];
     vir_low::DomainDecl::new(
-        predicate_info.heap_domain_name.clone(),
+        predicate_info.domain_name.clone(),
         functions,
         Vec::new(),
         Vec::new(),
