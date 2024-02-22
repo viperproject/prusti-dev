@@ -79,7 +79,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 unimplemented!("inhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
-                unimplemented!("inhale_predicate: {predicate}");
+                if predicate.permission.is_full_permission() {
+                    self.execute_inhale_boolean_mask_without_heap_full(&predicate, position)?;
+                } else {
+                    // self.execute_inhale_memory_block_fractional(&predicate, position)?;
+                    unimplemented!("inhale_predicate: {predicate}");
+                }
             }
             vir_low::PredicateKind::EndBorrowViewShift => {
                 unimplemented!("inhale_predicate: {predicate}");
@@ -116,7 +121,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 unimplemented!("exhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
-                unimplemented!("exhale_predicate: {predicate}");
+                if predicate.permission.is_full_permission() {
+                    self.execute_exhale_boolean_mask_without_heap_full(&predicate, position)?;
+                } else {
+                    // self.execute_exhale_memory_block_fractional(&predicate, position)?;
+                    unimplemented!("exhale_predicate: {predicate}");
+                }
             }
             vir_low::PredicateKind::EndBorrowViewShift => {
                 unimplemented!("exhale_predicate: {predicate}");
