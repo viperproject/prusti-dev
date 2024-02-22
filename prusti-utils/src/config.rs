@@ -203,6 +203,7 @@ lazy_static::lazy_static! {
         // Svirpti settings.
         settings.set_default("svirpti_smt_solver", "z3").unwrap();
         settings.set_default::<Option<String>>("svirpti_smt_solver_log", None).unwrap();
+        settings.set_default("svirpti_stop_on_first_error", false).unwrap();
 
         // Get the list of all allowed flags.
         let mut allowed_keys = get_keys(&settings);
@@ -1298,6 +1299,11 @@ pub fn svirpti_smt_solver() -> String {
 /// The path to the log file in which Svirpti should log all communications with the SMT solver.
 pub fn svirpti_smt_solver_log() -> Option<String> {
     read_setting("svirpti_smt_solver_log")
+}
+
+/// Stop when the first verification error is found.
+pub fn svirpti_stop_on_first_error() -> bool {
+    read_setting("svirpti_stop_on_first_error")
 }
 
 /// When enabled, features not supported by Prusti will be reported as warnings

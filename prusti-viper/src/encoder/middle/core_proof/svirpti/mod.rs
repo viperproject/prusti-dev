@@ -9,6 +9,7 @@ use crate::encoder::{
     Encoder,
 };
 use log::debug;
+use prusti_common::config;
 use rustc_hash::FxHashSet;
 use std::collections::BTreeMap;
 use vir_crate::low as vir_low;
@@ -122,6 +123,9 @@ impl Verifier {
     }
 
     pub(crate) fn report_error(&mut self, error: VerificationError) {
+        if config::svirpti_stop_on_first_error() {
+            panic!("A verification error: {:?}", error);
+        }
         self.errors.push(error);
     }
 }
