@@ -76,7 +76,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
         let predicate_info = self
             .predicate_domains_info
-            .get_with_heap(&predicate.name)
+            .get_permissions_info(&predicate.name)
             .unwrap();
         let current_permission_mask =
             predicate_info.create_permission_mask_variable(current_permission_mask_name);
@@ -125,7 +125,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
         let predicate_info = self
             .predicate_domains_info
-            .get_with_heap(&predicate.name)
+            .get_permissions_info(&predicate.name)
             .unwrap();
         let current_permission_mask =
             predicate_info.create_permission_mask_variable(current_permission_mask_name);
