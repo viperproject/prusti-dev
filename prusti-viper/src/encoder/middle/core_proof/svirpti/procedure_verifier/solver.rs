@@ -3,7 +3,7 @@ use super::{
         super::transformations::{
             encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
         },
-        smt::{SmtSolver, Sort2SmtWrap, Info},
+        smt::{Info, SmtSolver, Sort2SmtWrap},
         VerificationResult, Verifier,
     },
     ProcedureExecutor,

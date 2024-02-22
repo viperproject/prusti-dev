@@ -20,6 +20,7 @@ use vir_crate::{
 
 #[derive(Default, Clone, Debug)]
 pub(in super::super::super::super) struct MemoryBlock {
+    // TODO: Rename to BooleanMaskHeap.
     /// A map from predicate names to their permission mask versions.
     permission_mask_versions: FxHashMap<String, usize>,
 }

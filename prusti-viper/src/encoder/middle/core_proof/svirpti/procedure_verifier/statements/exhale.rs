@@ -32,6 +32,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             return Ok(());
         }
         if expression.is_pure() {
+            let expression = self.desugar_heap_expression(expression)?;
             self.assert(expression, position)?;
         } else {
             unimplemented!("exhale: {expression}");
