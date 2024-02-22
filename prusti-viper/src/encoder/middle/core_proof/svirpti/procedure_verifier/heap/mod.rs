@@ -14,12 +14,14 @@ use vir_crate::low::{self as vir_low, expression::visitors::ExpressionFallibleFo
 
 mod lifetimes;
 mod boolean_mask;
+mod boolean_mask_without_heap;
 mod expression;
 
 #[derive(Default, Clone, Debug)]
 pub(super) struct Heap {
     lifetime_tokens: lifetimes::LifetimeTokens,
     boolean_mask_with_heap: boolean_mask::BooleanMaskWithHeap,
+    boolean_mask_without_heap: boolean_mask_without_heap::BooleanMaskWithoutHeap,
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
@@ -37,7 +39,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 }
                 vir_low::PredicateKind::CloseFracRef => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
-                vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => todo!(),
+                vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
+                    self.initialise_boolean_mask_without_heap(&predicate.name)?;
+                }
                 vir_low::PredicateKind::DeadLifetimeToken => {
                     // Nothing to do.
                 }
@@ -56,7 +60,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         match predicate_kind {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_inhale_boolean_mask_full(&predicate, position)?;
+                    self.execute_inhale_boolean_mask_with_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_inhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("inhale_predicate: {predicate}");
@@ -93,7 +97,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         match predicate_kind {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_exhale_boolean_mask_full(&predicate, position)?;
+                    self.execute_exhale_boolean_mask_with_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("exhale_predicate: {predicate}");
@@ -140,7 +144,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let predicate_kind = self.program_context.get_predicate_kind(predicate_name);
         let snapshot = match predicate_kind {
             vir_low::PredicateKind::MemoryBlock | vir_low::PredicateKind::Owned => self
-                .resolve_snapshot_with_check_boolean_mask(
+                .resolve_snapshot_with_check_boolean_mask_with_heap(
                     path_condition,
                     label,
                     predicate_name,
