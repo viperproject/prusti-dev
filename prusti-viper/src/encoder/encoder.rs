@@ -259,7 +259,30 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn verify_core_proof_programs(&mut self) -> prusti_interface::data::VerificationResult {
-        unimplemented!("The programs are already verified, just return the results.");
+        assert!(config::unsafe_core_proof());
+        assert_eq!(config::viper_backend(), "svirpti");
+        let verification_results = self.take_verification_results();
+        if verification_results.iter().all(|(_, result)| result.is_success()) {
+            if self.count_encoding_errors() > 0 {
+                prusti_interface::data::VerificationResult::Failure
+            } else {
+                prusti_interface::data::VerificationResult::Success
+            }
+        } else {
+            let mut prusti_errors = Vec::new();
+            for (def_id, result) in verification_results {
+                for error in result.get_errors() {
+                    let prusti_error = self.error_manager().translate_verification_error(&error.as_viper_verification_error());
+                    prusti_errors.push(prusti_error);
+                }
+            }
+            prusti_errors.sort();
+            for prusti_error in prusti_errors {
+                debug!("Prusti error: {:?}", prusti_error);
+                prusti_error.emit(&self.env.diagnostic);
+            }
+            prusti_interface::data::VerificationResult::Failure
+        }
     }
 
     #[tracing::instrument(level = "debug", skip(self))]

@@ -47,11 +47,11 @@ impl StackFrame {
         &self.parent
     }
 
-    pub(super) fn label(&self) -> &vir_low::Label {
+    pub(in super::super) fn label(&self) -> &vir_low::Label {
         &self.label
     }
 
-    pub(super) fn statement_index(&self) -> usize {
+    pub(in super::super) fn statement_index(&self) -> usize {
         self.statement_index
     }
 
@@ -70,12 +70,18 @@ impl StackFrame {
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
-    pub(super) fn current_frame(&self) -> &StackFrame {
+    pub(in super::super) fn current_frame(&self) -> &StackFrame {
         self.stack.last().unwrap()
     }
 
     pub(super) fn current_frame_mut(&mut self) -> &mut StackFrame {
         self.stack.last_mut().unwrap()
+    }
+
+    pub(super) fn inc_statement_index(&mut self) -> SpannedEncodingResult<()> {
+        let frame = self.current_frame_mut();
+        frame.statement_index += 1;
+        Ok(())
     }
 
     pub(super) fn stack_push(
@@ -154,5 +160,15 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 .unwrap(); // FIXME: Handle errors
         }
         Ok(())
+    }
+
+    pub(in super::super) fn current_execution_trace(&self) -> SpannedEncodingResult<Vec<&str>> {
+        let mut trace = Vec::new();
+        for frame in &self.stack {
+            if matches!(frame.status, StackFrameStatus::Executed) {
+                trace.push(&*frame.label.name);
+            }
+        }
+        Ok(trace)
     }
 }

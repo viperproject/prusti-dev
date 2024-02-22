@@ -33,7 +33,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         }
         if expression.is_pure() {
             let expression = self.desugar_heap_expression(expression)?;
-            self.assert(expression, position)?;
+            let error = self.create_verification_error_for_expression(
+                "exhale.failed:assertion.false",
+                position,
+                &expression,
+            )?;
+            self.assert(expression, error)?;
         } else {
             unimplemented!("exhale: {expression}");
         }
