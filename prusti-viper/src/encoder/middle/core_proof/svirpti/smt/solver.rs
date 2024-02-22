@@ -1,13 +1,15 @@
 use super::{
-    configuration::Configuration, errors::SmtSolverResult, expressions::Expr2SmtWrap,
+    super::super::transformations::{
+        encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
+        symbolic_execution_new::ProgramContext,
+    },
+    configuration::Configuration,
+    errors::SmtSolverResult,
+    expressions::Expr2SmtWrap,
     parser::SmtParser,
 };
 use rsmt2::{print::Sort2Smt, Solver};
 use vir_crate::low::{self as vir_low};
-use super::super::super::transformations::{
-    encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
-    symbolic_execution_new::ProgramContext,
-};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum SatResult {
@@ -114,7 +116,11 @@ impl SmtSolver {
         self.solver.comment(comment)?;
         Ok(())
     }
-    pub fn assert<'a, 'c, EC: EncoderContext>(&mut self, assertion: &vir_low::Expression, info: Info<'a, 'c, EC>) -> SmtSolverResult<()> {
+    pub fn assert<'a, 'c, EC: EncoderContext>(
+        &mut self,
+        assertion: &vir_low::Expression,
+        info: Info<'a, 'c, EC>,
+    ) -> SmtSolverResult<()> {
         self.solver.assert_with(assertion.wrap(), info)?;
         Ok(())
     }

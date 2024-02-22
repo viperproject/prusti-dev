@@ -212,8 +212,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 if let Some(comment) = &axiom.comment {
                     self.comment(comment)?;
                 }
-                self
-                    .comment(&format!("axiom: {}", axiom.name))?;
+                self.comment(&format!("axiom: {}", axiom.name))?;
                 self.assume(&axiom.body)?;
             }
         }

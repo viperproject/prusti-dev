@@ -25,7 +25,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
         }
         if expression.is_pure() {
-            self.assume(expression)?;
+            let expression = self.desugar_heap_expression(expression.clone())?;
+            self.assume(&expression)?;
         } else if let vir_low::Expression::PredicateAccessPredicate(predicate) = &expression {
             self.execute_inhale_predicate(predicate, position)?;
         } else {

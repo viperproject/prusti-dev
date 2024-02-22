@@ -1,3 +1,4 @@
+use self::expression::ExpressionPurifier;
 use super::{
     super::{
         super::transformations::{
@@ -9,10 +10,11 @@ use super::{
     ProcedureExecutor,
 };
 use crate::encoder::errors::SpannedEncodingResult;
-use vir_crate::low::{self as vir_low};
+use vir_crate::low::{self as vir_low, expression::visitors::ExpressionFallibleFolder};
 
 mod lifetimes;
 mod boolean_mask;
+mod expression;
 
 #[derive(Default, Clone, Debug)]
 pub(super) struct Heap {
@@ -117,6 +119,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
         };
         Ok(())
+    }
+
+    pub(super) fn desugar_heap_expression(
+        &mut self,
+        expression: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let mut purifier = ExpressionPurifier::new(self);
+        purifier.fallible_fold_expression(expression)
     }
 
     pub(super) fn save_state(&mut self, label: String) -> SpannedEncodingResult<()> {
