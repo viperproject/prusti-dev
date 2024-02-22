@@ -19,7 +19,7 @@ mod expression;
 #[derive(Default, Clone, Debug)]
 pub(super) struct Heap {
     lifetime_tokens: lifetimes::LifetimeTokens,
-    memory_block: boolean_mask::MemoryBlock,
+    boolean_mask_with_heap: boolean_mask::BooleanMaskWithHeap,
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
@@ -30,7 +30,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         for predicate in predicates {
             match predicate.kind {
                 vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
-                    self.initialise_boolean_mask(&predicate.name)?;
+                    self.initialise_boolean_mask_with_heap(&predicate.name)?;
                 }
                 vir_low::PredicateKind::LifetimeToken => {
                     // Nothing to do.

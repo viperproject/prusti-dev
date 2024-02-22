@@ -19,7 +19,7 @@ use vir_crate::{
 };
 
 #[derive(Default, Clone, Debug)]
-pub(in super::super::super::super) struct MemoryBlock {
+pub(in super::super::super::super) struct BooleanMaskWithHeap {
     // TODO: Rename to BooleanMaskHeap.
     /// A map from predicate names to their permission mask versions.
     permission_mask_versions: FxHashMap<String, usize>,
@@ -46,19 +46,19 @@ fn heap_variable_name(predicate_name: &str, id: usize) -> String {
 // }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
-    pub(super) fn initialise_boolean_mask(
+    pub(super) fn initialise_boolean_mask_with_heap(
         &mut self,
         predicate_name: &str,
     ) -> SpannedEncodingResult<()> {
         let id = self.generate_fresh_id();
         let heap = self.current_frame_mut().heap_mut();
         assert!(heap
-            .memory_block
+            .boolean_mask_with_heap
             .permission_mask_versions
             .insert(predicate_name.to_string(), id)
             .is_none());
         assert!(heap
-            .memory_block
+            .boolean_mask_with_heap
             .heap_versions
             .insert(predicate_name.to_string(), id)
             .is_none());
@@ -85,7 +85,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         // Update local records.
         let new_permission_mask_id = self.generate_fresh_id();
         let frame = self.current_frame_mut();
-        let memory_block = &mut frame.heap_mut().memory_block;
+        let memory_block = &mut frame.heap_mut().boolean_mask_with_heap;
         let permission_mask_version = memory_block
             .permission_mask_versions
             .get_mut(&predicate.name)
@@ -160,7 +160,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         // Update local records.
         let new_permission_mask_id = self.generate_fresh_id();
         let frame = self.current_frame_mut();
-        let memory_block = &mut frame.heap_mut().memory_block;
+        let memory_block = &mut frame.heap_mut().boolean_mask_with_heap;
         let permission_mask_version = memory_block
             .permission_mask_versions
             .get_mut(&predicate.name)
@@ -217,11 +217,15 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let heap = self.heap_at_label(label);
         let current_permission_mask_id = *heap
-            .memory_block
+            .boolean_mask_with_heap
             .permission_mask_versions
             .get(predicate_name)
             .unwrap();
-        let current_heap_id = *heap.memory_block.heap_versions.get(predicate_name).unwrap();
+        let current_heap_id = *heap
+            .boolean_mask_with_heap
+            .heap_versions
+            .get(predicate_name)
+            .unwrap();
 
         let current_permission_mask_name =
             permission_mask_variable_name(predicate_name, current_permission_mask_id);

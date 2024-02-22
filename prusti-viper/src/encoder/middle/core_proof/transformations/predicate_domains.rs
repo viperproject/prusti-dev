@@ -267,7 +267,20 @@ pub(in super::super) fn define_predicate_domains(
             vir_low::PredicateKind::CloseFracRef => todo!("predicate: {predicate}"),
             vir_low::PredicateKind::WithoutSnapshotWhole => todo!("predicate: {predicate}"),
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
-                unimplemented!("predicate: {predicate}");
+                let permission_info = PredicatePermissionDomainInfo {
+                    domain_name: format!("{}$Perm", predicate.name),
+                    amount_type: vir_low::Type::Bool,
+                    lookup_function_name: format!("{}$perm", predicate.name),
+                    set_full_function_name: format!("{}$set_write", predicate.name),
+                    set_none_function_name: format!("{}$set_none", predicate.name),
+                };
+                let permission_domain =
+                    create_permission_domain_for_boolean_mask(predicate, &permission_info);
+                program.domains.push(permission_domain);
+                assert!(domains_info
+                    .permission
+                    .insert(predicate.name.clone(), permission_info)
+                    .is_none());
             }
             vir_low::PredicateKind::DeadLifetimeToken => {
                 // Dead lifetime tokens require no additional axioms.
