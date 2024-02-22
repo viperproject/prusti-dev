@@ -13,14 +13,14 @@ use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::low::{self as vir_low, expression::visitors::ExpressionFallibleFolder};
 
 mod lifetimes;
-mod boolean_mask;
+mod boolean_mask_with_heap;
 mod boolean_mask_without_heap;
 mod expression;
 
 #[derive(Default, Clone, Debug)]
 pub(super) struct Heap {
     lifetime_tokens: lifetimes::LifetimeTokens,
-    boolean_mask_with_heap: boolean_mask::BooleanMaskWithHeap,
+    boolean_mask_with_heap: boolean_mask_with_heap::BooleanMaskWithHeap,
     boolean_mask_without_heap: boolean_mask_without_heap::BooleanMaskWithoutHeap,
 }
 
