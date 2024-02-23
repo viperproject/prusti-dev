@@ -88,21 +88,21 @@ impl QuantifierHelpers for Expression {
         triggers: Vec<Self::Trigger>,
         body: Self,
     ) -> Self {
-        Self::quantifier_no_pos(kind, variables, triggers, body)
+        Self::quantifier_no_pos(None, kind, variables, triggers, body)
     }
     fn forall(
         variables: Vec<Self::BoundedVariableDecl>,
         triggers: Vec<Self::Trigger>,
         body: Self,
     ) -> Self {
-        Self::quantifier_no_pos(QuantifierKind::ForAll, variables, triggers, body)
+        Self::quantifier_no_pos(None, QuantifierKind::ForAll, variables, triggers, body)
     }
     fn exists(
         variables: Vec<Self::BoundedVariableDecl>,
         triggers: Vec<Self::Trigger>,
         body: Self,
     ) -> Self {
-        Self::quantifier_no_pos(QuantifierKind::Exists, variables, triggers, body)
+        Self::quantifier_no_pos(None, QuantifierKind::Exists, variables, triggers, body)
     }
 }
 

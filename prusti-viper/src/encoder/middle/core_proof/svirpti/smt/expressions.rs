@@ -365,6 +365,9 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
         }
         write!(writer, ") (! ")?;
         Expr2SmtWrapper::new(&*expr.body).expr_to_smt2(writer, info)?;
+        if let Some(name) = &self.expr.name {
+            write!(writer, " :qid |{}|", name)?;
+        }
         for trigger in &expr.triggers {
             trigger.expression_to_smt2(writer, info)?;
         }

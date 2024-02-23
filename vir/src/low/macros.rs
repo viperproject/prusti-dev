@@ -116,6 +116,7 @@ pub macro expr {
             $( let $var_name = $crate::low::macros::var! { $var_name: $var_type }; )*
             $( $( $statement; )+ )?
             $crate::low::ast::expression::Expression::quantifier_no_pos(
+                None,
                 $crate::low::ast::expression::QuantifierKind::ForAll,
                 vec![ $( $var_name.clone() ),* ],
                 vec![

@@ -617,6 +617,7 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
             })
             .collect::<SpannedEncodingResult<Vec<_>>>()?;
         let result = vir_low::Expression::quantifier(
+            None,
             quantifier_kind,
             variables,
             triggers,

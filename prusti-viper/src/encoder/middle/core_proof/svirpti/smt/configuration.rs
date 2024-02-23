@@ -31,9 +31,18 @@ impl Default for Configuration {
             (":model.v2".to_string(), "true".to_string()),
             (":smt.qi.max_multi_patterns".to_string(), "1000".to_string()),
             // Prusti.
-            (":smt.qi.eager_threshold".to_string(), config::smt_qi_eager_threshold().to_string()),
-            (":model.partial".to_string(), config::counterexample().to_string()),
-            (":smt.arith.nl".to_string(), config::smt_use_nonlinear_arithmetic_solver().to_string()),
+            (
+                ":smt.qi.eager_threshold".to_string(),
+                config::smt_qi_eager_threshold().to_string(),
+            ),
+            (
+                ":model.partial".to_string(),
+                config::counterexample().to_string(),
+            ),
+            (
+                ":smt.arith.nl".to_string(),
+                config::smt_use_nonlinear_arithmetic_solver().to_string(),
+            ),
             // (":smt.arith.nl.gb".to_string(), config::smt_use_nonlinear_arithmetic_solver().to_string()),
         ];
         let tee_path = config::svirpti_smt_solver_log();
