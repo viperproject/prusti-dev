@@ -166,6 +166,10 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
                         program,
                         &predicates_info.owned_predicates_info,
                     );
+                let program = super::transformations::name_quantifiers::name_quantifiers(
+                    &source_filename,
+                    program,
+                );
                 let result = super::svirpti::verify_program(
                     self,
                     &source_filename,

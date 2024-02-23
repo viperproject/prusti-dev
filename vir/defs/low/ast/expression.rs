@@ -214,13 +214,15 @@ pub enum QuantifierKind {
 }
 
 #[display(
-    fmt = "{}(|{}| {}, triggers=[{}])",
+    fmt = "{}{}(|{}| {}, triggers=[{}])",
     kind,
+    "display::option!(name, \"<{}>\", \"\")",
     "display::cjoin(variables)",
     body,
     "display::join(\"; \", triggers)"
 )]
 pub struct Quantifier {
+    pub name: Option<String>,
     pub kind: QuantifierKind,
     pub variables: Vec<VariableDecl>,
     pub triggers: Vec<Trigger>,

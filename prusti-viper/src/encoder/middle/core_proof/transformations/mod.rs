@@ -15,6 +15,7 @@ pub(super) mod clean_variables;
 pub(super) mod merge_statements;
 pub(super) mod desugar_implications;
 pub(super) mod expand_quantifiers;
+pub(super) mod name_quantifiers;
 pub(super) mod encoder_context;
 pub(super) mod make_all_jumps_nondeterministic;
 pub(super) mod merge_consequent_blocks;
