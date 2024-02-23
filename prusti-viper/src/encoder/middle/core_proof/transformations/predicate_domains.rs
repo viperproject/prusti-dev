@@ -412,7 +412,7 @@ fn create_permission_domain_for_boolean_mask(
 
         vir_low::DomainAxiomDecl::new(
             None,
-            format!("{}$definitional_axiom", lookup.name),
+            format!("{}$definitional_axiom", set_full.name),
             axiom_body,
         )
     };
@@ -481,7 +481,7 @@ fn create_permission_domain_for_boolean_mask(
 
         vir_low::DomainAxiomDecl::new(
             None,
-            format!("{}$definitional_axiom", lookup.name),
+            format!("{}$definitional_axiom", set_none.name),
             axiom_body,
         )
     };
