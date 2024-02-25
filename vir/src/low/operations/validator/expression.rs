@@ -24,6 +24,8 @@ impl Validator for Expression {
             Expression::FuncApp(expression) => expression.validate(),
             Expression::DomainFuncApp(expression) => expression.validate(),
             Expression::InhaleExhale(expression) => expression.validate(),
+            Expression::SmtTuple(expression) => expression.validate(),
+            Expression::SmtOperation(expression) => expression.validate(),
         }
     }
 }
@@ -198,6 +200,24 @@ impl Validator for InhaleExhale {
     fn validate(&self) -> Result<(), ValidationError> {
         self.inhale_expression.validate()?;
         self.exhale_expression.validate()?;
+        Ok(())
+    }
+}
+
+impl Validator for SmtTuple {
+    fn validate(&self) -> Result<(), ValidationError> {
+        for expression in &self.elements {
+            expression.validate()?;
+        }
+        Ok(())
+    }
+}
+
+impl Validator for SmtOperation {
+    fn validate(&self) -> Result<(), ValidationError> {
+        for argument in &self.arguments {
+            argument.validate()?;
+        }
         Ok(())
     }
 }

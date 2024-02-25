@@ -10,8 +10,8 @@ use super::{
 };
 use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::{
-    common::expression::BinaryOperationHelpers,
-    low::{self as vir_low},
+    common::expression::{BinaryOperationHelpers, SyntacticEvaluation},
+    low as vir_low,
 };
 
 mod exhale;
@@ -91,6 +91,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Assume,
     ) -> SpannedEncodingResult<()> {
+        if statement.expression.is_false() {
+            self.reached_contradiction = true;
+            return Ok(());
+        }
         let expression = self.desugar_heap_expression(statement.expression.clone())?;
         self.assume(&expression)?;
         Ok(())
@@ -111,6 +115,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Inhale,
     ) -> SpannedEncodingResult<()> {
+        if statement.expression.is_false() {
+            self.reached_contradiction = true;
+            return Ok(());
+        }
         self.execute_inhale(&statement.expression, statement.position)?;
         Ok(())
     }

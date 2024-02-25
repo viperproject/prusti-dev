@@ -13,6 +13,7 @@ use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::low::{self as vir_low, expression::visitors::ExpressionFallibleFolder};
 
 mod lifetimes;
+mod boolean_mask_log_with_heap;
 mod boolean_mask_with_heap;
 mod boolean_mask_without_heap;
 mod expression;
@@ -22,6 +23,12 @@ pub(super) struct Heap {
     lifetime_tokens: lifetimes::LifetimeTokens,
     boolean_mask_with_heap: boolean_mask_with_heap::BooleanMaskWithHeap,
     boolean_mask_without_heap: boolean_mask_without_heap::BooleanMaskWithoutHeap,
+    boolean_mask_log_with_heap: boolean_mask_log_with_heap::BooleanMaskLogWithHeap,
+}
+
+#[derive(Default, Debug)]
+pub(super) struct GlobalHeap {
+    boolean_mask_log: boolean_mask_log_with_heap::BooleanMaskLog,
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
@@ -32,7 +39,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         for predicate in predicates {
             match predicate.kind {
                 vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
-                    self.initialise_boolean_mask_with_heap(&predicate.name)?;
+                    self.initialise_boolean_mask_log_with_heap(&predicate.name)?;
+                    // self.initialise_boolean_mask_with_heap(&predicate.name)?;
                 }
                 vir_low::PredicateKind::LifetimeToken => {
                     // Nothing to do.
@@ -60,7 +68,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         match predicate_kind {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_inhale_boolean_mask_with_heap_full(&predicate, position)?;
+                    // self.execute_inhale_boolean_mask_with_heap_full(&predicate, position)?;
+                    self.execute_inhale_boolean_mask_log_with_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_inhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("inhale_predicate: {predicate}");
@@ -102,7 +111,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         match predicate_kind {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_exhale_boolean_mask_with_heap_full(&predicate, position)?;
+                    // self.execute_exhale_boolean_mask_with_heap_full(&predicate, position)?;
+                    self.execute_exhale_boolean_mask_log_with_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("exhale_predicate: {predicate}");
@@ -153,14 +163,23 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let predicate_kind = self.program_context.get_predicate_kind(predicate_name);
         let snapshot = match predicate_kind {
-            vir_low::PredicateKind::MemoryBlock | vir_low::PredicateKind::Owned => self
-                .resolve_snapshot_with_check_boolean_mask_with_heap(
+            vir_low::PredicateKind::MemoryBlock | vir_low::PredicateKind::Owned => {
+                // self
+                // .resolve_snapshot_with_check_boolean_mask_with_heap(
+                //     path_condition,
+                //     label,
+                //     predicate_name,
+                //     arguments,
+                //     position,
+                // )?;
+                self.resolve_snapshot_with_check_boolean_mask_log_with_heap(
                     path_condition,
                     label,
                     predicate_name,
                     arguments,
                     position,
-                )?,
+                )?
+            }
             vir_low::PredicateKind::LifetimeToken => todo!(),
             vir_low::PredicateKind::CloseFracRef => todo!(),
             vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
