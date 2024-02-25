@@ -26,20 +26,20 @@ pub(in super::super::super::super) struct BooleanMaskLogWithHeap {
 }
 
 #[derive(Debug)]
-enum LogEntryKind {
+pub(super) enum LogEntryKind {
     InhaleFull,
     ExhaleFull,
 }
 
 #[derive(Debug)]
-struct LogEntry {
-    kind: LogEntryKind,
-    arguments: Vec<vir_low::Expression>,
+pub(super) struct LogEntry {
+    pub(super) kind: LogEntryKind,
+    pub(super) arguments: Vec<vir_low::Expression>,
 }
 
 #[derive(Default, Debug)]
 pub(in super::super::super::super) struct BooleanMaskLog {
-    entries: FxHashMap<String, Vec<LogEntry>>,
+    pub(super) entries: FxHashMap<String, Vec<LogEntry>>,
 }
 
 fn heap_variable_name(predicate_name: &str, id: usize) -> String {
@@ -115,7 +115,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    fn check_permissions(
+    fn check_permissions_with_heap(
         &mut self,
         predicate_name: &str,
         predicate_arguments: &[vir_low::Expression],
@@ -201,7 +201,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             entries.truncate(old_log_entry);
         }
         assert_eq!(entries.len(), old_log_entry);
-        self.check_permissions(
+        self.check_permissions_with_heap(
             &predicate.name,
             &predicate.arguments,
             None,
@@ -254,7 +254,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
         // Check for sufficient permissions.
         let guard = path_condition.iter().cloned().conjoin();
-        self.check_permissions(
+        self.check_permissions_with_heap(
             predicate_name,
             arguments,
             Some(guard),

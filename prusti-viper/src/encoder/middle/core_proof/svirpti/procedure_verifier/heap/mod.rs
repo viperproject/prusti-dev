@@ -14,6 +14,7 @@ use vir_crate::low::{self as vir_low, expression::visitors::ExpressionFallibleFo
 
 mod lifetimes;
 mod boolean_mask_log_with_heap;
+mod boolean_mask_log_without_heap;
 mod boolean_mask_with_heap;
 mod boolean_mask_without_heap;
 mod expression;
@@ -24,6 +25,7 @@ pub(super) struct Heap {
     boolean_mask_with_heap: boolean_mask_with_heap::BooleanMaskWithHeap,
     boolean_mask_without_heap: boolean_mask_without_heap::BooleanMaskWithoutHeap,
     boolean_mask_log_with_heap: boolean_mask_log_with_heap::BooleanMaskLogWithHeap,
+    boolean_mask_log_without_heap: boolean_mask_log_without_heap::BooleanMaskLogWithoutHeap,
 }
 
 #[derive(Default, Debug)]
@@ -48,7 +50,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 vir_low::PredicateKind::CloseFracRef => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWhole => todo!(),
                 vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
-                    self.initialise_boolean_mask_without_heap(&predicate.name)?;
+                    self.initialise_boolean_mask_log_without_heap(&predicate.name)?;
+                    // self.initialise_boolean_mask_without_heap(&predicate.name)?;
                 }
                 vir_low::PredicateKind::DeadLifetimeToken => {
                     // Nothing to do.
@@ -89,7 +92,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_inhale_boolean_mask_without_heap_full(&predicate, position)?;
+                    self.execute_inhale_boolean_mask_log_without_heap_full(&predicate, position)?;
+                    // self.execute_inhale_boolean_mask_without_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_inhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("inhale_predicate: {predicate}");
@@ -132,7 +136,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_exhale_boolean_mask_without_heap_full(&predicate, position)?;
+                    self.execute_exhale_boolean_mask_log_without_heap_full(&predicate, position)?;
+                    // self.execute_exhale_boolean_mask_without_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("exhale_predicate: {predicate}");
