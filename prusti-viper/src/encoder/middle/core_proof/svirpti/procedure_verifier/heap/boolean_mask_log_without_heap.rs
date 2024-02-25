@@ -8,7 +8,7 @@ use super::super::{
     },
     ProcedureExecutor,
 };
-use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::{errors::SpannedEncodingResult, middle::core_proof::svirpti::procedure_verifier::heap::boolean_mask_log_with_heap::{LogEntry, LogEntryKind}};
 use log::{debug, error};
 use prusti_common::config;
 use rustc_hash::FxHashMap;
@@ -19,49 +19,21 @@ use vir_crate::{
 };
 
 #[derive(Default, Clone, Debug)]
-pub(in super::super::super::super) struct BooleanMaskLogWithHeap {
+pub(in super::super::super::super) struct BooleanMaskLogWithoutHeap {
     /// A map from predicate names to the current log entries.
     permission_log_entry: FxHashMap<String, usize>,
-    heap_versions: FxHashMap<String, usize>,
-}
-
-#[derive(Debug)]
-pub(super) enum LogEntryKind {
-    InhaleFull,
-    ExhaleFull,
-}
-
-#[derive(Debug)]
-pub(super) struct LogEntry {
-    pub(super) kind: LogEntryKind,
-    pub(super) arguments: Vec<vir_low::Expression>,
-}
-
-#[derive(Default, Debug)]
-pub(in super::super::super::super) struct BooleanMaskLog {
-    pub(super) entries: FxHashMap<String, Vec<LogEntry>>,
-}
-
-fn heap_variable_name(predicate_name: &str, id: usize) -> String {
-    format!("{}$heap${}", predicate_name, id)
 }
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
-    pub(super) fn initialise_boolean_mask_log_with_heap(
+    pub(super) fn initialise_boolean_mask_log_without_heap(
         &mut self,
         predicate_name: &str,
     ) -> SpannedEncodingResult<()> {
-        let id = self.generate_fresh_id();
         let heap = self.current_frame_mut().heap_mut();
         assert!(heap
-            .boolean_mask_log_with_heap
+            .boolean_mask_log_without_heap
             .permission_log_entry
             .insert(predicate_name.to_string(), 0usize)
-            .is_none());
-        assert!(heap
-            .boolean_mask_log_with_heap
-            .heap_versions
-            .insert(predicate_name.to_string(), id)
             .is_none());
         assert!(self
             .global_heap
@@ -69,17 +41,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             .entries
             .insert(predicate_name.to_string(), vec![])
             .is_none());
-        let heap_name = heap_variable_name(predicate_name, id);
-        let predicate_info = self
-            .predicate_domains_info
-            .get_with_heap(predicate_name)
-            .unwrap();
-        let heap = predicate_info.create_heap_variable(heap_name);
-        self.declare_variable(&heap)?;
         Ok(())
     }
 
-    pub(super) fn execute_inhale_boolean_mask_log_with_heap_full(
+    pub(super) fn execute_inhale_boolean_mask_log_without_heap_full(
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
@@ -88,7 +53,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
         // Update local records.
         let frame: &mut crate::encoder::middle::core_proof::svirpti::procedure_verifier::solver_stack::StackFrame = self.current_frame_mut();
-        let state = &mut frame.heap_mut().boolean_mask_log_with_heap;
+        let state = &mut frame.heap_mut().boolean_mask_log_without_heap;
         let log_entry = state.permission_log_entry.get_mut(&predicate.name).unwrap();
         let old_log_entry = *log_entry;
         *log_entry += 1;
@@ -115,7 +80,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    fn check_permissions_with_heap(
+    fn check_permissions_without_heap(
         &mut self,
         predicate_name: &str,
         predicate_arguments: &[vir_low::Expression],
@@ -175,7 +140,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    pub(super) fn execute_exhale_boolean_mask_log_with_heap_full(
+    pub(super) fn execute_exhale_boolean_mask_log_without_heap_full(
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
@@ -184,7 +149,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
         // Update local records.
         let frame = self.current_frame_mut();
-        let state = &mut frame.heap_mut().boolean_mask_log_with_heap;
+        let state = &mut frame.heap_mut().boolean_mask_log_without_heap;
         let log_entry = state.permission_log_entry.get_mut(&predicate.name).unwrap();
         let old_log_entry = *log_entry;
         *log_entry += 1;
@@ -201,7 +166,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             entries.truncate(old_log_entry);
         }
         assert_eq!(entries.len(), old_log_entry);
-        self.check_permissions_with_heap(
+        self.check_permissions_without_heap(
             &predicate.name,
             &predicate.arguments,
             None,
@@ -223,49 +188,5 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         assert_eq!(entries.len(), new_log_entry);
 
         Ok(())
-    }
-
-    pub(super) fn resolve_snapshot_with_check_boolean_mask_log_with_heap(
-        &mut self,
-        path_condition: &[vir_low::Expression],
-        label: &Option<String>,
-        predicate_name: &str,
-        arguments: &[vir_low::Expression],
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
-        let heap = self.heap_at_label(label);
-        let current_log_entry = *heap
-            .boolean_mask_log_with_heap
-            .permission_log_entry
-            .get(predicate_name)
-            .unwrap();
-        let current_heap_id = *heap
-            .boolean_mask_log_with_heap
-            .heap_versions
-            .get(predicate_name)
-            .unwrap();
-
-        let current_heap_name = heap_variable_name(predicate_name, current_heap_id);
-        let predicate_info = self
-            .predicate_domains_info
-            .get_with_heap(predicate_name)
-            .unwrap();
-        let current_heap = predicate_info.create_heap_variable(current_heap_name);
-
-        // Check for sufficient permissions.
-        let guard = path_condition.iter().cloned().conjoin();
-        self.check_permissions_with_heap(
-            predicate_name,
-            arguments,
-            Some(guard),
-            current_log_entry,
-            "application.precondition:insufficient.permission",
-            position,
-        )?;
-
-        // Generate heap snapshot lookup.
-        let snapshot = predicate_info.lookup_snapshot(&current_heap, arguments);
-
-        Ok(snapshot)
     }
 }
