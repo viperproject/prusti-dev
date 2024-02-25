@@ -91,7 +91,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         &mut self,
         statement: &vir_low::ast::statement::Assume,
     ) -> SpannedEncodingResult<()> {
-        self.assume(&statement.expression)?;
+        let expression = self.desugar_heap_expression(statement.expression.clone())?;
+        self.assume(&expression)?;
         Ok(())
     }
 
