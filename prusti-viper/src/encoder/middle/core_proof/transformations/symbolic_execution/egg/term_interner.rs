@@ -365,7 +365,6 @@ fn try_intern_term_rec(
         | vir_low::Expression::Field(_) => {
             unreachable!("term: {}", term);
         }
-        vir_low::Expression::SmtTuple(_) => todo!(),
         vir_low::Expression::SmtOperation(_) => todo!(),
     };
     Some(id)
