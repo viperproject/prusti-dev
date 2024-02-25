@@ -104,6 +104,12 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
             vir_low::Expression::InhaleExhale(expression) => {
                 expression.expression_to_smt2(writer, info)
             }
+            vir_low::Expression::SmtTuple(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
+            vir_low::Expression::SmtOperation(expression) => {
+                expression.expression_to_smt2(writer, info)
+            }
         }
     }
 }
@@ -452,5 +458,53 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
         Writer: Write,
     {
         unimplemented!()
+    }
+}
+
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
+    for Expr2SmtWrapper<'a, vir_low::SmtTuple>
+{
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
+    where
+        Writer: Write,
+    {
+        write!(writer, "( ")?;
+        for arg in &self.expr.elements {
+            arg.expression_to_smt2(writer, info)?;
+            write!(writer, " ")?;
+        }
+        write!(writer, ")")?;
+        Ok(())
+    }
+}
+
+impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
+    for Expr2SmtWrapper<'a, vir_low::SmtOperation>
+{
+    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
+    where
+        Writer: Write,
+    {
+        match self.expr.operation_kind {
+            vir_low::SmtOperationKind::PbQe => {
+                let arguments = &*self.expr.arguments;
+                assert!(arguments.len() % 2 == 0);
+                let weights = &arguments[..arguments.len() / 2];
+                let guards = &arguments[arguments.len() / 2..];
+                assert_eq!(weights.len(), guards.len());
+                write!(writer, "((_ pbge 1")?;
+                for weight in weights {
+                    write!(writer, " ")?;
+                    weight.expression_to_smt2(writer, info)?;
+                }
+                write!(writer, ")")?;
+                for guard in guards {
+                    guard.expression_to_smt2(writer, info)?;
+                    write!(writer, " ")?;
+                }
+                write!(writer, ")")?;
+            }
+        }
+        Ok(())
     }
 }

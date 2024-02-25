@@ -71,6 +71,8 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.get_type(),
             Expression::DomainFuncApp(expression) => expression.get_type(),
             Expression::InhaleExhale(expression) => expression.get_type(),
+            Expression::SmtTuple(expression) => expression.get_type(),
+            Expression::SmtOperation(expression) => expression.get_type(),
         }
     }
     fn set_type(&mut self, new_type: Type) {
@@ -93,6 +95,8 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.set_type(new_type),
             Expression::DomainFuncApp(expression) => expression.set_type(new_type),
             Expression::InhaleExhale(expression) => expression.set_type(new_type),
+            Expression::SmtTuple(expression) => expression.set_type(new_type),
+            Expression::SmtOperation(expression) => expression.set_type(new_type),
         }
     }
 }
@@ -334,5 +338,23 @@ impl Typed for InhaleExhale {
     }
     fn set_type(&mut self, _new_type: Type) {
         unreachable!("tried to set type for InhaleExhale");
+    }
+}
+
+impl Typed for SmtTuple {
+    fn get_type(&self) -> &Type {
+        &Type::Int // FIXME: Wrong. Should be Tuple.
+    }
+    fn set_type(&mut self, new_type: Type) {
+        assert_eq!(new_type, Type::Int);
+    }
+}
+
+impl Typed for SmtOperation {
+    fn get_type(&self) -> &Type {
+        &self.return_type
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.return_type = new_type;
     }
 }

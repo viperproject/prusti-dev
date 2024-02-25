@@ -35,9 +35,11 @@ pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     program_context: &'a mut ProgramContext<'c, EC>,
     predicate_domains_info: &'a PredicateDomainsInfo,
     stack: Vec<StackFrame>,
+    reached_contradiction: bool,
     smt_solver: SmtSolver,
     unique_id_generator: usize,
     saved_heaps: FxHashMap<String, heap::Heap>,
+    global_heap: heap::GlobalHeap,
 }
 
 impl<'a, 'c, EC: EncoderContext> Drop for ProcedureExecutor<'a, 'c, EC> {
@@ -71,9 +73,11 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             program_context,
             predicate_domains_info,
             stack: Vec::new(),
+            reached_contradiction: false,
             smt_solver,
             unique_id_generator: 0,
             saved_heaps: FxHashMap::default(),
+            global_heap: heap::GlobalHeap::default(),
         })
     }
 
@@ -116,7 +120,11 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             // Executing the terminator changes the stack, so we need to mark
             // the frame as executed now.
             self.mark_current_frame_as_executed()?;
-            self.execute_terminator(block)?;
+            if self.reached_contradiction {
+                self.reached_contradiction = false;
+            } else {
+                self.execute_terminator(block)?;
+            }
             self.pop_executed_frames()?;
         }
         info!("Finished executing procedure: {}", procedure.name);
@@ -131,6 +139,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         eprintln!("Executing block: {}", self.current_frame().label());
         for statement in &block.statements {
             self.execute_statement(statement)?;
+            if self.reached_contradiction {
+                return Ok(());
+            }
             self.inc_statement_index()?;
         }
         Ok(())
