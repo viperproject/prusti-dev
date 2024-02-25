@@ -465,9 +465,8 @@ fn create_permission_domain_for_boolean_mask(
             vir_low::Expression::forall(
                 parameters_nested,
                 vec![vir_low::Trigger::new(vec![new_lookup_nested.clone()])],
-                vir_low::Expression::conditional_no_pos(
-                    arguments_equal,
-                    expr! { ![new_lookup_nested.clone()] },
+                vir_low::Expression::implies(
+                    expr! { ![arguments_equal] },
                     expr! { [old_lookup_nested] == [new_lookup_nested] },
                 ),
             )
