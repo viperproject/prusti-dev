@@ -30,7 +30,6 @@ pub enum Expression {
     FuncApp(FuncApp),
     DomainFuncApp(DomainFuncApp),
     InhaleExhale(InhaleExhale),
-    SmtTuple(SmtTuple),
     SmtOperation(SmtOperation),
 }
 
@@ -274,12 +273,6 @@ pub struct DomainFuncApp {
 pub struct InhaleExhale {
     pub inhale_expression: Box<Expression>,
     pub exhale_expression: Box<Expression>,
-    pub position: Position,
-}
-
-#[display(fmt = "{}", "display::cjoin(elements)")]
-pub struct SmtTuple {
-    pub elements: Vec<Expression>,
     pub position: Position,
 }
 

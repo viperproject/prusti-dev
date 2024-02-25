@@ -22,7 +22,6 @@ impl Positioned for Expression {
             Self::FuncApp(expression) => expression.position(),
             Self::DomainFuncApp(expression) => expression.position(),
             Self::InhaleExhale(expression) => expression.position(),
-            Self::SmtTuple(expression) => expression.position(),
             Self::SmtOperation(expression) => expression.position(),
         }
     }
@@ -131,12 +130,6 @@ impl Positioned for DomainFuncApp {
 }
 
 impl Positioned for InhaleExhale {
-    fn position(&self) -> Position {
-        self.position
-    }
-}
-
-impl Positioned for SmtTuple {
     fn position(&self) -> Position {
         self.position
     }

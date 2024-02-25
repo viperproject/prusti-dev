@@ -104,9 +104,6 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
             vir_low::Expression::InhaleExhale(expression) => {
                 expression.expression_to_smt2(writer, info)
             }
-            vir_low::Expression::SmtTuple(expression) => {
-                expression.expression_to_smt2(writer, info)
-            }
             vir_low::Expression::SmtOperation(expression) => {
                 expression.expression_to_smt2(writer, info)
             }
@@ -458,23 +455,6 @@ impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
         Writer: Write,
     {
         unimplemented!()
-    }
-}
-
-impl<'a, 'c, EC: EncoderContext> Expr2Smt<Info<'a, 'c, EC>>
-    for Expr2SmtWrapper<'a, vir_low::SmtTuple>
-{
-    fn expr_to_smt2<Writer>(&self, writer: &mut Writer, info: Info<'a, 'c, EC>) -> SmtRes<()>
-    where
-        Writer: Write,
-    {
-        write!(writer, "( ")?;
-        for arg in &self.expr.elements {
-            arg.expression_to_smt2(writer, info)?;
-            write!(writer, " ")?;
-        }
-        write!(writer, ")")?;
-        Ok(())
     }
 }
 
