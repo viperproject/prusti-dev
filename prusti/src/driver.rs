@@ -93,7 +93,10 @@ fn main() {
     // This environment variable will not be set when building dependencies.
     let is_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
-    if config::be_rustc() || build_script_build || (!is_primary_package && config::ignore_deps_contracts()) {
+    if config::be_rustc()
+        || build_script_build
+        || (!is_primary_package && config::ignore_deps_contracts())
+    {
         driver::main();
     }
 
