@@ -89,7 +89,14 @@ fn main() {
         val == "build_script_build"
     })
     .is_some();
-    if config::be_rustc() || build_script_build {
+
+    // This environment variable will not be set when building dependencies.
+    let is_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
+
+    if config::be_rustc()
+        || build_script_build
+        || (!is_primary_package && config::ignore_deps_contracts())
+    {
         driver::main();
     }
 
@@ -97,8 +104,6 @@ fn main() {
     // This must be done after the build script check, otherwise Tokio's global tracing will fail.
     let _log_flush_guard = init_loggers();
 
-    // This environment variable will not be set when building dependencies.
-    let is_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
     // Is this crate a dependency when user doesn't want to verify dependencies
     let is_no_verify_dep_crate = !is_primary_package && config::no_verify_deps();
 
