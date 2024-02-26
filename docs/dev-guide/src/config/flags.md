@@ -47,6 +47,7 @@
 | [`MIN_PRUSTI_VERSION`](#min_prusti_version) | `Option<String>` | `None` | A |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` | A |
 | [`NO_VERIFY_DEPS`](#no_verify_deps) | `bool` | `false` | B |
+| [`IGNORE_DEPS_CONTRACTS`](#ignore_deps_contracts) | `bool` | `false` | B |
 | [`OPT_IN_VERIFICATION`](#opt_in_verification) | `bool` | `false` | A |
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" | A |
 | [`PRESERVE_SMT_TRACE_FILES`](#preserve_smt_trace_files) | `bool` | `false` | A |
@@ -302,7 +303,12 @@ When enabled, verification is skipped for dependencies. Equivalent to enabling `
 
 > **Note:** applied to all dependency crates when running with `cargo prusti`.
 
+## `IGNORE_DEPS_CONTRACTS`
+
+When enabled, Prusti will not collect contracts from the project's dependencies. This is useful for debugging and working around unsupported language features in the dependencies.
+
 ## `OPT_IN_VERIFICATION`
+
 When enabled, Prusti will only try to verify the functions annotated with `#[verified]`. All other functions are assumed to be `#[trusted]`, by default. Functions annotated with both `#[trusted]` and `#[verified]` will not be verified.
 
 ## `ONLY_MEMORY_SAFETY`
