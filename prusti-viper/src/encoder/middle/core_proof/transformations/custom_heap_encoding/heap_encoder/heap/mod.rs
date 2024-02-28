@@ -3,10 +3,7 @@ use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
 use rustc_hash::FxHashSet;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
-    low::{
-        self as vir_low,
-        expression::visitors::{ExpressionFallibleFolder, ExpressionFolder},
-    },
+    low::{self as vir_low, expression::visitors::ExpressionFallibleFolder},
 };
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {

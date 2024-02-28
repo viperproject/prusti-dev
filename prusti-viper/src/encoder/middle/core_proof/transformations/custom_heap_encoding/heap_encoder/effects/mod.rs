@@ -130,7 +130,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             statements.push(vir_low::Statement::assert(expression, position));
         } else {
             match expression {
-                vir_low::Expression::PredicateAccessPredicate(mut expression) => {
+                vir_low::Expression::PredicateAccessPredicate(expression) => {
                     // expression.arguments = self.purify_snap_function_calls_in_expressions(
                     //     statements,
                     //     expression.arguments,
@@ -335,10 +335,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     fn encode_function_precondition_assert_rec_quantified_predicate<'a, Kind: PermissionMaskKind>(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
-        variables: Vec<vir_low::VariableDecl>,
+        _variables: Vec<vir_low::VariableDecl>,
         guard: vir_low::Expression,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
-        triggers: Vec<vir_low::Trigger>,
+        _triggers: Vec<vir_low::Trigger>,
         position: vir_low::Position,
         operations: QuantifiedPermissionMaskOperations<'a, Kind>,
     ) -> SpannedEncodingResult<()>
@@ -863,10 +863,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     let argument = argument
                         .clone()
                         .replace_place(&variable.clone().into(), &inverse_function_call);
-                    parameter_inverse_equalities.push(vir_low::Expression::equals(
-                        parameter.clone().into(),
-                        argument,
-                    ));
+                    parameter_inverse_equalities
+                        .push(vir_low::Expression::equals(parameter.clone(), argument));
                 }
             }
             {
@@ -919,7 +917,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         }
         // `variable == inverse(e(variable))`
         let injectivity_axiom_body1 = vir_low::Expression::forall(
-            variables.clone(),
+            variables,
             triggers,
             vir_low::Expression::and(
                 inverse_function_trigger_function_calls
@@ -982,7 +980,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         // );
         let purified_guard = self.purify_snap_function_calls_in_expression(
             statements,
-            guard.clone(),
+            guard,
             expression_evaluation_state_label.clone(),
             Vec::new(),
             position,
@@ -991,7 +989,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let permission_mask_assert_arguments = self.purify_snap_function_calls_in_expressions(
             statements,
             predicate.arguments.clone(),
-            expression_evaluation_state_label.clone(),
+            expression_evaluation_state_label,
             vec![purified_guard.clone()],
             position,
             true,
@@ -1016,7 +1014,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         )?;
         eprintln!("perm_new_value: {}", perm_new_value);
         let perm_new = operations.perm_new(self, parameters_as_arguments.clone())?;
-        let perm_old = operations.perm_old(self, parameters_as_arguments.clone())?;
+        let perm_old = operations.perm_old(self, parameters_as_arguments)?;
         // Compared to `encode_expression_inhale_predicate`, the setting of the new value and
         // transfering the old values is merged into a single quantifer:
         // ```
@@ -1334,7 +1332,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             quantified_variables.len(),
             1,
             "unimplemented: {}",
-            vir_crate::common::display::cjoin(&quantified_variables)
+            vir_crate::common::display::cjoin(quantified_variables)
         );
         let variable = quantified_variables.first().unwrap();
         for argument in predicate_arguments {
@@ -1367,7 +1365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         // FIXME: The use of `expression_evaluation_state_label` is probably
         // wrong in both QP and non-QP inhale. Shouldn't arguments be always
         // purified?
-        expression_evaluation_state_label: Option<String>,
+        _expression_evaluation_state_label: Option<String>,
         operations: QuantifiedPermissionMaskOperations<'a, Kind>,
     ) -> SpannedEncodingResult<()>
     where
@@ -1492,10 +1490,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     let argument = argument
                         .clone()
                         .replace_place(&variable.clone().into(), &inverse_function_call);
-                    parameter_inverse_equalities.push(vir_low::Expression::equals(
-                        parameter.clone().into(),
-                        argument,
-                    ));
+                    parameter_inverse_equalities
+                        .push(vir_low::Expression::equals(parameter.clone(), argument));
                 }
             }
             {
@@ -1534,14 +1530,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         }
         // `variable == inverse(e(variable))`
         let injectivity_axiom_body1 = vir_low::Expression::forall(
-            variables.clone(),
+            variables,
             triggers.clone(),
             vir_low::Expression::and(
                 inverse_function_trigger_function_calls
                     .into_iter()
                     .conjoin(),
                 vir_low::Expression::implies(
-                    guard.clone(),
+                    guard,
                     variable_inverse_equalities.into_iter().conjoin(),
                 ),
             ),
@@ -1581,7 +1577,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         )?;
         eprintln!("perm_new_value: {}", perm_new_value);
         let perm_new = operations.perm_new(self, parameters_as_arguments.clone())?;
-        let perm_old = operations.perm_old(self, parameters_as_arguments.clone())?;
+        let perm_old = operations.perm_old(self, parameters_as_arguments)?;
         // Compared to `encode_expression_inhale_predicate`, the setting of the new value and
         // transfering the old values is merged into a single quantifer:
         // ```

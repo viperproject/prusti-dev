@@ -1,4 +1,4 @@
-use super::{language::ExpressionLanguage, state::EGraphState};
+use super::state::EGraphState;
 use crate::encoder::errors::SpannedEncodingResult;
 use egg::{Id, Language};
 use rustc_hash::FxHashSet;
@@ -51,16 +51,8 @@ impl EGraphState {
             writeln!(writer, "  subgraph cluster_{id} {{")?;
             writeln!(writer, "    style=dotted")?;
             for (i, node) in class.iter().enumerate() {
-                match node {
-                    // ExpressionLanguage::Variable(symbol)
-                    //     if symbol.as_str().starts_with("snapshot$") =>
-                    // {
-                    //     // ignore snapshot variables
-                    //     writeln!(writer, "    {id}.{i}[label = \"\"]")?;
-                    // }
-                    _ => {
-                        writeln!(writer, "    {id}.{i}[label = \"{id} {node}\"]")?;
-                    }
+                {
+                    writeln!(writer, "    {id}.{i}[label = \"{id} {node}\"]")?;
                 }
             }
             writeln!(writer, "  }}")?;
