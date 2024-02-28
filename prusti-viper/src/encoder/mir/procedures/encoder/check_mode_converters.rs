@@ -1,18 +1,7 @@
 use super::ProcedureEncoder;
-use crate::encoder::{
-    errors::{SpannedEncodingError, SpannedEncodingResult},
-    mir::{specifications::SpecificationsInterface, types::MirTypeEncoderInterface},
-    Encoder,
-};
+use crate::encoder::errors::SpannedEncodingResult;
 
-use vir_crate::{
-    common::{
-        check_mode::CheckMode,
-        expression::{BinaryOperationHelpers, ExpressionIterator},
-        position::Positioned,
-    },
-    high::{self as vir_high, operations::ty::Typed},
-};
+use vir_crate::high::{self as vir_high};
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Convert expression to the one usable for the current check mode:

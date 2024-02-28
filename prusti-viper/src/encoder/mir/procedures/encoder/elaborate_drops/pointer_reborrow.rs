@@ -263,7 +263,7 @@ fn create_new_loan(
     block: mir::BasicBlock,
     statement_index: usize,
     reborrow_lifetime: ty::Region,
-    place: mir::Place,
+    _place: mir::Place,
     loan_counter: &mut u32,
 ) -> Loan {
     let point = location_table.location_to_point(RichLocation::Mid(mir::Location {

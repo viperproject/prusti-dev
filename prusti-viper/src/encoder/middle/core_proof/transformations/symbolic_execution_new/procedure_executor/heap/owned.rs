@@ -8,23 +8,15 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::transformations::{
         encoder_context::EncoderContext,
-        symbolic_execution::utils::all_heap_independent,
         symbolic_execution_new::{
             block_builder::BlockBuilder,
             expression_interner::ExpressionInterner,
-            procedure_executor::{
-                constraints::{BlockConstraints, ConstraintsMergeReport},
-                heap::utils::matches_arguments,
-            },
+            procedure_executor::constraints::{BlockConstraints, ConstraintsMergeReport},
             program_context::ProgramContext,
         },
     },
 };
-use std::collections::BTreeMap;
-use vir_crate::{
-    common::{display, expression::BinaryOperationHelpers},
-    low::{self as vir_low},
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Default, Clone)]
 pub(super) struct Owned {
