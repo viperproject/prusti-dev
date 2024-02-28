@@ -58,6 +58,10 @@ where
             "PRUSTI_NO_VERIFY_DEPS",
             config::no_verify_deps().to_string(),
         )
+        .env(
+            "PRUSTI_IGNORE_DEPS_CONTRACTS",
+            config::ignore_deps_contracts().to_string(),
+        )
         // Category A* flags:
         .env("DEFAULT_PRUSTI_QUIET", "true")
         .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")
