@@ -15,9 +15,9 @@ pub(super) use self::{
     domains::SnapshotDomainsInterface,
     into_snapshot::{
         AssertionToSnapshotConstructor, FramedExpressionToSnapshot, IntoBuiltinMethodSnapshot,
-        IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureFinalSnapshot,
-        IntoProcedureSnapshot, IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot,
-        IntoSnapshotLowerer, PlaceToSnapshot, PredicateKind, SelfFramingAssertionToSnapshot,
+        IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureSnapshot,
+        IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, IntoSnapshotLowerer,
+        PlaceToSnapshot, PredicateKind, SelfFramingAssertionToSnapshot,
         ValidityAssertionToSnapshot,
     },
     state::SnapshotsState,

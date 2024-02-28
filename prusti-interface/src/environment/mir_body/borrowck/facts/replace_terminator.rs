@@ -12,7 +12,7 @@ pub struct ReplaceTerminatorDesugaring {
 }
 
 pub fn collect_replace_terminators<'tcx>(
-    old_body: &mir::Body<'tcx>,
+    _old_body: &mir::Body<'tcx>,
     new_body: &mir::Body<'tcx>,
 ) -> Vec<ReplaceTerminatorDesugaring> {
     let mut replace_terminator_locations = Vec::new();

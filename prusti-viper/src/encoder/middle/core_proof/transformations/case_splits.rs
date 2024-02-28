@@ -1,11 +1,6 @@
 use crate::encoder::errors::SpannedEncodingResult;
-use prusti_common::config;
 use vir_crate::{
-    common::{
-        expression::{ExpressionIterator, UnaryOperationHelpers},
-        graphviz::ToGraphviz,
-        position::Positioned,
-    },
+    common::{expression::UnaryOperationHelpers, graphviz::ToGraphviz, position::Positioned},
     low::{self as vir_low},
 };
 

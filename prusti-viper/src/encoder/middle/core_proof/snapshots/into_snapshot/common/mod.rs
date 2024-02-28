@@ -700,7 +700,7 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
 
         match app.function {
             BuiltinFunc::Size => {
-                let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
+                let _return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
                 let args = construct_args(self, lowerer)?;
                 assert_eq!(app.type_arguments.len(), 1);
                 match &app.type_arguments[0] {

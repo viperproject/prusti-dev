@@ -1,7 +1,6 @@
 use super::{
     super::super::transformations::{
-        encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
-        symbolic_execution_new::ProgramContext,
+        encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
     },
     configuration::Configuration,
     errors::SmtSolverResult,

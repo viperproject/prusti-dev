@@ -322,7 +322,7 @@ impl SelfFramingAssertionToSnapshot {
                     )
                 }
             },
-            PredicateKind::FracRef { lifetime } => todo!(),
+            PredicateKind::FracRef { lifetime: _ } => todo!(),
             PredicateKind::UniqueRef { lifetime, is_final } => match &self.predicate_kind {
                 PredicateKind::UniqueRef { .. } | PredicateKind::Owned => {
                     assert!(!is_final);
@@ -333,7 +333,7 @@ impl SelfFramingAssertionToSnapshot {
                         ty,
                         place,
                         address,
-                        lifetime.clone(),
+                        lifetime,
                         TODO_target_slice_len,
                         None,
                         position,
@@ -492,7 +492,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         if let Some(label) = &self.old_label {
-            for (snap_label, place, call) in &self.snap_calls {
+            for (_snap_label, place, call) in &self.snap_calls {
                 // FIXME: snap_label should probably used here somehow.
                 if let vir_mid::Expression::LabelledOld(vir_mid::LabelledOld {
                     label: old_label,
@@ -632,12 +632,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 } else {
                     lowerer.current_snapshot_variable_version(variable)
                 }
+            } else if let Some(label) = &self.old_label {
+                unreachable!("Should be covered by eval_in: {variable} in {label}");
             } else {
-                if let Some(label) = &self.old_label {
-                    unreachable!("Should be covered by eval_in: {variable} in {label}");
-                } else {
-                    unreachable!("Should be covered by eval_in: {variable}");
-                }
+                unreachable!("Should be covered by eval_in: {variable}");
             }
         } else {
             Ok(vir_low::VariableDecl {
@@ -777,12 +775,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
             }
             vir_mid::Predicate::UniqueRefRange(predicate) => {
                 let ty = predicate.address.get_type();
-                let lifetime =
+                let _lifetime =
                     self.encode_lifetime_in_self_context(lowerer, predicate.lifetime.clone())?;
                 let address = self.expression_to_snapshot(lowerer, &predicate.address, true)?;
-                let start_index =
+                let _start_index =
                     self.expression_to_snapshot(lowerer, &predicate.start_index, true)?;
-                let end_index = self.expression_to_snapshot(lowerer, &predicate.end_index, true)?;
+                let _end_index =
+                    self.expression_to_snapshot(lowerer, &predicate.end_index, true)?;
                 self.range_snap_calls
                     .push((address.clone(), (ty.clone(), predicate.position)));
                 self.maybe_store_range_snap_call(lowerer, &address, ty, predicate.position)?;
@@ -791,16 +790,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                 };
                 self.created_predicate_types
                     .push((*pointer_type.target_type).clone());
-                let used_predicate_kind = unimplemented!();
-                let acc = self.predicate_range(
-                    lowerer,
-                    ty,
-                    address,
-                    start_index,
-                    end_index,
-                    predicate.position,
-                )?;
-                acc
+                unimplemented!();
+
+                // self.predicate_range(
+                //     lowerer,
+                //     ty,
+                //     address,
+                //     start_index,
+                //     end_index,
+                //     predicate.position,
+                // )?
             }
             vir_mid::Predicate::MemoryBlockHeap(predicate) => {
                 match self.predicate_kind {
@@ -1156,7 +1155,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for SelfFramingAsse
                     )
                 }
                 self.snap_calls
-                    .push((old_label.clone(), predicate.place.clone(), snap_call));
+                    .push((old_label, predicate.place.clone(), snap_call));
                 let result = body_to_snapshot(self, lowerer, &eval_in.body, expect_math_bool)?;
                 self.snap_calls.pop();
                 result

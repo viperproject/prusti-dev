@@ -131,7 +131,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 allocation: Allocation,
                 address: Address,
                 index: Int,
-                element_size: {size_type.clone()}
+                element_size: {size_type}
             }
             let position = vir_low::Position::default();
             {
@@ -206,7 +206,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         ADDRESS_DOMAIN_NAME,
                         "address_constructor$",
                         vec![
-                            get_allocation.clone(),
+                            get_allocation,
                             index.clone().into(),
                             element_size.clone().into(),
                         ],
@@ -332,7 +332,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                     ADDRESS_DOMAIN_NAME,
                     "get_allocation$",
                     vec![address.clone().into()],
-                    allocation_type.clone(),
+                    allocation_type,
                     position,
                 )?;
                 let get_index = self.create_domain_func_app(
@@ -350,11 +350,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         vir_low::Expression::add(get_index, offset.clone().into()),
                         element_size.clone().into(),
                     ],
-                    address_type.clone(),
+                    address_type,
                     position,
                 )?;
                 let body = vir_low::Expression::forall(
-                    vec![address, offset, element_size.clone()],
+                    vec![address, offset, element_size],
                     vec![vir_low::Trigger::new(vec![offset_address.clone()])],
                     expr! { [offset_address] == [definition] },
                 );

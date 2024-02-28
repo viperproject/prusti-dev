@@ -16,7 +16,7 @@ use super::{
     lifetimes::LifetimesState,
     permissions::PermissionsState,
     places::PlacesState,
-    predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface, PredicatesState},
+    predicates::{PredicatesOwnedInterface, PredicatesState},
     snapshots::{SnapshotDomainsInfo, SnapshotVariablesInterface, SnapshotsState},
     triggers::TriggersState,
     type_layouts::TypeLayoutsState,
@@ -36,7 +36,7 @@ use crate::encoder::{
 };
 use log::info;
 use prusti_rustc_interface::hir::def_id::DefId;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
 use vir_crate::{
     common::{
@@ -313,7 +313,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         let (mut domains, domains_info) = self.domains_state.destruct();
         domains.extend(self.compute_address_state.destruct());
         predicates.extend(self.predicates_state.destruct());
-        let mut lowered_procedure = vir_low::ProcedureDecl {
+        let lowered_procedure = vir_low::ProcedureDecl {
             name: procedure.name,
             position: procedure.position,
             locals: self.variables_state.destruct(),
@@ -322,8 +322,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             entry,
             exit,
         };
-        let mut methods = self.methods_state.destruct();
-        let mut functions = self.functions_state.destruct();
+        let methods = self.methods_state.destruct();
+        let functions = self.functions_state.destruct();
         // if procedure.check_mode == CheckMode::PurificationFunctional {
         //     removed_functions.extend(
         //         functions

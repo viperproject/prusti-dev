@@ -1,14 +1,5 @@
 use self::expression::ExpressionPurifier;
-use super::{
-    super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
-    },
-    ProcedureExecutor,
-};
+use super::{super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor};
 use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::low::{self as vir_low, expression::visitors::ExpressionFallibleFolder};
 
@@ -72,14 +63,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
                     // self.execute_inhale_boolean_mask_with_heap_full(&predicate, position)?;
-                    self.execute_inhale_boolean_mask_log_with_heap_full(&predicate, position)?;
+                    self.execute_inhale_boolean_mask_log_with_heap_full(predicate, position)?;
                 } else {
                     // self.execute_inhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("inhale_predicate: {predicate}");
                 }
             }
             vir_low::PredicateKind::LifetimeToken => {
-                self.execute_inhale_lifetime_token(&predicate, position)?;
+                self.execute_inhale_lifetime_token(predicate, position)?;
             }
             vir_low::PredicateKind::DeadLifetimeToken => {
                 unimplemented!("inhale_predicate: {predicate}");
@@ -92,7 +83,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_inhale_boolean_mask_log_without_heap_full(&predicate, position)?;
+                    self.execute_inhale_boolean_mask_log_without_heap_full(predicate, position)?;
                     // self.execute_inhale_boolean_mask_without_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_inhale_memory_block_fractional(&predicate, position)?;
@@ -116,14 +107,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
                 if predicate.permission.is_full_permission() {
                     // self.execute_exhale_boolean_mask_with_heap_full(&predicate, position)?;
-                    self.execute_exhale_boolean_mask_log_with_heap_full(&predicate, position)?;
+                    self.execute_exhale_boolean_mask_log_with_heap_full(predicate, position)?;
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("exhale_predicate: {predicate}");
                 }
             }
             vir_low::PredicateKind::LifetimeToken => {
-                self.execute_exhale_lifetime_token(&predicate, position)?;
+                self.execute_exhale_lifetime_token(predicate, position)?;
             }
             vir_low::PredicateKind::DeadLifetimeToken => {
                 unimplemented!("exhale_predicate: {predicate}");
@@ -136,7 +127,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             }
             vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
                 if predicate.permission.is_full_permission() {
-                    self.execute_exhale_boolean_mask_log_without_heap_full(&predicate, position)?;
+                    self.execute_exhale_boolean_mask_log_without_heap_full(predicate, position)?;
                     // self.execute_exhale_boolean_mask_without_heap_full(&predicate, position)?;
                 } else {
                     // self.execute_exhale_memory_block_fractional(&predicate, position)?;

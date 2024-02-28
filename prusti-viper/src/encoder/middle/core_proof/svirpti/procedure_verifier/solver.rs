@@ -1,18 +1,13 @@
 use super::{
     super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{Info, SmtSolver, Sort2SmtWrap},
-        VerificationError, VerificationResult, Verifier,
+        super::transformations::encoder_context::EncoderContext,
+        smt::{Info, Sort2SmtWrap},
+        VerificationError,
     },
     ProcedureExecutor,
 };
 use crate::encoder::errors::SpannedEncodingResult;
-use vir_crate::{
-    common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
-    low as vir_low,
-};
+use vir_crate::{common::expression::UnaryOperationHelpers, low as vir_low};
 
 impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn comment(&mut self, comment: &str) -> SpannedEncodingResult<()> {

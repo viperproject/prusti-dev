@@ -1,7 +1,7 @@
 use super::HeapEncoder;
 use crate::encoder::errors::SpannedEncodingResult;
 use rustc_hash::FxHashMap;
-use vir_crate::low::{self as vir_low, expression::visitors::ExpressionFallibleFolder};
+use vir_crate::low::{self as vir_low};
 
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     pub(super) fn create_quantifier_variables_remap(
@@ -10,7 +10,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let mut remaps = FxHashMap::default();
         for bound_variable in bound_variables {
-            let remap = self.fresh_variable(&bound_variable)?;
+            let remap = self.fresh_variable(bound_variable)?;
             remaps.insert(bound_variable.clone(), remap);
         }
         self.bound_variable_remap_stack.push(remaps);

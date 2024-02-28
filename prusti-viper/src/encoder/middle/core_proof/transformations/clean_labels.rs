@@ -2,8 +2,7 @@ use rustc_hash::FxHashSet;
 use vir_crate::{
     common::graphviz::ToGraphviz,
     low::{
-        self as vir_low,
-        ast::statement::visitors::{StatementFolder, StatementWalker},
+        self as vir_low, ast::statement::visitors::StatementWalker,
         expression::visitors::ExpressionWalker,
     },
 };

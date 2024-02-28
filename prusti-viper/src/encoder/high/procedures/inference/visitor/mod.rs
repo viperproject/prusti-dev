@@ -431,7 +431,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                                                 if expression.is_behind_pointer_dereference() {
                                                     error_unsupported!(self.span.clone() => "Invariant cannot contain a place behind a dereference");
                                                 }
-                                                return Ok(());
+                                                Ok(())
                                             } else {
                                                 vir_typed::visitors::default_fallible_walk_expression(
                                                 self, expression,

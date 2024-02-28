@@ -4,22 +4,16 @@ use super::{
         encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
     },
     smt::{SmtSolver, Sort2SmtWrap},
-    VerificationResult, Verifier,
+    Verifier,
 };
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::transformations::predicate_domains::PredicateDomainsInfo,
 };
-use log::{debug, info};
-use prusti_common::config;
+use log::info;
 use rustc_hash::FxHashMap;
-use std::collections::BTreeMap;
 use vir_crate::{
-    common::{
-        cfg::Cfg,
-        expression::{BinaryOperationHelpers, ExpressionIterator, SyntacticEvaluation},
-        graphviz::ToGraphviz,
-    },
+    common::{cfg::Cfg, graphviz::ToGraphviz},
     low::{self as vir_low},
 };
 
@@ -114,7 +108,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             self.log_current_stack_status()?;
             let block = procedure
                 .basic_blocks
-                .get(&self.current_frame().label())
+                .get(self.current_frame().label())
                 .unwrap();
             self.execute_block(block)?;
             // Executing the terminator changes the stack, so we need to mark

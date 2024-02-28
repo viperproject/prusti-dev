@@ -1,20 +1,15 @@
 use super::super::{
-    super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
-    },
-    ProcedureExecutor,
+    super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor,
 };
-use crate::encoder::{errors::SpannedEncodingResult, middle::core_proof::svirpti::procedure_verifier::heap::boolean_mask_log_with_heap::{LogEntry, LogEntryKind}};
-use log::{debug, error};
-use prusti_common::config;
+use crate::encoder::{
+    errors::SpannedEncodingResult,
+    middle::core_proof::svirpti::procedure_verifier::heap::boolean_mask_log_with_heap::{
+        LogEntry, LogEntryKind,
+    },
+};
 use rustc_hash::FxHashMap;
-use std::collections::BTreeMap;
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
+    common::expression::{BinaryOperationHelpers, ExpressionIterator},
     low as vir_low,
 };
 
@@ -47,7 +42,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     pub(super) fn execute_inhale_boolean_mask_log_without_heap_full(
         &mut self,
         predicate: &vir_low::PredicateAccessPredicate,
-        position: vir_low::Position,
+        _position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         assert!(predicate.permission.is_full_permission());
 
