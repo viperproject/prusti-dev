@@ -19,7 +19,6 @@ use crate::encoder::{
     },
 };
 use log::debug;
-use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::builtin_constants::MEMORY_BLOCK_PREDICATE_NAME,
     low::{self as vir_low},

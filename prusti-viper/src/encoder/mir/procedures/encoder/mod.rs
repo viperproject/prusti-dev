@@ -845,13 +845,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?;
                 preconditions.push(expression);
             }
-        } else {
-            if !structural_preconditions.is_empty() {
-                return Err(SpannedEncodingError::incorrect(
-                    "structural preconditions allowed only on unsafe functions",
-                    self.mir.span,
-                ));
-            }
+        } else if !structural_preconditions.is_empty() {
+            return Err(SpannedEncodingError::incorrect(
+                "structural preconditions allowed only on unsafe functions",
+                self.mir.span,
+            ));
         }
         if include_functional {
             for (assertion, assertion_substs) in
@@ -937,13 +935,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?;
                 postconditions.push(expression);
             }
-        } else {
-            if !structural_postconditions.is_empty() {
-                return Err(SpannedEncodingError::incorrect(
-                    "structural postconditions allowed only on unsafe functions",
-                    self.mir.span,
-                ));
-            }
+        } else if !structural_postconditions.is_empty() {
+            return Err(SpannedEncodingError::incorrect(
+                "structural postconditions allowed only on unsafe functions",
+                self.mir.span,
+            ));
         }
         if mode.include_functional_ensures() {
             let postcondition_assertions =
@@ -1097,13 +1093,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert!(!expression.find(result), "TODO: A proper error message that structural panic postconditions must not contain the result ({:?}): {expression}", procedure_contract.def_id);
                 postconditions.push(expression);
             }
-        } else {
-            if !structural_postconditions.is_empty() {
-                return Err(SpannedEncodingError::incorrect(
-                    "structural panic postconditions allowed only on unsafe functions",
-                    self.mir.span,
-                ));
-            }
+        } else if !structural_postconditions.is_empty() {
+            return Err(SpannedEncodingError::incorrect(
+                "structural panic postconditions allowed only on unsafe functions",
+                self.mir.span,
+            ));
         }
         assert!(mode.include_panic_ensures());
         let postcondition_assertions =
@@ -1563,7 +1557,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_specification_blocks(procedure_builder.name())?;
         self.reachable_blocks
             .insert(self.mir.basic_blocks.start_node());
-        let predecessors = self.mir.basic_blocks.predecessors();
+        let _predecessors = self.mir.basic_blocks.predecessors();
         for (bb, data) in
             prusti_rustc_interface::middle::mir::traversal::reverse_postorder(self.mir)
         {
@@ -3211,7 +3205,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if let Some(region) = self.specification_before_drop.get(&place) {
                 Some(
                     self.specification_region_encoding_statements
-                        .get(&region)
+                        .get(region)
                         .unwrap()
                         .clone(),
                 )
@@ -3222,7 +3216,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         {
             Some(
                 self.specification_region_encoding_statements
-                    .get(&region)
+                    .get(region)
                     .unwrap()
                     .clone(),
             )
@@ -4070,7 +4064,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder: &mut BasicBlockBuilder,
         actions: Vec<vir_high::Statement>,
         from: RichLocation,
-        to: RichLocation,
+        _to: RichLocation,
         original_lifetimes: &mut BTreeSet<String>,
         derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
@@ -4346,7 +4340,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 unwind_statements.extend(finally_at_panic_start_statements.clone());
                 unwind_statements.extend(finally_at_resume_statements.clone());
                 // FIXME: Not using source is probably wrong.
-                let old_statements = self
+                let _old_statements = self
                     .add_specification_before_terminator
                     .insert(*target, unwind_statements);
                 // FIXME: assert!(old_statements.is_none(), "old_statements: {:?}", old_statements);

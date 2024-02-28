@@ -478,7 +478,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     position,
                     place.clone(),
                 )?;
-                let is_zst = deallocation.len() == 0;
+                let is_zst = deallocation.is_empty();
                 let local = mir_place.as_local().unwrap();
                 let memory_block = self
                     .encoder
@@ -567,7 +567,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     encoder.def_id,
                 )?);
                 let inhale_statement = vir_high::Statement::inhale_predicate_no_pos(
-                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
+                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place),
                 );
                 block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
                     inhale_statement,
