@@ -12,8 +12,7 @@ use vir_crate::{
         operations::ty::Typed,
         visitors::{
             default_fallible_fold_acc_predicate, default_fallible_fold_binary_op,
-            default_fallible_fold_builtin_func_app, default_fallible_fold_unfolding,
-            ExpressionFallibleFolder,
+            default_fallible_fold_unfolding, ExpressionFallibleFolder,
         },
     },
 };

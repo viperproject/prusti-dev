@@ -28,7 +28,6 @@ use prusti_server::{
     VerificationRequest, ViperBackendConfig,
 };
 use viper::{self, PersistentCache, Viper};
-use vir_crate::common::check_mode::CheckMode;
 
 /// A verifier is an object for verifying a single crate, potentially
 /// many times.
