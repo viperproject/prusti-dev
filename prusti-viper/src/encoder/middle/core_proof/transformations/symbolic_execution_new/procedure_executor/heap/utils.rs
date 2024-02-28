@@ -10,8 +10,8 @@ use crate::encoder::{
     },
 };
 use log::debug;
-use rustc_hash::{FxHashMap, FxHashSet};
-use vir_crate::low::{self as vir_low, operations::ty::Typed};
+use rustc_hash::FxHashSet;
+use vir_crate::low::{self as vir_low};
 
 pub(super) fn matches_arguments(
     arguments1: &[vir_low::Expression],

@@ -16,11 +16,8 @@ use crate::encoder::{
         },
     },
 };
-use rustc_hash::{FxHashMap, FxHashSet};
-use vir_crate::{
-    common::expression::SyntacticEvaluation,
-    low::{self as vir_low, operations::ty::Typed},
-};
+use rustc_hash::FxHashSet;
+use vir_crate::low::{self as vir_low, operations::ty::Typed};
 
 pub(in super::super) struct BlockConstraints {
     visited_blocks: BTreeSet<vir_low::Label>,
@@ -376,16 +373,14 @@ impl BlockConstraints {
                                 "{left_name}:{left_version} → {right_version}"
                             );
                         }
-                    } else {
-                        if let Some(old_left_version) = self
-                            .lifetime_version_updates
-                            .insert((right_name.to_string(), right_version), left_version)
-                        {
-                            assert_eq!(
-                                old_left_version, left_version,
-                                "{right_name}:{right_version} → {left_version}"
-                            );
-                        }
+                    } else if let Some(old_left_version) = self
+                        .lifetime_version_updates
+                        .insert((right_name.to_string(), right_version), left_version)
+                    {
+                        assert_eq!(
+                            old_left_version, left_version,
+                            "{right_name}:{right_version} → {left_version}"
+                        );
                     }
                 }
                 let mut cannonical_name = &right.variable.name;

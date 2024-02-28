@@ -1,5 +1,3 @@
-use std::collections::{BTreeMap, BTreeSet};
-
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::transformations::{
@@ -7,7 +5,6 @@ use crate::encoder::{
         symbolic_execution_new::{
             expression_interner::ExpressionInterner,
             procedure_executor::{
-                block_marker_conditions::BlockMarkerCondition,
                 constraints::BlockConstraints,
                 heap::{BlockHeap, GlobalHeapState, HeapMergeReport},
             },

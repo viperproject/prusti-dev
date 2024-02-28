@@ -1,7 +1,5 @@
 use super::ProcedureExecutor;
-use crate::encoder::middle::core_proof::transformations::{
-    encoder_context::EncoderContext, symbolic_execution_new::block_builder::BlockBuilder,
-};
+use crate::encoder::middle::core_proof::transformations::encoder_context::EncoderContext;
 use vir_crate::{
     common::graphviz::{escape_html_wrap, Graph, NodeBuilder, ToGraphviz},
     low::{self as vir_low},

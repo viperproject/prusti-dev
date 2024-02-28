@@ -56,7 +56,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 "Let bindings for conditional snapshots".to_string(),
             ))?;
             for SnapshotBinding {
-                guard: binding_guard,
+                guard: _binding_guard,
                 variable,
                 guarded_candidates,
             } in bindings

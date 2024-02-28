@@ -1,10 +1,5 @@
 use super::{BlockHeap, HeapAtLabel};
-use crate::encoder::{
-    errors::SpannedEncodingResult,
-    middle::core_proof::transformations::symbolic_execution_new::{
-        expression_interner::ExpressionInterner, program_context::ProgramContext,
-    },
-};
+use crate::encoder::errors::SpannedEncodingResult;
 use std::collections::BTreeMap;
 use vir_crate::low::{self as vir_low};
 

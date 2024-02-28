@@ -147,7 +147,7 @@ impl StateKeeper {
             }
         }
         self.states
-            .get(&new_block)
+            .get(new_block)
             .unwrap()
             .debug_print_memory_block();
         Ok(())

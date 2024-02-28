@@ -150,8 +150,7 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
     }
 
     pub(super) fn get_predicate_snapshot_function(&self, predicate_name: &str) -> &str {
-        &self
-            .predicates_to_snapshot_functions
+        self.predicates_to_snapshot_functions
             .get(predicate_name)
             .unwrap_or_else(|| panic!("Predicate snapshot function not found: {}", predicate_name))
     }

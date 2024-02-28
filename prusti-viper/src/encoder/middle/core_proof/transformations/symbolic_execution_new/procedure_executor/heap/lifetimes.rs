@@ -79,14 +79,14 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
         &mut self,
         mut predicate: vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
-        constraints: &BlockConstraints,
+        _constraints: &BlockConstraints,
         block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
         assert_eq!(predicate.arguments.len(), 1);
         let Some(vir_low::Expression::Local(local)) = predicate.arguments.pop() else {
             unimplemented!("TODO: A proper error message.");
         };
-        let lifetime: LifetimeVariable = local.variable.name.clone().into();
+        let lifetime: LifetimeVariable = local.variable.name.into();
         let permission_amount_is_non_negative = vir_low::Statement::assert(
             vir_low::Expression::greater_equals(
                 (*predicate.permission).clone(),
@@ -132,7 +132,7 @@ impl<const IS_DEAD: bool> LifetimeTokens<IS_DEAD> {
         let Some(vir_low::Expression::Local(local)) = predicate.arguments.pop() else {
             unimplemented!("TODO: A proper error message.");
         };
-        let lifetime: LifetimeVariable = local.variable.name.clone().into();
+        let lifetime: LifetimeVariable = local.variable.name.into();
         if let Some(mut token) = self.tokens.remove(&lifetime.name) {
             token.latest_variable_version = constraints
                 .get_latest_lifetime_version(&lifetime.name, token.latest_variable_version)?;

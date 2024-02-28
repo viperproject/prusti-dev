@@ -1,15 +1,11 @@
 use super::{language::ExpressionLanguage, rule_applier::RuleApplier, term_interner::TermInterner};
 use crate::encoder::{
-    errors::{SpannedEncodingError, SpannedEncodingResult},
-    middle::core_proof::snapshots::SnapshotDomainInfo,
+    errors::SpannedEncodingResult, middle::core_proof::snapshots::SnapshotDomainInfo,
 };
 use egg::{EGraph, Id, Language};
-use rustc_hash::{FxHashMap, FxHashSet};
-use std::{collections::BTreeMap, io::Write};
-use vir_crate::low::{
-    self as vir_low,
-    expression::visitors::{default_fallible_walk_expression, ExpressionFallibleWalker},
-};
+use rustc_hash::FxHashSet;
+use std::collections::BTreeMap;
+use vir_crate::low::{self as vir_low};
 
 #[derive(Clone)]
 pub(in super::super) struct EGraphState {
@@ -24,8 +20,8 @@ pub(in super::super) struct EGraphState {
 impl EGraphState {
     pub(in super::super) fn new(
         domains: &[vir_low::DomainDecl],
-        bool_type: vir_low::Type,
-        bool_domain_info: SnapshotDomainInfo,
+        _bool_type: vir_low::Type,
+        _bool_domain_info: SnapshotDomainInfo,
     ) -> SpannedEncodingResult<Self> {
         let mut egraph = EGraph::default().with_explanations_enabled();
         let true_id = egraph.add(ExpressionLanguage::True);
@@ -99,10 +95,11 @@ impl EGraphState {
         &mut self,
         other: &EGraphState,
     ) -> SpannedEncodingResult<()> {
-        let new_egraph = self
-            .egraph
-            .egraph_intersect(&other.egraph, self.egraph.analysis);
-        let old_egraph = std::mem::replace(&mut self.egraph, new_egraph);
+        let new_egraph = {
+            self.egraph.analysis;
+            self.egraph.egraph_intersect(&other.egraph, ())
+        };
+        let _old_egraph = std::mem::replace(&mut self.egraph, new_egraph);
         Ok(())
     }
 

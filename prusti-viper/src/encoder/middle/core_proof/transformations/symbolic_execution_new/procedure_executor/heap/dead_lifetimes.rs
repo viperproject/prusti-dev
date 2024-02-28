@@ -7,10 +7,7 @@ use crate::encoder::{
 };
 use log::error;
 use std::collections::{BTreeMap, BTreeSet};
-use vir_crate::{
-    common::expression::BinaryOperationHelpers,
-    low::{self as vir_low},
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Default, Clone)]
 pub(super) struct DeadLifetimeTokens {
@@ -38,11 +35,11 @@ impl std::fmt::Display for DeadLifetimeTokens {
 impl DeadLifetimeTokens {
     pub(super) fn inhale(
         &mut self,
-        global_state: &mut GlobalHeapState,
+        _global_state: &mut GlobalHeapState,
         mut predicate: vir_low::PredicateAccessPredicate,
-        position: vir_low::Position,
+        _position: vir_low::Position,
         constraints: &mut BlockConstraints,
-        block_builder: &mut BlockBuilder,
+        _block_builder: &mut BlockBuilder,
     ) -> SpannedEncodingResult<()> {
         assert_eq!(predicate.arguments.len(), 1);
         let Some(vir_low::Expression::Local(local)) = predicate.arguments.pop() else {
@@ -130,7 +127,7 @@ impl DeadLifetimeTokens {
                 }
                 for dead_lifetime in &self.dead_lifetime_tokens {
                     for dependent_lifetime in
-                        constraints.get_dependent_lifetimes_for(&dead_lifetime)?
+                        constraints.get_dependent_lifetimes_for(dead_lifetime)?
                     {
                         error!("  dead lifetime {dead_lifetime}: {dependent_lifetime}");
                     }
@@ -167,22 +164,14 @@ impl DeadLifetimeTokens {
             std::mem::take(&mut self.potentially_dead_lifetime_token_permissions)
         {
             for equal_lifetime in constraints.get_equal_lifetimes(&lifetime)? {
-                if !self
-                    .potentially_dead_lifetime_token_permissions
-                    .contains_key(&equal_lifetime)
-                {
-                    self.potentially_dead_lifetime_token_permissions
-                        .insert(equal_lifetime, permission.clone());
-                }
+                self.potentially_dead_lifetime_token_permissions
+                    .entry(equal_lifetime)
+                    .or_insert_with(|| permission.clone());
             }
             for dependent_lifetime in constraints.get_dependent_lifetimes_for(&lifetime)? {
-                if !self
-                    .potentially_dead_lifetime_token_permissions
-                    .contains_key(&dependent_lifetime)
-                {
-                    self.potentially_dead_lifetime_token_permissions
-                        .insert(dependent_lifetime, permission.clone());
-                }
+                self.potentially_dead_lifetime_token_permissions
+                    .entry(dependent_lifetime)
+                    .or_insert_with(|| permission.clone());
             }
             self.potentially_dead_lifetime_token_permissions
                 .insert(lifetime, permission);
