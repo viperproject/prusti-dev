@@ -144,7 +144,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 let current_constraints =
                     &mut self.state_keeper.get_state_mut(current_block).constraints;
                 current_constraints.set_visited_blocks(new_visited_blocks);
-                for (dominator, dominator_equalities) in &equalities {
+                for (_dominator, dominator_equalities) in &equalities {
                     for (left, right) in dominator_equalities {
                         current_constraints.assume_equal(
                             &mut self.expression_interner,

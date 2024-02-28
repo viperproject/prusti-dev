@@ -2,23 +2,18 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::transformations::{
         encoder_context::EncoderContext,
-        symbolic_execution::utils::all_heap_independent,
         symbolic_execution_new::{
-            block_builder::BlockBuilder,
             expression_interner::ExpressionInterner,
             procedure_executor::{
-                constraints::{BlockConstraints, ConstraintsMergeReport},
-                heap::{
-                    global_heap_state::HeapVariables, utils::matches_arguments, GlobalHeapState,
-                    HeapMergeReport,
-                },
+                constraints::BlockConstraints,
+                heap::{global_heap_state::HeapVariables, GlobalHeapState, HeapMergeReport},
             },
             program_context::ProgramContext,
         },
     },
 };
 use rustc_hash::FxHashMap;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use vir_crate::{
     common::{
         display,

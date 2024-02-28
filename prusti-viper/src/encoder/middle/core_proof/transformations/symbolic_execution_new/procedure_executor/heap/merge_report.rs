@@ -158,7 +158,7 @@ impl<R: Remap> Report<R> {
     fn has_remap(&self, first_predecessor_variable: &vir_low::VariableDecl) -> Option<&str> {
         for remap in &self.predecessors[0].remaps {
             if remap.new() == first_predecessor_variable.name {
-                return Some(&remap.new());
+                return Some(remap.new());
             }
         }
         None
@@ -171,7 +171,7 @@ impl<R: Remap> Report<R> {
     ) -> vir_low::VariableDecl {
         let last_predecessor = self.predecessors.last_mut().unwrap();
         last_predecessor.remaps.push(Remap::create(
-            &last_predecessor_variable,
+            last_predecessor_variable,
             new_variable.clone(),
         ));
         vir_low::VariableDecl {
@@ -191,13 +191,13 @@ impl<R: Remap> Report<R> {
             R::create_variable(global_state, predicate_name, &first_predecessor_variable.ty);
         for i in 0..self.predecessors.len() - 1 {
             self.predecessors[i].remaps.push(Remap::create(
-                &first_predecessor_variable,
+                first_predecessor_variable,
                 variable.name.clone(),
             ));
         }
         let last_index = self.predecessors.len() - 1;
         self.predecessors[last_index].remaps.push(Remap::create(
-            &last_predecessor_variable,
+            last_predecessor_variable,
             variable.name.clone(),
         ));
         variable
@@ -213,7 +213,7 @@ impl<R: Remap> Report<R> {
             R::create_variable(global_state, predicate_name, &first_predecessor_variable.ty);
         for i in 0..self.predecessors.len() - 1 {
             self.predecessors[i].remaps.push(Remap::create(
-                &first_predecessor_variable,
+                first_predecessor_variable,
                 variable.name.clone(),
             ));
         }
@@ -221,7 +221,7 @@ impl<R: Remap> Report<R> {
         self.predecessors[last_index]
             .remaps
             .push(Remap::create_map_to_none(
-                &first_predecessor_variable,
+                first_predecessor_variable,
                 variable.name.clone(),
             ));
         variable
@@ -237,13 +237,13 @@ impl<R: Remap> Report<R> {
             R::create_variable(global_state, predicate_name, &last_predecessor_variable.ty);
         for i in 0..self.predecessors.len() - 1 {
             self.predecessors[i].remaps.push(Remap::create_map_to_none(
-                &last_predecessor_variable,
+                last_predecessor_variable,
                 variable.name.clone(),
             ));
         }
         let last_index = self.predecessors.len() - 1;
         self.predecessors[last_index].remaps.push(Remap::create(
-            &last_predecessor_variable,
+            last_predecessor_variable,
             variable.name.clone(),
         ));
         variable

@@ -1,11 +1,4 @@
-use super::{egg::EGraphState, program_context::ProgramContext};
-use crate::encoder::{
-    errors::SpannedEncodingResult,
-    middle::core_proof::{
-        snapshots::SnapshotDomainInfo, transformations::encoder_context::EncoderContext,
-    },
-};
-use egg::Id;
+use crate::encoder::errors::SpannedEncodingResult;
 use rustc_hash::FxHashMap;
 use vir_crate::low::{self as vir_low};
 

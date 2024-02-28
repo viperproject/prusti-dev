@@ -1,30 +1,15 @@
-use super::predicate_instance::{PredicateInstance, SnapshotType};
 use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingResult},
+    errors::SpannedEncodingResult,
     middle::core_proof::transformations::{
         encoder_context::EncoderContext,
-        symbolic_execution::utils::all_heap_independent,
         symbolic_execution_new::{
-            block_builder::BlockBuilder,
-            egg::ExpressionEGraph,
             expression_interner::ExpressionInterner,
-            procedure_executor::{
-                constraints::{BlockConstraints, ConstraintsMergeReport},
-                heap::{
-                    utils::{matches_arguments, matches_arguments_with_remaps},
-                    GlobalHeapState, HeapMergeReport,
-                },
-            },
-            program_context::ProgramContext,
+            procedure_executor::constraints::BlockConstraints, program_context::ProgramContext,
         },
     },
 };
-use prusti_common::config;
 use vir_crate::{
-    common::{
-        display,
-        expression::{BinaryOperationHelpers, ExpressionIterator},
-    },
+    common::expression::{BinaryOperationHelpers, ExpressionIterator},
     low::{self as vir_low},
 };
 
@@ -46,7 +31,7 @@ pub(super) fn is_non_aliased(
     predicate_name: &str,
     arguments: &[vir_low::Expression],
     program_context: &ProgramContext<impl EncoderContext>,
-    constraints: &mut BlockConstraints,
+    _constraints: &mut BlockConstraints,
 ) -> SpannedEncodingResult<bool> {
     if program_context.is_predicate_kind_non_aliased(predicate_name) {
         return Ok(true);
@@ -179,8 +164,8 @@ pub(super) fn matches_non_aliased_diff(
                 unreachable!()
             };
             // FIXME: Do not rely on strings.
-            let lifetime1 = &local1.variable.name.splitn(2, '$').nth(0).unwrap();
-            let lifetime2 = &local2.variable.name.splitn(2, '$').nth(0).unwrap();
+            let lifetime1 = &local1.variable.name.split('$').nth(0).unwrap();
+            let lifetime2 = &local2.variable.name.split('$').nth(0).unwrap();
             construct_result(
                 predicate_arguments,
                 predicate_instance_arguments,

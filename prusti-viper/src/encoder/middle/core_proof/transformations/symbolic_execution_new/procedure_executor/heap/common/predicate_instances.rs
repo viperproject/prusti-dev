@@ -1,5 +1,3 @@
-use std::collections::{BTreeMap, BTreeSet};
-
 use super::predicate_instance::{PredicateInstance, SnapshotType};
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingResult},
@@ -8,7 +6,6 @@ use crate::encoder::{
         symbolic_execution::utils::all_heap_independent,
         symbolic_execution_new::{
             block_builder::{BlockBuilder, StatementsBuilder},
-            egg::ExpressionEGraph,
             expression_interner::ExpressionInterner,
             procedure_executor::{
                 constraints::{BlockConstraints, ConstraintsMergeReport},
@@ -24,11 +21,9 @@ use crate::encoder::{
     },
 };
 use prusti_common::config;
+use std::collections::BTreeSet;
 use vir_crate::{
-    common::{
-        display,
-        expression::{BinaryOperationHelpers, ExpressionIterator},
-    },
+    common::{display, expression::BinaryOperationHelpers},
     low::{self as vir_low, operations::ty::Typed},
 };
 
@@ -86,7 +81,7 @@ pub(in super::super) struct AliasedFractionalBool;
 impl PermissionType for AliasedWholeBool {
     fn inhale(
         &self,
-        old_permission_variable: vir_low::VariableDecl,
+        _old_permission_variable: vir_low::VariableDecl,
         new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
@@ -136,7 +131,7 @@ impl PermissionType for AliasedWholeBool {
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                old_permission_variable.clone().into(),
+                old_permission_variable.into(),
                 permission_amount.clone(),
             ))
             .set_default_position(position),
@@ -159,7 +154,7 @@ impl PermissionType for AliasedWholeBool {
 impl PermissionType for AliasedFractionalBool {
     fn inhale(
         &self,
-        old_permission_variable: vir_low::VariableDecl,
+        _old_permission_variable: vir_low::VariableDecl,
         new_permission_variable: &vir_low::VariableDecl,
         permission_amount: &vir_low::Expression,
         position: vir_low::Position,
@@ -209,7 +204,7 @@ impl PermissionType for AliasedFractionalBool {
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(
             vir_low::Statement::assert_no_pos(vir_low::Expression::equals(
-                old_permission_variable.clone().into(),
+                old_permission_variable.into(),
                 permission_amount.clone(),
             ))
             .set_default_position(position),
@@ -501,7 +496,7 @@ impl<P: PermissionType> PredicateInstances<P, vir_low::VariableDecl> {
             .aliased_predicate_instances
             .iter()
             .filter(|predicate_instance| !predicate_instance.is_materialized);
-        while let Some(predicate_instance) = predicate_instances.next() {
+        for predicate_instance in predicate_instances {
             let guard = predicate_instance.create_matches_check(
                 arguments,
                 &predicate_instance.permission_variable,
@@ -954,8 +949,8 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
     pub(in super::super) fn prepare_for_unhandled_exhale(
         &mut self,
         program_context: &mut ProgramContext<impl EncoderContext>,
-        expression_interner: &mut ExpressionInterner,
-        global_state: &mut GlobalHeapState,
+        _expression_interner: &mut ExpressionInterner,
+        _global_state: &mut GlobalHeapState,
         predicate_name: &str,
         position: vir_low::Position,
         constraints: &mut BlockConstraints,
@@ -1343,9 +1338,9 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
         predicate: vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
         global_state: &mut GlobalHeapState,
-        constraints: &mut BlockConstraints,
+        _constraints: &mut BlockConstraints,
         block_builder: &mut BlockBuilder,
-        program_context: &ProgramContext<impl EncoderContext>,
+        _program_context: &ProgramContext<impl EncoderContext>,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(vir_low::Statement::comment(
             "Conditional exhale".to_string(),
@@ -1381,7 +1376,7 @@ impl<P: PermissionType, S: SnapshotType> PredicateInstances<P, S> {
             .enumerate();
         let mut statement =
             vir_low::Statement::assert_no_pos(false.into()).set_default_position(position);
-        while let Some((index, predicate_instance)) = predicate_instances.next() {
+        for (index, predicate_instance) in predicate_instances {
             let old_permission_variable = new_old_permission_variables[index].0.clone();
             let guard = predicate_instance.create_matches_check(
                 &predicate.arguments,

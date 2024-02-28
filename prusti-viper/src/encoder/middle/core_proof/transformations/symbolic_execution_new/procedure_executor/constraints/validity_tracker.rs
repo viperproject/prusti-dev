@@ -5,10 +5,7 @@ use crate::encoder::{
     },
 };
 use rustc_hash::FxHashSet;
-use vir_crate::{
-    common::expression::SyntacticEvaluation,
-    low::{self as vir_low, operations::ty::Typed},
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Clone, Default, Debug)]
 pub(super) struct ValidityTracker {

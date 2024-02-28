@@ -140,8 +140,8 @@ fn try_intern_term_rec(
                 *variable_id
             } else {
                 let symbol = Symbol::from(&expression.variable.name);
-                let id = egraph.add(ExpressionLanguage::Variable(symbol));
-                id
+
+                egraph.add(ExpressionLanguage::Variable(symbol))
             }
         }
         vir_low::Expression::Constant(expression) => match &expression.value {
