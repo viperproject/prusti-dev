@@ -135,7 +135,7 @@ pub trait Cfg: Sized {
         entry_dominators.insert(self.entry());
         dominators.insert(self.entry(), entry_dominators);
         for bb in &traversal_order {
-            if !(target_block == bb) && (!considered_blocks.contains(bb) || bb == self.entry()) {
+            if target_block != bb && (!considered_blocks.contains(bb) || bb == self.entry()) {
                 continue;
             }
             let mut predecessor_dominators = predecessors
