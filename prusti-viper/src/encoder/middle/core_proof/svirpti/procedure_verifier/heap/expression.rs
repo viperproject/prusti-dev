@@ -1,19 +1,9 @@
 use super::super::{
-    super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
-    },
-    ProcedureExecutor,
+    super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor,
 };
-use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
+use crate::encoder::errors::SpannedEncodingError;
 use vir_crate::{
-    common::{
-        expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
-        position::Positioned,
-    },
+    common::{expression::UnaryOperationHelpers, position::Positioned},
     low::{
         self as vir_low, expression::visitors::ExpressionFallibleFolder,
         operations::quantifiers::BoundVariableStack,

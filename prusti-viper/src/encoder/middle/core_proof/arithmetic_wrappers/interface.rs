@@ -114,7 +114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArithmeticWrappersInterface for Lowerer<'p, 'v, 'tcx>
                     Default::default(),
                 )?;
                 let body = vir_low::Expression::forall(
-                    vec![value.clone()],
+                    vec![value],
                     vec![
                         vir_low::Trigger::new(vec![call_zero_left.clone()]),
                         vir_low::Trigger::new(vec![call_zero_right.clone()]),
@@ -183,7 +183,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArithmeticWrappersInterface for Lowerer<'p, 'v, 'tcx>
                     vec![vir_low::Trigger::new(vec![call.clone()])],
                     vir_low::Expression::equals(
                         call,
-                        vir_low::Expression::multiply(left.clone().into(), right.clone().into()),
+                        vir_low::Expression::multiply(left.into(), right.into()),
                     ),
                 );
                 let axiom = vir_low::DomainAxiomDecl::new(None, "mul_wrapper$definition", body);

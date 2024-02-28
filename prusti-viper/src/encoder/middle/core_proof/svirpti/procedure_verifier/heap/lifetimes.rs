@@ -1,16 +1,8 @@
 use super::super::{
-    super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
-    },
-    ProcedureExecutor,
+    super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor,
 };
 use crate::encoder::errors::SpannedEncodingResult;
-use log::{debug, error};
-use prusti_common::config;
+
 use std::collections::BTreeMap;
 use vir_crate::{
     common::expression::BinaryOperationHelpers,
@@ -66,7 +58,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 new_permission_variable.into(),
                 vir_low::Expression::perm_binary_op(
                     vir_low::PermBinaryOpKind::Add,
-                    current_permission_variable.clone().into(),
+                    current_permission_variable.into(),
                     (*predicate.permission).clone(),
                     position,
                 ),
@@ -122,7 +114,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 new_permission_variable.clone().into(),
                 vir_low::Expression::perm_binary_op(
                     vir_low::PermBinaryOpKind::Sub,
-                    current_permission_variable.clone().into(),
+                    current_permission_variable.into(),
                     (*predicate.permission).clone(),
                     position,
                 ),

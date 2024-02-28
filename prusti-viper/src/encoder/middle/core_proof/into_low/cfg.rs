@@ -17,10 +17,9 @@ use crate::encoder::{
         },
         references::ReferencesInterface,
         snapshots::{
-            IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureFinalSnapshot,
-            IntoProcedureSnapshot, IntoSnapshotLowerer, PlaceToSnapshot, PredicateKind,
-            SelfFramingAssertionToSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
-            SnapshotVariablesInterface,
+            IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureSnapshot,
+            IntoSnapshotLowerer, PlaceToSnapshot, PredicateKind, SelfFramingAssertionToSnapshot,
+            SnapshotValidityInterface, SnapshotValuesInterface, SnapshotVariablesInterface,
         },
         transformations::encoder_context::EncoderContext,
         triggers::TriggersInterface,
@@ -393,14 +392,14 @@ impl IntoLow for vir_mid::Statement {
                         None,
                         statement.position,
                     )?;
-                    let unfold_statement = vir_low::Statement::unfold_no_pos(predicate);
+                    let _unfold_statement = vir_low::Statement::unfold_no_pos(predicate);
                     for contrained_place in
                         lowerer.encoder.get_invariant_constrained_places_mid(ty)?
                     {
                         eprintln!("contrained_place: {}", contrained_place);
                     }
                     unimplemented!();
-                    return Ok(vec![unfold_statement]);
+                    // return Ok(vec![unfold_statement]);
                 } else {
                     let position = lowerer.encoder.change_error_context(
                         statement.position,
@@ -741,7 +740,7 @@ impl IntoLow for vir_mid::Statement {
                         borrowing_lifetime.into(),
                         place,
                         address,
-                        reborrowing_final_snapshot.clone(),
+                        reborrowing_final_snapshot,
                         lifetime.into(),
                     ];
                     (arguments, "reborrow")
@@ -796,7 +795,7 @@ impl IntoLow for vir_mid::Statement {
                     statement.position,
                     restored_address,
                     restored_place,
-                    aliased_snapshot.clone(),
+                    aliased_snapshot,
                 )?];
                 lowerer.encode_snapshot_update(
                     &mut statements,
@@ -1559,12 +1558,12 @@ impl IntoLow for vir_mid::Statement {
                 //     statement.position,
                 // )?;
                 let mut arguments = vec![
-                    lifetime.clone().into(),
+                    lifetime.into(),
                     perm_amount,
                     place,
                     address,
                     current_snapshot,
-                    tmp_frac_ref_perm.clone().into(),
+                    tmp_frac_ref_perm.into(),
                 ];
                 arguments.extend(lowerer.create_lifetime_arguments(CallContext::Procedure, ty)?);
                 arguments.extend(lowerer.create_const_arguments(CallContext::Procedure, ty)?);

@@ -270,7 +270,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
         } else {
             let mut prusti_errors = Vec::new();
-            for (def_id, result) in verification_results {
+            for (_def_id, result) in verification_results {
                 for error in result.get_errors() {
                     let prusti_error = self.error_manager().translate_verification_error(&error.as_viper_verification_error());
                     prusti_errors.push(prusti_error);

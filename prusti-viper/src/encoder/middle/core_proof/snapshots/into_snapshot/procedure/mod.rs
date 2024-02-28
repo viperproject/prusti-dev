@@ -28,8 +28,7 @@ use vir_crate::{
 mod traits;
 
 pub(in super::super::super) use self::traits::{
-    IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureFinalSnapshot,
-    IntoProcedureSnapshot,
+    IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureSnapshot,
 };
 
 pub(in super::super::super::super) struct ProcedureSnapshot {

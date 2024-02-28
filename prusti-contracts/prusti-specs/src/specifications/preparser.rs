@@ -1,5 +1,5 @@
 /// The preparser processes Prusti syntax into Rust syntax.
-use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 use proc_macro2::{Punct, Spacing::*};
 use quote::{quote, quote_spanned, ToTokens};
 use std::collections::VecDeque;

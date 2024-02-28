@@ -38,9 +38,6 @@ pub(in super::super) use self::{
     common::IntoSnapshotLowerer,
     context_independent::IntoSnapshot,
     expressions::{FramedExpressionToSnapshot, PlaceToSnapshot},
-    procedure::{
-        IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureFinalSnapshot,
-        IntoProcedureSnapshot,
-    },
+    procedure::{IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureSnapshot},
     pure::{IntoPureBoolExpression, IntoPureSnapshot},
 };

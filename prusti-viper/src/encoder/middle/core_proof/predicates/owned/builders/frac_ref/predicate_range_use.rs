@@ -126,7 +126,7 @@ where
             self.context,
             &ty.target_type,
             self.generics,
-            element_place.clone().into(),
+            element_place.clone(),
             element_address.clone().into(),
             self.lifetime,
             TODO_target_slice_len,

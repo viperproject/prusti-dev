@@ -1,23 +1,8 @@
 use super::{
-    super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
-    },
-    heap::Heap,
-    ProcedureExecutor,
+    super::super::transformations::encoder_context::EncoderContext, heap::Heap, ProcedureExecutor,
 };
 use crate::encoder::errors::SpannedEncodingResult;
-use vir_crate::{
-    common::{
-        cfg::Cfg,
-        expression::{BinaryOperationHelpers, ExpressionIterator, SyntacticEvaluation},
-        graphviz::ToGraphviz,
-    },
-    low::{self as vir_low},
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum StackFrameStatus {

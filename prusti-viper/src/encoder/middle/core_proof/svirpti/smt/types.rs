@@ -1,7 +1,3 @@
-use super::super::super::transformations::{
-    encoder_context::EncoderContext, predicate_domains::PredicateDomainsInfo,
-    symbolic_execution_new::ProgramContext,
-};
 use rsmt2::{print::Sort2Smt, SmtRes};
 use std::io::Write;
 use vir_crate::low::{self as vir_low};

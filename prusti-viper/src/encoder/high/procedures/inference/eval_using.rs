@@ -5,7 +5,6 @@ use crate::{
         high::procedures::inference::{
             ensurer::ExpandedPermissionKind, permission::PermissionKind,
         },
-        Encoder,
     },
     error_incorrect, error_internal,
 };
@@ -157,10 +156,10 @@ fn collect_framing_places_from_a_state(
             }
         }
     } else if let Some(_) = state.find_prefix(PermissionKind::MemoryBlock, accessed_place) {
-        let span = context.get_span(position.into()).unwrap();
+        let span = context.get_span(position).unwrap();
         error_internal!(span => format!("found an uninitialized place in specification: {accessed_place}"));
     } else if state.contains_blocked(accessed_place)?.is_some() {
-        let span = context.get_span(position.into()).unwrap();
+        let span = context.get_span(position).unwrap();
         error_incorrect!(span => "cannot use specifications to trigger unblocking of a blocked place");
     } else if accessed_place.is_address_field() {
         // Address field, just ignore it.
@@ -186,7 +185,7 @@ fn collect_framing_places_from_a_state(
                 !root_framing_place.get_type().has_variants(),
                 "unimplemented"
             );
-            for (kind, framing_place) in context.expand_place(&root_framing_place, &witness)? {
+            for (kind, framing_place) in context.expand_place(root_framing_place, witness)? {
                 assert_eq!(kind, ExpandedPermissionKind::Same);
                 assert!(
                     state.contains(PermissionKind::Owned, &framing_place),

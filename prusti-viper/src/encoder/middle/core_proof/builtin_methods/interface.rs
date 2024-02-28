@@ -51,7 +51,6 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use vir_crate::{
     common::{
         builtin_constants::LIFETIME_DOMAIN_NAME,
-        check_mode::CheckMode,
         expression::{
             BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers, UnaryOperationHelpers,
         },
@@ -3802,7 +3801,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         ty: &vir_mid::Type,
         old_pointer_value: vir_low::Expression,
         old_start_index: vir_low::Expression,
-        old_end_index: vir_low::Expression,
+        _old_end_index: vir_low::Expression,
         label: String,
         new_pointer_value: vir_low::Expression,
         new_start_index_usize: vir_low::Expression,
@@ -3855,9 +3854,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 position,
             )?;
             let new_element_address_pointer =
-                self.address_to_pointer(&ty, new_element_address.clone(), position)?;
+                self.address_to_pointer(ty, new_element_address.clone(), position)?;
             let new_element_address_wrapped =
-                self.pointer_address(&ty, new_element_address_pointer, position)?;
+                self.pointer_address(ty, new_element_address_pointer, position)?;
             let old_index = vir_low::Expression::add(
                 vir_low::Expression::labelled_old(
                     Some(label.clone()),
@@ -3884,7 +3883,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 position,
             )?;
             let new_read_element_byte_wrapped = self.encode_read_byte_expression_int(
-                new_block_bytes_wrapped.clone(),
+                new_block_bytes_wrapped,
                 byte_index.clone().into(),
                 position,
             )?;
@@ -3906,7 +3905,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 (([0.into()] <= byte_index) && (byte_index < [element_size_int]))) ==>
                 ([memory_block_range_join_trigger] &&
                     ([index_is_usize] == index) &&
-                    ([new_read_element_byte_wrapped.clone()] == [old_read_element_byte.clone()]) &&
+                    ([new_read_element_byte_wrapped.clone()] == [old_read_element_byte]) &&
                     ([new_read_element_byte.clone()] == [new_read_element_byte_wrapped])
                 )
             );
@@ -4071,9 +4070,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 CallContext::Procedure,
                 ty,
                 ty,
-                new_pointer_value.clone(),
-                new_start_index_usize.clone(),
-                new_end_index_usize.clone(),
+                new_pointer_value,
+                new_start_index_usize,
+                new_end_index_usize,
                 None,
                 position,
             )?;

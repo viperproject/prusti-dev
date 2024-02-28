@@ -104,7 +104,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 body: snapshot_body,
             },
             final_snapshot_function: None,
-            snapshot_range_function: snapshot_range_function,
+            snapshot_range_function,
             snapshot_type,
         })
     }

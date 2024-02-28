@@ -1,18 +1,6 @@
-use super::{
-    super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
-    },
-    ProcedureExecutor,
-};
+use super::{super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor};
 use crate::encoder::errors::SpannedEncodingResult;
-use vir_crate::{
-    common::expression::{BinaryOperationHelpers, SyntacticEvaluation},
-    low as vir_low,
-};
+use vir_crate::{common::expression::SyntacticEvaluation, low as vir_low};
 
 mod exhale;
 mod inhale;
@@ -102,7 +90,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     fn execute_statement_assert(
         &mut self,
-        statement: &vir_low::ast::statement::Assert,
+        _statement: &vir_low::ast::statement::Assert,
     ) -> SpannedEncodingResult<()> {
         unimplemented!();
         // let expression = self.simplify_expression(&statement.expression, statement.position)?;
@@ -129,7 +117,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
     ) -> SpannedEncodingResult<()> {
         let exhale_label = format!("exhale_label${}", self.generate_fresh_id());
         let expression = statement.expression.clone().wrap_in_old(&exhale_label);
-        let label = vir_low::ast::statement::Label::new(exhale_label.clone());
+        let label = vir_low::ast::statement::Label::new(exhale_label);
         self.execute_statement_label(&label)?;
         self.execute_exhale(expression, statement.position)?;
         Ok(())
@@ -137,7 +125,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     fn execute_materialize_predicate(
         &mut self,
-        statement: &vir_low::ast::statement::MaterializePredicate,
+        _statement: &vir_low::ast::statement::MaterializePredicate,
     ) -> SpannedEncodingResult<()> {
         unimplemented!();
         // let vir_low::Expression::PredicateAccessPredicate(predicate) = self.simplify_expression(&statement.predicate, statement.position)? else {
@@ -149,7 +137,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     fn execute_case_split(
         &mut self,
-        statement: &vir_low::ast::statement::CaseSplit,
+        _statement: &vir_low::ast::statement::CaseSplit,
     ) -> SpannedEncodingResult<()> {
         unimplemented!();
         // let expression = self.simplify_expression(&statement.expression, statement.position)?;

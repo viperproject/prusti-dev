@@ -1,12 +1,5 @@
 use super::super::{
-    super::{
-        super::transformations::{
-            encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
-        },
-        smt::{SmtSolver, Sort2SmtWrap},
-        VerificationResult, Verifier,
-    },
-    ProcedureExecutor,
+    super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor,
 };
 use crate::encoder::errors::SpannedEncodingResult;
 use vir_crate::low::{self as vir_low};

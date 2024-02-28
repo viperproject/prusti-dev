@@ -13,7 +13,6 @@ use crate::encoder::{
 };
 
 use vir_crate::{
-    common::identifier::WithIdentifier,
     low::{self as vir_low},
     middle::{self as vir_mid},
 };

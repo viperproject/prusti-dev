@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
@@ -333,19 +331,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             start_index,
         );
         let index_variable_replacement =
-            self.construct_constant_snapshot(&size_type, index.clone().into(), position)?;
+            self.construct_constant_snapshot(&size_type, index.clone(), position)?;
         let replacements = std::iter::once((&index_variable, &index_variable_replacement))
             .collect::<FxHashMap<_, _>>();
         let element_allocation =
             self.address_allocation(element_address.clone().into(), position)?;
-        let address_allocation = self.address_allocation(address.clone(), position)?;
+        let address_allocation = self.address_allocation(address, position)?;
         let guard = expr! {
             (([0.into()] <= [index]) &&
             ([element_allocation] == [address_allocation])) &&
             [guard.substitute_variables(&replacements)]
         };
         let predicate =
-            self.encode_memory_block_acc(element_address.clone().into(), size.clone(), position)?;
+            self.encode_memory_block_acc(element_address.clone().into(), size, position)?;
         let body = expr!([guard] ==> [predicate.clone()]);
         let expression = vir_low::Expression::forall(
             vec![element_address],
