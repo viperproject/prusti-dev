@@ -117,7 +117,7 @@ impl<'e, 'p, 'v: 'p, 'tcx: 'v> Purifier<'e, 'p, 'v, 'tcx> {
         let heap_function_name = self.heap_encoder.heap_function_name(predicate_name);
         let return_type = self
             .heap_encoder
-            .get_snapshot_type_for_predicate(&predicate_name)
+            .get_snapshot_type_for_predicate(predicate_name)
             .unwrap();
         Ok(vir_low::Expression::domain_function_call(
             "HeapFunctions",

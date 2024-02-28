@@ -81,9 +81,9 @@ impl<K: PermissionMaskKind> PermissionMaskOperations<K> {
 impl<'a, K: PermissionMaskKind> QuantifiedPermissionMaskOperations<'a, K> {
     pub(in super::super) fn new<'p, 'v: 'p, 'tcx: 'v>(
         heap_encoder: &mut HeapEncoder<'p, 'v, 'tcx>,
-        statements: &mut Vec<vir_low::Statement>,
+        _statements: &mut Vec<vir_low::Statement>,
         predicate: &'a vir_low::ast::expression::PredicateAccessPredicate,
-        expression_evaluation_state_label: Option<String>,
+        _expression_evaluation_state_label: Option<String>,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<Self> {
         let old_permission_mask_version =
@@ -405,8 +405,8 @@ impl<'a> TQuantifiedPermissionMaskOperations
 
     fn perm_old_sub(
         &self,
-        heap_encoder: &mut HeapEncoder,
-        predicate_location: Vec<vir_low::Expression>,
+        _heap_encoder: &mut HeapEncoder,
+        _predicate_location: Vec<vir_low::Expression>,
         permission_amount: &vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         assert!(permission_amount.is_full_permission());

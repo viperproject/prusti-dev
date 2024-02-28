@@ -1,10 +1,7 @@
-use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::{BTreeMap, BTreeSet};
+use rustc_hash::FxHashSet;
 use vir_crate::{
     common::{
-        expression::{
-            BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers, UnaryOperationHelpers,
-        },
+        expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
         graphviz::ToGraphviz,
     },
     low::{
@@ -290,15 +287,15 @@ impl ExpressionFolder for Rewriter {
 impl TypeFolder for Rewriter {
     fn fold_type(&mut self, ty: vir_low::Type) -> vir_low::Type {
         match ty {
-            vir_low::Type::Seq(container) => unimplemented!(),
+            vir_low::Type::Seq(_container) => unimplemented!(),
             vir_low::Type::Set(mut container) => {
                 self.used_set_types.insert(container.clone());
                 container.element_type = TypeFolder::fold_type_boxed(self, container.element_type);
-                let new_type = set_domain(&container);
-                new_type
+
+                set_domain(&container)
             }
-            vir_low::Type::MultiSet(container) => unimplemented!(),
-            vir_low::Type::Map(container) => unimplemented!(),
+            vir_low::Type::MultiSet(_container) => unimplemented!(),
+            vir_low::Type::Map(_container) => unimplemented!(),
             _ => ty,
         }
     }

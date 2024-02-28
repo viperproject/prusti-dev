@@ -1,19 +1,8 @@
-use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::{BTreeMap, BTreeSet};
+use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
 use vir_crate::{
-    common::{
-        expression::{
-            BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers, UnaryOperationHelpers,
-        },
-        graphviz::ToGraphviz,
-    },
-    low::{
-        self as vir_low,
-        ast::statement::visitors::StatementFolder,
-        expression::visitors::{default_fold_container_op, ExpressionFolder},
-        operations::ty::Typed,
-        ty::visitors::TypeFolder,
-    },
+    common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
+    low::{self as vir_low},
 };
 
 use crate::encoder::middle::core_proof::predicates::OwnedPredicateInfo;
@@ -30,10 +19,7 @@ impl PredicateDomainsInfo {
     ) -> Option<PredicateWithHeapDomainInfo<'a>> {
         let permission = self.permission.get(predicate_name)?;
         let heap = self.heap.get(predicate_name)?;
-        Some(PredicateWithHeapDomainInfo {
-            permission: permission,
-            heap: heap,
-        })
+        Some(PredicateWithHeapDomainInfo { permission, heap })
     }
 
     pub(crate) fn get_permissions_info(
@@ -137,13 +123,13 @@ impl PredicatePermissionDomainInfo {
         let mut arguments = Vec::with_capacity(1 + predicate_arguments.len());
         arguments.push(permission_mask.clone().into());
         arguments.extend(predicate_arguments.iter().cloned());
-        let lookup_permission = vir_low::Expression::domain_function_call(
+
+        vir_low::Expression::domain_function_call(
             self.domain_name.clone(),
             self.lookup_function_name.clone(),
             arguments,
             self.amount_type.clone(),
-        );
-        lookup_permission
+        )
     }
 }
 
@@ -238,7 +224,7 @@ impl<'a> PredicateWithHeapDomainInfo<'a> {
 }
 
 pub(in super::super) fn define_predicate_domains(
-    source_filename: &str,
+    _source_filename: &str,
     mut program: vir_low::Program,
     owned_predicate_info: &BTreeMap<String, OwnedPredicateInfo>,
 ) -> (vir_low::Program, PredicateDomainsInfo) {
@@ -340,7 +326,7 @@ fn create_permission_domain_for_boolean_mask(
 
     let mask = predicate_info.create_permission_mask_variable("mask".to_string());
     let mut lookup_parameters = Vec::with_capacity(1 + predicate.parameters.len());
-    lookup_parameters.push(mask.clone());
+    lookup_parameters.push(mask);
     lookup_parameters.extend(predicate.parameters.iter().cloned());
     let lookup = vir_low::DomainFunctionDecl::new(
         predicate_info.lookup_function_name.clone(),
@@ -501,7 +487,7 @@ fn create_heap_domain_for_boolean_mask(
 ) -> vir_low::DomainDecl {
     let heap = predicate_info.create_heap_variable("heap".to_string());
     let mut lookup_parameters = Vec::with_capacity(1 + predicate.parameters.len());
-    lookup_parameters.push(heap.clone());
+    lookup_parameters.push(heap);
     lookup_parameters.extend(predicate.parameters.iter().cloned());
     let lookup = vir_low::DomainFunctionDecl::new(
         predicate_info.lookup_function_name.clone(),

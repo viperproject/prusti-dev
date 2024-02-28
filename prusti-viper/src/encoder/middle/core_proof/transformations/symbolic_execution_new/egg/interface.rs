@@ -5,7 +5,7 @@ use crate::encoder::{
         encoder_context::EncoderContext, symbolic_execution_new::program_context::ProgramContext,
     },
 };
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashSet;
 use vir_crate::low::{self as vir_low};
 
 /// Provides an interface over an EGraph that operates on `vir_low::Expression`.
@@ -66,7 +66,7 @@ impl ExpressionEGraph {
     ) -> SpannedEncodingResult<IntersectingReport> {
         let self_dropped_variables = self
             .interned_variables
-            .drain_filter(|variable| !other.interned_variables.contains(&variable))
+            .drain_filter(|variable| !other.interned_variables.contains(variable))
             .collect();
         let other_dropped_variables = other
             .interned_variables
@@ -90,7 +90,7 @@ impl ExpressionEGraph {
             })
             .cloned()
             .collect();
-        let _ = self.egraph.intersect_with(&other.egraph)?;
+        self.egraph.intersect_with(&other.egraph)?;
         let report = IntersectingReport {
             self_dropped_variables,
             other_dropped_variables,
