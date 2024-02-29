@@ -8,8 +8,6 @@ on:
 env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
-  # Disable incremental builds to reduce disk usage
-  CARGO_INCREMENTAL: 0  
   # The /mnt disk has 66 GB of free space; more than the working directory
   COVERAGE_PATH: /mnt/prusti-coverage
 
@@ -29,6 +27,11 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
 
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+
       - name: Enable collection of source-based coverage
         run: |
           # Prepare directory
@@ -44,35 +47,17 @@ jobs:
       - name: Build with cargo
         run: python x.py build --all
 
-      - name: Report disk usage
-        run: df -h
+      - name: Build prusti-contracts-test
+        run: |
+          cd prusti-contracts/prusti-contracts-test/
+          cargo build
 
-      - name: Report disk usage
-        run: df -h
-
-      - name: Run quick cargo tests
-        run: python x.py test --all quick
-
-      - name: Report disk usage
-        run: df -h
-
-      - name: Rerun quick cargo tests, enabling debug dumps to cover more code
+      - name: Run quick cargo tests, enabling debug dumps to cover more code
         run: python x.py test quick
         env:
           PRUSTI_DUMP_DEBUG_INFO: true
           PRUSTI_DUMP_VIPER_PROGRAM: true
           PRUSTI_IGNORE_REGIONS: true
-
-      - name: Report disk usage
-        run: df -h
-
-      - name: Check prusti-contracts
-        run: |
-          cd prusti-contracts/prusti-contracts-test/
-          cargo build
-
-      - name: Report disk usage
-        run: df -h
 
       - name: Run cargo tests
         run: python x.py test --all
