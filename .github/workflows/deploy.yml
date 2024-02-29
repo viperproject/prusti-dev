@@ -14,7 +14,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-latest, macos-latest]
+        # macos-latest-large is x86, macos-latest-xlarge is arm64
+        os: [ubuntu-20.04, windows-latest, macos-latest-large, macos-latest-xlarge]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -47,57 +48,18 @@ jobs:
       - name: Test Prusti artifact
         run: python x.py test-package prusti_artifact
 
+      - name: Zip Prusti artifact
+        shell: bash
+        run: |
+          cd prusti_artifact
+          zip -r release.zip *
+
       - name: Upload Prusti artifact
         uses: actions/upload-artifact@v3
         with:
           name: prusti-release-${{ matrix.os }}
           if-no-files-found: error
-          path: prusti_artifact/**
-
-  # Build in release mode (but don't test) for macOS ARM
-  # See: https://stackoverflow.com/a/66875783/2491528
-  # Blocked by: requires jni-rs version >=0.21 to avoid linking to the JVM at compilation time
-  build_macos_arm:
-    runs-on: macos-latest
-    if: false
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-
-      - name: Set up Python 3
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '15'
-          distribution: 'zulu'
-
-      - name: Set up the environment
-        run: python x.py setup
-
-      - name: Install the ARM toolchain
-        run: rustup target add aarch64-apple-darwin
-
-      - name: Build with cargo --release for arm64
-        run: |
-          export SDKROOT=$(xcrun -sdk macosx --show-sdk-path)
-          export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)
-          python x.py build --release --target=aarch64-apple-darwin -p prusti-launch
-          python x.py build --release --target=aarch64-apple-darwin -p prusti-server
-          python x.py build --release --target=aarch64-apple-darwin -p prusti-contracts-build
-
-      - name: Package Prusti artifact
-        run: python x.py package release prusti_artifact
-
-      - name: Upload Prusti artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: prusti-release-macos-arm
-          if-no-files-found: error
-          path: prusti_artifact/**
+          path: prusti_artifact/release.zip
 
   # Deploy to a new GitHub pre-release
   deploy:
@@ -106,17 +68,6 @@ jobs:
     steps:
       - name: Download all Prusti artifacts
         uses: actions/download-artifact@v2
-
-      - name: Zip Prusti artifacts
-        shell: bash
-        run: |
-          for os in ubuntu-20.04 windows-latest macos-latest
-          do
-            echo "Package Prusti artifact for $os"
-            cd prusti-release-$os
-            zip -r prusti.zip *
-            cd ..
-          done
 
       - name: Create release tag
         shell: bash
@@ -138,7 +89,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-ubuntu-20.04/prusti.zip
+          asset_path: ./prusti-release-ubuntu-20.04/release.zip
           asset_name: prusti-release-ubuntu.zip
           asset_content_type: application/zip
 
@@ -148,8 +99,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-windows-latest/prusti.zip
+          asset_path: ./prusti-release-windows-latest/release.zip
           asset_name: prusti-release-windows.zip
+          asset_content_type: application/zip
+
+      # This asset is only for backward compatibility with Prusti-Assistant. After updating
+      # Prusti-Assistant to use the new asset name, we can wait a while and then delete this.
+      - name: Upload release asset for MacOS (for backward compatibility)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-macos-latest-large/release.zip
+          asset_name: prusti-release-macos.zip
           asset_content_type: application/zip
 
       - name: Upload release asset for MacOS
@@ -158,6 +121,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-macos-latest/prusti.zip
-          asset_name: prusti-release-macos.zip
+          asset_path: ./prusti-release-macos-latest-large/release.zip
+          asset_name: prusti-release-macos-x86.zip
+          asset_content_type: application/zip
+
+      - name: Upload release asset for MacOS
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-macos-xlatest-large/release.zip
+          asset_name: prusti-release-macos-arm64.zip
           asset_content_type: application/zip
