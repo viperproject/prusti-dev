@@ -203,8 +203,14 @@ impl TaskEncoder for PredicateEnc {
                         let specifics = enc.mk_struct_ref(None, snap_data);
                         deps.emit_output_ref::<Self>(*task_key, enc.output_ref(PredicateEncData::StructLike(specifics)));
 
-                        let variant = adt.non_enum_variant();
-                        let fields: Vec<_> = variant.fields.iter().map(|f| deps.require_ref::<PredicateEnc>(f.ty(enc.tcx(), args)).unwrap()).collect();
+                        let fields: Vec<_> = if !adt.is_box() {
+                            let variant = adt.non_enum_variant();
+                            variant.fields.iter().map(|f| deps.require_ref::<PredicateEnc>(f.ty(enc.tcx(), args)).unwrap()).collect()
+                        } else {
+                            // Box special case (this should be replaced by an
+                            // extern spec in the future)
+                            vec![deps.require_ref::<PredicateEnc>(args[0].expect_ty()).unwrap()]
+                        };
                         let fields = enc.mk_field_apps(specifics.ref_to_field_refs, fields);
                         let fn_snap_body = enc.mk_struct_ref_to_snap_body(None, fields, snap_data.field_snaps_to_snap);
                         Ok((enc.mk_struct(fn_snap_body), ()))
