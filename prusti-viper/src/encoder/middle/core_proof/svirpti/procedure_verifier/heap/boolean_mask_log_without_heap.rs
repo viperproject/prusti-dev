@@ -4,7 +4,7 @@ use super::super::{
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::svirpti::procedure_verifier::heap::boolean_mask_log_with_heap::{
-        LogEntry, LogEntryKind,
+        LogEntry, LogEntryFull, LogEntryKind,
     },
 };
 use rustc_hash::FxHashMap;
@@ -41,7 +41,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     pub(super) fn execute_inhale_boolean_mask_log_without_heap_full(
         &mut self,
-        predicate: &vir_low::PredicateAccessPredicate,
+        predicate: vir_low::PredicateAccessPredicate,
         _position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         assert!(predicate.permission.is_full_permission());
@@ -65,10 +65,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             entries.truncate(old_log_entry);
         }
         assert_eq!(entries.len(), old_log_entry);
-        let entry = LogEntry {
-            kind: LogEntryKind::InhaleFull,
+        let entry = LogEntry::InhaleFull(LogEntryFull {
             arguments: predicate.arguments.clone(),
-        };
+        });
         entries.push(entry);
         assert_eq!(entries.len(), new_log_entry);
 
@@ -99,24 +98,31 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let plus_one: vir_low::Expression = 1.into();
         let minus_one: vir_low::Expression = (-1).into();
         for entry in entries.iter().take(entry_id) {
-            match entry.kind {
-                LogEntryKind::InhaleFull => {
+            match entry {
+                LogEntry::InhaleFull(_) => {
                     pbge_arguments.push(plus_one.clone());
                 }
-                LogEntryKind::ExhaleFull => {
+                LogEntry::ExhaleFull(_) => {
                     pbge_arguments.push(minus_one.clone());
+                }
+                LogEntry::InhaleQuantified(_) => {
+                    unimplemented!();
+                }
+                LogEntry::ExhaleQuantified(_) => {
+                    unimplemented!();
                 }
             }
         }
         for entry in entries.iter().take(entry_id) {
-            let arguments_equal = predicate_arguments
-                .iter()
-                .zip(entry.arguments.iter())
-                .map(|(predicate_argument, entry_argument)| {
-                    expr! { [predicate_argument.clone()] == [entry_argument.clone()] }
-                })
-                .conjoin();
-            pbge_arguments.push(arguments_equal);
+            unimplemented!();
+            // let arguments_equal = predicate_arguments
+            //     .iter()
+            //     .zip(entry.arguments.iter())
+            //     .map(|(predicate_argument, entry_argument)| {
+            //         expr! { [predicate_argument.clone()] == [entry_argument.clone()] }
+            //     })
+            //     .conjoin();
+            // pbge_arguments.push(arguments_equal);
         }
         let mut check_permissions = vir_low::Expression::smt_operation_no_pos(
             vir_low::SmtOperationKind::PbQe,
@@ -175,10 +181,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             .entries
             .get_mut(&predicate.name)
             .unwrap();
-        let entry = LogEntry {
-            kind: LogEntryKind::ExhaleFull,
+        let entry = LogEntry::ExhaleFull(LogEntryFull {
             arguments: predicate.arguments.clone(),
-        };
+        });
         entries.push(entry);
         assert_eq!(entries.len(), new_log_entry);
 
