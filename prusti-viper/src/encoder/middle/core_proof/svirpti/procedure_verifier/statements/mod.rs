@@ -90,12 +90,18 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     fn execute_statement_assert(
         &mut self,
-        _statement: &vir_low::ast::statement::Assert,
+        statement: &vir_low::ast::statement::Assert,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!();
-        // let expression = self.simplify_expression(&statement.expression, statement.position)?;
-        // self.try_assume_heap_independent_conjuncts(&expression)?;
-        // self.add_statement(vir_low::Statement::assert(expression, statement.position))?;
+        let expression = self.desugar_heap_expression(statement.expression.clone())?;
+        let error = self.create_verification_error_for_expression(
+            "assert.failed:assertion.false",
+            statement.position,
+            &expression,
+        )?;
+        self.assert(expression, error)?;
+        if statement.expression.is_false() {
+            self.reached_contradiction = true;
+        }
         Ok(())
     }
 

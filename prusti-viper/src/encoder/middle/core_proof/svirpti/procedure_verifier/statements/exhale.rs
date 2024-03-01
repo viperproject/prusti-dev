@@ -33,7 +33,31 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             )?;
             self.assert(expression, error)?;
         } else {
-            unimplemented!("exhale: {expression}");
+            match expression {
+                vir_low::Expression::Quantifier(vir_low::Quantifier {
+                    name,
+                    kind: vir_low::QuantifierKind::ForAll,
+                    variables,
+                    triggers: _,
+                    body:
+                        box vir_low::Expression::BinaryOp(vir_low::BinaryOp {
+                            op_kind: vir_low::BinaryOpKind::Implies,
+                            left: box guard,
+                            right: box vir_low::Expression::PredicateAccessPredicate(mut predicate),
+                            position: _,
+                        }),
+                    position,
+                }) => {
+                    predicate.arguments = self.desugar_heap_expressions(predicate.arguments)?;
+                    let guard = self.desugar_heap_expression(guard)?;
+                    self.execute_exhale_quantified_predicate(
+                        name, variables, guard, predicate, position,
+                    )?;
+                }
+                _ => {
+                    unimplemented!("exhale: {expression}");
+                }
+            }
         }
         Ok(())
     }

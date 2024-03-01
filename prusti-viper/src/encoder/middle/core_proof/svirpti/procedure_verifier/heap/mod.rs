@@ -55,7 +55,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     pub(super) fn execute_inhale_predicate(
         &mut self,
-        predicate: &vir_low::PredicateAccessPredicate,
+        predicate: vir_low::PredicateAccessPredicate,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
@@ -70,7 +70,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 }
             }
             vir_low::PredicateKind::LifetimeToken => {
-                self.execute_inhale_lifetime_token(predicate, position)?;
+                self.execute_inhale_lifetime_token(&predicate, position)?;
             }
             vir_low::PredicateKind::DeadLifetimeToken => {
                 unimplemented!("inhale_predicate: {predicate}");
@@ -89,6 +89,51 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     // self.execute_inhale_memory_block_fractional(&predicate, position)?;
                     unimplemented!("inhale_predicate: {predicate}");
                 }
+            }
+            vir_low::PredicateKind::EndBorrowViewShift => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+        };
+        Ok(())
+    }
+
+    pub(super) fn execute_inhale_quantified_predicate(
+        &mut self,
+        quantifier_name: Option<String>,
+        variables: Vec<vir_low::VariableDecl>,
+        guard: vir_low::Expression,
+        predicate: vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
+        match predicate_kind {
+            vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
+                if predicate.permission.is_full_permission() {
+                    self.execute_inhale_quantified_boolean_mask_log_with_heap_full(
+                        quantifier_name,
+                        variables,
+                        guard,
+                        predicate,
+                        position,
+                    )?;
+                } else {
+                    unimplemented!("inhale_predicate: {predicate}");
+                }
+            }
+            vir_low::PredicateKind::LifetimeToken => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::DeadLifetimeToken => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::CloseFracRef => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::WithoutSnapshotWhole => {
+                unimplemented!("inhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
+                unimplemented!("inhale_predicate: {predicate}");
             }
             vir_low::PredicateKind::EndBorrowViewShift => {
                 unimplemented!("inhale_predicate: {predicate}");
@@ -141,12 +186,69 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
+    pub(super) fn execute_exhale_quantified_predicate(
+        &mut self,
+        quantifier_name: Option<String>,
+        variables: Vec<vir_low::VariableDecl>,
+        guard: vir_low::Expression,
+        predicate: vir_low::PredicateAccessPredicate,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let predicate_kind = self.program_context.get_predicate_kind(&predicate.name);
+        match predicate_kind {
+            vir_low::PredicateKind::Owned | vir_low::PredicateKind::MemoryBlock => {
+                if predicate.permission.is_full_permission() {
+                    self.execute_exhale_quantified_boolean_mask_log_with_heap_full(
+                        quantifier_name,
+                        variables,
+                        guard,
+                        predicate,
+                        position,
+                    )?;
+                } else {
+                    unimplemented!("exhale_predicate: {predicate}");
+                }
+            }
+            vir_low::PredicateKind::LifetimeToken => {
+                unimplemented!("exhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::DeadLifetimeToken => {
+                unimplemented!("exhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::CloseFracRef => {
+                unimplemented!("exhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::WithoutSnapshotWhole => {
+                unimplemented!("exhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::WithoutSnapshotWholeNonAliased => {
+                unimplemented!("exhale_predicate: {predicate}");
+            }
+            vir_low::PredicateKind::EndBorrowViewShift => {
+                unimplemented!("exhale_predicate: {predicate}");
+            }
+        };
+        Ok(())
+    }
+
     pub(super) fn desugar_heap_expression(
         &mut self,
         expression: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let mut purifier = ExpressionPurifier::new(self);
         purifier.fallible_fold_expression(expression)
+    }
+
+    pub(super) fn desugar_heap_expressions(
+        &mut self,
+        expressions: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
+        let mut purified_expressions = Vec::with_capacity(expressions.len());
+        for expression in expressions {
+            let purified_expression = self.desugar_heap_expression(expression)?;
+            purified_expressions.push(purified_expression);
+        }
+        Ok(purified_expressions)
     }
 
     fn resolve_snapshot_with_check_predicate(
