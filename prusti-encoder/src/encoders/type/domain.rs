@@ -142,8 +142,17 @@ impl TaskEncoder for DomainEnc {
                 deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
                 match adt.adt_kind() {
                     ty::AdtKind::Struct => {
-                        let variant = adt.non_enum_variant();
-                        let fields = enc.mk_field_tys(deps, variant, &ty_params, params);
+                        let fields = if !adt.is_box() {
+                            let variant = adt.non_enum_variant();
+                            enc.mk_field_tys(deps, variant, &ty_params, params)
+                        } else {
+                            // Box special case (this should be replaced by an
+                            // extern spec in the future)
+                            let TyKind::Param(param) = params[0].expect_ty().kind() else {
+                                unreachable!("Box with non-param type");
+                            };
+                            vec![ty_params[SnapshotEnc::from_viper_param(param.index) as usize]]
+                        };
                         let specifics = enc.mk_struct_specifics(fields);
                         Ok((enc.finalize(), specifics))
                     }
