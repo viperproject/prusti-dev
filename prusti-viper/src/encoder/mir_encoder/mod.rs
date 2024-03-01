@@ -487,7 +487,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::Le => vir::Expr::le_cmp(left, right),
             mir::BinOp::AddUnchecked | mir::BinOp::Add => vir::Expr::add(left, right),
             mir::BinOp::SubUnchecked | mir::BinOp::Sub => vir::Expr::sub(left, right),
-            mir::BinOp::Rem => vir::Expr::rem(left, right),
+            mir::BinOp::Rem => {
+                if matches!(ty.kind(), ty::TyKind::Uint(_)) {
+                    vir::Expr::modulo(left, right)
+                } else {
+                    vir::Expr::rem(left, right)
+                }
+            }
             mir::BinOp::Div => vir::Expr::div(left, right),
             mir::BinOp::MulUnchecked | mir::BinOp::Mul => vir::Expr::mul(left, right),
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
