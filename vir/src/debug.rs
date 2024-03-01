@@ -63,6 +63,8 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
             BinOpKind::Or => "||",
             BinOpKind::Add => "+",
             BinOpKind::Sub => "-",
+            BinOpKind::Mul => "*",
+            BinOpKind::Div => "\\",
             BinOpKind::Mod => "%",
         })?;
         self.rhs.fmt(f)?;
