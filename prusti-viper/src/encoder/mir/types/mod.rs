@@ -7,7 +7,7 @@ mod interface;
 mod lifetimes;
 
 pub(crate) use self::{
-    helpers::compute_discriminant_bounds,
+    helpers::{compute_discriminant_bounds, compute_discriminant_values},
     interface::{MirTypeEncoderInterface, MirTypeEncoderState},
 };
 
