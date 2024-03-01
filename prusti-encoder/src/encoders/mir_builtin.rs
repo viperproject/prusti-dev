@@ -169,9 +169,9 @@ impl MirBuiltinEnc {
             // implicit in the `Shl` and `Shr` operators.
             rhs = vcx.mk_bin_op_expr(vir::BinOpKind::Mod, rhs, vcx.get_bit_width_int(prim_l_ty.prim_type, l_ty.kind()));
         }
-        let val = prim_res_ty.prim_to_snap.apply(vcx,
-            [vcx.mk_bin_op_expr(vir::BinOpKind::from(op), lhs, rhs)]
-        );
+        let op_kind = vir::BinOpKind::from(op);
+        let viper_val = vcx.mk_bin_op_expr(op_kind, lhs, rhs);
+        let val = prim_res_ty.prim_to_snap.apply(vcx, [viper_val]);
         let (pres, val) = match op {
             // Overflow well defined as wrapping (implicit) and for the shifts
             // the RHS will be masked to the bit width.
@@ -203,6 +203,7 @@ impl MirBuiltinEnc {
                 // `0 != arg2 `
                 let pre = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, vcx.mk_int::<0>(), rhs);
                 let mut pres = vec![pre];
+                let mut val = val;
                 if res_ty.is_signed() {
                     let min = vcx.get_min_int(prim_res_ty.prim_type, res_ty.kind());
                     // `arg1 != -iN::MIN`
@@ -212,6 +213,28 @@ impl MirBuiltinEnc {
                     // `-1 != arg2 || arg1 != -iN::MIN`
                     let pre = vcx.mk_bin_op_expr(vir::BinOpKind::Or, arg1_cond, arg2_cond);
                     pres.push(pre);
+                    // The Rust and Viper (SMT) semantics for `\` and `%` do not
+                    // match up when `arg1 < 0`, encode this difference.
+                    if matches!(op, Div) {
+                        // `arg1 >= 0 ? arg1 \ arg2 : arg2 >= 0 ? (arg1 - 1) \ arg2 + 1 : (arg1 - 1) \ arg2 - 1`
+                        let lhs_sub = vcx.mk_bin_op_expr(vir::BinOpKind::Sub, lhs, vcx.mk_int::<1>());
+                        let common_div = vcx.mk_bin_op_expr(op_kind, lhs_sub, rhs);
+                        let neg_pos = vcx.mk_bin_op_expr(vir::BinOpKind::Add, common_div, vcx.mk_int::<1>());
+                        let neg_neg = vcx.mk_bin_op_expr(vir::BinOpKind::Sub, common_div, vcx.mk_int::<1>());
+                        let rhs_pos = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, rhs, vcx.mk_int::<0>());
+                        let negative = vcx.mk_ternary_expr(rhs_pos, neg_pos, neg_neg);
+                        let negative = prim_res_ty.prim_to_snap.apply(vcx, [negative]);
+                        let lhs_pos = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, lhs, vcx.mk_int::<0>());
+                        val = vcx.mk_ternary_expr(lhs_pos, val, negative);
+                    } else {
+                        // `arg1 >= 0 ? arg1 % arg2 : (arg1 % arg2) - (arg2 >= 0 ? arg2 : -arg2)`
+                        let rhs_pos = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, rhs, vcx.mk_int::<0>());
+                        let rhs_abs = vcx.mk_ternary_expr(rhs_pos, rhs, vcx.mk_unary_op_expr(vir::UnOpKind::Neg, rhs));
+                        let negative = vcx.mk_bin_op_expr(vir::BinOpKind::Sub, viper_val, rhs_abs);
+                        let negative = prim_res_ty.prim_to_snap.apply(vcx, [negative]);
+                        let lhs_pos = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, lhs, vcx.mk_int::<0>());
+                        val = vcx.mk_ternary_expr(lhs_pos, val, negative);
+                    }
                 }
                 (pres, val)
             }
