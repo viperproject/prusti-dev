@@ -933,11 +933,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let adt_def = tcx.adt_def(adt_did);
                                 let num_variants = adt_def.variants().len();
                                 let variant_def = &adt_def.variants()[variant_index];
-                                let discr_values = compute_discriminant_values(adt_def, tcx);
-                                let discr_value = discr_values[variant_index.as_usize()];
                                 let mut encoded_lhs_variant = encoded_lhs.clone();
                                 if num_variants > 1 {
                                     let discr_field = self.encoder.encode_discriminant_field();
+                                    let discr_values = compute_discriminant_values(adt_def, tcx);
+                                    let discr_value = discr_values[variant_index.as_usize()];
                                     state.substitute_value(
                                         &encoded_lhs.clone().field(discr_field),
                                         discr_value.into(),
