@@ -5,7 +5,6 @@ const API_HOST: &str = "http://localhost:8080";
 
 pub struct ProgramSubmitter {
     allow_submission: bool,
-    program_name: String,
     program: String,
     original_frontend: String,
     original_verifier: String,
@@ -17,7 +16,6 @@ pub struct ProgramSubmitter {
 impl ProgramSubmitter {
     pub fn new(
         allow_submission: bool,
-        program_name: String,
         program: String,
         original_frontend: String,
         original_verifier: String,
@@ -25,7 +23,6 @@ impl ProgramSubmitter {
     ) -> Self {
         Self {
             allow_submission,
-            program_name,
             program,
             original_frontend,
             original_verifier,
@@ -46,7 +43,6 @@ impl ProgramSubmitter {
     pub fn submit(&self) {
         if !API_HOST.is_empty() && self.allow_submission {
             let submission = json!({
-                "originalName": self.program_name,
                 "program": &self.program,
                 "frontend": &self.original_frontend,
                 "args": self.args,

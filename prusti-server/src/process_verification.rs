@@ -5,16 +5,16 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{Backend, VerificationRequest, ViperBackendConfig};
-use prusti_utils::program_submitter::ProgramSubmitter;
 use log::info;
 use once_cell::sync::Lazy;
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
-    vir::{program_normalization::NormalizationInfo, ToViper, LoweringContext},
+    vir::{program_normalization::NormalizationInfo, LoweringContext, ToViper},
     Stopwatch,
 };
-use std::{fs::create_dir_all, path::PathBuf, borrow::Borrow};
+use prusti_utils::program_submitter::ProgramSubmitter;
+use std::{borrow::Borrow, fs::create_dir_all, path::PathBuf};
 use viper::{
     smt_manager::SmtManager, Cache, VerificationBackend, VerificationContext, VerificationResult,
 };
@@ -104,7 +104,7 @@ pub fn process_verification_request<'v, 't: 'v>(
 
     let backend_name: String = match request.backend_config.backend.borrow() {
         VerificationBackend::Carbon => String::from("Carbon"),
-        VerificationBackend::Silicon => String::from("Silicion")
+        VerificationBackend::Silicon => String::from("Silicion"),
     };
 
     // Create a new verifier each time.
@@ -122,15 +122,20 @@ pub fn process_verification_request<'v, 't: 'v>(
 
     stopwatch.start_next("backend verification");
 
-
     let mut submitter: Option<ProgramSubmitter> = None;
     if config::submit_for_evaluation() {
-        
         let ast_factory = verification_context.new_ast_factory();
-        let viper_program = request.program.to_viper(LoweringContext::default(), &ast_factory);
+        let viper_program = request
+            .program
+            .to_viper(LoweringContext::default(), &ast_factory);
 
-        submitter = Some(ProgramSubmitter::new(true, request.program.get_name().to_string(),
-        ast_utils.to_string(viper_program), String::from("Prusti"), backend_name, vec![]))
+        submitter = Some(ProgramSubmitter::new(
+            true,
+            ast_utils.to_string(viper_program),
+            String::from("Prusti"),
+            backend_name,
+            vec![],
+        ))
     }
 
     let mut result = backend.verify(&request.program);
@@ -148,7 +153,7 @@ pub fn process_verification_request<'v, 't: 'v>(
     if submitter.is_some() {
         let mut s = submitter.unwrap();
         s.set_success(result.is_success());
-        s.submit(); 
+        s.submit();
     };
 
     normalization_info.denormalize_result(&mut result);
