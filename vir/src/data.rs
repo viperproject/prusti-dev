@@ -46,6 +46,8 @@ pub enum BinOpKind {
     Or,
     Add,
     Sub,
+    Mul,
+    Div,
     Mod,
     // ...
     If,
@@ -58,15 +60,18 @@ impl From<mir::BinOp> for BinOpKind {
         match value {
             mir::BinOp::Add => BinOpKind::Add,
             mir::BinOp::AddUnchecked => todo!(),
-            mir::BinOp::Sub => todo!(),
+            mir::BinOp::Sub => BinOpKind::Sub,
             mir::BinOp::SubUnchecked => todo!(),
-            mir::BinOp::Mul => todo!(),
+            mir::BinOp::Mul => BinOpKind::Mul,
             mir::BinOp::MulUnchecked => todo!(),
-            mir::BinOp::Div => todo!(),
-            mir::BinOp::Rem => todo!(),
+            mir::BinOp::Div => BinOpKind::Div,
+            mir::BinOp::Rem => BinOpKind::Mod,
             mir::BinOp::BitXor => todo!(),
-            mir::BinOp::BitAnd => todo!(),
-            mir::BinOp::BitOr => todo!(),
+            // TODO: this is a temporary workaround,
+            // we need to fix this for integers and
+            // do non-short-circuiting for booleans.
+            mir::BinOp::BitAnd => BinOpKind::And,
+            mir::BinOp::BitOr => BinOpKind::Or,
             mir::BinOp::Shl => todo!(),
             mir::BinOp::ShlUnchecked => todo!(),
             mir::BinOp::Shr => todo!(),
