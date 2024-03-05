@@ -204,6 +204,7 @@ lazy_static::lazy_static! {
         settings.set_default("svirpti_smt_solver", "z3").unwrap();
         settings.set_default::<Option<String>>("svirpti_smt_solver_log", None).unwrap();
         settings.set_default("svirpti_stop_on_first_error", false).unwrap();
+        settings.set_default("svirpti_use_pseudo_boolean_heap", false).unwrap();
 
         // Get the list of all allowed flags.
         let mut allowed_keys = get_keys(&settings);
@@ -1304,6 +1305,11 @@ pub fn svirpti_smt_solver_log() -> Option<String> {
 /// Stop when the first verification error is found.
 pub fn svirpti_stop_on_first_error() -> bool {
     read_setting("svirpti_stop_on_first_error")
+}
+
+/// Use the encoding of the heap based on pseudo-boolean theory.
+pub fn svirpti_use_pseudo_boolean_heap() -> bool {
+    read_setting("svirpti_use_pseudo_boolean_heap")
 }
 
 /// When enabled, features not supported by Prusti will be reported as warnings
