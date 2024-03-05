@@ -23,6 +23,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
+    pub(super) fn smoke_check(&mut self) -> SpannedEncodingResult<()> {
+        let result = self.smt_solver.check_sat().unwrap(); // TODO: handle error
+        assert!(!result.is_unsat(), "Smoke check failed");
+        Ok(())
+    }
+
     pub(super) fn assert(
         &mut self,
         expression: vir_low::Expression,

@@ -107,7 +107,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             for definition in guard_definitions {
                 self.assume(&definition)?;
             }
-            self.assume(&check)?;
+            let negated_check = vir_low::Expression::not(check.clone());
+            self.assume(&negated_check)?;
         }
 
         // Update the global heap.
@@ -262,7 +263,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    fn create_permission_check(
+    pub(super) fn create_permission_check(
         &mut self,
         predicate_name: &str,
         predicate_arguments: &[vir_low::Expression],
@@ -313,7 +314,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             LogEntry::InhaleQuantified(entry) => unimplemented!(),
             LogEntry::ExhaleFull(_) | LogEntry::ExhaleQuantified(_) => unreachable!(),
         };
-        for (entry, mut guard) in entry_iterator {
+        for (entry, guard) in entry_iterator {
             match entry {
                 LogEntry::InhaleFull(entry) => {
                     let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
