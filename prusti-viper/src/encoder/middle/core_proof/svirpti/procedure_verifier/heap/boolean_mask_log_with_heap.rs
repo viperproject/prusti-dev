@@ -294,6 +294,36 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 })
                 .conjoin()
         }
+        fn arguments_equal_quantified(
+            predicate_arguments: &[vir_low::Expression],
+            entry: &LogEntryQuantifiedFull,
+        ) -> vir_low::Expression {
+            use vir_low::macros::*;
+            let entry_replacements =
+                if entry.variables.len() == 1 && entry.variables[0].name == "element_address" {
+                    assert_eq!(&entry.variables[0].ty, predicate_arguments[0].get_type());
+                    let mut entry_replacements = FxHashMap::default();
+                    entry_replacements.insert(&entry.variables[0], &predicate_arguments[0]);
+                    entry_replacements
+                } else {
+                    unimplemented!();
+                };
+            let arguments_equal = predicate_arguments
+                .iter()
+                .zip(entry.arguments.iter())
+                .map(|(predicate_argument, entry_argument)| {
+                    let entry_argument = entry_argument
+                        .clone()
+                        .substitute_variables(&entry_replacements);
+                    expr! { [predicate_argument.clone()] == [entry_argument] }
+                })
+                .conjoin();
+            let entry_guard = entry
+                .guard
+                .clone()
+                .substitute_variables(&entry_replacements);
+            expr! { [entry_guard] && [arguments_equal] }
+        }
         let entries = self
             .global_heap
             .boolean_mask_log
@@ -311,7 +341,11 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 guard_definitions.insert(arguments_equal, first_guard.clone());
                 first_guard.into()
             }
-            LogEntry::InhaleQuantified(entry) => unimplemented!(),
+            LogEntry::InhaleQuantified(entry) => {
+                let guard_definition = arguments_equal_quantified(&predicate_arguments, entry);
+                guard_definitions.insert(guard_definition, first_guard.clone());
+                first_guard.into()
+            }
             LogEntry::ExhaleFull(_) | LogEntry::ExhaleQuantified(_) => unreachable!(),
         };
         for (entry, guard) in entry_iterator {
@@ -319,20 +353,23 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 LogEntry::InhaleFull(entry) => {
                     let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
                     let guard_variable = guard_definitions.entry(arguments_equal).or_insert(guard);
-                    // guard_definitions.push(expr! { guard == [arguments_equal] });
                     check_permissions =
                         vir_low::Expression::or(check_permissions, guard_variable.clone().into());
                 }
                 LogEntry::ExhaleFull(entry) => {
                     let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
                     let guard_variable = guard_definitions.entry(arguments_equal).or_insert(guard);
-                    // guard_definitions.push(expr! { guard == [arguments_equal] });
                     check_permissions = vir_low::Expression::and(
                         check_permissions,
                         vir_low::Expression::not(guard_variable.clone().into()),
                     );
                 }
-                LogEntry::InhaleQuantified(_) => todo!(),
+                LogEntry::InhaleQuantified(entry) => {
+                    let guard_definition = arguments_equal_quantified(&predicate_arguments, entry);
+                    let guard_variable = guard_definitions.entry(guard_definition).or_insert(guard);
+                    check_permissions =
+                        vir_low::Expression::or(check_permissions, guard_variable.clone().into());
+                }
                 LogEntry::ExhaleQuantified(_) => todo!(),
             }
         }
@@ -407,6 +444,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         full_error_id: &str,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
+        unimplemented!();
         use vir_low::macros::*;
         assert!(
             entry_id > 0,
