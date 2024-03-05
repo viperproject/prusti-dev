@@ -100,6 +100,16 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         *log_entry += 1;
         let new_log_entry = *log_entry;
 
+        // Update Z3 state.
+        if !config::svirpti_use_pseudo_boolean_heap() && old_log_entry > 0 {
+            let (guard_definitions, check) =
+                self.create_permission_check(&predicate.name, &predicate.arguments, old_log_entry)?;
+            for definition in guard_definitions {
+                self.assume(&definition)?;
+            }
+            self.assume(&check)?;
+        }
+
         // Update the global heap.
         let entries = self
             .global_heap
@@ -252,15 +262,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    fn check_permissions_with_heap_bools(
+    fn create_permission_check(
         &mut self,
         predicate_name: &str,
         predicate_arguments: &[vir_low::Expression],
-        guard: Option<vir_low::Expression>,
         entry_id: usize,
-        full_error_id: &str,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<()> {
+    ) -> SpannedEncodingResult<(Vec<vir_low::Expression>, vir_low::Expression)> {
         use vir_low::macros::*;
         assert!(
             entry_id > 0,
@@ -271,7 +278,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             let guard_id = self.generate_fresh_id();
             let guard_name = format!("guard${}", guard_id);
             let guard = vir_low::VariableDecl::new(guard_name, vir_low::Type::Bool);
-            self.declare_variable(&guard)?;
             guards.push(guard);
         }
         fn arguments_equal(
@@ -329,6 +335,25 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 LogEntry::ExhaleQuantified(_) => todo!(),
             }
         }
+        let mut guard_definitions_vec = Vec::new();
+        for (definition, guard) in guard_definitions {
+            self.declare_variable(&guard)?;
+            guard_definitions_vec.push(expr! { guard == [definition] });
+        }
+        Ok((guard_definitions_vec, check_permissions))
+    }
+
+    fn check_permissions_with_heap_bools(
+        &mut self,
+        predicate_name: &str,
+        predicate_arguments: &[vir_low::Expression],
+        guard: Option<vir_low::Expression>,
+        entry_id: usize,
+        full_error_id: &str,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let (guard_definitions, mut check_permissions) =
+            self.create_permission_check(predicate_name, predicate_arguments, entry_id)?;
         if let Some(guard) = guard {
             check_permissions = vir_low::Expression::implies(guard, check_permissions);
         }
@@ -337,10 +362,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             position,
             &check_permissions,
         )?;
-        let guard_definitions: Vec<_> = guard_definitions
-            .into_iter()
-            .map(|(definition, guard)| expr! { guard == [definition] })
-            .collect();
         self.assert_with_assumptions(&guard_definitions, check_permissions, error)?;
         Ok(())
     }
