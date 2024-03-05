@@ -38,6 +38,7 @@ pub(crate) enum TheoryKind {
     Basic,
     Datatype,
     UserSort,
+    PseudoBooleans,
 }
 
 pub(crate) enum QuantTerm {
@@ -182,6 +183,7 @@ impl<'a> Parser<'a> {
             "arith" => TheoryKind::Arith,
             "datatype" => TheoryKind::Datatype,
             "user-sort" => TheoryKind::UserSort,
+            "pb" => TheoryKind::PseudoBooleans,
             _ => {
                 eprintln!("kind: {kind:?}");
                 eprintln!("self; {:?}", self.error(ErrorKind::ConsumeFailed));

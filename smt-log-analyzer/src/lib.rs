@@ -161,6 +161,7 @@ pub fn analyze(
     state.register_theory(parser::TheoryKind::Basic);
     state.register_theory(parser::TheoryKind::Datatype);
     state.register_theory(parser::TheoryKind::UserSort);
+    state.register_theory(parser::TheoryKind::PseudoBooleans);
 
     // Tracing triggers.
     state.mark_quantifier_for_tracing(settings.trace_quantifier_triggers);

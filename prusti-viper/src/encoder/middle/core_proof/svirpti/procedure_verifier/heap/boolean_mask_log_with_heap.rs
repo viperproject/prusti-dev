@@ -2,9 +2,10 @@ use super::super::{
     super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor,
 };
 use crate::encoder::errors::SpannedEncodingResult;
+use prusti_common::config;
 use rustc_hash::FxHashMap;
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, ExpressionIterator},
+    common::expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
     low::{self as vir_low, operations::ty::Typed},
 };
 
@@ -160,7 +161,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         Ok(())
     }
 
-    fn check_permissions_with_heap(
+    fn check_permissions_with_heap_pbge(
         &mut self,
         predicate_name: &str,
         predicate_arguments: &[vir_low::Expression],
@@ -249,6 +250,129 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         )?;
         self.assert(check_permissions, error)?;
         Ok(())
+    }
+
+    fn check_permissions_with_heap_bools(
+        &mut self,
+        predicate_name: &str,
+        predicate_arguments: &[vir_low::Expression],
+        guard: Option<vir_low::Expression>,
+        entry_id: usize,
+        full_error_id: &str,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        assert!(
+            entry_id > 0,
+            "TODO: A proper error message that we are exhaling for an empty heap."
+        );
+        let mut guards = Vec::with_capacity(entry_id);
+        for _ in 0..entry_id {
+            let guard_id = self.generate_fresh_id();
+            let guard_name = format!("guard${}", guard_id);
+            let guard = vir_low::VariableDecl::new(guard_name, vir_low::Type::Bool);
+            self.declare_variable(&guard)?;
+            guards.push(guard);
+        }
+        fn arguments_equal(
+            predicate_arguments: &[vir_low::Expression],
+            entry_arguments: &[vir_low::Expression],
+        ) -> vir_low::Expression {
+            use vir_low::macros::*;
+            predicate_arguments
+                .iter()
+                .zip(entry_arguments.iter())
+                .map(|(predicate_argument, entry_argument)| {
+                    expr! { [predicate_argument.clone()] == [entry_argument.clone()] }
+                })
+                .conjoin()
+        }
+        let entries = self
+            .global_heap
+            .boolean_mask_log
+            .entries
+            .get_mut(predicate_name)
+            .unwrap();
+        let mut entry_iterator = entries.iter().take(entry_id).zip(guards.into_iter());
+        // let mut guard_definitions = Vec::with_capacity(entry_id);
+        let mut guard_definitions = FxHashMap::default();
+        let (first_entry, first_guard) = entry_iterator.next().unwrap();
+        let mut check_permissions: vir_low::Expression = match first_entry {
+            LogEntry::InhaleFull(entry) => {
+                let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
+                // guard_definitions.push(expr! { first_guard == [arguments_equal] });
+                guard_definitions.insert(arguments_equal, first_guard.clone());
+                first_guard.into()
+            }
+            LogEntry::InhaleQuantified(entry) => unimplemented!(),
+            LogEntry::ExhaleFull(_) | LogEntry::ExhaleQuantified(_) => unreachable!(),
+        };
+        for (entry, mut guard) in entry_iterator {
+            match entry {
+                LogEntry::InhaleFull(entry) => {
+                    let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
+                    let guard_variable = guard_definitions.entry(arguments_equal).or_insert(guard);
+                    // guard_definitions.push(expr! { guard == [arguments_equal] });
+                    check_permissions =
+                        vir_low::Expression::or(check_permissions, guard_variable.clone().into());
+                }
+                LogEntry::ExhaleFull(entry) => {
+                    let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
+                    let guard_variable = guard_definitions.entry(arguments_equal).or_insert(guard);
+                    // guard_definitions.push(expr! { guard == [arguments_equal] });
+                    check_permissions = vir_low::Expression::and(
+                        check_permissions,
+                        vir_low::Expression::not(guard_variable.clone().into()),
+                    );
+                }
+                LogEntry::InhaleQuantified(_) => todo!(),
+                LogEntry::ExhaleQuantified(_) => todo!(),
+            }
+        }
+        if let Some(guard) = guard {
+            check_permissions = vir_low::Expression::implies(guard, check_permissions);
+        }
+        let error = self.create_verification_error_for_expression(
+            full_error_id,
+            position,
+            &check_permissions,
+        )?;
+        let guard_definitions: Vec<_> = guard_definitions
+            .into_iter()
+            .map(|(definition, guard)| expr! { guard == [definition] })
+            .collect();
+        self.assert_with_assumptions(&guard_definitions, check_permissions, error)?;
+        Ok(())
+    }
+
+    fn check_permissions_with_heap(
+        &mut self,
+        predicate_name: &str,
+        predicate_arguments: &[vir_low::Expression],
+        guard: Option<vir_low::Expression>,
+        entry_id: usize,
+        full_error_id: &str,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        if config::svirpti_use_pseudo_boolean_heap() {
+            self.check_permissions_with_heap_pbge(
+                predicate_name,
+                predicate_arguments,
+                guard,
+                entry_id,
+                full_error_id,
+                position,
+            )
+        } else {
+            self.check_permissions_with_heap_bools(
+                predicate_name,
+                predicate_arguments,
+                guard,
+                entry_id,
+                full_error_id,
+                position,
+            )
+        }
     }
 
     fn check_quantified_permissions_with_heap(
