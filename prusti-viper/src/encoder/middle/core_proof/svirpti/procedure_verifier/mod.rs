@@ -131,6 +131,12 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
 
     fn execute_block(&mut self, block: &vir_low::BasicBlock) -> SpannedEncodingResult<()> {
         eprintln!("Executing block: {}", self.current_frame().label());
+        self.smt_solver
+            .comment(&format!(
+                "Executing block: {}",
+                self.current_frame().label()
+            ))
+            .unwrap(); // FIXME: Handle errors
         for statement in &block.statements {
             self.execute_statement(statement)?;
             if self.reached_contradiction {

@@ -1,5 +1,6 @@
 use super::{super::super::transformations::encoder_context::EncoderContext, ProcedureExecutor};
 use crate::encoder::errors::SpannedEncodingResult;
+use prusti_common::config;
 use vir_crate::{common::expression::SyntacticEvaluation, low as vir_low};
 
 mod exhale;
@@ -49,6 +50,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             vir_low::Statement::CaseSplit(statement) => {
                 self.execute_case_split(statement)?;
             }
+        }
+        if config::svirpti_enable_smoke_check() {
+            self.smoke_check()?;
         }
         Ok(())
     }

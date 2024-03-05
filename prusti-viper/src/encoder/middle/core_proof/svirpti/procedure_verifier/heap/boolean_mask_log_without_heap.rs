@@ -10,7 +10,7 @@ use crate::encoder::{
 use prusti_common::config;
 use rustc_hash::FxHashMap;
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, ExpressionIterator},
+    common::expression::{BinaryOperationHelpers, ExpressionIterator, UnaryOperationHelpers},
     low as vir_low,
 };
 
@@ -54,6 +54,17 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let old_log_entry = *log_entry;
         *log_entry += 1;
         let new_log_entry = *log_entry;
+
+        // Update Z3 state.
+        if !config::svirpti_use_pseudo_boolean_heap() && old_log_entry > 0 {
+            let (guard_definitions, check) =
+                self.create_permission_check(&predicate.name, &predicate.arguments, old_log_entry)?;
+            for definition in guard_definitions {
+                self.assume(&definition)?;
+            }
+            let negated_check = vir_low::Expression::not(check.clone());
+            self.assume(&negated_check)?;
+        }
 
         // Update the global heap.
         let entries = self
@@ -151,66 +162,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         full_error_id: &str,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
-        use vir_low::macros::*;
-        assert!(
-            entry_id > 0,
-            "TODO: A proper error message that we are exhaling for an empty heap."
-        );
-        let mut guards = Vec::with_capacity(entry_id);
-        for _ in 0..entry_id {
-            let guard_id = self.generate_fresh_id();
-            let guard_name = format!("guard${}", guard_id);
-            let guard = vir_low::VariableDecl::new(guard_name, vir_low::Type::Bool);
-            self.declare_variable(&guard)?;
-            guards.push(guard);
-        }
-        fn arguments_equal(
-            predicate_arguments: &[vir_low::Expression],
-            entry_arguments: &[vir_low::Expression],
-        ) -> vir_low::Expression {
-            use vir_low::macros::*;
-            predicate_arguments
-                .iter()
-                .zip(entry_arguments.iter())
-                .map(|(predicate_argument, entry_argument)| {
-                    expr! { [predicate_argument.clone()] == [entry_argument.clone()] }
-                })
-                .conjoin()
-        }
-        let entries = self
-            .global_heap
-            .boolean_mask_log
-            .entries
-            .get_mut(predicate_name)
-            .unwrap();
-        let mut entry_iterator = entries.iter().take(entry_id).zip(guards.into_iter());
-        let mut guard_definitions = Vec::with_capacity(entry_id);
-        let (first_entry, first_guard) = entry_iterator.next().unwrap();
-        let mut check_permissions: vir_low::Expression = match first_entry {
-            LogEntry::InhaleFull(entry) => {
-                let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
-                guard_definitions.push(expr! { first_guard == [arguments_equal] });
-                first_guard.into()
-            }
-            LogEntry::InhaleQuantified(entry) => unimplemented!(),
-            LogEntry::ExhaleFull(_) | LogEntry::ExhaleQuantified(_) => unreachable!(),
-        };
-        for (entry, guard) in entry_iterator {
-            match entry {
-                LogEntry::InhaleFull(entry) => {
-                    let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
-                    guard_definitions.push(expr! { guard == [arguments_equal] });
-                    check_permissions = vir_low::Expression::or(check_permissions, guard.into());
-                }
-                LogEntry::ExhaleFull(entry) => {
-                    let arguments_equal = arguments_equal(&predicate_arguments, &entry.arguments);
-                    guard_definitions.push(expr! { guard == [arguments_equal] });
-                    check_permissions = vir_low::Expression::and(check_permissions, guard.into());
-                }
-                LogEntry::InhaleQuantified(_) => todo!(),
-                LogEntry::ExhaleQuantified(_) => todo!(),
-            }
-        }
+        let (guard_definitions, mut check_permissions) =
+            self.create_permission_check(predicate_name, predicate_arguments, entry_id)?;
         if let Some(guard) = guard {
             check_permissions = vir_low::Expression::implies(guard, check_permissions);
         }
