@@ -83,7 +83,11 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
     }
 
     // Add compilation flags
-    config.target_rustcflags = Some(format!("--edition=2018 {}", rustc_flags.unwrap_or("")));
+    // mir-opt-level=0 disables MIR optimizations (e.g., const propagation) that might hide bugs.
+    config.target_rustcflags = Some(format!(
+        "--edition=2018 -Z mir-opt-level=0 {}",
+        rustc_flags.unwrap_or("")
+    ));
 
     let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
     if path.exists() {
