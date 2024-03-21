@@ -1,20 +1,19 @@
 //! A module that invokes the verifier `prusti-viper`
 
 use log::{debug, warn};
-use prusti_common::{config, report::user};
+use prusti_utils::{config, report::user};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
     specs::typed,
 };
-//use prusti_viper::verifier::Verifier;
 
 #[tracing::instrument(name = "prusti::verify", level = "debug", skip(env))]
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
     if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
-        debug!("Prepare verification task...");/*
+        debug!("Prepare verification task...");
         // TODO: can we replace `get_annotated_procedures` with information
         // that is already in `def_spec`?
         let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
@@ -41,14 +40,21 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                     env.query.get_def_span(procedure)
                 );
             }
-        }*/
+        }
 
-        let program = prusti_encoder::test_entrypoint(
+        // encode the crate to a RequestWithContext
+        // TODO: push RequestWithContext through (replace VerificationRequest
+        //   which is constructed further inside `prusti_server`)
+        let request = prusti_encoder::test_entrypoint(
             env.tcx(),
             env.body,
             def_spec,
         );
-        //viper::verify(program);
+        let program = request.program;
+
+        let results = prusti_server::verify_programs(vec![program]);
+        println!("verification results: {results:?}");
+        // TODO: backtranslate verification results
 
         //let verification_result =
         //    if verification_task.procedures.is_empty() && verification_task.types.is_empty() {

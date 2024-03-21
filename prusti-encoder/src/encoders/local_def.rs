@@ -73,7 +73,7 @@ impl TaskEncoder for MirLocalDefEnc {
 
         vir::with_vcx(|vcx| {
             let data = if let Some(local_def_id) = def_id.as_local() {
-                let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
+                let body = vcx.body_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {
                     let local = vir::vir_format!(vcx, "_{}p", arg.index());
                     let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
@@ -86,9 +86,9 @@ impl TaskEncoder for MirLocalDefEnc {
                     arg_count: body.arg_count,
                 }
             } else {
-                let param_env = vcx.tcx.param_env(caller_def_id.unwrap_or(def_id));
-                let sig = vcx.tcx
-                    .subst_and_normalize_erasing_regions(substs, param_env, vcx.tcx.fn_sig(def_id));
+                let param_env = vcx.tcx().param_env(caller_def_id.unwrap_or(def_id));
+                let sig = vcx.tcx()
+                    .subst_and_normalize_erasing_regions(substs, param_env, vcx.tcx().fn_sig(def_id));
                 let sig = sig.skip_binder();
 
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {

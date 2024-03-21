@@ -1,21 +1,24 @@
+use std::collections::HashMap;
 use std::fmt::Debug;
+use serde::{Serialize, Deserialize};
 
 use prusti_rustc_interface::middle::mir;
-use crate::{refs::*, FunctionIdent, UnknownArity, callable_idents::CallableIdent};
-use std::collections::HashMap;
 
+use crate::{refs::*, FunctionIdent, UnknownArity};
 
+#[derive(Serialize, Deserialize, Hash)]
 pub struct LocalData<'vir> {
-    pub name: &'vir str, // TODO: identifiers
-    pub ty: Type<'vir>,
+    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_ref")] pub ty: Type<'vir>,
 }
 
+#[derive(Serialize, Deserialize, Hash)]
 pub struct LocalDeclData<'vir> {
-    pub name: &'vir str, // TODO: identifiers
-    pub ty: Type<'vir>,
+    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_ref")] pub ty: Type<'vir>,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize, Hash)]
 pub enum UnOpKind {
     Neg,
     Not,
@@ -34,7 +37,7 @@ impl From<&mir::UnOp> for UnOpKind {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize, Hash)]
 pub enum BinOpKind {
     CmpEq,
     CmpNe,
@@ -88,6 +91,7 @@ impl From<&mir::BinOp> for BinOpKind {
     }
 }
 
+#[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 pub enum ConstData {
     Bool(bool),
     Int(u128), // TODO: what about negative numbers? larger numbers?
@@ -106,12 +110,15 @@ impl ConstData {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum TypeData<'vir> {
     Int,
     Bool,
     DomainTypeParam(DomainParamData<'vir>), // TODO: identifiers
-    Domain(&'vir str, &'vir [Type<'vir>]), // TODO: identifiers
+    Domain(
+        #[serde(with = "crate::serde::serde_str")] &'vir str, // TODO: identifiers
+        #[serde(with = "crate::serde::serde_slice")] &'vir [Type<'vir>]
+    ),
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
     Perm,
@@ -119,40 +126,57 @@ pub enum TypeData<'vir> {
     Unsupported(UnsupportedType<'vir>)
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 pub struct UnsupportedType<'vir> {
-    pub name: &'vir str,
+    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str,
 }
 
 pub type TySubsts<'vir> = HashMap<&'vir str, Type<'vir>>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct DomainParamData<'vir> {
-    pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
 }
 
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 pub struct FieldData<'vir> {
-    pub(crate) name: &'vir str, // TODO: identifiers
-    pub(crate) ty: Type<'vir>,
+    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_ref")] pub ty: Type<'vir>,
 }
 
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 pub struct DomainFunctionData<'vir> {
-    pub(crate) unique: bool,
-    pub(crate) name: &'vir str, // TODO: identifiers
-    pub(crate) args: &'vir [Type<'vir>],
-    pub(crate) ret: Type<'vir>,
+    pub unique: bool,
+    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_slice")] pub args: &'vir [Type<'vir>],
+    #[serde(with = "crate::serde::serde_ref")] pub ret: Type<'vir>,
 }
 
 impl <'vir> DomainFunctionData<'vir> {
     pub fn ident(&self) -> FunctionIdent<'vir, UnknownArity<'vir>> {
-        FunctionIdent::new(self.name, UnknownArity::new(self.args), self.ret)
+        FunctionIdent::new(
+            self.name,
+            UnknownArity::new(self.args),
+            self.ret,
+        )
     }
 }
 
+#[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 pub enum CfgBlockLabelData {
     Start,
     End,
     BasicBlock(usize),
+}
+
+impl CfgBlockLabelData {
+    pub fn name(&self) -> String {
+        match self {
+            Self::Start => "start".to_string(),
+            Self::End => "end".to_string(),
+            Self::BasicBlock(idx) => format!("bb_{idx}"),
+        }
+    }
 }
 
 pub type AccFieldData<'vir> = crate::gendata::AccFieldGenData<'vir, !, !>;
@@ -167,8 +191,9 @@ pub type FuncAppData<'vir> = crate::gendata::FuncAppGenData<'vir, !, !>;
 pub type FunctionData<'vir> = crate::gendata::FunctionGenData<'vir, !, !>;
 pub type GotoIfData<'vir> = crate::gendata::GotoIfGenData<'vir, !, !>;
 pub type LetData<'vir> = crate::gendata::LetGenData<'vir, !, !>;
-pub type MethodCallData<'vir> = crate::gendata::MethodCallGenData<'vir, !, !>;
 pub type MethodData<'vir> = crate::gendata::MethodGenData<'vir, !, !>;
+pub type MethodBodyData<'vir> = crate::gendata::MethodBodyGenData<'vir, !, !>;
+pub type MethodCallData<'vir> = crate::gendata::MethodCallGenData<'vir, !, !>;
 pub type PredicateAppData<'vir> = crate::gendata::PredicateAppGenData<'vir, !, !>;
 pub type PredicateData<'vir> = crate::gendata::PredicateGenData<'vir, !, !>;
 pub type ProgramData<'vir> = crate::gendata::ProgramGenData<'vir, !, !>;
@@ -176,5 +201,6 @@ pub type PureAssignData<'vir> = crate::gendata::PureAssignGenData<'vir, !, !>;
 pub type StmtData<'vir> = crate::gendata::StmtGenData<'vir, !, !>;
 pub type TerminatorStmtData<'vir> = crate::gendata::TerminatorStmtGenData<'vir, !, !>;
 pub type TernaryData<'vir> = crate::gendata::TernaryGenData<'vir, !, !>;
+pub type TriggerData<'vir> = crate::gendata::TriggerGenData<'vir, !, !>;
 pub type UnOpData<'vir> = crate::gendata::UnOpGenData<'vir, !, !>;
 pub type UnfoldingData<'vir> = crate::gendata::UnfoldingGenData<'vir, !, !>;

@@ -65,10 +65,10 @@ impl TaskEncoder for ViperTupleEnc {
             Ok((ViperTupleEncOutput { tuple: None }, ()))
         } else {
             let tuple = vir::with_vcx(|vcx| {
-                let new_tys = vcx.tcx.mk_type_list_from_iter((0..*task_key).map(|index|
-                    SnapshotEnc::to_placeholder(vcx.tcx, Some(index))
+                let new_tys = vcx.tcx().mk_type_list_from_iter((0..*task_key).map(|index|
+                    SnapshotEnc::to_placeholder(vcx.tcx(), Some(index))
                 ));
-                vcx.tcx.mk_ty_from_kind(ty::TyKind::Tuple(new_tys))
+                vcx.tcx().mk_ty_from_kind(ty::TyKind::Tuple(new_tys))
             });
             let ret = deps.require_dep::<DomainEnc>(tuple).unwrap();
             Ok((ViperTupleEncOutput { tuple: Some(ret.expect_structlike()) }, ()))

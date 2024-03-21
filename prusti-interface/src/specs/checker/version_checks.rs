@@ -3,7 +3,7 @@ use crate::{
     environment::{EnvQuery, Environment},
     utils, PrustiError,
 };
-use prusti_common::config;
+use prusti_utils::config;
 use prusti_rustc_interface::{ast::ast::Attribute, errors::MultiSpan, hir, middle::hir::map::Map};
 
 /// Checks for mismatched version issues between `prusti` and `prusti-contracts`/`prusti-specs`

@@ -6,7 +6,7 @@
 
 use crate::environment::EnvDiagnostic;
 use ::log::warn;
-use prusti_common::config;
+use prusti_utils::config;
 use prusti_rustc_interface::{errors::MultiSpan, span::Span};
 
 /// The Prusti message that will be reported to the user.
