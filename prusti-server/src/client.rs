@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::VerificationRequest;
-use prusti_common::config;
+use prusti_utils::config;
 use reqwest::Client;
 use url::{ParseError, Url};
 use viper::VerificationResult;

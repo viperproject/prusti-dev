@@ -21,7 +21,7 @@ use analysis::{
     abstract_interpretation::{AbstractState, FixpointEngine},
     domains::DefinitelyInitializedAnalysis,
 };
-use prusti_common::Stopwatch;
+use prusti_utils::Stopwatch;
 use prusti_rustc_interface::{
     data_structures::fx::FxHashMap,
     hir::def_id::DefId,

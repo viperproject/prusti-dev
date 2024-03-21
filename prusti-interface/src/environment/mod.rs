@@ -6,7 +6,7 @@
 
 //! This module defines the interface provided to a verifier.
 
-use prusti_rustc_interface::middle::ty::TyCtxt;
+use prusti_rustc_interface::middle::ty::{self, TyCtxt};
 
 pub mod body;
 mod collect_closure_defs_visitor;
@@ -24,6 +24,8 @@ mod name;
 mod query;
 
 pub use self::{
+    collect_closure_defs_visitor::CollectClosureDefsVisitor,
+    collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
     body::EnvBody,
     diagnostic::EnvDiagnostic,
     //loops::{LoopAnalysisError, PlaceAccess, PlaceAccessKind, ProcedureLoops},
@@ -35,6 +37,7 @@ pub use self::{
     //},
     query::EnvQuery,
 };
+use crate::data::ProcedureDefId;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'tcx> {
@@ -60,6 +63,22 @@ impl<'tcx> Environment<'tcx> {
     /// Returns the typing context
     pub fn tcx(&self) -> TyCtxt<'tcx> {
         self.query.tcx()
+    }
+
+    /// Get ids of Rust procedures that are annotated with a Prusti specification
+    #[tracing::instrument(level = "debug", skip(self))]
+    pub fn get_annotated_procedures_and_types(&self) -> (Vec<ProcedureDefId>, Vec<ty::Ty<'tcx>>) {
+        let mut visitor = CollectPrustiSpecVisitor::new(self);
+        visitor.visit_all_item_likes();
+
+        let mut cl_visitor = CollectClosureDefsVisitor::new(self);
+        self.query
+            .hir()
+            .visit_all_item_likes_in_crate(&mut cl_visitor);
+
+        let (mut procedures, types) = visitor.into_result();
+        procedures.extend(cl_visitor.get_closure_defs());
+        (procedures, types)
     }
 
     /// Compare the current version of the `prusti` crate to the given other version

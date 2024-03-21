@@ -7,7 +7,7 @@ use crate::{
     PrustiError,
 };
 use log::debug;
-use prusti_common::config;
+use prusti_utils::config;
 use prusti_rustc_interface::{
     ast::ast,
     data_structures::fx::FxHashMap,
@@ -231,7 +231,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_type_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (type_id, refs) in self.type_specs.iter() {
-            if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
+            if !refs.invariants.is_empty() && !prusti_utils::config::enable_type_invariants() {
                 let span = self.env.query.get_def_span(*type_id);
                 PrustiError::unsupported(
                     "Type invariants need to be enabled with the feature flag `enable_type_invariants`",

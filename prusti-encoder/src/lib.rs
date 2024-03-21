@@ -7,6 +7,7 @@ extern crate rustc_serialize;
 extern crate rustc_type_ir;
 
 mod encoders;
+pub mod request;
 
 use prusti_interface::{environment::EnvBody, specs::typed::SpecificationItem};
 use prusti_rustc_interface::{
@@ -18,7 +19,7 @@ pub fn test_entrypoint<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
     body: EnvBody<'tcx>,
     def_spec: prusti_interface::specs::typed::DefSpecificationMap,
-) -> vir::Program<'tcx> {
+) -> request::RequestWithContext {
     use task_encoder::TaskEncoder;
 
     crate::encoders::init_def_spec(def_spec);
@@ -62,60 +63,89 @@ pub fn test_entrypoint<'tcx>(
     }
     let mut viper_code = String::new();
 
+    let mut program_fields = vec![];
+    let mut program_domains = vec![];
+    let mut program_predicates = vec![];
+    let mut program_functions = vec![];
+    let mut program_methods = vec![];
+
     header(&mut viper_code, "methods");
     for output in crate::encoders::MirImpureEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.method));
+        program_methods.push(output.method);
     }
 
     header(&mut viper_code, "functions");
     for output in crate::encoders::MirFunctionEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.function));
+        program_functions.push(output.function);
     }
 
     header(&mut viper_code, "MIR builtins");
     for output in crate::encoders::MirBuiltinEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.function));
+        program_functions.push(output.function);
     }
 
     header(&mut viper_code, "generics");
     for output in crate::encoders::GenericEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.snapshot_param));
+        program_domains.push(output.snapshot_param);
         viper_code.push_str(&format!("{:?}\n", output.predicate_param));
+        program_predicates.push(output.predicate_param);
         viper_code.push_str(&format!("{:?}\n", output.domain_type));
+        program_domains.push(output.domain_type);
     }
 
     header(&mut viper_code, "snapshots");
     for output in crate::encoders::DomainEnc_all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output));
+        program_domains.push(output);
     }
 
     header(&mut viper_code, "types");
     for output in crate::encoders::PredicateEnc::all_outputs() {
         for field in output.fields {
             viper_code.push_str(&format!("{:?}", field));
+            program_fields.push(field);
         }
         for field_projection in output.ref_to_field_refs {
             viper_code.push_str(&format!("{:?}", field_projection));
+            program_functions.push(field_projection);
         }
         viper_code.push_str(&format!("{:?}\n", output.unreachable_to_snap));
+        program_functions.push(output.unreachable_to_snap);
         viper_code.push_str(&format!("{:?}\n", output.function_snap));
+        program_functions.push(output.function_snap);
         for pred in output.predicates {
             viper_code.push_str(&format!("{:?}\n", pred));
+            program_predicates.push(pred);
         }
         viper_code.push_str(&format!("{:?}\n", output.method_assign));
+        program_methods.push(output.method_assign);
     }
 
     std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
 
-    vir::with_vcx(|vcx|
-        vcx.mk_program(
-            &[],
-            &[],
-            &[],
-            vcx.alloc_slice(&[
-                vcx.mk_function("test_function", &[], &vir::TypeData::Bool, &[], &[], None),
-            ]),
-            &[]
-        )
-    )
+    let program = vir::with_vcx(|vcx| vcx.mk_program(
+        vcx.alloc_slice(&program_fields),
+        vcx.alloc_slice(&program_domains),
+        vcx.alloc_slice(&program_predicates),
+        vcx.alloc_slice(&program_functions),
+        vcx.alloc_slice(&program_methods),
+    ));
+
+    /*
+    let source_path = std::path::Path::new("source/path"); // TODO: env.name.source_path();
+    let rust_program_name = source_path
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_owned();
+    */
+
+    request::RequestWithContext {
+        program: program.to_ref(),
+    }
 }
