@@ -58,17 +58,17 @@ impl TaskEncoder for SnapshotEnc {
             //     `Foo<i32, bool>` is normalised to `Foo<T, U>`
             let (ty, args) = match *task_key.kind() {
                 TyKind::Adt(adt, args) => {
-                    let id = ty::List::identity_for_item(vcx.tcx, adt.did()).iter()
-                        .map(|id| Self::to_placeholder_arg(vcx.tcx, id));
-                    let id = vcx.tcx.mk_args_from_iter(id);
-                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Adt(adt, id));
+                    let id = ty::List::identity_for_item(vcx.tcx(), adt.did()).iter()
+                        .map(|id| Self::to_placeholder_arg(vcx.tcx(), id));
+                    let id = vcx.tcx().mk_args_from_iter(id);
+                    let ty = vcx.tcx().mk_ty_from_kind(TyKind::Adt(adt, id));
                     (ty, args.into_iter().flat_map(ty::GenericArg::as_type).collect())
                 }
                 TyKind::Tuple(tys) => {
-                    let new_tys = vcx.tcx.mk_type_list_from_iter((0..tys.len()).map(|index|
-                        Self::to_placeholder(vcx.tcx, Some(index))
+                    let new_tys = vcx.tcx().mk_type_list_from_iter((0..tys.len()).map(|index|
+                        Self::to_placeholder(vcx.tcx(), Some(index))
                     ));
-                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Tuple(new_tys));
+                    let ty = vcx.tcx().mk_ty_from_kind(TyKind::Tuple(new_tys));
                     (ty, tys.to_vec())
                 }
                 TyKind::Param(mut param) => {
@@ -87,23 +87,23 @@ impl TaskEncoder for SnapshotEnc {
                         // We want to encode a type parameter for e.g. a generic
                         // method, this will result in an empty domain.
                         param.name = symbol::Symbol::intern(&format!("Param{}", param.index));
-                        let ty = vcx.tcx.mk_ty_from_kind(TyKind::Param(param));
+                        let ty = vcx.tcx().mk_ty_from_kind(TyKind::Param(param));
                         (ty, Vec::new())
                     }
                 }
                 TyKind::Array(orig, val) => {
-                    let ty = Self::to_placeholder(vcx.tcx, None);
-                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Array(ty, val));
+                    let ty = Self::to_placeholder(vcx.tcx(), None);
+                    let ty = vcx.tcx().mk_ty_from_kind(TyKind::Array(ty, val));
                     (ty, vec![orig])
                 }
                 TyKind::Slice(orig) => {
-                    let ty = Self::to_placeholder(vcx.tcx, None);
-                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Slice(ty));
+                    let ty = Self::to_placeholder(vcx.tcx(), None);
+                    let ty = vcx.tcx().mk_ty_from_kind(TyKind::Slice(ty));
                     (ty, vec![orig])
                 }
                 TyKind::Ref(r, orig, m) => {
-                    let ty = Self::to_placeholder(vcx.tcx, None);
-                    let ty = vcx.tcx.mk_ty_from_kind(TyKind::Ref(r, ty, m));
+                    let ty = Self::to_placeholder(vcx.tcx(), None);
+                    let ty = vcx.tcx().mk_ty_from_kind(TyKind::Ref(r, ty, m));
                     (ty, vec![orig])
                 }
                 _ => (*task_key, Vec::new()),

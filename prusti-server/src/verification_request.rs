@@ -4,22 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::config;
-use rustc_hash::FxHasher;
-use std::hash::{Hash, Hasher};
+use prusti_utils::config;
 use viper::{self, VerificationBackend};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct VerificationRequest {
-    //pub program: Program,
+    pub program: vir::ProgramRef,
     pub backend_config: ViperBackendConfig,
 }
 
-impl VerificationRequest {
+impl<'vir> VerificationRequest {
     pub(crate) fn get_hash(&self) -> u64 {
-        let mut hasher = FxHasher::default();
-        self.hash(&mut hasher);
-        hasher.finish()
+        self.program.get_hash()
     }
 }
 

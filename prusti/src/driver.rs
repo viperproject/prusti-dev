@@ -16,7 +16,7 @@ mod verifier;
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
 use log::info;
-use prusti_common::{config, report::user, Stopwatch};
+use prusti_utils::{config, report::user, Stopwatch};
 use prusti_rustc_interface::{
     driver, errors,
     session::{self, EarlyErrorHandler},

@@ -295,7 +295,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         Self { vcx, snap_inst, ref_to_pred, ref_to_snap, unreachable_to_snap, method_assign, self_ex, self_pred_read, self_decl, fields: Vec::new(), predicates: Vec::new(), ref_to_field_refs: Vec::new() }
     }
     pub fn tcx(&self) -> ty::TyCtxt<'tcx> {
-        self.vcx.tcx
+        self.vcx.tcx()
     }
 
     // Ref creation

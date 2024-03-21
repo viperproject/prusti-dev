@@ -58,7 +58,7 @@ impl TaskEncoder for ConstEnc {
                         vir::with_vcx(|vcx| prim.prim_to_snap.apply(vcx, [val]))
                     }
                     ConstValue::Scalar(Scalar::Ptr(ptr, _)) => vir::with_vcx(|vcx| {
-                        match vcx.tcx.global_alloc(ptr.provenance) {
+                        match vcx.tcx().global_alloc(ptr.provenance) {
                             GlobalAlloc::Function(_) => todo!(),
                             GlobalAlloc::VTable(_, _) => todo!(),
                             GlobalAlloc::Static(_) => todo!(),
@@ -83,8 +83,8 @@ impl TaskEncoder for ConstEnc {
                 let task = MirPureEncTask {
                     encoding_depth: encoding_depth + 1,
                     parent_def_id: uneval.def,
-                    param_env: vcx.tcx.param_env(uneval.def),
-                    substs: ty::List::identity_for_item(vcx.tcx, uneval.def),
+                    param_env: vcx.tcx().param_env(uneval.def),
+                    substs: ty::List::identity_for_item(vcx.tcx(), uneval.def),
                     kind: PureKind::Constant(uneval.promoted.unwrap()), 
                     caller_def_id: def_id
                 };

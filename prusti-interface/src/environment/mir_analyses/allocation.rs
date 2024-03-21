@@ -20,7 +20,7 @@ use analysis::{
     abstract_interpretation::{AbstractState, FixpointEngine},
     domains::DefinitelyAllocatedAnalysis,
 };
-use prusti_common::Stopwatch;
+use prusti_utils::Stopwatch;
 use prusti_rustc_interface::{hir::def_id::DefId, middle::mir};
 
 /// The result of the definitely allocated analysis.

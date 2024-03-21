@@ -9,8 +9,10 @@ mod debug_info;
 mod gendata;
 mod genrefs; // TODO: explain gen...
 mod macros;
+mod make;
 mod refs;
 mod reify;
+mod serde;
 mod callable_idents;
 
 pub use context::*;

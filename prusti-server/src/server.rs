@@ -7,7 +7,7 @@
 use crate::{process_verification_request, VerificationRequest};
 use log::info;
 use once_cell::sync::Lazy;
-use prusti_common::{config, Stopwatch};
+use prusti_utils::{config, Stopwatch};
 use std::{
     net::{Ipv4Addr, SocketAddr},
     sync::{mpsc, Arc, Mutex},
@@ -55,6 +55,12 @@ where
 
     let cache_data = PersistentCache::load_cache(config::cache_path());
     let cache = Arc::new(Mutex::new(cache_data));
+    fn init_vcx<T>(data: T) -> T {
+        // initialise a new arena every time, so the data from previous
+        // verification runs is deallocated
+        vir::init_vcx(vir::VirCtxt::new_without_tcx());
+        data
+    }
     let build_verification_request_handler = |viper_arc: Arc<Lazy<Viper, _>>, cache| {
         move |request: VerificationRequest| {
             let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
@@ -66,6 +72,7 @@ where
 
     let json_verify = warp::path!("json" / "verify")
         .and(warp::body::json())
+        .map(init_vcx)
         .map(build_verification_request_handler(
             viper.clone(),
             cache.clone(),
@@ -74,6 +81,7 @@ where
 
     let bincode_verify = warp::path!("bincode" / "verify")
         .and(warp::body::bytes())
+        .map(init_vcx)
         .and_then(|buf: warp::hyper::body::Bytes| async move {
             bincode::deserialize(&buf).map_err(|err| {
                 info!("request bincode body error: {}", err);

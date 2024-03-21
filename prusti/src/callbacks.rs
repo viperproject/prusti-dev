@@ -1,6 +1,6 @@
 use crate::verifier::verify;
 use mir_state_analysis::test_free_pcs;
-use prusti_common::config;
+use prusti_utils::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},

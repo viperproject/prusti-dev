@@ -34,6 +34,29 @@ cfg_if! {
     }
 }
 
+// serde and hash no-ops
+impl serde::Serialize for DebugInfo {
+    fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
+    where S: serde::ser::Serializer
+    {
+        ser.serialize_unit()
+    }
+}
+impl<'de> serde::Deserialize<'de> for DebugInfo {
+    fn deserialize<D>(deser: D) -> Result<Self, D::Error>
+    where D: serde::de::Deserializer<'de>
+    {
+        deser.deserialize_unit(serde::de::IgnoredAny)?;
+        Ok(DEBUGINFO_NONE)
+    }
+}
+impl std::hash::Hash for DebugInfo {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: std::hash::Hasher,
+    {}
+}
+
 // DEBUGINFO_NONE
 cfg_if! {
     if #[cfg(feature="vir_debug")] {
