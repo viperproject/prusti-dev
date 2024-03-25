@@ -494,7 +494,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     vir::Expr::rem(left, right)
                 }
             }
-            mir::BinOp::Div => vir::Expr::div(left, right),
+            mir::BinOp::Div => {
+                if matches!(ty.kind(), ty::TyKind::Int(_)) {
+                    vir::Expr::div(left, right)
+                } else {
+                    // floats, unsigned integers
+                    vir::Expr::viper_div(left, right)
+                }
+            }
             mir::BinOp::MulUnchecked | mir::BinOp::Mul => vir::Expr::mul(left, right),
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
