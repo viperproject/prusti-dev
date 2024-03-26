@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PoloniusInfoError","ReborrowingKind","ReborrowingZombity"],"fn":["graphviz"],"struct":["AdditionalFacts","LoanPlaces","LoopMagicWand","PoloniusInfo","ReborrowingDAG","ReborrowingDAGNode"]};

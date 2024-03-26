@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["MethodKind","Successor"],"mod":["method","procedure"],"struct":["BasicBlock","Label","MethodDecl","ProcedureDecl"]};

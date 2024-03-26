@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DefLocation"],"struct":["DefinitelyAccessibleAnalysis","DefinitelyAccessibleState","DefinitelyAllocatedAnalysis","DefinitelyAllocatedState","DefinitelyInitializedAnalysis","DefinitelyInitializedState","FramingAnalysis","FramingState","MaybeBorrowedAnalysis","MaybeBorrowedState","ReachingDefsAnalysis","ReachingDefsState"]};

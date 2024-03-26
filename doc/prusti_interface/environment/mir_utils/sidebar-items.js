@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["MirPlace","RealEdges"],"trait":["AllPlaces","ArgsForMir","SliceOrArrayRef","SplitAggregateAssignment","StatementAsAssign","StatementAt","TupleItemsForTy","TyAsRef"]};

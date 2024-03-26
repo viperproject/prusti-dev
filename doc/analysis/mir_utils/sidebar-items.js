@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["expand_one_level","expand_struct_place","get_blocked_place","is_copy","location_to_stmt_str","remove_place_from_set"],"struct":["Place"],"trait":["PlaceImpl"]};

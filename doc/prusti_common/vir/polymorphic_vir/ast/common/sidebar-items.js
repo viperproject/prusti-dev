@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BitVector","BitVectorSize","Float","PermAmount","PermAmountError","Type","TypeId"],"struct":["DomainType","Field","LocalVar","MapType","Position","SeqType","SnapshotType","TypeVar","TypedRef"]};

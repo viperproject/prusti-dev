@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["walk_functions","walk_method","walk_methods"]};

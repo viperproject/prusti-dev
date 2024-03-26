@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["fix_ghost_vars"]};

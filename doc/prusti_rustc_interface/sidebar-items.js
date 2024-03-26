@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"externcrate":["abi","ast","ast_pretty","attr","borrowck","data_structures","dataflow","driver","errors","hir","index","infer","interface","macros","metadata","middle","polonius_engine","serialize","session","span","target","trait_selection"]};

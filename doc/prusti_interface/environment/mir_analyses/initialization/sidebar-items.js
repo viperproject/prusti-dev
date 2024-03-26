@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["compute_definitely_initialized"],"struct":["AnalysisResult"],"type":["DefinitelyInitializedAnalysisResult"]};

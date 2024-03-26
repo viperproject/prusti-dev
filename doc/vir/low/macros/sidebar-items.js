@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["expr","exprp","function","method","method_name","predicate","predicate_name","stmt","stmtp","stmts","ty","var","var_decls","vars"]};

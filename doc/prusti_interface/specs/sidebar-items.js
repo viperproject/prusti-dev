@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["is_spec_fn"],"mod":["checker","cross_crate","decoder","encoder","external","typed"],"struct":["SpecCollector"]};

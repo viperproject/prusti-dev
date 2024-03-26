@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PointType"],"struct":["BorrowckFacts","Interner","Point"],"type":["AllInputFacts","AllOutputFacts","Loan","Path","PointIndex","Region","Variable"]};

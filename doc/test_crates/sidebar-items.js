@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TestKind"],"fn":["attempt_fetch","collect_java_policies","find_java_home","get_rust_toolchain","main","setup_logs"],"struct":["Args","CargoPrusti","CrateRecord","RustToolchain","RustToolchainFile"]};

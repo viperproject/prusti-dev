@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Predicate"],"mod":["visitors"],"struct":["LifetimeToken","MemoryBlockHeap","MemoryBlockHeapDrop","MemoryBlockStack","MemoryBlockStackDrop","OwnedNonAliased"]};

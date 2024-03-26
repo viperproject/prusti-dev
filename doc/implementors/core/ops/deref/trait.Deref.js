@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"analysis":[["impl&lt;'tcx&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"analysis/mir_utils/struct.Place.html\" title=\"struct analysis::mir_utils::Place\">Place</a>&lt;'tcx&gt;"]],
+"prusti_interface":[["impl&lt;'tcx&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"prusti_interface/environment/body/struct.MirBody.html\" title=\"struct prusti_interface::environment::body::MirBody\">MirBody</a>&lt;'tcx&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

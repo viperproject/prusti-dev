@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"prusti_interface":[["impl&lt;'tcx&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encoder.html\" title=\"trait rustc_serialize::serialize::Encoder\">Encoder</a> for <a class=\"struct\" href=\"prusti_interface/specs/encoder/struct.DefSpecsEncoder.html\" title=\"struct prusti_interface::specs::encoder::DefSpecsEncoder\">DefSpecsEncoder</a>&lt;'tcx&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

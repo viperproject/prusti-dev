@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["is_purifiable_type","purify_methods"]};

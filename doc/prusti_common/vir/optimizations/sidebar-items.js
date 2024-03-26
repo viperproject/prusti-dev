@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["optimize_program"],"mod":["bitvectors","folding","functions","methods","predicates","purification"]};

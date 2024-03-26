@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["SpecIdRef","SpecType","TryFromStringError"],"struct":["SpecificationId"]};

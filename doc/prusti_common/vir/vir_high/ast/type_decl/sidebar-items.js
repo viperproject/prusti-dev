@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TypeDecl"],"mod":["visitors"],"struct":["Array","Closure","Enum","Float","Int","Map","Pointer","Reference","Sequence","Slice","Struct","Trusted","Tuple","TypeVar","Union","Unsupported"],"type":["DiscriminantRange","DiscriminantValue"]};

@@ -1,0 +1,349 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/abstract_interpretation/fixpoint_engine.rs`."><title>fixpoint_engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ae1b282cda4c21ec.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="analysis" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (ca2b74f1a 2023-09-14)" data-channel="nightly" data-search-js="search-5d3eaacf19ebf04f.js" data-settings-js="settings-74424d7eec62a23e.js" data-theme-light-css="light-f194925aa375ae96.css" data-theme-dark-css="dark-1dd4d1ce031e15de.css" data-theme-ayu-css="ayu-49e58d069f567085.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-cabe4b1bd7b9da95.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-f194925aa375ae96.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1dd4d1ce031e15de.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../analysis/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<a href="#2" id="2">2</a>
+<a href="#3" id="3">3</a>
+<a href="#4" id="4">4</a>
+<a href="#5" id="5">5</a>
+<a href="#6" id="6">6</a>
+<a href="#7" id="7">7</a>
+<a href="#8" id="8">8</a>
+<a href="#9" id="9">9</a>
+<a href="#10" id="10">10</a>
+<a href="#11" id="11">11</a>
+<a href="#12" id="12">12</a>
+<a href="#13" id="13">13</a>
+<a href="#14" id="14">14</a>
+<a href="#15" id="15">15</a>
+<a href="#16" id="16">16</a>
+<a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
+<a href="#38" id="38">38</a>
+<a href="#39" id="39">39</a>
+<a href="#40" id="40">40</a>
+<a href="#41" id="41">41</a>
+<a href="#42" id="42">42</a>
+<a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
+<a href="#49" id="49">49</a>
+<a href="#50" id="50">50</a>
+<a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+</pre></div><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+</span><span class="kw">use crate</span>::{
+    abstract_interpretation::AbstractState, analysis_error::AnalysisError::NoStateAfterSuccessor,
+    PointwiseState,
+};
+<span class="kw">pub use crate</span>::{domains::<span class="kw-2">*</span>, AnalysisError};
+<span class="kw">use </span>prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::mir, span::def_id::DefId};
+<span class="kw">use </span>std::{collections::BTreeSet, iter::FromIterator};
+
+<span class="kw">pub type </span>AnalysisResult&lt;T&gt; = std::result::Result&lt;T, AnalysisError&gt;;
+
+<span class="doccomment">/// Trait to be used to define an abstract-interpreation-based static analysis of a MIR body.
+</span><span class="kw">pub trait </span>FixpointEngine&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; {
+    <span class="kw">type </span>State: AbstractState;
+
+    <span class="doccomment">/// Return the DefId of the MIR body to be analyzed.
+    </span><span class="kw">fn </span>def_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DefId;
+
+    <span class="doccomment">/// Return the MIR body to be analyzed.
+    </span><span class="kw">fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;;
+
+    <span class="doccomment">/// Creates a new abstract state which corresponds to the bottom element in the lattice
+    </span><span class="kw">fn </span>new_bottom(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::State;
+
+    <span class="comment">//fn new_top(&amp;self) -&gt; Self::State;
+
+    </span><span class="doccomment">/// Creates the abstract state at the beginning of the `mir` body.
+    /// In particular this should take the arguments into account.
+    </span><span class="kw">fn </span>new_initial(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::State;
+
+    <span class="doccomment">/// Determines if the number of times a block was traversed by the analyzer given in `counter`
+    /// is large enough to widen the state
+    </span><span class="kw">fn </span>need_to_widen(counter: u32) -&gt; bool;
+
+    <span class="doccomment">/// Modify a state according to the statement at `location`.
+    ///
+    /// The statement can be extracted using
+    /// `self.mir[location.block].statements[location.statement_index]`.
+    </span><span class="kw">fn </span>apply_statement_effect(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
+        location: mir::Location,
+    ) -&gt; AnalysisResult&lt;()&gt;;
+
+    <span class="doccomment">/// Compute the states after a terminator at `location`.
+    ///
+    /// The statement can be extracted using `self.mir[location.block].terminator()`.
+    </span><span class="kw">fn </span>apply_terminator_effect(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        state: <span class="kw-2">&amp;</span><span class="self">Self</span>::State,
+        location: mir::Location,
+    ) -&gt; AnalysisResult&lt;Vec&lt;(mir::BasicBlock, <span class="self">Self</span>::State)&gt;&gt;;
+
+    <span class="doccomment">/// Produces an abstract state for every program point in `mir` by iterating over all statements
+    /// in program order until a fixed point is reached (i.e. by abstract interpretation).
+    </span><span class="comment">// TODO: add tracing like in initialization.rs?
+    </span><span class="kw">fn </span>run_fwd_analysis(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnalysisResult&lt;PointwiseState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, <span class="self">Self</span>::State&gt;&gt; {
+        <span class="kw">let </span>mir = <span class="self">self</span>.body();
+        <span class="kw">let </span><span class="kw-2">mut </span>p_state = PointwiseState::new(mir);
+        <span class="comment">// use https://crates.io/crates/linked_hash_set for set preserving insertion order?
+        </span><span class="kw">let </span><span class="kw-2">mut </span>work_set: BTreeSet&lt;mir::BasicBlock&gt; =
+            BTreeSet::from_iter(mir.basic_blocks.indices());
+
+        <span class="kw">let </span><span class="kw-2">mut </span>counters: FxHashMap&lt;mir::BasicBlock, u32&gt; =
+            FxHashMap::with_capacity_and_hasher(mir.basic_blocks.len(), Default::default());
+
+        <span class="comment">//&#39;block_loop:
+        // extract the bb with the minimal index -&gt; hopefully better performance
+        // use pop_first when it becomes stable?
+        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>bb) = work_set.iter().next() {
+            work_set.remove(<span class="kw-2">&amp;</span>bb);
+
+            <span class="kw">let </span><span class="kw-2">mut </span>state_before_block = <span class="kw">if </span>bb == mir::START_BLOCK {
+                <span class="comment">// entry block
+                </span><span class="self">self</span>.new_initial()
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.new_bottom()
+            };
+
+            <span class="kw">for </span><span class="kw-2">&amp;</span>pred_bb <span class="kw">in </span><span class="kw-2">&amp;</span>mir.basic_blocks.predecessors()[bb] {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = p_state.lookup_after_block(pred_bb) {
+                    <span class="comment">// map should contain bb, because we ensure that we have a state for every
+                    // successor
+                    </span>state_before_block.join(map.get(<span class="kw-2">&amp;</span>bb).unwrap());
+                }
+                <span class="comment">// if no state is present: assume bottom =&gt; no effect on join
+            </span>}
+
+            <span class="comment">// widen if needed
+            </span><span class="kw">let </span>counter = counters.entry(bb).or_insert(<span class="number">0</span>);
+            <span class="kw-2">*</span>counter += <span class="number">1</span>;
+
+            <span class="kw">if </span><span class="self">Self</span>::need_to_widen(<span class="kw-2">*</span>counter) {
+                <span class="kw">let </span>location = mir::Location {
+                    block: bb,
+                    statement_index: <span class="number">0</span>,
+                };
+                state_before_block.widen(p_state.lookup_before(location).unwrap())
+            }
+
+            <span class="kw">let </span>statements = <span class="kw-2">&amp;</span>mir[bb].statements;
+            <span class="kw">let </span><span class="kw-2">mut </span>current_state = state_before_block;
+            <span class="kw">for </span>statement_index <span class="kw">in </span><span class="number">0</span>..statements.len() {
+                <span class="kw">let </span>location = mir::Location {
+                    block: bb,
+                    statement_index,
+                };
+                <span class="comment">/* Too much performance overhead to check for every statement?
+                let prev_state = p_state.lookup_before(location);
+                // use .contains when it becomes stable
+                if prev_state.into_iter().any(|s| s == &amp;current_state) {
+                    // same state, don&#39;t need to reiterate
+                    continue &#39;block_loop;
+                }
+                */
+                </span>p_state.set_before(location, current_state.clone());
+                <span class="comment">// normal statement
+                </span><span class="self">self</span>.apply_statement_effect(<span class="kw-2">&amp;mut </span>current_state, location)<span class="question-mark">?</span>;
+            }
+
+            <span class="comment">// terminator effect
+            </span><span class="kw">let </span>location = mir.terminator_loc(bb);
+            <span class="comment">/* Too much performance overhead to check for every statement?
+            let prev_state = p_state.lookup_before(location);
+            if prev_state.into_iter().any(|s| s == &amp;current_state) {
+                // same state, don&#39;t need to reiterate
+                continue &#39;block_loop;
+            }
+            */
+            </span>p_state.set_before(location, current_state.clone());
+
+            <span class="kw">let </span>next_states = <span class="self">self</span>.apply_terminator_effect(<span class="kw-2">&amp;</span>current_state, location)<span class="question-mark">?</span>;
+
+            <span class="kw">let </span><span class="kw-2">mut </span>new_map: FxHashMap&lt;mir::BasicBlock, <span class="self">Self</span>::State&gt; = FxHashMap::default();
+            <span class="kw">for </span>(next_bb, state) <span class="kw">in </span>next_states {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = new_map.get_mut(<span class="kw-2">&amp;</span>next_bb) {
+                    <span class="comment">// join states with same destination for Map
+                    </span>s.join(<span class="kw-2">&amp;</span>state);
+                } <span class="kw">else </span>{
+                    new_map.insert(next_bb, state);
+                }
+            }
+
+            <span class="kw">let </span>terminator = mir[bb].terminator();
+            <span class="kw">for </span>next_bb <span class="kw">in </span>terminator.successors() {
+                <span class="kw">if </span>!new_map.contains_key(<span class="kw-2">&amp;</span>next_bb) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(NoStateAfterSuccessor(bb, next_bb));
+                }
+            }
+            <span class="macro">debug_assert_eq!</span>(
+                terminator.successors().collect::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;(),
+                new_map.keys().copied().collect::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;(),
+            );
+            <span class="kw">let </span>map_after_block = p_state.lookup_mut_after_block(bb);
+            <span class="kw">for </span>next_bb <span class="kw">in </span>terminator.successors() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = new_map.remove(<span class="kw-2">&amp;</span>next_bb) {
+                    <span class="kw">let </span>prev_state = map_after_block.insert(next_bb, s);
+                    <span class="kw">let </span>new_state_ref = map_after_block.get(<span class="kw-2">&amp;</span>next_bb);
+                    <span class="comment">// TODO: use .contains when it becomes stable?
+                    </span><span class="kw">if </span>!prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {
+                        <span class="comment">// input state has changed =&gt; add next_bb to worklist
+                        </span>work_set.insert(next_bb);
+                    }
+                }
+            }
+        }
+        AnalysisResult::Ok(p_state)
+    }
+}
+</code></pre></div></section></main></body></html>
