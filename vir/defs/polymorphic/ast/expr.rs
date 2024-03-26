@@ -151,7 +151,7 @@ __binary_op__! {
     add Add,
     sub Sub,
     mul Mul,
-    div Div,
+    viper_div Div,
     modulo Mod,
     and And,
     or Or,
@@ -316,7 +316,19 @@ impl Expr {
     }
 
     #[allow(clippy::should_implement_trait)]
-    /// Encode Rust reminder. This is *not* Viper modulo.
+    /// Encode Rust's division. This is *not* Viper's division.
+    pub fn div(left: Expr, right: Expr) -> Self {
+        Expr::ite(
+            Expr::ge_cmp(left.clone(), 0.into()),
+            // positive value or left % right == 0
+            Expr::viper_div(left.clone(), right.clone()),
+            // negative value
+            Expr::minus(Expr::viper_div(Expr::minus(left), right)),
+        )
+    }
+
+    #[allow(clippy::should_implement_trait)]
+    /// Encode Rust's signed reminder. This is *not* Viper's modulo.
     pub fn rem(left: Expr, right: Expr) -> Self {
         let abs_right = Expr::ite(
             Expr::ge_cmp(right.clone(), 0.into()),

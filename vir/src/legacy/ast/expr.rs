@@ -561,7 +561,8 @@ impl Expr {
     }
 
     #[allow(clippy::should_implement_trait)]
-    pub fn div(left: Expr, right: Expr) -> Self {
+    /// Encode Rust's unsigned division. This is the same as Viper's division.
+    pub fn viper_div(left: Expr, right: Expr) -> Self {
         Expr::BinOp(
             BinaryOpKind::Div,
             Box::new(left),
@@ -570,6 +571,19 @@ impl Expr {
         )
     }
 
+    #[allow(clippy::should_implement_trait)]
+    /// Encode Rust's division. This is *not* Viper's division.
+    pub fn div(left: Expr, right: Expr) -> Self {
+        Expr::ite(
+            Expr::ge_cmp(left.clone(), 0.into()),
+            // positive value or left % right == 0
+            Expr::viper_div(left.clone(), right.clone()),
+            // negative value
+            Expr::minus(Expr::viper_div(Expr::minus(left), right)),
+        )
+    }
+
+    /// Encode Rust's unsigned reminder. This is the same as Viper's modulo.
     pub fn modulo(left: Expr, right: Expr) -> Self {
         Expr::BinOp(
             BinaryOpKind::Mod,
@@ -580,7 +594,7 @@ impl Expr {
     }
 
     #[allow(clippy::should_implement_trait)]
-    /// Encode Rust reminder. This is *not* Viper modulo.
+    /// Encode Rust's signed reminder. This is *not* Viper's modulo.
     pub fn rem(left: Expr, right: Expr) -> Self {
         let abs_right = Expr::ite(
             Expr::ge_cmp(right.clone(), 0.into()),
