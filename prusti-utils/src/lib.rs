@@ -14,6 +14,7 @@ pub mod config;
 
 pub mod launch;
 pub mod report;
+pub mod program_submitter;
 mod stopwatch;
 pub mod utils;
 
