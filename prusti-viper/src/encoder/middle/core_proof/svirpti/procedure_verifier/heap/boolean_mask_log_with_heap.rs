@@ -16,13 +16,13 @@ pub(in super::super::super::super) struct BooleanMaskLogWithHeap {
     heap_versions: FxHashMap<String, usize>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) enum LogEntryKind {
     InhaleFull,
     ExhaleFull,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) enum LogEntry {
     InhaleFull(LogEntryFull),
     ExhaleFull(LogEntryFull),
@@ -30,12 +30,12 @@ pub(super) enum LogEntry {
     ExhaleQuantified(LogEntryQuantifiedFull),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) struct LogEntryFull {
     pub(super) arguments: Vec<vir_low::Expression>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) struct LogEntryQuantifiedFull {
     pub(super) quantifier_name: Option<String>,
     pub(super) variables: Vec<vir_low::VariableDecl>,
@@ -148,6 +148,10 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         let old_log_entry = *log_entry;
         *log_entry += 1;
         let new_log_entry = *log_entry;
+
+        // The corresponding updating Z3 state step is done in
+        // check_quantified_permissions_with_heap_bools because for quantified
+        // permissions we need to do it on each instantiation.
 
         // Update the global heap.
         let entries = self
@@ -370,7 +374,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     check_permissions =
                         vir_low::Expression::or(check_permissions, guard_variable.clone().into());
                 }
-                LogEntry::ExhaleQuantified(_) => todo!(),
+                LogEntry::ExhaleQuantified(entry) => {
+                    let guard_definition = arguments_equal_quantified(&predicate_arguments, entry);
+                    let guard_variable = guard_definitions.entry(guard_definition).or_insert(guard);
+                    check_permissions = vir_low::Expression::and(
+                        check_permissions,
+                        vir_low::Expression::not(guard_variable.clone().into()),
+                    );
+                }
             }
         }
         let mut guard_definitions_vec = Vec::new();
@@ -390,6 +401,54 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         full_error_id: &str,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
+        // Teach Z3 about the non-aliasing assumptions coming from quantified
+        // inhales.
+        let quantified_inhale_ids = self
+            .global_heap
+            .boolean_mask_log
+            .entries
+            .get(predicate_name)
+            .unwrap()
+            .iter()
+            .enumerate()
+            .filter_map(|(id, entry)| match entry {
+                LogEntry::InhaleQuantified(_) => Some(id),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        for inhale_entry_id in quantified_inhale_ids {
+            if inhale_entry_id == 0 {
+                continue;
+            }
+            let LogEntry::InhaleQuantified(entry) = self.global_heap.boolean_mask_log.entries.get(predicate_name).unwrap()[inhale_entry_id].clone() else {
+                unreachable!();
+            };
+            let replacement_map =
+                if entry.variables.len() == 1 && entry.variables[0].name == "element_address" {
+                    assert_eq!(&entry.variables[0].ty, predicate_arguments[0].get_type());
+                    let mut entry_replacements = FxHashMap::default();
+                    entry_replacements.insert(&entry.variables[0], &predicate_arguments[0]);
+                    entry_replacements
+                } else {
+                    unimplemented!();
+                };
+            let arguments: Vec<_> = entry
+                .arguments
+                .into_iter()
+                .map(|argument| argument.substitute_variables(&replacement_map))
+                .collect();
+            let (guard_definitions, check) =
+                self.create_permission_check(predicate_name, &arguments, inhale_entry_id)?;
+            for definition in guard_definitions {
+                self.assume(&definition)?;
+            }
+            let inhale_guard = entry.guard.substitute_variables(&replacement_map);
+            let negated_check = vir_low::Expression::not(check.clone());
+            let guarded_negated_check = vir_low::Expression::implies(inhale_guard, negated_check);
+            self.assume(&guarded_negated_check)?;
+        }
+
+        // Construct the check.
         let (guard_definitions, mut check_permissions) =
             self.create_permission_check(predicate_name, predicate_arguments, entry_id)?;
         if let Some(guard) = guard {
@@ -434,7 +493,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         }
     }
 
-    fn check_quantified_permissions_with_heap(
+    fn check_quantified_permissions_with_heap_pbge(
         &mut self,
         predicate_name: &str,
         predicate_arguments: &[vir_low::Expression],
@@ -444,7 +503,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         full_error_id: &str,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!();
         use vir_low::macros::*;
         assert!(
             entry_id > 0,
@@ -531,6 +589,125 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         )?;
         self.assert(check_permissions, error)?;
         Ok(())
+    }
+
+    fn check_quantified_permissions_with_heap_bools(
+        &mut self,
+        predicate_name: &str,
+        predicate_arguments: &[vir_low::Expression],
+        variables: &[vir_low::VariableDecl],
+        guard: vir_low::Expression,
+        entry_id: usize,
+        full_error_id: &str,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        assert!(
+            entry_id > 0,
+            "TODO: A proper error message that we are exhaling for an empty heap."
+        );
+        let mut replacements: Vec<(_, vir_low::Expression)> = Vec::new();
+        for variable in variables {
+            self.declare_variable(variable)?;
+            let fresh_variable_name = format!("{}${}", variable.name, self.generate_fresh_id());
+            let fresh_variable =
+                vir_low::VariableDecl::new(fresh_variable_name, variable.ty.clone());
+            self.declare_variable(&fresh_variable)?;
+            replacements.push((variable, fresh_variable.into()));
+        }
+        let replacement_map: FxHashMap<_, _> = replacements
+            .iter()
+            .map(|(variable, replacement)| (*variable, replacement))
+            .collect();
+        let predicate_arguments = predicate_arguments
+            .iter()
+            .map(|argument| argument.clone().substitute_variables(&replacement_map))
+            .collect::<Vec<_>>();
+
+        // Teach Z3 about the non-aliasing assumptions coming from quantified
+        // inhales.
+        let quantified_inhale_ids = self
+            .global_heap
+            .boolean_mask_log
+            .entries
+            .get(predicate_name)
+            .unwrap()
+            .iter()
+            .enumerate()
+            .filter_map(|(id, entry)| match entry {
+                LogEntry::InhaleQuantified(_) => Some(id),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        for inhale_entry_id in quantified_inhale_ids {
+            if inhale_entry_id == 0 {
+                continue;
+            }
+            let LogEntry::InhaleQuantified(entry) = self.global_heap.boolean_mask_log.entries.get(predicate_name).unwrap()[inhale_entry_id].clone() else {
+                unreachable!();
+            };
+            assert_eq!(&entry.variables, variables, "unimplemented!");
+            let arguments: Vec<_> = entry
+                .arguments
+                .into_iter()
+                .map(|argument| argument.substitute_variables(&replacement_map))
+                .collect();
+            let (guard_definitions, check) =
+                self.create_permission_check(predicate_name, &arguments, inhale_entry_id)?;
+            for definition in guard_definitions {
+                self.assume(&definition)?;
+            }
+            let inhale_guard = entry.guard.substitute_variables(&replacement_map);
+            let negated_check = vir_low::Expression::not(check.clone());
+            let guarded_negated_check = vir_low::Expression::implies(inhale_guard, negated_check);
+            self.assume(&guarded_negated_check)?;
+        }
+
+        // Construct the check.
+        let guard = guard.substitute_variables(&replacement_map);
+        let (guard_definitions, mut check_permissions) =
+            self.create_permission_check(predicate_name, &predicate_arguments, entry_id)?;
+        check_permissions = vir_low::Expression::implies(guard, check_permissions);
+        let error = self.create_verification_error_for_expression(
+            full_error_id,
+            position,
+            &check_permissions,
+        )?;
+
+        self.assert_with_assumptions(&guard_definitions, check_permissions, error)?;
+        Ok(())
+    }
+
+    fn check_quantified_permissions_with_heap(
+        &mut self,
+        predicate_name: &str,
+        predicate_arguments: &[vir_low::Expression],
+        variables: &[vir_low::VariableDecl],
+        guard: vir_low::Expression,
+        entry_id: usize,
+        full_error_id: &str,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        if config::svirpti_use_pseudo_boolean_heap() {
+            self.check_quantified_permissions_with_heap_pbge(
+                predicate_name,
+                predicate_arguments,
+                variables,
+                guard,
+                entry_id,
+                full_error_id,
+                position,
+            )
+        } else {
+            self.check_quantified_permissions_with_heap_bools(
+                predicate_name,
+                predicate_arguments,
+                variables,
+                guard,
+                entry_id,
+                full_error_id,
+                position,
+            )
+        }
     }
 
     pub(super) fn execute_exhale_boolean_mask_log_with_heap_full(
