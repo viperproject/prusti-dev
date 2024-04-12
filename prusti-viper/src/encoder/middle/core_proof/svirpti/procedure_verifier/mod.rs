@@ -206,6 +206,9 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         domains: &[vir_low::DomainDecl],
     ) -> SpannedEncodingResult<()> {
         for domain in domains {
+            self.smt_solver
+                .comment(&format!("Functions for domain: {}", domain.name))
+                .unwrap(); // FIXME: Handle errors
             for function in &domain.functions {
                 let parameter_types = function
                     .parameters
@@ -230,7 +233,21 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         domains: &[vir_low::DomainDecl],
     ) -> SpannedEncodingResult<()> {
         for domain in domains {
+            self.smt_solver
+                .comment(&format!("Axioms for domain: {}", domain.name))
+                .unwrap(); // FIXME: Handle errors
             for axiom in &domain.axioms {
+                if let Some(comment) = &axiom.comment {
+                    self.comment(comment)?;
+                }
+                self.comment(&format!("axiom: {}", axiom.name))?;
+                self.assume(&axiom.body)?;
+            }
+            for rewrite_rule in &domain.rewrite_rules {
+                if rewrite_rule.egg_only {
+                    continue;
+                }
+                let axiom = rewrite_rule.convert_into_axiom();
                 if let Some(comment) = &axiom.comment {
                     self.comment(comment)?;
                 }
