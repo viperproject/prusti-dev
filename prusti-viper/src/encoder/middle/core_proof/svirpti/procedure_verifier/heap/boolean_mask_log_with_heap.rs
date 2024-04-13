@@ -607,7 +607,6 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
         );
         let mut replacements: Vec<(_, vir_low::Expression)> = Vec::new();
         for variable in variables {
-            self.declare_variable(variable)?;
             let fresh_variable_name = format!("{}${}", variable.name, self.generate_fresh_id());
             let fresh_variable =
                 vir_low::VariableDecl::new(fresh_variable_name, variable.ty.clone());

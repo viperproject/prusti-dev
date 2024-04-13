@@ -7,6 +7,7 @@ use super::{
     expressions::Expr2SmtWrap,
     parser::SmtParser,
 };
+use prusti_common::Stopwatch;
 use rsmt2::{print::Sort2Smt, Solver};
 use vir_crate::low::{self as vir_low};
 
@@ -68,11 +69,15 @@ impl SmtSolver {
         Self::new(Default::default())
     }
     pub fn check_sat(&mut self) -> SmtSolverResult<SatResult> {
+        let stopwatch = Stopwatch::start("svirpti", "check-sat");
         let result = match self.solver.check_sat_or_unk()? {
             Some(true) => SatResult::Sat,
             Some(false) => SatResult::Unsat,
             None => SatResult::Unknown,
         };
+        let duration = stopwatch.finish();
+        self.solver
+            .comment(&format!("Check-sat duration: {:?}", duration))?;
         Ok(result)
     }
     pub fn push(&mut self) -> SmtSolverResult<()> {
