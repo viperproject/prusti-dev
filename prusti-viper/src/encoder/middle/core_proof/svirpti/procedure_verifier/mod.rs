@@ -11,6 +11,7 @@ use crate::encoder::{
     middle::core_proof::transformations::predicate_domains::PredicateDomainsInfo,
 };
 use log::info;
+use prusti_common::config;
 use rustc_hash::FxHashMap;
 use vir_crate::{
     common::{cfg::Cfg, graphviz::ToGraphviz},
@@ -237,24 +238,83 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 .comment(&format!("Axioms for domain: {}", domain.name))
                 .unwrap(); // FIXME: Handle errors
             for axiom in &domain.axioms {
-                if let Some(comment) = &axiom.comment {
-                    self.comment(comment)?;
+                let suitable_for_manual = if config::svirpti_enable_manual_triggering() {
+                    self.smt_solver.add_axiom(axiom.clone()).unwrap()
+                } else {
+                    false
+                };
+                if !(suitable_for_manual && config::svirpti_remove_unnecessary_axioms()) {
+                    if let Some(comment) = &axiom.comment {
+                        self.comment(comment)?;
+                    }
+                    self.comment(&format!("axiom: {}", axiom.name))?;
+                    if matches!(
+                        axiom.name.as_str(),
+                        "address_constructor$injectivity2"
+                            | "address_range_contains$definition"
+                            | "address_constructor$injectivity1"
+                            | "mul_wrapper$commutativity"
+                            // | "mul_wrapper$zero"
+                            | "mul_wrapper$non_negative_range"
+                            | "mul_wrapper$positive_increases"
+                            | "mul_wrapper$definition"
+                            | "offset_address$definition"
+                            | "m_std$$ptr$$mut_ptr$$$openang$impl$space$$star$mut$space$T$closeang$$$add$struct$m_T$$$definitional_axiom"
+                            | "intersect_singleton$"
+                            | "constructor$Snap$Bool$$top_down_injectivity_axiom"
+                            | "LeCmp_Unbounded$eval_axiom"
+                            | "GtCmp_Usize$simplification_axiom"
+                            | "GtCmp_Usize$eval_axiom"
+                            // | "Snap$Bool$$validity_axiom_bottom_up_alternative"
+                            // | "LeCmp_Unbounded$simplification_axiom"
+                            | "SetConstructor1ArgumentsContained"
+                            | "SetConstructor2ArgumentsContained"
+                            | "Snap$ptr$struct$m_T$$$validity_axiom_bottom_up_alternative"
+                            | "constructor$Snap$ptr$struct$m_T$$$top_down_injectivity_axiom"
+                            | "constructor$Snap$struct$m_T$$$top_down_injectivity_axiom"
+                            | "Snap$Usize$$validity_axiom_bottom_up_alternative"
+                            | "constructor$Snap$Usize$$top_down_injectivity_axiom"
+                            | "constructor$Snap$Tuple$$$top_down_injectivity_axiom"
+                            // | "Snap$Unbounded$$validity_axiom_bottom_up_alternative"
+                            | "constructor$Snap$Unbounded$$top_down_injectivity_axiom"
+
+                    ) {
+                        self.comment("optimised away")?;
+                    } else {
+                        self.assume(&axiom.body)?;
+                    }
                 }
-                self.comment(&format!("axiom: {}", axiom.name))?;
-                self.assume(&axiom.body)?;
             }
             for rewrite_rule in &domain.rewrite_rules {
                 if rewrite_rule.egg_only {
                     continue;
                 }
                 let axiom = rewrite_rule.convert_into_axiom();
-                if let Some(comment) = &axiom.comment {
-                    self.comment(comment)?;
+                let suitable_for_manual = if config::svirpti_enable_manual_triggering() {
+                    self.smt_solver.add_axiom(axiom.clone()).unwrap()
+                } else {
+                    false
+                };
+                if !(suitable_for_manual && config::svirpti_remove_unnecessary_axioms()) {
+                    if let Some(comment) = &axiom.comment {
+                        self.comment(comment)?;
+                    }
+                    self.comment(&format!("axiom: {}", axiom.name))?;
+                    self.assume(&axiom.body)?;
                 }
-                self.comment(&format!("axiom: {}", axiom.name))?;
-                self.assume(&axiom.body)?;
             }
         }
+        self.assume(&vir_low::Expression::domain_function_call(
+            "Snap$Usize",
+            "valid$Snap$Usize",
+            vec![vir_low::Expression::domain_function_call(
+                "Snap$Usize",
+                "constructor$Snap$Usize$",
+                vec![1.into()],
+                vir_low::Type::domain("Snap$Usize".into()),
+            )],
+            vir_low::Type::Bool,
+        ))?;
         Ok(())
     }
 

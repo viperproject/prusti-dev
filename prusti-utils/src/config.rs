@@ -206,6 +206,8 @@ lazy_static::lazy_static! {
         settings.set_default("svirpti_stop_on_first_error", false).unwrap();
         settings.set_default("svirpti_use_pseudo_boolean_heap", false).unwrap();
         settings.set_default("svirpti_enable_smoke_check", false).unwrap();
+        settings.set_default("svirpti_enable_manual_triggering", false).unwrap();
+        settings.set_default("svirpti_remove_unnecessary_axioms", false).unwrap();
 
         // Get the list of all allowed flags.
         let mut allowed_keys = get_keys(&settings);
@@ -1316,6 +1318,16 @@ pub fn svirpti_use_pseudo_boolean_heap() -> bool {
 /// Try asserting `false` after each statement and report an error if succeed.
 pub fn svirpti_enable_smoke_check() -> bool {
     read_setting("svirpti_enable_smoke_check")
+}
+
+/// Pre-instantiate quantifiers manually to reduce the work for Z3.
+pub fn svirpti_enable_manual_triggering() -> bool {
+    read_setting("svirpti_enable_manual_triggering")
+}
+
+/// Remove axioms which are supported by the manual instantiation of quantifiers.
+pub fn svirpti_remove_unnecessary_axioms() -> bool {
+    read_setting("svirpti_remove_unnecessary_axioms")
 }
 
 /// When enabled, features not supported by Prusti will be reported as warnings
