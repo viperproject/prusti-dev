@@ -105,6 +105,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             let (guard_definitions, check) =
                 self.create_permission_check(&predicate.name, &predicate.arguments, old_log_entry)?;
             for definition in guard_definitions {
+                self.comment("non-aliasing-assumptions")?;
                 self.assume(&definition)?;
             }
             let negated_check = vir_low::Expression::not(check.clone());
@@ -445,6 +446,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             let inhale_guard = entry.guard.substitute_variables(&replacement_map);
             let negated_check = vir_low::Expression::not(check.clone());
             let guarded_negated_check = vir_low::Expression::implies(inhale_guard, negated_check);
+            self.comment("non-aliasing-assumptions")?;
             self.assume(&guarded_negated_check)?;
         }
 
@@ -658,6 +660,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             let inhale_guard = entry.guard.substitute_variables(&replacement_map);
             let negated_check = vir_low::Expression::not(check.clone());
             let guarded_negated_check = vir_low::Expression::implies(inhale_guard, negated_check);
+            self.comment("non-aliasing-assumptions")?;
             self.assume(&guarded_negated_check)?;
         }
 
