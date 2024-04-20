@@ -1,3 +1,5 @@
+use crate::encoder::middle::core_proof::svirpti::smt::SmtSolverError;
+
 use super::{
     super::super::transformations::{
         encoder_context::EncoderContext, symbolic_execution_new::ProgramContext,
@@ -9,7 +11,14 @@ use super::{
 };
 use prusti_common::Stopwatch;
 use rsmt2::{print::Sort2Smt, Solver};
-use vir_crate::low::{self as vir_low};
+use rustc_hash::{FxHashMap, FxHashSet};
+use vir_crate::{
+    common::expression::BinaryOperationHelpers,
+    low::{
+        self as vir_low,
+        expression::visitors::{default_fallible_walk_expression, ExpressionFallibleWalker},
+    },
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum SatResult {
@@ -45,7 +54,11 @@ impl<'a, 'c, EC: EncoderContext> Clone for Info<'a, 'c, EC> {
 impl<'a, 'c, EC: EncoderContext> Copy for Info<'a, 'c, EC> {}
 
 pub struct SmtSolver {
+    check_sat_counter: u64,
     solver: Solver<SmtParser>,
+    /// Triggerring function name → Vec<(trigger, quantifier)>
+    axiom_quantifiers: FxHashMap<String, Vec<(vir_low::Expression, vir_low::Quantifier)>>,
+    matched_terms: FxHashSet<vir_low::Expression>,
 }
 
 impl SmtSolver {
@@ -61,7 +74,50 @@ impl SmtSolver {
         for (option, value) in &conf.options {
             solver.set_option(option, value)?;
         }
-        Ok(Self { solver })
+        Ok(Self {
+            solver,
+            check_sat_counter: 0,
+            axiom_quantifiers: Default::default(),
+            matched_terms: Default::default(),
+        })
+    }
+    /// Add an axiom to be automatically instantiated.
+    pub fn add_axiom(&mut self, axiom: vir_low::DomainAxiomDecl) -> SmtSolverResult<bool> {
+        eprintln!("axiom: {axiom}");
+        match axiom.body {
+            vir_low::Expression::Quantifier(mut quantifier) => {
+                for mut trigger in std::mem::take(&mut quantifier.triggers) {
+                    if trigger.terms.len() != 1 {
+                        return Ok(false);
+                    }
+                    match &trigger.terms[0] {
+                        vir_low::Expression::DomainFuncApp(vir_low::DomainFuncApp {
+                            function_name,
+                            ..
+                        }) => {
+                            let entry = self
+                                .axiom_quantifiers
+                                .entry(function_name.clone())
+                                .or_default();
+                            entry.push((trigger.terms.pop().unwrap(), quantifier.clone()));
+                        }
+                        _ => unimplemented!(),
+                    }
+                }
+                return Ok(true);
+            }
+            vir_low::Expression::DomainFuncApp(_) => {
+                return Ok(false);
+            }
+            vir_low::Expression::BinaryOp(vir_low::BinaryOp {
+                op_kind: vir_low::BinaryOpKind::EqCmp,
+                ..
+            }) => {
+                return Ok(false);
+            }
+            _ => unimplemented!(),
+        }
+        unreachable!();
     }
     /// We cannot use the `Default` trait because this is potentially failing
     /// operation.
@@ -69,6 +125,10 @@ impl SmtSolver {
         Self::new(Default::default())
     }
     pub fn check_sat(&mut self) -> SmtSolverResult<SatResult> {
+        self.solver
+            .comment(&format!("Check-sat id: {}", self.check_sat_counter))
+            .unwrap();
+        self.check_sat_counter += 1;
         let stopwatch = Stopwatch::start("svirpti", "check-sat");
         let result = match self.solver.check_sat_or_unk()? {
             Some(true) => SatResult::Sat,
@@ -125,7 +185,134 @@ impl SmtSolver {
         assertion: &vir_low::Expression,
         info: Info<'a, 'c, EC>,
     ) -> SmtSolverResult<()> {
+        self.trigger_axioms(assertion, info)?;
         self.solver.assert_with(assertion.wrap(), info)?;
+        Ok(())
+    }
+    fn trigger_axioms<'a, 'c, EC: EncoderContext>(
+        &mut self,
+        assertion: &vir_low::Expression,
+        info: Info<'a, 'c, EC>,
+    ) -> SmtSolverResult<()> {
+        struct Instantiator<'a, 'c, EC: EncoderContext> {
+            solver: &'a mut SmtSolver,
+            info: Info<'a, 'c, EC>,
+        }
+        fn try_match<'a>(
+            expression: &'a vir_low::Expression,
+            trigger: &'a vir_low::Expression,
+            replacements: &mut FxHashMap<&'a vir_low::VariableDecl, &'a vir_low::Expression>,
+        ) -> bool {
+            match (expression, trigger) {
+                (_, vir_low::Expression::Local(local)) => {
+                    assert!(replacements.insert(&local.variable, expression).is_none());
+                    true
+                }
+                (
+                    vir_low::Expression::DomainFuncApp(app1),
+                    vir_low::Expression::DomainFuncApp(app2),
+                ) if app1.domain_name == app2.domain_name
+                    && app1.function_name == app2.function_name =>
+                {
+                    for (arg1, arg2) in app1.arguments.iter().zip(app2.arguments.iter()) {
+                        if !try_match(arg1, arg2, replacements) {
+                            return false;
+                        }
+                    }
+                    true
+                }
+                _ => false,
+            }
+        }
+        impl<'a, 'c, EC: EncoderContext> ExpressionFallibleWalker for Instantiator<'a, 'c, EC> {
+            type Error = SmtSolverError;
+            fn fallible_walk_expression(
+                &mut self,
+                expression: &vir_low::Expression,
+            ) -> Result<(), Self::Error> {
+                match expression {
+                    vir_low::Expression::DomainFuncApp(domain_func_app) => {
+                        if self.solver.matched_terms.contains(expression) {
+                            return Ok(());
+                        }
+                        let mut assertions = Vec::new();
+                        if let Some(quantifiers) = self
+                            .solver
+                            .axiom_quantifiers
+                            .get(&domain_func_app.function_name)
+                        {
+                            for (trigger, quantifier) in quantifiers {
+                                let mut replacements = FxHashMap::default();
+                                if try_match(expression, trigger, &mut replacements) {
+                                    eprintln!(
+                                        "matched:\nexpression: {expression}\ntrigger: {trigger}"
+                                    );
+                                    eprintln!("quantifier: {quantifier}");
+                                    assert_eq!(quantifier.variables.len(), replacements.len());
+                                    for variable in &quantifier.variables {
+                                        assert!(
+                                            replacements.contains_key(variable),
+                                            "Missing variable: {variable}"
+                                        );
+                                    }
+                                    let assertion =
+                                        quantifier.body.clone().substitute_variables(&replacements);
+                                    assertions.push(assertion);
+                                } else {
+                                    eprintln!(
+                                        "unmatched:\nexpression: {expression}\ntrigger: {trigger}"
+                                    );
+                                    eprintln!("quantifier: {quantifier}");
+                                    if domain_func_app.function_name == "valid$Snap$Usize" {
+                                        assert_eq!(domain_func_app.arguments.len(), 1);
+                                        let argument = &domain_func_app.arguments[0];
+                                        let value = vir_low::Expression::domain_function_call(
+                                            "Snap$Usize",
+                                            "destructor$Snap$Usize$$value",
+                                            vec![argument.clone()],
+                                            vir_low::Type::Int,
+                                        );
+                                        let assertion = vir_low::Expression::and(
+                                            vir_low::Expression::less_equals(
+                                                0.into(),
+                                                value.clone(),
+                                            ),
+                                            vir_low::Expression::less_equals(
+                                                value.clone(),
+                                                18446744073709551615u64.into(),
+                                            ),
+                                        );
+                                        eprintln!("assertion: {assertion}");
+                                        assertions.push(assertion);
+                                    }
+                                    // assert_ne!(
+                                    //     &domain_func_app.function_name,
+                                    //     "mul_wrapper$"
+                                    // );
+                                    // unimplemented!();
+                                }
+                            }
+                        }
+                        if !assertions.is_empty() {
+                            self.solver.matched_terms.insert(expression.clone());
+                        }
+                        for assertion in assertions {
+                            self.solver.comment("quantifier trigger")?;
+                            self.solver.assert(&assertion, self.info)?;
+                        }
+                    }
+                    vir_low::Expression::Quantifier(_) => {
+                        // FIXME: In such cases, we should emit axioms to Z3 so
+                        // that it can instantiate them itself.
+                        return Ok(());
+                    }
+                    _ => {}
+                }
+                default_fallible_walk_expression(self, expression)
+            }
+        }
+        let mut instantiator = Instantiator { solver: self, info };
+        instantiator.fallible_walk_expression(assertion)?;
         Ok(())
     }
 }
