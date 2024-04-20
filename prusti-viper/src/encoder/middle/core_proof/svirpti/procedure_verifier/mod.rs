@@ -238,7 +238,14 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                 .comment(&format!("Axioms for domain: {}", domain.name))
                 .unwrap(); // FIXME: Handle errors
             for axiom in &domain.axioms {
-                let suitable_for_manual = if config::svirpti_enable_manual_triggering() {
+                let not_supported = matches!(
+                    axiom.name.as_str(),
+                        "mul_wrapper$zero"
+                        | "Snap$Bool$$validity_axiom_bottom_up_alternative"
+                        | "LeCmp_Unbounded$simplification_axiom"
+                        | "Snap$Unbounded$$validity_axiom_bottom_up_alternative"
+                );
+                let suitable_for_manual = if config::svirpti_enable_manual_triggering() && !not_supported {
                     self.smt_solver.add_axiom(axiom.clone()).unwrap()
                 } else {
                     false
