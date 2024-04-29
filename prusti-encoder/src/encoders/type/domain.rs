@@ -255,6 +255,13 @@ impl TaskEncoder for DomainEnc {
                     );
                     Ok((None, DomainEncSpecifics::Param))
                 }
+                &TyKind::Str => {
+                    let mut enc = DomainEncData::new(vcx, task_key, vec![], deps);
+                    let base_name = String::from("String");
+                    enc.deps.emit_output_ref::<Self>(*task_key, enc.output_ref(base_name));
+                    let specifics = enc.mk_struct_specifics(vec![]);
+                    Ok((Some(enc.finalize(task_key)), specifics))
+                }
                 kind => todo!("{kind:?}"),
             }
         })

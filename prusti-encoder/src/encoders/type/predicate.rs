@@ -365,6 +365,15 @@ impl TaskEncoder for PredicateEnc {
                     .generic_predicate;
                 Ok((enc.mk_ref(inner, lifted_ty, specifics), ()))
             }
+            TyKind::Str => {
+                let specifics = enc.mk_struct_ref(None, snap.specifics.expect_structlike());
+
+                deps.emit_output_ref::<Self>(
+                    *task_key,
+                    enc.output_ref(PredicateEncData::StructLike(specifics)),
+                );
+                Ok((enc.mk_prim(&snap.base_name), ()))
+            }
             unsupported_type => todo!("type not supported: {unsupported_type:?}"),
         }
     }

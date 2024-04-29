@@ -65,7 +65,9 @@ fn extract_ty_params(ty: Ty<'_>) -> Vec<ParamTy> {
             .filter_map(|arg| arg.as_type())
             .flat_map(|arg| extract_ty_params(arg))
             .collect(),
-        TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) | TyKind::Bool | TyKind::Char => vec![],
+        TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) | TyKind::Bool | TyKind::Char | TyKind::Str => vec![],
+        // TODO: special case to support constant strings
+        _ if matches!(ty.peel_refs().kind(), TyKind::Str) => vec![],
         other => todo!("{:?}", other),
     }
 }
