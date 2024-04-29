@@ -7,6 +7,7 @@ use prusti_interface::{
     environment::Environment,
     specs::typed,
 };
+use prusti_rustc_interface::errors::MultiSpan;
 
 #[tracing::instrument(name = "prusti::verify", level = "debug", skip(env))]
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
@@ -54,6 +55,17 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
 
         let results = prusti_server::verify_programs(vec![program]);
         println!("verification results: {results:?}");
+        if !results.iter().all(|(_, r)| matches!(r, viper::VerificationResult::Success)) {
+            // TODO: This will be unnecessary if diagnostic errors are emitted
+            // earlier, it's useful for now to ensure that Prusti returns an
+            // error code when verification fails
+            env.diagnostic.span_err_with_help_and_notes(
+                MultiSpan::new(),
+                "Verification failed",
+                &None,
+                &[],
+            );
+        }
         // TODO: backtranslate verification results
 
         //let verification_result =

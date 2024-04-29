@@ -4,6 +4,7 @@ use crate::data::*;
 use crate::debug_info::DebugInfo;
 use crate::genrefs::*;
 use crate::refs::*;
+use crate::with_vcx;
 
 use vir_proc_macro::*;
 
@@ -29,7 +30,7 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             | BinOpKind::CmpLt
             | BinOpKind::CmpGe
             | BinOpKind::CmpLe => &TypeData::Bool,
-            BinOpKind::And | BinOpKind::Or => &TypeData::Bool,
+            BinOpKind::And | BinOpKind::Or | BinOpKind::Implies => &TypeData::Bool,
             BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => self.lhs.ty(),
         }
     }
@@ -44,6 +45,13 @@ pub struct TernaryGenData<'vir, Curr, Next> {
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct ForallGenData<'vir, Curr, Next> {
+    #[vir(reify_pass)] pub qvars: &'vir [LocalDecl<'vir>],
+    pub triggers: &'vir [TriggerGen<'vir, Curr, Next>],
+    pub body: ExprGen<'vir, Curr, Next>,
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct ExistsGenData<'vir, Curr, Next> {
     #[vir(reify_pass)] pub qvars: &'vir [LocalDecl<'vir>],
     pub triggers: &'vir [TriggerGen<'vir, Curr, Next>],
     pub body: ExprGen<'vir, Curr, Next>,
@@ -108,14 +116,14 @@ impl<A, B: GenRow> GenRow for fn(A) -> B {
 #[derive(VirHash, VirSerde)]
 pub struct ExprGenData<'vir, Curr: 'vir, Next: 'vir> {
     pub kind: ExprKindGen<'vir, Curr, Next>,
-    #[vir(reify_pass)] pub debug_info: DebugInfo,
+    #[vir(reify_pass)] pub debug_info: DebugInfo<'vir>,
 }
 
 impl <'vir, Curr: 'vir, Next: 'vir> ExprGenData<'vir, Curr, Next> {
     pub fn new(kind: ExprKindGen<'vir, Curr, Next>) -> Self {
         Self {
             kind,
-            debug_info: DebugInfo::new(),
+            debug_info: with_vcx(DebugInfo::new),
         }
     }
 }
@@ -139,6 +147,7 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     // map ops?
     // sequence, map, set, multiset literals
     Ternary(TernaryGen<'vir, Curr, Next>),
+    Exists(ExistsGen<'vir, Curr, Next>),
     Forall(ForallGen<'vir, Curr, Next>),
     Let(LetGen<'vir, Curr, Next>),
     FuncApp(FuncAppGen<'vir, Curr, Next>),
@@ -168,6 +177,7 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::BinOp(b) => b.ty(),
             ExprKindGenData::Ternary(t) => t.then.ty(),
             ExprKindGenData::Forall(_) => &TypeData::Bool,
+            ExprKindGenData::Exists(_) => &TypeData::Bool,
             ExprKindGenData::Let(l) => l.expr.ty(),
             ExprKindGenData::FuncApp(a) => a.result_ty,
             ExprKindGenData::PredicateApp(_) => &TypeData::Predicate,

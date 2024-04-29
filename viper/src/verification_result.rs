@@ -14,9 +14,15 @@ pub enum VerificationResult {
     /// The program did not verify.
     Failure(Vec<VerificationError>),
     /// The program has consistency errors.
-    ConsistencyErrors(Vec<String>),
+    ConsistencyErrors(Vec<ConsistencyError>),
     /// The verification raised a Java exception.
     JavaException(JavaException),
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ConsistencyError {
+    pub message: String,
+    pub pos_id: Option<String>
 }
 
 impl VerificationResult {
@@ -56,15 +62,6 @@ impl VerificationError {
             counterexample,
         }
     }
-}
-
-/// The consistency error reported by the verifier.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct ConsistencyError {
-    /// To which method corresponds the program that triggered the error.
-    pub method: String,
-    /// The actual error.
-    pub error: String,
 }
 
 /// The Java exception reported by the verifier.

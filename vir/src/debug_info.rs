@@ -1,14 +1,15 @@
 use cfg_if::cfg_if;
+use crate::VirCtxt;
 
 // Imports
 cfg_if! {
     if #[cfg(feature="vir_debug")] {
-        use crate::with_vcx;
         use std::{
-            alloc::Layout,
             backtrace::Backtrace,
-            ptr::NonNull
+            sync::Mutex,
         };
+    } else {
+        use std::marker::PhantomData;
     }
 }
 
@@ -16,9 +17,9 @@ cfg_if! {
 cfg_if! {
     if #[cfg(feature="vir_debug")] {
         #[derive(Clone, Copy, Debug)]
-        pub struct DebugInfo(Option<NonNull<DebugInfoData>>);
+        pub struct DebugInfo<'a>(Option<&'a Mutex<DebugInfoData>>);
 
-        impl PartialEq for DebugInfo {
+        impl PartialEq for DebugInfo<'_> {
             /// DebugInfo values are always be considered equal; this prevents
             /// breaking derived `PartialEq` implementations for types that contain
             /// DebugInfo values.
@@ -27,22 +28,22 @@ cfg_if! {
             }
         }
 
-        impl Eq for DebugInfo {}
+        impl Eq for DebugInfo<'_> {}
     } else {
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-        pub struct DebugInfo;
+        pub struct DebugInfo<'a>(PhantomData<&'a ()>);
     }
 }
 
 // serde and hash no-ops
-impl serde::Serialize for DebugInfo {
+impl serde::Serialize for DebugInfo<'_> {
     fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
     where S: serde::ser::Serializer
     {
         ser.serialize_unit()
     }
 }
-impl<'de> serde::Deserialize<'de> for DebugInfo {
+impl<'de> serde::Deserialize<'de> for DebugInfo<'_> {
     fn deserialize<D>(deser: D) -> Result<Self, D::Error>
     where D: serde::de::Deserializer<'de>
     {
@@ -50,7 +51,7 @@ impl<'de> serde::Deserialize<'de> for DebugInfo {
         Ok(DEBUGINFO_NONE)
     }
 }
-impl std::hash::Hash for DebugInfo {
+impl std::hash::Hash for DebugInfo<'_> {
     fn hash<H>(&self, state: &mut H)
     where
         H: std::hash::Hasher,
@@ -62,7 +63,7 @@ cfg_if! {
     if #[cfg(feature="vir_debug")] {
         pub const DEBUGINFO_NONE: DebugInfo = DebugInfo(None);
     } else {
-        pub const DEBUGINFO_NONE: DebugInfo = DebugInfo;
+        pub const DEBUGINFO_NONE: DebugInfo = DebugInfo(PhantomData);
     }
 }
 
@@ -91,60 +92,49 @@ cfg_if! {
 
         impl std::fmt::Display for DebugInfoData {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "Debug Notes: {:?}", self.debug_notes)?;
+                write!(f, "Debug Notes: {}", self.debug_notes.concat())?;
                 write!(f, "Backtrace: {}", self.backtrace)
             }
         }
     }
 }
 
-impl DebugInfo {
-    // DebugInfo::new()
+impl <'vir> DebugInfo<'vir> {
     cfg_if! {
         if #[cfg(feature="vir_debug")] {
-            pub fn new() -> DebugInfo {
-                let data = DebugInfoData::new();
-                with_vcx(|vcx| {
-                    let ptr = vcx.arena.alloc_layout(Layout::new::<DebugInfoData>());
-                    let ptr = ptr.cast::<DebugInfoData>();
-                    unsafe {
-                        ptr.as_ptr().write(data);
-                    }
-                    DebugInfo(Some(ptr))
-                })
+            pub fn new(vcx: &'vir VirCtxt<'_>) -> DebugInfo<'vir> {
+                let debug_info_data = vcx.alloc(
+                    Mutex::new(DebugInfoData::new())
+                );
+                DebugInfo(Some(debug_info_data))
             }
         } else {
-            pub fn new() -> DebugInfo {
-                DebugInfo
+            pub fn new(_vcx: &'vir VirCtxt<'_>) -> DebugInfo<'vir> {
+                DebugInfo(PhantomData)
             }
         }
     }
 
     #[cfg(feature = "vir_debug")]
     pub fn add_debug_note_never_call_this_function_directly(&self, note: String) {
-        unsafe {
-            if let Some(ptr) = self.0 {
-                let data = ptr.as_ptr().as_mut().unwrap();
-                data.add_debug_note(note);
-            } else {
-                eprintln!(
-                    "Attempted to add debug note, but the entity was not created with debug info"
-                );
-            }
+        if let Some(mutex) = self.0 {
+            let mut data = mutex.lock().unwrap();
+            data.add_debug_note(note);
+        } else {
+            eprintln!(
+                "Attempted to add debug note, but the entity was not created with debug info"
+            );
         }
     }
 }
 
-impl std::fmt::Display for DebugInfo {
+impl std::fmt::Display for DebugInfo<'_> {
     // `Display` impl for DebugInfo
     cfg_if! {
         if #[cfg(feature="vir_debug")] {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self.0 {
-                    Some(data) =>
-                        unsafe {
-                            write!(f, "{}", data.as_ref())
-                        }
+                    Some(data) => write!(f, "{}", data.lock().unwrap()),
                     None => write!(f, "This entity was not created with debug info."),
                 }
             }

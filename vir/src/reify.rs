@@ -37,6 +37,7 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
             ExprKindGenData::BinOp(v) => vcx.alloc(ExprKindGenData::BinOp(v.reify(vcx, lctx))),
             ExprKindGenData::Ternary(v) => vcx.alloc(ExprKindGenData::Ternary(v.reify(vcx, lctx))),
             ExprKindGenData::Forall(v) => vcx.alloc(ExprKindGenData::Forall(v.reify(vcx, lctx))),
+            ExprKindGenData::Exists(v) => vcx.alloc(ExprKindGenData::Exists(v.reify(vcx, lctx))),
             ExprKindGenData::Let(v) => vcx.alloc(ExprKindGenData::Let(v.reify(vcx, lctx))),
             ExprKindGenData::FuncApp(v) => vcx.alloc(ExprKindGenData::FuncApp(v.reify(vcx, lctx))),
             ExprKindGenData::PredicateApp(v) => vcx.alloc(ExprKindGenData::PredicateApp(v.reify(vcx, lctx))),

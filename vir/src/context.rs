@@ -1,8 +1,10 @@
 use prusti_interface::environment::EnvBody;
 use prusti_rustc_interface::middle::ty;
 use std::cell::RefCell;
+use std::fmt::Debug;
 
-use crate::{data::*, gendata::*, refs::*};
+use crate::{data::*, refs::*};
+
 
 /// The VIR context is a data structure used throughout the encoding process.
 pub struct VirCtxt<'tcx> {

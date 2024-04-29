@@ -765,7 +765,8 @@ fn main() {
                 method!("readableMessage", "()Ljava/lang/String;"),
             ]),
             java_class!("viper.silver.verifier.ConsistencyError", vec![
-                constructor!(),
+                method!("pos"),
+                method!("readableMessage", "()Ljava/lang/String;"),
             ]),
             java_class!("viper.silicon.reporting.Converter", vec![
                 method!("extractedHeap"),

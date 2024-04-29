@@ -8,7 +8,7 @@ pub fn program_to_viper<'vir, 'v>(program: vir::Program<'vir>, ast: &'vir AstFac
     for domain in program.domains {
         domains.insert(domain.name, *domain);
         for function in domain.functions {
-            domain_functions.insert(function.name, (*domain, *function));
+            domain_functions.insert(function.name.to_str(), (*domain, *function));
         }
         for axiom in domain.axioms {
             domain_axioms.insert(axiom.name, (*domain, *axiom));
@@ -109,6 +109,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::BinOp<'vir> {
             vir::BinOpKind::Mul => ctx.ast.mul(lhs, rhs),
             vir::BinOpKind::Div => ctx.ast.div(lhs, rhs),
             vir::BinOpKind::Mod => ctx.ast.mul(lhs, rhs),
+            vir::BinOpKind::Implies => ctx.ast.implies(lhs, rhs),
         }
     }
 }
@@ -177,9 +178,9 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::DomainAxiom<'vir> {
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::DomainFunction<'vir> {
     type Output = viper::DomainFunc<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>) -> Self::Output {
-        let (domain, _) = ctx.domain_functions.get(self.name).expect("no domain for domain function");
+        let (domain, _) = ctx.domain_functions.get(self.name.to_str()).expect("no domain for domain function");
         ctx.ast.domain_func(
-            self.name,
+            self.name.to_str(),
             &self.args.iter().enumerate().map(|(idx, v)| ctx.ast.local_var_decl(
                 &format!("arg{idx}"),
                 v.to_viper(ctx),
@@ -257,33 +258,11 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Forall<'vir> {
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
     type Output = viper::Expr<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>) -> Self::Output {
-        if let Some((domain, domain_function)) = ctx.domain_functions.get(self.target) {
-            // TODO: func apps should contain the ident
-            let ident = vir::FunctionIdent::new(
-                domain_function.name,
-                vir::UnknownArityAny::new(domain_function.args),
-                domain_function.ret,
-            );
-            use vir::{CallableIdent, CheckTypes};
-            let tymap = ident.arity().check_types(domain_function.name, self.args);
-
-            let mut domain_tymap: FxHashMap<_, _> = Default::default();
-            for typaram in domain.typarams {
-                domain_tymap.insert(typaram.name, ctx.ast.type_var(typaram.name));
-            }
-            for (typaram, ty) in tymap {
-                domain_tymap.insert(typaram, ty.to_viper(ctx));
-            }
-            let mut domain_tymap_vec = domain_tymap.into_iter().collect::<Vec<_>>();
-            domain_tymap_vec.sort_by_key(|(k, _)| *k);
-            let domain_tymap_vec = domain_tymap_vec.into_iter()
-                .map(|(k, v)| (ctx.ast.type_var(k), v))
-                .collect::<Vec<_>>();
-
+        if let Some((domain, _)) = ctx.domain_functions.get(self.target) {
             ctx.ast.domain_func_app2(
                 self.target,
                 &self.args.iter().map(|v| v.to_viper(ctx)).collect::<Vec<_>>(),
-                &domain_tymap_vec,
+                &[],
                 self.result_ty.to_viper(ctx),
                 domain.name,
                 ctx.ast.no_position(), // TODO: position
@@ -376,7 +355,8 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::LocalData<'vir> {
         ctx.ast.local_var(
             self.name,
             self.ty.to_viper(ctx),
-            // TODO: position
+            // TODO: Use a real position here
+            ctx.ast.no_position()
         )
     }
 }
@@ -512,6 +492,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Stmt<'vir> {
                 ctx.ast.local_var(
                     decl.name,
                     decl.ty.to_viper(ctx),
+                    ctx.ast.no_position(),
                     // TODO: position
                 ),
                 expr.to_viper(ctx),
@@ -592,7 +573,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Type<'vir> {
             vir::TypeData::Bool => ctx.ast.bool_type(),
             vir::TypeData::DomainTypeParam(param) => ctx.ast.type_var(param.name),
             vir::TypeData::Domain(name, params) => {
-                let domain = ctx.domains.get(name).unwrap();
+                let domain = ctx.domains.get(name).unwrap_or_else(|| panic!("Domain {name} not found"));
                 ctx.ast.domain_type(
                     name,
                     &domain.typarams.iter()
@@ -608,7 +589,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Type<'vir> {
             vir::TypeData::Perm => ctx.ast.perm_type(),
             //vir::TypeData::Predicate, // The type of a predicate application
             //vir::TypeData::Unsupported(UnsupportedType<'vir>)
-            _ => unimplemented!(),
+            other => unimplemented!("{:?}", other),
         }
     }
 }

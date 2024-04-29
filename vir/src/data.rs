@@ -4,14 +4,16 @@ use serde::{Serialize, Deserialize};
 
 use prusti_rustc_interface::middle::mir;
 
-use crate::{refs::*, FunctionIdent, UnknownArity};
+use crate::{debug_info::DebugInfo, refs::*, viper_ident::ViperIdent, CallableIdent, FunctionIdent, UnknownArity};
 
 #[derive(Serialize, Deserialize, Hash)]
 pub struct LocalData<'vir> {
     #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
     #[serde(with = "crate::serde::serde_ref")] pub ty: Type<'vir>,
+    pub debug_info: DebugInfo<'vir>
 }
 
+#[derive(Eq, PartialEq)]
 #[derive(Serialize, Deserialize, Hash)]
 pub struct LocalDeclData<'vir> {
     #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
@@ -47,6 +49,7 @@ pub enum BinOpKind {
     CmpLe,
     And,
     Or,
+    Implies,
     Add,
     Sub,
     Mul,
@@ -110,7 +113,7 @@ impl ConstData {
     }
 }
 
-#[derive(PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize, Hash)]
 pub enum TypeData<'vir> {
     Int,
     Bool,
@@ -126,14 +129,14 @@ pub enum TypeData<'vir> {
     Unsupported(UnsupportedType<'vir>)
 }
 
-#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
+#[derive(PartialEq, Eq, Clone, Ord, PartialOrd, Serialize, Deserialize, Hash)]
 pub struct UnsupportedType<'vir> {
     #[serde(with = "crate::serde::serde_str")] pub name: &'vir str,
 }
 
 pub type TySubsts<'vir> = HashMap<&'vir str, Type<'vir>>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize, Hash)]
 pub struct DomainParamData<'vir> {
     #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
 }
@@ -145,9 +148,10 @@ pub struct FieldData<'vir> {
 }
 
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
+#[serde(bound(deserialize = "'de: 'vir"))]
 pub struct DomainFunctionData<'vir> {
     pub unique: bool,
-    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
+    pub name: ViperIdent<'vir>,
     #[serde(with = "crate::serde::serde_slice")] pub args: &'vir [Type<'vir>],
     #[serde(with = "crate::serde::serde_ref")] pub ret: Type<'vir>,
 }
