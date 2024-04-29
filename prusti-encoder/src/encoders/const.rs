@@ -21,6 +21,7 @@ impl<'vir> task_encoder::OutputRefAny for ConstEncOutputRef<'vir> {}
 use crate::encoders::{MirPureEnc, mir_pure::PureKind, MirPureEncTask};
 
 use super::rust_ty_snapshots::RustTySnapshotsEnc;
+use super::lifted::rust_ty_cast::RustTyGenericCastEnc;
 
 impl TaskEncoder for ConstEnc {
     task_encoder::encoder_cache!(ConstEnc);
@@ -77,8 +78,30 @@ impl TaskEncoder for ConstEnc {
                         assert_eq!(s.field_snaps_to_snap.arity().args().len(), 0);
                         vir::with_vcx(|vcx| s.field_snaps_to_snap.apply(vcx, &[]))
                     }
-                    ConstValue::Slice { .. } => todo!(),
-                    ConstValue::Indirect { .. } => todo!(),
+                    // Encode `&str` constants to an opaque domain. If we ever want to perform string reasoning
+                    // we will need to revisit this encoding, but for the moment this allows assertions to avoid
+                    // crashing Prusti.
+                    ConstValue::Slice { .. } if ty.peel_refs().is_str() => {
+                        let ref_ty = kind.expect_structlike();
+                        let str_ty = ty.peel_refs();
+                        let str_snap = deps
+                            .require_local::<RustTySnapshotsEnc>(str_ty)
+                            .unwrap()
+                            .generic_snapshot
+                            .specifics
+                            .expect_structlike();
+                        let cast = deps.require_local::<RustTyGenericCastEnc>(str_ty).unwrap();
+                        vir::with_vcx(|vcx| {
+                            // first, we create a string snapshot
+                            let snap = str_snap.field_snaps_to_snap.apply(vcx, &[]);
+                            // upcast it to a param
+                            let snap = cast.cast_to_generic_if_necessary(vcx, snap);
+                            // wrap it in a ref
+                            ref_ty.field_snaps_to_snap.apply(vcx, &[snap])
+                        })
+                    }
+                    ConstValue::Slice { .. } => todo!("ConstValue::Slice : {:?}", const_.ty()),
+                    ConstValue::Indirect { .. } => todo!("ConstValue::Indirect"),
                 }
             }
             mir::ConstantKind::Unevaluated(uneval, _) => vir::with_vcx(|vcx| {
@@ -94,7 +117,7 @@ impl TaskEncoder for ConstEnc {
                 use vir::Reify;
                 expr.reify(vcx, (uneval.def, &[]))
             }),
-            mir::ConstantKind::Ty(_) => todo!(),
+            mir::ConstantKind::Ty(_) => todo!("ConstantKind::Ty"),
         };
         Ok((res, ()))
     }
