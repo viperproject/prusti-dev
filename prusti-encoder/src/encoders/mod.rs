@@ -8,6 +8,13 @@ mod pure;
 mod local_def;
 mod r#type;
 mod r#const;
+mod mono;
+
+#[cfg(feature = "mono_function_encoding")]
+pub type PureFunctionEnc = mono::mir_pure_function::MirMonoFunctionEnc;
+
+#[cfg(not(feature = "mono_function_encoding"))]
+pub type PureFunctionEnc = mir_pure_function::MirFunctionEnc;
 
 pub use pure::*;
 pub use pure::spec::MirSpecEnc;
@@ -20,6 +27,7 @@ pub use mir_builtin::{
 };
 pub use mir_impure::MirImpureEnc;
 pub use mir_pure::{
+    PureKind,
     MirPureEnc,
     MirPureEncTask,
 };
@@ -28,7 +36,7 @@ pub use spec::{
     SpecEncOutput,
     SpecEncTask,
 };
-pub(super) use spec::{init_def_spec, with_def_spec, with_proc_spec};
+pub(super) use spec::{init_def_spec, with_proc_spec};
 pub use snapshot::SnapshotEnc;
 pub use predicate::{
     PredicateEnc,
@@ -41,5 +49,3 @@ pub use viper_tuple::{
     ViperTupleEncOutput,
 };
 pub use r#const::ConstEnc;
-
-pub use mir_pure_function::MirFunctionEnc;

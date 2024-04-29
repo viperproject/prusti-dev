@@ -18,7 +18,9 @@ pub struct ConstEncOutputRef<'vir> {
 }
 impl<'vir> task_encoder::OutputRefAny for ConstEncOutputRef<'vir> {}
 
-use crate::encoders::{MirPureEnc, mir_pure::PureKind, MirPureEncTask, SnapshotEnc};
+use crate::encoders::{MirPureEnc, mir_pure::PureKind, MirPureEncTask};
+
+use super::rust_ty_snapshots::RustTySnapshotsEnc;
 
 impl TaskEncoder for ConstEnc {
     task_encoder::encoder_cache!(ConstEnc);
@@ -49,7 +51,7 @@ impl TaskEncoder for ConstEnc {
         let (const_, encoding_depth, def_id) = *task_key;
         let res = match const_ {
             mir::ConstantKind::Val(val, ty) => {
-                let kind = deps.require_local::<SnapshotEnc>(ty).unwrap().specifics;
+                let kind = deps.require_local::<RustTySnapshotsEnc>(ty).unwrap().generic_snapshot.specifics;
                 match val {
                     ConstValue::Scalar(Scalar::Int(int)) => {
                         let prim = kind.expect_primitive();
@@ -85,8 +87,8 @@ impl TaskEncoder for ConstEnc {
                     parent_def_id: uneval.def,
                     param_env: vcx.tcx().param_env(uneval.def),
                     substs: ty::List::identity_for_item(vcx.tcx(), uneval.def),
-                    kind: PureKind::Constant(uneval.promoted.unwrap()), 
-                    caller_def_id: def_id
+                    kind: PureKind::Constant(uneval.promoted.unwrap()),
+                    caller_def_id: Some(def_id)
                 };
                 let expr = deps.require_local::<MirPureEnc>(task).unwrap().expr;
                 use vir::Reify;

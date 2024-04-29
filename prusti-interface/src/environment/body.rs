@@ -221,13 +221,13 @@ impl<'tcx> EnvBody<'tcx> {
         &self,
         def_id: DefId,
         substs: GenericArgsRef<'tcx>,
-        caller_def_id: DefId,
+        caller_def_id: Option<DefId>,
     ) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id, substs, Some(caller_def_id)) {
+        if let Some(body) = self.get_monomorphised(def_id, substs, caller_def_id) {
             return body;
         }
         let body = self.get_closure_body_identity(def_id);
-        self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
+        self.set_monomorphised(def_id, substs, caller_def_id, body)
     }
 
     /// Get the MIR body of a local or external pure function,
@@ -236,13 +236,13 @@ impl<'tcx> EnvBody<'tcx> {
         &self,
         def_id: DefId,
         substs: GenericArgsRef<'tcx>,
-        caller_def_id: DefId,
+        caller_def_id: Option<DefId>,
     ) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id, substs, Some(caller_def_id)) {
+        if let Some(body) = self.get_monomorphised(def_id, substs, caller_def_id) {
             return body;
         }
         let body = self.pure_fns.expect(def_id);
-        self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
+        self.set_monomorphised(def_id, substs, caller_def_id, body)
     }
 
     /// Get the MIR body of a local or external expression (e.g. any spec or predicate),
@@ -269,13 +269,13 @@ impl<'tcx> EnvBody<'tcx> {
         &self,
         def_id: DefId,
         substs: GenericArgsRef<'tcx>,
-        caller_def_id: DefId,
+        caller_def_id: Option<DefId>,
     ) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id, substs, Some(caller_def_id)) {
+        if let Some(body) = self.get_monomorphised(def_id, substs, caller_def_id) {
             return body;
         }
         let body = self.specs.expect(def_id);
-        self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
+        self.set_monomorphised(def_id, substs, caller_def_id, body)
     }
 
     pub fn get_promoted_constant_body(&self,  def_id: DefId, promoted: mir::Promoted) -> MirBody<'tcx> {

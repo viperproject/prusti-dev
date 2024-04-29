@@ -1254,8 +1254,8 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn local_var(&self, name: &str, var_type: Type) -> Expr<'a> {
-        self.local_var_with_pos(name, var_type, self.no_position())
+    pub fn local_var(&self, name: &str, var_type: Type, position: Position<'a>) -> Expr<'a> {
+        self.local_var_with_pos(name, var_type, position)
     }
 
     pub fn result_with_pos(&self, var_type: Type, pos: Position) -> Expr<'a> {

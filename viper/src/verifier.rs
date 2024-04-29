@@ -11,7 +11,7 @@ use crate::{
     silicon_counterexample::SiliconCounterexample,
     smt_manager::SmtManager,
     verification_backend::VerificationBackend,
-    verification_result::{VerificationError, VerificationResult},
+    verification_result::{VerificationError, VerificationResult}, ConsistencyError,
 };
 use jni::{errors::Result, objects::JObject, JNIEnv};
 use log::{debug, error, info};
@@ -164,6 +164,25 @@ impl<'a> Verifier<'a> {
         self
     }
 
+    /// Extract a position identifier from a `Position` object.
+    fn extract_pos_id(&self, pos: JObject<'_>) -> Option<String> {
+        let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
+
+        if self
+            .jni
+            .is_instance_of(pos, "viper/silver/ast/HasIdentifier")
+        {
+            Some(
+                self.jni.get_string(
+                    self.jni
+                        .unwrap_result(has_identifier_wrapper.call_id(pos)),
+                ),
+            )
+        } else {
+            None
+        }
+    }
+
     #[tracing::instrument(name = "viper::verify", level = "debug", skip_all)]
     pub fn verify(&mut self, program: Program) -> VerificationResult {
         let ast_utils = self.ast_utils;
@@ -183,6 +202,9 @@ impl<'a> Verifier<'a> {
             );
 
             if !consistency_errors.is_empty() {
+
+                let consistency_error_wrapper = silver::verifier::ConsistencyError::with(self.env);
+
                 debug!(
                     "The provided Viper program has {} consistency errors.",
                     consistency_errors.len()
@@ -190,7 +212,19 @@ impl<'a> Verifier<'a> {
                 return VerificationResult::ConsistencyErrors(
                     consistency_errors
                         .into_iter()
-                        .map(|e| self.jni.to_string(e))
+                        .map(|e| {
+                            let pos = self
+                                .jni
+                                .unwrap_result(consistency_error_wrapper.call_pos(e));
+
+                            let pos_id = self.extract_pos_id(pos);
+
+                            let message =
+                                self.jni.to_string(self.jni.unwrap_result(
+                                    consistency_error_wrapper.call_readableMessage(e),
+                                ));
+                            ConsistencyError { pos_id, message }
+                        })
                         .collect(),
                 );
             }
@@ -221,13 +255,12 @@ impl<'a> Verifier<'a> {
                     silver::verifier::Failure::with(self.env).call_errors(viper_result),
                 ));
 
+
                 let verification_error_wrapper = silver::verifier::VerificationError::with(self.env);
 
                 let error_node_positioned_wrapper = silver::ast::Positioned::with(self.env);
 
                 let failure_context_wrapper = silver::verifier::FailureContext::with(self.env);
-
-                let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
 
                 let error_reason_wrapper = silver::verifier::ErrorReason::with(self.env);
 
@@ -310,23 +343,13 @@ impl<'a> Verifier<'a> {
                         .jni
                         .unwrap_result(error_reason_wrapper.call_pos(reason));
 
-                    let reason_pos_id = if self
-                        .jni
-                        .is_instance_of(reason_pos, "viper/silver/ast/HasIdentifier")
-                    {
-                        Some(
-                            self.jni.get_string(
-                                self.jni
-                                    .unwrap_result(has_identifier_wrapper.call_id(reason_pos)),
-                            ),
-                        )
-                    } else {
+                    let reason_pos_id = self.extract_pos_id(reason_pos);
+                    if reason_pos_id.is_none() {
                         debug!(
                             "The verifier returned an error whose offending node position has no identifier: {:?}",
                             self.jni.to_string(viper_error)
                         );
-                        None
-                    };
+                    }
 
                     let error_full_id = self.jni.get_string(
                         self.jni
@@ -342,21 +365,13 @@ impl<'a> Verifier<'a> {
                             verification_error_wrapper.call_readableMessage(viper_error),
                         ));
 
-                    let pos_id =
-                        if self
-                            .jni
-                            .is_instance_of(pos, "viper/silver/ast/HasIdentifier")
-                        {
-                            Some(self.jni.get_string(
-                                self.jni.unwrap_result(has_identifier_wrapper.call_id(pos)),
-                            ))
-                        } else {
-                            debug!(
-                                "The verifier returned an error whose position has no identifier: {:?}",
-                                self.jni.to_string(viper_error)
-                            );
-                            None
-                        };
+                    let pos_id = self.extract_pos_id(pos);
+                    if pos_id.is_none() {
+                        debug!(
+                            "The verifier returned an error whose position has no identifier: {:?}",
+                            self.jni.to_string(viper_error)
+                        );
+                    }
 
                     let offending_node = self
                         .jni
@@ -366,21 +381,13 @@ impl<'a> Verifier<'a> {
                         .jni
                         .unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
 
-                    let offending_pos_id =
-                        if self
-                            .jni
-                            .is_instance_of(offending_pos, "viper/silver/ast/HasIdentifier")
-                        {
-                            Some(self.jni.get_string(
-                                self.jni.unwrap_result(has_identifier_wrapper.call_id(offending_pos)),
-                            ))
-                        } else {
-                            debug!(
-                                "The verifier returned an error whose position has no identifier: {:?}",
-                                self.jni.to_string(viper_error)
-                            );
-                            None
-                        };
+                    let offending_pos_id = self.extract_pos_id(offending_pos);
+                    if offending_pos_id.is_none() {
+                        debug!(
+                            "The verifier returned an error whose offending node position has no identifier: {:?}",
+                            self.jni.to_string(viper_error)
+                        );
+                    }
 
                     errors.push(VerificationError::new(
                         error_full_id,

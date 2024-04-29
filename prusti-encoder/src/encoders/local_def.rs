@@ -6,7 +6,10 @@ use prusti_rustc_interface::{
 
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 
-use crate::encoders::PredicateEncOutputRef;
+use crate::encoders::{
+    rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
+    PredicateEncOutputRef,
+};
 
 pub struct MirLocalDefEnc;
 #[derive(Clone, Copy)]
@@ -22,7 +25,7 @@ pub struct LocalDef<'vir> {
     pub local_ex: vir::Expr<'vir>,
     pub impure_snap: vir::Expr<'vir>,
     pub impure_pred: vir::Expr<'vir>,
-    pub ty: &'vir crate::encoders::PredicateEncOutputRef<'vir>,
+    pub ty: &'vir PredicateEncOutputRef<'vir>,
 }
 
 impl TaskEncoder for MirLocalDefEnc {
@@ -57,17 +60,23 @@ impl TaskEncoder for MirLocalDefEnc {
     > {
         let (def_id, substs, caller_def_id) = *task_key;
         deps.emit_output_ref::<Self>(*task_key, ());
-        fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: PredicateEncOutputRef<'vir>) -> LocalDef<'vir> {
+
+        fn mk_local_def<'vir, 'tcx>(
+            vcx: &'vir vir::VirCtxt<'tcx>,
+            name: &'vir str,
+            ty: RustTyPredicatesEncOutputRef<'vir>,
+        ) -> LocalDef<'vir> {
             let local = vcx.mk_local(name, &vir::TypeData::Ref);
             let local_ex = vcx.mk_local_ex_local(local);
-            let impure_snap = ty.ref_to_snap.apply(vcx, [local_ex]);
-            let impure_pred = vcx.mk_predicate_app_expr(ty.ref_to_pred.apply(vcx, [local_ex], None));
+            let args = ty.ref_to_args(vcx, local_ex);
+            let impure_snap = ty.ref_to_snap(vcx, args);
+            let impure_pred = ty.ref_to_pred(vcx, args, None);
             LocalDef {
                 local,
                 local_ex,
                 impure_snap,
                 impure_pred,
-                ty: vcx.alloc(ty),
+                ty: vcx.alloc(ty.generic_predicate),
             }
         }
 
@@ -76,7 +85,7 @@ impl TaskEncoder for MirLocalDefEnc {
                 let body = vcx.body_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {
                     let local = vir::vir_format!(vcx, "_{}p", arg.index());
-                    let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
+                    let ty = deps.require_ref::<RustTyPredicatesEnc>(
                         body.local_decls[arg].ty,
                     ).unwrap();
                     mk_local_def(vcx, local, ty)
@@ -98,7 +107,7 @@ impl TaskEncoder for MirLocalDefEnc {
                     } else {
                         sig.inputs()[arg.index() - 1]
                     };
-                    let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
+                    let ty = deps.require_ref::<RustTyPredicatesEnc>(
                         ty,
                     ).unwrap();
                     mk_local_def(vcx, local, ty)
