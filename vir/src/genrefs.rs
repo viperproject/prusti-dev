@@ -5,6 +5,7 @@ pub type DomainAxiomGen<'vir, Curr, Next> = &'vir crate::gendata::DomainAxiomGen
 pub type DomainGen<'vir, Curr, Next> = &'vir crate::gendata::DomainGenData<'vir, Curr, Next>;
 pub type ExprGen<'vir, Curr, Next> = &'vir crate::gendata::ExprGenData<'vir, Curr, Next>;
 pub type ExprKindGen<'vir, Curr, Next> = &'vir crate::gendata::ExprKindGenData<'vir, Curr, Next>;
+pub type ExistsGen<'vir, Curr, Next> = &'vir crate::gendata::ExistsGenData<'vir, Curr, Next>;
 pub type ForallGen<'vir, Curr, Next> = &'vir crate::gendata::ForallGenData<'vir, Curr, Next>;
 pub type FuncAppGen<'vir, Curr, Next> = &'vir crate::gendata::FuncAppGenData<'vir, Curr, Next>;
 pub type FunctionGen<'vir, Curr, Next> = &'vir crate::gendata::FunctionGenData<'vir, Curr, Next>;

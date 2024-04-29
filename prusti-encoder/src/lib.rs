@@ -1,26 +1,30 @@
 #![feature(rustc_private)]
 #![feature(associated_type_defaults)]
 #![feature(box_patterns)]
+#![feature(never_type)]
 
 extern crate rustc_middle;
 extern crate rustc_serialize;
 extern crate rustc_type_ir;
 
 mod encoders;
+mod encoder_traits;
 pub mod request;
 
-use prusti_interface::{environment::EnvBody, specs::typed::SpecificationItem};
+use prusti_interface::environment::EnvBody;
 use prusti_rustc_interface::{
     middle::ty,
     hir,
 };
+use task_encoder::TaskEncoder;
+
+use crate::encoders::lifted::ty_constructor::TyConstructorEnc;
 
 pub fn test_entrypoint<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
     body: EnvBody<'tcx>,
     def_spec: prusti_interface::specs::typed::DefSpecificationMap,
 ) -> request::RequestWithContext {
-    use task_encoder::TaskEncoder;
 
     crate::encoders::init_def_spec(def_spec);
     vir::init_vcx(vir::VirCtxt::new(tcx, body));
@@ -76,7 +80,7 @@ pub fn test_entrypoint<'tcx>(
     }
 
     header(&mut viper_code, "functions");
-    for output in crate::encoders::MirFunctionEnc::all_outputs() {
+    for output in crate::encoders::PureFunctionEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.function));
         program_functions.push(output.function);
     }
@@ -89,18 +93,30 @@ pub fn test_entrypoint<'tcx>(
 
     header(&mut viper_code, "generics");
     for output in crate::encoders::GenericEnc::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.snapshot_param));
-        program_domains.push(output.snapshot_param);
-        viper_code.push_str(&format!("{:?}\n", output.predicate_param));
-        program_predicates.push(output.predicate_param);
-        viper_code.push_str(&format!("{:?}\n", output.domain_type));
-        program_domains.push(output.domain_type);
+        viper_code.push_str(&format!("{:?}\n", output.type_snapshot));
+        viper_code.push_str(&format!("{:?}\n", output.param_snapshot));
+        program_domains.push(output.type_snapshot);
+        program_domains.push(output.param_snapshot);
+    }
+
+    header(&mut viper_code, "generic casts");
+    for output in crate::encoders::lifted::cast_functions::CastFunctionsEnc::all_outputs() {
+        for cast_function in output {
+            viper_code.push_str(&format!("{:?}\n", cast_function));
+            program_functions.push(cast_function);
+        }
     }
 
     header(&mut viper_code, "snapshots");
     for output in crate::encoders::DomainEnc_all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output));
         program_domains.push(output);
+    }
+
+    header(&mut viper_code, "type constructors");
+    for output in TyConstructorEnc::all_outputs() {
+        viper_code.push_str(&format!("{:?}\n", output.domain));
+        program_domains.push(output.domain);
     }
 
     header(&mut viper_code, "types");

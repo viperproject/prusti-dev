@@ -2,6 +2,8 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 use crate::data::*;
 use crate::gendata::*;
+use crate::DomainAxiomGen;
+use crate::DomainFunction;
 
 fn fmt_comma_sep_display<T: Display>(f: &mut Formatter<'_>, els: &[T]) -> FmtResult {
     els.iter()
@@ -38,6 +40,8 @@ fn indent(s: String) -> String {
         .collect::<String>()
 }
 
+
+
 impl<'vir, Curr, Next> Debug for AccFieldGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "acc({:?}.{}", self.recv, self.field.name)?;
@@ -61,6 +65,7 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
             BinOpKind::CmpLe => "<=",
             BinOpKind::And => "&&",
             BinOpKind::Or => "||",
+            BinOpKind::Implies => "==>",
             BinOpKind::Add => "+",
             BinOpKind::Sub => "-",
             BinOpKind::Mul => "*",
@@ -140,6 +145,7 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::Result(_) => write!(f, "result"),
             Self::Field(e, field) => write!(f, "{:?}.{}", e, field.name),
             Self::Forall(e) => e.fmt(f),
+            Self::Exists(e) => e.fmt(f),
             Self::FuncApp(e) => e.fmt(f),
             Self::Let(e) => e.fmt(f),
             Self::Lazy(e) => write!(f, "%%/*{}*/", e.name),
@@ -163,6 +169,18 @@ impl<'vir> Debug for FieldData<'vir> {
 impl<'vir, Curr, Next> Debug for ForallGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "forall ")?;
+        fmt_comma_sep(f, &self.qvars)?;
+        write!(f, " ::")?;
+        for trigger in self.triggers {
+            write!(f, " {:?}", trigger)?;
+        }
+        write!(f, " {:?}", self.body)
+    }
+}
+
+impl<'vir, Curr, Next> Debug for ExistsGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "exists ")?;
         fmt_comma_sep(f, &self.qvars)?;
         write!(f, " ::")?;
         for trigger in self.triggers {

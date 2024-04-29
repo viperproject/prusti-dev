@@ -1,6 +1,6 @@
 //#[macro_export]
 //macro_rules! vir_expr_nopos {
-//    
+//
 //}
 
 //#[macro_export]
@@ -122,6 +122,11 @@ macro_rules! vir_format {
 }
 
 #[macro_export]
+macro_rules! vir_format_identifier {
+    ($vcx:expr, $($arg:tt)*) => { $crate::ViperIdent::sanitize($vcx, format!($($arg)*)) };
+}
+
+#[macro_export]
 macro_rules! vir_type {
     ($vcx:expr; Bool) => { & $crate::TypeData::Bool };
     ($vcx:expr; Ref) => { & $crate::TypeData::Ref };
@@ -179,18 +184,22 @@ macro_rules! vir_domain_axiom {
 macro_rules! vir_domain_func {
     ($vcx:expr; unique function $name:tt ( $( $args:tt )* ): $ret:tt ) => {{
         $vcx.mk_domain_function(
-            true,
-            $name.name(),
-            $crate::vir_type_list!($vcx; $($args)*),
-            $crate::vir_type!($vcx; $ret),
+            FunctionIdent::new(
+                $name.name(),
+                vir::UnknownArity::new($crate::vir_type_list!($vcx; $($args)*)),
+                $crate::vir_type!($vcx; $ret),
+            ),
+            true
         )
     }};
     ($vcx:expr; function $name:tt ( $( $args:tt )* ): $ret:tt ) => {{
         $vcx.mk_domain_function(
-            false,
-            $name.name(),
-            $crate::vir_type_list!($vcx; $($args)*),
-            $crate::vir_type!($vcx; $ret),
+            FunctionIdent::new(
+                $name.name(),
+                vir::UnknownArity::new($crate::vir_type_list!($vcx; $($args)*)),
+                $crate::vir_type!($vcx; $ret),
+            ),
+            false
         )
     }};
 }
@@ -244,7 +253,7 @@ macro_rules! vir_domain {
         let mut functions = vec![];
         $crate::vir_domain_members!($vcx; axioms; functions; $($member)*);
         $vcx.mk_domain(
-            $crate::vir_ident!($vcx; $name),
+            $crate::ViperIdent::new($crate::vir_ident!($vcx; $name)),
             &[],
             $vcx.alloc_slice(&axioms),
             $vcx.alloc_slice(&functions),
@@ -255,14 +264,14 @@ macro_rules! vir_domain {
 #[macro_export]
 macro_rules! vir_predicate {
     ($vcx:expr; predicate $name:tt ( $( $args:tt )* ) { [$expr:expr] }) => {{
-        $vcx.mk_predicate(
+        $vcx.mk_predicate_unchecked(
             $crate::vir_ident!($vcx; $name),
             $crate::vir_arg_list!($vcx; $($args)*),
             Some($expr)
         )
     }};
     ($vcx:expr; predicate $name:tt ( $( $args:tt )* )) => {{
-        $vcx.mk_predicate(
+        $vcx.mk_predicate_unchecked(
             $crate::vir_ident!($vcx; $name),
             $crate::vir_arg_list!($vcx; $($args)*),
             None

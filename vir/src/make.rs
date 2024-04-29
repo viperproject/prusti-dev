@@ -1,5 +1,9 @@
+use cfg_if::cfg_if;
+use std::fmt::Debug;
 use prusti_rustc_interface::middle::ty;
-use crate::{VirCtxt, data::*, gendata::*, genrefs::*, refs::*, debug_info::{DebugInfo, DEBUGINFO_NONE}};
+use crate::{
+    callable_idents::*, data::*, debug_info::{DebugInfo, DEBUGINFO_NONE}, gendata::*, genrefs::*, refs::*, ViperIdent, VirCtxt
+};
 
 macro_rules! const_expr {
     ($expr_kind:expr) => {
@@ -9,10 +13,151 @@ macro_rules! const_expr {
         }
     };
 }
+cfg_if! {
+    if #[cfg(debug_assertions)] {
+
+        // The functions below conservatively check that local variables bound
+        // in forall expressions, let-bindings, function arguments etc. have the
+        // correct type with respect to their usages. It's better to identify
+        // the relevant errors here so more debug information is available. The
+        // check is incomplete, namely:
+        // - Lazy expressions are not typechecked
+        // - The binding for a local is not always known, usages of unbound
+        //   variables are not checked
+        // - Unsupported types are not checked
+
+        use std::collections::HashMap;
+        fn check_predicate_app_bindings<'vir, Curr, Next>(
+            m: &mut HashMap<&'vir str, Type<'vir>>,
+            e: PredicateAppGen<'vir, Curr, Next>
+        ) {
+            for arg in e.args.iter() {
+                check_expr_bindings(m, *arg);
+            }
+            if let Some(perm) = e.perm {
+                check_expr_bindings(m, perm);
+            }
+        }
+        fn check_stmt_bindings<'vir, Curr, Next>(
+            m: &mut HashMap<&'vir str, Type<'vir>>,
+            e: StmtGen<'vir, Curr, Next>
+        ) {
+            match e {
+                StmtGenData::LocalDecl(local, e) => {
+                    if let Some(e) = e {
+                        check_expr_bindings(m, e);
+                    }
+                    m.insert(local.name, local.ty);
+                }
+                StmtGenData::PureAssign(p) => {
+                    check_expr_bindings(m, p.lhs);
+                    check_expr_bindings(m, p.rhs);
+                }
+                StmtGenData::Inhale(e) |
+                StmtGenData::Exhale(e) => {
+                    check_expr_bindings(m, e);
+                }
+                StmtGenData::Unfold(app) | StmtGenData::Fold(app) => {
+                    check_predicate_app_bindings(m, app);
+                }
+                StmtGenData::MethodCall(MethodCallGenData {
+                    args,
+                    ..
+                }) => {
+                    for arg in args.iter() {
+                        check_expr_bindings(m, *arg);
+                    }
+                }
+                StmtGenData::Comment(_) => {},
+                StmtGenData::Dummy(_) => todo!(),
+            }
+        }
+        fn check_expr_bindings<'vir, Curr, Next>(
+            m: &mut HashMap<&'vir str, Type<'vir>>,
+            e: ExprGen<'vir, Curr, Next>
+        ) {
+            match e.kind {
+                ExprKindGenData::Local(LocalData { name, ty, debug_info }) => {
+                    if let Some(bound_ty) = m.get(name) {
+                        if !matches!(bound_ty, TypeData::Unsupported(_)) &&
+                           !matches!(ty, TypeData::Unsupported(_))
+                         {
+                            assert_eq!(
+                                bound_ty,
+                                ty,
+                                "Type mismatch for local variable {name}. \
+                                Scope assigns {name} to type {bound_ty:?}, but the actual type is {ty:?}.\
+                                Debug info: {debug_info}"
+                            )
+                        }
+                    }
+                },
+                ExprKindGenData::Let(LetGenData { name, val, expr }) => {
+                    check_expr_bindings(m, *val);
+                    if !matches!(val.kind, ExprKindGenData::Lazy(..)) {
+                        m.insert(name, val.ty());
+                    }
+                    check_expr_bindings(m, *expr);
+                    m.remove(name);
+                },
+                ExprKindGenData::FuncApp(FuncAppGenData { args, .. }) => {
+                    for arg in args.iter() {
+                        check_expr_bindings(m, *arg);
+                    }
+                },
+                ExprKindGenData::Const(..) | ExprKindGenData::Lazy(..) => {},
+                ExprKindGenData::PredicateApp(app) => {
+                    check_predicate_app_bindings(m, app);
+                },
+                ExprKindGenData::AccField( AccFieldGenData { recv, perm, .. }) => {
+                    check_expr_bindings(m, *recv);
+                    if let Some(perm) = perm {
+                        check_expr_bindings(m, *perm);
+                    }
+                },
+                ExprKindGenData::Field(e, _) => {
+                    check_expr_bindings(m, *e);
+                },
+                ExprKindGenData::Unfolding(UnfoldingGenData { target, expr }) => {
+                    check_predicate_app_bindings(m, target);
+                    check_expr_bindings(m, *expr);
+                },
+                ExprKindGenData::BinOp(BinOpGenData { lhs, rhs, .. }) => {
+                    check_expr_bindings(m, *lhs);
+                    check_expr_bindings(m, *rhs);
+                },
+                ExprKindGenData::UnOp(UnOpGenData { expr, .. }) => {
+                    check_expr_bindings(m, *expr);
+                },
+                ExprKindGenData::Ternary(TernaryGenData { cond, then, else_}) => {
+                    check_expr_bindings(m, *cond);
+                    check_expr_bindings(m, *then);
+                    check_expr_bindings(m, *else_);
+                }
+                ExprKindGenData::Forall(ForallGenData { qvars, triggers, body }) => {
+                    for qvar in qvars.iter() {
+                        m.insert(qvar.name, qvar.ty);
+                    }
+                    for trigger in triggers.iter() {
+                        for expr in trigger.exprs.iter() {
+                            check_expr_bindings(m, *expr);
+                        }
+                    }
+                    check_expr_bindings(m, *body);
+                    for qvar in qvars.iter() {
+                        m.remove(qvar.name);
+                    }
+                }
+                other => todo!("{other:?}")
+            }
+        }
+    }
+}
+
 
 impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_local<'vir>(&'vir self, name: &'vir str, ty: Type<'vir>) -> Local<'vir> {
-        self.alloc(LocalData { name, ty })
+        self.alloc(LocalData { name, ty, debug_info: DebugInfo::new(&self) })
     }
 
     pub fn mk_local_decl<'vir>(&'vir self, name: &'vir str, ty: Type<'vir>) -> LocalDecl<'vir> {
@@ -130,13 +275,17 @@ impl<'tcx> VirCtxt<'tcx> {
         val: ExprGen<'vir, Curr, Next>,
         expr: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::new(
-            self.alloc(ExprKindGenData::Let(self.alloc(LetGenData {
-                name,
-                val,
-                expr,
-            }))),
-        ))
+        let let_expr = self.alloc(
+            ExprGenData::new(
+                self.alloc(ExprKindGenData::Let(
+                    self.alloc(LetGenData { name, val, expr })
+                ))
+            )
+        );
+        if cfg!(debug_assertions) {
+            check_expr_bindings(&mut HashMap::new(), let_expr);
+        }
+        let_expr
     }
 
     pub fn mk_predicate_app_expr<'vir, Curr, Next>(
@@ -259,27 +408,25 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_domain_axiom<'vir, Curr, Next>(
         &'vir self,
-        name: &'vir str,
+        name: ViperIdent<'vir>,
         expr: ExprGen<'vir, Curr, Next>
     ) -> DomainAxiomGen<'vir, Curr, Next> {
         self.alloc(DomainAxiomGenData {
-            name,
+            name: name.to_str(),
             expr
         })
     }
 
-    pub fn mk_domain_function<'vir>(
+    pub fn mk_domain_function<'vir, A: Arity<'vir, Arg = Type<'vir>>>(
         &'vir self,
+        ident: FunctionIdent<'vir, A>,
         unique: bool,
-        name: &'vir str,
-        args: &'vir [Type<'vir>],
-        ret: Type<'vir>,
     ) -> DomainFunction<'vir> {
         self.alloc(DomainFunctionData {
             unique,
-            name,
-            args,
-            ret,
+            name: ident.name(),
+            args: ident.arity().args(),
+            ret: ident.result_ty(),
         })
     }
 
@@ -292,7 +439,17 @@ impl<'tcx> VirCtxt<'tcx> {
         posts: &'vir [ExprGen<'vir, Curr, Next>],
         expr: Option<ExprGen<'vir, Curr, Next>>
     ) -> FunctionGen<'vir, Curr, Next> {
-        // TODO: Typecheck pre and post conditions, expr and return type
+        // TODO: Typecheck pre and post conditions
+        if let Some(body) = expr {
+            assert!(body.ty() == ret);
+            if cfg!(debug_assertions) {
+                let mut m = HashMap::new();
+                for arg in args {
+                    m.insert(arg.name, arg.ty);
+                }
+                check_expr_bindings(&mut m, body);
+            }
+        }
         self.alloc(FunctionGenData {
             name,
             args,
@@ -303,7 +460,30 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_predicate<'vir, Curr, Next>(
+    pub fn mk_predicate<'vir, Curr, Next, A: Arity<'vir> + CheckTypes<'vir> + Debug>(
+        &'vir self,
+        ident: PredicateIdent<'vir, A>,
+        args: &'vir [LocalDecl<'vir>],
+        expr: Option<ExprGen<'vir, Curr, Next>>
+    ) -> PredicateGen<'vir, Curr, Next> {
+        if !ident.arity().types_match(args) {
+            panic!(
+                "Predicate {} could not be applied. Expected: {:?}, Actual: {:?} debug info: {}",
+                ident.name(),
+                ident.arity(),
+                args,
+                ident.debug_info()
+            );
+        }
+        assert!(ident.arity().types_match(args));
+        self.mk_predicate_unchecked(
+            ident.name().to_str(),
+            args,
+            expr
+        )
+    }
+
+    pub fn mk_predicate_unchecked<'vir, Curr, Next>(
         &'vir self,
         name: &'vir str,
         args: &'vir [LocalDecl<'vir>],
@@ -318,13 +498,13 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_domain<'vir, Curr, Next>(
         &'vir self,
-        name: &'vir str,
+        name: ViperIdent<'vir>,
         typarams: &'vir [DomainParam<'vir>],
         axioms: &'vir [DomainAxiomGen<'vir, Curr, Next>],
         functions: &'vir [DomainFunction<'vir>]
     ) -> DomainGen<'vir, Curr, Next> {
         self.alloc(DomainGenData {
-            name,
+            name: name.to_str(),
             typarams,
             axioms,
             functions
@@ -357,6 +537,7 @@ impl<'tcx> VirCtxt<'tcx> {
         lhs: ExprGen<'vir, Curr, Next>,
         rhs: ExprGen<'vir, Curr, Next>
     ) -> StmtGen<'vir, Curr, Next> {
+        assert_eq!(lhs.ty(),rhs.ty());
         self.alloc(
             StmtGenData::PureAssign(
                 self.alloc(PureAssignGenData {
@@ -455,15 +636,48 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_method<'vir, Curr, Next>(
+    pub fn mk_method<'vir, Curr, Next, A: Arity<'vir> + CheckTypes<'vir>>(
         &'vir self,
-        name: &'vir str, // TODO: identifiers
+        ident: MethodIdent<'vir, A>,
         args: &'vir [LocalDecl<'vir>],
         rets: &'vir [LocalDecl<'vir>],
         pres: &'vir [ExprGen<'vir, Curr, Next>],
         posts: &'vir [ExprGen<'vir, Curr, Next>],
         blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
     ) -> MethodGen<'vir, Curr, Next> {
+        assert!(ident.arity().types_match(args));
+        self.mk_method_unchecked(
+            ident.name().to_str(),
+            args,
+            rets,
+            pres,
+            posts,
+            blocks
+        )
+    }
+
+    pub fn mk_method_unchecked<'vir, Curr, Next>(
+        &'vir self,
+        name: &'vir str,
+        args: &'vir [LocalDecl<'vir>],
+        rets: &'vir [LocalDecl<'vir>],
+        pres: &'vir [ExprGen<'vir, Curr, Next>],
+        posts: &'vir [ExprGen<'vir, Curr, Next>],
+        blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
+    ) -> MethodGen<'vir, Curr, Next> {
+        if cfg!(debug_assertions) {
+            if let Some(blocks) = blocks {
+                let mut m = HashMap::new();
+                for arg in args {
+                    m.insert(arg.name, arg.ty);
+                }
+                for block in blocks {
+                    for stmt in block.stmts {
+                        check_stmt_bindings(&mut m, stmt);
+                    }
+                }
+            }
+        }
         self.alloc(MethodGenData {
             name,
             args,
@@ -475,6 +689,7 @@ impl<'tcx> VirCtxt<'tcx> {
             })),
         })
     }
+
 
     pub fn mk_program<'vir, Curr, Next>(
         &'vir self,
