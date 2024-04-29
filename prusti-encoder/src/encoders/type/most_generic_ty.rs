@@ -27,6 +27,7 @@ impl<'tcx> MostGenericTy<'tcx> {
             TyKind::Bool => String::from("Bool"),
             TyKind::Int(kind) => format!("Int_{}", kind.name_str()),
             TyKind::Uint(kind) => format!("UInt_{}", kind.name_str()),
+            TyKind::Str => String::from("String"),
             TyKind::Adt(adt, _) => vcx.tcx().item_name(adt.did()).to_ident_string(),
             TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
             TyKind::Never => String::from("Never"),
@@ -84,6 +85,7 @@ impl<'tcx> MostGenericTy<'tcx> {
             TyKind::Bool => Vec::new(),
             TyKind::Int(_) => Vec::new(),
             TyKind::Uint(_) => Vec::new(),
+            TyKind::Str => Vec::new(),
             TyKind::Param(_) => Vec::new(),
             TyKind::Never => Vec::new(),
             other => todo!("generics for {:?}", other),
@@ -144,7 +146,7 @@ pub fn extract_type_params<'tcx>(
             (MostGenericTy(ty), vec![orig])
         }
         TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
-        TyKind::Bool | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Never => {
+        TyKind::Bool | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Str | TyKind::Never => {
             (MostGenericTy(ty), Vec::new())
         }
         _ => todo!("extract_type_params for {:?}", ty),
