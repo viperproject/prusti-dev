@@ -5,7 +5,9 @@ import os
 import sys
 import subprocess
 from reporting import (
-    ensure, report
+    ensure,
+    report,
+    error,
 )
 
 
