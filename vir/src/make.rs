@@ -282,8 +282,10 @@ impl<'tcx> VirCtxt<'tcx> {
                 ))
             )
         );
-        if cfg!(debug_assertions) {
-            check_expr_bindings(&mut HashMap::new(), let_expr);
+        cfg_if! {
+            if #[cfg(debug_assertions)] {
+                check_expr_bindings(&mut HashMap::new(), let_expr);
+            }
         }
         let_expr
     }
@@ -442,12 +444,14 @@ impl<'tcx> VirCtxt<'tcx> {
         // TODO: Typecheck pre and post conditions
         if let Some(body) = expr {
             assert!(body.ty() == ret);
-            if cfg!(debug_assertions) {
-                let mut m = HashMap::new();
-                for arg in args {
-                    m.insert(arg.name, arg.ty);
+            cfg_if! {
+                if #[cfg(debug_assertions)] {
+                    let mut m = HashMap::new();
+                    for arg in args {
+                        m.insert(arg.name, arg.ty);
+                    }
+                    check_expr_bindings(&mut m, body);
                 }
-                check_expr_bindings(&mut m, body);
             }
         }
         self.alloc(FunctionGenData {
@@ -665,15 +669,17 @@ impl<'tcx> VirCtxt<'tcx> {
         posts: &'vir [ExprGen<'vir, Curr, Next>],
         blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
     ) -> MethodGen<'vir, Curr, Next> {
-        if cfg!(debug_assertions) {
-            if let Some(blocks) = blocks {
-                let mut m = HashMap::new();
-                for arg in args {
-                    m.insert(arg.name, arg.ty);
-                }
-                for block in blocks {
-                    for stmt in block.stmts {
-                        check_stmt_bindings(&mut m, stmt);
+        cfg_if! {
+            if #[cfg(debug_assertions)] {
+                if let Some(blocks) = blocks {
+                    let mut m = HashMap::new();
+                    for arg in args {
+                        m.insert(arg.name, arg.ty);
+                    }
+                    for block in blocks {
+                        for stmt in block.stmts {
+                            check_stmt_bindings(&mut m, stmt);
+                        }
                     }
                 }
             }
