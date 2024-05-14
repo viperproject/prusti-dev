@@ -1,10 +1,14 @@
 use prusti_rustc_interface::middle::ty;
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
-use vir::VirCtxt;
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, TaskEncoderError};
+use vir::{FunctionIdent, MethodIdent, StmtGen, UnknownArity, VirCtxt};
 
 use super::{
-    cast_functions::CastFunctionsOutputRef, generic::LiftedGeneric,
-    rust_ty_cast::RustTyGenericCastEnc, ty::LiftedTy,
+    casters::{
+        CastType, CastTypeImpure, CastTypePure, Casters, CastersEncOutputRef,
+    },
+    generic::LiftedGeneric,
+    rust_ty_cast::{RustTyCastersEnc, RustTyGenericCastEncOutput},
+    ty::LiftedTy,
 };
 
 #[derive(Copy, Hash, PartialEq, Eq, Clone, Debug)]
@@ -15,35 +19,56 @@ pub struct CastArgs<'tcx> {
     pub actual: ty::Ty<'tcx>,
 }
 
-/// Holds the necessary information to cast a snapshot to a generic or concrete
+impl<'tcx> CastArgs<'tcx> {
+    pub fn reversed(&self) -> CastArgs<'tcx> {
+        CastArgs {
+            expected: self.actual,
+            actual: self.expected,
+        }
+    }
+}
+
+/// Holds the necessary information to cast to a generic or concrete
 /// version.
 #[derive(Copy, Clone)]
-pub struct PureCast<'vir> {
-    /// The function that performs the cast. The first argument is the expression to
-    /// cast, followed by the type arguments.
-    cast_function: vir::FunctionIdent<'vir, vir::UnknownArity<'vir>>,
+pub struct Cast<'vir, T> {
+    /// Either a function or method identifier that can be applied to perform
+    /// the cast
+    cast_applicator: T,
 
+    /// Type arguments that will be passed to the cast applicator
     ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
 }
 
-impl<'vir> PureCast<'vir> {
+pub type PureCast<'vir> = Cast<'vir, FunctionIdent<'vir, UnknownArity<'vir>>>;
+
+impl<'vir, T> Cast<'vir, T> {
     pub fn new(
-        cast_function: vir::FunctionIdent<'vir, vir::UnknownArity<'vir>>,
+        cast_applicator: T,
         ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
-    ) -> PureCast<'vir> {
-        PureCast {
-            cast_function,
+    ) -> Cast<'vir, T> {
+        Cast {
+            cast_applicator,
             ty_args,
         }
     }
 
+    pub fn map_applicator<U>(self, f: impl FnOnce(T) -> U) -> Cast<'vir, U> {
+        Cast {
+            cast_applicator: f(self.cast_applicator),
+            ty_args: self.ty_args,
+        }
+    }
+}
+
+impl<'vir> Cast<'vir, FunctionIdent<'vir, UnknownArity<'vir>>> {
     /// Returns the result of the cast
     pub fn apply<Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt,
         expr: vir::ExprGen<'vir, Curr, Next>,
     ) -> vir::ExprGen<'vir, Curr, Next> {
-        self.cast_function.apply(
+        self.cast_applicator.apply(
             vcx,
             &std::iter::once(expr)
                 .chain(self.ty_args.iter().map(|t| t.expr(vcx)))
@@ -53,23 +78,23 @@ impl<'vir> PureCast<'vir> {
 }
 
 #[derive(Clone)]
-pub enum PureGenericCastOutputRef<'vir> {
+pub enum GenericCastOutputRef<'vir, T> {
     NoCast,
-    Cast(PureCast<'vir>),
+    Cast(Cast<'vir, T>),
 }
 
-impl<'vir> PureGenericCastOutputRef<'vir> {
+impl<'vir> GenericCastOutputRef<'vir, FunctionIdent<'vir, UnknownArity<'vir>>> {
     pub fn apply_cast_if_necessary<Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'_>,
         expr: vir::ExprGen<'vir, Curr, Next>,
     ) -> vir::ExprGen<'vir, Curr, Next> {
         match self {
-            PureGenericCastOutputRef::NoCast => expr,
-            PureGenericCastOutputRef::Cast(PureCast {
-                cast_function,
+            GenericCastOutputRef::NoCast => expr,
+            GenericCastOutputRef::Cast(Cast {
+                cast_applicator,
                 ty_args,
-            }) => cast_function.apply(
+            }) => cast_applicator.apply(
                 vcx,
                 &std::iter::once(expr)
                     .chain(ty_args.iter().map(|t| t.expr(vcx)))
@@ -77,16 +102,43 @@ impl<'vir> PureGenericCastOutputRef<'vir> {
             ),
         }
     }
+}
 
-    pub fn cast_function(&self) -> Option<PureCast<'vir>> {
+impl<'vir> GenericCastOutputRef<'vir, MethodIdent<'vir, UnknownArity<'vir>>> {
+    pub fn apply_cast_if_necessary<Curr: 'vir, Next: 'vir>(
+        &self,
+        vcx: &'vir VirCtxt<'_>,
+        expr: vir::ExprGen<'vir, Curr, Next>,
+    ) -> Option<StmtGen<'vir, Curr, Next>> {
         match self {
-            PureGenericCastOutputRef::NoCast => None,
-            PureGenericCastOutputRef::Cast(f) => Some(*f),
+            GenericCastOutputRef::NoCast => None,
+            GenericCastOutputRef::Cast(Cast {
+                cast_applicator,
+                ty_args,
+            }) => Some(
+                vcx.alloc(
+                    cast_applicator.apply(
+                        vcx,
+                        &std::iter::once(expr)
+                            .chain(ty_args.iter().map(|t| t.expr(vcx)))
+                            .collect::<Vec<_>>(),
+                    ),
+                ),
+            ),
         }
     }
 }
 
-impl<'vir> task_encoder::OutputRefAny for PureGenericCastOutputRef<'vir> {}
+impl<'vir, T: Copy> GenericCastOutputRef<'vir, T> {
+    pub fn cast_function(&self) -> Option<Cast<'vir, T>> {
+        match self {
+            GenericCastOutputRef::NoCast => None,
+            GenericCastOutputRef::Cast(f) => Some(*f),
+        }
+    }
+}
+
+impl<'vir, T> task_encoder::OutputRefAny for GenericCastOutputRef<'vir, T> {}
 
 /// Returns necessary data to support casting the generic Viper representation
 /// of a Rust expression to its concrete type, or vice versa, for function
@@ -98,12 +150,59 @@ impl<'vir> task_encoder::OutputRefAny for PureGenericCastOutputRef<'vir> {}
 /// the type and the argument is concrete, it returns a function to cast the
 /// concrete expression to its generic version. Otherwise, no cast is necessary
 /// and it returns [`PureGenericCastOutputRef::NoCast`].
-pub struct PureGenericCastEnc;
+///
+/// The type parameter `T` is used to choose whether a pure or impure cast
+/// should be encoded, it should be instantiated with either [`CastTypePure`] or
+/// [`CastTypeImpure`].
+pub struct CastToEnc<T>(std::marker::PhantomData<T>);
 
-impl TaskEncoder for PureGenericCastEnc {
-    task_encoder::encoder_cache!(PureGenericCastEnc);
+impl<T: CastType + 'static> CastToEnc<T>
+where
+    RustTyCastersEnc<T>: for<'tcx, 'vir> TaskEncoder<
+        TaskDescription<'tcx> = ty::Ty<'tcx>,
+        OutputFullLocal<'vir> = RustTyGenericCastEncOutput<'vir, Casters<'vir, T>>,
+    >,
+    TaskEncoderError<RustTyCastersEnc<T>>: Sized,
+{
+    fn encode_cast<'tcx: 'vir, 'vir>(
+        task_key: CastArgs<'tcx>,
+        deps: &mut TaskEncoderDependencies<'vir>,
+    ) -> GenericCastOutputRef<'vir, T::CastApplicator<'vir>> {
+        let expected_is_param = matches!(task_key.expected.kind(), ty::Param(_));
+        let actual_is_param = matches!(task_key.actual.kind(), ty::Param(_));
+        if expected_is_param == actual_is_param {
+            GenericCastOutputRef::NoCast
+        } else if actual_is_param {
+            // expected is concrete type, `actual` should be concretized
+            let generic_cast = deps
+                .require_local::<RustTyCastersEnc<T>>(task_key.expected)
+                .unwrap();
+            if let CastersEncOutputRef::Casters { make_concrete, .. } = generic_cast.cast {
+                GenericCastOutputRef::Cast(Cast::new(
+                    T::to_concrete_applicator(make_concrete),
+                    generic_cast.ty_args,
+                ))
+            } else {
+                unreachable!()
+            }
+        } else {
+            // expected is generic type, `actual` should be be made generic
+            let generic_cast = deps
+                .require_local::<RustTyCastersEnc<T>>(task_key.actual)
+                .unwrap();
+            if let CastersEncOutputRef::Casters { make_generic, .. } = generic_cast.cast {
+                GenericCastOutputRef::Cast(Cast::new(T::to_generic_applicator(make_generic), &[]))
+            } else {
+                unreachable!()
+            }
+        }
+    }
+}
+
+impl TaskEncoder for CastToEnc<CastTypePure> {
+    task_encoder::encoder_cache!(CastToEnc<CastTypePure>);
     type TaskDescription<'tcx> = CastArgs<'tcx>;
-    type OutputRef<'vir> = PureGenericCastOutputRef<'vir>;
+    type OutputRef<'vir> = GenericCastOutputRef<'vir, FunctionIdent<'vir, UnknownArity<'vir>>>;
     type OutputFullLocal<'vir> = ();
     type EncodingError = ();
 
@@ -124,31 +223,37 @@ impl TaskEncoder for PureGenericCastEnc {
             Option<Self::OutputFullDependency<'vir>>,
         ),
     > {
-        let expected_is_param = matches!(task_key.expected.kind(), ty::Param(_));
-        let actual_is_param = matches!(task_key.actual.kind(), ty::Param(_));
-        let output_ref = if expected_is_param == actual_is_param {
-            PureGenericCastOutputRef::NoCast
-        } else if actual_is_param {
-            // expected is concrete type, `actual` should be concretized
-            let generic_cast = deps
-                .require_local::<RustTyGenericCastEnc>(task_key.expected)
-                .unwrap();
-            if let CastFunctionsOutputRef::CastFunctions { make_concrete, .. } = generic_cast.cast {
-                PureGenericCastOutputRef::Cast(PureCast::new(make_concrete, generic_cast.ty_args))
-            } else {
-                unreachable!()
-            }
-        } else {
-            // expected is generic type, `actual` should be be made generic
-            let generic_cast = deps
-                .require_local::<RustTyGenericCastEnc>(task_key.actual)
-                .unwrap();
-            if let CastFunctionsOutputRef::CastFunctions { make_generic, .. } = generic_cast.cast {
-                PureGenericCastOutputRef::Cast(PureCast::new(make_generic.as_unknown_arity(), &[]))
-            } else {
-                unreachable!()
-            }
-        };
+        let output_ref = Self::encode_cast(*task_key, deps);
+        deps.emit_output_ref::<Self>(*task_key, output_ref);
+        Ok(((), ()))
+    }
+}
+
+impl TaskEncoder for CastToEnc<CastTypeImpure> {
+    task_encoder::encoder_cache!(CastToEnc<CastTypeImpure>);
+    type TaskDescription<'tcx> = CastArgs<'tcx>;
+    type OutputRef<'vir> = GenericCastOutputRef<'vir, MethodIdent<'vir, UnknownArity<'vir>>>;
+    type OutputFullLocal<'vir> = ();
+    type EncodingError = ();
+
+    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
+        *task
+    }
+
+    fn do_encode_full<'tcx: 'vir, 'vir>(
+        task_key: &Self::TaskKey<'tcx>,
+        deps: &mut TaskEncoderDependencies<'vir>,
+    ) -> Result<
+        (
+            Self::OutputFullLocal<'vir>,
+            Self::OutputFullDependency<'vir>,
+        ),
+        (
+            Self::EncodingError,
+            Option<Self::OutputFullDependency<'vir>>,
+        ),
+    > {
+        let output_ref = Self::encode_cast(*task_key, deps);
         deps.emit_output_ref::<Self>(*task_key, output_ref);
         Ok(((), ()))
     }

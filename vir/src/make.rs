@@ -640,7 +640,7 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_method<'vir, Curr, Next, A: Arity<'vir> + CheckTypes<'vir>>(
+    pub fn mk_method<'vir, Curr, Next, A: Arity<'vir> + CheckTypes<'vir> + Debug>(
         &'vir self,
         ident: MethodIdent<'vir, A>,
         args: &'vir [LocalDecl<'vir>],
@@ -649,7 +649,11 @@ impl<'tcx> VirCtxt<'tcx> {
         posts: &'vir [ExprGen<'vir, Curr, Next>],
         blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
     ) -> MethodGen<'vir, Curr, Next> {
-        assert!(ident.arity().types_match(args));
+        assert!(ident.arity().types_match(args),
+            "Method {} could not be created. Identifier arity: {:?}, Method decls: {args:?}",
+            ident.name_str(),
+            ident.arity()
+        );
         self.mk_method_unchecked(
             ident.name().to_str(),
             args,

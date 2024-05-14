@@ -44,27 +44,27 @@ impl<'vir> RustTyPredicatesEncOutputRef<'vir> {
     pub fn ref_to_pred<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        args: &[vir::Expr<'vir>],
+        self_ref: vir::Expr<'vir>,
         perm: Option<vir::Expr<'vir>>,
     ) -> vir::Expr<'vir> {
-        vcx.mk_predicate_app_expr(self.generic_predicate.ref_to_pred.apply(vcx, args, perm))
+        vcx.mk_predicate_app_expr(self.ref_to_pred_app(vcx, self_ref, perm))
     }
 
     pub fn ref_to_pred_app<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        args: &[vir::Expr<'vir>],
+        self_ref: vir::Expr<'vir>,
         perm: Option<vir::Expr<'vir>>,
     ) -> vir::PredicateApp<'vir> {
-        self.generic_predicate.ref_to_pred.apply(vcx, args, perm)
+        self.generic_predicate.ref_to_pred.apply(vcx, self.ref_to_args(vcx, self_ref), perm)
     }
 
     pub fn ref_to_snap<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        args: &[vir::Expr<'vir>],
+        self_ref: vir::Expr<'vir>,
     ) -> vir::Expr<'vir> {
-        let expr = self.generic_predicate.ref_to_snap.apply(vcx, args);
+        let expr = self.generic_predicate.ref_to_snap.apply(vcx, self.ref_to_args(vcx, self_ref));
         assert!(expr.ty() == self.snapshot());
         expr
     }

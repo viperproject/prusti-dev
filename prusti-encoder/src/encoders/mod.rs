@@ -1,7 +1,8 @@
 mod generic;
 mod mir_builtin;
-mod mir_impure;
 mod mir_pure;
+mod mir_poly_impure;
+mod mir_impure;
 mod spec;
 mod mir_pure_function;
 mod pure;
@@ -10,12 +11,16 @@ mod r#type;
 mod r#const;
 mod mono;
 
-#[cfg(feature = "mono_function_encoding")]
-pub type PureFunctionEnc = mono::mir_pure_function::MirMonoFunctionEnc;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "mono_function_encoding")] {
+        pub use mono::mir_pure_function::MirMonoFunctionEnc as PureFunctionEnc;
+    } else {
+        pub use mir_pure_function::MirFunctionEnc as PureFunctionEnc;
+    }
+}
 
-#[cfg(not(feature = "mono_function_encoding"))]
-pub type PureFunctionEnc = mir_pure_function::MirFunctionEnc;
 
+pub use mono::task_description::*;
 pub use pure::*;
 pub use pure::spec::MirSpecEnc;
 pub use local_def::*;
@@ -25,7 +30,9 @@ pub use mir_builtin::{
     MirBuiltinEnc,
     MirBuiltinEncTask,
 };
-pub use mir_impure::MirImpureEnc;
+pub use mir_poly_impure::MirPolyImpureEnc;
+pub use mono::mir_impure::MirMonoImpureEnc;
+pub use mir_impure::{ImpureEncVisitor, MirImpureEnc};
 pub use mir_pure::{
     PureKind,
     MirPureEnc,

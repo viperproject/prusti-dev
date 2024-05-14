@@ -5,9 +5,9 @@ use prusti_rustc_interface::{
 };
 use task_encoder::TaskEncoder;
 
-use crate::encoders::lifted::cast::{CastArgs, PureGenericCastEnc};
+use crate::encoders::lifted::cast::{CastArgs, CastToEnc};
 
-use super::{cast::PureCast, rust_ty_cast::RustTyGenericCastEnc};
+use super::{cast::PureCast, casters::CastTypePure, rust_ty_cast::RustTyCastersEnc};
 
 /// Casts arguments to the snapshot constructor for an aggregate type (e.g.
 /// Tuples, ADTs) to appropriate (generic or concrete) Viper representations,
@@ -101,8 +101,8 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
                         .iter()
                         .map(|ty| {
                             let cast_functions =
-                                deps.require_local::<RustTyGenericCastEnc>(*ty).unwrap();
-                            cast_functions.to_generic_cast()
+                                deps.require_local::<RustTyCastersEnc<CastTypePure>>(*ty).unwrap();
+                            cast_functions.to_generic_cast().map(|c| c.map_applicator(|f| f.as_unknown_arity()))
                         })
                         .collect::<Vec<_>>(),
                     AggregateType::Adt {
@@ -119,7 +119,7 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
                             .zip(task_key.tys.iter())
                             .map(|(v_field, actual_ty)| {
                                 let cast = deps
-                                    .require_ref::<PureGenericCastEnc>(CastArgs {
+                                    .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
                                         expected: v_field.ty(vcx.tcx(), identity_substs),
                                         actual: *actual_ty,
                                     })

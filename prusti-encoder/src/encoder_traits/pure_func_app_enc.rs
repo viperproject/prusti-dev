@@ -9,9 +9,8 @@ use task_encoder::TaskEncoderDependencies;
 
 use crate::encoders::{
     lifted::{
-        cast::{CastArgs, PureGenericCastEnc},
-        func_app_ty_params::LiftedFuncAppTyParamsEnc,
-    }, PureFunctionEnc,
+        cast::{CastArgs, CastToEnc}, casters::CastTypePure, func_app_ty_params::LiftedFuncAppTyParamsEnc
+    }, FunctionCallTaskDescription, PureFunctionEnc
 };
 
 /// Encoders (such as [`crate::encoders::MirPureEnc`],
@@ -31,6 +30,9 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
     /// The type of the data source that can provide local declarations; this is used
     /// when getting the type of the function.
     type LocalDeclsSrc: ?Sized + HasLocalDecls<'tcx>;
+
+    // Are we monomorphizing functions?
+    fn monomorphize(&self) -> bool;
 
     /// Task encoder dependencies are required for encoding Viper casts between
     /// generic and concrete types.
@@ -60,40 +62,17 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
         }
     }
 
-    /// Obtains the signature of the function. If we are monomoprhising function
-    /// calls, then the signature of the monomorphised function is returned.
-    /// Otherwise, the signature of the original function is returned (`substs`
-    /// and `param_env` are therefore ignored).
-    fn get_fn_sig(
-        &self,
-        def_id: DefId,
-        substs: &'tcx List<GenericArg<'tcx>>,
-        param_env: ty::ParamEnv<'tcx>,
-    ) -> Binder<'tcx, FnSig<'tcx>> {
-        let sig = self.vcx().tcx().fn_sig(def_id);
-        if cfg!(feature="mono_function_encoding") {
-            self.vcx().tcx().subst_and_normalize_erasing_regions(
-                substs,
-                param_env,
-                sig
-            )
-        } else {
-            sig.instantiate_identity()
-        }
-    }
-
     /// Encodes the arguments to the function. The first arguments are the lifted
     /// type parameters, followed by the actual arguments. Appropriate casts
     /// are inserted to convert from/to generic and concrete arguments as necessary.
     fn encode_fn_args(
         &mut self,
-        def_id: DefId,
+        sig: Binder<'tcx, FnSig<'tcx>>,
         substs: &'tcx List<GenericArg<'tcx>>,
-        param_env: ty::ParamEnv<'tcx>,
         args: &[mir::Operand<'tcx>],
         encode_operand_args: &Self::EncodeOperandArgs,
     ) -> Vec<vir::ExprGen<'vir, Self::Curr, Self::Next>> {
-        let sig = self.get_fn_sig(def_id, substs, param_env);
+        let mono = self.monomorphize();
         let fn_arg_tys = sig
             .inputs()
             .iter()
@@ -102,7 +81,9 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
             .collect::<Vec<_>>();
         let encoded_ty_args = self
             .deps()
-            .require_local::<LiftedFuncAppTyParamsEnc>(substs)
+            .require_local::<LiftedFuncAppTyParamsEnc>(
+                (mono, substs)
+            )
             .unwrap();
 
         // Initial arguments are lifted type parameters
@@ -119,7 +100,7 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
                 let oper_ty = oper.ty(self.local_decls_src(), self.vcx().tcx());
                 let caster = self
                     .deps()
-                    .require_ref::<PureGenericCastEnc>(CastArgs {
+                    .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
                         expected: expected_ty,
                         actual: oper_ty
                     })
@@ -137,6 +118,7 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
     fn encode_pure_func_app(
         &mut self,
         def_id: DefId,
+        sig: Binder<'tcx, FnSig<'tcx>>,
         substs: &'tcx List<GenericArg<'tcx>>,
         args: &Vec<mir::Operand<'tcx>>,
         destination: &mir::Place<'tcx>,
@@ -144,24 +126,18 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
         encode_operand_args: &Self::EncodeOperandArgs,
     ) -> vir::ExprGen<'vir, Self::Curr, Self::Next> {
         let vcx = self.vcx();
-        let param_env = vcx.tcx().param_env(caller_def_id);
-        let sig = self.get_fn_sig(
-            def_id,
-            substs,
-            param_env
-        );
         let fn_result_ty = sig.output().skip_binder();
         let pure_func = self
             .deps()
-            .require_ref::<PureFunctionEnc>((def_id, substs, caller_def_id))
+            .require_ref::<PureFunctionEnc>(FunctionCallTaskDescription::new(def_id, substs, caller_def_id))
             .unwrap()
             .function_ref;
-        let encoded_args = self.encode_fn_args(def_id, substs, param_env, args, encode_operand_args);
+        let encoded_args = self.encode_fn_args(sig, substs, args, encode_operand_args);
         let call = pure_func.apply(vcx, &encoded_args);
         let expected_ty = destination.ty(self.local_decls_src(), vcx.tcx()).ty;
         let result_cast = self
             .deps()
-            .require_ref::<PureGenericCastEnc>(CastArgs {
+            .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
                 expected: expected_ty,
                 actual: fn_result_ty,
             })

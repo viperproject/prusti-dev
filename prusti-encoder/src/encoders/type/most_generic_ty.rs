@@ -12,21 +12,24 @@ use vir::{DomainParamData, NullaryArityAny};
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct MostGenericTy<'tcx>(ty::Ty<'tcx>);
 
-impl <'tcx: 'vir, 'vir> MostGenericTy<'tcx> {
-    pub fn get_vir_domain_ident(&self, vcx: &'vir vir::VirCtxt<'tcx>) ->
-        vir::DomainIdent<'vir, NullaryArityAny<'vir, DomainParamData<'vir>>> {
+impl<'tcx: 'vir, 'vir> MostGenericTy<'tcx> {
+    pub fn get_vir_domain_ident(
+        &self,
+        vcx: &'vir vir::VirCtxt<'tcx>,
+    ) -> vir::DomainIdent<'vir, NullaryArityAny<'vir, DomainParamData<'vir>>> {
         let base_name = self.get_vir_base_name(vcx);
         vir::DomainIdent::nullary(vir::vir_format_identifier!(vcx, "s_{base_name}"))
     }
 }
 
 impl<'tcx> MostGenericTy<'tcx> {
-
     pub fn get_vir_base_name(&self, vcx: &vir::VirCtxt<'tcx>) -> String {
         match self.kind() {
             TyKind::Bool => String::from("Bool"),
+            TyKind::Char => String::from("Char"),
             TyKind::Int(kind) => format!("Int_{}", kind.name_str()),
             TyKind::Uint(kind) => format!("UInt_{}", kind.name_str()),
+            TyKind::Float(kind) => format!("Float_{}", kind.name_str()),
             TyKind::Str => String::from("String"),
             TyKind::Adt(adt, _) => vcx.tcx().item_name(adt.did()).to_ident_string(),
             TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
@@ -42,7 +45,6 @@ impl<'tcx> MostGenericTy<'tcx> {
             other => unimplemented!("get_domain_base_name for {:?}", other),
         }
     }
-
 
     pub fn is_generic(&self) -> bool {
         matches!(self.kind(), TyKind::Param(_))
@@ -82,12 +84,13 @@ impl<'tcx> MostGenericTy<'tcx> {
             TyKind::Array(orig, _) => vec![as_param_ty(*orig)],
             TyKind::Slice(orig) => vec![as_param_ty(*orig)],
             TyKind::Ref(_, orig, _) => vec![as_param_ty(*orig)],
-            TyKind::Bool => Vec::new(),
-            TyKind::Int(_) => Vec::new(),
-            TyKind::Uint(_) => Vec::new(),
-            TyKind::Str => Vec::new(),
-            TyKind::Param(_) => Vec::new(),
-            TyKind::Never => Vec::new(),
+            TyKind::Bool
+            | TyKind::Char
+            | TyKind::Float(_)
+            | TyKind::Int(_)
+            | TyKind::Never
+            | TyKind::Param(_)
+            | TyKind::Uint(_) => Vec::new(),
             other => todo!("generics for {:?}", other),
         }
     }
@@ -146,7 +149,7 @@ pub fn extract_type_params<'tcx>(
             (MostGenericTy(ty), vec![orig])
         }
         TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
-        TyKind::Bool | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Str | TyKind::Never => {
+        TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) | TyKind::Never | TyKind::Str => {
             (MostGenericTy(ty), Vec::new())
         }
         _ => todo!("extract_type_params for {:?}", ty),

@@ -18,7 +18,10 @@ use prusti_rustc_interface::{
 };
 use task_encoder::TaskEncoder;
 
-use crate::encoders::lifted::ty_constructor::TyConstructorEnc;
+use crate::encoders::{lifted::{
+    casters::{CastTypeImpure, CastTypePure, CastersEnc},
+    ty_constructor::TyConstructorEnc
+}, MirPolyImpureEnc};
 
 pub fn test_entrypoint<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
@@ -49,8 +52,7 @@ pub fn test_entrypoint<'tcx>(
                 }).unwrap_or_default();
 
                 if !(is_trusted && is_pure) {
-                    let substs = ty::GenericArgs::identity_for_item(tcx, def_id);
-                    let res = crate::encoders::MirImpureEnc::encode((def_id, substs, None));
+                    let res = MirPolyImpureEnc::encode(def_id);
                     assert!(res.is_ok());
                 }
             }
@@ -73,8 +75,16 @@ pub fn test_entrypoint<'tcx>(
     let mut program_functions = vec![];
     let mut program_methods = vec![];
 
+    // We output results from both monomorphic and polymorphic encoding of
+    // functions, because even when Prusti is configured to use the monomorphic
+    // it will still use `MirPolyImpureEnc` directly sometimes (see usages
+    // earlier in this file).
     header(&mut viper_code, "methods");
-    for output in crate::encoders::MirImpureEnc::all_outputs() {
+    for output in crate::encoders::MirMonoImpureEnc::all_outputs() {
+        viper_code.push_str(&format!("{:?}\n", output.method));
+        program_methods.push(output.method);
+    }
+    for output in crate::encoders::MirPolyImpureEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.method));
         program_methods.push(output.method);
     }
@@ -99,11 +109,19 @@ pub fn test_entrypoint<'tcx>(
         program_domains.push(output.param_snapshot);
     }
 
-    header(&mut viper_code, "generic casts");
-    for output in crate::encoders::lifted::cast_functions::CastFunctionsEnc::all_outputs() {
-        for cast_function in output {
+    header(&mut viper_code, "pure generic casts");
+    for cast_functions in CastersEnc::<CastTypePure>::all_outputs() {
+        for cast_function in cast_functions {
             viper_code.push_str(&format!("{:?}\n", cast_function));
             program_functions.push(cast_function);
+        }
+    }
+
+    header(&mut viper_code, "impure generic casts");
+    for cast_methods in CastersEnc::<CastTypeImpure>:: all_outputs() {
+        for cast_method in cast_methods {
+            viper_code.push_str(&format!("{:?}\n", cast_method));
+            program_methods.push(cast_method);
         }
     }
 
