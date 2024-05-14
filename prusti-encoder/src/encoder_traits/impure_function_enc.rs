@@ -1,5 +1,5 @@
 use prusti_rustc_interface::middle::mir;
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
 
 use crate::encoders::{
@@ -33,15 +33,18 @@ where
 {
     /// Generates the identifier for the method; for a monomorphic encoding,
     /// this should be a name including (mangled) type arguments
-    fn mk_method_ident<'vir, 'tcx>(
-        vcx: &'vir vir::VirCtxt<'tcx>,
-        task_key: &Self::TaskKey<'tcx>,
+    fn mk_method_ident<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+        task_key: &Self::TaskKey<'vir>,
     ) -> ViperIdent<'vir>;
 
-    fn encode<'vir, 'tcx: 'vir>(
-        task_key: Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> ImpureFunctionEncOutput<'vir> {
+    fn encode<'vir>(
+        task_key: Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> Result<
+        ImpureFunctionEncOutput<'vir>,
+        EncodeFullError<'vir, Self>,
+    > {
         let def_id = Self::get_def_id(&task_key);
         let caller_def_id = Self::get_caller_def_id(&task_key);
         let trusted = crate::encoders::with_proc_spec(def_id, |def_spec| {
@@ -52,8 +55,7 @@ where
             use mir::visit::Visitor;
             let substs = Self::get_substs(vcx, &task_key);
             let local_defs = deps
-                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))
-                .unwrap();
+                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
 
             // Argument count for the Viper method:
             // - one (`Ref`) for the return place;
@@ -70,15 +72,14 @@ where
             let method_name = Self::mk_method_ident(vcx, &task_key);
             let mut args = vec![&vir::TypeData::Ref; arg_count];
             let param_ty_decls = deps
-                .require_local::<LiftedTyParamsEnc>(substs)
-                .unwrap()
+                .require_local::<LiftedTyParamsEnc>(substs)?
                 .iter()
                 .map(|g| g.decl())
                 .collect::<Vec<_>>();
             args.extend(param_ty_decls.iter().map(|decl| decl.ty));
             let args = UnknownArity::new(vcx.alloc_slice(&args));
             let method_ref = MethodIdent::new(method_name, args);
-            deps.emit_output_ref::<Self>(task_key, ImpureFunctionEncOutputRef { method_ref });
+            deps.emit_output_ref(task_key, ImpureFunctionEncOutputRef { method_ref })?;
 
             // Do not encode the method body if it is external, trusted or just
             // a call stub.
@@ -157,8 +158,7 @@ where
             };
 
             let spec = deps
-                .require_local::<MirSpecEnc>((def_id, substs, None, false))
-                .unwrap();
+                .require_local::<MirSpecEnc>((def_id, substs, None, false))?;
             let (spec_pres, spec_posts) = (spec.pres, spec.posts);
 
             let mut pres = Vec::with_capacity(arg_count - 1);
@@ -177,7 +177,7 @@ where
             posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
             posts.extend(spec_posts);
 
-            ImpureFunctionEncOutput {
+            Ok(ImpureFunctionEncOutput {
                 method: vcx.mk_method(
                     method_ref,
                     vcx.alloc_slice(&args),
@@ -186,7 +186,7 @@ where
                     vcx.alloc_slice(&posts),
                     blocks,
                 ),
-            }
+            })
         })
     }
 }

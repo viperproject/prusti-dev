@@ -1,5 +1,5 @@
 use prusti_rustc_interface::middle::ty;
-use task_encoder::{OutputRefAny, TaskEncoder};
+use task_encoder::{OutputRefAny, TaskEncoder, EncodeFullResult};
 use vir::with_vcx;
 
 use crate::encoders::GenericEnc;
@@ -44,25 +44,16 @@ impl TaskEncoder for LiftedGenericEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         with_vcx(|vcx| {
             let output_ref = vcx.mk_local_decl(
-                task_key.name.as_str(),
-                deps.require_ref::<GenericEnc>(()).unwrap().type_snapshot,
+                vcx.alloc_str(task_key.name.as_str()),
+                deps.require_ref::<GenericEnc>(())?.type_snapshot,
             );
-            deps.emit_output_ref::<Self>(*task_key, LiftedGeneric(output_ref));
+            deps.emit_output_ref(*task_key, LiftedGeneric(output_ref))?;
             Ok(((), ()))
         })
     }

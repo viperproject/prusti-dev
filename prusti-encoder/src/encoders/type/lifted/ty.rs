@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use prusti_rustc_interface::middle::ty::{self, ParamTy, TyKind};
-use task_encoder::TaskEncoder;
+use task_encoder::{TaskEncoder, EncodeFullResult};
 use vir::{with_vcx, FunctionIdent, UnknownArity};
 
 use crate::encoders::{
@@ -124,24 +124,14 @@ impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsLifted> {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
-        deps.emit_output_ref::<Self>(*task_key, ());
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
         with_vcx(|vcx| {
             let result = deps
-                .require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(*task_key)
-                .unwrap();
+                .require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(*task_key)?;
             let result = result.map(vcx, &mut |g| {
                 deps.require_ref::<LiftedGenericEnc>(g).unwrap()
             });
@@ -167,28 +157,18 @@ impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsParamTy> {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
-        deps.emit_output_ref::<Self>(*task_key, ());
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
         with_vcx(|vcx| {
             if let TyKind::Param(p) = task_key.kind() {
                 return Ok((LiftedTy::Generic(*p), ()));
             }
             let (ty_constructor, args) = extract_type_params(vcx.tcx(), *task_key);
             let ty_constructor = deps
-                .require_ref::<TyConstructorEnc>(ty_constructor)
-                .unwrap()
+                .require_ref::<TyConstructorEnc>(ty_constructor)?
                 .ty_constructor;
             let args = args
                 .into_iter()

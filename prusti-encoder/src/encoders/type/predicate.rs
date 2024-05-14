@@ -2,7 +2,7 @@ use prusti_rustc_interface::{
     abi,
     middle::ty::{self, TyKind},
 };
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::{
     add_debug_note, CallableIdent, FunctionIdent, MethodIdent, NullaryArity, PredicateIdent,
     TypeData, UnaryArity, UnknownArity, VirCtxt,
@@ -198,21 +198,12 @@ impl TaskEncoder for PredicateEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
-        let snap = deps.require_local::<SnapshotEnc>(*task_key).unwrap();
-        let generic_output_ref = deps.require_ref::<GenericEnc>(()).unwrap();
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        let snap = deps.require_local::<SnapshotEnc>(*task_key)?;
+        let generic_output_ref = deps.require_ref::<GenericEnc>(())?;
         let mut enc = vir::with_vcx(|vcx| {
             PredicateEncValues::new(vcx, &snap.base_name, snap.snapshot, snap.generics)
         });
@@ -228,7 +219,7 @@ impl TaskEncoder for PredicateEnc {
                         ])),
                     )
                 });
-                deps.emit_output_ref::<Self>(
+                deps.emit_output_ref(
                     *task_key,
                     PredicateEncOutputRef {
                         ref_to_pred: generic_output_ref.ref_to_pred.as_unknown_arity(),
@@ -240,7 +231,7 @@ impl TaskEncoder for PredicateEnc {
                         generics: &[],
                     },
                 );
-                let dep = deps.require_local::<GenericEnc>(()).unwrap();
+                let dep = deps.require_local::<GenericEnc>(())?;
                 vir::with_vcx(|vcx| {
                     let method_assign = mk_method_assign(
                         vcx,
@@ -265,13 +256,13 @@ impl TaskEncoder for PredicateEnc {
             }
             TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) => {
                 let specifics = PredicateEncData::Primitive(snap.specifics.expect_primitive());
-                deps.emit_output_ref::<Self>(*task_key, enc.output_ref(specifics));
+                deps.emit_output_ref(*task_key, enc.output_ref(specifics));
                 Ok((enc.mk_prim(&snap.base_name), ()))
             }
             TyKind::Tuple(tys) => {
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_struct_ref(None, snap_data);
-                deps.emit_output_ref::<Self>(
+                deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::StructLike(specifics)),
                 );
@@ -289,7 +280,7 @@ impl TaskEncoder for PredicateEnc {
                 ty::AdtKind::Struct => {
                     let snap_data = snap.specifics.expect_structlike();
                     let specifics = enc.mk_struct_ref(None, snap_data);
-                    deps.emit_output_ref::<Self>(
+                    deps.emit_output_ref(
                         *task_key,
                         enc.output_ref(PredicateEncData::StructLike(specifics)),
                     );
@@ -316,7 +307,7 @@ impl TaskEncoder for PredicateEnc {
                 }
                 ty::AdtKind::Enum => {
                     let specifics = enc.mk_enum_ref(snap.specifics.expect_enumlike());
-                    deps.emit_output_ref::<Self>(
+                    deps.emit_output_ref(
                         *task_key,
                         enc.output_ref(PredicateEncData::EnumLike(specifics)),
                     );
@@ -348,7 +339,7 @@ impl TaskEncoder for PredicateEnc {
             TyKind::Never => {
                 let specifics = enc.mk_enum_ref(snap.specifics.expect_enumlike());
                 assert!(specifics.is_none());
-                deps.emit_output_ref::<Self>(
+                deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::EnumLike(None)),
                 );
@@ -358,22 +349,21 @@ impl TaskEncoder for PredicateEnc {
             &TyKind::Ref(_, inner, m) => {
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_ref_ref(snap_data, m.is_mut());
-                deps.emit_output_ref::<Self>(
+                deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::Ref(specifics)),
                 );
 
                 let lifted_ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(inner).unwrap();
                 let inner = deps
-                    .require_ref::<RustTyPredicatesEnc>(inner)
-                    .unwrap()
+                    .require_ref::<RustTyPredicatesEnc>(inner)?
                     .generic_predicate;
                 Ok((enc.mk_ref(inner, lifted_ty, specifics), ()))
             }
             TyKind::Str => {
                 let specifics = enc.mk_struct_ref(None, snap.specifics.expect_structlike());
 
-                deps.emit_output_ref::<Self>(
+                deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::StructLike(specifics)),
                 );

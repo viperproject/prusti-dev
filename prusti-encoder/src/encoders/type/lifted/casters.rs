@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::{Arity, CallableIdent, FunctionIdent, MethodIdent, TypeData, UnaryArity, UnknownArity};
 
 use crate::encoders::{
@@ -221,21 +221,12 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        ty: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        ty: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         if ty.is_generic() {
-            deps.emit_output_ref::<Self>(*ty, CastFunctionsOutputRef::AlreadyGeneric);
+            deps.emit_output_ref(*ty, CastFunctionsOutputRef::AlreadyGeneric);
             return Ok((&[], ()));
         }
         vir::with_vcx(|vcx| {
@@ -271,7 +262,7 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
                 self_ty,
             );
 
-            deps.emit_output_ref::<Self>(
+            deps.emit_output_ref(
                 *ty,
                 CastFunctionsOutputRef::Casters {
                     make_generic: make_generic_ident,
@@ -374,21 +365,12 @@ impl TaskEncoder for CastersEnc<CastTypeImpure> {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        ty: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        ty: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         if ty.is_generic() {
-            deps.emit_output_ref::<Self>(*ty, CastMethodsOutputRef::AlreadyGeneric);
+            deps.emit_output_ref(*ty, CastMethodsOutputRef::AlreadyGeneric);
             return Ok((&[], ()));
         }
         vir::with_vcx(|vcx| {
@@ -413,7 +395,7 @@ impl TaskEncoder for CastersEnc<CastTypeImpure> {
                 UnknownArity::new(arg_tys),
             );
 
-            deps.emit_output_ref::<Self>(
+            deps.emit_output_ref(
                 *ty,
                 CastMethodsOutputRef::Casters {
                     make_generic: make_generic_ident,

@@ -5,6 +5,7 @@ use prusti_rustc_interface::{
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
+    EncodeFullResult,
 };
 use vir::{UnknownArity, FunctionIdent, CallableIdent};
 
@@ -51,16 +52,10 @@ impl TaskEncoder for MirBuiltinEnc {
         task.clone()
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<(
-        Self::OutputFullLocal<'vir>,
-        Self::OutputFullDependency<'vir>,
-    ), (
-        Self::EncodingError,
-        Option<Self::OutputFullDependency<'vir>>,
-    )> {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             match *task_key {
                 MirBuiltinEncTask::UnOp(res_ty, op, operand_ty) => {
@@ -92,12 +87,12 @@ fn int_name<'tcx>(ty: ty::Ty<'tcx>) -> &'static str {
 }
 
 impl MirBuiltinEnc {
-    fn handle_un_op<'vir, 'tcx>(
-        vcx: &'vir vir::VirCtxt<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-        key: <Self as TaskEncoder>::TaskKey<'tcx>,
+    fn handle_un_op<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        key: <Self as TaskEncoder>::TaskKey<'vir>,
         op: mir::UnOp,
-        ty: ty::Ty<'tcx>,
+        ty: ty::Ty<'vir>,
     ) -> vir::Function<'vir> {
         let e_ty = deps
             .require_local::<RustTySnapshotsEnc>(ty)
@@ -107,7 +102,7 @@ impl MirBuiltinEnc {
         let name = vir::vir_format_identifier!(vcx, "mir_unop_{op:?}_{}", int_name(ty));
         let arity = UnknownArity::new(vcx.alloc_slice(&[e_ty.snapshot]));
         let function = FunctionIdent::new(name, arity, e_ty.snapshot);
-        deps.emit_output_ref::<Self>(key, MirBuiltinEncOutputRef {
+        deps.emit_output_ref(key, MirBuiltinEncOutputRef {
             function,
         });
 
@@ -140,14 +135,14 @@ impl MirBuiltinEnc {
         )
     }
 
-    fn handle_bin_op<'vir, 'tcx>(
-        vcx: &'vir vir::VirCtxt<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-        key: <Self as TaskEncoder>::TaskKey<'tcx>,
-        res_ty: ty::Ty<'tcx>,
+    fn handle_bin_op<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        key: <Self as TaskEncoder>::TaskKey<'vir>,
+        res_ty: ty::Ty<'vir>,
         op: mir::BinOp,
-        l_ty: ty::Ty<'tcx>,
-        r_ty: ty::Ty<'tcx>,
+        l_ty: ty::Ty<'vir>,
+        r_ty: ty::Ty<'vir>,
     ) -> vir::Function<'vir> {
         use mir::BinOp::*;
         let e_l_ty = deps
@@ -169,7 +164,7 @@ impl MirBuiltinEnc {
         let name = vir::vir_format_identifier!(vcx, "mir_binop_{op:?}_{}_{}", int_name(l_ty), int_name(r_ty));
         let arity = UnknownArity::new(vcx.alloc_slice(&[e_l_ty.snapshot, e_r_ty.snapshot]));
         let function = FunctionIdent::new(name, arity, e_res_ty.snapshot);
-        deps.emit_output_ref::<Self>(key, MirBuiltinEncOutputRef {
+        deps.emit_output_ref(key, MirBuiltinEncOutputRef {
             function,
         });
         let lhs = prim_l_ty.snap_to_prim.apply(vcx,
@@ -268,14 +263,14 @@ impl MirBuiltinEnc {
         )
     }
 
-    fn handle_checked_bin_op<'vir, 'tcx>(
-        vcx: &'vir vir::VirCtxt<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-        key: <Self as TaskEncoder>::TaskKey<'tcx>,
-        res_ty: ty::Ty<'tcx>,
+    fn handle_checked_bin_op<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        key: <Self as TaskEncoder>::TaskKey<'vir>,
+        res_ty: ty::Ty<'vir>,
         op: mir::BinOp,
-        l_ty: ty::Ty<'tcx>,
-        r_ty: ty::Ty<'tcx>,
+        l_ty: ty::Ty<'vir>,
+        r_ty: ty::Ty<'vir>,
     ) -> vir::Function<'vir> {
         // `op` can only be `Add`, `Sub` or `Mul`
         assert!(matches!(
@@ -303,7 +298,7 @@ impl MirBuiltinEnc {
             .unwrap()
             .generic_snapshot;
         let function = FunctionIdent::new(name, arity, e_res_ty.snapshot);
-        deps.emit_output_ref::<Self>(key, MirBuiltinEncOutputRef { function });
+        deps.emit_output_ref(key, MirBuiltinEncOutputRef { function });
 
         let e_res_ty = deps
             .require_local::<RustTySnapshotsEnc>(res_ty)

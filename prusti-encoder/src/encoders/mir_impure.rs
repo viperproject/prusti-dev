@@ -13,7 +13,7 @@ use prusti_rustc_interface::{
 //use mir_ssa_analysis::{
 //    SsaAnalysis,
 //};
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::{MethodIdent, UnknownArity};
 
 pub struct MirImpureEnc;
@@ -74,7 +74,7 @@ impl MirImpureEnc {
 impl TaskEncoder for MirImpureEnc {
     task_encoder::encoder_cache!(MirImpureEnc);
 
-    type TaskDescription<'tcx> = FunctionCallTaskDescription<'tcx>;
+    type TaskDescription<'vir> = FunctionCallTaskDescription<'vir>;
 
     type OutputRef<'vir> = ImpureFunctionEncOutputRef<'vir>;
     type OutputFullLocal<'vir> = ImpureFunctionEncOutput<'vir>;
@@ -85,52 +85,43 @@ impl TaskEncoder for MirImpureEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         let monomorphize = Self::monomorphize();
         let output_ref = if monomorphize {
-            deps.require_ref::<MirMonoImpureEnc>(*task_key).unwrap()
+            deps.require_ref::<MirMonoImpureEnc>(*task_key)?
         } else {
-            deps.require_ref::<MirPolyImpureEnc>(task_key.def_id).unwrap()
+            deps.require_ref::<MirPolyImpureEnc>(task_key.def_id)?
         };
-        deps.emit_output_ref::<Self>(*task_key, output_ref);
+        deps.emit_output_ref(*task_key, output_ref);
         let output: ImpureFunctionEncOutput<'_> = if monomorphize {
-            deps.require_local::<MirMonoImpureEnc>(*task_key).unwrap()
+            deps.require_local::<MirMonoImpureEnc>(*task_key)?
         } else {
-            deps.require_local::<MirPolyImpureEnc>(task_key.def_id).unwrap()
+            deps.require_local::<MirPolyImpureEnc>(task_key.def_id)?
         };
         Ok((output, ()))
     }
 }
 
-pub struct ImpureEncVisitor<'tcx, 'vir, 'enc>
+pub struct ImpureEncVisitor<'vir, 'enc, E: TaskEncoder>
     where 'vir: 'enc
 {
-    pub vcx: &'vir vir::VirCtxt<'tcx>,
+    pub vcx: &'vir vir::VirCtxt<'vir>,
     // Are we monomorphizing functions?
     pub monomorphize: bool,
-    pub deps: &'enc mut TaskEncoderDependencies<'vir>,
+    pub deps: &'enc mut TaskEncoderDependencies<'vir, E>,
     pub def_id: DefId,
-    pub local_decls: &'enc mir::LocalDecls<'tcx>,
+    pub local_decls: &'enc mir::LocalDecls<'vir>,
     //ssa_analysis: SsaAnalysis,
-    pub fpcs_analysis: FreePcsAnalysis<'enc, 'tcx>,
+    pub fpcs_analysis: FreePcsAnalysis<'enc, 'vir>,
     pub local_defs: crate::encoders::MirLocalDefEncOutput<'vir>,
 
     pub tmp_ctr: usize,
 
     // for the current basic block
-    pub current_fpcs: Option<FreePcsBasicBlock<'tcx>>,
+    pub current_fpcs: Option<FreePcsBasicBlock<'vir>>,
 
     pub current_stmts: Option<Vec<vir::Stmt<'vir>>>,
     pub current_terminator: Option<vir::TerminatorStmt<'vir>>,
@@ -138,16 +129,16 @@ pub struct ImpureEncVisitor<'tcx, 'vir, 'enc>
     pub encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
 }
 
-impl<'tcx: 'vir, 'vir> PureFuncAppEnc<'tcx, 'vir> for ImpureEncVisitor<'tcx, 'vir, '_> {
+impl<'vir, E: TaskEncoder> PureFuncAppEnc<'vir, E> for ImpureEncVisitor<'vir, '_, E> {
     type EncodeOperandArgs = ();
     type Curr = !;
     type Next = !;
-    type LocalDeclsSrc = mir::LocalDecls<'tcx>;
-    fn vcx(&self) -> &'vir vir::VirCtxt<'tcx> {
+    type LocalDeclsSrc = mir::LocalDecls<'vir>;
+    fn vcx(&self) -> &'vir vir::VirCtxt<'vir> {
         self.vcx
     }
 
-    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir> {
+    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, E> {
         self.deps
     }
 
@@ -158,7 +149,7 @@ impl<'tcx: 'vir, 'vir> PureFuncAppEnc<'tcx, 'vir> for ImpureEncVisitor<'tcx, 'vi
     fn encode_operand(
         &mut self,
         _args: &Self::EncodeOperandArgs,
-        operand: &mir::Operand<'tcx>,
+        operand: &mir::Operand<'vir>,
     ) -> vir::ExprGen<'vir, Self::Curr, Self::Next> {
         self.encode_operand_snap(operand)
     }
@@ -189,7 +180,7 @@ impl<'vir> EncodePlaceResult<'vir> {
     }
 }
 
-impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
+impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn stmt(&mut self, stmt: vir::Stmt<'vir>) {
         self.current_stmts
             .as_mut()
@@ -261,7 +252,7 @@ impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
 
     fn fpcs_repacks(
         &mut self,
-        repacks: &[RepackOp<'tcx>],
+        repacks: &[RepackOp<'vir>],
     ) {
         for &repack_op in repacks {
             match repack_op {
@@ -334,7 +325,7 @@ impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
         result.undo_casts.iter().for_each(|stmt| self.stmt(stmt));
     }
 
-    fn encode_operand_snap(&mut self, operand: &mir::Operand<'tcx>) -> vir::Expr<'vir> {
+    fn encode_operand_snap(&mut self, operand: &mir::Operand<'vir>) -> vir::Expr<'vir> {
         let ty = operand.ty(self.local_decls, self.vcx.tcx());
         match operand {
             &mir::Operand::Move(source) => {
@@ -368,7 +359,7 @@ impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
 
     fn encode_operand(
         &mut self,
-        operand: &mir::Operand<'tcx>,
+        operand: &mir::Operand<'vir>,
     ) -> vir::Expr<'vir> {
         let ty = operand.ty(self.local_decls, self.vcx.tcx());
         let (encode_place_result, ty_out) = match operand {
@@ -393,7 +384,7 @@ impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
 
     fn encode_place(
         &mut self,
-        place: Place<'tcx>,
+        place: Place<'vir>,
     ) -> EncodePlaceResult<'vir> {
         let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
         let mut result = EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex);
@@ -414,8 +405,8 @@ impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
     // it.
     fn encode_place_element(
         &mut self,
-        place_ty: mir::tcx::PlaceTy<'tcx>,
-        elem: mir::PlaceElem<'tcx>,
+        place_ty: mir::tcx::PlaceTy<'vir>,
+        elem: mir::PlaceElem<'vir>,
         expr: vir::Expr<'vir>
     ) -> (vir::Expr<'vir>, Option<vir::Stmt<'vir>>) {
         match elem {
@@ -495,14 +486,14 @@ impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
     }
 }
 
-impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for ImpureEncVisitor<'tcx, 'vir, 'enc> {
+impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<'vir, 'enc, E> {
     // fn visit_body(&mut self, body: &mir::Body<'tcx>) {
     //     println!("visiting body!");
     // }
     fn visit_basic_block_data(
         &mut self,
         block: mir::BasicBlock,
-        data: &mir::BasicBlockData<'tcx>,
+        data: &mir::BasicBlockData<'vir>,
     ) {
         self.current_fpcs = Some(self.fpcs_analysis.get_all_for_bb(block));
 
@@ -563,7 +554,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for ImpureEncVisitor<'tcx, 'vir
 
     fn visit_statement(
         &mut self,
-        statement: &mir::Statement<'tcx>,
+        statement: &mir::Statement<'vir>,
         location: mir::Location,
     ) {
         // TODO: these should not be ignored, but should havoc the local instead
@@ -606,12 +597,12 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for ImpureEncVisitor<'tcx, 'vir
                 let expr = match rvalue {
                     mir::Rvalue::Use(op) => self.encode_operand_snap(op),
 
-                    //mir::Rvalue::Repeat(Operand<'tcx>, Const<'tcx>) => {}
-                    //mir::Rvalue::Ref(Region<'tcx>, BorrowKind, Place<'tcx>) => {}
+                    //mir::Rvalue::Repeat(Operand<'vir>, Const<'vir>) => {}
+                    //mir::Rvalue::Ref(Region<'vir>, BorrowKind, Place<'vir>) => {}
                     //mir::Rvalue::ThreadLocalRef(DefId) => {}
-                    //mir::Rvalue::AddressOf(Mutability, Place<'tcx>) => {}
-                    //mir::Rvalue::Len(Place<'tcx>) => {}
-                    //mir::Rvalue::Cast(CastKind, Operand<'tcx>, Ty<'tcx>) => {}
+                    //mir::Rvalue::AddressOf(Mutability, Place<'vir>) => {}
+                    //mir::Rvalue::Len(Place<'vir>) => {}
+                    //mir::Rvalue::Cast(CastKind, Operand<'vir>, Ty<'vir>) => {}
 
                     rv@mir::Rvalue::BinaryOp(op, box (l, r)) |
                     rv@mir::Rvalue::CheckedBinaryOp(op, box (l, r)) => {
@@ -632,7 +623,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for ImpureEncVisitor<'tcx, 'vir
                         ])
                     }
 
-                    //mir::Rvalue::NullaryOp(NullOp, Ty<'tcx>) => {}
+                    //mir::Rvalue::NullaryOp(NullOp, Ty<'vir>) => {}
 
                     mir::Rvalue::UnaryOp(unop, operand) => {
                         let operand_ty = operand.ty(self.local_decls, self.vcx.tcx());
@@ -703,9 +694,9 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for ImpureEncVisitor<'tcx, 'vir
                         }
                     }
 
-                    //mir::Rvalue::Discriminant(Place<'tcx>) => {}
-                    //mir::Rvalue::ShallowInitBox(Operand<'tcx>, Ty<'tcx>) => {}
-                    //mir::Rvalue::CopyForDeref(Place<'tcx>) => {}
+                    //mir::Rvalue::Discriminant(Place<'vir>) => {}
+                    //mir::Rvalue::ShallowInitBox(Operand<'vir>, Ty<'vir>) => {}
+                    //mir::Rvalue::CopyForDeref(Place<'vir>) => {}
                     other => {
                         tracing::error!("unsupported rvalue {other:?}");
                         self.vcx.mk_todo_expr(vir::vir_format!(self.vcx, "rvalue {rvalue:?}"))
@@ -743,7 +734,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for ImpureEncVisitor<'tcx, 'vir
 
     fn visit_terminator(
         &mut self,
-        terminator: &mir::Terminator<'tcx>,
+        terminator: &mir::Terminator<'vir>,
         location: mir::Location,
     ) {
         self.stmt(self.vcx.mk_comment_stmt(

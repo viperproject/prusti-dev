@@ -52,7 +52,7 @@ pub fn test_entrypoint<'tcx>(
                 }).unwrap_or_default();
 
                 if !(is_trusted && is_pure) {
-                    let res = MirPolyImpureEnc::encode(def_id);
+                    let res = MirPolyImpureEnc::encode(def_id, false);
                     assert!(res.is_ok());
                 }
             }
