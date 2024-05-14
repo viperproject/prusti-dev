@@ -19,10 +19,10 @@ pub trait FunctionEnc
     /// this should be the identity substitution obtained from the DefId of the
     /// function. For the monomorphic encoding, the substitutions at the call
     /// site should be used.
-    fn get_substs<'tcx>(
-        vcx: &vir::VirCtxt<'tcx>,
-        substs_src: &Self::TaskKey<'tcx>,
-    ) -> &'tcx GenericArgs<'tcx>;
+    fn get_substs<'vir>(
+        vcx: &vir::VirCtxt<'vir>,
+        substs_src: &Self::TaskKey<'vir>,
+    ) -> &'vir GenericArgs<'vir>;
 }
 
 /// Implementation for polymorphic encoding
@@ -35,10 +35,10 @@ impl <T: 'static + for<'vir> TaskEncoder<TaskKey<'vir> = DefId>> FunctionEnc for
         None
     }
 
-    fn get_substs<'tcx>(
-        vcx: &vir::VirCtxt<'tcx>,
-        def_id: &Self::TaskKey<'tcx>,
-    ) -> &'tcx GenericArgs<'tcx> {
+    fn get_substs<'vir>(
+        vcx: &vir::VirCtxt<'vir>,
+        def_id: &Self::TaskKey<'vir>,
+    ) -> &'vir GenericArgs<'vir> {
         GenericArgs::identity_for_item(vcx.tcx(), *def_id)
     }
 

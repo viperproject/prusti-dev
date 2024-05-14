@@ -1,5 +1,5 @@
 use prusti_rustc_interface::middle::ty;
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, TaskEncoderError};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, TaskEncoderError, EncodeFullResult};
 use vir::{FunctionIdent, MethodIdent, StmtGen, UnknownArity, VirCtxt};
 
 use super::{
@@ -158,15 +158,16 @@ pub struct CastToEnc<T>(std::marker::PhantomData<T>);
 
 impl<T: CastType + 'static> CastToEnc<T>
 where
-    RustTyCastersEnc<T>: for<'tcx, 'vir> TaskEncoder<
-        TaskDescription<'tcx> = ty::Ty<'tcx>,
+    Self: TaskEncoder,
+    RustTyCastersEnc<T>: for<'vir> TaskEncoder<
+        TaskDescription<'vir> = ty::Ty<'vir>,
         OutputFullLocal<'vir> = RustTyGenericCastEncOutput<'vir, Casters<'vir, T>>,
     >,
     TaskEncoderError<RustTyCastersEnc<T>>: Sized,
 {
-    fn encode_cast<'tcx: 'vir, 'vir>(
-        task_key: CastArgs<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
+    fn encode_cast<'vir>(
+        task_key: CastArgs<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> GenericCastOutputRef<'vir, T::CastApplicator<'vir>> {
         let expected_is_param = matches!(task_key.expected.kind(), ty::Param(_));
         let actual_is_param = matches!(task_key.actual.kind(), ty::Param(_));
@@ -210,21 +211,12 @@ impl TaskEncoder for CastToEnc<CastTypePure> {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         let output_ref = Self::encode_cast(*task_key, deps);
-        deps.emit_output_ref::<Self>(*task_key, output_ref);
+        deps.emit_output_ref(*task_key, output_ref)?;
         Ok(((), ()))
     }
 }
@@ -240,21 +232,12 @@ impl TaskEncoder for CastToEnc<CastTypeImpure> {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         let output_ref = Self::encode_cast(*task_key, deps);
-        deps.emit_output_ref::<Self>(*task_key, output_ref);
+        deps.emit_output_ref(*task_key, output_ref)?;
         Ok(((), ()))
     }
 }

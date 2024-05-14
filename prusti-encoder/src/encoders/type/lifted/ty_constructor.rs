@@ -1,4 +1,4 @@
-use task_encoder::{OutputRefAny, TaskEncoder};
+use task_encoder::{OutputRefAny, TaskEncoder, EncodeFullResult};
 use vir::{
     vir_format_identifier, CallableIdent, FunctionIdent, UnaryArity, UnknownArity
 };
@@ -53,20 +53,11 @@ impl TaskEncoder for TyConstructorEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
-        let generic_ref = deps.require_ref::<GenericEnc>(()).unwrap();
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        let generic_ref = deps.require_ref::<GenericEnc>(())?;
         let mut functions = vec![];
         let mut axioms = vec![];
         vir::with_vcx(|vcx| {
@@ -111,13 +102,13 @@ impl TaskEncoder for TyConstructorEnc {
                     )
                 })
                 .collect::<Vec<_>>();
-            deps.emit_output_ref::<Self>(
+            deps.emit_output_ref(
                 *task_key,
                 TyConstructorEncOutputRef {
                     ty_constructor: type_function_ident,
                     ty_param_accessors: vcx.alloc_slice(&ty_accessor_functions),
                 },
-            );
+            )?;
 
             let axiom_qvars = vcx.alloc_slice(&ty_arg_decls);
             let axiom_triggers = vcx.alloc_slice(
