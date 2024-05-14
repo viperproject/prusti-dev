@@ -103,7 +103,12 @@ impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 use crate::encoders::{generic::GenericEncOutputRef, GenericEnc};
 
 use super::{
-    lifted::{cast_functions::CastFunctionsEnc, ty::{EncodeGenericsAsParamTy, LiftedTy, LiftedTyEnc}, ty_constructor::{TyConstructorEnc, TyConstructorEncOutputRef}}, most_generic_ty::{extract_type_params, MostGenericTy}, rust_ty_snapshots::RustTySnapshotsEnc
+    lifted::{
+        ty::{EncodeGenericsAsParamTy, LiftedTy, LiftedTyEnc},
+        ty_constructor::{TyConstructorEnc, TyConstructorEncOutputRef}
+    },
+    most_generic_ty::{extract_type_params, MostGenericTy},
+    rust_ty_snapshots::RustTySnapshotsEnc
 };
 
 pub fn all_outputs<'vir>() -> Vec<vir::Domain<'vir>> {

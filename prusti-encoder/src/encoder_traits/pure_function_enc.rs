@@ -1,13 +1,14 @@
-use prusti_rustc_interface::{
-    middle::{mir, ty::{GenericArgs, Ty}},
-    span::def_id::DefId
-};
+use prusti_rustc_interface::
+    middle::{mir, ty::Ty}
+;
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdent, ExprGen, FunctionIdent, Reify, UnknownArity, ViperIdent};
 
 use crate::encoders::{
     domain::DomainEnc, lifted::{func_def_ty_params::LiftedTyParamsEnc, ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc}}, most_generic_ty::extract_type_params, GenericEnc, MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind
 };
+
+use super::function_enc::FunctionEnc;
 
 #[derive(Clone, Debug)]
 pub struct MirFunctionEncOutputRef<'vir> {
@@ -25,15 +26,10 @@ pub struct MirFunctionEncOutput<'vir> {
 /// functions; see [`MirMonoFunctionEnc`] and [`MirFunctionEnc`]
 pub trait PureFunctionEnc
 where
-    Self: 'static + Sized + for <'vir> TaskEncoder<
+    Self: 'static + Sized + FunctionEnc + for <'vir> TaskEncoder<
         OutputRef<'vir> = MirFunctionEncOutputRef<'vir>
     >
 {
-    /// Obtains the function's [`DefId`] from the task key
-    fn get_def_id(task_key: &Self::TaskKey<'_>) -> DefId;
-
-    /// Obtains the caller's [`DefId`] from the task key, if possible
-    fn get_caller_def_id(task_key: &Self::TaskKey<'_>) -> Option<DefId>;
 
     /// Generates the identifier for the function; for a monomorphic encoding,
     /// this should be a name including (mangled) type arguments
@@ -42,13 +38,6 @@ where
         task_key: &Self::TaskKey<'tcx>,
     ) -> ViperIdent<'vir>;
 
-    /// Obtains type substitutions for the function. For polymorphic encoding,
-    /// this is the DefId of the function. For the monomorhpic encoding, the
-    /// substitutions at the call site should be used.
-    fn get_substs<'tcx>(
-        vcx: &vir::VirCtxt<'tcx>,
-        substs_src: &Self::TaskKey<'tcx>,
-    ) -> &'tcx GenericArgs<'tcx>;
 
     /// Adds an assertion connecting the type of an argument (or return) of the
     /// function with the appropriate type based on the param, e.g. in f<T,

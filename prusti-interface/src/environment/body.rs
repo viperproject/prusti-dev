@@ -196,7 +196,7 @@ impl<'tcx> EnvBody<'tcx> {
     /// Get the MIR body of a local impure function, monomorphised
     /// with the given type substitutions.
     pub fn get_impure_fn_body(&self, def_id: LocalDefId, substs: GenericArgsRef<'tcx>, caller_def_id: Option<DefId>) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, None) {
+        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, caller_def_id) {
             return body;
         }
         let body = self.get_impure_fn_body_identity(def_id);

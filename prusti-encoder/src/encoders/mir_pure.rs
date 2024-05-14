@@ -12,10 +12,17 @@ use task_encoder::{
 use vir::add_debug_note;
 use std::collections::HashMap;
 // TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
-use crate::{encoder_traits::pure_func_app_enc::PureFuncAppEnc, encoders::{lifted::cast::{CastArgs, PureGenericCastEnc}, ConstEnc, MirBuiltinEnc, ViperTupleEnc}};
+use crate::encoders::{lifted::cast::{CastArgs, CastToEnc}, ConstEnc, MirBuiltinEnc, ViperTupleEnc};
 use super::{
-    lifted::{aggregate_cast::{AggregateSnapArgsCastEnc, AggregateSnapArgsCastEncTask}, rust_ty_cast::RustTyGenericCastEnc}, rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc
+    lifted::{
+        aggregate_cast::{AggregateSnapArgsCastEnc, AggregateSnapArgsCastEncTask},
+        casters::CastTypePure,
+        rust_ty_cast::RustTyCastersEnc,
+    },
+    rust_ty_predicates::RustTyPredicatesEnc,
+    rust_ty_snapshots::RustTySnapshotsEnc
 };
+use crate::encoder_traits::pure_func_app_enc::PureFuncAppEnc;
 
 pub struct MirPureEnc;
 
@@ -108,7 +115,7 @@ impl TaskEncoder for MirPureEnc {
                 PureKind::Constant(promoted) => vcx.body_mut().get_promoted_constant_body(def_id, promoted)
             };
 
-            let expr_inner = Enc::new(vcx, task_key.0, def_id, &body, deps).encode_body();
+            let expr_inner = Enc::new(vcx, cfg!(feature="mono_function_encoding"), task_key.0, def_id, &body, deps).encode_body();
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
@@ -169,6 +176,7 @@ impl<'vir> Update<'vir> {
 
 struct Enc<'tcx, 'vir: 'enc, 'enc>
 {
+    monomorphize: bool,
     vcx: &'vir vir::VirCtxt<'tcx>,
     encoding_depth: usize,
     def_id: DefId,
@@ -208,12 +216,17 @@ impl <'tcx: 'vir, 'vir, 'enc> PureFuncAppEnc<'tcx, 'vir> for Enc<'tcx, 'vir, 'en
     ) -> vir::ExprGen<'vir, Self::Curr, Self::Next> {
         self.encode_operand(args, operand)
     }
+
+    fn monomorphize(&self) -> bool {
+        self.monomorphize
+    }
 }
 
 impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
 {
     fn new(
         vcx: &'vir vir::VirCtxt<'tcx>,
+        monomorphize: bool,
         encoding_depth: usize,
         def_id: DefId,
         body: &'enc mir::Body<'tcx>,
@@ -222,6 +235,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         assert!(!body.basic_blocks.is_cfg_cyclic(), "MIR pure encoding does not support loops");
         let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
         Self {
+            monomorphize,
             vcx,
             encoding_depth,
             def_id,
@@ -480,8 +494,20 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                         def_spec.kind.is_pure().unwrap_or_default()
                     ).unwrap_or_default();
                     if is_pure {
+                        let sig = self.vcx().tcx().fn_sig(def_id);
+                        let sig = if self.monomorphize {
+                            let param_env = self.vcx().tcx().param_env(self.def_id);
+                            self.vcx().tcx().subst_and_normalize_erasing_regions(
+                                arg_tys,
+                                param_env,
+                                sig
+                            )
+                        } else {
+                            sig.instantiate_identity()
+                        };
                         self.encode_pure_func_app(
                             def_id,
+                            sig,
                             arg_tys,
                             args,
                             destination,
@@ -555,7 +581,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                     .field_snaps_to_snap;
                 let (snap, place_ref) = self.encode_place_with_ref(curr_ver, place);
                 let place_ty = place.ty(self.body, self.vcx.tcx()).ty;
-                let cast = self.deps.require_local::<RustTyGenericCastEnc>(place_ty).unwrap();
+                let cast = self.deps.require_local::<RustTyCastersEnc<CastTypePure>>(place_ty).unwrap();
                 // The snapshot of the referenced value should be encoded as a generic `Param`
                 let snap = cast.cast_to_generic_if_necessary(self.vcx, snap);
                 if kind.mutability().is_mut() {
@@ -758,7 +784,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                 let place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
                 // Since the `expr` is the target of a reference, it is encoded as a `Param`.
                 // If it is not a type parameter, we cast it to its concrete Snapshot.
-                let cast = self.deps.require_local::<RustTyGenericCastEnc>(place_ty.ty).unwrap();
+                let cast = self.deps.require_local::<RustTyCastersEnc<CastTypePure>>(place_ty.ty).unwrap();
                 let expr = cast.cast_to_concrete_if_possible(self.vcx, expr);
                 (expr, place_ref)
             }
@@ -792,7 +818,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                                 expected: ty,
                                 actual: generic_field_ty
                             };
-                            self.deps.require_ref::<PureGenericCastEnc>(cast_args)
+                            self.deps.require_ref::<CastToEnc<CastTypePure>>(cast_args)
                                 .unwrap().apply_cast_if_necessary(self.vcx, proj_app)
 
                         } else {

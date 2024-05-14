@@ -37,6 +37,7 @@ fn sanitize_char(c: char) -> Option<String> {
         '>' => Some("$gt$".to_string()),
         ' ' => Some("$space$".to_string()),
         ',' => Some("$comma$".to_string()),
+        ':' => Some("$colon$".to_string()),
         _ => None,
     }
 }

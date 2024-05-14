@@ -80,6 +80,11 @@ pub struct PredicateEncOutputRef<'vir> {
 impl<'vir> task_encoder::OutputRefAny for PredicateEncOutputRef<'vir> {}
 
 impl<'vir> PredicateEncOutputRef<'vir> {
+
+    /// Constructs arguments for [`PredicateEncOutputRef::ref_to_pred`] and
+    /// [`PredicateEncOutputRef::ref_to_snap`]. Takes as input a Ref representing
+    /// the self, and the encoded Rust type (see [`LiftedTy`]). The arguments to the
+    /// function are the type arguments of the lifted type.
     pub fn ref_to_args<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
@@ -603,10 +608,9 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
             .enumerate()
             .map(|(idx, f_ty)| {
                 let self_field = field_fns[idx].apply(self.vcx, [self.self_ex]);
-                let args = f_ty.ref_to_args(self.vcx, self_field);
                 FieldApp {
-                    self_field_pred: f_ty.ref_to_pred(self.vcx, args, None),
-                    self_field_snap: f_ty.ref_to_snap(self.vcx, args),
+                    self_field_pred: f_ty.ref_to_pred(self.vcx, self_field, None),
+                    self_field_snap: f_ty.ref_to_snap(self.vcx, self_field),
                 }
             })
             .collect()

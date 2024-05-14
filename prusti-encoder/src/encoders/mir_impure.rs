@@ -3,7 +3,11 @@ use mir_state_analysis::{
     utils::Place,
 };
 use prusti_rustc_interface::{
-    middle::{mir, ty},
+    abi,
+    middle::{
+        mir,
+        ty::{GenericArgs, TyKind},
+    },
     span::def_id::DefId,
 };
 //use mir_ssa_analysis::{
@@ -30,24 +34,50 @@ pub struct MirImpureEncOutput<'vir> {
     pub method: vir::Method<'vir>,
 }
 
-use crate::{encoder_traits::pure_func_app_enc::PureFuncAppEnc, encoders::{
-    lifted::{aggregate_cast::{AggregateSnapArgsCastEnc, AggregateSnapArgsCastEncTask}, func_def_ty_params::LiftedTyParamsEnc}, rust_ty_predicates::RustTyPredicatesEnc, ConstEnc, MirBuiltinEnc, MirLocalDefEnc, MirSpecEnc
-}};
+use crate::{
+    encoder_traits::{impure_function_enc::{
+        ImpureFunctionEncOutput, ImpureFunctionEncOutputRef,
+    }, pure_func_app_enc::PureFuncAppEnc},
+    encoders::{
+        self,
+        lifted::{
+            aggregate_cast::{
+                AggregateSnapArgsCastEnc,
+                AggregateSnapArgsCastEncTask
+            },
+            func_app_ty_params::LiftedFuncAppTyParamsEnc
+        },
+        FunctionCallTaskDescription, MirBuiltinEnc
+    }
+};
+
+use super::{
+    lifted::{
+        cast::{CastArgs, CastToEnc},
+        casters::CastTypeImpure,
+        rust_ty_cast::RustTyCastersEnc
+    },
+    rust_ty_predicates::RustTyPredicatesEnc,
+    ConstEnc,
+    MirMonoImpureEnc,
+    MirPolyImpureEnc
+};
 
 const ENCODE_REACH_BB: bool = false;
+
+impl MirImpureEnc {
+    pub fn monomorphize() -> bool {
+        cfg!(feature = "mono_function_encoding")
+    }
+}
 
 impl TaskEncoder for MirImpureEnc {
     task_encoder::encoder_cache!(MirImpureEnc);
 
-    // TODO: local def id (+ promoted, substs, etc)
-    type TaskDescription<'tcx> = (
-        DefId, // ID of the function
-        ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
-        Option<DefId>, // ID of the caller function, if any
-    );
+    type TaskDescription<'tcx> = FunctionCallTaskDescription<'tcx>;
 
-    type OutputRef<'vir> = MirImpureEncOutputRef<'vir>;
-    type OutputFullLocal<'vir> = MirImpureEncOutput<'vir>;
+    type OutputRef<'vir> = ImpureFunctionEncOutputRef<'vir>;
+    type OutputFullLocal<'vir> = ImpureFunctionEncOutput<'vir>;
 
     type EncodingError = MirImpureEncError;
 
@@ -58,194 +88,57 @@ impl TaskEncoder for MirImpureEnc {
     fn do_encode_full<'tcx: 'vir, 'vir>(
         task_key: &Self::TaskKey<'tcx>,
         deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<(
-        Self::OutputFullLocal<'vir>,
-        Self::OutputFullDependency<'vir>,
-    ), (
-        Self::EncodingError,
-        Option<Self::OutputFullDependency<'vir>>,
-    )> {
-        let (def_id, substs, caller_def_id) = *task_key;
-
-        let trusted = crate::encoders::with_proc_spec(def_id, |def_spec|
-            def_spec.trusted.extract_inherit().unwrap_or_default()
-        ).unwrap_or_default();
-
-        vir::with_vcx(|vcx| {
-            use mir::visit::Visitor;
-            let local_defs = deps.require_local::<MirLocalDefEnc>(
-                *task_key,
-            ).unwrap();
-
-            // Argument count for the Viper method:
-            // - one (`Ref`) for the return place;
-            // - one (`Ref`) for each MIR argument.
-            //
-            // Note that the return place is modelled as an argument of the
-            // Viper method. This corresponds to an execution model where the
-            // method can return data to the caller without a copy--it directly
-            // modifies a place provided by the caller.
-            //
-            // TODO: type parameters
-            let arg_count = local_defs.arg_count + 1;
-
-            let extra: String = substs.iter().map(|s| format!("_{s}")).collect();
-            let caller = caller_def_id
-                .map(|id| format!("{}_{}", id.krate, id.index.index()))
-                .unwrap_or_default();
-            let method_name = vir::vir_format_identifier!(
-                vcx,
-                "m_{}{extra}_CALLER_{caller}",
-                vcx.tcx().item_name(def_id)
-            );
-            let mut args = vec![&vir::TypeData::Ref; arg_count];
-            let param_ty_decls = deps.require_local::<LiftedTyParamsEnc>(
-                substs
-            ).unwrap().iter().map(|g| g.decl()).collect::<Vec<_>>();
-            args.extend(param_ty_decls.iter().map(|decl| decl.ty));
-            let args = UnknownArity::new(vcx.alloc_slice(&args));
-            let method_ref = MethodIdent::new(method_name, args);
-            deps.emit_output_ref::<Self>(*task_key, MirImpureEncOutputRef { method_ref });
-
-            // Do not encode the method body if it is external, trusted or just
-            // a call stub.
-            let local_def_id = def_id.as_local().filter(|_| !trusted && caller_def_id.is_none());
-            let blocks = if let Some(local_def_id) = local_def_id {
-                let body = vcx.body_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
-                // let body = vcx.tcx().mir_promoted(local_def_id).0.borrow();
-
-                let fpcs_analysis = mir_state_analysis::run_free_pcs(&body, vcx.tcx());
-
-                //let ssa_analysis = SsaAnalysis::analyse(&body);
-
-                let block_count = body.basic_blocks.len();
-
-                // Local count for the Viper method:
-                // - one for each basic block;
-                // - one (`Ref`) for each non-argument, non-return local.
-                let _local_count = block_count + 1 * (body.local_decls.len() - arg_count);
-
-                let mut encoded_blocks = Vec::with_capacity(
-                    // extra blocks: Start, End
-                    2 + block_count,
-                );
-                let mut start_stmts = Vec::new();
-                for local in (arg_count..body.local_decls.len()).map(mir::Local::from) {
-                    let name_p = local_defs.locals[local].local.name;
-                    start_stmts.push(
-                        vcx.mk_local_decl_stmt(vir::vir_local_decl! { vcx; [name_p] : Ref }, None)
-                    )
-                }
-                if ENCODE_REACH_BB {
-                    start_stmts.extend((0..block_count)
-                        .map(|block| {
-                            let name = vir::vir_format!(vcx, "_reach_bb{block}");
-                            vcx.mk_local_decl_stmt(
-                                vir::vir_local_decl! { vcx; [name] : Bool },
-                                Some(vcx.mk_todo_expr("false"))
-                            )
-                        }));
-                }
-                encoded_blocks.push(
-                    vcx.mk_cfg_block(
-                        vcx.alloc(vir::CfgBlockLabelData::Start),
-                        vcx.alloc_slice(&start_stmts),
-                        vcx.mk_goto_stmt(vcx.alloc(vir::CfgBlockLabelData::BasicBlock(0)))
-                    )
-                );
-
-                let mut visitor = EncVisitor {
-                    vcx,
-                    deps,
-                    def_id,
-                    local_decls: &body.local_decls,
-                    //ssa_analysis,
-                    fpcs_analysis,
-                    local_defs,
-
-                    tmp_ctr: 0,
-
-                    current_fpcs: None,
-
-                    current_stmts: None,
-                    current_terminator: None,
-                    encoded_blocks,
-                };
-                visitor.visit_body(&body);
-
-                visitor.encoded_blocks.push(
-                    vcx.mk_cfg_block(
-                        vcx.alloc(vir::CfgBlockLabelData::End),
-                        &[],
-                        vcx.alloc(vir::TerminatorStmtData::Exit)
-                    )
-                );
-                Some(vcx.alloc_slice(&visitor.encoded_blocks))
-            } else {
-                None
-            };
-
-            let spec = deps.require_local::<MirSpecEnc>(
-                (def_id, substs, caller_def_id, false)
-            ).unwrap();
-            let (spec_pres, spec_posts) = (spec.pres, spec.posts);
-
-            let mut pres = Vec::with_capacity(arg_count - 1);
-            let mut args = Vec::with_capacity(arg_count + substs.len());
-            for arg_idx in 0..arg_count {
-                let name_p = local_defs.locals[arg_idx.into()].local.name;
-                args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
-                if arg_idx != 0 {
-                    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
-                }
-            }
-            args.extend(param_ty_decls.iter());
-            pres.extend(spec_pres);
-
-            let mut posts = Vec::with_capacity(spec_posts.len() + 1);
-            posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
-            posts.extend(spec_posts);
-
-            Ok((
-                MirImpureEncOutput {
-                    method: vcx.mk_method(
-                        method_ref,
-                        vcx.alloc_slice(&args),
-                        &[],
-                        vcx.alloc_slice(&pres),
-                        vcx.alloc_slice(&posts),
-                        blocks,
-                    ),
-                },
-                (),
-            ))
-        })
+    ) -> Result<
+        (
+            Self::OutputFullLocal<'vir>,
+            Self::OutputFullDependency<'vir>,
+        ),
+        (
+            Self::EncodingError,
+            Option<Self::OutputFullDependency<'vir>>,
+        ),
+    > {
+        let monomorphize = Self::monomorphize();
+        let output_ref = if monomorphize {
+            deps.require_ref::<MirMonoImpureEnc>(*task_key).unwrap()
+        } else {
+            deps.require_ref::<MirPolyImpureEnc>(task_key.def_id).unwrap()
+        };
+        deps.emit_output_ref::<Self>(*task_key, output_ref);
+        let output: ImpureFunctionEncOutput<'_> = if monomorphize {
+            deps.require_local::<MirMonoImpureEnc>(*task_key).unwrap()
+        } else {
+            deps.require_local::<MirPolyImpureEnc>(task_key.def_id).unwrap()
+        };
+        Ok((output, ()))
     }
 }
 
-struct EncVisitor<'tcx, 'vir, 'enc>
+pub struct ImpureEncVisitor<'tcx, 'vir, 'enc>
     where 'vir: 'enc
 {
-    vcx: &'vir vir::VirCtxt<'tcx>,
-    deps: &'enc mut TaskEncoderDependencies<'vir>,
-    def_id: DefId,
-    local_decls: &'enc mir::LocalDecls<'tcx>,
+    pub vcx: &'vir vir::VirCtxt<'tcx>,
+    // Are we monomorphizing functions?
+    pub monomorphize: bool,
+    pub deps: &'enc mut TaskEncoderDependencies<'vir>,
+    pub def_id: DefId,
+    pub local_decls: &'enc mir::LocalDecls<'tcx>,
     //ssa_analysis: SsaAnalysis,
-    fpcs_analysis: FreePcsAnalysis<'enc, 'tcx>,
-    local_defs: crate::encoders::local_def::MirLocalDefEncOutput<'vir>,
+    pub fpcs_analysis: FreePcsAnalysis<'enc, 'tcx>,
+    pub local_defs: crate::encoders::MirLocalDefEncOutput<'vir>,
 
-    tmp_ctr: usize,
+    pub tmp_ctr: usize,
 
     // for the current basic block
-    current_fpcs: Option<FreePcsBasicBlock<'tcx>>,
+    pub current_fpcs: Option<FreePcsBasicBlock<'tcx>>,
 
-    current_stmts: Option<Vec<vir::Stmt<'vir>>>,
-    current_terminator: Option<vir::TerminatorStmt<'vir>>,
+    pub current_stmts: Option<Vec<vir::Stmt<'vir>>>,
+    pub current_terminator: Option<vir::TerminatorStmt<'vir>>,
 
-    encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
+    pub encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
 }
 
-impl<'tcx: 'vir, 'vir> PureFuncAppEnc<'tcx, 'vir> for EncVisitor<'tcx, 'vir, '_> {
+impl<'tcx: 'vir, 'vir> PureFuncAppEnc<'tcx, 'vir> for ImpureEncVisitor<'tcx, 'vir, '_> {
     type EncodeOperandArgs = ();
     type Curr = !;
     type Next = !;
@@ -269,9 +162,34 @@ impl<'tcx: 'vir, 'vir> PureFuncAppEnc<'tcx, 'vir> for EncVisitor<'tcx, 'vir, '_>
     ) -> vir::ExprGen<'vir, Self::Curr, Self::Next> {
         self.encode_operand_snap(operand)
     }
+
+    fn monomorphize(&self) -> bool {
+        self.monomorphize
+    }
 }
 
-impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
+struct EncodePlaceResult<'vir> {
+    expr: vir::Expr<'vir>,
+
+    /// Statements to undo the impure casts that were made to access the place.
+    /// If the place was only accessed to take a snapshot or copy (rather than a
+    /// move), these statements should be applied in-order to restore
+    /// permissions to the root of the place.
+    undo_casts: Vec<vir::Stmt<'vir>>,
+}
+
+impl<'vir> EncodePlaceResult<'vir> {
+    fn new(expr: vir::Expr<'vir>) -> Self {
+        Self { expr, undo_casts: Vec::new() }
+    }
+
+    fn map_expr(&mut self, f: impl FnOnce(vir::Expr<'vir>) -> vir::Expr<'vir>) -> &mut Self {
+        self.expr = f(self.expr);
+        self
+    }
+}
+
+impl<'tcx, 'vir, 'enc> ImpureEncVisitor<'tcx, 'vir, 'enc> {
     fn stmt(&mut self, stmt: vir::Stmt<'vir>) {
         self.current_stmts
             .as_mut()
@@ -361,7 +279,7 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
                         .generic_predicate
                         .expect_pred_variant_opt(place_ty.variant_index);
 
-                    let ref_p = self.encode_place(place);
+                    let ref_p = self.encode_place(place).expr;
                     let args = place_ty_out.ref_to_args(self.vcx, ref_p);
                     let predicate = ref_to_pred.apply(self.vcx, &args, None);
                     if matches!(
@@ -379,11 +297,10 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
 
                     let place_ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
 
-                    let ref_p = self.encode_place(place);
-                    let args = place_ty_out.ref_to_args(self.vcx, ref_p);
+                    let ref_p = self.encode_place(place).expr;
                     self.stmt(
                         self.vcx
-                            .mk_exhale_stmt(place_ty_out.ref_to_pred(self.vcx, &args, None)),
+                            .mk_exhale_stmt(place_ty_out.ref_to_pred(self.vcx, ref_p, None)),
                     );
                 }
                 unsupported_op => panic!("unsupported repack op: {unsupported_op:?}"),
@@ -413,28 +330,34 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
         self.current_fpcs = Some(current_fpcs);
     }
 
+    fn undo_impure_casts(&mut self, result: EncodePlaceResult<'vir>) {
+        result.undo_casts.iter().for_each(|stmt| self.stmt(stmt));
+    }
+
     fn encode_operand_snap(&mut self, operand: &mir::Operand<'tcx>) -> vir::Expr<'vir> {
         let ty = operand.ty(self.local_decls, self.vcx.tcx());
         match operand {
             &mir::Operand::Move(source) => {
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
-                let place_exp = self.encode_place(Place::from(source));
-                let args = ty_out.ref_to_args(self.vcx, place_exp);
-                let snap_val = ty_out.ref_to_snap(self.vcx, &args);
+                let result = self.encode_place(Place::from(source));
+                let snap_val = ty_out.ref_to_snap(self.vcx, result.expr);
 
                 let tmp_exp = self.new_tmp(ty_out.snapshot()).1;
                 self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
                 self.stmt(
                     self.vcx
-                        .mk_exhale_stmt(ty_out.ref_to_pred(self.vcx, &args, None)),
+                        .mk_exhale_stmt(ty_out.ref_to_pred(self.vcx, result.expr, None)),
                 );
                 tmp_exp
             }
             &mir::Operand::Copy(source) => {
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
-                let viper_ref = self.encode_place(Place::from(source));
-                let args = ty_out.ref_to_args(self.vcx, viper_ref);
-                ty_out.ref_to_snap(self.vcx, args)
+                let result = self.encode_place(Place::from(source));
+                let snap_val = ty_out.ref_to_snap(self.vcx, result.expr);
+                let tmp_exp = self.new_tmp(ty_out.snapshot()).1;
+                self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
+                self.undo_impure_casts(result);
+                tmp_exp
             }
             mir::Operand::Constant(box constant) => self
                 .deps
@@ -448,57 +371,113 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
         operand: &mir::Operand<'tcx>,
     ) -> vir::Expr<'vir> {
         let ty = operand.ty(self.local_decls, self.vcx.tcx());
-        let (snap_val, ty_out) = match operand {
-            &mir::Operand::Move(source) => return self.encode_place(Place::from(source)),
+        let (encode_place_result, ty_out) = match operand {
+            &mir::Operand::Move(source) => return self.encode_place(Place::from(source)).expr,
             &mir::Operand::Copy(source) => {
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
-                let source: vir::Expr<'vir> =
-                    ty_out.ref_to_snap(self.vcx, &[self.encode_place(Place::from(source))]);
-                (source, ty_out)
+                let mut result = self.encode_place(Place::from(source));
+                result.map_expr(|e| ty_out.ref_to_snap(self.vcx, e));
+                (result, ty_out)
             }
             mir::Operand::Constant(box constant) => {
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
                 let constant = self.deps.require_local::<ConstEnc>((constant.literal, 0, self.def_id)).unwrap();
-                (constant, ty_out)
+                (EncodePlaceResult::new(constant), ty_out)
             }
         };
         let tmp_exp: vir::Expr<'vir> = self.new_tmp(&vir::TypeData::Ref).1;
-        self.stmt(ty_out.apply_method_assign(self.vcx, tmp_exp, snap_val));
+        self.stmt(ty_out.apply_method_assign(self.vcx, tmp_exp, encode_place_result.expr));
+        self.undo_impure_casts(encode_place_result);
         tmp_exp
     }
 
     fn encode_place(
         &mut self,
         place: Place<'tcx>,
-    ) -> vir::Expr<'vir> {
+    ) -> EncodePlaceResult<'vir> {
         let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
-        let mut expr = self.local_defs.locals[place.local].local_ex;
+        let mut result = EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex);
         // TODO: factor this out (duplication with pure encoder)?
         for &elem in place.projection {
-            expr = self.encode_place_element(place_ty, elem, expr);
+            let (expr, unapply_cast_stmt) = self.encode_place_element(place_ty, elem, result.expr);
+            result.expr = expr;
+            if let Some(stmt) = unapply_cast_stmt {
+                result.undo_casts.push(stmt);
+            }
             place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
         }
-        expr
+        result
     }
 
-    fn encode_place_element(&mut self, place_ty: mir::tcx::PlaceTy<'tcx>, elem: mir::PlaceElem<'tcx>, expr: vir::Expr<'vir>) -> vir::Expr<'vir> {
+    // Returns a tuple (expr, unapply_cast), where `expr` is the encoded place element,
+    // and `unapply_cast` is a statement to undo the impure cast that was made to access
+    // it.
+    fn encode_place_element(
+        &mut self,
+        place_ty: mir::tcx::PlaceTy<'tcx>,
+        elem: mir::PlaceElem<'tcx>,
+        expr: vir::Expr<'vir>
+    ) -> (vir::Expr<'vir>, Option<vir::Stmt<'vir>>) {
         match elem {
-            mir::ProjectionElem::Field(field_idx, _) => {
+            mir::ProjectionElem::Field(field_idx, ty) => {
                 let e_ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
                 let field_access = e_ty
                     .generic_predicate
                     .expect_variant_opt(place_ty.variant_index)
                     .ref_to_field_refs;
                 let projection_p = field_access[field_idx.as_usize()];
-                projection_p.apply(self.vcx, [expr])
+                let proj_app = projection_p.apply(self.vcx, [expr]);
+                let mut unapply_cast_stmt = None;
+                match place_ty.ty.kind() {
+                    TyKind::Adt(def, _) => {
+                        let variant = def.variant(place_ty.variant_index.unwrap_or(
+                            abi::FIRST_VARIANT
+                        ));
+                        let generic_field_ty = variant.fields[field_idx].ty(
+                            self.vcx.tcx(),
+                            GenericArgs::identity_for_item(self.vcx.tcx(), def.did())
+                        );
+                        let cast_args = CastArgs {
+                            expected: ty,
+                            actual: generic_field_ty
+                        };
+                        if let Some(cast) = self
+                            .deps.require_ref::<CastToEnc<CastTypeImpure>>(cast_args)
+                            .unwrap().apply_cast_if_necessary(self.vcx, proj_app) {
+                                self.stmt(cast);
+                                unapply_cast_stmt = self
+                                    .deps
+                                    .require_ref::<CastToEnc<CastTypeImpure>>(cast_args.reversed())
+                                    .unwrap().apply_cast_if_necessary(self.vcx, proj_app);
+                        }
+                    }
+                    TyKind::Tuple(_) => {
+                        if let Some(cast_stmts) = self
+                            .deps.require_local::<RustTyCastersEnc<CastTypeImpure>>(ty)
+                            .unwrap().cast_to_concrete_if_possible(self.vcx, proj_app) {
+                                self.stmt(cast_stmts.apply_cast_stmt);
+                                unapply_cast_stmt = Some(cast_stmts.unapply_cast_stmt);
+                        }
+                    }
+                    _ => {}
+                }
+                (proj_app, unapply_cast_stmt)
             }
             // TODO: should all variants start at the same `Ref`?
-            mir::ProjectionElem::Downcast(..) => expr,
+            mir::ProjectionElem::Downcast(..) => (expr, None),
             mir::ProjectionElem::Deref => {
                 assert!(place_ty.variant_index.is_none());
                 let e_ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
                 let ref_field = e_ty.generic_predicate.expect_ref().ref_field;
-                self.vcx.mk_field_expr(expr, ref_field)
+                let expr = self.vcx.mk_field_expr(expr, ref_field);
+                let inner_ty = place_ty.ty.builtin_deref(true).unwrap().ty;
+                if let Some(cast_stmts) = self
+                    .deps.require_local::<RustTyCastersEnc<CastTypeImpure>>(inner_ty)
+                    .unwrap().cast_to_concrete_if_possible(self.vcx, expr) {
+                        self.stmt(cast_stmts.apply_cast_stmt);
+                        return (expr, Some(cast_stmts.unapply_cast_stmt));
+                }
+                (expr, None)
             }
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }
@@ -516,7 +495,7 @@ impl<'tcx, 'vir, 'enc> EncVisitor<'tcx, 'vir, 'enc> {
     }
 }
 
-impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc> {
+impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for ImpureEncVisitor<'tcx, 'vir, 'enc> {
     // fn visit_body(&mut self, body: &mir::Body<'tcx>) {
     //     println!("visiting body!");
     // }
@@ -619,7 +598,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                 //let ty_s = self.local_types[ssa_update.local].snapshot;
 
                 // What are we assigning to?
-                let proj_ref = self.encode_place(Place::from(*dest));
+                let proj_ref = self.encode_place(Place::from(*dest)).expr;
 
                 let rvalue_ty = rvalue.ty(self.local_decls, self.vcx.tcx());
 
@@ -709,12 +688,12 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                         let e_rvalue_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
                         let place_ty = place.ty(self.local_decls, self.vcx.tcx());
                         let ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
-                        let place_expr = self.encode_place(Place::from(*place));
+                        let place_expr = self.encode_place(Place::from(*place)).expr;
 
                         match ty.generic_predicate.get_enumlike().filter(|_| place_ty.variant_index.is_none()) {
                             Some(el) => {
                                 let discr_expr = self.vcx.mk_field_expr(place_expr, el.as_ref().unwrap().discr);
-                                self.vcx.mk_unfolding_expr(ty.ref_to_pred_app(self.vcx, &[place_expr], Some(self.vcx.mk_wildcard())), discr_expr)
+                                self.vcx.mk_unfolding_expr(ty.ref_to_pred_app(self.vcx, place_expr, Some(self.vcx.mk_wildcard())), discr_expr)
                             }
                             None => {
                                 // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
@@ -845,18 +824,36 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                 target,
                 ..
             } => {
-                let (func_def_id, arg_tys) = self.get_def_id_and_caller_substs(func);
+                let (func_def_id, caller_substs) = self.get_def_id_and_caller_substs(func);
                 let is_pure = crate::encoders::with_proc_spec(func_def_id, |spec|
                     spec.kind.is_pure().unwrap_or_default()
                 ).unwrap_or_default();
 
-                let dest = self.encode_place(Place::from(*destination));
+                let dest = self.encode_place(Place::from(*destination)).expr;
 
                 let task = (func_def_id, self.def_id);
+                let sig = self.vcx().tcx().fn_sig(func_def_id);
+                let sig = if self.monomorphize {
+                    let param_env = self.vcx().tcx().param_env(self.def_id);
+                    self.vcx().tcx().subst_and_normalize_erasing_regions(
+                        caller_substs,
+                        param_env,
+                        sig
+                    )
+                } else {
+                    sig.instantiate_identity()
+                };
+                let fn_arg_tys = sig
+                    .inputs()
+                    .iter()
+                    .map(|i| i.skip_binder())
+                    .copied()
+                    .collect::<Vec<_>>();
                 if is_pure {
                     let pure_func_app = self.encode_pure_func_app(
                         func_def_id,
-                        arg_tys,
+                        sig,
+                        caller_substs,
                         args,
                         destination,
                         self.def_id,
@@ -874,25 +871,64 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                 } else {
                     let func_out = self
                         .deps
-                        .require_ref::<MirImpureEnc>((task.0, arg_tys, Some(task.1)))
+                        .require_ref::<encoders::MirImpureEnc>(
+                            FunctionCallTaskDescription::new(
+                                task.0, caller_substs, task.1
+                            )
+                        )
                         .unwrap();
 
-                    let method_in = args.iter().map(|op| self.encode_operand(op));
+
+                    let method_in = args.iter().map(|arg| self.encode_operand(arg)).collect::<Vec<_>>();
+
+
+                   for ((fn_arg_ty, arg), arg_ex) in fn_arg_tys.iter().zip(args.iter()).zip(method_in.iter()) {
+                        let local_decls = self.local_decls_src();
+                        let tcx = self.vcx().tcx();
+                        let arg_ty = arg.ty(local_decls, tcx);
+                        let caster = self.deps()
+                            .require_ref::<CastToEnc<CastTypeImpure>>(CastArgs {
+                                expected: *fn_arg_ty,
+                                actual: arg_ty
+                            })
+                            .unwrap();
+                        // In this context, `apply_cast_if_necessary` returns
+                        // the impure operation to perform the cast
+                        if let Some(stmt) = caster.apply_cast_if_necessary(self.vcx(), arg_ex) {
+                            self.stmt(stmt);
+                        }
+                    }
+
                     let mut method_args =
                         std::iter::once(dest).chain(method_in).collect::<Vec<_>>();
+                    let mono = self.monomorphize;
+                    let encoded_ty_args = self
+                        .deps()
+                        .require_local::<LiftedFuncAppTyParamsEnc>(
+                            (mono, caller_substs)
+                        )
+                        .unwrap()
+                        .iter()
+                        .map(|ty| ty.expr(self.vcx()));
 
-                    for arg in arg_tys {
-                        let arg_ty_enc = self
-                            .deps
-                            .require_ref::<RustTyPredicatesEnc>(arg.expect_ty())
-                            .unwrap();
-                        method_args.extend(arg_ty_enc.ty.arg_exprs(self.vcx))
-                    }
+                    method_args.extend(encoded_ty_args);
 
                     self.stmt(
                         self.vcx
                             .alloc(func_out.method_ref.apply(self.vcx, &method_args)),
                     );
+                    let expected_ty = destination.ty(self.local_decls_src(), self.vcx.tcx()).ty;
+                    let fn_result_ty = sig.output().skip_binder();
+                    let result_cast = self
+                        .deps()
+                        .require_ref::<CastToEnc<CastTypeImpure>>(CastArgs {
+                            expected: expected_ty,
+                            actual: fn_result_ty,
+                        })
+                        .unwrap();
+                    if let Some(stmt) = result_cast.apply_cast_if_necessary(self.vcx, dest) {
+                        self.stmt(stmt);
+                    }
                 }
 
                 target
