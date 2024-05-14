@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     middle::{mir, ty::{GenericArgs, Ty}},
     span::def_id::DefId,
 };
-use task_encoder::TaskEncoder;
+use task_encoder::{TaskEncoder, EncodeFullResult};
 
 use crate::encoders::lifted::cast::{CastArgs, CastToEnc};
 
@@ -79,20 +79,11 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
         task.clone()
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
-        deps.emit_output_ref::<AggregateSnapArgsCastEnc>(task_key.clone(), ());
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(task_key.clone(), ())?;
         vir::with_vcx(|vcx| {
             let cast_functions: Vec<Option<PureCast<'vir>>> =
                 match task_key.aggregate_type {

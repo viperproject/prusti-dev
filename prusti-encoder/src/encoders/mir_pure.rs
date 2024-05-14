@@ -8,6 +8,7 @@ use prusti_rustc_interface::{
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
+    EncodeFullResult,
 };
 use vir::add_debug_note;
 use std::collections::HashMap;
@@ -52,27 +53,27 @@ pub enum PureKind {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct MirPureEncTask<'tcx> {
+pub struct MirPureEncTask<'vir> {
     // TODO: depth of encoding should be in the lazy context rather than here;
     //   can we integrate the lazy context into the identifier system?
     pub encoding_depth: usize,
     pub kind: PureKind,
     pub parent_def_id: DefId, // ID of the function
-    pub param_env: ty::ParamEnv<'tcx>, // param environment at the usage site
-    pub substs: ty::GenericArgsRef<'tcx>, // type substitutions at the usage site
+    pub param_env: ty::ParamEnv<'vir>, // param environment at the usage site
+    pub substs: ty::GenericArgsRef<'vir>, // type substitutions at the usage site
     pub caller_def_id: Option<DefId>, // ID of the caller function, if any
 }
 
 impl TaskEncoder for MirPureEnc {
     task_encoder::encoder_cache!(MirPureEnc);
 
-    type TaskDescription<'tcx> = MirPureEncTask<'tcx>;
+    type TaskDescription<'vir> = MirPureEncTask<'vir>;
 
-    type TaskKey<'tcx> = (
+    type TaskKey<'vir> = (
         usize, // encoding depth
         PureKind, // encoding a pure function?
         DefId, // ID of the function
-        ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
+        ty::GenericArgsRef<'vir>, // ? this should be the "signature", after applying the env/substs
         Option<DefId>, // Caller/Use DefID
     );
 
@@ -80,7 +81,7 @@ impl TaskEncoder for MirPureEnc {
 
     type EncodingError = MirPureEncError;
 
-    fn task_to_key<'tcx>(task: &Self::TaskDescription<'tcx>) -> Self::TaskKey<'tcx> {
+    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         (
             // TODO
             task.encoding_depth,
@@ -91,17 +92,11 @@ impl TaskEncoder for MirPureEnc {
         )
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<(
-        Self::OutputFullLocal<'vir>,
-        Self::OutputFullDependency<'vir>,
-    ), (
-        Self::EncodingError,
-        Option<Self::OutputFullDependency<'vir>>,
-    )> {
-        deps.emit_output_ref::<Self>(*task_key, ());
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
 
         let (_, kind, def_id, substs, caller_def_id) = *task_key;
 
@@ -174,22 +169,21 @@ impl<'vir> Update<'vir> {
     }
 }
 
-struct Enc<'tcx, 'vir: 'enc, 'enc>
-{
+struct Enc<'vir: 'enc, 'enc> {
     monomorphize: bool,
-    vcx: &'vir vir::VirCtxt<'tcx>,
+    vcx: &'vir vir::VirCtxt<'vir>,
     encoding_depth: usize,
     def_id: DefId,
-    body: &'enc mir::Body<'tcx>,
+    body: &'enc mir::Body<'vir>,
     rev_doms: rev_doms::ReverseDominators,
-    deps: &'enc mut TaskEncoderDependencies<'vir>,
+    deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     visited: IndexVec<mir::BasicBlock, bool>,
     version_ctr: IndexVec<mir::Local, usize>,
     phi_ctr: usize,
 }
 
-impl <'tcx: 'vir, 'vir, 'enc> PureFuncAppEnc<'tcx, 'vir> for Enc<'tcx, 'vir, 'enc> {
-    fn vcx(&self) -> &'vir vir::VirCtxt<'tcx> {
+impl <'vir, 'enc> PureFuncAppEnc<'vir, MirPureEnc> for Enc<'vir, 'enc> {
+    fn vcx(&self) -> &'vir vir::VirCtxt<'vir> {
         self.vcx
     }
 
@@ -199,9 +193,9 @@ impl <'tcx: 'vir, 'vir, 'enc> PureFuncAppEnc<'tcx, 'vir> for Enc<'tcx, 'vir, 'en
 
     type Next = vir::ExprKind<'vir>;
 
-    type LocalDeclsSrc = Body<'tcx>;
+    type LocalDeclsSrc = Body<'vir>;
 
-    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir> {
+    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, MirPureEnc> {
         self.deps
     }
 
@@ -212,7 +206,7 @@ impl <'tcx: 'vir, 'vir, 'enc> PureFuncAppEnc<'tcx, 'vir> for Enc<'tcx, 'vir, 'en
     fn encode_operand(
         &mut self,
         args: &Self::EncodeOperandArgs,
-        operand: &mir::Operand<'tcx>,
+        operand: &mir::Operand<'vir>,
     ) -> vir::ExprGen<'vir, Self::Curr, Self::Next> {
         self.encode_operand(args, operand)
     }
@@ -222,15 +216,14 @@ impl <'tcx: 'vir, 'vir, 'enc> PureFuncAppEnc<'tcx, 'vir> for Enc<'tcx, 'vir, 'en
     }
 }
 
-impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
-{
+impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     fn new(
-        vcx: &'vir vir::VirCtxt<'tcx>,
+        vcx: &'vir vir::VirCtxt<'vir>,
         monomorphize: bool,
         encoding_depth: usize,
         def_id: DefId,
-        body: &'enc mir::Body<'tcx>,
-        deps: &'enc mut TaskEncoderDependencies<'vir>,
+        body: &'enc mir::Body<'vir>,
+        deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     ) -> Self {
         assert!(!body.basic_blocks.is_cfg_cyclic(), "MIR pure encoding does not support loops");
         let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
@@ -537,7 +530,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
     fn encode_stmt(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        stmt: &mir::Statement<'tcx>,
+        stmt: &mir::Statement<'vir>,
     ) -> Update<'vir> {
         let mut update = Update::new();
         match &stmt.kind {
@@ -563,7 +556,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
     fn encode_rvalue(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        rvalue: &mir::Rvalue<'tcx>,
+        rvalue: &mir::Rvalue<'vir>,
     ) -> ExprRet<'vir> {
         let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx());
         match rvalue {
@@ -718,7 +711,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
     fn encode_operand(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        operand: &mir::Operand<'tcx>,
+        operand: &mir::Operand<'vir>,
     ) -> ExprRet<'vir> {
         match operand {
             mir::Operand::Copy(place)
@@ -731,7 +724,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
     fn encode_place(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        place: &mir::Place<'tcx>,
+        place: &mir::Place<'vir>,
     ) -> ExprRet<'vir> {
         self.encode_place_with_ref(curr_ver, place).0
     }
@@ -739,7 +732,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
     fn encode_place_with_ref(
         &mut self,
         curr_ver: &HashMap<mir::Local, usize>,
-        place: &mir::Place<'tcx>,
+        place: &mir::Place<'vir>,
     ) -> (ExprRet<'vir>, Option<ExprRet<'vir>>) {
         // TODO: remove (debug)
         assert!(curr_ver.contains_key(&place.local));
@@ -759,8 +752,8 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
 
     fn encode_place_element(
         &mut self,
-        place_ty: mir::tcx::PlaceTy<'tcx>,
-        elem: mir::PlaceElem<'tcx>,
+        place_ty: mir::tcx::PlaceTy<'vir>,
+        elem: mir::PlaceElem<'vir>,
         expr: ExprRet<'vir>,
         place_ref: Option<ExprRet<'vir>>,
     ) -> (ExprRet<'vir>, Option<ExprRet<'vir>>) {
@@ -836,7 +829,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         }
     }
 
-    fn encode_prusti_builtin(&mut self, curr_ver: &HashMap<mir::Local, usize>, def_id: DefId, arg_tys: ty::GenericArgsRef<'tcx>, args: &Vec<mir::Operand<'tcx>>) -> ExprRet<'vir> {
+    fn encode_prusti_builtin(&mut self, curr_ver: &HashMap<mir::Local, usize>, def_id: DefId, arg_tys: ty::GenericArgsRef<'vir>, args: &Vec<mir::Operand<'vir>>) -> ExprRet<'vir> {
         #[derive(Debug)]
         enum PrustiBuiltin {
             Forall,
@@ -985,7 +978,7 @@ mod rev_doms {
         pub end: mir::BasicBlock,
     }
     impl ReverseDominators {
-        pub fn new<'a, 'tcx>(blocks: &'a mir::BasicBlocks<'tcx>) -> Self {
+        pub fn new<'a, 'vir>(blocks: &'a mir::BasicBlocks<'vir>) -> Self {
             let no_succ_blocks = blocks.iter_enumerated().filter(|(_, data)|
                 data.terminator().successors().next().is_none()
             ).map(|(bb, _)| bb).collect();
@@ -1006,7 +999,7 @@ mod rev_doms {
 
     /// A wrapper around `mir::BasicBlocks` which reverses the direction of the
     /// edges. Implements `ControlFlowGraph` such that we can call `dominators`.
-    struct RevBasicBlocks<'a, 'tcx>(&'a mir::BasicBlocks<'tcx>, Vec<mir::BasicBlock>);
+    struct RevBasicBlocks<'a, 'vir>(&'a mir::BasicBlocks<'vir>, Vec<mir::BasicBlock>);
     impl DirectedGraph for RevBasicBlocks<'_, '_> {
         type Node = mir::BasicBlock;
     }

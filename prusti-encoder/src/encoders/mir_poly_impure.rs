@@ -1,5 +1,5 @@
 use prusti_rustc_interface::span::def_id::DefId;
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity};
 
 /// Encodes a Rust function as a Viper method using the polymorphic encoding of generics.
@@ -45,19 +45,11 @@ impl TaskEncoder for MirPolyImpureEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        def_id: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
-        Ok((<Self as ImpureFunctionEnc>::encode(*def_id, deps), ()))
+    fn do_encode_full<'vir>(
+        def_id: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        <Self as ImpureFunctionEnc>::encode(*def_id, deps)
+            .map(|r| (r, ()))
     }
 }

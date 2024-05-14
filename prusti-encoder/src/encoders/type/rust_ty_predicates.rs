@@ -1,5 +1,5 @@
 use prusti_rustc_interface::middle::ty::{self};
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::{with_vcx, Type, TypeData};
 
 use crate::encoders::{PredicateEnc, PredicateEncOutputRef};
@@ -89,34 +89,24 @@ impl TaskEncoder for RustTyPredicatesEnc {
     type OutputRef<'vir> = RustTyPredicatesEncOutputRef<'vir>;
     type OutputFullLocal<'vir> = ();
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         with_vcx(|vcx| {
             let (generic_ty, args) = extract_type_params(vcx.tcx(), *task_key);
-            let generic_predicate = deps.require_ref::<PredicateEnc>(generic_ty).unwrap();
+            let generic_predicate = deps.require_ref::<PredicateEnc>(generic_ty)?;
             let ty = deps
-                .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(*task_key)
-                .unwrap();
-            deps.emit_output_ref::<RustTyPredicatesEnc>(
+                .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(*task_key)?;
+            deps.emit_output_ref(
                 *task_key,
                 RustTyPredicatesEncOutputRef {
                     generic_predicate,
                     ty,
                 },
-            );
+            )?;
             for arg in args {
-                deps.require_ref::<RustTyPredicatesEnc>(arg).unwrap();
+                deps.require_ref::<RustTyPredicatesEnc>(arg)?;
             }
             Ok(((), ()))
         })

@@ -1,4 +1,4 @@
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::{CallableIdent, FunctionIdent, UnaryArity, UnknownArity};
 
 use crate::encoders::{
@@ -100,31 +100,21 @@ impl TaskEncoder for CastFunctionsEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        ty: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        ty: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         if ty.is_generic() {
-            deps.emit_output_ref::<Self>(*ty, CastFunctionsOutputRef::AlreadyGeneric);
+            deps.emit_output_ref(*ty, CastFunctionsOutputRef::AlreadyGeneric)?;
             return Ok((&[], ()));
         }
         vir::with_vcx(|vcx| {
-            let domain_ref = deps.require_ref::<DomainEnc>(*ty).unwrap();
-            let generic_ref = deps.require_ref::<GenericEnc>(()).unwrap();
+            let domain_ref = deps.require_ref::<DomainEnc>(*ty)?;
+            let generic_ref = deps.require_ref::<GenericEnc>(())?;
             let self_ty = domain_ref.domain.apply(vcx, []);
             let base_name = &domain_ref.base_name;
             let ty_constructor = deps
-                .require_ref::<TyConstructorEnc>(*ty)
-                .unwrap()
+                .require_ref::<TyConstructorEnc>(*ty)?
                 .ty_constructor;
 
             let make_generic_arg_tys = [self_ty];
@@ -149,13 +139,13 @@ impl TaskEncoder for CastFunctionsEnc {
                 self_ty,
             );
 
-            deps.emit_output_ref::<Self>(
+            deps.emit_output_ref(
                 *ty,
                 CastFunctionsOutputRef::CastFunctions {
                     make_generic: make_generic_ident,
                     make_concrete: make_concrete_ident,
                 },
-            );
+            )?;
             let make_generic_arg = vcx.mk_local_decl("self", self_ty);
             let make_generic_expr = vcx.mk_local_ex(make_generic_arg.name, make_generic_arg.ty);
 

@@ -1,4 +1,4 @@
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::{
     BinaryArity, CallableIdent, DomainIdent, DomainParamData, FunctionIdent,
     KnownArityAny, NullaryArity, PredicateIdent, TypeData, UnaryArity, ViperIdent,
@@ -39,7 +39,7 @@ const SNAPSHOT_PARAM_DOMAIN: TypeData<'static> = TypeData::Domain("s_Param", &[]
 impl TaskEncoder for GenericEnc {
     task_encoder::encoder_cache!(GenericEnc);
 
-    type TaskDescription<'tcx> = (); // ?
+    type TaskDescription<'vir> = (); // ?
 
     type OutputRef<'vir> = GenericEncOutputRef<'vir>;
     type OutputFullLocal<'vir> = GenericEncOutput<'vir>;
@@ -51,19 +51,10 @@ impl TaskEncoder for GenericEnc {
     }
 
     #[allow(non_snake_case)]
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         let ref_to_pred =
             PredicateIdent::new(ViperIdent::new("p_Param"), BinaryArity::new(&[&TypeData::Ref, &TYP_DOMAIN]));
         let type_domain_ident = DomainIdent::nullary(ViperIdent::new("Type"));
@@ -98,10 +89,10 @@ impl TaskEncoder for GenericEnc {
         };
 
         #[allow(clippy::unit_arg)]
-        deps.emit_output_ref::<Self>(
+        deps.emit_output_ref(
             *task_key,
             output_ref
-        );
+        )?;
 
         let typ = FunctionIdent::new(
             ViperIdent::new("typ"),

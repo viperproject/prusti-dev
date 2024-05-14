@@ -5,7 +5,7 @@ use prusti_rustc_interface::{
     },
     span::def_id::DefId,
 };
-use task_encoder::TaskEncoderDependencies;
+use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 
 use crate::encoders::{
     lifted::{
@@ -16,7 +16,7 @@ use crate::encoders::{
 /// Encoders (such as [`crate::encoders::MirPureEnc`],
 /// [`crate::encoders::MirImpureEnc`]) implement this trait to encode
 /// applications of Rust functions annotated as pure.
-pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
+pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
     /// Extra arguments required for the encoder to encode an argument to the
     /// function (in mir this is an `Operand`)
     type EncodeOperandArgs;
@@ -29,32 +29,32 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
 
     /// The type of the data source that can provide local declarations; this is used
     /// when getting the type of the function.
-    type LocalDeclsSrc: ?Sized + HasLocalDecls<'tcx>;
+    type LocalDeclsSrc: ?Sized + HasLocalDecls<'vir>;
 
     // Are we monomorphizing functions?
     fn monomorphize(&self) -> bool;
 
     /// Task encoder dependencies are required for encoding Viper casts between
     /// generic and concrete types.
-    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir>;
+    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, E>;
 
     /// The data source that can provide local declarations, necesary for determining
     /// the function type
     fn local_decls_src(&self) -> &Self::LocalDeclsSrc;
-    fn vcx(&self) -> &'vir vir::VirCtxt<'tcx>;
+    fn vcx(&self) -> &'vir vir::VirCtxt<'vir>;
 
     /// Encodes an operand (an argument to a function) as a pure Viper expression.
     fn encode_operand(
         &mut self,
         args: &Self::EncodeOperandArgs,
-        operand: &mir::Operand<'tcx>,
+        operand: &mir::Operand<'vir>,
     ) -> vir::ExprGen<'vir, Self::Curr, Self::Next>;
 
     /// Obtains the function's definition ID and the substitutions made at the callsite
     fn get_def_id_and_caller_substs(
         &self,
-        func: &mir::Operand<'tcx>,
-    ) -> (DefId, &'tcx List<GenericArg<'tcx>>) {
+        func: &mir::Operand<'vir>,
+    ) -> (DefId, &'vir List<GenericArg<'vir>>) {
         let func_ty = func.ty(self.local_decls_src(), self.vcx().tcx());
         match func_ty.kind() {
             &ty::TyKind::FnDef(def_id, arg_tys) => (def_id, arg_tys),
@@ -67,9 +67,9 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
     /// are inserted to convert from/to generic and concrete arguments as necessary.
     fn encode_fn_args(
         &mut self,
-        sig: Binder<'tcx, FnSig<'tcx>>,
-        substs: &'tcx List<GenericArg<'tcx>>,
-        args: &[mir::Operand<'tcx>],
+        sig: Binder<'vir, FnSig<'vir>>,
+        substs: &'vir List<GenericArg<'vir>>,
+        args: &[mir::Operand<'vir>],
         encode_operand_args: &Self::EncodeOperandArgs,
     ) -> Vec<vir::ExprGen<'vir, Self::Curr, Self::Next>> {
         let mono = self.monomorphize();
@@ -118,10 +118,10 @@ pub trait PureFuncAppEnc<'tcx: 'vir, 'vir> {
     fn encode_pure_func_app(
         &mut self,
         def_id: DefId,
-        sig: Binder<'tcx, FnSig<'tcx>>,
-        substs: &'tcx List<GenericArg<'tcx>>,
-        args: &Vec<mir::Operand<'tcx>>,
-        destination: &mir::Place<'tcx>,
+        sig: Binder<'vir, FnSig<'vir>>,
+        substs: &'vir List<GenericArg<'vir>>,
+        args: &Vec<mir::Operand<'vir>>,
+        destination: &mir::Place<'vir>,
         caller_def_id: DefId,
         encode_operand_args: &Self::EncodeOperandArgs,
     ) -> vir::ExprGen<'vir, Self::Curr, Self::Next> {

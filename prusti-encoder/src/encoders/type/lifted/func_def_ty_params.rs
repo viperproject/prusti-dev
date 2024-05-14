@@ -1,6 +1,6 @@
 use prusti_rustc_interface::middle::ty::{self, ParamTy, Ty, TyKind};
 use std::collections::HashSet;
-use task_encoder::TaskEncoder;
+use task_encoder::{TaskEncoder, EncodeFullResult};
 
 use super::generic::{LiftedGeneric, LiftedGenericEnc};
 
@@ -25,20 +25,11 @@ impl TaskEncoder for LiftedTyParamsEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
-        deps.emit_output_ref::<Self>(*task_key, ());
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
             let ty_args = task_key
                 .iter()

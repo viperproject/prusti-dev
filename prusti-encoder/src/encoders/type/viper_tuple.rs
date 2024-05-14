@@ -1,6 +1,7 @@
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
+    EncodeFullResult,
 };
 
 use super::{domain::{DomainDataStruct, DomainEnc}, most_generic_ty::MostGenericTy};
@@ -47,21 +48,15 @@ impl TaskEncoder for ViperTupleEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<(
-        Self::OutputFullLocal<'vir>,
-        Self::OutputFullDependency<'vir>,
-    ), (
-        Self::EncodingError,
-        Option<Self::OutputFullDependency<'vir>>,
-    )> {
-        deps.emit_output_ref::<Self>(*task_key, ());
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
         if *task_key == 1 {
             Ok((ViperTupleEncOutput { tuple: None }, ()))
         } else {
-            let ret = deps.require_dep::<DomainEnc>(MostGenericTy::tuple(*task_key)).unwrap();
+            let ret = deps.require_dep::<DomainEnc>(MostGenericTy::tuple(*task_key))?;
             Ok((ViperTupleEncOutput { tuple: Some(ret.expect_structlike()) }, ()))
         }
     }

@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     span::def_id::DefId,
 };
 
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::Reify;
 
 use crate::encoders::{mir_pure::PureKind, rust_ty_predicates::RustTyPredicatesEnc, MirPureEnc};
@@ -35,32 +35,21 @@ impl TaskEncoder for MirSpecEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        task_key: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         let (def_id, substs, caller_def_id, pure) = *task_key;
-        deps.emit_output_ref::<Self>(*task_key, ());
+        deps.emit_output_ref(*task_key, ())?;
 
         let local_defs = deps
             .require_local::<crate::encoders::local_def::MirLocalDefEnc>((
                 def_id,
                 substs,
                 caller_def_id,
-            ))
-            .unwrap();
+            ))?;
         let specs = deps
-            .require_local::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })
-            .unwrap();
+            .require_local::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
 
         vir::with_vcx(|vcx| {
             let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
@@ -88,8 +77,7 @@ impl TaskEncoder for MirSpecEnc {
             };
 
             let to_bool = deps
-                .require_ref::<RustTyPredicatesEnc>(vcx.tcx().types.bool)
-                .unwrap()
+                .require_ref::<RustTyPredicatesEnc>(vcx.tcx().types.bool)?
                 .generic_predicate
                 .expect_prim()
                 .snap_to_prim;

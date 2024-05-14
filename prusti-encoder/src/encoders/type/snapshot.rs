@@ -1,4 +1,4 @@
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 
 use super::{domain::{DomainEnc, DomainEncSpecifics}, lifted::generic::{LiftedGeneric, LiftedGenericEnc}, most_generic_ty::MostGenericTy};
 
@@ -33,29 +33,20 @@ impl TaskEncoder for SnapshotEnc {
         *task
     }
 
-    fn do_encode_full<'tcx: 'vir, 'vir>(
-        ty: &Self::TaskKey<'tcx>,
-        deps: &mut TaskEncoderDependencies<'vir>,
-    ) -> Result<
-        (
-            Self::OutputFullLocal<'vir>,
-            Self::OutputFullDependency<'vir>,
-        ),
-        (
-            Self::EncodingError,
-            Option<Self::OutputFullDependency<'vir>>,
-        ),
-    > {
+    fn do_encode_full<'vir>(
+        ty: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
-            let out = deps.require_ref::<DomainEnc>(*ty).unwrap();
+            let out = deps.require_ref::<DomainEnc>(*ty)?;
             let snapshot = out.domain.apply(vcx, []);
-            deps.emit_output_ref::<Self>(
+            deps.emit_output_ref(
                 *ty,
                 SnapshotEncOutputRef {
                     snapshot,
                 },
-            );
-            let specifics = deps.require_dep::<DomainEnc>(*ty).unwrap();
+            )?;
+            let specifics = deps.require_dep::<DomainEnc>(*ty)?;
             let generics = vcx.alloc_slice(
                 &ty.generics()
                     .into_iter()
