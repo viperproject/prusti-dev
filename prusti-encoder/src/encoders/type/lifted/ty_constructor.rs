@@ -20,6 +20,12 @@ pub struct TyConstructorEncOutputRef<'vir> {
     pub ty_param_accessors: &'vir [vir::FunctionIdent<'vir, UnaryArity<'vir>>],
 }
 
+impl <'vir> TyConstructorEncOutputRef<'vir> {
+    pub fn arity(&self) -> UnknownArity<'vir> {
+        *self.ty_constructor.arity()
+    }
+}
+
 impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
 #[derive(Clone)]
@@ -40,8 +46,6 @@ impl TaskEncoder for TyConstructorEnc {
     type OutputRef<'vir> = TyConstructorEncOutputRef<'vir>;
 
     type OutputFullLocal<'vir> = TyConstructorEncOutput<'vir>;
-
-    type OutputFullDependency<'vir> = ();
 
     type EncodingError = ();
 

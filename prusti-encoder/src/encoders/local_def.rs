@@ -68,9 +68,8 @@ impl TaskEncoder for MirLocalDefEnc {
         ) -> LocalDef<'vir> {
             let local = vcx.mk_local(name, &vir::TypeData::Ref);
             let local_ex = vcx.mk_local_ex_local(local);
-            let args = ty.ref_to_args(vcx, local_ex);
-            let impure_snap = ty.ref_to_snap(vcx, args);
-            let impure_pred = ty.ref_to_pred(vcx, args, None);
+            let impure_snap = ty.ref_to_snap(vcx, local_ex);
+            let impure_pred = ty.ref_to_pred(vcx, local_ex, None);
             LocalDef {
                 local,
                 local_ex,

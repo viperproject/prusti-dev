@@ -20,8 +20,7 @@ impl<'vir> task_encoder::OutputRefAny for ConstEncOutputRef<'vir> {}
 
 use crate::encoders::{MirPureEnc, mir_pure::PureKind, MirPureEncTask};
 
-use super::rust_ty_snapshots::RustTySnapshotsEnc;
-use super::lifted::rust_ty_cast::RustTyGenericCastEnc;
+use super::{lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc}, rust_ty_snapshots::RustTySnapshotsEnc};
 
 impl TaskEncoder for ConstEnc {
     task_encoder::encoder_cache!(ConstEnc);
@@ -90,7 +89,7 @@ impl TaskEncoder for ConstEnc {
                             .generic_snapshot
                             .specifics
                             .expect_structlike();
-                        let cast = deps.require_local::<RustTyGenericCastEnc>(str_ty).unwrap();
+                        let cast = deps.require_local::<RustTyCastersEnc<CastTypePure>>(str_ty).unwrap();
                         vir::with_vcx(|vcx| {
                             // first, we create a string snapshot
                             let snap = str_snap.field_snaps_to_snap.apply(vcx, &[]);

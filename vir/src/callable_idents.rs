@@ -2,6 +2,7 @@ use crate::{
     debug_info::DebugInfo, viper_ident::ViperIdent, with_vcx, DomainParamData, ExprGen, LocalDecl, MethodCallGenData, PredicateAppGen, PredicateAppGenData, StmtGenData, Type, TypeData, VirCtxt
 };
 use sealed::sealed;
+use std::{backtrace::Backtrace, fmt::Debug};
 
 pub trait CallableIdent<'vir, A: Arity<'vir>, ResultTy> {
     fn new(name: ViperIdent<'vir>, args: A, result_ty: ResultTy) -> Self;
@@ -270,14 +271,50 @@ impl<'vir, const N: usize> FunctionIdent<'vir, KnownArity<'vir, N>> {
         vcx: &'vir VirCtxt<'tcx>,
         args: [ExprGen<'vir, Curr, Next>; N],
     ) -> ExprGen<'vir, Curr, Next> {
-        if self.1.types_match(&args) {
-            vcx.mk_func_app(self.name().to_str(), &args, self.result_ty())
+        self.check_and_apply(vcx, &args)
+    }
+}
+
+impl<'vir, A: Arity<'vir, Arg = Type<'vir>> + Debug> FunctionIdent<'vir, A> {
+    fn check_and_apply<'tcx, Curr: 'vir, Next: 'vir>(
+        &self,
+        vcx: &'vir VirCtxt<'tcx>,
+        args: &[ExprGen<'vir, Curr, Next>],
+    ) -> ExprGen<'vir, Curr, Next> {
+        if self.1.types_match(args) {
+            vcx.mk_func_app(self.name().to_str(), args, self.result_ty())
         } else {
             panic!(
-                "Function {} could not be applied. Expected: {:?}, Actual: {:?}, debug info: {}",
+                "Function {} could not be applied. Expected: {:?}, Actual Exprs: {:?}, Actual Types: {:?}, debug info: {}",
                 self.name(),
                 self.arity(),
-                args.map(|a| a.ty()),
+                args,
+                args.iter().map(|a| a.ty()).collect::<Vec<_>>(),
+                self.debug_info()
+            );
+        }
+    }
+}
+
+impl<'vir, A: Arity<'vir, Arg = Type<'vir>> + Debug> PredicateIdent<'vir, A> {
+    fn check_and_apply<'tcx, Curr: 'vir, Next: 'vir>(
+        &self,
+        vcx: &'vir VirCtxt<'tcx>,
+        args: &[ExprGen<'vir, Curr, Next>],
+        perm: Option<ExprGen<'vir, Curr, Next>>,
+    ) -> PredicateAppGen<'vir, Curr, Next> {
+        if self.1.types_match(args) {
+            vcx.alloc(PredicateAppGenData {
+                target: self.name().to_str(),
+                args: vcx.alloc_slice(args),
+                perm,
+            })
+        } else {
+            panic!(
+                "Predicate {} could not be applied. Expected arg types: {:?}, Actual arg types: {:?}, Debug info: {}",
+                self.name(),
+                self.arity(),
+                args.iter().map(|a| a.ty()).collect::<Vec<_>>(),
                 self.debug_info()
             );
         }
@@ -291,12 +328,7 @@ impl<'vir, const N: usize> PredicateIdent<'vir, KnownArity<'vir, N>> {
         args: [ExprGen<'vir, Curr, Next>; N],
         perm: Option<ExprGen<'vir, Curr, Next>>,
     ) -> PredicateAppGen<'vir, Curr, Next> {
-        assert!(self.1.types_match(&args));
-        vcx.alloc(PredicateAppGenData {
-            target: self.name().to_str(),
-            args: vcx.alloc_slice(&args),
-            perm,
-        })
+        self.check_and_apply(vcx, &args, perm)
     }
 }
 impl<'vir, const N: usize> MethodIdent<'vir, KnownArity<'vir, N>> {
@@ -328,18 +360,7 @@ impl<'vir> FunctionIdent<'vir, UnknownArity<'vir>> {
         vcx: &'vir VirCtxt<'tcx>,
         args: &[ExprGen<'vir, Curr, Next>],
     ) -> ExprGen<'vir, Curr, Next> {
-        if self.1.types_match(args) {
-            vcx.mk_func_app(self.name().to_str(), args, self.result_ty())
-        } else {
-            panic!(
-                "Function {} could not be applied. Expected: {:?}, Actual Exprs: {:?}, Actual Types: {:?}, debug info: {}",
-                self.name(),
-                self.arity(),
-                args,
-                args.iter().map(|a| a.ty()).collect::<Vec<_>>(),
-                self.debug_info()
-            );
-        }
+        self.check_and_apply(vcx, args)
     }
 }
 
@@ -350,21 +371,7 @@ impl<'vir> PredicateIdent<'vir, UnknownArity<'vir>> {
         args: &[ExprGen<'vir, Curr, Next>],
         perm: Option<ExprGen<'vir, Curr, Next>>,
     ) -> PredicateAppGen<'vir, Curr, Next> {
-        if self.1.types_match(args) {
-            vcx.alloc(PredicateAppGenData {
-                target: self.name().to_str(),
-                args: vcx.alloc_slice(args),
-                perm,
-            })
-        } else {
-            panic!(
-                "Predicate {} could not be applied. Expected arg types: {:?}, Actual arg types: {:?}, Debug info: {}",
-                self.name(),
-                self.arity(),
-                args.iter().map(|a| a.ty()).collect::<Vec<_>>(),
-                self.debug_info()
-            );
-        }
+        self.check_and_apply(vcx, args, perm)
     }
 }
 impl<'vir> MethodIdent<'vir, UnknownArity<'vir>> {

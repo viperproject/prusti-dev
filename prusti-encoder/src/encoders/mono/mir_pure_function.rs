@@ -1,44 +1,35 @@
 use prusti_rustc_interface::{middle::ty::GenericArgs, span::def_id::DefId};
-use std::fmt::Write;
-
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 
 use crate::{
-    encoder_traits::pure_function_enc::{PureFunctionEnc, MirFunctionEncOutput, MirFunctionEncOutputRef},
+    encoder_traits::{function_enc::FunctionEnc, pure_function_enc::{MirFunctionEncOutput, MirFunctionEncOutputRef, PureFunctionEnc}},
     encoders::mir_pure_function::{MirFunctionEnc, MirFunctionEncError},
 };
 
-impl PureFunctionEnc for MirMonoFunctionEnc {
+impl FunctionEnc for MirMonoFunctionEnc {
+    fn get_def_id(task_key: &Self::TaskKey<'_>) -> DefId {
+        task_key.def_id
+    }
+
+    fn get_caller_def_id(task_key: &Self::TaskKey<'_>) -> Option<DefId> {
+        Some(task_key.caller_def_id)
+    }
+
     fn get_substs<'tcx>(
         _vcx: &vir::VirCtxt<'tcx>,
         task_key: &Self::TaskKey<'tcx>,
     ) -> &'tcx GenericArgs<'tcx> {
-        task_key.1
+        task_key.substs
     }
+}
+
+impl PureFunctionEnc for MirMonoFunctionEnc {
 
     fn mk_function_ident<'vir, 'tcx>(
         vcx: &'vir vir::VirCtxt<'tcx>,
         task_key: &Self::TaskKey<'tcx>,
     ) -> vir::ViperIdent<'vir> {
-        let (def_id, substs, caller_def_id) = task_key;
-        let mut extra = String::new();
-        for s in substs.iter() {
-            write!(extra, "_{s}").unwrap();
-        }
-        let (krate, index) = (caller_def_id.krate, caller_def_id.index.index());
-        vir::vir_format_identifier!(
-            vcx,
-            "f_{}{extra}_CALLER_{krate}_{index}",
-            vcx.tcx().item_name(*def_id)
-        )
-    }
-
-    fn get_def_id(task_key: &Self::TaskKey<'_>) -> DefId {
-        task_key.0
-    }
-
-    fn get_caller_def_id(task_key: &Self::TaskKey<'_>) -> Option<DefId> {
-        Some(task_key.2)
+        task_key.vir_function_ident(vcx)
     }
 }
 
