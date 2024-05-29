@@ -17,7 +17,7 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
-    middle::{hir::map::Map, ty},
+    middle::{hir::map::{self as hir_map, Map}, ty},
     span::Span,
 };
 use std::{convert::TryInto, fmt::Debug};
@@ -40,6 +40,8 @@ use prusti_specs::specifications::common::SpecificationId;
 #[derive(Debug)]
 struct ProcedureSpecRefs {
     spec_id_refs: Vec<SpecIdRef>,
+    async_post_spec_id_refs: Vec<SpecIdRef>,
+    async_stub_post_spec_id_refs: Vec<SpecIdRef>,
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
@@ -86,6 +88,9 @@ pub struct SpecCollector<'a, 'tcx> {
     prusti_refutations: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
     ghost_end: Vec<LocalDefId>,
+
+    /// Map from future constructors to their poll methods
+    async_parent: FxHashMap<LocalDefId, LocalDefId>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -103,6 +108,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             prusti_refutations: vec![],
             ghost_begin: vec![],
             ghost_end: vec![],
+            async_parent: FxHashMap::default(),
         }
     }
 
@@ -189,6 +195,43 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 .emit(&self.env.diagnostic);
             } else {
                 def_spec.proc_specs.insert(local_id.to_def_id(), spec);
+            }
+        }
+
+        // add postconditions to all async fn poll-methods
+        for (local_id, parent_id) in self.async_parent.iter() {
+            // look up parent's spec and skip this method if the parent doesn't have one
+            let Some(parent_spec) = self.procedure_specs.get(parent_id) else {
+                continue;
+            };
+            // the spec is then essentially inherited from the parent,
+            // but for now, only postconditions and trusted are allowed
+            let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
+            spec.set_kind(parent_spec.into());
+            spec.set_trusted(parent_spec.trusted);
+            for postcondition in &parent_spec.async_post_spec_id_refs {
+                let SpecIdRef::Postcondition(spec_id) = postcondition else {
+                    panic!("only postconditions allowed here");
+                };
+                spec.add_postcondition(
+                    *self.spec_functions.get(spec_id).unwrap(),
+                    self.env
+                );
+            }
+            for stub_postcondition in &parent_spec.async_stub_post_spec_id_refs {
+                let SpecIdRef::Postcondition(spec_id) = stub_postcondition else {
+                    panic!("only postconditions allowed here");
+                };
+                spec.add_async_stub_postcondition(
+                    *self.spec_functions.get(spec_id).unwrap(),
+                    self.env
+                );
+            }
+            // poll methods should not already be covered by the existing code,
+            // as they cannot be annotated by the user
+            let old = def_spec.proc_specs.insert(local_id.to_def_id(), spec);
+            if old.is_some() {
+                panic!("async fn poll method {local_id:?} already had a spec");
             }
         }
     }
@@ -381,6 +424,14 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
             .into_iter()
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
     );
+    let async_post_spec_id_refs: Vec<_> = read_prusti_attrs("async_post_spec_id_ref", attrs)
+        .into_iter()
+        .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id)))
+        .collect();
+    let async_stub_post_spec_id_refs: Vec<_> = read_prusti_attrs("async_stub_post_spec_id_ref", attrs)
+        .into_iter()
+        .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id)))
+        .collect();
     spec_id_refs.extend(
         read_prusti_attrs("pure_spec_id_ref", attrs)
             .into_iter()
@@ -429,9 +480,11 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
 
-    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
+    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() || !async_post_spec_id_refs.is_empty() {
         Some(ProcedureSpecRefs {
             spec_id_refs,
+            async_post_spec_id_refs,
+            async_stub_post_spec_id_refs,
             pure,
             abstract_predicate,
             trusted,
@@ -475,6 +528,21 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
         let def_id = local_id.to_def_id();
         let attrs = self.env.query.get_local_attributes(local_id);
+
+        // if this is a closure representing an async fn's poll, locate and store its parent
+        if self.env.tcx().generator_is_async(def_id) {
+            let hir_id = self.env.tcx().hir().local_def_id_to_hir_id(local_id);
+            let parent = self.env.tcx().hir()
+                .find_parent(hir_id)
+                .expect("expected async-fn-generator to have a parent");
+            // we can get the parent's LocalDefId via its associated body
+            let (parent_def_id, _) = hir_map::associated_body(parent)
+                .expect("async-fn-generator parent should have a body");
+            let old = self.async_parent.insert(local_id, parent_def_id);
+            if old.is_some() {
+                panic!("parent {:?} of async-generator {:?} already has parent", old.unwrap(), local_id);
+            }
+        }
 
         // Collect spec functions
         if let Some(raw_spec_id) = read_prusti_attr("spec_id", attrs) {

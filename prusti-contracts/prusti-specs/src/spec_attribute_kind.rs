@@ -18,6 +18,7 @@ pub enum SpecAttributeKind {
     Terminates = 10,
     PrintCounterexample = 11,
     Verified = 12,
+    AsyncEnsures = 13,
 }
 
 impl TryFrom<String> for SpecAttributeKind {

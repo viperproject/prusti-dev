@@ -82,6 +82,9 @@ impl DefSpecificationMap {
                 if let Some(posts) = spec.posts.extract_with_selective_replacement() {
                     specs.extend(posts);
                 }
+                if let Some(posts) = spec.async_stub_posts.extract_with_selective_replacement() {
+                    specs.extend(posts);
+                }
                 if let Some(Some(term)) = spec.terminates.extract_with_selective_replacement() {
                     specs.push(term.to_def_id());
                 }
@@ -210,6 +213,7 @@ pub struct ProcedureSpecification {
     pub kind: SpecificationItem<ProcedureSpecificationKind>,
     pub pres: SpecificationItem<Vec<DefId>>,
     pub posts: SpecificationItem<Vec<DefId>>,
+    pub async_stub_posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
     pub terminates: SpecificationItem<Option<LocalDefId>>,
@@ -225,6 +229,7 @@ impl ProcedureSpecification {
             kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
             pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
+            async_stub_posts: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
@@ -448,6 +453,26 @@ impl SpecGraph<ProcedureSpecification> {
             Some(obligation) => {
                 self.get_constrained_spec_mut(obligation)
                     .posts
+                    .push(post.to_def_id());
+            }
+        }
+    }
+
+    /// Attaches the async stub postcondition `post` to this [SpecGraph].
+    ///
+    /// If this postcondition has a constraint it will be attached to the corresponding
+    /// constrained spec **and** the base spec, otherwise just to the base spec.
+    pub fn add_async_stub_postcondition<'tcx>(&mut self, post: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(post, env) {
+            None => {
+                self.base_spec.async_stub_posts.push(post.to_def_id());
+                self.specs_with_constraints
+                    .values_mut()
+                    .for_each(|s| s.async_stub_posts.push(post.to_def_id()));
+            }
+            Some(obligation) => {
+                self.get_constrained_spec_mut(obligation)
+                    .async_stub_posts
                     .push(post.to_def_id());
             }
         }
@@ -777,6 +802,7 @@ impl Refinable for ProcedureSpecification {
             source: self.source,
             pres: self.pres.refine(replace_empty(&EMPTYL, &other.pres)),
             posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
+            async_stub_posts: self.async_stub_posts.refine(replace_empty(&EMPTYL, &other.async_stub_posts)),
             pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
