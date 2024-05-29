@@ -135,6 +135,62 @@ impl AstRewriter {
         Ok(syn::Item::Fn(spec_item))
     }
 
+    /// Wrap an expression for an async postcondition in `Poll` and create the appropriate function
+    /// Can only be used for async postconditions and must be called after `generate_spec_item_fn`
+    /// to create the postcondition for the poll implementation
+    pub fn generate_async_ensures_item_fn<T: HasSignature + Spanned>(
+        &mut self,
+        spec_id: SpecificationId,
+        expr: TokenStream,
+        item: &T,
+    ) -> syn::Result<syn::Item> {
+        // NOTE: we don't need to check for `result` as a parameter again, as this will only
+        //       be called after `generate_spec_item_fn` for the same expression
+        let item_span = expr.span();
+        let item_name = syn::Ident::new(
+            &format!("prusti_{}_item_{}_{}", SpecItemType::Postcondition, item.sig().ident, spec_id),
+            item_span,
+        );
+        let spec_id_str = spec_id.to_string();
+
+        let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
+            #[prusti::spec_only]
+            #[prusti::spec_id = #spec_id_str]
+            fn #item_name() -> bool {
+                let val: bool = if let ::std::task::Poll::Ready(result) = result {
+                    #expr
+                } else {
+                    true
+                };
+                val
+            }
+        };
+        spec_item.sig.generics = item.sig().generics.clone();
+        spec_item.sig.inputs = item.sig().inputs.clone();
+
+        // note that the result-arg's type should not be the async function's return type `T`
+        // but `Poll<T>`
+        let result_arg: syn::FnArg = {
+            // analogous to `generate_result_arg`
+            let item_span = item.span();
+            let output_ty = match &item.sig().output {
+                syn::ReturnType::Default => parse_quote_spanned!(item_span=> ()),
+                syn::ReturnType::Type(_, ty) => ty.clone(),
+            };
+            let output_ty = parse_quote_spanned!(item_span=> ::std::task::Poll<#output_ty>);
+            let fn_arg = syn::FnArg::Typed(syn::PatType {
+                attrs: Vec::new(),
+                pat: Box::new(parse_quote_spanned!(item_span=> result)),
+                colon_token: syn::Token![:](item.sig().output.span()),
+                ty: output_ty,
+            });
+            fn_arg
+        };
+        spec_item.sig.inputs.push(result_arg);
+        Ok(syn::Item::Fn(spec_item))
+    }
+
     /// Parse an assertion into a Rust expression
     pub fn process_assertion<T: HasSignature + Spanned>(
         &mut self,

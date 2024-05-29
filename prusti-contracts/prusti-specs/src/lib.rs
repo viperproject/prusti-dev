@@ -70,6 +70,8 @@ fn extract_prusti_attributes(
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
+                    // technically, this won't appear as such at this stage
+                    | SpecAttributeKind::AsyncEnsures
                     | SpecAttributeKind::AfterExpiry
                     | SpecAttributeKind::AssertOnExpiry
                     | SpecAttributeKind::RefineSpec => {
@@ -125,6 +127,21 @@ pub fn rewrite_prusti_attributes(
     // Collect the remaining Prusti attributes, removing them from `item`.
     prusti_attributes.extend(extract_prusti_attributes(&mut item));
 
+    // in the case of an async fn, mark the postconditions as such,
+    // since they are handled differently
+    if let untyped::AnyFnItem::Fn(ref fn_item) = &item {
+        if fn_item.sig.asyncness.is_some() {
+            prusti_attributes = prusti_attributes
+                .into_iter()
+                .map(|(attr, tt)| match attr {
+                        SpecAttributeKind::Ensures => (SpecAttributeKind::AsyncEnsures, tt),
+                        _ => (attr, tt)
+                    }
+                )
+                .collect();
+        }
+    }
+
     // make sure to also update the check in the predicate! handling method
     if prusti_attributes
         .iter()
@@ -162,6 +179,7 @@ fn generate_spec_and_assertions(
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
+            SpecAttributeKind::AsyncEnsures => generate_for_async_ensures(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
@@ -212,6 +230,38 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::post_spec_id_ref = #spec_id_str]
         }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "ensures" annotations,
+/// but for async fn, as their postconditions will need to be moved to their generator method
+/// instead of the future-constructor.
+fn generate_for_async_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    // parse the postcondition
+    let expr = parse_prusti(attr)?;
+    // generate a spec item for the postcondition itself,
+    // which will be attached to the future's implementation
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.generate_spec_item_fn(rewriter::SpecItemType::Postcondition, spec_id, expr.clone(), item)?;
+
+    // and generate one wrapped in a `Poll` for the stub
+    let stub_spec_id = rewriter.generate_spec_id();
+    let stub_spec_id_str = stub_spec_id.to_string();
+    let stub_spec_item = rewriter.generate_async_ensures_item_fn(stub_spec_id, expr, item)?;
+
+    Ok((
+        vec![spec_item, stub_spec_item],
+        vec![
+            parse_quote_spanned! {item.span()=>
+                #[prusti::async_post_spec_id_ref = #spec_id_str]
+            },
+            parse_quote_spanned! {item.span()=>
+                #[prusti::async_stub_post_spec_id_ref = #stub_spec_id_str]
+            },
+        ]
     ))
 }
 
@@ -855,6 +905,7 @@ fn extract_prusti_attributes_for_types(
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires => unreachable!("requires on type"),
                     SpecAttributeKind::Ensures => unreachable!("ensures on type"),
+                    SpecAttributeKind::AsyncEnsures => unreachable!("ensures on type"),
                     SpecAttributeKind::AfterExpiry => unreachable!("after_expiry on type"),
                     SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
                     SpecAttributeKind::RefineSpec => unreachable!("refine_spec on type"),
@@ -900,6 +951,7 @@ fn generate_spec_and_assertions_for_types(
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => unreachable!(),
             SpecAttributeKind::Ensures => unreachable!(),
+            SpecAttributeKind::AsyncEnsures => unreachable!(),
             SpecAttributeKind::AfterExpiry => unreachable!(),
             SpecAttributeKind::AssertOnExpiry => unreachable!(),
             SpecAttributeKind::Pure => unreachable!(),
