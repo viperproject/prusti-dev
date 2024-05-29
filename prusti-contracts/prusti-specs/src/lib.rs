@@ -70,8 +70,6 @@ fn extract_prusti_attributes(
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
-                    // technically, this won't appear as such at this stage
-                    | SpecAttributeKind::AsyncEnsures
                     | SpecAttributeKind::AfterExpiry
                     | SpecAttributeKind::AssertOnExpiry
                     | SpecAttributeKind::RefineSpec => {
@@ -83,6 +81,10 @@ fn extract_prusti_attributes(
                         assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
                         group.stream()
                     }
+                    // these cannot appear here, as postconditions are only marked as async
+                    // at a later stage
+                    SpecAttributeKind::AsyncEnsures =>
+                        unreachable!("SpecAttributeKind::AsyncEnsures should not appear at this stage"),
                     // Nothing to do for attributes without arguments.
                     SpecAttributeKind::Pure
                     | SpecAttributeKind::Terminates
