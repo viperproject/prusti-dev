@@ -56,6 +56,25 @@ pub fn test_entrypoint<'tcx>(
                     assert!(res.is_ok());
                 }
             }
+            // FIXME: for now this is only experimental
+            hir::def::DefKind::Generator => {
+                let def_id = def_id.to_def_id();
+                if prusti_interface::specs::is_spec_fn(tcx, def_id) {
+                    continue;
+                }
+
+                let (is_pure, is_trusted) = crate::encoders::with_proc_spec(def_id, |proc_spec| {
+                        let is_pure = proc_spec.kind.is_pure().unwrap_or_default();
+                        let is_trusted = proc_spec.trusted.extract_inherit().unwrap_or_default();
+                        (is_pure, is_trusted)
+                }).unwrap_or_default();
+
+                if !(is_trusted && is_pure) {
+                    let substs = ty::GenericArgs::identity_for_item(tcx, def_id);
+                    let res = crate::encoders::MirPolyImpureEnc::encode(def_id, false);
+                    assert!(res.is_ok());
+                }
+            },
             unsupported_item_kind => {
                 tracing::debug!("unsupported item: {unsupported_item_kind:?}");
             }
