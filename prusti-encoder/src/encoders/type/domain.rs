@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use prusti_rustc_interface::{
     middle::ty::{self, TyKind, util::IntTypeExt, IntTy, UintTy},
     abi,
@@ -259,6 +261,30 @@ impl TaskEncoder for DomainEnc {
                     let base_name = String::from("String");
                     enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
                     let specifics = enc.mk_struct_specifics(vec![]);
+                    Ok((Some(enc.finalize(task_key)), specifics))
+                }
+                &TyKind::Generator(_def_id, params, _movability) => {
+                    // generators are encoded like a struct with a single field representing the tuple of upvars,
+                    // as the upvar-types are a tupled type parameter in the generator type
+                    let generics = params
+                        .iter()
+                        .filter_map(|p| p.as_type())
+                        .map(|ty| deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty).unwrap().expect_generic())
+                        .collect();
+                    let mut enc = DomainEncData::new(vcx, task_key, generics, deps);
+                    enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
+                    let upvar_ty = params.as_generator().tupled_upvars_ty();
+                    let field = FieldTy::from_ty(vcx, enc.deps, upvar_ty)?;
+                    let specifics = enc.mk_struct_specifics(vec![field]);
+                    Ok((Some(enc.finalize(task_key)), specifics))
+                },
+                // FIXME: these are empty dummy domains to permit encoding async code
+                TyKind::FnPtr(_)
+                | TyKind::GeneratorWitness(_)
+                | TyKind::RawPtr(_) => {
+                    let mut enc = DomainEncData::new(vcx, task_key, Vec::new(), deps);
+                    enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
+                    let specifics = enc.mk_struct_specifics(Vec::new());
                     Ok((Some(enc.finalize(task_key)), specifics))
                 }
                 kind => todo!("{kind:?}"),
