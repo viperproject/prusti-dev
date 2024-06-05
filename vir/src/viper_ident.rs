@@ -38,6 +38,9 @@ fn sanitize_char(c: char) -> Option<String> {
         ' ' => Some("$space$".to_string()),
         ',' => Some("$comma$".to_string()),
         ':' => Some("$colon$".to_string()),
+        '{' => Some("$opencur$".to_string()),
+        '}' => Some("$closecur$".to_string()),
+        '#' => Some("$hash$".to_string()),
         _ => None,
     }
 }

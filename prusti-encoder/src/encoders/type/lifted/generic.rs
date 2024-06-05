@@ -49,8 +49,11 @@ impl TaskEncoder for LiftedGenericEnc {
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         with_vcx(|vcx| {
+            // NOTE: some generic parameters might have names that need to be mangled first,
+            // such as generators which have parameters "<resume_ty>", "<yield_ty>", "<return_ty>", ...
             let output_ref = vcx.mk_local_decl(
-                vcx.alloc_str(task_key.name.as_str()),
+                // vcx.alloc_str(task_key.name.as_str()),
+                vir::vir_format_identifier!(vcx, "{}", task_key.name).to_str(),
                 deps.require_ref::<GenericEnc>(())?.type_snapshot,
             );
             deps.emit_output_ref(*task_key, LiftedGeneric(output_ref))?;
