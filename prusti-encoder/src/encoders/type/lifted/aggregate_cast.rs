@@ -1,6 +1,6 @@
 use prusti_rustc_interface::{
     abi::VariantIdx,
-    middle::{mir, ty::{GenericArgs, Ty}},
+    middle::{mir, ty::{self, GenericArgs, Ty}},
     span::def_id::DefId,
 };
 use task_encoder::{TaskEncoder, EncodeFullResult};
@@ -27,6 +27,9 @@ pub enum AggregateType {
         def_id: DefId,
         variant_index: VariantIdx,
     },
+    Generator {
+        def_id: DefId,
+    }
 }
 
 impl From<&mir::AggregateKind<'_>> for AggregateType {
@@ -39,6 +42,11 @@ impl From<&mir::AggregateKind<'_>> for AggregateType {
                     variant_index: *variant_index,
                 }
             }
+            mir::AggregateKind::Generator(def_id, gen_args, ..) => {
+                Self::Generator {
+                    def_id: *def_id,
+                }
+            },
             _ => unimplemented!(),
         }
     }
@@ -112,6 +120,30 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
                                 let cast = deps
                                     .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
                                         expected: v_field.ty(vcx.tcx(), identity_substs),
+                                        actual: *actual_ty,
+                                    })
+                                    .unwrap();
+                                cast.cast_function()
+                            })
+                            .collect::<Vec<_>>()
+                    }
+                    AggregateType::Generator { def_id } => {
+                        // TODO: is skipping the binder always correct?
+                        let gen_ty = vcx.tcx().type_of(def_id).skip_binder();
+                        let ty::TyKind::Generator(_, gen_args, _) = gen_ty.kind() else {
+                            panic!("expected generator type for AggregateType::Generator");
+                        };
+                        let gen_args = gen_args.as_generator();
+                        let n_fields = gen_args.upvar_tys().len();
+                        assert_eq!(n_fields, task_key.tys.len());
+                        gen_args
+                            .upvar_tys()
+                            .iter()
+                            .zip(task_key.tys.iter())
+                            .map(|(field_ty, actual_ty)| {
+                                let cast = deps
+                                    .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
+                                        expected: field_ty,
                                         actual: *actual_ty,
                                     })
                                     .unwrap();

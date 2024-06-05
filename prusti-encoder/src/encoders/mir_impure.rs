@@ -6,7 +6,7 @@ use prusti_rustc_interface::{
     abi,
     middle::{
         mir,
-        ty::{GenericArgs, TyKind},
+        ty::{self, GenericArgs, TyKind},
     },
     span::def_id::DefId,
 };
@@ -42,6 +42,7 @@ use crate::{
         self,
         lifted::{
             aggregate_cast::{
+                self,
                 AggregateSnapArgsCastEnc,
                 AggregateSnapArgsCastEncTask
             },
@@ -54,7 +55,7 @@ use crate::{
 use super::{
     lifted::{
         cast::{CastArgs, CastToEnc},
-        casters::CastTypeImpure,
+        casters::{CastTypeImpure, CastTypePure},
         rust_ty_cast::RustTyCastersEnc
     },
     rust_ty_predicates::RustTyPredicatesEnc,
@@ -692,6 +693,91 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                                 e_rvalue_ty.generic_predicate.expect_prim().prim_to_snap.apply(self.vcx, [zero])
                             }
                         }
+                    }
+
+                    // future constructors
+                    mir::Rvalue::Aggregate(
+                        box kind@mir::AggregateKind::Generator(def_id, params, movbl), operands
+                    ) if self.vcx.tcx().generator_is_async(*def_id) => {
+                        let generator_args = params.as_generator();
+                        let generator_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
+                        let snap_cons = generator_ty
+                            .generic_predicate
+                            .expect_structlike()
+                            .snap_data
+                            .field_snaps_to_snap;
+                        let operand_tys = operands
+                            .iter()
+                            .map(|oper| oper.ty(self.local_decls, self.vcx.tcx()))
+                            .collect::<Vec<_>>();
+                        // encode the tupled field types
+                        let tuple_ty = self.vcx.tcx().mk_ty_from_kind(TyKind::Tuple(
+                            self.vcx.tcx().mk_type_list(&operand_tys)
+                        ));
+                        // cast given arguments to field types
+                        let ty_caster = self.deps.require_local::<AggregateSnapArgsCastEnc>(
+                            AggregateSnapArgsCastEncTask {
+                                tys: operand_tys,
+                                aggregate_type: kind.into()
+                            }
+                        ).unwrap();
+                        let operand_snaps = operands
+                            .iter()
+                            .map(|oper| self.encode_operand_snap(oper))
+                            .collect::<Vec<_>>();
+                        let casted_args = ty_caster.apply_casts(self.vcx, operand_snaps.into_iter());
+
+                        // given that tuples are generic, we still need to cast the arguments
+                        // to match the tuple constructor before tupling them up
+                        let enc_tuple_ty = self.deps.require_ref::<RustTyPredicatesEnc>(tuple_ty).unwrap();
+                        let tuple_cons = enc_tuple_ty
+                            .generic_predicate
+                            .expect_structlike()
+                            .snap_data
+                            .field_snaps_to_snap;
+                        let tuple_caster = self.deps.require_local::<AggregateSnapArgsCastEnc>(
+                            AggregateSnapArgsCastEncTask {
+                                tys: generator_args.upvar_tys().to_vec(),
+                                aggregate_type: aggregate_cast::AggregateType::Tuple,
+                            }
+                        ).unwrap();
+                        let tuple_args = tuple_caster.apply_casts(self.vcx, casted_args.into_iter());
+                        let tupled_args = tuple_cons.apply(self.vcx, self.vcx.alloc_slice(&tuple_args));
+
+                        // finally, we need to cast the tuple to a generic domain in order to
+                        // apply the future-generator's constructor
+                        // (adapted from ConstEnc's handling of &str)
+                        let generic_tuple_cast = self.deps.require_local::<RustTyCastersEnc<CastTypePure>>(tuple_ty).unwrap();
+                        let tupled_args = generic_tuple_cast.cast_to_generic_if_necessary(self.vcx, tupled_args);
+                        snap_cons.apply(self.vcx, self.vcx.alloc_slice(&[tupled_args]))
+                    }
+
+                    // FIXME: this is only a dummy to inspect generated async code
+                    mir::Rvalue::Ref(region, borrow_kind, place) => {
+                        // get the type of the place the ref points to
+                        let place_ty = place.ty(self.local_decls, self.vcx.tcx());
+                        // and construct the type of the reference pointing to it
+                        let ref_domain = {
+                            // either by manually creating the domain
+                            // (with hardcoded name for Ref-domains)
+                            // let place_ty = self.deps.require_ref::<PredicateEnc>(place_ty.ty).unwrap();
+                            // let dom_name = match borrow_kind {
+                            //     mir::BorrowKind::Mut { .. } => "s_Ref_Mut",
+                            //     _ => "s_Ref",
+                            // };
+                            // let dom_args = self.vcx.alloc([place_ty.snapshot]);
+                            // self.vcx.alloc(vir::TypeData::Domain(dom_name, dom_args))
+                            // or by wrapping it in a ref and using the encoder
+                            let mutability = match borrow_kind {
+                                mir::BorrowKind::Shared | mir::BorrowKind::Shallow => mir::Mutability::Not,
+                                mir::BorrowKind::Mut { .. } => mir::Mutability::Mut,
+                            };
+                            let ref_ty = self.vcx.tcx().mk_ty_from_kind(TyKind::Ref(*region, place_ty.ty, mutability));
+                            let (ref_ty, _) = crate::encoders::most_generic_ty::extract_type_params(self.vcx.tcx(), ref_ty);
+                            let enc_ref_ty = self.deps.require_ref::<crate::encoders::PredicateEnc>(ref_ty).unwrap();
+                            enc_ref_ty.snapshot
+                        };
+                        self.vcx.mk_local_ex("DummyRefLocal", ref_domain)
                     }
 
                     //mir::Rvalue::Discriminant(Place<'vir>) => {}
