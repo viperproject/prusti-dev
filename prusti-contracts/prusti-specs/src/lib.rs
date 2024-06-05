@@ -4,6 +4,8 @@
 #![feature(proc_macro_span)]
 #![feature(if_let_guard)]
 #![feature(assert_matches)]
+// Panics in procedural macros are really hard to debug!
+#![deny(clippy::unwrap_used)]
 // This Clippy chcek seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
 #![warn(clippy::disallowed_types)]
