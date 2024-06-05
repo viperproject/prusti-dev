@@ -717,16 +717,18 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         ));
 
         let inner_snap = inner.ref_to_snap.apply(self.vcx, inner_ref_to_args);
-        let snap = if data.perm.is_none() {
-            // `Ref` is only part of snapshots for mutable references.
-            data.snap_data
-                .field_snaps_to_snap
-                .apply(self.vcx, &[inner_snap, self_ref])
-        } else {
-            data.snap_data
-                .field_snaps_to_snap
-                .apply(self.vcx, &[inner_snap])
-        };
+        // FIXME: this does not work as of now, so we never use the self-ref
+        let snap = data.snap_data.field_snaps_to_snap.apply(self.vcx, &[inner_snap]);
+        // let snap = if data.perm.is_none() {
+        //     // `Ref` is only part of snapshots for mutable references.
+        //     data.snap_data
+        //         .field_snaps_to_snap
+        //         .apply(self.vcx, &[inner_snap, self_ref])
+        // } else {
+        //     data.snap_data
+        //         .field_snaps_to_snap
+        //         .apply(self.vcx, &[inner_snap])
+        // };
         let fn_snap_body = self.vcx.mk_unfolding_expr(self.self_pred_read, snap);
         self.finalize(Some(fn_snap_body))
     }
