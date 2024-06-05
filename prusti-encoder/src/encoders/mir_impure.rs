@@ -2,6 +2,7 @@ use mir_state_analysis::{
     free_pcs::{CapabilityKind, FreePcsAnalysis, FreePcsBasicBlock, FreePcsLocation, RepackOp},
     utils::Place,
 };
+use prusti_interface::environment::EnvQuery;
 use prusti_rustc_interface::{
     abi,
     middle::{
@@ -901,10 +902,43 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 target,
                 ..
             } => {
-                let (func_def_id, caller_substs) = self.get_def_id_and_caller_substs(func);
+                let (mut func_def_id, mut caller_substs) = self.get_def_id_and_caller_substs(func);
                 let is_pure = crate::encoders::with_proc_spec(func_def_id, |spec|
                     spec.kind.is_pure().unwrap_or_default()
                 ).unwrap_or_default();
+
+                if let Some(trait_def_id) = self.vcx.tcx().trait_of_item(func_def_id) {
+                    let def_path = self.vcx.tcx().def_path_str(func_def_id);
+                    match self.vcx.tcx().def_path_str(func_def_id).as_ref() {
+                        // we can resolve calls to into_future
+                        "std::future::IntoFuture::into_future" => {
+                            let env_query = EnvQuery::new(self.vcx.tcx());
+                            let (resolved_def_id, resolved_params) = env_query.resolve_method_call(self.def_id, func_def_id, caller_substs);
+                            func_def_id = resolved_def_id;
+                            caller_substs = resolved_params;
+                        },
+                        // and replace calls to poll with the annotated poll stub
+                        "std::future::Future::poll" => {
+                            // TODO: encode and replace by poll stub instead
+                            // for now this is just a comment followed by a goto
+                            let target = target.unwrap();
+                            assert_eq!(args.len(), 2);
+                            self.stmt(self.vcx.mk_comment_stmt(
+                                vir::vir_format!(self.vcx, "{destination:?} = <poll_stub>({:?}, {:?})", args[0], args[1]),
+                            ));
+                            const REAL_TARGET_SUCC_IDX: usize = 0;
+                            assert_eq!(self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX].location.block, target);
+                            self.fpcs_repacks_terminator(REAL_TARGET_SUCC_IDX, |rep| &rep.repacks_start);
+                            let goto = self.vcx.mk_goto_stmt(
+                                self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
+                            );
+                            assert!(self.current_terminator.replace(goto).is_none());
+                            return;
+                        },
+                        _ => {},
+                    }
+                }
+
 
                 let dest = self.encode_place(Place::from(*destination)).expr;
 
