@@ -55,7 +55,9 @@ impl Debug for PlaceCapabilitySummary<'_, '_> {
 
 impl JoinSemiLattice for PlaceCapabilitySummary<'_, '_> {
     fn join(&mut self, other: &Self) -> bool {
-        self.fpcs.join(&other.fpcs) || self.cg.join(&other.cg)
+        let fpcs = self.fpcs.join(&other.fpcs);
+        let cg = self.cg.join(&other.cg);
+        fpcs || cg
     }
 }
 
