@@ -45,7 +45,8 @@ impl<'tcx> MostGenericTy<'tcx> {
             TyKind::Param(_) => String::from("Param"),
             // TODO: this is to avoid name clashes between the identical generator domains
             // but we should find a better way to do this
-            TyKind::Generator(def_id, _, _) => vir::vir_format_identifier!(vcx, "Generator_{}", vcx.tcx().def_path_str(def_id)).to_str().to_string(),
+            TyKind::Generator(def_id, _, _) =>
+                vir::vir_format_identifier!(vcx, "Generator_{}", vcx.tcx().def_path_str(def_id)).to_str().to_string(),
             TyKind::GeneratorWitness(_) => String::from("GeneratorWitness"),
             TyKind::RawPtr(ty::TypeAndMut { ty: _, mutbl }) => {
                 if mutbl.is_mut() {
@@ -104,14 +105,17 @@ impl<'tcx> MostGenericTy<'tcx> {
             | TyKind::Never
             | TyKind::Param(_)
             | TyKind::Uint(_) => Vec::new(),
+            // NOTE: for now this is only for generators originating from async items
             TyKind::Generator(_, args, _) => args
+                .as_generator()
+                .parent_args()
                 .into_iter()
-                .flat_map(ty::GenericArg::as_type)
+                .flat_map(|arg| arg.as_type())
                 .map(as_param_ty)
                 .collect(),
             // FIXME: these are only in here to permit encoding async code
-            TyKind::RawPtr(ty::TypeAndMut { ty: orig, mutbl: _ }) => vec![as_param_ty(*orig)],
-            TyKind::Str
+            TyKind::RawPtr(_)
+            | TyKind::Str
             | TyKind::FnPtr(_)
             | TyKind::GeneratorWitness(_) => Vec::new(),
             other => todo!("generics for {:?}", other),
@@ -179,14 +183,74 @@ pub fn extract_type_params<'tcx>(
             let underlying = tcx.expand_opaque_types(ty);
             extract_type_params(tcx, underlying)
         }
-        TyKind::Generator(def_id, args, movability) => {
-            let id = ty::List::identity_for_item(tcx, def_id).iter();
-            let id = tcx.mk_args_from_iter(id);
-            let ty = tcx.mk_ty_from_kind(TyKind::Generator(def_id, id, movability));
-            (
-                MostGenericTy(ty),
-                args.into_iter().flat_map(ty::GenericArg::as_type).collect(),
-            )
+        TyKind::Generator(def_id, args, movability) if tcx.generator_is_async(def_id) => {
+            let args = args.as_generator();
+            // the only generic arguments we need to include are the parent arguments,
+            // i.e. those present in the async fn (or its outer scope)
+            // the other generic arguments arise due to the future's representation as a
+            // generator with <resume_ty>, <yield_ty>, <return_ty>, <witness>,
+            // and the tupled upvar-ty, all of which are fixed for a given future
+            // (or even all futures)
+            let parent_args = args
+                .parent_args()
+                .into_iter()
+                .flat_map(|arg| ty::GenericArg::as_type(*arg))
+                .collect::<Vec<_>>();
+            // we use `List::identity_for_item` to get generic parameters with correct names,
+            // as creating placeholders ourselves might result in misnaming parameters
+            // that are used in the upvars (attempting to recreate the names from the parent-args
+            // also doesn't always work, since they might already be substituted in the parent-args)
+            // the parent generic parameters are now contained in the front of the result
+            // obtained from `List::identity_for_item`
+            // TODO: verify that this is stable
+            {
+                // sanity-check: number of generic arguments (and type params among them) matches
+                let id = ty::List::identity_for_item(tcx, def_id);
+                assert_eq!(id.len(), args.parent_args().len() + 5);
+                let id = id.into_iter().flat_map(ty::GenericArg::as_type).collect::<Vec<_>>();
+                assert_eq!(id.len(), parent_args.len() + 5);
+                // TODO: should we check that those afterwards are actually called <resume_ty> and so on?
+            }
+            let parent_id: Vec<ty::GenericArg> = ty::List::identity_for_item(tcx, def_id)
+                .into_iter()
+                .flat_map(ty::GenericArg::as_type)
+                .take(parent_args.len())
+                .map(|arg| arg.into())
+                .collect();
+            // we also use a dummy witness type to avoid encoding the same generator twice,
+            // as the witness type appears once with the generator and once with the OTA to it
+            let dummy_witness = tcx.mk_ty_from_kind(
+                ty::TyKind::GeneratorWitness(ty::Binder::dummy(ty::List::empty()))
+            );
+            // note that the upvar types given in the generic arguments might already contain
+            // substitutions for some of the async item's type parameters, so we use the `TyCtxt`
+            // to obtain the generator's type without any substitutions
+            let placeholder_upvars = tcx.mk_ty_from_kind(TyKind::Tuple(
+                tcx.mk_type_list_from_iter(
+                    (0..args.upvar_tys().len())
+                        .map(|i| to_placeholder(tcx, Some(i)))
+                )
+            ));
+            let generic_upvars_ty = {
+                let gen_ty = tcx.type_of(def_id).skip_binder();
+                let TyKind::Generator(_, args, _) = gen_ty.kind() else {
+                    panic!("TyCtxt::type_of returned non-generator type for generator DefId");
+                };
+                args.as_generator().tupled_upvars_ty()
+            };
+            let id_parts = ty::GeneratorArgsParts {
+                parent_args: tcx.mk_args(&parent_id),
+                resume_ty: args.resume_ty(),
+                yield_ty: args.yield_ty(),
+                return_ty: args.return_ty(),
+                witness: dummy_witness,
+                tupled_upvars_ty: generic_upvars_ty,
+            };
+            let id_args = ty::GeneratorArgs::new(tcx, id_parts);
+            let ty = tcx.mk_ty_from_kind(
+                TyKind::Generator(def_id, id_args.args, movability)
+            );
+            (MostGenericTy(ty), parent_args)
         }
         // FIXME: these are only dummies to permit encoding async code
         TyKind::GeneratorWitness(_) => {
@@ -211,7 +275,8 @@ pub fn extract_type_params<'tcx>(
         TyKind::RawPtr(ty::TypeAndMut { ty: orig, mutbl }) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::RawPtr(ty::TypeAndMut { ty, mutbl }));
-            (MostGenericTy(ty), vec![orig])
+            (MostGenericTy(ty), Vec::new())
+            // (MostGenericTy(ty), vec![orig])
         }
         _ => todo!("extract_type_params for {:?}", ty),
     }

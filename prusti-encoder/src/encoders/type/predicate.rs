@@ -369,18 +369,21 @@ impl TaskEncoder for PredicateEnc {
                 );
                 Ok((enc.mk_prim(&snap.base_name), ()))
             }
-            TyKind::Generator(def_id, args, _) => {
-                // generators are encoded like a struct with a single field representing the tuple of upvars,
-                // as the upvar-types are a tupled type parameter in the generator type
+            TyKind::Generator(def_id, args, m) if enc.vcx.tcx().generator_is_async(*def_id) => {
+                // generators are encoded like a struct with one field per upvar
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_struct_ref(None, snap_data);
                 deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::StructLike(specifics))
                 );
-                let upvar_ty = args.as_generator().tupled_upvars_ty();
-                let field = deps.require_ref::<RustTyPredicatesEnc>(upvar_ty).unwrap();
-                let fields = enc.mk_field_apps(specifics.ref_to_field_refs, vec![field]);
+                let fields = args
+                    .as_generator()
+                    .upvar_tys()
+                    .into_iter()
+                    .map(|ty| deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap())
+                    .collect::<Vec<_>>();
+                let fields = enc.mk_field_apps(specifics.ref_to_field_refs, fields);
                 let fn_snap_body =
                     enc.mk_struct_ref_to_snap_body(None, fields, snap_data.field_snaps_to_snap);
                 Ok((enc.mk_struct(fn_snap_body), ()))

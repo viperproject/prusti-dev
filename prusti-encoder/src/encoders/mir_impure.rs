@@ -711,10 +711,6 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             .iter()
                             .map(|oper| oper.ty(self.local_decls, self.vcx.tcx()))
                             .collect::<Vec<_>>();
-                        // encode the tupled field types
-                        let tuple_ty = self.vcx.tcx().mk_ty_from_kind(TyKind::Tuple(
-                            self.vcx.tcx().mk_type_list(&operand_tys)
-                        ));
                         // cast given arguments to field types
                         let ty_caster = self.deps.require_local::<AggregateSnapArgsCastEnc>(
                             AggregateSnapArgsCastEncTask {
@@ -727,30 +723,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             .map(|oper| self.encode_operand_snap(oper))
                             .collect::<Vec<_>>();
                         let casted_args = ty_caster.apply_casts(self.vcx, operand_snaps.into_iter());
-
-                        // given that tuples are generic, we still need to cast the arguments
-                        // to match the tuple constructor before tupling them up
-                        let enc_tuple_ty = self.deps.require_ref::<RustTyPredicatesEnc>(tuple_ty).unwrap();
-                        let tuple_cons = enc_tuple_ty
-                            .generic_predicate
-                            .expect_structlike()
-                            .snap_data
-                            .field_snaps_to_snap;
-                        let tuple_caster = self.deps.require_local::<AggregateSnapArgsCastEnc>(
-                            AggregateSnapArgsCastEncTask {
-                                tys: generator_args.upvar_tys().to_vec(),
-                                aggregate_type: aggregate_cast::AggregateType::Tuple,
-                            }
-                        ).unwrap();
-                        let tuple_args = tuple_caster.apply_casts(self.vcx, casted_args.into_iter());
-                        let tupled_args = tuple_cons.apply(self.vcx, self.vcx.alloc_slice(&tuple_args));
-
-                        // finally, we need to cast the tuple to a generic domain in order to
-                        // apply the future-generator's constructor
-                        // (adapted from ConstEnc's handling of &str)
-                        let generic_tuple_cast = self.deps.require_local::<RustTyCastersEnc<CastTypePure>>(tuple_ty).unwrap();
-                        let tupled_args = generic_tuple_cast.cast_to_generic_if_necessary(self.vcx, tupled_args);
-                        snap_cons.apply(self.vcx, self.vcx.alloc_slice(&[tupled_args]))
+                        snap_cons.apply(self.vcx, self.vcx.alloc_slice(&casted_args))
                     }
 
                     // FIXME: this is only a dummy to inspect generated async code

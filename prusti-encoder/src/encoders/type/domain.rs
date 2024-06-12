@@ -263,19 +263,26 @@ impl TaskEncoder for DomainEnc {
                     let specifics = enc.mk_struct_specifics(vec![]);
                     Ok((Some(enc.finalize(task_key)), specifics))
                 }
-                &TyKind::Generator(_def_id, params, _movability) => {
-                    // generators are encoded like a struct with a single field representing the tuple of upvars,
-                    // as the upvar-types are a tupled type parameter in the generator type
-                    let generics = params
-                        .iter()
-                        .filter_map(|p| p.as_type())
+                &TyKind::Generator(def_id, params, _movability) if vcx.tcx().generator_is_async(def_id) => {
+                    // generators are encoded like a struct with one field per upvar
+                    // the generics of that struct are given by the parent arguments
+                    // (i.e. the async fn's and its parent's)
+                    let gen_args = params.as_generator();
+                    let upvar_tys = gen_args.upvar_tys();
+                    let generics = gen_args
+                        .parent_args()
+                        .into_iter()
+                        .filter_map(|arg| arg.as_type())
                         .map(|ty| deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty).unwrap().expect_generic())
-                        .collect();
+                        .collect::<Vec<_>>();
                     let mut enc = DomainEncData::new(vcx, task_key, generics, deps);
                     enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
-                    let upvar_ty = params.as_generator().tupled_upvars_ty();
-                    let field = FieldTy::from_ty(vcx, enc.deps, upvar_ty)?;
-                    let specifics = enc.mk_struct_specifics(vec![field]);
+                    let fields: Result<Vec<FieldTy>, _> = gen_args
+                        .upvar_tys()
+                        .iter()
+                        .map(|ty| FieldTy::from_ty(vcx, enc.deps, ty))
+                        .collect();
+                    let specifics = enc.mk_struct_specifics(fields?);
                     Ok((Some(enc.finalize(task_key)), specifics))
                 },
                 // FIXME: these are empty dummy domains to permit encoding async code
