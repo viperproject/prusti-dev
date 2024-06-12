@@ -57,7 +57,7 @@ pub fn test_entrypoint<'tcx>(
                 }
             }
             // FIXME: for now this is only experimental
-            hir::def::DefKind::Generator => {
+            hir::def::DefKind::Generator if tcx.generator_is_async(def_id.into()) => {
                 let def_id = def_id.to_def_id();
                 if prusti_interface::specs::is_spec_fn(tcx, def_id) {
                     continue;
