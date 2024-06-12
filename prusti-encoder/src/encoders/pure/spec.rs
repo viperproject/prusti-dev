@@ -6,7 +6,9 @@ use prusti_rustc_interface::{
 use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
 use vir::Reify;
 
-use crate::encoders::{mir_pure::PureKind, rust_ty_predicates::RustTyPredicatesEnc, MirPureEnc};
+use crate::encoders::{
+    predicate, mir_pure::PureKind, rust_ty_predicates::RustTyPredicatesEnc, MirPureEnc, most_generic_ty
+};
 pub struct MirSpecEnc;
 
 #[derive(Clone)]
@@ -105,16 +107,45 @@ impl TaskEncoder for MirSpecEnc {
                 })
                 .collect::<Vec<vir::Expr<'_>>>();
 
+            let is_async = vcx.tcx().generator_is_async(def_id);
+
+            // TODO: check what happens for a pure async fn
             let post_args = if pure {
                 all_args
-            } else {
+            } else if !is_async {
                 let post_args: Vec<_> = pre_args
                     .iter()
                     .map(|arg| vcx.mk_old_expr(arg))
                     .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
                     .collect();
                 vcx.alloc_slice(&post_args)
+            } else {
+                // on async functions, there is a mismatch between the signature of the declared
+                // async fn (and thus the spec function) and the poll method, whose parameters are
+                // the return place, the future, and the `ResumeTy`
+                // hence, we need to adapt the arguments available in the postconditions to be
+                // the old-expressions of the future's ghost fields as well as the return place
+                // TODO: once the automatically added invariants (that the ghost fields don't
+                // change) are added, these no longer need to be old-expressions
+                let ghost_fields = {
+                    let generator_ty = local_defs.locals[mir::Local::from(1_u32)].ty;
+                    let predicate::PredicateEncData::StructLike(gen_domain_data) = generator_ty.specifics else {
+                        panic!("expected generator domain to be struct-like");
+                    };
+                    gen_domain_data.snap_data.field_access
+                };
+                let generator_snap = local_defs.locals[mir::Local::from(1_u32)].impure_snap;
+                let post_args = ghost_fields
+                    .iter()
+                    .map(|field| {
+                        let field_read = field.read.apply(vcx, [generator_snap]);
+                        vcx.mk_old_expr(field_read)
+                    })
+                    .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
+                    .collect::<Vec<_>>();
+                vcx.alloc_slice(&post_args)
             };
+
             let posts = specs
                 .posts
                 .iter()
