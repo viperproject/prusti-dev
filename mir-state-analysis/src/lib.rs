@@ -14,10 +14,11 @@ pub mod r#loop;
 pub mod combined_pcs;
 
 use combined_pcs::{PcsEngine, PlaceCapabilitySummary};
-use free_pcs::{FreePlaceCapabilitySummary, engine::FpcsEngine};
+use coupling_graph::BodyWithBorrowckFacts;
+use free_pcs::generate_dot_graph;
 use prusti_rustc_interface::{
-    borrowck::consumers::BodyWithBorrowckFacts,
-    dataflow::{Analysis, Results},
+    borrowck::consumers::{LocationTable, PoloniusInput, PoloniusOutput, RegionInferenceContext},
+    dataflow::Analysis,
     index::IndexVec,
     middle::{
         mir::{Body, Promoted, START_BLOCK, BasicBlock},
@@ -25,7 +26,12 @@ use prusti_rustc_interface::{
     },
 };
 
-pub type FpcsOutput<'mir, 'tcx> = free_pcs::FreePcsAnalysis<'mir, 'tcx, PlaceCapabilitySummary<'mir, 'tcx>, PcsEngine<'mir, 'tcx>>;
+pub type FpcsOutput<'mir, 'tcx> = free_pcs::FreePcsAnalysis<
+    'mir,
+    'tcx,
+    PlaceCapabilitySummary<'mir, 'tcx>,
+    PcsEngine<'mir, 'tcx>,
+>;
 
 #[tracing::instrument(name = "run_free_pcs", level = "debug", skip(mir, tcx))]
 pub fn run_free_pcs<'mir, 'tcx>(
@@ -38,7 +44,44 @@ pub fn run_free_pcs<'mir, 'tcx>(
         .into_engine(tcx, &mir.body)
         .pass_name("free_pcs")
         .iterate_to_fixpoint();
-    free_pcs::FreePcsAnalysis::new(analysis.into_results_cursor(&mir.body))
+    let mut fpcs_analysis = free_pcs::FreePcsAnalysis::new(analysis.into_results_cursor(&mir.body));
+
+    // Create directory for DOT files
+    create_dir_all("dot_graphs").expect("Failed to create directory for DOT files");
+    let polonius_facts = mir.output_facts.as_ref().unwrap().clone();
+    let location_table = mir.location_table.as_ref().unwrap().clone();
+    let fn_name = tcx.item_name(mir.body.source.def_id());
+
+    eprintln!("FACTS: {} {:?}", fn_name, polonius_facts);
+    eprintln!("LOAN LIVE: {} {:?}", fn_name, polonius_facts.loan_live_at);
+    // Iterate over each statement in the MIR
+    for (block, data) in mir.body.basic_blocks.iter_enumerated() {
+        let pcs_block = fpcs_analysis.get_all_for_bb(block);
+        for (statement_index, statement) in pcs_block.statements.iter().enumerate() {
+            for fact in polonius_facts
+                .loan_live_at
+                .get(&location_table.mid_index(statement.location))
+                .unwrap_or(&vec![])
+                .iter()
+            {
+                eprintln!("FACT: {:?}", fact);
+            }
+            let file_path = format!(
+                "dot_graphs/{}_block_{}_stmt_{}.dot",
+                tcx.item_name(mir.body.source.def_id()),
+                block.index(),
+                statement_index
+            );
+            generate_dot_graph(
+                &statement.state,
+                mir.output_facts.as_ref().unwrap().clone(),
+                &file_path,
+            )
+            .expect("Failed to generate DOT graph");
+        }
+    }
+
+    fpcs_analysis
 }
 
 pub fn get_cgx<'mir, 'tcx>(
