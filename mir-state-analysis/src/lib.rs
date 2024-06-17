@@ -13,11 +13,12 @@ pub mod coupling_graph;
 pub mod r#loop;
 pub mod combined_pcs;
 
+use std::fs::create_dir_all;
+
 use combined_pcs::{PcsEngine, PlaceCapabilitySummary};
-use coupling_graph::BodyWithBorrowckFacts;
 use free_pcs::generate_dot_graph;
 use prusti_rustc_interface::{
-    borrowck::consumers::{LocationTable, PoloniusInput, PoloniusOutput, RegionInferenceContext},
+    borrowck::consumers::{LocationTable, PoloniusInput, PoloniusOutput, RegionInferenceContext, BodyWithBorrowckFacts},
     dataflow::Analysis,
     index::IndexVec,
     middle::{
@@ -25,6 +26,8 @@ use prusti_rustc_interface::{
         ty::TyCtxt,
     },
 };
+
+use crate::free_pcs::generate_json_from_mir;
 
 pub type FpcsOutput<'mir, 'tcx> = free_pcs::FreePcsAnalysis<
     'mir,
@@ -46,13 +49,21 @@ pub fn run_free_pcs<'mir, 'tcx>(
         .iterate_to_fixpoint();
     let mut fpcs_analysis = free_pcs::FreePcsAnalysis::new(analysis.into_results_cursor(&mir.body));
 
-    // Create directory for DOT files
-    create_dir_all("dot_graphs").expect("Failed to create directory for DOT files");
+    generate_json_from_mir(&mir.body).expect("Failed to generate JSON from MIR");
+
+    // Delete all contents from the directory
+    let dir_path = "visualization/dot_graphs";
+    if std::path::Path::new(dir_path).exists() {
+        std::fs::remove_dir_all(dir_path).expect("Failed to delete directory contents");
+    }
+    create_dir_all(dir_path).expect("Failed to create directory for DOT files");
+    let input_facts = mir.input_facts.as_ref().unwrap().clone();
     let polonius_facts = mir.output_facts.as_ref().unwrap().clone();
     let location_table = mir.location_table.as_ref().unwrap().clone();
     let fn_name = tcx.item_name(mir.body.source.def_id());
 
-    eprintln!("FACTS: {} {:?}", fn_name, polonius_facts);
+    eprintln!("INPUT FACTS: {} {:?}", fn_name, input_facts);
+    eprintln!("OUTPUT FACTS: {} {:?}", fn_name, polonius_facts);
     eprintln!("LOAN LIVE: {} {:?}", fn_name, polonius_facts.loan_live_at);
     // Iterate over each statement in the MIR
     for (block, data) in mir.body.basic_blocks.iter_enumerated() {
@@ -67,14 +78,17 @@ pub fn run_free_pcs<'mir, 'tcx>(
                 eprintln!("FACT: {:?}", fact);
             }
             let file_path = format!(
-                "dot_graphs/{}_block_{}_stmt_{}.dot",
+                "{}/{}_block_{}_stmt_{}.dot",
+                dir_path,
                 tcx.item_name(mir.body.source.def_id()),
                 block.index(),
                 statement_index
             );
             generate_dot_graph(
+                statement.location,
                 &statement.state,
-                mir.output_facts.as_ref().unwrap().clone(),
+                &mir.borrow_set,
+                &input_facts,
                 &file_path,
             )
             .expect("Failed to generate DOT graph");

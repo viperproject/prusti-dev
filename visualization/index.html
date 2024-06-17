@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D3.js Directed Control Flow Graph</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+    <script src="https://unpkg.com/@viz-js/viz@3.6.0/lib/viz-standalone.js"></script>
+    <style>
+      .node {
+        font: 10px sans-serif;
+      }
+      .link {
+        fill: none;
+        stroke: #666;
+        stroke-width: 1.5px;
+      }
+      .link-label {
+        font: 10px sans-serif;
+        text-anchor: middle;
+      }
+      .foreign-object {
+        pointer-events: all;
+      }
+      .highlight {
+        background-color: yellow;
+      }
+      table {
+        border: 1px solid black;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 4px;
+      }
+      .graph-container {
+        display: flex;
+      }
+      #graph {
+        flex: 1;
+      }
+      #dot-graph {
+        flex: 1;
+        border-left: 1px solid #ccc;
+        padding-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="graph-container">
+      <div id="graph"></div>
+      <div id="dot-graph"></div>
+    </div>
+
+    <script>
+      let currentRow;
+
+      // Function to handle row clicks
+      function rowClicked(rowId) {
+        alert("Row clicked: " + rowId);
+      }
+
+      // Function to fetch the JSON graph data
+      async function fetchJsonFile(filePath) {
+        const response = await fetch(filePath);
+        return await response.json();
+      }
+
+      // Function to fetch the DOT graph data
+      async function fetchDotFile(filePath) {
+        const response = await fetch(filePath);
+        return await response.text();
+      }
+
+      // Function to render the graph using D3.js and Dagre
+      async function renderGraph() {
+        const graphFilePath = "mir_output.json"; // Update this path if necessary
+        const graph = await fetchJsonFile(graphFilePath);
+
+        const width = 960;
+        const height = 800;
+
+        // Create a new directed graph
+        const g = new dagre.graphlib.Graph()
+          .setGraph({})
+          .setDefaultEdgeLabel(() => ({}));
+
+        // Add nodes to the graph
+        graph.nodes.forEach((node) => {
+          g.setNode(node.id, { label: node.label, width: 200, height: 200 });
+        });
+
+        // Add edges to the graph
+        graph.edges.forEach((edge) => {
+          g.setEdge(edge.source, edge.target, { label: edge.label });
+        });
+
+        // Compute the layout
+        dagre.layout(g);
+
+        // Create the SVG container
+        const svg = d3
+          .select("#graph")
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height);
+
+        // Draw nodes
+        const node = svg
+          .append("g")
+          .selectAll("g")
+          .data(g.nodes())
+          .enter()
+          .append("g")
+          .attr("class", "node")
+          .attr("transform", (d) => {
+            const node = g.node(d);
+            return `translate(${node.x - node.width / 2},${node.y - node.height / 2})`;
+          });
+
+        node
+          .append("foreignObject")
+          .attr("width", 200)
+          .attr("height", 300)
+          .attr("class", "foreign-object")
+          .html((d) => g.node(d).label);
+
+        // Compute the actual height and width of each HTML table and update the corresponding node in dagre
+        document.querySelectorAll("table[data-bb]").forEach((table) => {
+          const bb = table.getAttribute("data-bb");
+          const rect = table.getBoundingClientRect();
+          const width = rect.width;
+          const height = rect.height;
+
+          // Update the node in dagre
+          const node = g.node(bb);
+          node.width = width;
+          node.height = height;
+        });
+
+        // Recompute the layout with updated node dimensions
+        dagre.layout(g);
+
+        // Transform the nodes to their new positions instantly
+        node.attr("transform", (d) => {
+          const node = g.node(d);
+          return `translate(${node.x - node.width / 2},${node.y - node.height / 2})`;
+        });
+
+        // Draw edges
+        const link = svg
+          .append("g")
+          .selectAll("path")
+          .data(g.edges())
+          .enter()
+          .append("path")
+          .attr("class", "link")
+          .attr("id", (d, i) => `link${i}`)
+          .attr("d", (d) => {
+            const source = g.node(d.v);
+            const target = g.node(d.w);
+            const sourceX = source.x;
+            const sourceY = source.y + source.height / 2;
+            const targetX = target.x;
+            const targetY = target.y - target.height / 2;
+            return `M${sourceX},${sourceY}L${targetX},${targetY}`;
+          });
+
+        // Draw edge labels
+        const edgeLabels = svg
+          .append("g")
+          .selectAll(".edge-label")
+          .data(g.edges())
+          .enter()
+          .append("text")
+          .attr("class", "link-label")
+          .attr("dy", -5)
+          .append("textPath")
+          .attr("xlink:href", (d, i) => `#link${i}`)
+          .attr("startOffset", "50%")
+          .text((d) => g.edge(d).label);
+
+        // Event delegation for row clicks
+        svg.on("click", async function (event) {
+          const target = event.target;
+          if (target.tagName === "TD" || target.tagName === "TR") {
+            const row = target.closest("tr");
+            highlightRow(row);
+          }
+        });
+
+        // Initial highlight of the first row
+        const initialRow = document.querySelector(
+          "tr[data-bb='0'][data-statement='0']"
+        );
+        if (initialRow) {
+          highlightRow(initialRow);
+        }
+
+        // Add event listener for arrow keys
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+            event.preventDefault();
+            if (currentRow) {
+              const rows = Array.from(
+                document.querySelectorAll("tr[data-bb][data-statement]")
+              );
+              const index = rows.indexOf(currentRow);
+              if (event.key === "ArrowUp" && index > 0) {
+                highlightRow(rows[index - 1]);
+              } else if (event.key === "ArrowDown" && index < rows.length - 1) {
+                highlightRow(rows[index + 1]);
+              }
+            }
+          }
+        });
+      }
+
+      // Function to highlight a row and render the corresponding DOT graph
+      async function highlightRow(row) {
+        const statement = row.getAttribute("data-statement");
+        const bb = row.getAttribute("data-bb");
+        console.log("Statement:", statement, "BB:", bb);
+
+        // Remove highlight from any previously highlighted row
+        d3.selectAll(".highlight").classed("highlight", false);
+
+        // Highlight the clicked row
+        d3.select(row).classed("highlight", true);
+        currentRow = row;
+
+        // Construct the path to the DOT file
+        const dotFilePath = `dot_graphs/main_block_${bb}_stmt_${statement}.dot`;
+
+        // Fetch and render the DOT file
+        try {
+          const dotData = await fetchDotFile(dotFilePath);
+          Viz.instance().then(function (viz) {
+            document.getElementById("dot-graph").innerHTML = "";
+            document
+              .getElementById("dot-graph")
+              .appendChild(viz.renderSVGElement(dotData));
+          });
+        } catch (error) {
+          console.error("Error fetching or rendering DOT file:", error);
+        }
+      }
+
+      // Call the render function on page load
+      window.onload = renderGraph;
+    </script>
+  </body>
+</html>
