@@ -45,6 +45,8 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBorrowck<'tcx
             consumers::ConsumerOptions::PoloniusOutputFacts
         };
         let body_with_facts = consumers::get_body_with_borrowck_facts(tcx, def_id, consumer_opts);
+        eprintln!("GOT A BODY");
+        eprintln!("{:?}", body_with_facts.output_facts);
         // SAFETY: This is safe because we are feeding in the same `tcx` that is
         // going to be used as a witness when pulling out the data.
         unsafe {
