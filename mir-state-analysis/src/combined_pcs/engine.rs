@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 use prusti_rustc_interface::{
     dataflow::{Analysis, AnalysisDomain},
-    index::{Idx, IndexVec},
+    {index::Idx, index::IndexVec},
     middle::{
         mir::{
             visit::Visitor, BasicBlock, Body, CallReturnPlaces, Local, Location, Promoted,
@@ -20,8 +20,7 @@ use prusti_rustc_interface::{
 };
 
 use crate::{
-    free_pcs::{CapabilityKind, CapabilityLocal, FreePlaceCapabilitySummary, engine::FpcsEngine},
-    utils::PlaceRepacker, coupling_graph::{CgContext, engine::CgEngine, coupling::CouplingOp},
+    borrows::{domain::BorrowsDomain, engine::BorrowsEngine}, coupling_graph::CgContext, free_pcs::{engine::FpcsEngine, CapabilityKind, CapabilityLocal, FreePlaceCapabilitySummary}, utils::PlaceRepacker
 };
 
 use super::domain::PlaceCapabilitySummary;
@@ -31,18 +30,18 @@ pub struct PcsEngine<'a, 'tcx> {
     block: Cell<BasicBlock>,
 
     pub(crate) fpcs: FpcsEngine<'a, 'tcx>,
-    pub(crate) cg: CgEngine<'a, 'tcx>,
+    pub(crate) borrows: BorrowsEngine,
 }
 impl<'a, 'tcx> PcsEngine<'a, 'tcx> {
     pub fn new(cgx: CgContext<'a, 'tcx>) -> Self {
         let cgx = Rc::new(cgx);
         let fpcs = FpcsEngine(cgx.rp);
-        let cg = CgEngine::new(cgx.clone(), false);
+        let borrows = BorrowsEngine;
         Self {
             cgx,
             block: Cell::new(START_BLOCK),
             fpcs,
-            cg,
+            borrows,
         }
     }
 }
@@ -60,7 +59,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for PcsEngine<'a, 'tcx> {
     fn initialize_start_block(&self, _body: &Body<'tcx>, state: &mut Self::Domain) {
         self.block.set(START_BLOCK);
         state.fpcs.initialize_as_start_block();
-        state.cg.initialize_start_block(&self.cgx);
+        // Initialize borrows if needed
     }
 }
 
@@ -71,16 +70,7 @@ impl<'a, 'tcx> Analysis<'tcx> for PcsEngine<'a, 'tcx> {
         statement: &Statement<'tcx>,
         location: Location,
     ) {
-        self.cg.apply_before_statement_effect(&mut state.cg, statement, location);
-        for c in &state.cg.couplings {
-            match c {
-                CouplingOp::Add(_) => todo!(),
-                CouplingOp::Activate(_) => todo!(),
-                CouplingOp::Remove(from, _) => {
-                    state.fpcs.after.fold_up_to(self.cgx.rp, *from);
-                }
-            }
-        }
+        self.borrows.apply_before_statement_effect(&mut state.borrows, statement, location);
         self.fpcs.apply_before_statement_effect(&mut state.fpcs, statement, location);
     }
     fn apply_statement_effect(
@@ -89,7 +79,7 @@ impl<'a, 'tcx> Analysis<'tcx> for PcsEngine<'a, 'tcx> {
         statement: &Statement<'tcx>,
         location: Location,
     ) {
-        self.cg.apply_statement_effect(&mut state.cg, statement, location);
+        self.borrows.apply_statement_effect(&mut state.borrows, statement, location);
         self.fpcs.apply_statement_effect(&mut state.fpcs, statement, location);
     }
     fn apply_before_terminator_effect(
@@ -98,7 +88,7 @@ impl<'a, 'tcx> Analysis<'tcx> for PcsEngine<'a, 'tcx> {
         terminator: &Terminator<'tcx>,
         location: Location,
     ) {
-        self.cg.apply_before_terminator_effect(&mut state.cg, terminator, location);
+        self.borrows.apply_before_terminator_effect(&mut state.borrows, terminator, location);
         self.fpcs.apply_before_terminator_effect(&mut state.fpcs, terminator, location);
     }
     fn apply_terminator_effect<'mir>(
@@ -107,7 +97,7 @@ impl<'a, 'tcx> Analysis<'tcx> for PcsEngine<'a, 'tcx> {
         terminator: &'mir Terminator<'tcx>,
         location: Location,
     ) -> TerminatorEdges<'mir, 'tcx> {
-        self.cg.apply_terminator_effect(&mut state.cg, terminator, location);
+        self.borrows.apply_terminator_effect(&mut state.borrows, terminator, location);
         self.fpcs.apply_terminator_effect(&mut state.fpcs, terminator, location);
         terminator.edges()
     }

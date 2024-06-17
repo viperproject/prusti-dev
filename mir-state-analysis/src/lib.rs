@@ -12,6 +12,7 @@ pub mod utils;
 pub mod coupling_graph;
 pub mod r#loop;
 pub mod combined_pcs;
+pub mod borrows;
 
 use std::fs::create_dir_all;
 
@@ -156,3 +157,5 @@ pub fn test_coupling_graph<'tcx>(
 
     // panic!()
 }
+
+

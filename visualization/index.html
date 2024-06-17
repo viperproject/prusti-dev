@@ -58,57 +58,39 @@
     <script>
       let currentRow;
 
-      // Function to handle row clicks
-      function rowClicked(rowId) {
-        alert("Row clicked: " + rowId);
-      }
-
-      // Function to fetch the JSON graph data
       async function fetchJsonFile(filePath) {
         const response = await fetch(filePath);
         return await response.json();
       }
 
-      // Function to fetch the DOT graph data
       async function fetchDotFile(filePath) {
         const response = await fetch(filePath);
         return await response.text();
       }
 
-      // Function to render the graph using D3.js and Dagre
       async function renderGraph() {
-        const graphFilePath = "mir_output.json"; // Update this path if necessary
+        const graphFilePath = "mir_output.json";
         const graph = await fetchJsonFile(graphFilePath);
 
-        const width = 960;
-        const height = 800;
-
-        // Create a new directed graph
         const g = new dagre.graphlib.Graph()
           .setGraph({})
           .setDefaultEdgeLabel(() => ({}));
 
-        // Add nodes to the graph
         graph.nodes.forEach((node) => {
           g.setNode(node.id, { label: node.label, width: 200, height: 200 });
         });
 
-        // Add edges to the graph
         graph.edges.forEach((edge) => {
           g.setEdge(edge.source, edge.target, { label: edge.label });
         });
 
-        // Compute the layout
         dagre.layout(g);
 
-        // Create the SVG container
         const svg = d3
           .select("#graph")
           .append("svg")
-          .attr("width", width)
-          .attr("height", height);
+          .attr("height", 800);
 
-        // Draw nodes
         const node = svg
           .append("g")
           .selectAll("g")
@@ -144,7 +126,11 @@
         // Recompute the layout with updated node dimensions
         dagre.layout(g);
 
-        // Transform the nodes to their new positions instantly
+        // Update SVG width based on the bounding box of the graph
+        const graphWidth = Math.max(...g.nodes().map(d => g.node(d).x + g.node(d).width / 2)) + 20;
+        svg.attr("width", graphWidth);
+
+        // Transform the nodes to their new positions
         node.attr("transform", (d) => {
           const node = g.node(d);
           return `translate(${node.x - node.width / 2},${node.y - node.height / 2})`;
@@ -169,7 +155,6 @@
             return `M${sourceX},${sourceY}L${targetX},${targetY}`;
           });
 
-        // Draw edge labels
         const edgeLabels = svg
           .append("g")
           .selectAll(".edge-label")
@@ -183,7 +168,6 @@
           .attr("startOffset", "50%")
           .text((d) => g.edge(d).label);
 
-        // Event delegation for row clicks
         svg.on("click", async function (event) {
           const target = event.target;
           if (target.tagName === "TD" || target.tagName === "TR") {
@@ -200,7 +184,6 @@
           highlightRow(initialRow);
         }
 
-        // Add event listener for arrow keys
         document.addEventListener("keydown", function (event) {
           if (event.key === "ArrowUp" || event.key === "ArrowDown") {
             event.preventDefault();
@@ -219,23 +202,19 @@
         });
       }
 
-      // Function to highlight a row and render the corresponding DOT graph
+      // Highlights a row and renders the corresponding DOT graph
       async function highlightRow(row) {
         const statement = row.getAttribute("data-statement");
         const bb = row.getAttribute("data-bb");
         console.log("Statement:", statement, "BB:", bb);
 
-        // Remove highlight from any previously highlighted row
         d3.selectAll(".highlight").classed("highlight", false);
 
-        // Highlight the clicked row
         d3.select(row).classed("highlight", true);
         currentRow = row;
 
-        // Construct the path to the DOT file
         const dotFilePath = `dot_graphs/main_block_${bb}_stmt_${statement}.dot`;
 
-        // Fetch and render the DOT file
         try {
           const dotData = await fetchDotFile(dotFilePath);
           Viz.instance().then(function (viz) {
@@ -249,7 +228,6 @@
         }
       }
 
-      // Call the render function on page load
       window.onload = renderGraph;
     </script>
   </body>

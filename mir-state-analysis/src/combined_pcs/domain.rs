@@ -23,6 +23,7 @@ use crate::{
 };
 
 use super::PcsEngine;
+use crate::borrows::domain::BorrowsDomain;
 
 #[derive(Clone)]
 pub struct PlaceCapabilitySummary<'a, 'tcx> {
@@ -30,34 +31,34 @@ pub struct PlaceCapabilitySummary<'a, 'tcx> {
     pub block: BasicBlock,
 
     pub fpcs: FreePlaceCapabilitySummary<'a, 'tcx>,
-    pub cg: CouplingGraph<'a, 'tcx>,
+    pub borrows: BorrowsDomain,
 }
 
 impl<'a, 'tcx> PlaceCapabilitySummary<'a, 'tcx> {
     pub fn new(cgx: Rc<CgContext<'a, 'tcx>>, block: BasicBlock) -> Self {
         let fpcs = FreePlaceCapabilitySummary::new(cgx.rp);
-        let cg = CouplingGraph::new(cgx.clone(), false, block);
-        Self { cgx, block, fpcs, cg }
+        let borrows = BorrowsDomain::new();
+        Self { cgx, block, fpcs, borrows }
     }
 }
 
 impl Eq for PlaceCapabilitySummary<'_, '_> {}
 impl PartialEq for PlaceCapabilitySummary<'_, '_> {
     fn eq(&self, other: &Self) -> bool {
-        self.fpcs == other.fpcs && self.cg == other.cg
+        self.fpcs == other.fpcs && self.borrows == other.borrows
     }
 }
 impl Debug for PlaceCapabilitySummary<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{:?}\n{:?}", self.fpcs, self.cg)
+        write!(f, "{:?}\n{:?}", self.fpcs, self.borrows)
     }
 }
 
 impl JoinSemiLattice for PlaceCapabilitySummary<'_, '_> {
     fn join(&mut self, other: &Self) -> bool {
         let fpcs = self.fpcs.join(&other.fpcs);
-        let cg = self.cg.join(&other.cg);
-        fpcs || cg
+        let borrows = self.borrows.join(&other.borrows);
+        fpcs || borrows
     }
 }
 
@@ -71,9 +72,3 @@ impl<'a, 'tcx> DebugWithContext<PcsEngine<'a, 'tcx>> for PlaceCapabilitySummary<
         self.fpcs.fmt_diff_with(&old.fpcs, &ctxt.fpcs, f)
     }
 }
-
-// impl<'mir, 'tcx> HasFpcs<'mir, 'tcx> for PlaceCapabilitySummary<'mir, 'tcx> {
-//     fn get_curr_fpcs(&self) -> &FreePlaceCapabilitySummary<'mir, 'tcx> {
-//         &self.fpcs
-//     }
-// }
