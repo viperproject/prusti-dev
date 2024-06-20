@@ -109,7 +109,7 @@ where
             deps.emit_output_ref(task_key, MirFunctionEncOutputRef { function_ref });
 
             let spec = deps
-                .require_local::<MirSpecEnc>((def_id, substs, None, true))
+                .require_local::<MirSpecEnc>((def_id, substs, None, true, false))
                 .unwrap();
 
             let mut func_args = ty_arg_decls

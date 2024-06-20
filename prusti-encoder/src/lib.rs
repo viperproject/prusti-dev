@@ -94,6 +94,12 @@ pub fn test_entrypoint<'tcx>(
     let mut program_functions = vec![];
     let mut program_methods = vec![];
 
+    header(&mut viper_code, "async stubs");
+    for output in crate::encoders::AsyncStubEnc::all_outputs() {
+        viper_code.push_str(&format!("{:?}\n", output.method));
+        program_methods.push(output.method);
+    }
+
     // We output results from both monomorphic and polymorphic encoding of
     // functions, because even when Prusti is configured to use the monomorphic
     // it will still use `MirPolyImpureEnc` directly sometimes (see usages

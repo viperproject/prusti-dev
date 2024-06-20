@@ -49,7 +49,8 @@ use crate::{
             },
             func_app_ty_params::LiftedFuncAppTyParamsEnc
         },
-        FunctionCallTaskDescription, MirBuiltinEnc
+        FunctionCallTaskDescription, MirBuiltinEnc,
+        async_stub::AsyncStubEnc,
     }
 };
 
@@ -486,6 +487,81 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let tmp = self.vcx.mk_local(name, ty);
         (tmp, self.vcx.mk_local_ex_local(tmp))
     }
+
+    fn mk_poll_call(
+        &mut self,
+        gen_def_id: DefId,
+        gen_args: ty::GenericArgsRef<'vir>,
+        args: &Vec<mir::Operand<'vir>>,
+        destination: & mir::Place<'vir>,
+        target: &Option<mir::BasicBlock>,
+        pin_gen_ty: ty::Ty<'vir>,
+        poll_ret_ty: ty::Ty<'vir>,
+    ) {
+        let poll_stub = self.deps.require_ref::<AsyncStubEnc>(gen_def_id).unwrap();
+        let dest = self.encode_place(Place::from(*destination)).expr;
+
+        let method_in = args.iter().map(|arg| self.encode_operand(arg)).collect::<Vec<_>>();
+
+       for ((fn_arg_ty, arg), arg_ex) in poll_stub.arg_tys.iter().zip(args.iter()).zip(method_in.iter()) {
+            let local_decls = self.local_decls_src();
+            let tcx = self.vcx().tcx();
+            let arg_ty = arg.ty(local_decls, tcx);
+            let caster = self.deps()
+                .require_ref::<CastToEnc<CastTypeImpure>>(CastArgs {
+                    expected: *fn_arg_ty,
+                    actual: arg_ty
+                })
+                .unwrap();
+            // In this context, `apply_cast_if_necessary` returns
+            // the impure operation to perform the cast
+            if let Some(stmt) = caster.apply_cast_if_necessary(self.vcx(), arg_ex) {
+                self.stmt(stmt);
+            }
+        }
+
+        let mut method_args =
+            std::iter::once(dest).chain(method_in).collect::<Vec<_>>();
+        let mono = self.monomorphize;
+        let encoded_ty_args = self
+            .deps()
+            .require_local::<LiftedFuncAppTyParamsEnc>(
+                (mono, gen_args)
+            )
+            .unwrap()
+            .iter()
+            .map(|ty| ty.expr(self.vcx()));
+
+        method_args.extend(encoded_ty_args);
+
+        self.stmt(
+            self.vcx
+                .alloc(poll_stub.method_ref.apply(self.vcx, &method_args)),
+        );
+        let expected_ty = destination.ty(self.local_decls_src(), self.vcx.tcx()).ty;
+        let result_cast = self
+            .deps()
+            .require_ref::<CastToEnc<CastTypeImpure>>(CastArgs {
+                expected: expected_ty,
+                actual: poll_stub.return_ty,
+            })
+            .unwrap();
+        if let Some(stmt) = result_cast.apply_cast_if_necessary(self.vcx, dest) {
+            self.stmt(stmt);
+        }
+
+        let terminator = target
+            .map(|target| {
+                self.vcx.mk_goto_stmt(
+                    self.vcx
+                        .alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
+                )
+            })
+            .unwrap_or_else(|| self.unreachable());
+
+        println!("done calling async stub\n");
+        assert!(self.current_terminator.replace(terminator).is_none());
+    }
 }
 
 impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<'vir, 'enc, E> {
@@ -882,36 +958,59 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
                 if let Some(trait_def_id) = self.vcx.tcx().trait_of_item(func_def_id) {
                     let def_path = self.vcx.tcx().def_path_str(func_def_id);
+                    let env_query = EnvQuery::new(self.vcx.tcx());
+                    let (resolved_def_id, resolved_params) = env_query.resolve_method_call(self.def_id, func_def_id, caller_substs);
                     match self.vcx.tcx().def_path_str(func_def_id).as_ref() {
                         // we can resolve calls to into_future
                         "std::future::IntoFuture::into_future" => {
-                            let env_query = EnvQuery::new(self.vcx.tcx());
-                            let (resolved_def_id, resolved_params) = env_query.resolve_method_call(self.def_id, func_def_id, caller_substs);
                             func_def_id = resolved_def_id;
                             caller_substs = resolved_params;
                         },
                         // and replace calls to poll with the annotated poll stub
                         "std::future::Future::poll" => {
-                            // TODO: encode and replace by poll stub instead
-                            // for now this is just a comment followed by a goto
-                            let target = target.unwrap();
-                            assert_eq!(args.len(), 2);
-                            self.stmt(self.vcx.mk_comment_stmt(
-                                vir::vir_format!(self.vcx, "{destination:?} = <poll_stub>({:?}, {:?})", args[0], args[1]),
-                            ));
-                            const REAL_TARGET_SUCC_IDX: usize = 0;
-                            assert_eq!(self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX].location.block, target);
-                            self.fpcs_repacks_terminator(REAL_TARGET_SUCC_IDX, |rep| &rep.repacks_start);
-                            let goto = self.vcx.mk_goto_stmt(
-                                self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
-                            );
-                            assert!(self.current_terminator.replace(goto).is_none());
-                            return;
+                            // the generator is passed (by move) as the first argument
+                            let mir::Operand::Move(ref fut_place) = args[0] else {
+                                panic!("expected first argument to poll to be moved");
+                            };
+                            let fut_ty = {
+                                // TODO: verify that this works with manual poll calls
+                                assert!(fut_place.projection.is_empty(), "expected no projections on poll-argument");
+                                let fut_ty = &self.local_decls[fut_place.local].ty;
+                                let fut_ty =match fut_ty.kind() {
+                                    ty::Adt(adt_def, args) => {
+                                        assert_eq!(self.vcx.tcx().def_path_str(adt_def.did()), "std::pin::Pin");
+                                        assert_eq!(args.len(), 1);
+                                        args[0].as_type().expect("expected Pin's generic arg to be type")
+                                    },
+                                    _ => panic!("expected poll argument to be pinned"),
+                                };
+                                let ty::TyKind::Ref(_, ref fut_ty, mir::Mutability::Mut) = fut_ty.kind() else {
+                                    panic!("expected poll argument to be pinned mutable reference");
+                                };
+                                // generally, the future type is hidden behind an OTA
+                                self.vcx.tcx().expand_opaque_types(*fut_ty)
+                            };
+
+                            // if the future is now known to be a specific generator,
+                            // we can use its `DefId` to redirect the call to its poll-stub
+                            if let ty::TyKind::Generator(gen_def_id, gen_args, _) = fut_ty.kind() {
+                                self.mk_poll_call(
+                                    *gen_def_id,
+                                    gen_args,
+                                    args,
+                                    destination,
+                                    target,
+                                    self.local_decls[fut_place.local].ty,
+                                    destination.ty(self.local_decls, self.vcx.tcx()).ty,
+                                );
+                                return;
+                            } else {
+                                println!("unable to resolve poll for {fut_ty:?}");
+                            }
                         },
                         _ => {},
                     }
                 }
-
 
                 let dest = self.encode_place(Place::from(*destination)).expr;
 

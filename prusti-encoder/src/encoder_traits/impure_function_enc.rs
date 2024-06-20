@@ -158,7 +158,7 @@ where
             };
 
             let spec = deps
-                .require_local::<MirSpecEnc>((def_id, substs, None, false))?;
+                .require_local::<MirSpecEnc>((def_id, substs, None, false, false))?;
             let (spec_pres, spec_posts) = (spec.pres, spec.posts);
 
             let mut pres = Vec::with_capacity(arg_count - 1);
