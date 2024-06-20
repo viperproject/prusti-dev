@@ -215,10 +215,12 @@ impl TaskEncoder for MirSpecEnc {
                     let predicate::PredicateEncData::StructLike(gen_domain_data) = generator_ty.specifics else {
                         panic!("expected generator domain to be struct-like");
                     };
-                    gen_domain_data.snap_data.field_access
+                    let fields = gen_domain_data.snap_data.field_access;
+                    let n_fields = fields.len();
+                    assert!(n_fields % 2 == 0);
+                    fields[n_fields / 2 ..].iter()
                 };
                 let post_args = ghost_fields
-                    .iter()
                     .map(|field| {
                         let field_read = field.read.apply(vcx, [generator_snap]);
                         vcx.mk_old_expr(field_read)

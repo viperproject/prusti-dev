@@ -1,9 +1,15 @@
-use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::{ty, mir};
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{MethodIdent, UnknownArity, ViperIdent};
+use vir::{self, MethodIdent, UnknownArity, ViperIdent};
 
 use crate::encoders::{
-    lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc, MirLocalDefEnc, MirSpecEnc
+    lifted::func_def_ty_params::LiftedTyParamsEnc,
+    ImpureEncVisitor,
+    MirImpureEnc,
+    MirLocalDefEnc,
+    MirSpecEnc,
+    rust_ty_predicates::RustTyPredicatesEnc,
+    predicate,
 };
 
 use super::function_enc::FunctionEnc;
@@ -172,6 +178,38 @@ where
             }
             args.extend(param_ty_decls.iter());
             pres.extend(spec_pres);
+
+            // in the case of an async body, we additionally require that the ghost fields
+            // capturing the initial upvar state are equal to the upvar fields
+            if vcx.tcx().generator_is_async(def_id) {
+                let gen_ty = vcx.tcx().type_of(def_id).skip_binder();
+                let fields = {
+                    let gen_ty = deps.require_ref::<RustTyPredicatesEnc>(gen_ty)?;
+                    let predicate::PredicateEncData::StructLike(gen_domain_data) = gen_ty.generic_predicate.specifics else {
+                        panic!("expected generator domain to be struct-like");
+                    };
+                    gen_domain_data.snap_data.field_access
+                };
+                let upvar_tys = {
+                    let ty::TyKind::Generator(_, args, _) = gen_ty.kind() else {
+                        panic!("expected generator TyKind to be Generator");
+                    };
+                    args.as_generator().upvar_tys()
+                };
+                let n_upvars = upvar_tys.len();
+                assert_eq!(fields.len(), 2 * upvar_tys.len());
+                let to_bool = deps
+                    .require_ref::<RustTyPredicatesEnc>(vcx.tcx().types.bool)?
+                    .generic_predicate
+                    .expect_prim()
+                    .snap_to_prim;
+                let gen_snap = local_defs.locals[1_u32.into()].impure_snap;
+                for (i, ty) in upvar_tys.iter().enumerate() {
+                    let field = fields[i].read.apply(vcx, [gen_snap]);
+                    let ghost_field = fields[n_upvars + i].read.apply(vcx, [gen_snap]);
+                    pres.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, field, ghost_field));
+                }
+            }
 
             let mut posts = Vec::with_capacity(spec_posts.len() + 1);
             posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);

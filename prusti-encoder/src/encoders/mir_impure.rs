@@ -799,7 +799,14 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             .map(|oper| self.encode_operand_snap(oper))
                             .collect::<Vec<_>>();
                         let casted_args = ty_caster.apply_casts(self.vcx, operand_snaps.into_iter());
-                        snap_cons.apply(self.vcx, self.vcx.alloc_slice(&casted_args))
+                        // and duplicate them to also initialize the ghost fields
+                        let n_args = casted_args.len();
+                        let args = casted_args
+                            .into_iter()
+                            .cycle()
+                            .take(2 * n_args)
+                            .collect::<Vec<_>>();
+                        snap_cons.apply(self.vcx, self.vcx.alloc_slice(&args))
                     }
 
                     // FIXME: this is only a dummy to inspect generated async code

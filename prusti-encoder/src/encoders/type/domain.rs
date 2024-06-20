@@ -265,6 +265,8 @@ impl TaskEncoder for DomainEnc {
                 }
                 &TyKind::Generator(def_id, params, _movability) if vcx.tcx().generator_is_async(def_id) => {
                     // generators are encoded like a struct with one field per upvar
+                    // as well as an additional ghost field per upvar to capture their initial
+                    // state
                     // the generics of that struct are given by the parent arguments
                     // (i.e. the async fn's and its parent's)
                     let gen_args = params.as_generator();
@@ -280,6 +282,7 @@ impl TaskEncoder for DomainEnc {
                     let fields: Result<Vec<FieldTy>, _> = gen_args
                         .upvar_tys()
                         .iter()
+                        .chain(gen_args.upvar_tys().iter())
                         .map(|ty| FieldTy::from_ty(vcx, enc.deps, ty))
                         .collect();
                     let specifics = enc.mk_struct_specifics(fields?);

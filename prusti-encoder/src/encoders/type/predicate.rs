@@ -377,10 +377,10 @@ impl TaskEncoder for PredicateEnc {
                     *task_key,
                     enc.output_ref(PredicateEncData::StructLike(specifics))
                 );
-                let fields = args
-                    .as_generator()
-                    .upvar_tys()
+                let upvar_tys = args.as_generator().upvar_tys();
+                let fields = upvar_tys
                     .into_iter()
+                    .chain(upvar_tys.into_iter())
                     .map(|ty| deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap())
                     .collect::<Vec<_>>();
                 let fields = enc.mk_field_apps(specifics.ref_to_field_refs, fields);
