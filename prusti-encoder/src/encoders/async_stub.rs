@@ -10,8 +10,12 @@ use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{Method, MethodIdent, UnknownArity};
 
 use crate::encoders::{
-    lifted::func_def_ty_params::LiftedTyParamsEnc, r#type::rust_ty_predicates::RustTyPredicatesEnc,
-    MirLocalDefEnc, MirSpecEnc,
+    lifted::func_def_ty_params::LiftedTyParamsEnc,
+    r#type::rust_ty_predicates::RustTyPredicatesEnc,
+    MirLocalDefEnc,
+    MirSpecEnc,
+    predicate,
+    lifted::{rust_ty_cast::RustTyCastersEnc, casters::CastTypePure},
 };
 
 /// Encodes a poll call stub for an async item
@@ -66,12 +70,12 @@ impl TaskEncoder for AsyncStubEnc {
             };
             assert_eq!(def_id, *_def_id);
             // construct the receiver type (std::pin::Pin<&mut Self>)
+            let ref_ty = vcx.tcx().mk_ty_from_kind(ty::TyKind::Ref(
+                ty::Region::new_from_kind(vcx.tcx(), ty::RegionKind::ReErased),
+                gen_ty,
+                mir::Mutability::Mut,
+            ));
             let recv_ty = {
-                let ref_ty = vcx.tcx().mk_ty_from_kind(ty::TyKind::Ref(
-                    ty::Region::new_from_kind(vcx.tcx(), ty::RegionKind::ReErased),
-                    gen_ty,
-                    mir::Mutability::Mut,
-                ));
                 let pin_def_id = vcx.tcx().require_lang_item(hir::LangItem::Pin, None);
                 vcx.tcx().mk_ty_from_kind(ty::TyKind::Adt(
                     vcx.tcx().adt_def(pin_def_id),
@@ -82,9 +86,14 @@ impl TaskEncoder for AsyncStubEnc {
             // construct the second argument type (std::task::Context)
             let cx_ty = {
                 let cx_def_id = vcx.tcx().require_lang_item(hir::LangItem::Context, None);
-                vcx.tcx().mk_ty_from_kind(ty::TyKind::Adt(
+                let cx_ty = vcx.tcx().mk_ty_from_kind(ty::TyKind::Adt(
                     vcx.tcx().adt_def(cx_def_id),
                     ty::List::empty(),
+                ));
+                vcx.tcx().mk_ty_from_kind(ty::TyKind::Ref(
+                    ty::Region::new_from_kind(vcx.tcx(), ty::RegionKind::ReErased),
+                    cx_ty,
+                    mir::Mutability::Mut,
                 ))
             };
             let enc_cx_ty = deps.require_ref::<RustTyPredicatesEnc>(cx_ty)?;
@@ -130,32 +139,70 @@ impl TaskEncoder for AsyncStubEnc {
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;
             let (spec_pres, spec_posts) = (spec.pres, spec.async_stub_posts);
 
+            let upvar_tys = gen_args.as_generator().upvar_tys().to_vec();
+            let n_upvars = upvar_tys.len();
+
             // add arguments and preconditions about their types
             // note that the signature is (self: std::pin::Pin<&mut Self>, cx: &mut Context)
             // and not the signature of the generator
             let mut pres = Vec::with_capacity(arg_count - 1);
-            let mut args = Vec::with_capacity(arg_count + substs.len());
+            let mut args = Vec::with_capacity(arg_count + substs.len() + n_upvars + 1);
             for arg_idx in 0..arg_count {
                 let name = local_defs.locals[arg_idx.into()].local.name;
                 args.push(vir::vir_local_decl! { vcx; [name] : Ref });
-                // if arg_idx != 0 {
-                //     pres.push(local_defs.locals[arg_idx.into()].impure_pred);
-                // }
             }
             pres.push(enc_recv_ty.ref_to_pred(vcx, local_defs.locals[1_u32.into()].local_ex, None));
+            pres.push(enc_cx_ty.ref_to_pred(vcx, local_defs.locals[2_u32.into()].local_ex, None));
             // add type parameters (and their typing preconditions)
             args.extend(param_ty_decls.iter());
             pres.extend(spec_pres);
 
             // add postconditions for the return type and user-annotated ones
+            // we also add a postcondition on the generator type after the call
             let mut posts = Vec::with_capacity(spec_posts.len() + 1);
-            // posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
             posts.push(enc_ret_ty.ref_to_pred(
                 vcx,
                 local_defs.locals[mir::RETURN_PLACE].local_ex,
                 None,
             ));
+            posts.push(enc_recv_ty.ref_to_pred(
+                vcx,
+                local_defs.locals[1_u32.into()].local_ex,
+                None,
+            ));
             posts.extend(spec_posts);
+
+            // add postconditions that polling the future does not change the ghost fields
+            // so they still capture the initial state of the async fn's arguments
+            // read the generator from the pinned mutable ref
+            let gen_snap = {
+                let pin_snap = enc_recv_ty.ref_to_snap(vcx, local_defs.locals[1_u32.into()].local_ex);
+                let ref_snap = {
+                    let fields = enc_recv_ty.generic_predicate.expect_structlike().snap_data.field_access;
+                    assert_eq!(fields.len(), 1, "expected pin domain to have 1 field");
+                    let ref_snap = fields[0].read.apply(vcx, [pin_snap]);
+                    let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(ref_ty)?;
+                    caster.cast_to_concrete_if_possible(vcx, ref_snap)
+                };
+                let enc_ref_ty = deps.require_ref::<RustTyPredicatesEnc>(ref_ty)?;
+                let fields = enc_ref_ty.generic_predicate.expect_ref().snap_data.field_access;
+                assert_eq!(fields.len(), 1, "expected ref domain to have 1 field");
+                let gen_snap = fields[0].read.apply(vcx, [ref_snap]);
+                let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(gen_ty)?;
+                caster.cast_to_concrete_if_possible(vcx, gen_snap)
+            };
+            // get the generator's fields
+            let fields = {
+                let gen_ty = deps.require_ref::<RustTyPredicatesEnc>(gen_ty)?;
+                let gen_domain_data = gen_ty.generic_predicate.expect_structlike();
+                gen_domain_data.snap_data.field_access
+            };
+            assert_eq!(fields.len(), 2 * n_upvars);
+            for field in fields[n_upvars ..].iter() {
+                let field = field.read.apply(vcx, [gen_snap]);
+                let old_field = vcx.mk_old_expr(field.clone());
+                posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, field, old_field));
+            }
 
             let method = vcx.mk_method(
                 method_ref,
