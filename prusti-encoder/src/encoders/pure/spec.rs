@@ -169,20 +169,14 @@ impl TaskEncoder for MirSpecEnc {
                             // note that we cannot use the `LocalDef`'s `impure_snap`, as its type is the
                             // generator itself due to the `DefId` belonging to the generator body
                             let pin_snap = pin_ty.ref_to_snap(vcx, local_defs.locals[1_u32.into()].local_ex);
-                            let predicate::PredicateEncData::StructLike(pin_domain_data) = pin_ty.generic_predicate.specifics else {
-                                panic!("expected pin domain to be struct-like");
-                            };
-                            let fields = pin_domain_data.snap_data.field_access;
+                            let fields = pin_ty.generic_predicate.expect_structlike().snap_data.field_access;
                             assert_eq!(fields.len(), 1, "expected pin domain to have 1 field");
                             let ref_snap = fields[0].read.apply(vcx, [pin_snap]);
                             let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(ref_ty).unwrap();
                             caster.cast_to_concrete_if_possible(vcx, ref_snap)
                         };
                         let ref_ty = deps.require_ref::<RustTyPredicatesEnc>(ref_ty)?;
-                        let predicate::PredicateEncData::Ref(ref_domain_data) = ref_ty.generic_predicate.specifics else {
-                            panic!("expected Ref domain to be Ref");
-                        };
-                        let fields = ref_domain_data.snap_data.field_access;
+                        let fields = ref_ty.generic_predicate.expect_ref().snap_data.field_access;
                         assert_eq!(fields.len(), 1, "expected ref domain to have 1 field");
                         let gen_snap = fields[0].read.apply(vcx, [ref_snap]);
                         let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(gen_ty).unwrap();

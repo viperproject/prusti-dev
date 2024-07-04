@@ -198,11 +198,6 @@ where
                 };
                 let n_upvars = upvar_tys.len();
                 assert_eq!(fields.len(), 2 * upvar_tys.len());
-                let to_bool = deps
-                    .require_ref::<RustTyPredicatesEnc>(vcx.tcx().types.bool)?
-                    .generic_predicate
-                    .expect_prim()
-                    .snap_to_prim;
                 let gen_snap = local_defs.locals[1_u32.into()].impure_snap;
                 for (i, ty) in upvar_tys.iter().enumerate() {
                     let field = fields[i].read.apply(vcx, [gen_snap]);
