@@ -559,7 +559,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             })
             .unwrap_or_else(|| self.unreachable());
 
-        println!("done calling async stub\n");
         assert!(self.current_terminator.replace(terminator).is_none());
     }
 }
