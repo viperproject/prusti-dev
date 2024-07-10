@@ -1,7 +1,7 @@
 # Printing Counterexamples
 
 Prusti can print counterexamples for verification failures, i.e., values for variables that violate some assertion or pre-/postcondition.
-This can be enabled by setting [`counterexample = true`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#counterexample) in the `Prusti.toml` file, or with the `PRUSTI_COUNTEREXAMPLES=true` environment variable.
+This can be enabled by setting [`counterexample = true`](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#counterexample) in the `Prusti.toml` file, or with the `PRUSTI_COUNTEREXAMPLE=true` environment variable.
 
 For example:
 ```rust,noplaypen
