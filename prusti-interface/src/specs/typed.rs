@@ -205,6 +205,13 @@ impl DefSpecificationMap {
     }
 }
 
+#[derive(Debug, Copy, Clone, TyEncodable, TyDecodable)]
+pub enum ProcedureKind {
+    Method,
+    AsyncConstructor,
+    AsyncPoll,
+}
+
 #[derive(Debug, Clone, TyEncodable, TyDecodable)]
 pub struct ProcedureSpecification {
     // DefId of fn signature to which the spec was attached.
@@ -218,6 +225,7 @@ pub struct ProcedureSpecification {
     pub trusted: SpecificationItem<bool>,
     pub terminates: SpecificationItem<Option<LocalDefId>>,
     pub purity: SpecificationItem<Option<DefId>>, // for type-conditional spec refinements
+    pub proc_kind: ProcedureKind,
 }
 
 impl ProcedureSpecification {
@@ -234,6 +242,7 @@ impl ProcedureSpecification {
             trusted: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
             purity: SpecificationItem::Inherent(None),
+            proc_kind: ProcedureKind::Method,
         }
     }
 }
@@ -527,6 +536,14 @@ impl SpecGraph<ProcedureSpecification> {
             .for_each(|s| s.kind.set(kind));
     }
 
+    /// Sets the [ProcedureKind] for the base spec and all constrained specs.
+    pub fn set_proc_kind(&mut self, proc_kind: ProcedureKind) {
+        self.base_spec.proc_kind = proc_kind;
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.proc_kind = proc_kind);
+    }
+
     /// Lazily gets/creates a constrained spec.
     /// If the constrained spec does not yet exist, the base spec serves as a template for
     /// the newly created constrained spec.
@@ -808,6 +825,7 @@ impl Refinable for ProcedureSpecification {
             trusted: self.trusted.refine(&other.trusted),
             terminates: self.terminates.refine(&other.terminates),
             purity: self.purity.refine(&other.purity),
+            proc_kind: self.proc_kind,
         }
     }
 }
