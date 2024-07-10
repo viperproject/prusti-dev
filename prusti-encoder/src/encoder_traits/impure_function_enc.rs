@@ -209,40 +209,9 @@ where
 
             // in the case of a future constructor, we also ensure that the generator's upvar and
             // ghost fields are set correctly
-            let fut_cons = {
-                let ret_ty = {
-                    if let Some(local_def_id) = def_id.as_local() {
-                        // if the DefId is local, we can check the return type via its body
-                        let body = vcx.body_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
-                        body.local_decls[0_u32.into()].ty
-                    } else {
-                        // otherwise, we can check `fn_sig`, as it cannot be a closure
-                        let param_env = vcx.tcx().param_env(caller_def_id.unwrap_or(def_id));
-                        let sig = vcx.tcx()
-                            .subst_and_normalize_erasing_regions(substs, param_env, vcx.tcx().fn_sig(def_id));
-                        sig.skip_binder().output()
-                    }
-                };
-                if let ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { def_id: alias_def_id, .. }) = ret_ty.kind() {
-                    let alias_ty = vcx.tcx().type_of(alias_def_id).skip_binder();
-                    if let ty::TyKind::Generator(gen_def_id, ..) = alias_ty.kind() {
-                        if vcx.tcx().generator_is_async(*gen_def_id) {
-                            Some(alias_ty)
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            };
-            if let Some(gen_ty) = fut_cons {
-                println!("{def_id:?} is a future constructor");
-                let gen_domain = deps.require_ref::<RustTyPredicatesEnc>(gen_ty)?;
-                // let fields = gen_ty.gen_domain_
-                let fields = gen_domain.generic_predicate.expect_structlike().snap_data.field_access;
+            if vcx.tcx().asyncness(def_id).is_async() && !vcx.tcx().generator_is_async(def_id) {
+                let gen_domain = local_defs.locals[0_u32.into()].ty;
+                let fields = gen_domain.expect_structlike().snap_data.field_access;
                 let n_upvars = local_defs.arg_count;
                 assert_eq!(fields.len(), 2 * n_upvars);
                 let gen_snap = local_defs.locals[0_u32.into()].impure_snap;
