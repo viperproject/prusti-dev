@@ -33,7 +33,7 @@ use typed::SpecIdRef;
 
 use crate::specs::{
     external::ExternSpecResolver,
-    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
+    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem, ProcedureKind},
 };
 use prusti_specs::specifications::common::SpecificationId;
 
@@ -204,9 +204,19 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             let Some(parent_spec) = self.procedure_specs.get(parent_id) else {
                 continue;
             };
+
+            // mark parent as an async constructor
+            def_spec
+                .proc_specs
+                .get_mut(&parent_id.to_def_id())
+                .expect("async parent must have entry in DefSpecMap")
+                .set_proc_kind(ProcedureKind::AsyncConstructor);
+            println!("Marking:\n\t* {local_id:?} as Poll\n\t* {parent_id:?} as Constructor\n");
+
             // the spec is then essentially inherited from the parent,
             // but for now, only postconditions and trusted are allowed
             let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
+            spec.set_proc_kind(ProcedureKind::AsyncPoll);
             spec.set_kind(parent_spec.into());
             spec.set_trusted(parent_spec.trusted);
             for postcondition in &parent_spec.async_post_spec_id_refs {
@@ -538,6 +548,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             // we can get the parent's LocalDefId via its associated body
             let (parent_def_id, _) = hir_map::associated_body(parent)
                 .expect("async-fn-generator parent should have a body");
+            assert!(self.env.tcx().asyncness(parent_def_id.to_def_id()).is_async(), "found async generator with non-async parent");
+            assert!(!self.env.tcx().generator_is_async(parent_def_id.to_def_id()), "found async generator whose parent is also async generator");
             let old = self.async_parent.insert(local_id, parent_def_id);
             if old.is_some() {
                 panic!("parent {:?} of async-generator {:?} already has parent", old.unwrap(), local_id);
