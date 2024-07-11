@@ -211,7 +211,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 .get_mut(&parent_id.to_def_id())
                 .expect("async parent must have entry in DefSpecMap")
                 .set_proc_kind(ProcedureKind::AsyncConstructor);
-            println!("Marking:\n\t* {local_id:?} as Poll\n\t* {parent_id:?} as Constructor\n");
 
             // the spec is then essentially inherited from the parent,
             // but for now, only postconditions and trusted are allowed
