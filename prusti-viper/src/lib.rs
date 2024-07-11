@@ -322,14 +322,15 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::GotoIf<'vir> {
                 target.statements.iter()
                     .for_each(|v| vec_then.push(v.to_viper(ctx)));
                 vec_then.push(ctx.ast.goto(&target.label.name()));
-                ctx.ast.if_stmt(
+                let stmt = ctx.ast.if_stmt(
                     ctx.ast.eq_cmp(
                         value,
                         target.value.to_viper(ctx),
                     ),
                     ctx.ast.seqn(&vec_then, &[]),
                     else_,
-                )
+                );
+                ctx.ast.seqn(&[stmt], &[])
             }))
     }
 }
