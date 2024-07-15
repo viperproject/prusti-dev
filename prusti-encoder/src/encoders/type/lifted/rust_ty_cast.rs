@@ -61,7 +61,7 @@ impl<'vir> RustTyGenericCastEncOutput<'vir, CastFunctionsOutputRef<'vir>> {
         vcx: &'vir vir::VirCtxt<'tcx>,
         snap: vir::ExprGen<'vir, Curr, Next>,
     ) -> vir::ExprGen<'vir, Curr, Next> {
-        CastTypePure::cast_to_generic_if_necessary(&self.cast, vcx, snap)
+        CastTypePure::cast_to_generic_if_necessary(&self.cast, vcx, snap, self.ty_args)
     }
 }
 
