@@ -485,6 +485,110 @@ pub fn prusti_refutation(tokens: TokenStream) -> TokenStream {
     generate_expression_closure(&AstRewriter::process_prusti_refutation, tokens)
 }
 
+
+pub fn suspension_point(tokens: TokenStream) -> TokenStream {
+    // parse the expression inside the suspension point,
+    // making sure it is just an await (possibly with attributes)
+    let expr: syn::Expr = handle_result!(syn::parse2(tokens));
+    let expr_span = expr.span();
+    let syn::Expr::Await(mut await_expr) = expr else {
+        // TODO: more precise error message with span?
+        panic!("suspension-point must contain a single await-expression");
+    };
+
+    let mut label: Option<usize> = None;
+    let mut on_exit: Vec<TokenStream> = Vec::new();
+    let mut on_entry: Vec<TokenStream> = Vec::new();
+
+    // extract label, on-exit, and on-entry conditions from the attributes
+    for attr in await_expr.attrs {
+        if !matches!(attr.style, syn::AttrStyle::Outer) {
+            // TODO: more precise error message with span?
+            panic!("only outer attributes allowed in suspension-point");
+        }
+        if !(attr.path.segments.len() == 1
+            || (attr.path.segments.len() == 2 && attr.path.segments[0].ident == "prusti_contracts"))
+        {
+            // TODO: more precise error message with span?
+            panic!("invalid attribute in suspension-point");
+        }
+        let name = attr.path.segments[attr.path.segments.len() - 1]
+            .ident
+            .to_string();
+        // labels
+        if name == "label" {
+            let [proc_macro2::TokenTree::Group(group)] =
+                &attr.tokens.into_iter().collect::<Vec<_>>()[..]
+            else {
+                // TODO: more precise error message with span?
+                panic!("expected group with a single integer as label");
+            };
+            let [proc_macro2::TokenTree::Literal(lit)] =
+                &group.stream().into_iter().collect::<Vec<_>>()[..]
+            else {
+                // TODO: more precise error message with span?
+                panic!("expected single integer as label");
+            };
+            let lbl_num: usize = lit
+                .to_string()
+                .parse()
+                .expect("expected single integer as label");
+            if label.replace(lbl_num).is_some() {
+                // TODO: more precise error message with span?
+                panic!("can only provide one label");
+            }
+        // on-exit conditions
+        } else if name == "on_exit" {
+            on_exit.push(attr.tokens);
+        // on-entry conditions
+        } else if name == "on_entry" {
+            on_entry.push(attr.tokens);
+        // all other attributes are not permitted
+        } else {
+            // TODO: more precise error message with span?
+            panic!("invalid attribute in suspension-point");
+        }
+    }
+
+    let label = label.unwrap_or_else(|| panic!("suspension-point must have a label"));
+
+    // generate spec-items for each condition
+    let create_spec_item = |tokens: TokenStream| -> syn::Result<syn::ExprClosure> {
+        let expr = parse_prusti(tokens)?;
+        Ok(parse_quote_spanned! {expr_span=>
+            || -> bool {
+                let val: bool = #expr;
+                val
+            }
+        })
+    };
+
+    let on_exit: syn::Result<Vec<syn::ExprClosure>> = on_exit
+        .into_iter()
+        .map(create_spec_item)
+        .collect();
+    let on_exit = handle_result!(on_exit);
+
+    let on_entry: syn::Result<Vec<syn::ExprClosure>> = on_entry
+        .into_iter()
+        .map(create_spec_item)
+        .collect();
+    let on_entry = handle_result!(on_entry);
+
+    // return just the await-expression
+    await_expr.attrs = Vec::new();
+    quote_spanned! { await_expr.span()=>
+        {
+            #[allow(unused_parens)]
+            ::prusti_contracts::suspension_point_on_exit_marker(#label, (#(#on_exit),*));
+            let res = #await_expr;
+            #[allow(unused_parens)]
+            ::prusti_contracts::suspension_point_on_entry_marker(#label, (#(#on_entry),*));
+            res
+        }
+    }
+}
+
 /// Generates the TokenStream encoding an expression using prusti syntax
 /// Used for body invariants, assertions, and assumptions
 fn generate_expression_closure(
