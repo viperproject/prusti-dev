@@ -580,10 +580,10 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
     quote_spanned! { await_expr.span()=>
         {
             #[allow(unused_parens)]
-            ::prusti_contracts::suspension_point_on_exit_marker(#label, (#(#on_exit),*));
+            ::prusti_contracts::suspension_point_on_exit_marker(#label, (#(#on_exit),*,));
             let res = #await_expr;
             #[allow(unused_parens)]
-            ::prusti_contracts::suspension_point_on_entry_marker(#label, (#(#on_entry),*));
+            ::prusti_contracts::suspension_point_on_entry_marker(#label, (#(#on_entry),*,));
             res
         }
     }
