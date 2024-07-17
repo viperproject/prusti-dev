@@ -391,7 +391,8 @@ impl TaskEncoder for PredicateEnc {
             // FIXME: these are empty dummy domains to permit encoding async code
             TyKind::FnPtr(_)
             | TyKind::GeneratorWitness(_)
-            | TyKind::RawPtr(_) => {
+            | TyKind::RawPtr(_)
+            | TyKind::Closure(..) => {
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_struct_ref(None, snap_data);
                 deps.emit_output_ref(

@@ -291,7 +291,8 @@ impl TaskEncoder for DomainEnc {
                 // FIXME: these are empty dummy domains to permit encoding async code
                 TyKind::FnPtr(_)
                 | TyKind::GeneratorWitness(_)
-                | TyKind::RawPtr(_) => {
+                | TyKind::RawPtr(_)
+                | TyKind::Closure(..) => {
                     let mut enc = DomainEncData::new(vcx, task_key, Vec::new(), deps);
                     enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
                     let specifics = enc.mk_struct_specifics(Vec::new());

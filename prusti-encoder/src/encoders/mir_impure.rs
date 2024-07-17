@@ -773,7 +773,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
                     // future constructors
                     mir::Rvalue::Aggregate(
-                        box kind@mir::AggregateKind::Generator(def_id, params, movbl), operands
+                        box kind@mir::AggregateKind::Generator(def_id, params, movbl),
+                        operands
                     ) if self.vcx.tcx().generator_is_async(*def_id) => {
                         let generator_args = params.as_generator();
                         let generator_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
@@ -833,7 +834,24 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             let enc_ref_ty = self.deps.require_ref::<crate::encoders::PredicateEnc>(ref_ty).unwrap();
                             enc_ref_ty.snapshot
                         };
-                        self.vcx.mk_local_ex("DummyRefLocal", ref_domain)
+                        let name = match borrow_kind {
+                            mir::BorrowKind::Shared | mir::BorrowKind::Shallow => "DummyRefLocal",
+                            mir::BorrowKind::Mut { .. } => "DummyRefMutLocal",
+                        };
+                        self.vcx.mk_local_ex(name, ref_domain)
+                    }
+                    // FIXME: this is only a dummy to inspect generated async code
+                    mir::Rvalue::Aggregate(
+                        box mir::AggregateKind::Closure(def_id, args),
+                        fields) => {
+                        let closure_ty = self.vcx.tcx().type_of(def_id).skip_binder();
+                        let closure_ty = self.deps.require_ref::<RustTyPredicatesEnc>(closure_ty).unwrap();
+                        let snap_cons = closure_ty
+                            .generic_predicate
+                            .expect_structlike()
+                            .snap_data
+                            .field_snaps_to_snap;
+                        snap_cons.apply(self.vcx, &[])
                     }
 
                     //mir::Rvalue::Discriminant(Place<'vir>) => {}

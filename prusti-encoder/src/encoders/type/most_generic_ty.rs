@@ -56,6 +56,8 @@ impl<'tcx> MostGenericTy<'tcx> {
                 }
             }
             TyKind::FnPtr(_) => String::from("FnPtr"),
+            TyKind::Closure(def_id, _) =>
+                vir::vir_format_identifier!(vcx, "Closure_{}", vcx.tcx().def_path_str(def_id)).to_str().to_string(),
             other => unimplemented!("get_domain_base_name for {:?}", other),
         }
     }
@@ -117,7 +119,8 @@ impl<'tcx> MostGenericTy<'tcx> {
             TyKind::RawPtr(_)
             | TyKind::Str
             | TyKind::FnPtr(_)
-            | TyKind::GeneratorWitness(_) => Vec::new(),
+            | TyKind::GeneratorWitness(_)
+            | TyKind::Closure(..)=> Vec::new(),
             other => todo!("generics for {:?}", other),
         }
     }
@@ -277,6 +280,30 @@ pub fn extract_type_params<'tcx>(
             let ty = tcx.mk_ty_from_kind(TyKind::RawPtr(ty::TypeAndMut { ty, mutbl }));
             (MostGenericTy(ty), Vec::new())
             // (MostGenericTy(ty), vec![orig])
+        }
+        TyKind::Closure(def_id, args) => {
+            let args = args.as_closure();
+            let unit_ty = tcx.mk_ty_from_kind(TyKind::Tuple(ty::List::empty()));
+            let new_fn_sig = {
+                let TyKind::FnPtr(old_sig) = args.sig_as_fn_ptr_ty().kind() else {
+                    panic!("ClosureArg's sig_as_fn_ptr_ty returned non-FnPtr")
+                };
+                let sig = ty::FnSig {
+                    inputs_and_output: tcx.mk_type_list(&[unit_ty]),
+                    c_variadic: false,
+                    unsafety: hir::Unsafety::Normal,
+                    abi: old_sig.skip_binder().abi,
+                };
+                tcx.mk_ty_from_kind(TyKind::FnPtr(ty::Binder::dummy(sig)))
+            };
+            let new_args = ty::ClosureArgs::new(tcx, ty::ClosureArgsParts {
+                parent_args: &[],
+                closure_kind_ty: args.kind_ty(),
+                closure_sig_as_fn_ptr_ty: new_fn_sig,
+                tupled_upvars_ty: unit_ty,
+            });
+            let ty = tcx.mk_ty_from_kind(TyKind::Closure(def_id, new_args.args));
+            (MostGenericTy(ty), Vec::new())
         }
         _ => todo!("extract_type_params for {:?}", ty),
     }
