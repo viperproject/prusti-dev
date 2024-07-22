@@ -495,6 +495,7 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
         // TODO: more precise error message with span?
         panic!("suspension-point must contain a single await-expression");
     };
+    let future = &await_expr.base;
 
     let mut label: Option<usize> = None;
     let mut on_exit: Vec<TokenStream> = Vec::new();
@@ -579,9 +580,10 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
     await_expr.attrs = Vec::new();
     quote_spanned! { await_expr.span()=>
         {
+            let fut = #future;
             #[allow(unused_parens)]
             ::prusti_contracts::suspension_point_on_exit_marker(#label, (#(#on_exit),*,));
-            let res = #await_expr;
+            let res = fut.await;
             #[allow(unused_parens)]
             ::prusti_contracts::suspension_point_on_entry_marker(#label, (#(#on_entry),*,));
             res
