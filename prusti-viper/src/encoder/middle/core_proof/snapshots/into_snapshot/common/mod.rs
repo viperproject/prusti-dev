@@ -1268,19 +1268,19 @@ pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
                 assert_eq!(args.len(), 2);
                 let arg1 = args.pop().unwrap();
                 let arg2 = args.pop().unwrap();
+                let arg1 = lowerer.obtain_constant_value(
+                    app.arguments[0].get_type(),
+                    arg1,
+                    app.position,
+                )?;
+                let arg2 = lowerer.obtain_constant_value(
+                    app.arguments[1].get_type(),
+                    arg2,
+                    app.position,
+                )?;
                 let expression = if config::smt_use_nonlinear_arithmetic_solver() {
                     vir_low::Expression::multiply(arg1, arg2)
                 } else {
-                    let arg1 = lowerer.obtain_constant_value(
-                        app.arguments[0].get_type(),
-                        arg1,
-                        app.position,
-                    )?;
-                    let arg2 = lowerer.obtain_constant_value(
-                        app.arguments[1].get_type(),
-                        arg2,
-                        app.position,
-                    )?;
                     // let multiply_call = lowerer.create_domain_func_app(
                     //     "ArithmeticWrappers",
                     //     "multiply_wrapper",
