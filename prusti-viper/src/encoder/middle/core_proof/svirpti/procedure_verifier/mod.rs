@@ -255,41 +255,41 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                         self.comment(comment)?;
                     }
                     self.comment(&format!("axiom: {}", axiom.name))?;
-                    if matches!(
-                        axiom.name.as_str(),
-                        "address_constructor$injectivity2"
-                            | "address_range_contains$definition"
-                            | "address_constructor$injectivity1"
-                            | "mul_wrapper$commutativity"
-                            // | "mul_wrapper$zero"
-                            | "mul_wrapper$non_negative_range"
-                            | "mul_wrapper$positive_increases"
-                            | "mul_wrapper$definition"
-                            | "offset_address$definition"
-                            | "m_std$$ptr$$mut_ptr$$$openang$impl$space$$star$mut$space$T$closeang$$$add$struct$m_T$$$definitional_axiom"
-                            | "intersect_singleton$"
-                            | "constructor$Snap$Bool$$top_down_injectivity_axiom"
-                            | "LeCmp_Unbounded$eval_axiom"
-                            | "GtCmp_Usize$simplification_axiom"
-                            | "GtCmp_Usize$eval_axiom"
-                            // | "Snap$Bool$$validity_axiom_bottom_up_alternative"
-                            // | "LeCmp_Unbounded$simplification_axiom"
-                            | "SetConstructor1ArgumentsContained"
-                            | "SetConstructor2ArgumentsContained"
-                            | "Snap$ptr$struct$m_T$$$validity_axiom_bottom_up_alternative"
-                            | "constructor$Snap$ptr$struct$m_T$$$top_down_injectivity_axiom"
-                            | "constructor$Snap$struct$m_T$$$top_down_injectivity_axiom"
-                            | "Snap$Usize$$validity_axiom_bottom_up_alternative"
-                            | "constructor$Snap$Usize$$top_down_injectivity_axiom"
-                            | "constructor$Snap$Tuple$$$top_down_injectivity_axiom"
-                            // | "Snap$Unbounded$$validity_axiom_bottom_up_alternative"
-                            | "constructor$Snap$Unbounded$$top_down_injectivity_axiom"
+                    // if matches!(
+                    //     axiom.name.as_str(),
+                    //     "address_constructor$injectivity2"
+                    //         | "address_range_contains$definition"
+                    //         | "address_constructor$injectivity1"
+                    //         | "mul_wrapper$commutativity"
+                    //         // | "mul_wrapper$zero"
+                    //         | "mul_wrapper$non_negative_range"
+                    //         | "mul_wrapper$positive_increases"
+                    //         | "mul_wrapper$definition"
+                    //         | "offset_address$definition"
+                    //         | "m_std$$ptr$$mut_ptr$$$openang$impl$space$$star$mut$space$T$closeang$$$add$struct$m_T$$$definitional_axiom"
+                    //         | "intersect_singleton$"
+                    //         | "constructor$Snap$Bool$$top_down_injectivity_axiom"
+                    //         | "LeCmp_Unbounded$eval_axiom"
+                    //         | "GtCmp_Usize$simplification_axiom"
+                    //         | "GtCmp_Usize$eval_axiom"
+                    //         // | "Snap$Bool$$validity_axiom_bottom_up_alternative"
+                    //         // | "LeCmp_Unbounded$simplification_axiom"
+                    //         | "SetConstructor1ArgumentsContained"
+                    //         | "SetConstructor2ArgumentsContained"
+                    //         | "Snap$ptr$struct$m_T$$$validity_axiom_bottom_up_alternative"
+                    //         | "constructor$Snap$ptr$struct$m_T$$$top_down_injectivity_axiom"
+                    //         | "constructor$Snap$struct$m_T$$$top_down_injectivity_axiom"
+                    //         | "Snap$Usize$$validity_axiom_bottom_up_alternative"
+                    //         | "constructor$Snap$Usize$$top_down_injectivity_axiom"
+                    //         | "constructor$Snap$Tuple$$$top_down_injectivity_axiom"
+                    //         // | "Snap$Unbounded$$validity_axiom_bottom_up_alternative"
+                    //         | "constructor$Snap$Unbounded$$top_down_injectivity_axiom"
 
-                    ) {
-                        self.comment("optimised away")?;
-                    } else {
+                    // ) {
+                    //     self.comment("optimised away")?;
+                    // } else {
                         self.assume(&axiom.body)?;
-                    }
+                    // }
                 }
             }
             for rewrite_rule in &domain.rewrite_rules {
