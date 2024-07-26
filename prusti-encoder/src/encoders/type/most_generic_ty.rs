@@ -228,12 +228,6 @@ pub fn extract_type_params<'tcx>(
             // note that the upvar types given in the generic arguments might already contain
             // substitutions for some of the async item's type parameters, so we use the `TyCtxt`
             // to obtain the generator's type without any substitutions
-            let placeholder_upvars = tcx.mk_ty_from_kind(TyKind::Tuple(
-                tcx.mk_type_list_from_iter(
-                    (0..args.upvar_tys().len())
-                        .map(|i| to_placeholder(tcx, Some(i)))
-                )
-            ));
             let generic_upvars_ty = {
                 let gen_ty = tcx.type_of(def_id).skip_binder();
                 let TyKind::Generator(_, args, _) = gen_ty.kind() else {
@@ -282,28 +276,44 @@ pub fn extract_type_params<'tcx>(
             // (MostGenericTy(ty), vec![orig])
         }
         TyKind::Closure(def_id, args) => {
+            // analogous to generator
             let args = args.as_closure();
-            let unit_ty = tcx.mk_ty_from_kind(TyKind::Tuple(ty::List::empty()));
-            let new_fn_sig = {
-                let TyKind::FnPtr(old_sig) = args.sig_as_fn_ptr_ty().kind() else {
-                    panic!("ClosureArg's sig_as_fn_ptr_ty returned non-FnPtr")
+            let parent_args = args
+                .parent_args()
+                .into_iter()
+                .flat_map(|arg| arg.as_type())
+                .collect::<Vec<_>>();
+            // sanity-checks
+            let id_args = ty::List::identity_for_item(tcx, def_id);
+            {
+                assert_eq!(id_args.len(), args.parent_args().len() + 3);
+                let id = id_args.into_iter().flat_map(ty::GenericArg::as_type).collect::<Vec<_>>();
+                assert_eq!(id.len(), parent_args.len() + 3);
+            }
+            let parent_id: Vec<ty::GenericArg> = id_args
+                .into_iter()
+                .flat_map(ty::GenericArg::as_type)
+                .take(parent_args.len())
+                .map(|arg| arg.into())
+                .collect();
+            let most_generic_args = {
+                let closure_ty = tcx.type_of(def_id).skip_binder();
+                let TyKind::Closure(_, args) = closure_ty.kind() else {
+                    panic!("TyCtxt::type_of returned non-closure type for closure DefId")
                 };
-                let sig = ty::FnSig {
-                    inputs_and_output: tcx.mk_type_list(&[unit_ty]),
-                    c_variadic: false,
-                    unsafety: hir::Unsafety::Normal,
-                    abi: old_sig.skip_binder().abi,
-                };
-                tcx.mk_ty_from_kind(TyKind::FnPtr(ty::Binder::dummy(sig)))
+                args.as_closure()
             };
-            let new_args = ty::ClosureArgs::new(tcx, ty::ClosureArgsParts {
-                parent_args: &[],
-                closure_kind_ty: args.kind_ty(),
-                closure_sig_as_fn_ptr_ty: new_fn_sig,
-                tupled_upvars_ty: unit_ty,
-            });
-            let ty = tcx.mk_ty_from_kind(TyKind::Closure(def_id, new_args.args));
-            (MostGenericTy(ty), Vec::new())
+            let id_parts = ty::ClosureArgsParts {
+                parent_args: tcx.mk_args(&parent_id),
+                closure_kind_ty: most_generic_args.kind_ty(),
+                closure_sig_as_fn_ptr_ty: most_generic_args.sig_as_fn_ptr_ty(),
+                tupled_upvars_ty: most_generic_args.tupled_upvars_ty(),
+            };
+            let id_args = ty::ClosureArgs::new(tcx, id_parts);
+            let ty = tcx.mk_ty_from_kind(
+                TyKind::Closure(def_id, id_args.args)
+            );
+            (MostGenericTy(ty), parent_args)
         }
         _ => todo!("extract_type_params for {:?}", ty),
     }

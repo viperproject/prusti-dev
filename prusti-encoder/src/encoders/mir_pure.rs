@@ -783,13 +783,17 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             }
             mir::ProjectionElem::Field(field_idx, ty) => {
                 match place_ty.ty.kind() {
-                    TyKind::Closure(_def_id, args) => {
-                        let upvars = args.as_closure().upvar_tys().iter().collect::<Vec<_>>().len();
-                        let tuple_ref = self.deps.require_local::<ViperTupleEnc>(
-                            upvars,
-                        ).unwrap();
-                       (tuple_ref.mk_elem(self.vcx, expr, field_idx.as_usize()), place_ref)
-                    }
+                    // NOTE: this special treatment of closure fields belongs to a different
+                    // (currently unimplemented) encoding of closures and does not work
+                    // with the current encoding of closures as wrapper struct-likes for their
+                    // upvars
+                    // TyKind::Closure(_def_id, args) => {
+                    //     let upvars = args.as_closure().upvar_tys().iter().collect::<Vec<_>>().len();
+                    //     let tuple_ref = self.deps.require_local::<ViperTupleEnc>(
+                    //         upvars,
+                    //     ).unwrap();
+                    //    (tuple_ref.mk_elem(self.vcx, expr, field_idx.as_usize()), place_ref)
+                    // }
                     tykind => {
                         let e_ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
                         let struct_like = e_ty

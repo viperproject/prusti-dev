@@ -15,7 +15,7 @@ use prusti_rustc_interface::{
 //    SsaAnalysis,
 //};
 use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
-use vir::{MethodIdent, UnknownArity};
+use vir::{MethodIdent, UnknownArity, Reify};
 
 pub struct MirImpureEnc;
 
@@ -116,6 +116,7 @@ pub struct ImpureEncVisitor<'vir, 'enc, E: TaskEncoder>
     pub monomorphize: bool,
     pub deps: &'enc mut TaskEncoderDependencies<'vir, E>,
     pub def_id: DefId,
+    pub substs: ty::GenericArgsRef<'vir>,
     pub local_decls: &'enc mir::LocalDecls<'vir>,
     //ssa_analysis: SsaAnalysis,
     pub fpcs_analysis: FreePcsAnalysis<'enc, 'vir>,
@@ -843,7 +844,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     // FIXME: this is only a dummy to inspect generated async code
                     mir::Rvalue::Aggregate(
                         box mir::AggregateKind::Closure(def_id, args),
-                        fields) => {
+                        fields
+                    ) => {
                         let closure_ty = self.vcx.tcx().type_of(def_id).skip_binder();
                         let closure_ty = self.deps.require_ref::<RustTyPredicatesEnc>(closure_ty).unwrap();
                         let snap_cons = closure_ty
@@ -851,7 +853,11 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             .expect_structlike()
                             .snap_data
                             .field_snaps_to_snap;
-                        snap_cons.apply(self.vcx, &[])
+                        let fields = fields
+                            .iter()
+                            .map(|f| self.encode_operand_snap(f))
+                            .collect::<Vec<_>>();
+                        snap_cons.apply(self.vcx, &fields)
                     }
 
                     //mir::Rvalue::Discriminant(Place<'vir>) => {}
@@ -980,8 +986,105 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     spec.kind.is_pure().unwrap_or_default()
                 ).unwrap_or_default();
 
+                // encode suspension-point on_exit/on_entry markers as assert/assume instead of method calls
+                let def_path = self.vcx.tcx().def_path_str(func_def_id);
+                let suspension_point_marker = match def_path.as_str() {
+                    "prusti_contracts::suspension_point_on_exit_marker" => Some(true),
+                    "prusti_contracts::suspension_point_on_entry_marker" => Some(false),
+                    _ => None,
+                };
+                if let Some(is_on_exit) = suspension_point_marker {
+                    // generate assert/assume for each closure of the tuple passed as second arg
+                    let closures_local = {
+                        assert_eq!(args.len(), 2, "expected 2 arguments to suspension-point marker");
+                        let mir::Operand::Move(place) = &args[1] else {
+                            panic!("expected closure tuple argument to suspension-point to be moved")
+                        };
+                        assert!(
+                            place.projection.is_empty(),
+                            "expected no projections on closure tuple argument to suspension-point marker"
+                        );
+                        place.local
+                    };
+                    let closure_def_ids = {
+                        let ty::TyKind::Tuple(closures) = self.local_decls[closures_local].ty.kind() else {
+                            panic!("expected second argument to suspension-point marker to be tuple")
+                        };
+                        closures
+                            .into_iter()
+                            .map(|closure_ty| match closure_ty.kind() {
+                                ty::TyKind::Closure(def_id, _) => def_id,
+                                _ => panic!("expected second argument to suspension-point marker to be tuple of closures")
+                            })
+                    };
+
+                    let closure_fields = {
+                        let tuple_ty = self.local_defs.locals[closures_local].ty;
+                        tuple_ty.expect_structlike().snap_data.field_access
+                    };
+                    let tuple_expr = self.local_defs.locals[closures_local].impure_snap;
+                    for (i, def_id) in closure_def_ids.enumerate() {
+                        // construct a (pure) reference to the closure to provide the exit/entry
+                        // predicate spec method body with
+                        let closure_ref = {
+                            let closure_ty = self.vcx.tcx().type_of(def_id).skip_binder();
+                            let caster = self.deps.require_local::<RustTyCastersEnc<CastTypePure>>(closure_ty).unwrap();
+                            let ref_ty = self.vcx.tcx().mk_ty_from_kind(ty::TyKind::Ref(
+                                ty::Region::new_from_kind(self.vcx.tcx(), ty::RegionKind::ReErased),
+                                closure_ty,
+                                mir::Mutability::Not,
+                            ));
+                            let ref_ty = self.deps.require_ref::<RustTyPredicatesEnc>(ref_ty).unwrap();
+                            let ref_cons = ref_ty.generic_predicate.expect_ref().snap_data.field_snaps_to_snap;
+                            let closure = closure_fields[i].read.apply(self.vcx, [tuple_expr]);
+                            let closure_ref = ref_cons.apply(self.vcx, &[closure]);
+                            closure_ref
+                        };
+                        let expr = self.deps
+                            .require_local::<crate::encoders::MirPureEnc>(
+                                crate::encoders::MirPureEncTask {
+                                    encoding_depth: 0,
+                                    kind: crate::encoders::PureKind::Closure,
+                                    parent_def_id: *def_id,
+                                    param_env: self.vcx.tcx().param_env(def_id),
+                                    substs: self.substs,
+                                    // TODO: should this be `def_id` or `caller_def_id`
+                                    caller_def_id: Some(self.def_id),
+                                },
+                            )
+                            .unwrap()
+                            .expr;
+                        let expr = expr.reify(self.vcx, (*def_id, self.vcx.alloc_slice(&[closure_ref])));
+                        let to_bool = self.deps
+                            .require_ref::<RustTyPredicatesEnc>(self.vcx.tcx().types.bool).unwrap()
+                            .generic_predicate
+                            .expect_prim()
+                            .snap_to_prim;
+                        let expr = to_bool.apply(self.vcx, [expr]);
+                        let stmt_kind = if is_on_exit {
+                            vir::StmtGenData::Exhale
+                        } else {
+                            vir::StmtGenData::Inhale
+                        };
+                        self.stmt(self.vcx.alloc(stmt_kind(expr)));
+                    }
+
+                    // and then just proceed with the next BB
+                    let terminator = target
+                        .map(|target| {
+                            self.vcx.mk_goto_stmt(
+                                self.vcx
+                                    .alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
+                            )
+                        })
+                        .unwrap_or_else(|| self.unreachable());
+                    assert!(self.current_terminator.replace(terminator).is_none());
+                    return;
+                }
+
+                // intercept some calls that are necessary for async code,
+                // but need to be encoded differently
                 if let Some(trait_def_id) = self.vcx.tcx().trait_of_item(func_def_id) {
-                    let def_path = self.vcx.tcx().def_path_str(func_def_id);
                     let env_query = EnvQuery::new(self.vcx.tcx());
                     let (resolved_def_id, resolved_params) = env_query.resolve_method_call(self.def_id, func_def_id, caller_substs);
                     match self.vcx.tcx().def_path_str(func_def_id).as_ref() {

@@ -270,7 +270,6 @@ impl TaskEncoder for DomainEnc {
                     // the generics of that struct are given by the parent arguments
                     // (i.e. the async fn's and its parent's)
                     let gen_args = params.as_generator();
-                    let upvar_tys = gen_args.upvar_tys();
                     let generics = gen_args
                         .parent_args()
                         .into_iter()
@@ -288,11 +287,31 @@ impl TaskEncoder for DomainEnc {
                     let specifics = enc.mk_struct_specifics(fields?);
                     Ok((Some(enc.finalize(task_key)), specifics))
                 },
+                // FIXME: for now, we encode closures as wrapper struct-likes for their upvars
+                // in order to use them for async specifications
+                TyKind::Closure(def_id, args) => {
+                    // closures are encoded like a struct with one field per upvar
+                    let args = args.as_closure();
+                    let generics = args
+                        .parent_args()
+                        .into_iter()
+                        .filter_map(|arg| arg.as_type())
+                        .map(|ty| deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty).unwrap().expect_generic())
+                        .collect::<Vec<_>>();
+                    let mut enc = DomainEncData::new(vcx, task_key, generics, deps);
+                    enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
+                    let fields: Result<Vec<FieldTy>, _> = args
+                        .upvar_tys()
+                        .iter()
+                        .map(|ty| FieldTy::from_ty(vcx, enc.deps, ty))
+                        .collect();
+                    let specifics = enc.mk_struct_specifics(fields?);
+                    Ok((Some(enc.finalize(task_key)), specifics))
+                }
                 // FIXME: these are empty dummy domains to permit encoding async code
                 TyKind::FnPtr(_)
                 | TyKind::GeneratorWitness(_)
-                | TyKind::RawPtr(_)
-                | TyKind::Closure(..) => {
+                | TyKind::RawPtr(_) => {
                     let mut enc = DomainEncData::new(vcx, task_key, Vec::new(), deps);
                     enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
                     let specifics = enc.mk_struct_specifics(Vec::new());
