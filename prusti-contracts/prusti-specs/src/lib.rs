@@ -577,15 +577,30 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
     let on_entry = handle_result!(on_entry);
 
     // return just the await-expression
+    let on_exit_closures = match on_exit.len() {
+        1 => {
+            let on_exit = &on_exit[0];
+            quote_spanned! { expr_span => (#on_exit,) }
+        }
+        _ => quote_spanned! { expr_span => (#(#on_exit),*) },
+    };
+    let on_entry_closures = match on_entry.len() {
+        1 => {
+            let on_entry = &on_entry[0];
+            quote_spanned! { expr_span => (#on_entry,) }
+        }
+        _ => quote_spanned! { expr_span => (#(#on_entry),*) },
+    };
+
     await_expr.attrs = Vec::new();
-    quote_spanned! { await_expr.span()=>
+    quote_spanned! { expr_span =>
         {
             let fut = #future;
             #[allow(unused_parens)]
-            ::prusti_contracts::suspension_point_on_exit_marker(#label, (#(#on_exit),*,));
+            ::prusti_contracts::suspension_point_on_exit_marker(#label, #on_exit_closures);
             let res = fut.await;
             #[allow(unused_parens)]
-            ::prusti_contracts::suspension_point_on_entry_marker(#label, (#(#on_entry),*,));
+            ::prusti_contracts::suspension_point_on_entry_marker(#label, #on_entry_closures);
             res
         }
     }
