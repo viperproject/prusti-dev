@@ -268,9 +268,9 @@ impl TaskEncoder for MirSpecEnc {
                     .async_invariants
                     .iter()
                     .map(|spec_def_id| {
-                        deps
-                            .require_local::<crate::encoders::MirPurEnc>(
-                                crate::encoders::MirPurEncTask {
+                        let expr = deps
+                            .require_local::<crate::encoders::MirPureEnc>(
+                                crate::encoders::MirPureEncTask {
                                     encoding_depth: 0,
                                     kind: PureKind::Spec,
                                     parent_def_id: *spec_def_id,
@@ -281,7 +281,9 @@ impl TaskEncoder for MirSpecEnc {
                                 }
                             )
                             .unwrap()
-                            .expr
+                            .expr;
+                        let expr = expr.reify(vcx, (*spec_def_id, inv_args));
+                        to_bool.apply(vcx, [expr])
                     })
                 .collect::<Vec<vir::Expr<'_>>>()
             };
