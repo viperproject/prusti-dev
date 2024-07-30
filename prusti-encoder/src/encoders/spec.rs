@@ -19,6 +19,7 @@ pub struct SpecEncOutput<'vir> {
     pub pres: &'vir [DefId],
     pub posts: &'vir [DefId],
     pub async_stub_posts: &'vir [DefId],
+    pub async_invariants: &'vir [DefId],
 }
 
 use std::cell::RefCell;
@@ -98,7 +99,12 @@ impl TaskEncoder for SpecEnc {
                     .and_then(|specs| specs.base_spec.async_stub_posts.expect_empty_or_inherent())
                     .map(|specs| vcx.alloc_slice(specs))
                     .unwrap_or_default();
-                Ok((SpecEncOutput { pres, posts, async_stub_posts, }, () ))
+                let async_invariants = specs
+                    .and_then(|specs| specs.base_spec.async_invariants.expect_empty_or_inherent())
+                    .map(|specs| vcx.alloc_slice(specs))
+                    .unwrap_or_default();
+
+                Ok((SpecEncOutput { pres, posts, async_stub_posts, async_invariants, }, () ))
             })
         })
     }
