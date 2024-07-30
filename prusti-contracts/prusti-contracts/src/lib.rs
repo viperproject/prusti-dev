@@ -69,6 +69,9 @@ pub use prusti_contracts_proc_macros::body_variant;
 /// A macro to annotate suspension points inside async constructs
 pub use prusti_contracts_proc_macros::suspension_point;
 
+/// A macro for writing async invariants on an async function
+pub use prusti_contracts_proc_macros::async_invariant;
+
 #[cfg(not(feature = "prusti"))]
 mod private {
     use core::marker::PhantomData;
