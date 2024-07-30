@@ -85,6 +85,9 @@ impl DefSpecificationMap {
                 if let Some(posts) = spec.async_stub_posts.extract_with_selective_replacement() {
                     specs.extend(posts);
                 }
+                if let Some(invs) = spec.async_invariants.extract_with_selective_replacement() {
+                    specs.extend(invs);
+                }
                 if let Some(Some(term)) = spec.terminates.extract_with_selective_replacement() {
                     specs.push(term.to_def_id());
                 }
