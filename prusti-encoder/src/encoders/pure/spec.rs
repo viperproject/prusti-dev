@@ -22,6 +22,7 @@ pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::Expr<'vir>>,
     pub posts: Vec<vir::Expr<'vir>>,
     pub async_stub_posts: Vec<vir::Expr<'vir>>,
+    pub async_invariants: Vec<vir::Expr<'vir>>,
     pub pre_args: &'vir [vir::Expr<'vir>],
     pub post_args: &'vir [vir::Expr<'vir>],
 }
@@ -258,10 +259,38 @@ impl TaskEncoder for MirSpecEnc {
                 .map(mk_post_spec_expr)
                 .collect::<Vec<vir::Expr<'_>>>();
 
+            // async invariants are encoded using the same arguments as postconditions
+            // except for `result`, which cannot be used in async invariants
+            // for non-async items, this should be empty
+            let async_invariants = {
+                let inv_args = &post_args[1..];
+                specs
+                    .async_invariants
+                    .iter()
+                    .map(|spec_def_id| {
+                        deps
+                            .require_local::<crate::encoders::MirPurEnc>(
+                                crate::encoders::MirPurEncTask {
+                                    encoding_depth: 0,
+                                    kind: PureKind::Spec,
+                                    parent_def_id: *spec_def_id,
+                                    param_env: vcx.tcx().param_env(spec_def_id),
+                                    substs,
+                                    // TODO: should this be `def_id` or `caller_def_id`
+                                    caller_def_id: Some(def_id),
+                                }
+                            )
+                            .unwrap()
+                            .expr
+                    })
+                .collect::<Vec<vir::Expr<'_>>>()
+            };
+
             let data = MirSpecEncOutput {
                 pres,
                 posts,
                 async_stub_posts,
+                async_invariants,
                 pre_args,
                 post_args,
             };
