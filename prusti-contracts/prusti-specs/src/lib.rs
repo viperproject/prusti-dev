@@ -70,6 +70,7 @@ fn extract_prusti_attributes(
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
+                    | SpecAttributeKind::AsyncInvariant
                     | SpecAttributeKind::AfterExpiry
                     | SpecAttributeKind::AssertOnExpiry
                     | SpecAttributeKind::RefineSpec => {
@@ -182,6 +183,7 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
             SpecAttributeKind::AsyncEnsures => generate_for_async_ensures(attr_tokens, item),
+            SpecAttributeKind::AsyncInvariant => generate_for_async_invariant(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
@@ -264,6 +266,23 @@ fn generate_for_async_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> G
                 #[prusti::async_stub_post_spec_id_ref = #stub_spec_id_str]
             },
         ]
+    ))
+}
+
+
+/// Generate spec items and attributes to typecheck and later retrieve invariant annotations
+/// on async functions.
+fn generate_for_async_invariant(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr, item)?;
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::async_inv_spec_id_ref = #spec_id_str]
+        }]
     ))
 }
 
@@ -1029,6 +1048,7 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::Requires => unreachable!("requires on type"),
                     SpecAttributeKind::Ensures => unreachable!("ensures on type"),
                     SpecAttributeKind::AsyncEnsures => unreachable!("ensures on type"),
+                    SpecAttributeKind::AsyncInvariant => unreachable!("async-invariant on type"),
                     SpecAttributeKind::AfterExpiry => unreachable!("after_expiry on type"),
                     SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
                     SpecAttributeKind::RefineSpec => unreachable!("refine_spec on type"),
@@ -1075,6 +1095,7 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::Requires => unreachable!(),
             SpecAttributeKind::Ensures => unreachable!(),
             SpecAttributeKind::AsyncEnsures => unreachable!(),
+            SpecAttributeKind::AsyncInvariant => unreachable!(),
             SpecAttributeKind::AfterExpiry => unreachable!(),
             SpecAttributeKind::AssertOnExpiry => unreachable!(),
             SpecAttributeKind::Pure => unreachable!(),
