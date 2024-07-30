@@ -37,11 +37,10 @@ use crate::specs::{
 };
 use prusti_specs::specifications::common::SpecificationId;
 
+
 #[derive(Debug)]
 struct ProcedureSpecRefs {
     spec_id_refs: Vec<SpecIdRef>,
-    async_post_spec_id_refs: Vec<SpecIdRef>,
-    async_stub_post_spec_id_refs: Vec<SpecIdRef>,
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
@@ -156,6 +155,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             self.env,
                         );
                     }
+                    // both async postconditions and async invariants are not added to the method
+                    // they were attached to (which ends up being the future constructor) but to
+                    // the poll method, which is determined elsewhere
+                    SpecIdRef::AsyncPostcondition(_)
+                    | SpecIdRef::AsyncStubPostcondition(_)
+                    | SpecIdRef::AsyncInvariant(_) => {},
                     SpecIdRef::Purity(spec_id) => {
                         spec.add_purity(*self.spec_functions.get(spec_id).unwrap(), self.env);
                     }
@@ -198,7 +203,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             }
         }
 
-        // add postconditions to all async fn poll-methods
+        // attach async specifications to the future's poll-methods instead of the future
+        // constructor
         for (local_id, parent_id) in self.async_parent.iter() {
             // look up parent's spec and skip this method if the parent doesn't have one
             let Some(parent_spec) = self.procedure_specs.get(parent_id) else {
@@ -211,7 +217,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 .get_mut(&parent_id.to_def_id())
                 .expect("async parent must have entry in DefSpecMap")
                 .set_proc_kind(ProcedureKind::AsyncConstructor);
-            println!("Marking:\n\t* {local_id:?} as Poll\n\t* {parent_id:?} as Constructor\n");
 
             // the spec is then essentially inherited from the parent,
             // but for now, only postconditions and trusted are allowed
@@ -219,23 +224,20 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             spec.set_proc_kind(ProcedureKind::AsyncPoll);
             spec.set_kind(parent_spec.into());
             spec.set_trusted(parent_spec.trusted);
-            for postcondition in &parent_spec.async_post_spec_id_refs {
-                let SpecIdRef::Postcondition(spec_id) = postcondition else {
-                    panic!("only postconditions allowed here");
-                };
-                spec.add_postcondition(
-                    *self.spec_functions.get(spec_id).unwrap(),
-                    self.env
-                );
-            }
-            for stub_postcondition in &parent_spec.async_stub_post_spec_id_refs {
-                let SpecIdRef::Postcondition(spec_id) = stub_postcondition else {
-                    panic!("only postconditions allowed here");
-                };
-                spec.add_async_stub_postcondition(
-                    *self.spec_functions.get(spec_id).unwrap(),
-                    self.env
-                );
+            for spec_id_ref in &parent_spec.spec_id_refs {
+                match spec_id_ref {
+                    SpecIdRef::AsyncPostcondition(spec_id) => {
+                        spec.add_postcondition(*self.spec_functions.get(spec_id).unwrap(), self.env);
+                    }
+                    SpecIdRef::AsyncStubPostcondition(spec_id) => {
+                        spec.add_async_stub_postcondition(*self.spec_functions.get(spec_id).unwrap(), self.env);
+                    }
+                    SpecIdRef::AsyncInvariant(spec_id) => {
+                        spec.add_async_invariant(*self.spec_functions.get(spec_id).unwrap(), self.env);
+                    }
+                    // all other spec items should stay attached to the original method
+                    _ => {},
+                }
             }
             // poll methods should not already be covered by the existing code,
             // as they cannot be annotated by the user
@@ -434,14 +436,21 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
             .into_iter()
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
     );
-    let async_post_spec_id_refs: Vec<_> = read_prusti_attrs("async_post_spec_id_ref", attrs)
-        .into_iter()
-        .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id)))
-        .collect();
-    let async_stub_post_spec_id_refs: Vec<_> = read_prusti_attrs("async_stub_post_spec_id_ref", attrs)
-        .into_iter()
-        .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id)))
-        .collect();
+    spec_id_refs.extend(
+        read_prusti_attrs("async_post_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::AsyncPostcondition(parse_spec_id(raw_spec_id, def_id))),
+    );
+    spec_id_refs.extend(
+         read_prusti_attrs("async_stub_post_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::AsyncStubPostcondition(parse_spec_id(raw_spec_id, def_id)))
+    );
+    spec_id_refs.extend(
+        read_prusti_attrs("async_inv_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::AsyncInvariant(parse_spec_id(raw_spec_id, def_id)))
+    );
     spec_id_refs.extend(
         read_prusti_attrs("pure_spec_id_ref", attrs)
             .into_iter()
@@ -490,11 +499,9 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
 
-    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() || !async_post_spec_id_refs.is_empty() {
+    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
         Some(ProcedureSpecRefs {
             spec_id_refs,
-            async_post_spec_id_refs,
-            async_stub_post_spec_id_refs,
             pure,
             abstract_predicate,
             trusted,
