@@ -1,4 +1,5 @@
 use prusti_rustc_interface::middle::{ty, mir};
+use prusti_interface::specs::typed::ProcedureKind;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{self, MethodIdent, UnknownArity, ViperIdent};
 
@@ -164,6 +165,12 @@ where
                 None
             };
 
+            let proc_kind = crate::encoders::with_proc_spec(
+                    def_id,
+                    |def_spec| def_spec.proc_kind
+                )
+                .unwrap_or(ProcedureKind::Method);
+
             let spec = deps
                 .require_local::<MirSpecEnc>((def_id, substs, None, false, false))?;
             let (spec_pres, spec_posts) = (spec.pres, spec.posts);
@@ -182,7 +189,7 @@ where
 
             // in the case of an async body, we additionally require that the ghost fields
             // capturing the initial upvar state are equal to the upvar fields
-            if vcx.tcx().generator_is_async(def_id) {
+            if matches!(proc_kind, ProcedureKind::AsyncPoll) {
                 let gen_ty = vcx.tcx().type_of(def_id).skip_binder();
                 let fields = {
                     let gen_ty = deps.require_ref::<RustTyPredicatesEnc>(gen_ty)?;
@@ -210,7 +217,11 @@ where
 
             // in the case of a future constructor, we also ensure that the generator's upvar and
             // ghost fields are set correctly
-            if vcx.tcx().asyncness(def_id).is_async() && !vcx.tcx().generator_is_async(def_id) {
+            // NOTE: this detection mechanism is not always correct, specifically, it does not
+            // correctly mark the future constructors of async fn's without specifications as such,
+            // but this should not matter, as the caller cannot obtain guarantees about this
+            // future type anyways
+            if matches!(proc_kind, ProcedureKind::AsyncConstructor) {
                 let gen_domain = local_defs.locals[0_u32.into()].ty;
                 let fields = gen_domain.expect_structlike().snap_data.field_access;
                 let n_upvars = local_defs.arg_count;
