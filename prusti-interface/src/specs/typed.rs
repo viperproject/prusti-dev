@@ -221,6 +221,7 @@ pub struct ProcedureSpecification {
     pub pres: SpecificationItem<Vec<DefId>>,
     pub posts: SpecificationItem<Vec<DefId>>,
     pub async_stub_posts: SpecificationItem<Vec<DefId>>,
+    pub async_invariants: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
     pub terminates: SpecificationItem<Option<LocalDefId>>,
@@ -238,6 +239,7 @@ impl ProcedureSpecification {
             pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
             async_stub_posts: SpecificationItem::Empty,
+            async_invariants: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
@@ -483,6 +485,26 @@ impl SpecGraph<ProcedureSpecification> {
                 self.get_constrained_spec_mut(obligation)
                     .async_stub_posts
                     .push(post.to_def_id());
+            }
+        }
+    }
+
+    /// Attaches the async invariant `inv` to this [SpecGraph].
+    ///
+    /// If this postcondition has a constraint it will be attached to the corresponding
+    /// constrained spec **and** the base spec, otherwise just to the base spec.
+    pub fn add_async_invariant<'tcx>(&mut self, inv: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(inv, env) {
+            None => {
+                self.base_spec.async_invariants.push(inv.to_def_id());
+                self.specs_with_constraints
+                    .values_mut()
+                    .for_each(|s| s.async_invariants.push(inv.to_def_id()));
+            }
+            Some(obligation) => {
+                self.get_constrained_spec_mut(obligation)
+                    .async_invariants
+                    .push(inv.to_def_id());
             }
         }
     }
@@ -820,6 +842,7 @@ impl Refinable for ProcedureSpecification {
             pres: self.pres.refine(replace_empty(&EMPTYL, &other.pres)),
             posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
             async_stub_posts: self.async_stub_posts.refine(replace_empty(&EMPTYL, &other.async_stub_posts)),
+            async_invariants: self.async_invariants.refine(replace_empty(&EMPTYL, &other.async_invariants)),
             pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
