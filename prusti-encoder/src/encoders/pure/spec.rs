@@ -121,27 +121,17 @@ impl TaskEncoder for MirSpecEnc {
                 panic!("cannot set is_poll_stub for non-async bodies");
             }
 
-            // TODO: check what happens for a pure async fn
-            let post_args = if pure {
-                all_args
-            } else if !is_async {
-                let post_args: Vec<_> = pre_args
-                    .iter()
-                    .map(|arg| vcx.mk_old_expr(arg))
-                    .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
-                    .collect();
-                vcx.alloc_slice(&post_args)
+            // on async functions, there is a mismatch between the signature of the declared
+            // async fn (and thus the spec function) and its body on the MIR level, whose
+            // parameters are the return place, the future, and the `ResumeTy`
+            // hence, instead of directly accessing function arguments, we need to read them
+            // from the generator's ghost fields
+            let async_generator_ghost_fields = if !is_async {
+                    None
             } else {
-                // on async functions, there is a mismatch between the signature of the declared
-                // async fn (and thus the spec function) and its body on the MIR level, whose
-                // parameters are the return place, the future, and the `ResumeTy`
-                // hence, we need to adapt the arguments available in the postconditions to be
-                // the old-expressions of the future's ghost fields as well as the return place
-                // TODO: once the automatically added invariants (that the ghost fields don't
-                // change) are added, these no longer need to be old-expressions
-                let (generator_snap, return_expr) = if !is_poll_stub {
+                let generator_snap = if !is_poll_stub {
                     // the async body simply takes the generator as argument and returns the result
-                    (local_defs.locals[1_u32.into()].impure_snap, local_defs.locals[mir::RETURN_PLACE].impure_snap)
+                    local_defs.locals[1_u32.into()].impure_snap
                 } else {
                     // the poll stub, however, (which does not have a `DefId` and thus a signature
                     // we can see) takes a pinned mutable reference to the generator and returns
@@ -183,28 +173,8 @@ impl TaskEncoder for MirSpecEnc {
                         let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(gen_ty).unwrap();
                         caster.cast_to_concrete_if_possible(vcx, gen_snap)
                     };
-                    let ret_expr = {
-                        // construct the return type
-                        let ret_ty = {
-                            let ty::TyKind::Generator(_, args, _) = gen_ty.kind() else {
-                                panic!("expected async fn type to be Generator");
-                            };
-                            let ret_ty = args.as_generator().return_ty();
-                            let poll_def_id = vcx.tcx().require_lang_item(hir::LangItem::Poll, None);
-                            vcx.tcx().mk_ty_from_kind(ty::TyKind::Adt(
-                                vcx.tcx().adt_def(poll_def_id),
-                                vcx.tcx().mk_args(&[ret_ty.into()]),
-                            ))
-                        };
-                        // and build an expression for the return value with that type
-                        let ret_ty = deps.require_ref::<RustTyPredicatesEnc>(ret_ty)?;
-                        ret_ty.ref_to_snap(vcx, local_defs.locals[0_u32.into()].local_ex)
-                    };
-                    (gen_snap, ret_expr)
+                    gen_snap
                 };
-
-                // set the arguments available to the postcondition to be all ghost fields of the
-                // generator as well as the return value
                 let ghost_fields = {
                     let generator_ty = local_defs.locals[mir::Local::from(1_u32)].ty;
                     let predicate::PredicateEncData::StructLike(gen_domain_data) = generator_ty.specifics else {
@@ -215,11 +185,52 @@ impl TaskEncoder for MirSpecEnc {
                     assert!(n_fields % 2 == 0);
                     fields[n_fields / 2 ..].iter()
                 };
-                let post_args = ghost_fields
-                    .map(|field| {
-                        let field_read = field.read.apply(vcx, [generator_snap]);
-                        vcx.mk_old_expr(field_read)
-                    })
+                let ghost_field_reads = ghost_fields
+                    .map(
+                        |field| field.read.apply(vcx, [generator_snap])
+                    )
+                    .collect::<Vec<_>>();
+                Some(ghost_field_reads)
+            };
+
+            // TODO: check what happens for a pure async fn
+            let post_args = if pure {
+                all_args
+            } else if !is_async {
+                let post_args: Vec<_> = pre_args
+                    .iter()
+                    .map(|arg| vcx.mk_old_expr(arg))
+                    .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
+                    .collect();
+                vcx.alloc_slice(&post_args)
+            } else {
+                // set the arguments available to the postcondition to be old-expressions (as the
+                // generator is consumed by the function) of the ghost fields as well as the return value
+                let return_expr = if !is_poll_stub {
+                    local_defs.locals[mir::RETURN_PLACE].impure_snap
+                } else {
+                    // construct the return type
+                    let ret_ty = {
+                        let gen_ty = vcx.tcx().type_of(def_id).skip_binder();
+                        let ty::TyKind::Generator(_, args, _) = gen_ty.kind() else {
+                            panic!("expected async fn type to be Generator");
+                        };
+                        let ret_ty = args.as_generator().return_ty();
+                        let poll_def_id = vcx.tcx().require_lang_item(hir::LangItem::Poll, None);
+                        vcx.tcx().mk_ty_from_kind(ty::TyKind::Adt(
+                            vcx.tcx().adt_def(poll_def_id),
+                            vcx.tcx().mk_args(&[ret_ty.into()]),
+                        ))
+                    };
+                    // and build an expression for the return value with that type
+                    let ret_ty = deps.require_ref::<RustTyPredicatesEnc>(ret_ty)?;
+                    ret_ty.ref_to_snap(vcx, local_defs.locals[0_u32.into()].local_ex)
+                };
+                let post_args = async_generator_ghost_fields
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .map(|ghost_field| vcx.mk_old_expr(ghost_field))
                     .chain(std::iter::once(return_expr))
                     .collect::<Vec<_>>();
                 vcx.alloc_slice(&post_args)
@@ -261,9 +272,15 @@ impl TaskEncoder for MirSpecEnc {
 
             // async invariants are encoded using the same arguments as postconditions
             // except for `result`, which cannot be used in async invariants
-            // for non-async items, this should be empty
-            let async_invariants = {
-                let inv_args = &post_args[1..];
+            // async invariants also need to be encoded using the generator's ghost fields
+            // instead of the function arguments
+            // Note that they are *not* encoded using old-expressions of the ghsot fields,
+            // so they cannot be used as a postcondition on the generator's body (as the body
+            // consumes the generator). For the poll stub, there is no such restriction.
+            let async_invariants = if !is_async {
+                Vec::new()
+            } else {
+                let inv_args = vcx.alloc_slice(&async_generator_ghost_fields.unwrap());
                 specs
                     .async_invariants
                     .iter()

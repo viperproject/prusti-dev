@@ -173,8 +173,9 @@ where
 
             let spec = deps
                 .require_local::<MirSpecEnc>((def_id, substs, None, false, false))?;
-            let (spec_pres, spec_posts) = (spec.pres, spec.posts);
+            let (spec_pres, spec_posts, spec_async_invs) = (spec.pres, spec.posts, spec.async_invariants);
 
+            // TODO: fix capacity?
             let mut pres = Vec::with_capacity(arg_count - 1);
             let mut args = Vec::with_capacity(arg_count + substs.len());
             for arg_idx in 0..arg_count {
@@ -189,6 +190,7 @@ where
 
             // in the case of an async body, we additionally require that the ghost fields
             // capturing the initial upvar state are equal to the upvar fields
+            // as well as that all invariants hold initially
             if matches!(proc_kind, ProcedureKind::AsyncPoll) {
                 let gen_ty = vcx.tcx().type_of(def_id).skip_binder();
                 let fields = {
@@ -208,6 +210,10 @@ where
                     let field = fields[i].read.apply(vcx, [gen_snap]);
                     let ghost_field = fields[n_upvars + i].read.apply(vcx, [gen_snap]);
                     pres.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, field, ghost_field));
+                }
+
+                for inv in spec_async_invs {
+                    pres.push(inv);
                 }
             }
 
