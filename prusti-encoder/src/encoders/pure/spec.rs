@@ -125,8 +125,11 @@ impl TaskEncoder for MirSpecEnc {
             // async fn (and thus the spec function) and its body on the MIR level, whose
             // parameters are the return place, the future, and the `ResumeTy`
             // hence, instead of directly accessing function arguments, we need to read them
-            // from the generator's ghost fields
-            let async_generator_ghost_fields = if !is_async {
+            // from the generator's fields.
+            // The first half of these fields contain the generator's upvars, which may be mutated
+            // by poll calls / during the body's execution and the second half contains ghost
+            // fields, which are not changed and capture the upvars' initial value
+            let async_generator_fields = if !is_async {
                     None
             } else {
                 let generator_snap = if !is_poll_stub {
@@ -183,7 +186,7 @@ impl TaskEncoder for MirSpecEnc {
                     let fields = gen_domain_data.snap_data.field_access;
                     let n_fields = fields.len();
                     assert!(n_fields % 2 == 0);
-                    fields[n_fields / 2 ..].iter()
+                    fields.iter()
                 };
                 let ghost_field_reads = ghost_fields
                     .map(
@@ -226,10 +229,10 @@ impl TaskEncoder for MirSpecEnc {
                     let ret_ty = deps.require_ref::<RustTyPredicatesEnc>(ret_ty)?;
                     ret_ty.ref_to_snap(vcx, local_defs.locals[0_u32.into()].local_ex)
                 };
-                let post_args = async_generator_ghost_fields
-                    .as_ref()
-                    .unwrap()
+                let gen_fields = async_generator_fields.as_ref().unwrap();
+                let post_args = gen_fields
                     .iter()
+                    .skip(gen_fields.len() / 2)
                     .map(|ghost_field| vcx.mk_old_expr(ghost_field))
                     .chain(std::iter::once(return_expr))
                     .collect::<Vec<_>>();
@@ -280,7 +283,14 @@ impl TaskEncoder for MirSpecEnc {
             let async_invariants = if !is_async {
                 Vec::new()
             } else {
-                let inv_args = vcx.alloc_slice(&async_generator_ghost_fields.unwrap());
+                let gen_fields = async_generator_fields.unwrap();
+                let n_fields = gen_fields.len();
+                let inv_args = vcx.alloc_slice(
+                    &gen_fields
+                        .into_iter()
+                        .take(n_fields / 2)
+                        .collect::<Vec<_>>()
+                );
                 specs
                     .async_invariants
                     .iter()
