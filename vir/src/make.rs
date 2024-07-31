@@ -522,6 +522,13 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(StmtGenData::Exhale(expr))
     }
 
+    pub fn mk_inhale_stmt<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next>,
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::Inhale(expr))
+    }
+
     pub fn mk_unfold_stmt<'vir, Curr, Next>(
         &'vir self,
         pred_app: PredicateAppGen<'vir, Curr, Next>

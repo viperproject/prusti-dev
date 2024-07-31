@@ -51,6 +51,7 @@ use crate::{
         },
         FunctionCallTaskDescription, MirBuiltinEnc,
         async_stub::AsyncStubEnc,
+        MirSpecEnc,
     }
 };
 
@@ -972,8 +973,21 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     self.vcx.alloc_slice(&otherwise_stmts),
                 )
             }
-            mir::TerminatorKind::Return =>
-                self.vcx.mk_goto_stmt(self.vcx.alloc(vir::CfgBlockLabelData::End)),
+            mir::TerminatorKind::Return => {
+                // make sure all async-invariants still hold
+                // FIXME: see comment regarding async-invariants at yield-terminators
+                if self.vcx.tcx().generator_is_async(self.def_id) {
+                    let invs = self
+                        .deps
+                        .require_local::<MirSpecEnc>((self.def_id, self.substs, None, false, false))
+                        .unwrap()
+                        .async_invariants;
+                    for inv in invs {
+                        self.stmt(self.vcx.mk_exhale_stmt(inv));
+                    }
+                }
+                self.vcx.mk_goto_stmt(self.vcx.alloc(vir::CfgBlockLabelData::End))
+            }
             mir::TerminatorKind::Call {
                 func,
                 args,
@@ -1310,6 +1324,24 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 };
                 let yield_val_permission = self.local_defs.locals[place.local].impure_pred;
                 self.stmt(self.vcx.mk_exhale_stmt(yield_val_permission));
+                // make sure all async-invariants still hold
+                // FIXME: currently, the async-invariants are exhaled as if the generator is still
+                // in the first argument place _1p, but generally it will be be moved to different
+                // places during the body's execution.
+                // Furthermore, it is behind a pinned mutable reference when polled, so we also
+                // need to make sure that accessing it via the original place has the correct
+                // behavior once Pin and mutable references are supported.
+                // TODO: figure out the place in which the generator is during busy-loop analysis
+                if self.vcx.tcx().generator_is_async(self.def_id) {
+                    let invs = self
+                        .deps
+                        .require_local::<MirSpecEnc>((self.def_id, self.substs, None, false, false))
+                        .unwrap()
+                        .async_invariants;
+                    for inv in invs {
+                        self.stmt(self.vcx.mk_exhale_stmt(inv));
+                    }
+                }
                 // inhale permissions to the obtained resume-values,
                 let resume_permission = self.local_defs.locals[resume_arg.local].impure_pred;
                 self.stmt(self.vcx.mk_inhale_stmt(resume_permission));
