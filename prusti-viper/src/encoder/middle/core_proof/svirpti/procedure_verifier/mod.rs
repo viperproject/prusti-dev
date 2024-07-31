@@ -11,6 +11,7 @@ use crate::encoder::{
     middle::core_proof::transformations::predicate_domains::PredicateDomainsInfo,
 };
 use log::info;
+use manual_triggering::TriggerWrappers;
 use prusti_common::config;
 use rustc_hash::FxHashMap;
 use vir_crate::{
@@ -22,6 +23,7 @@ mod solver_stack;
 mod statements;
 mod solver;
 mod heap;
+mod manual_triggering;
 
 pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     verifier: &'a mut Verifier,
@@ -35,6 +37,7 @@ pub(super) struct ProcedureExecutor<'a, 'c, EC: EncoderContext> {
     unique_id_generator: usize,
     saved_heaps: FxHashMap<String, heap::Heap>,
     global_heap: heap::GlobalHeap,
+    trigger_wrappers: TriggerWrappers,
 }
 
 impl<'a, 'c, EC: EncoderContext> Drop for ProcedureExecutor<'a, 'c, EC> {
@@ -73,6 +76,7 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             unique_id_generator: 0,
             saved_heaps: FxHashMap::default(),
             global_heap: heap::GlobalHeap::default(),
+            trigger_wrappers: TriggerWrappers::default(),
         })
     }
 
@@ -226,6 +230,8 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     .unwrap(); // FIXME: Handle errors
             }
         }
+        self.trigger_wrappers.emit_wrappers(&mut self.smt_solver)?;
+
         Ok(())
     }
 
@@ -240,16 +246,17 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
             for axiom in &domain.axioms {
                 let not_supported = matches!(
                     axiom.name.as_str(),
-                        "mul_wrapper$zero"
+                    "mul_wrapper$zero"
                         | "Snap$Bool$$validity_axiom_bottom_up_alternative"
                         | "LeCmp_Unbounded$simplification_axiom"
                         | "Snap$Unbounded$$validity_axiom_bottom_up_alternative"
                 );
-                let suitable_for_manual = if config::svirpti_enable_manual_triggering() && !not_supported {
-                    self.smt_solver.add_axiom(axiom.clone()).unwrap()
-                } else {
-                    false
-                };
+                let suitable_for_manual =
+                    if config::svirpti_enable_manual_triggering() && !not_supported {
+                        self.smt_solver.add_axiom(axiom.clone()).unwrap()
+                    } else {
+                        false
+                    };
                 if !(suitable_for_manual && config::svirpti_remove_unnecessary_axioms()) {
                     if let Some(comment) = &axiom.comment {
                         self.comment(comment)?;
@@ -288,7 +295,11 @@ impl<'a, 'c, EC: EncoderContext> ProcedureExecutor<'a, 'c, EC> {
                     // ) {
                     //     self.comment("optimised away")?;
                     // } else {
-                        self.assume(&axiom.body)?;
+                    if matches!(axiom.name.as_str(), "address_constructor$injectivity2") {
+                        self.comment("FIXME: This axiom is only manually instantiated because I could not find proper triggers.")?;
+                    } else {
+                        self.assume_axiom(&axiom.body)?;
+                    }
                     // }
                 }
             }

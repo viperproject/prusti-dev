@@ -115,10 +115,14 @@ impl Validator for BinaryOp {
             BinaryOpKind::Sub => {}
             BinaryOpKind::Mul => {
                 if !matches!(self.left.get_type(), crate::low::ast::ty::Type::Int) {
-                    return Err(ValidationError::new(format!("Multiplication requires integer: {self}")));
+                    return Err(ValidationError::new(format!(
+                        "Multiplication requires integer: {self}"
+                    )));
                 }
                 if !matches!(self.right.get_type(), crate::low::ast::ty::Type::Int) {
-                    return Err(ValidationError::new(format!("Multiplication requires integer: {self}")));
+                    return Err(ValidationError::new(format!(
+                        "Multiplication requires integer: {self}"
+                    )));
                 }
             }
             BinaryOpKind::Div => {}

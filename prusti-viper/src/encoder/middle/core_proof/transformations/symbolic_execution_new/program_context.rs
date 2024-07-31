@@ -98,7 +98,7 @@ impl<'a, EC: EncoderContext> ProgramContext<'a, EC> {
         }
     }
 
-    pub(super) fn get_domains(&self) -> &'a [vir_low::DomainDecl] {
+    pub(in super::super::super) fn get_domains(&self) -> &'a [vir_low::DomainDecl] {
         self.domains
     }
 

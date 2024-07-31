@@ -30,6 +30,7 @@ impl Default for Configuration {
             (":smt.arith.solver".to_string(), "2".to_string()),
             (":model.v2".to_string(), "true".to_string()),
             (":smt.qi.max_multi_patterns".to_string(), "1000".to_string()),
+            // (":timeout".to_string(), "5000".to_string()),
             // Prusti.
             (
                 ":smt.qi.eager_threshold".to_string(),
