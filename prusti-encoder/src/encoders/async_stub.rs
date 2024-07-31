@@ -10,12 +10,13 @@ use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{Method, MethodIdent, UnknownArity};
 
 use crate::encoders::{
-    lifted::func_def_ty_params::LiftedTyParamsEnc,
-    r#type::rust_ty_predicates::RustTyPredicatesEnc,
-    MirLocalDefEnc,
-    MirSpecEnc,
+    lifted::{
+        casters::CastTypePure, func_def_ty_params::LiftedTyParamsEnc,
+        rust_ty_cast::RustTyCastersEnc,
+    },
     predicate,
-    lifted::{rust_ty_cast::RustTyCastersEnc, casters::CastTypePure},
+    r#type::rust_ty_predicates::RustTyPredicatesEnc,
+    MirLocalDefEnc, MirSpecEnc,
 };
 
 /// Encodes a poll call stub for an async item
@@ -25,7 +26,7 @@ pub struct AsyncStubEnc;
 pub struct AsyncStubEncOutputRef<'vir> {
     pub method_ref: MethodIdent<'vir, UnknownArity<'vir>>,
     pub return_ty: ty::Ty<'vir>,
-    pub arg_tys: Vec<ty::Ty<'vir>>, 
+    pub arg_tys: Vec<ty::Ty<'vir>>,
 }
 impl<'vir> task_encoder::OutputRefAny for AsyncStubEncOutputRef<'vir> {}
 
@@ -137,7 +138,8 @@ impl TaskEncoder for AsyncStubEnc {
 
             // encode the stub's specification
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;
-            let (spec_pres, spec_posts) = (spec.pres, spec.async_stub_posts);
+            let (spec_pres, spec_posts, spec_invs) =
+                (spec.pres, spec.async_stub_posts, spec.async_invariants);
 
             let upvar_tys = gen_args.as_generator().upvar_tys().to_vec();
             let n_upvars = upvar_tys.len();
@@ -145,8 +147,8 @@ impl TaskEncoder for AsyncStubEnc {
             // add arguments and preconditions about their types
             // note that the signature is (self: std::pin::Pin<&mut Self>, cx: &mut Context)
             // and not the signature of the generator
-            let mut pres = Vec::with_capacity(arg_count - 1);
-            let mut args = Vec::with_capacity(arg_count + substs.len() + n_upvars + 1);
+            let mut pres = Vec::with_capacity(arg_count + spec_invs.len() - 1);
+            let mut args = Vec::with_capacity(arg_count + substs.len() + n_upvars + spec_invs.len() + 1);
             for arg_idx in 0..arg_count {
                 let name = local_defs.locals[arg_idx.into()].local.name;
                 args.push(vir::vir_local_decl! { vcx; [name] : Ref });
@@ -156,6 +158,11 @@ impl TaskEncoder for AsyncStubEnc {
             // add type parameters (and their typing preconditions)
             args.extend(param_ty_decls.iter());
             pres.extend(spec_pres);
+
+            // add invariants as preconditions
+            for inv in &spec_invs {
+                pres.push(*inv);
+            }
 
             // add postconditions for the return type and user-annotated ones
             // we also add a postcondition on the generator type after the call
@@ -176,16 +183,25 @@ impl TaskEncoder for AsyncStubEnc {
             // so they still capture the initial state of the async fn's arguments
             // read the generator from the pinned mutable ref
             let gen_snap = {
-                let pin_snap = enc_recv_ty.ref_to_snap(vcx, local_defs.locals[1_u32.into()].local_ex);
+                let pin_snap =
+                    enc_recv_ty.ref_to_snap(vcx, local_defs.locals[1_u32.into()].local_ex);
                 let ref_snap = {
-                    let fields = enc_recv_ty.generic_predicate.expect_structlike().snap_data.field_access;
+                    let fields = enc_recv_ty
+                        .generic_predicate
+                        .expect_structlike()
+                        .snap_data
+                        .field_access;
                     assert_eq!(fields.len(), 1, "expected pin domain to have 1 field");
                     let ref_snap = fields[0].read.apply(vcx, [pin_snap]);
                     let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(ref_ty)?;
                     caster.cast_to_concrete_if_possible(vcx, ref_snap)
                 };
                 let enc_ref_ty = deps.require_ref::<RustTyPredicatesEnc>(ref_ty)?;
-                let fields = enc_ref_ty.generic_predicate.expect_ref().snap_data.field_access;
+                let fields = enc_ref_ty
+                    .generic_predicate
+                    .expect_ref()
+                    .snap_data
+                    .field_access;
                 assert_eq!(fields.len(), 1, "expected ref domain to have 1 field");
                 let gen_snap = fields[0].read.apply(vcx, [ref_snap]);
                 let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(gen_ty)?;
@@ -198,10 +214,15 @@ impl TaskEncoder for AsyncStubEnc {
                 gen_domain_data.snap_data.field_access
             };
             assert_eq!(fields.len(), 2 * n_upvars);
-            for field in fields[n_upvars ..].iter() {
+            for field in fields[n_upvars..].iter() {
                 let field = field.read.apply(vcx, [gen_snap]);
                 let old_field = vcx.mk_old_expr(field.clone());
                 posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, field, old_field));
+            }
+
+            // add invariants as postconditions
+            for inv in &spec_invs {
+                posts.push(*inv);
             }
 
             let method = vcx.mk_method(
