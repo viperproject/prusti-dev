@@ -1298,6 +1298,32 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 )
             }
 
+            kind@mir::TerminatorKind::Yield {
+                value,
+                resume,
+                resume_arg,
+                drop: _,
+            } => {
+                // when yielding, we exhale permissions to the yielded value,
+                let mir::Operand::Move(place) = value else {
+                    panic!("expected yielded value to be moved")
+                };
+                let yield_val_permission = self.local_defs.locals[place.local].impure_pred;
+                self.stmt(self.vcx.mk_exhale_stmt(yield_val_permission));
+                // inhale permissions to the obtained resume-values,
+                let resume_permission = self.local_defs.locals[resume_arg.local].impure_pred;
+                self.stmt(self.vcx.mk_inhale_stmt(resume_permission));
+                // and continue with the resume BB
+                // Ensure that the terminator succ that we use for the repacks is the correct one
+                const REAL_TARGET_SUCC_IDX: usize = 0;
+                assert_eq!(&self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX].location.block, resume);
+                self.fpcs_repacks_terminator(REAL_TARGET_SUCC_IDX, |rep| &rep.repacks_start);
+                self.vcx.mk_goto_stmt(
+                    self.vcx
+                        .alloc(vir::CfgBlockLabelData::BasicBlock(resume.as_usize())),
+                )
+            }
+
             unsupported_kind => self.vcx.mk_dummy_stmt(
                 vir::vir_format!(self.vcx, "terminator {unsupported_kind:?}")
             ),
