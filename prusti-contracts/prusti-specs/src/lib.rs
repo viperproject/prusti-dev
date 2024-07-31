@@ -145,6 +145,24 @@ pub fn rewrite_prusti_attributes(
         }
     }
 
+    // make sure async invariants can only be attached to async fn's
+    if matches!(outer_attr_kind, SpecAttributeKind::AsyncInvariant) {
+        // TODO: should the error be reported to the function's or the attribute's span?
+        let untyped::AnyFnItem::Fn(ref fn_item) = &item else {
+            return syn::Error::new(
+                item.span(),
+                "async_invariant attached to non-function item"
+            ).to_compile_error();
+        };
+        if fn_item.sig.asyncness.is_none() {
+            return syn::Error::new(
+                item.span(),
+                "async_invariant attached to non-async function"
+            )
+            .to_compile_error();
+        }
+    }
+
     // make sure to also update the check in the predicate! handling method
     if prusti_attributes
         .iter()
@@ -511,8 +529,10 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
     let expr: syn::Expr = handle_result!(syn::parse2(tokens));
     let expr_span = expr.span();
     let syn::Expr::Await(mut await_expr) = expr else {
-        // TODO: more precise error message with span?
-        panic!("suspension-point must contain a single await-expression");
+        return syn::Error::new(
+            expr.span(),
+            "suspension-point must contain a single await-expression"
+        ).to_compile_error();
     };
     let future = &await_expr.base;
 
@@ -522,15 +542,20 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
 
     // extract label, on-exit, and on-entry conditions from the attributes
     for attr in await_expr.attrs {
+        let attr_span = attr.span();
         if !matches!(attr.style, syn::AttrStyle::Outer) {
-            // TODO: more precise error message with span?
-            panic!("only outer attributes allowed in suspension-point");
+            return syn::Error::new(
+                attr_span,
+                "only outer attributes allowed in suspension-point",
+            ).to_compile_error();
         }
         if !(attr.path.segments.len() == 1
             || (attr.path.segments.len() == 2 && attr.path.segments[0].ident == "prusti_contracts"))
         {
-            // TODO: more precise error message with span?
-            panic!("invalid attribute in suspension-point");
+            return syn::Error::new(
+                attr_span,
+                "invalid attribute in suspension-point",
+            ).to_compile_error();
         }
         let name = attr.path.segments[attr.path.segments.len() - 1]
             .ident
@@ -540,22 +565,28 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
             let [proc_macro2::TokenTree::Group(group)] =
                 &attr.tokens.into_iter().collect::<Vec<_>>()[..]
             else {
-                // TODO: more precise error message with span?
-                panic!("expected group with a single integer as label");
+                return syn::Error::new(
+                    attr_span,
+                    "expected group with a single integer as label",
+                ).to_compile_error();
             };
             let [proc_macro2::TokenTree::Literal(lit)] =
                 &group.stream().into_iter().collect::<Vec<_>>()[..]
             else {
-                // TODO: more precise error message with span?
-                panic!("expected single integer as label");
+                return syn::Error::new(
+                    attr_span,
+                    "expected single integer as label",
+                ).to_compile_error();
             };
             let lbl_num: usize = lit
                 .to_string()
                 .parse()
                 .expect("expected single integer as label");
             if label.replace(lbl_num).is_some() {
-                // TODO: more precise error message with span?
-                panic!("can only provide one label");
+                return syn::Error::new(
+                    attr_span,
+                    "multiple labels provided for suspension-point",
+                ).to_compile_error();
             }
         // on-exit conditions
         } else if name == "on_exit" {
