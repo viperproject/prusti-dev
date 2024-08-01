@@ -929,6 +929,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 assert_eq!(encoded_args.len(), 2);
                 builtin((PtrSameAllocation, vir_high::Type::Bool))
             }
+            "prusti_contracts::fresh_allocation" => {
+                assert_eq!(encoded_args.len(), 1);
+                builtin((PtrFreshAllocation, vir_high::Type::Bool))
+            }
             "prusti_contracts::range_contains" => {
                 assert_eq!(encoded_args.len(), 3);
                 builtin((PtrRangeContains, vir_high::Type::Bool))

@@ -281,6 +281,8 @@ pub enum BuiltinFunc {
     PtrIsNull,
     /// Express that two pointers point to the same allocation.
     PtrSameAllocation,
+    /// Express that the pointer allocation is fresh.
+    PtrFreshAllocation,
     /// Special-cased function whether a range of addresses contains another
     /// address.
     PtrRangeContains,

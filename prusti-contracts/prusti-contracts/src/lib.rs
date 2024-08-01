@@ -1118,6 +1118,12 @@ pub fn same_allocation<T>(_ptr1: *const T, _ptr2: *const T) -> bool {
     unreachable!();
 }
 
+/// A ghost operation for expressing that the address belongs to a fresh
+/// allocation (different from all others).
+pub fn fresh_allocation<T>(_ptr1: *const T) -> bool {
+    unreachable!();
+}
+
 #[pure]
 #[terminates]
 pub fn multiply_int(_left: Int, _right: Int) -> Int {

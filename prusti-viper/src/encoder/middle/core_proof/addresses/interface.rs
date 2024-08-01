@@ -54,6 +54,10 @@ pub(in super::super) trait AddressesInterface {
         address: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn fresh_allocation(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn address_range_contains(
         &mut self,
         base_address: vir_low::Expression,
@@ -448,6 +452,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
             ADDRESS_DOMAIN_NAME,
             "get_allocation$",
             vec![address],
+            allocation_type,
+            position,
+        )
+    }
+    fn fresh_allocation(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_address_axioms()?;
+        let allocation_type = self.allocation_type()?;
+        self.address_state.fresh_allocation_counter += 1;
+        self.create_domain_func_app(
+            ADDRESS_DOMAIN_NAME,
+            "fresh_allocation$",
+            vec![self.address_state.fresh_allocation_counter.into()],
             allocation_type,
             position,
         )
