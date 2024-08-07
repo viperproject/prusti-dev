@@ -106,6 +106,7 @@ lazy_static::lazy_static! {
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
+        settings.set_default("verify_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
@@ -970,6 +971,12 @@ pub fn skip_unsupported_features() -> bool {
 /// Used for testing.
 pub fn internal_errors_as_warnings() -> bool {
     read_setting("internal_errors_as_warnings")
+}
+
+/// When enabled, verify errors are reported as warnings instead of errors.
+/// Used for testing.
+pub fn verify_errors_as_warnings() -> bool {
+    read_setting("verify_errors_as_warnings")
 }
 
 /// When enabled, unsupported code is encoded as `assert false`. This way error

@@ -70,10 +70,14 @@ impl PrustiError {
     /// Report a verification error of the verified Rust code
     pub fn verification<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        PrustiError::new(
+        let mut error = PrustiError::new(
             format!("[Prusti: verification error] {}", message.to_string()),
             span,
-        )
+        );
+        if config::verify_errors_as_warnings() {
+            error.set_warning();
+        }
+        error
     }
 
     pub fn disabled_verification<S: ToString>(message: S, span: MultiSpan) -> Self {
