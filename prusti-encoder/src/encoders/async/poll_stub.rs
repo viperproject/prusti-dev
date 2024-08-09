@@ -18,35 +18,36 @@ use crate::encoders::{
     r#type::rust_ty_predicates::RustTyPredicatesEnc,
     MirLocalDefEnc, MirSpecEnc,
 };
+use super::suspension_points::SuspensionPointAnalysis;
 
 /// Encodes a poll call stub for an async item
-pub struct AsyncStubEnc;
+pub struct AsyncPollStubEnc;
 
 #[derive(Clone, Debug)]
-pub struct AsyncStubEncOutputRef<'vir> {
+pub struct AsyncPollStubEncOutputRef<'vir> {
     pub method_ref: MethodIdent<'vir, UnknownArity<'vir>>,
     pub return_ty: ty::Ty<'vir>,
     pub arg_tys: Vec<ty::Ty<'vir>>,
 }
-impl<'vir> task_encoder::OutputRefAny for AsyncStubEncOutputRef<'vir> {}
+impl<'vir> task_encoder::OutputRefAny for AsyncPollStubEncOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
-pub struct AsyncStubEncOutput<'vir> {
+pub struct AsyncPollStubEncOutput<'vir> {
     pub method: Method<'vir>,
 }
 
 #[derive(Clone, Debug)]
-pub struct AsyncStubEncError;
+pub struct AsyncPollStubEncError;
 
-impl TaskEncoder for AsyncStubEnc {
-    task_encoder::encoder_cache!(AsyncStubEnc);
+impl TaskEncoder for AsyncPollStubEnc {
+    task_encoder::encoder_cache!(AsyncPollStubEnc);
 
     type TaskDescription<'vir> = DefId;
 
-    type OutputRef<'vir> = AsyncStubEncOutputRef<'vir>;
-    type OutputFullLocal<'vir> = AsyncStubEncOutput<'vir>;
+    type OutputRef<'vir> = AsyncPollStubEncOutputRef<'vir>;
+    type OutputFullLocal<'vir> = AsyncPollStubEncOutput<'vir>;
 
-    type EncodingError = AsyncStubEncError;
+    type EncodingError = AsyncPollStubEncError;
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -129,12 +130,15 @@ impl TaskEncoder for AsyncStubEnc {
             };
             deps.emit_output_ref(
                 *task,
-                AsyncStubEncOutputRef {
+                AsyncPollStubEncOutputRef {
                     method_ref,
                     return_ty: ret_ty,
                     arg_tys: vec![recv_ty, cx_ty],
                 },
             );
+
+
+            let suspension_points = deps.require_ref::<SuspensionPointAnalysis>(def_id).unwrap();
 
             // encode the stub's specification
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;
@@ -233,7 +237,7 @@ impl TaskEncoder for AsyncStubEnc {
                 vcx.alloc_slice(&posts),
                 None,
             );
-            Ok((AsyncStubEncOutput { method }, ()))
+            Ok((AsyncPollStubEncOutput { method }, ()))
         })
     }
 }

@@ -50,7 +50,7 @@ use crate::{
             func_app_ty_params::LiftedFuncAppTyParamsEnc
         },
         FunctionCallTaskDescription, MirBuiltinEnc,
-        async_stub::AsyncStubEnc,
+        r#async::poll_stub::AsyncPollStubEnc,
         MirSpecEnc,
     }
 };
@@ -500,7 +500,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         pin_gen_ty: ty::Ty<'vir>,
         poll_ret_ty: ty::Ty<'vir>,
     ) {
-        let poll_stub = self.deps.require_ref::<AsyncStubEnc>(gen_def_id).unwrap();
+        let poll_stub = self.deps.require_ref::<AsyncPollStubEnc>(gen_def_id).unwrap();
         let dest = self.encode_place(Place::from(*destination)).expr;
 
         let method_in = args.iter().map(|arg| self.encode_operand(arg)).collect::<Vec<_>>();

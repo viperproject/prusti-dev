@@ -95,7 +95,7 @@ pub fn test_entrypoint<'tcx>(
     let mut program_methods = vec![];
 
     header(&mut viper_code, "async stubs");
-    for output in crate::encoders::AsyncStubEnc::all_outputs() {
+    for output in crate::encoders::AsyncPollStubEnc::all_outputs() {
         viper_code.push_str(&format!("{:?}\n", output.method));
         program_methods.push(output.method);
     }
