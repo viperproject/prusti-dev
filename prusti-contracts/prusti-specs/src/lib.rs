@@ -536,7 +536,7 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
     };
     let future = &await_expr.base;
 
-    let mut label: Option<usize> = None;
+    let mut label: Option<u32> = None;
     let mut on_exit: Vec<TokenStream> = Vec::new();
     let mut on_entry: Vec<TokenStream> = Vec::new();
 
@@ -567,7 +567,7 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
             else {
                 return syn::Error::new(
                     attr_span,
-                    "expected group with a single integer as label",
+                    "expected group with a single positive integer as label",
                 ).to_compile_error();
             };
             let [proc_macro2::TokenTree::Literal(lit)] =
@@ -575,13 +575,19 @@ pub fn suspension_point(tokens: TokenStream) -> TokenStream {
             else {
                 return syn::Error::new(
                     attr_span,
-                    "expected single integer as label",
+                    "expected single positive integer as label",
                 ).to_compile_error();
             };
-            let lbl_num: usize = lit
+            let lbl_num: u32 = lit
                 .to_string()
                 .parse()
-                .expect("expected single integer as label");
+                .expect("expected single positive integer as label");
+            if lbl_num == 0 {
+                return syn::Error::new(
+                    attr_span,
+                    "suspension-point label must be a positive integer",
+                ).to_compile_error();
+            }
             if label.replace(lbl_num).is_some() {
                 return syn::Error::new(
                     attr_span,
