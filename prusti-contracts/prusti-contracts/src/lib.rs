@@ -345,8 +345,9 @@ pub fn old<T>(arg: T) -> T {
     arg
 }
 
-pub fn suspension_point_on_exit_marker<L, T>(_label: L, _closures: T) {}
-pub fn suspension_point_on_entry_marker<L, T>(_label: L, _closures: T) {}
+pub fn suspension_point_on_exit_marker<T>(_label: u32, _closures: T) {}
+
+pub fn suspension_point_on_entry_marker<T>(_label: u32, _closures: T) {}
 
 /// Universal quantifier.
 ///
