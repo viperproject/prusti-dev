@@ -258,6 +258,9 @@ impl<'vir, Curr, Next> Debug for MethodGenData<'vir, Curr, Next> {
             writeln!(f, "{{")?;
             for block in body.blocks.iter() {
                 writeln!(f, "label {:?}", block.label)?;
+                for inv in block.invariants {
+                    writeln!(f, "  invariant {:?}", inv);
+                }
                 for stmt in block.stmts {
                     writeln!(f, "  {:?}", stmt)?;
                 }

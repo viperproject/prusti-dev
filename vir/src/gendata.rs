@@ -318,6 +318,7 @@ pub struct CfgBlockGenData<'vir, Curr, Next> {
     #[vir(reify_pass, is_ref)] pub label: CfgBlockLabel<'vir>,
     pub stmts: &'vir [StmtGen<'vir, Curr, Next>],
     pub terminator: TerminatorStmtGen<'vir, Curr, Next>,
+    pub invariants: &'vir [ExprGen<'vir, Curr, Next>],
 }
 
 #[derive(VirHash, VirReify, VirSerde)]

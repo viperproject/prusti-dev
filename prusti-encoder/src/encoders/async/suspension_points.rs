@@ -16,15 +16,15 @@ pub struct SuspensionPointAnalysis;
 
 #[derive(Clone, Debug)]
 pub struct SuspensionPoint<'tcx> {
-    label: u32,
+    pub label: u32,
     // the first BB of the busy loop, which is where invariants should be put
-    loop_head: mir::BasicBlock,
+    pub loop_head: mir::BasicBlock,
     // BBs containing the on_exit/on_entry marker function calls, if any
-    on_exit_marker: Option<mir::BasicBlock>,
-    on_entry_marker: Option<mir::BasicBlock>,
+    pub on_exit_marker: Option<mir::BasicBlock>,
+    pub on_entry_marker: Option<mir::BasicBlock>,
     // the place containing the future as well as its pinned reference inside the busy loop
-    future_place: mir::Place<'tcx>,
-    pin_place: mir::Place<'tcx>,
+    pub future_place: mir::Place<'tcx>,
+    pub pin_place: mir::Place<'tcx>,
 }
 
 #[derive(Clone, Debug)]
@@ -90,12 +90,6 @@ impl TaskEncoder for SuspensionPointAnalysis {
                 pin_place: candidate.pin_place.unwrap(),
             })
             .collect();
-
-        println!("Suspension points for {def_id:?}:");
-        for sp in &suspension_points {
-            println!("{sp:?}");
-        }
-        println!();
 
         // TODO: should the ref really be the full result?
         let res = SuspensionPointAnalysisOutput(suspension_points);

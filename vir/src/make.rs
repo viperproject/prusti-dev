@@ -639,11 +639,13 @@ impl<'tcx> VirCtxt<'tcx> {
         label: CfgBlockLabel<'vir>,
         stmts: &'vir [StmtGen<'vir, Curr, Next>],
         terminator: TerminatorStmtGen<'vir, Curr, Next>,
+        invariants: &'vir [ExprGen<'vir, Curr, Next>],
     ) -> CfgBlockGen<'vir, Curr, Next> {
         self.alloc(CfgBlockGenData {
             label,
             stmts,
-            terminator
+            terminator,
+            invariants,
         })
     }
 

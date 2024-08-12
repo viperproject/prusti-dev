@@ -138,7 +138,7 @@ impl TaskEncoder for AsyncPollStubEnc {
             );
 
 
-            let suspension_points = deps.require_ref::<SuspensionPointAnalysis>(def_id).unwrap();
+            let suspension_points = deps.require_local::<SuspensionPointAnalysis>(def_id).unwrap().0;
 
             // encode the stub's specification
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;

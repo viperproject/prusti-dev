@@ -132,6 +132,7 @@ where
                     vcx.alloc(vir::CfgBlockLabelData::Start),
                     vcx.alloc_slice(&start_stmts),
                     vcx.mk_goto_stmt(vcx.alloc(vir::CfgBlockLabelData::BasicBlock(0))),
+                    &[],
                 ));
 
                 let mut visitor = ImpureEncVisitor {
@@ -159,6 +160,7 @@ where
                     vcx.alloc(vir::CfgBlockLabelData::End),
                     &[],
                     vcx.alloc(vir::TerminatorStmtData::Exit),
+                    &[],
                 ));
                 Some(vcx.alloc_slice(&visitor.encoded_blocks))
             } else {

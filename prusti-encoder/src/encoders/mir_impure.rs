@@ -2,7 +2,7 @@ use mir_state_analysis::{
     free_pcs::{CapabilityKind, FreePcsAnalysis, FreePcsBasicBlock, FreePcsLocation, RepackOp},
     utils::Place,
 };
-use prusti_interface::environment::EnvQuery;
+use prusti_interface::{environment::EnvQuery, specs::typed::ProcedureKind};
 use prusti_rustc_interface::{
     abi,
     middle::{
@@ -50,7 +50,7 @@ use crate::{
             func_app_ty_params::LiftedFuncAppTyParamsEnc
         },
         FunctionCallTaskDescription, MirBuiltinEnc,
-        r#async::poll_stub::AsyncPollStubEnc,
+        r#async::{AsyncPollStubEnc, SuspensionPointAnalysis},
         MirSpecEnc,
     }
 };
@@ -618,6 +618,32 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         }
         */
 
+        // if this is the head of an await's busy loop, we need to add some invariants
+        let invariants = (|| {
+            let suspension_points = self.deps.require_local::<SuspensionPointAnalysis>(self.def_id).unwrap().0;
+            let suspension_point = suspension_points
+                .into_iter()
+                .find(|sp| sp.loop_head == block)?;
+            let fut_ty = self.local_decls[suspension_point.future_place.local].ty;
+            let ty::TyKind::Generator(fut_def_id, ..) = self.vcx.tcx().expand_opaque_types(fut_ty).kind() else {
+                return None;
+            };
+            // FIXME: this encodes the invariants for the wrong generator, namely the self-arg,
+            // as it encodes from the polled future's perspective rather than from the polling
+            // future's
+            let fut_invs = self.deps.require_local::<MirSpecEnc>(
+                (*fut_def_id, self.substs, None, false, true)
+            ).unwrap().async_invariants;
+
+            // we now add the necessary invariant about the `ResumeTy`
+            // as well as the polled future's invariants
+            let mut invs = Vec::with_capacity(1 + fut_invs.len());
+            invs.push(self.local_defs.locals[2_u32.into()].impure_pred);
+            invs.extend(fut_invs);
+
+            Some(self.vcx.alloc_slice(&invs))
+        })();
+
         assert!(self.current_terminator.is_none());
         self.super_basic_block_data(block, data);
         let stmts = self.current_stmts.take().unwrap();
@@ -626,7 +652,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             self.vcx.mk_cfg_block(
                 self.vcx.alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())),
                 self.vcx.alloc_slice(&stmts),
-                terminator
+                terminator,
+                invariants.unwrap_or(&[]),
             )
         );
     }
